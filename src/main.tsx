@@ -6,7 +6,9 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
+// Используем URL из переменной окружения или фолбэк для продакшена
+const convexUrl = import.meta.env.VITE_CONVEX_URL || "https://loyal-kookabura-274.convex.cloud";
+const convex = new ConvexReactClient(convexUrl);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

@@ -1,0 +1,15 @@
+.sign-out-button {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 2px solid #ff4a4a;
+  color: #ff4a4a;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sign-out-button:hover {
+  background: #ff4a4a;
+  color: #ffffff;
+} 

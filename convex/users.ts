@@ -1,77 +1,68 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { ConvexError } from "convex/values";
 
 export const registerUser = mutation({
-  args: {
-    email: v.string(),
-    password: v.string(),
+  args: { 
+    email: v.string(), 
+    password: v.string() 
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { email, password }) => {
+    // Check if user already exists
     const existingUser = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .withIndex("by_email", (q) => q.eq("email", email))
       .first();
-
+    
     if (existingUser) {
       throw new Error("Пользователь с таким email уже существует");
     }
-
+    
+    // In a real app, you should hash the password before storing it
     const userId = await ctx.db.insert("users", {
-      email: args.email,
-      password: args.password, // В реальном приложении следует хэшировать пароль
+      email,
+      password, // Insecure for demo purposes
+      createdAt: Date.now(),
+      lastLogin: Date.now()
     });
-
-    return { id: userId, email: args.email };
+    
+    return { id: userId, email };
   },
 });
 
 export const loginUser = mutation({
-  args: {
-    email: v.string(),
-    password: v.string(),
+  args: { 
+    email: v.string(), 
+    password: v.string() 
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { email, password }) => {
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .withIndex("by_email", (q) => q.eq("email", email))
       .first();
-
+    
     if (!user) {
       throw new Error("Пользователь не найден");
     }
-
-    if (!user.password) {
-      throw new Error("Для этого пользователя не установлен пароль");
-    }
-
-    if (user.password !== args.password) {
+    
+    if (user.password !== password) {
       throw new Error("Неверный пароль");
     }
-
+    
+    // Update last login
+    await ctx.db.patch(user._id, { lastLogin: Date.now() });
+    
     return { id: user._id, email: user.email };
   },
 });
 
 export const getUser = query({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const email = identity?.email;
-    
-    if (!email) {
-      return null;
-    }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .first();
-
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    const user = await ctx.db.get(userId);
     if (!user) {
       return null;
     }
-
+    
     return { id: user._id, email: user.email };
   },
-}); 
+});

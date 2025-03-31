@@ -1,10 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useStore } from 'effector-react';
+import { $currentUser } from '../../entities/user/model';
+import { SignOutButton } from '../../components/SignOutButton/SignOutButton';
 import './MainPage.css';
 
 export const MainPage: React.FC = () => {
   const navigate = useNavigate();
-  const user = null; // Временно заменяем на null
+  const user = useStore($currentUser);
 
   return (
     <div className="start-screen">
@@ -33,9 +36,15 @@ export const MainPage: React.FC = () => {
               </div>
             ) : (
               <div className="game-options">
-                <button className="game-button">Новая игра</button>
-                <button className="game-button">Продолжить</button>
-                <button className="game-button">Настройки</button>
+                <button onClick={() => navigate('/game')} className="game-button">
+                  Начать игру
+                </button>
+                <button onClick={() => navigate('/profile')} className="game-button">
+                  Профиль
+                </button>
+                <div className="sign-out-container">
+                  <SignOutButton />
+                </div>
               </div>
             )}
           </div>
@@ -61,4 +70,4 @@ export const MainPage: React.FC = () => {
       </div>
     </div>
   );
-}; 
+};

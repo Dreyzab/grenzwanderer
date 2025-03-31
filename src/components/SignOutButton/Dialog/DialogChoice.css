@@ -1,0 +1,39 @@
+.dialog-choice {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 1rem 1.2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    color: white;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .dialog-choice:hover, .dialog-choice.hovered {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateX(5px);
+  }
+  
+  .choice-arrow {
+    color: #ff4a4a;
+    margin-right: 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s;
+  }
+  
+  .dialog-choice:hover .choice-arrow,
+  .dialog-choice.hovered .choice-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  
+  .choice-text {
+    flex: 1;
+  }

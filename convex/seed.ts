@@ -1,4 +1,5 @@
 import { mutation } from "./_generated/server";
+import { QUEST_STATE, ACTION } from "./quest";
 
 // This function can be called from the Convex dashboard to seed initial data
 export const seedInitialData = mutation({
@@ -16,6 +17,7 @@ export const seedInitialData = mutation({
     // Create character creation scenes
     const characterCreationStart = await ctx.db.insert("scenes", {
       title: "character_creation_start",
+      sceneKey: "character_creation_start",
       background: "/backgrounds/headquarters.jpg",
       text: "Добро пожаловать в тренировочный комплекс Grenzwanderer. Я ваш координатор. Для начала нам нужно выбрать ваше основное оружие. Что предпочитаете?",
       choices: [
@@ -52,6 +54,7 @@ export const seedInitialData = mutation({
     
     const equipmentChoiceScene = await ctx.db.insert("scenes", {
       title: "equipment_choice",
+      sceneKey: "equipment_choice",
       background: "/backgrounds/armory.jpg",
       text: "Отличный выбор! Теперь необходимо выбрать дополнительное снаряжение.",
       choices: [
@@ -82,19 +85,21 @@ export const seedInitialData = mutation({
     
     const trainingStart = await ctx.db.insert("scenes", {
       title: "training_mission_start",
+      sceneKey: "training_mission_start",
       background: "/backgrounds/briefing.jpg",
       text: "Экипировка выбрана! Пора приступать к тренировочной миссии. Ваша задача — добраться до контрольной точки, отмеченной на карте. Будьте внимательны и осторожны.",
       choices: [
         {
           text: "Принять задание",
           nextSceneId: undefined,
-          action: "end_character_creation"
+          action: ACTION.END_CHARACTER_CREATION
         }
       ]
     });
     
     const trainingComplete = await ctx.db.insert("scenes", {
       title: "training_complete",
+      sceneKey: "training_complete",
       background: "/backgrounds/success.jpg",
       text: "Поздравляю! Вы успешно прошли тренировочную миссию. Теперь вы готовы к настоящим заданиям. Ждите дальнейших инструкций от координатора.",
       choices: [
@@ -175,7 +180,7 @@ export const seedInitialData = mutation({
         lng: 37.618423
       },
       radius: 50, // 50 meters radius
-      requiredQuestState: "training_mission",
+      requiredQuestState: QUEST_STATE.TRAINING_MISSION,
       linkedSceneId: trainingComplete,
       isActive: true
     });

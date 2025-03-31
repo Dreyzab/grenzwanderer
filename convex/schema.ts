@@ -5,8 +5,9 @@ export default defineSchema({
   users: defineTable({
     email: v.string(),
     password: v.string(), // In production, this should be a hashed value!
-    createdAt: v.optional(v.number()),
-    lastLogin: v.optional(v.number())
+    createdAt: v.number(),
+    lastLogin: v.optional(v.number()),
+    passwordReset: v.optional(v.boolean())
   }).index("by_email", ["email"]),
 
   players: defineTable({
@@ -36,11 +37,17 @@ export default defineSchema({
       lat: v.number(),
       lng: v.number(),
       timestamp: v.number()
-    }))
+    })),
+    inventory: v.optional(v.array(v.string())),
+    discoveredNpcs: v.optional(v.array(v.id("npcs"))),
+    activeQuests: v.optional(v.array(v.string())),
+    completedQuests: v.optional(v.array(v.string())),
+    experience: v.optional(v.number())
   }).index("by_userId", ["userId"]),
   
   scenes: defineTable({
     title: v.string(),
+    sceneKey: v.string(), // Уникальный ключ для идентификации сцены
     background: v.optional(v.string()),
     text: v.string(),
     choices: v.array(v.object({
@@ -53,7 +60,7 @@ export default defineSchema({
         consumables: v.optional(v.array(v.string()))
       }))
     }))
-  }),
+  }).index("by_sceneKey", ["sceneKey"]),
 
   mapPoints: defineTable({
     title: v.string(),
@@ -70,7 +77,7 @@ export default defineSchema({
 
   qrCodes: defineTable({
     code: v.string(),
-    type: v.string(), // "start_quest", "item", "location", etc.
+    type: v.string(), // "start_quest", "npc", "item", "location", etc.
     data: v.any(), // Custom data based on the type
     isOneTime: v.boolean(), // If true, can only be used once
     usedBy: v.optional(v.array(v.id("players"))) // List of players who used this code
@@ -101,5 +108,26 @@ export default defineSchema({
     description: v.string(),
     objectives: v.array(v.string()),
     specialAbilities: v.optional(v.array(v.string()))
+  }),
+
+  npcs: defineTable({
+    name: v.string(),
+    type: v.string(), // "trader", "craftsman", "officer", etc.
+    faction: v.string(),
+    description: v.string(),
+    coordinates: v.object({
+      lat: v.number(),
+      lng: v.number()
+    }),
+    isShop: v.boolean(),
+    shopItems: v.optional(v.array(v.string()))
+  }),
+  
+  items: defineTable({
+    name: v.string(),
+    type: v.string(), // "weapon", "armor", "consumable", "quest", etc.
+    description: v.string(),
+    value: v.number(),
+    effects: v.optional(v.array(v.string()))
   })
 });

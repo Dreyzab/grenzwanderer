@@ -1,6 +1,8 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+import { QUEST_STATE, FACTION } from "./quest"; // предполагаем, что константы экспортированы
+
 // Check if player profile exists, create it if not
 export const getOrCreatePlayer = mutation({
   args: { 
@@ -29,7 +31,7 @@ export const getOrCreatePlayer = mutation({
     const playerId = await ctx.db.insert("players", {
       userId,
       nickname: playerNickname,
-      faction: "neutrals",
+      faction: FACTION.NEUTRALS,
       reputation: {
         officers: 0,
         villains: 0,
@@ -40,9 +42,13 @@ export const getOrCreatePlayer = mutation({
         primary: "", 
         consumables: [] 
       },
-      questState: "registered",
+      questState: QUEST_STATE.REGISTERED,
       creationStep: 0,
-      locationHistory: []
+      locationHistory: [],
+      inventory: [],
+      discoveredNpcs: [],
+      activeQuests: [],
+      completedQuests: []
     });
     
     return await ctx.db.get(playerId);

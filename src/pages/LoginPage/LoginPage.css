@@ -91,6 +91,16 @@
   font-size: 0.9rem;
 }
 
+.success-message {
+  color: #4aff4a;
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  background: rgba(0, 100, 0, 0.2);
+  padding: 0.75rem;
+  border-radius: 5px;
+}
+
 .register-link {
   color: #4a9eff;
   text-align: center;
@@ -101,4 +111,42 @@
 
 .register-link:hover {
   text-decoration: underline;
+}
+
+.auth-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 0.5rem;
+}
+
+.forgot-password-link {
+  color: #4a9eff;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.forgot-password-link:hover {
+  color: #6aafff;
+}
+
+.back-button {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: transparent;
+  color: #4a9eff;
+  border: 1px solid #4a9eff;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background: rgba(74, 158, 255, 0.1);
 } 

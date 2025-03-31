@@ -1,9 +1,75 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+// Определяем константы для состояний квестов
+export const QUEST_STATE = {
+  CHARACTER_CREATION: "character_creation",
+  DELIVERY_STARTED: "delivery_started",
+  PARTS_COLLECTED: "parts_collected",
+  ARTIFACT_HUNT: "artifact_hunt",
+  ARTIFACT_FOUND: "artifact_found",
+  TRAINING_MISSION: "training_mission",
+  NEW_MESSAGE: "new_message",
+  QUEST_COMPLETION: "quest_completion",
+  FREE_ROAM: "free_roam",
+  REGISTERED: "registered"
+} as const;
+
+// Определяем константы для типов NPC
+export const NPC_TYPE = {
+  TRADER: "trader",
+  CRAFTSMAN: "craftsman",
+  OFFICER: "officer"
+} as const;
+
+// Определяем константы для ключей сцен
+export const SCENE_KEY = {
+  TRADER_MEETING: "trader_meeting",
+  CRAFTSMAN_MEETING: "craftsman_meeting",
+  ARTIFACT_FOUND: "Артефакт найден", // Используем существующее значение
+  CHARACTER_CREATION_START: "character_creation_start",
+  TRAINING_MISSION_START: "training_mission_start",
+  NEW_DELIVERY_QUEST: "new_delivery_quest"
+} as const;
+
+// Определяем константы для действий
+export const ACTION = {
+  END_CHARACTER_CREATION: "end_character_creation",
+  START_DELIVERY_QUEST: "start_delivery_quest",
+  TAKE_PARTS: "take_parts",
+  ACCEPT_ARTIFACT_QUEST: "accept_artifact_quest",
+  HELP_ORK: "help_ork",
+  KILL_BOTH: "kill_both",
+  IGNORE_ENCOUNTER: "ignore_encounter",
+  RETURN_TO_CRAFTSMAN: "return_to_craftsman",
+  COMPLETE_DELIVERY_QUEST: "complete_delivery_quest"
+} as const;
+
+// Определяем константы для предметов
+export const ITEM = {
+  ENERGY_CRYSTAL: "energy_crystal",
+  VALUABLE_PARTS: "valuable_parts",
+  MONEY_REWARD: "money_reward",
+  RARE_COMPONENT: "rare_component"
+} as const;
+
+// Определяем константы для квестов
+export const QUEST = {
+  DELIVERY: "delivery",
+  MAIN: "main"
+} as const;
+
+// Определяем константы для фракций
+export const FACTION = {
+  OFFICERS: "officers",
+  VILLAINS: "villains",
+  NEUTRALS: "neutrals",
+  SURVIVORS: "survivors"
+} as const;
+
 // Activate quest by QR code
 export const activateQuestByQR = mutation({
-  args: { 
+  args: {
     playerId: v.id("players"),
     qrCode: v.string()
   },
@@ -13,55 +79,152 @@ export const activateQuestByQR = mutation({
     if (!player) {
       throw new Error("Игрок не найден");
     }
-    
+
     // Check QR code
     const qrData = await ctx.db
       .query("qrCodes")
       .withIndex("by_code", (q) => q.eq("code", qrCode))
       .first();
-    
+
     if (!qrData) {
       throw new Error("Неверный QR-код");
     }
-    
-    // Check if code is one-time and already used
-    if (qrData.isOneTime && qrData.usedBy && qrData.usedBy.includes(playerId)) {
+
+    // Check if code is one-time and already used by this player
+    // Ensure usedBy is treated as an array even if initially null/undefined
+    const usedBy = qrData.usedBy ?? [];
+    if (qrData.isOneTime && usedBy.includes(playerId)) {
       throw new Error("Этот QR-код уже был использован вами");
     }
-    
+
     // Process the QR code based on its type
     if (qrData.type === "start_quest") {
       // Mark code as used if it's one-time
       if (qrData.isOneTime) {
         await ctx.db.patch(qrData._id, {
-          usedBy: [...(qrData.usedBy || []), playerId]
+          usedBy: [...usedBy, playerId] // Append player ID to the existing array
         });
       }
-      
+
+      // Проверяем, что qrData.data существует перед доступом к его свойствам
+      const questData = qrData.data || {};
+      const questLine = questData.questLine || QUEST.MAIN;
+
       // Update player state to character creation
       await ctx.db.patch(playerId, {
-        questState: "character_creation"
+        questState: QUEST_STATE.CHARACTER_CREATION,
+        activeQuests: [...(player.activeQuests || []), questLine]
       });
-      
+
       return {
         message: "Квестовая цепочка активирована! Пора создать вашего персонажа.",
-        questState: "character_creation"
+        questState: QUEST_STATE.CHARACTER_CREATION
+      };
+    } else if (qrData.type === "npc") {
+      // Interact with NPC
+      const npcType = qrData.data.npcId; // Assuming npcId in data holds the NPC *type* (e.g., "trader")
+
+      // Find NPC by type
+      // TODO: Confirm if lookup should be by a unique ID instead of 'type' if these represent specific instances.
+      const npc = await ctx.db
+        .query("npcs")
+        .filter(q => q.eq(q.field("type"), npcType))
+        .first();
+
+      if (!npc) {
+        // Consider more specific error if type is known but NPC doc is missing
+        throw new Error(`NPC с типом '${npcType}' не найден`);
+      }
+
+      // Find appropriate scene based on the NPC type and player quest state
+      // TODO: This logic is brittle. Consider storing scene transitions in data (NPCs, quests, or scenes).
+      // TODO: Replace title lookups with lookups by a unique, stable key (e.g., 'sceneKey').
+      let sceneId = null;
+      let targetSceneKey: string | null = null;
+
+      if (npcType === NPC_TYPE.TRADER && player.questState === QUEST_STATE.DELIVERY_STARTED) {
+        targetSceneKey = SCENE_KEY.TRADER_MEETING;
+      } else if (npcType === NPC_TYPE.CRAFTSMAN && player.questState === QUEST_STATE.PARTS_COLLECTED) {
+        targetSceneKey = SCENE_KEY.CRAFTSMAN_MEETING;
+      }
+      // Add more conditions for other NPC interactions here...
+
+      if (targetSceneKey) {
+        const targetScene = await ctx.db
+          .query("scenes")
+          .withIndex("by_sceneKey", (q) => q.eq("sceneKey", targetSceneKey))
+          .first();
+
+        if (targetScene) {
+          sceneId = targetScene._id;
+        } else {
+          console.warn(`Scene with key '${targetSceneKey}' not found`);
+        }
+      }
+
+      // Add NPC to player's discovered NPCs if not already present
+      const discoveredNpcs = player.discoveredNpcs || [];
+      if (!discoveredNpcs.includes(npc._id)) {
+        await ctx.db.patch(playerId, {
+          discoveredNpcs: [...discoveredNpcs, npc._id]
+        });
+      }
+
+      return {
+        message: `Вы встретили ${npc.name}`,
+        npcId: npc._id, // Return the actual NPC document ID
+        sceneId // This might be null if no specific scene is triggered
       };
     } else if (qrData.type === "item") {
       // Logic for item QR codes
-      // ...
-    } else if (qrData.type === "location") {
-      // Logic for location QR codes
-      // ...
+      const itemId = qrData.data.itemId;
+
+      // Example: Energy Crystal during Artifact Hunt
+      if (itemId === ITEM.ENERGY_CRYSTAL && player.questState === QUEST_STATE.ARTIFACT_HUNT) {
+        // Mark code as used if it's one-time
+        if (qrData.isOneTime) {
+          await ctx.db.patch(qrData._id, {
+            usedBy: [...usedBy, playerId]
+          });
+        }
+
+        // Find the artifact found scene
+        const artifactScene = await ctx.db
+          .query("scenes")
+          .withIndex("by_sceneKey", (q) => q.eq("sceneKey", SCENE_KEY.ARTIFACT_FOUND))
+          .first();
+
+        if (artifactScene) {
+          // Update player state and inventory
+          await ctx.db.patch(playerId, {
+            questState: QUEST_STATE.ARTIFACT_FOUND,
+            inventory: [...(player.inventory || []), ITEM.ENERGY_CRYSTAL]
+          });
+
+          return {
+            message: "Вы нашли кристалл чистой энергии!",
+            sceneId: artifactScene._id
+          };
+        } else {
+          console.warn(`Scene with key '${SCENE_KEY.ARTIFACT_FOUND}' not found.`);
+          throw new Error("Сцена для найденного артефакта не найдена.");
+        }
+      }
+
+      // Add conditions for other items here...
+
+      // If no condition matched for the item/quest state
+      throw new Error("Предмет не может быть использован в данный момент");
     }
-    
-    throw new Error("Неизвестный тип QR-кода");
+
+    // If QR code type is unknown or not handled
+    throw new Error(`Неизвестный или необработанный тип QR-кода: ${qrData.type}`);
   },
 });
 
 // Get current scene for player
 export const getCurrentScene = query({
-  args: { 
+  args: {
     playerId: v.id("players")
   },
   handler: async (ctx, { playerId }) => {
@@ -69,42 +232,47 @@ export const getCurrentScene = query({
     if (!player) {
       throw new Error("Игрок не найден");
     }
-    
-    // Based on player's state, return the appropriate scene
-    if (player.questState === "character_creation") {
-      // Get character creation scene based on step
+
+    let targetSceneKey: string | null = null;
+
+    // Based on player's state, determine the appropriate scene key
+    if (player.questState === QUEST_STATE.CHARACTER_CREATION) {
       const creationStep = player.creationStep || 0;
-      
-      // Find the first scene for character creation
       if (creationStep === 0) {
-        const scene = await ctx.db
-          .query("scenes")
-          .filter(q => q.eq(q.field("title"), "character_creation_start"))
-          .first();
-        
-        return scene;
+        targetSceneKey = SCENE_KEY.CHARACTER_CREATION_START;
       }
-      
-      // For other steps, we'd need additional logic
-      // ...
-    } else if (player.questState === "training_mission") {
-      // Get training mission scene
+      // TODO: Add logic for other character creation steps if they map to different scenes
+    } else if (player.questState === QUEST_STATE.TRAINING_MISSION) {
+      targetSceneKey = SCENE_KEY.TRAINING_MISSION_START;
+    } else if (player.questState === QUEST_STATE.NEW_MESSAGE) {
+      targetSceneKey = SCENE_KEY.NEW_DELIVERY_QUEST;
+    }
+    // Add mappings for other quest states...
+    // else if (player.questState === "some_other_state") { targetSceneKey = "some_other_scene_key"; }
+
+
+    if (targetSceneKey) {
+      // Используем индекс by_sceneKey для поиска сцены
       const scene = await ctx.db
         .query("scenes")
-        .filter(q => q.eq(q.field("title"), "training_mission_start"))
+        .withIndex("by_sceneKey", (q) => q.eq("sceneKey", targetSceneKey))
         .first();
-      
-      return scene;
+
+      if (!scene) {
+        console.warn(`Current scene not found for player ${playerId} with questState '${player.questState}' (expected key: '${targetSceneKey}')`);
+      }
+      return scene; // Return scene document or null if not found
     }
-    
-    // Default case - return null if no scene found
+
+    // Default case - return null if no scene corresponds to the current state
+    console.log(`No specific scene defined for player ${playerId} with questState '${player.questState}'`);
     return null;
   },
 });
 
 // Handle scene choice
 export const makeSceneChoice = mutation({
-  args: { 
+  args: {
     playerId: v.id("players"),
     sceneId: v.id("scenes"),
     choiceIndex: v.number()
@@ -114,65 +282,314 @@ export const makeSceneChoice = mutation({
     if (!player) {
       throw new Error("Игрок не найден");
     }
-    
+
     const scene = await ctx.db.get(sceneId);
     if (!scene) {
       throw new Error("Сцена не найдена");
     }
-    
-    if (choiceIndex < 0 || choiceIndex >= scene.choices.length) {
-      throw new Error("Неверный индекс выбора");
+
+    if (!scene.choices || choiceIndex < 0 || choiceIndex >= scene.choices.length) {
+      throw new Error("Неверный индекс выбора или сцена не имеет выборов");
     }
-    
+
     const choice = scene.choices[choiceIndex];
-    
+
+    // --- Prepare updates (gather all changes before patching) ---
+    const playerUpdates: Partial<typeof player> = {};
+    let nextSceneId = choice.nextSceneId ?? null; // Default to null if not specified
+    let message = "Вы сделали выбор."; // Default message
+    let questStateUpdate = player.questState; // Keep current state unless action changes it
+
     // Update equipment if needed
     if (choice.equipmentChanges) {
-      const updatedEquipment = { ...player.equipment };
-      
+      // Ensure player.equipment exists and create a mutable copy
+      const updatedEquipment = { ...(player.equipment ?? {}) };
+
       if (choice.equipmentChanges.primary) {
         updatedEquipment.primary = choice.equipmentChanges.primary;
       }
-      
       if (choice.equipmentChanges.secondary) {
         updatedEquipment.secondary = choice.equipmentChanges.secondary;
       }
-      
-      if (choice.equipmentChanges.consumables) {
-        updatedEquipment.consumables = choice.equipmentChanges.consumables;
+      if (choice.equipmentChanges.consumables && choice.equipmentChanges.consumables.length > 0) {
+        updatedEquipment.consumables = [
+          ...(updatedEquipment.consumables || []),
+          ...choice.equipmentChanges.consumables
+        ];
       }
-      
-      await ctx.db.patch(playerId, {
-        equipment: updatedEquipment
-      });
+      playerUpdates.equipment = updatedEquipment;
     }
-    
+
     // Handle special actions
+    // TODO: Refactor this large block if it grows. Consider functions per action type or a data-driven approach.
     if (choice.action) {
-      if (choice.action === "end_character_creation") {
-        await ctx.db.patch(playerId, {
-          questState: "training_mission"
-        });
-        
-        return {
-          message: "Создание персонажа завершено! Переходим к тренировочной миссии.",
-          nextSceneId: choice.nextSceneId,
-          questState: "training_mission"
-        };
+      // Ensure reputation exists and create a mutable copy
+      const updatedReputation = { ...(player.reputation ?? {}) };
+      // Ensure inventory exists and create a mutable copy
+      let updatedInventory = [...(player.inventory || [])];
+      // Ensure quest lists exist and create mutable copies
+      let updatedActiveQuests = [...(player.activeQuests || [])];
+      let updatedCompletedQuests = [...(player.completedQuests || [])];
+      let updatedExperience = player.experience || 0;
+
+      let reputationChanged = false;
+      let inventoryChanged = false;
+      let questsChanged = false;
+      let experienceChanged = false;
+
+      // --- Action Logic ---
+      if (choice.action === ACTION.END_CHARACTER_CREATION) {
+        questStateUpdate = QUEST_STATE.TRAINING_MISSION;
+        message = "Создание персонажа завершено! Переходим к тренировочной миссии.";
+      } else if (choice.action === ACTION.START_DELIVERY_QUEST) {
+        questStateUpdate = QUEST_STATE.DELIVERY_STARTED;
+        if (!updatedActiveQuests.includes(QUEST.DELIVERY)) {
+          updatedActiveQuests.push(QUEST.DELIVERY);
+          questsChanged = true;
+        }
+        message = "Задание получено! Найдите торговца и возьмите запчасти.";
+      } else if (choice.action === ACTION.TAKE_PARTS) {
+        questStateUpdate = QUEST_STATE.PARTS_COLLECTED;
+        if (!updatedInventory.includes(ITEM.VALUABLE_PARTS)) {
+          updatedInventory.push(ITEM.VALUABLE_PARTS);
+          inventoryChanged = true;
+        }
+        message = "Вы получили ценные запчасти. Теперь нужно доставить их Дитеру.";
+      } else if (choice.action === ACTION.ACCEPT_ARTIFACT_QUEST) {
+        questStateUpdate = QUEST_STATE.ARTIFACT_HUNT;
+        message = "Вы согласились найти артефакт для Дитера.";
+      } else if (choice.action === ACTION.HELP_ORK) {
+        const factionKey = FACTION.VILLAINS as keyof typeof updatedReputation;
+        const currentRep = updatedReputation[factionKey] || 0;
+        updatedReputation[factionKey] = currentRep + 15;
+        reputationChanged = true;
+        message = "Вы помогли орку. Ваша репутация среди Злодеев повысилась.";
+      } else if (choice.action === ACTION.KILL_BOTH) {
+        const factionKey = FACTION.VILLAINS as keyof typeof updatedReputation;
+        const currentRep = updatedReputation[factionKey] || 0;
+        updatedReputation[factionKey] = currentRep - 20;
+        reputationChanged = true;
+        message = "Вы убили орка и волка. Ваша репутация среди Злодеев понизилась.";
+      } else if (choice.action === ACTION.IGNORE_ENCOUNTER) {
+        message = "Вы решили не вмешиваться.";
+      } else if (choice.action === ACTION.RETURN_TO_CRAFTSMAN) {
+        questStateUpdate = QUEST_STATE.QUEST_COMPLETION;
+        const initialLength = updatedInventory.length;
+        updatedInventory = updatedInventory.filter(item => item !== ITEM.ENERGY_CRYSTAL);
+        if (updatedInventory.length !== initialLength) {
+          inventoryChanged = true;
+        }
+        message = "Вы возвращаетесь к Дитеру с артефактом.";
+      } else if (choice.action === ACTION.COMPLETE_DELIVERY_QUEST) {
+        questStateUpdate = QUEST_STATE.FREE_ROAM;
+
+        // Update reputation
+        const factionKey = FACTION.OFFICERS as keyof typeof updatedReputation;
+        const currentRep = updatedReputation[factionKey] || 0;
+        updatedReputation[factionKey] = currentRep + 20;
+        reputationChanged = true;
+
+        // Give reward
+        if (!updatedInventory.includes(ITEM.MONEY_REWARD)) updatedInventory.push(ITEM.MONEY_REWARD);
+        if (!updatedInventory.includes(ITEM.RARE_COMPONENT)) updatedInventory.push(ITEM.RARE_COMPONENT);
+        inventoryChanged = true;
+
+        // Update quests
+        if (!updatedCompletedQuests.includes(QUEST.DELIVERY)) updatedCompletedQuests.push(QUEST.DELIVERY);
+        const initialActiveLength = updatedActiveQuests.length;
+        updatedActiveQuests = updatedActiveQuests.filter(q => q !== QUEST.DELIVERY);
+        if (updatedActiveQuests.length !== initialActiveLength || !updatedCompletedQuests.includes(QUEST.DELIVERY)) {
+          questsChanged = true;
+        }
+
+        // Give XP
+        updatedExperience += 100;
+        experienceChanged = true;
+
+        message = "Задание 'Доставка и дилемма' выполнено! Вы получили награду и опыт.";
       }
-      // Other special actions...
+      // Add other actions here...
+      else {
+          console.warn(`Unhandled action type: ${choice.action}`);
+      }
+
+      // --- Apply collected updates ---
+      if (questStateUpdate !== player.questState) {
+        playerUpdates.questState = questStateUpdate;
+      }
+      if (reputationChanged) {
+        playerUpdates.reputation = updatedReputation;
+      }
+      if (inventoryChanged) {
+        playerUpdates.inventory = updatedInventory;
+      }
+      if (questsChanged) {
+        playerUpdates.activeQuests = updatedActiveQuests;
+        playerUpdates.completedQuests = updatedCompletedQuests;
+      }
+      if (experienceChanged) {
+        playerUpdates.experience = updatedExperience;
+      }
+    } // End of action handling
+
+    // --- Perform DB Patch ---
+    // Only patch if there are actual changes to apply
+    if (Object.keys(playerUpdates).length > 0) {
+      await ctx.db.patch(playerId, playerUpdates);
     }
-    
-    // Advance to next scene
-    if (choice.nextSceneId) {
-      return {
-        message: "Вы сделали выбор.",
-        nextSceneId: choice.nextSceneId
-      };
+
+    // --- Return result ---
+    // Construct the result object based on calculated values
+    const result: { message: string; nextSceneId?: typeof sceneId; questState?: string } = {
+      message: message,
+    };
+    if (nextSceneId) {
+      result.nextSceneId = nextSceneId;
     }
-    
+    // Optionally return the new quest state if it changed
+    if (playerUpdates.questState) {
+      result.questState = playerUpdates.questState;
+    }
+
+    return result;
+  },
+});
+
+
+// Get player's discovered NPCs
+export const getDiscoveredNpcs = query({
+  args: {
+    playerId: v.id("players")
+  },
+  handler: async (ctx, { playerId }) => {
+    const player = await ctx.db.get(playerId);
+    if (!player) {
+      throw new Error("Игрок не найден");
+    }
+
+    const discoveredNpcIds = player.discoveredNpcs;
+    if (!discoveredNpcIds || discoveredNpcIds.length === 0) {
+      return []; // Return empty array if none discovered
+    }
+
+    // Fetch all discovered NPCs concurrently
+    const npcPromises = discoveredNpcIds.map(npcId => ctx.db.get(npcId));
+    const npcs = await Promise.all(npcPromises);
+
+    // Filter out any null results (e.g., if an NPC was deleted)
+    // and ensure the result is typed correctly
+    return npcs.filter(npc => npc !== null) as NonNullable<typeof npcs[number]>[];
+  },
+});
+
+// Get player's quests
+export const getPlayerQuests = query({
+  args: {
+    playerId: v.id("players")
+  },
+  handler: async (ctx, { playerId }) => {
+    const player = await ctx.db.get(playerId);
+    if (!player) {
+      throw new Error("Игрок не найден");
+    }
+
+    // Return active and completed quests, defaulting to empty arrays if undefined
     return {
-      message: "Выбор сделан, но следующая сцена не определена."
+      active: player.activeQuests ?? [],
+      completed: player.completedQuests ?? []
     };
   },
+});
+
+// Start delivery quest (Example of triggering a quest/scene externally)
+export const startDeliveryQuest = mutation({
+  args: {
+    playerId: v.id("players")
+  },
+  handler: async (ctx, { playerId }) => {
+    const player = await ctx.db.get(playerId);
+    if (!player) {
+      throw new Error("Игрок не найден");
+    }
+
+    // Find the quest start scene using a key
+    const sceneKey = SCENE_KEY.NEW_DELIVERY_QUEST;
+    const questStartScene = await ctx.db
+      .query("scenes")
+      .withIndex("by_sceneKey", (q) => q.eq("sceneKey", sceneKey))
+      .first();
+
+    if (!questStartScene) {
+      throw new Error(`Сцена начала квеста с ключом '${sceneKey}' не найдена`);
+    }
+
+    // Update player state to indicate the new message/quest offer
+    await ctx.db.patch(playerId, {
+      questState: QUEST_STATE.NEW_MESSAGE
+    });
+
+    return {
+      message: "Вы получили новое сообщение!",
+      sceneId: questStartScene._id // Return the ID of the scene to navigate to
+    };
+  },
+});
+
+// Функция для инициализации сцен с ключами и получения их ID
+export const initSceneKeys = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Получаем все сцены
+    const scenes = await ctx.db.query("scenes").collect();
+
+    // Обновляем каждую сцену, добавляя sceneKey, если его нет
+    const updates = scenes.map(async (scene) => {
+      // Если у сцены нет ключа, создаем его на основе заголовка
+      if (!scene.sceneKey) {
+        const sceneKey = scene.title
+          .toLowerCase()
+          .replace(/[^a-z0-9_]/g, "_"); // Преобразуем заголовок в безопасный ключ
+        
+        await ctx.db.patch(scene._id, { sceneKey });
+        
+        return {
+          id: scene._id,
+          title: scene.title,
+          sceneKey
+        };
+      }
+      
+      return {
+        id: scene._id,
+        title: scene.title,
+        sceneKey: scene.sceneKey
+      };
+    });
+
+    // Получаем результаты обновлений
+    const results = await Promise.all(updates);
+    
+    // Возвращаем соответствие ключей к ID для использования в коде
+    return {
+      sceneMap: results.reduce((map, scene) => {
+        map[scene.sceneKey] = scene.id;
+        return map;
+      }, {} as Record<string, string>),
+      scenes: results
+    };
+  }
+});
+
+// Функция для получения сцены по ключу
+export const getSceneByKey = query({
+  args: { sceneKey: v.string() },
+  handler: async (ctx, { sceneKey }) => {
+    // Ищем сцену по ключу, используя индекс
+    const scene = await ctx.db
+      .query("scenes")
+      .withIndex("by_sceneKey", (q) => q.eq("sceneKey", sceneKey))
+      .first();
+
+    return scene;
+  }
 });

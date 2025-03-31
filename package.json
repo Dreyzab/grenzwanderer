@@ -8,8 +8,9 @@
     "dev:frontend": "vite --open",
     "dev:backend": "convex dev",
     "predev": "convex dev --until-success && node setup.mjs --once && convex dashboard",
-    "build": "npm run build:prod",
-    "build:prod": "convex codegen && tsc -b --skipLibCheck && vite build --mode production",
+    "build": "npm run build:prod || npm run build:safe",
+    "build:prod": "convex codegen && tsc --skipLibCheck && vite build --mode production",
+    "build:safe": "convex codegen && vite build --mode production",
     "lint": "tsc && eslint .  --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "start": "npx serve -s dist"

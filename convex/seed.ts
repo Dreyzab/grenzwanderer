@@ -1,5 +1,4 @@
 import { mutation } from "./_generated/server";
-import { v } from "convex/values";
 
 // This function can be called from the Convex dashboard to seed initial data
 export const seedInitialData = mutation({
@@ -107,7 +106,7 @@ export const seedInitialData = mutation({
     });
     
     // Update scene references
-    const updatedCharacterCreation = await ctx.db.patch(characterCreationStart, {
+    await ctx.db.patch(characterCreationStart, {
       choices: [
         {
           text: "HK G3 - надежная штурмовая винтовка",
@@ -140,7 +139,7 @@ export const seedInitialData = mutation({
       ]
     });
     
-    const updatedEquipmentChoice = await ctx.db.patch(equipmentChoiceScene, {
+    await ctx.db.patch(equipmentChoiceScene, {
       choices: [
         {
           text: "1 граната и 2 аптечки",

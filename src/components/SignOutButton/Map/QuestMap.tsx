@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import './QuestMap.css';
 
 interface QuestMapProps {
-  playerId: string;
 }
 
-export const QuestMap: React.FC<QuestMapProps> = ({ playerId }) => {
+export const QuestMap: React.FC<QuestMapProps> = () => {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, _] = useState<string | null>(null);
   
   useEffect(() => {
     // Имитация загрузки данных карты

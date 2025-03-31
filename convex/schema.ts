@@ -5,7 +5,7 @@ export default defineSchema({
   users: defineTable({
     email: v.string(),
     password: v.string(), // In production, this should be a hashed value!
-    createdAt: v.number(),
+    createdAt: v.optional(v.number()),
     lastLogin: v.optional(v.number())
   }).index("by_email", ["email"]),
 

@@ -2,12 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import './QRScanner.css';
 
 interface QRScannerProps {
-  playerId: string;
   onSuccess: (code: string) => void;
   onCancel: () => void;
 }
 
-export const QRScanner: React.FC<QRScannerProps> = ({ playerId, onSuccess, onCancel }) => {
+export const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
   const [error, setError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);

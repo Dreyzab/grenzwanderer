@@ -37,3 +37,21 @@
   .choice-text {
     flex: 1;
   }
+
+.choice-button {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 1rem;
+  text-align: left;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.choice-button:hover {
+  background: rgba(74, 158, 255, 0.6);
+  transform: translateY(-2px);
+}

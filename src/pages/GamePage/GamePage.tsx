@@ -6,12 +6,12 @@ import { QRScanner } from '../../components/SignOutButton/QR/QRScanner';
 import { GameScreen } from '../../components/SignOutButton/Dialog/GameScreen';
 import { QuestMap } from '../../components/SignOutButton/Map/QuestMap';
 import { SignOutButton } from '../../components/SignOutButton/SignOutButton';
-import { useStore } from 'effector-react';
+import { useUnit } from 'effector-react';
 import { $currentUser } from '../../entities/user/model';
 import './GamePage.css';
 
 export const GamePage: React.FC = () => {
-  const user = useStore($currentUser);
+  const user = useUnit($currentUser);
   const navigate = useNavigate();
   const [activeScreen, setActiveScreen] = useState<'map' | 'dialog' | 'scanner'>('map');
   
@@ -84,14 +84,11 @@ export const GamePage: React.FC = () => {
       {/* Active screen */}
       <div className="game-content">
         {activeScreen === 'map' && (
-          <QuestMap 
-            playerId={playerId}
-          />
+          <QuestMap />
         )}
         
         {activeScreen === 'dialog' && (
           <GameScreen 
-            playerId={playerId}
             onExit={() => setActiveScreen('map')}
           />
         )}
@@ -99,7 +96,6 @@ export const GamePage: React.FC = () => {
         {activeScreen === 'scanner' && (
           <div className="scanner-container">
             <QRScanner 
-              playerId={playerId}
               onSuccess={handleScannerSuccess}
               onCancel={() => setActiveScreen('map')}
             />

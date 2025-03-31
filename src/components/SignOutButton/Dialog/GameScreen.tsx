@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useMutation, useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+import React, { useState } from 'react';
 import './GameScreen.css';
 
 interface GameScreenProps {
-  playerId: string;
   onExit: () => void;
 }
 
-export const GameScreen: React.FC<GameScreenProps> = ({ playerId, onExit }) => {
-  const [currentScene, setCurrentScene] = useState<any>(null);
+export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
+  const [currentScene, _] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

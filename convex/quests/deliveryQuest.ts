@@ -8,7 +8,7 @@ export const initializeDeliveryQuest = mutation({
   handler: async (ctx) => {
     // Create QR codes for NPCs
     const traderQrCode = await ctx.db.insert("qrCodes", {
-      code: "TRADER_NPC_2023",
+      code: "grenz_npc_trader_01",
       type: "npc",
       data: { 
         npcId: "trader",
@@ -19,7 +19,7 @@ export const initializeDeliveryQuest = mutation({
     });
     
     const craftsmanQrCode = await ctx.db.insert("qrCodes", {
-      code: "CRAFTSMAN_NPC_2023",
+      code: "grenz_npc_craftsman_01",
       type: "npc",
       data: { 
         npcId: "craftsman",

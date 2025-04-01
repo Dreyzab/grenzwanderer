@@ -4,11 +4,17 @@ import { v } from "convex/values";
 export default defineSchema({
   users: defineTable({
     email: v.string(),
-    password: v.string(), // In production, this should be a hashed value!
+    password: v.string(), // Хранит хеш пароля
+    salt: v.string(), // Соль для хеширования
     createdAt: v.number(),
     lastLogin: v.optional(v.number()),
-    passwordReset: v.optional(v.boolean())
-  }).index("by_email", ["email"]),
+    passwordReset: v.optional(v.boolean()),
+    failedLoginAttempts: v.optional(v.number()), // Счетчик неудачных попыток входа
+    lastFailedLogin: v.optional(v.number()), // Время последней неудачной попытки
+    accountLocked: v.optional(v.boolean()) // Флаг блокировки аккаунта
+  }).index("by_email", ["email"])
+  .index("by_lastLogin", ["lastLogin"]) // Индекс для оптимизации запросов по времени последнего входа
+  .index("by_createdAt", ["createdAt"]), // Индекс для оптимизации запросов по дате создания
 
   players: defineTable({
     userId: v.id("users"),
@@ -33,23 +39,43 @@ export default defineSchema({
     }),
     questState: v.string(), // "registered", "character_creation", "training_mission", etc.
     creationStep: v.optional(v.number()),
-    locationHistory: v.array(v.object({
+    locationHistory: v.array(v.object({ // Ограничиваем размер массива в коде
       lat: v.number(),
       lng: v.number(),
       timestamp: v.number()
     })),
-    inventory: v.optional(v.array(v.string())),
-    discoveredNpcs: v.optional(v.array(v.id("npcs"))),
-    activeQuests: v.optional(v.array(v.string())),
-    completedQuests: v.optional(v.array(v.string())),
-    experience: v.optional(v.number())
-  }).index("by_userId", ["userId"]),
+    inventory: v.optional(v.array(v.string())), // Ограничиваем размер в коде
+    discoveredNpcs: v.optional(v.array(v.id("npcs"))), // Ограничиваем размер в коде
+    activeQuests: v.optional(v.array(v.string())), // Ограничиваем размер в коде
+    completedQuests: v.optional(v.array(v.string())), // Ограничиваем размер в коде
+    experience: v.optional(v.number()),
+    lastLocationUpdate: v.optional(v.number()), // Для ограничения частоты обновлений
+    maxInventorySize: v.optional(v.number()), // Максимальный размер инвентаря
+    maxLocationHistory: v.optional(v.number()), // Максимальный размер истории локаций
+    // Character stats for Visual Novel features
+    stats: v.optional(v.object({
+      energy: v.optional(v.number()),
+      money: v.optional(v.number()),
+      attractiveness: v.optional(v.number()),
+      willpower: v.optional(v.number()),
+      fitness: v.optional(v.number()),
+      intelligence: v.optional(v.number()),
+      corruption: v.optional(v.number())
+    }))
+  }).index("by_userId", ["userId"])
+  .index("by_nickname", ["nickname"]) // Индекс для поиска по никнейму
+  .index("by_faction", ["faction"]), // Индекс для группировки по фракциям
   
   scenes: defineTable({
     title: v.string(),
     sceneKey: v.string(), // Уникальный ключ для идентификации сцены
     background: v.optional(v.string()),
     text: v.string(),
+    character: v.optional(v.object({
+      name: v.string(),
+      image: v.string(),
+      position: v.optional(v.string()) // "left", "center", "right"
+    })),
     choices: v.array(v.object({
       text: v.string(),
       nextSceneId: v.optional(v.id("scenes")),
@@ -58,6 +84,15 @@ export default defineSchema({
         primary: v.optional(v.string()),
         secondary: v.optional(v.string()),
         consumables: v.optional(v.array(v.string()))
+      })),
+      statChanges: v.optional(v.object({
+        energy: v.optional(v.number()),
+        money: v.optional(v.number()),
+        attractiveness: v.optional(v.number()),
+        willpower: v.optional(v.number()),
+        fitness: v.optional(v.number()),
+        intelligence: v.optional(v.number()),
+        corruption: v.optional(v.number())
       }))
     }))
   }).index("by_sceneKey", ["sceneKey"]),

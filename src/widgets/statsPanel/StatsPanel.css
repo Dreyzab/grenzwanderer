@@ -1,0 +1,48 @@
+.stats-panel {
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 15px;
+  border-radius: 10px;
+  color: white;
+  width: 100%;
+  max-width: 300px;
+}
+
+.stats-panel-compact {
+  padding: 10px;
+  max-width: 200px;
+}
+
+.stats-title {
+  margin: 0 0 10px 0;
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.stat-increased {
+  background-color: rgba(0, 255, 0, 0.2);
+}
+
+.stat-decreased {
+  background-color: rgba(255, 0, 0, 0.2);
+}
+
+.stat-change {
+  margin-left: 5px;
+  font-size: 0.8em;
+  opacity: 0.8;
+}

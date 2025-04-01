@@ -1,0 +1,124 @@
+.choice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .choice-button {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    color: white;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    font-size: 1em;
+  }
+  
+  .choice-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateX(5px);
+  }
+  
+  .choice-button:active {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateX(2px);
+  }
+  
+  .choice-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .choice-button.selected {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .dialog-choice {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 1rem 1.2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    color: white;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+  }
+  
+  .dialog-choice:hover, .dialog-choice.hovered {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateX(5px);
+  }
+  
+  .choice-arrow {
+    color: #ff4a4a;
+    margin-right: 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s;
+  }
+  
+  .dialog-choice:hover .choice-arrow,
+  .dialog-choice.hovered .choice-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  
+  .choice-text {
+    flex: 1;
+  }
+  
+  .choice-unavailable {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .choice-unavailable:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: none;
+  }
+  
+  .choice-requirements {
+    display: flex;
+    gap: 0.5rem;
+    position: absolute;
+    top: -1.5rem;
+    right: 0;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .dialog-choice:hover .choice-requirements,
+  .dialog-choice.hovered .choice-requirements {
+    opacity: 1;
+  }
+  
+  .stat-requirement {
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+  }
+  
+  .requirement-met {
+    background-color: rgba(74, 255, 74, 0.3);
+  }
+  
+  .requirement-unmet {
+    background-color: rgba(255, 74, 74, 0.3);
+  }

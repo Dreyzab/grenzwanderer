@@ -1,4 +1,12 @@
-import React, { useState } from 'react';
+// src/components/SignOutButton/Dialog/GameScreen.tsx
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '../../../../convex/_generated/api';
+import { Id } from '../../../../convex/_generated/dataModel';
+import { useUnit } from 'effector-react';
+import { $currentUser } from '../../../entities/user/model';
+import { VisualNovel } from '../../../pages/visualNovel/VisualNovel';
 import './GameScreen.css';
 
 interface GameScreenProps {
@@ -6,81 +14,87 @@ interface GameScreenProps {
 }
 
 export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
-  const [currentScene, _] = useState<any>(null);
+  const navigate = useNavigate();
+  const user = useUnit($currentUser);
+  const [playerId, setPlayerId] = useState<Id<"players"> | null>(null);
+  const [sceneKey, setSceneKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const handleChoice = async (choice: any) => {
-    try {
-      // Обработка выбора
-      if (choice.action === 'end_character_creation') {
-        onExit();
-        return;
-      }
-
-      if (choice.nextSceneId) {
-        // Загрузка следующей сцены
-        setLoading(true);
-        // TODO: Загрузить следующую сцену
-      }
-    } catch (err) {
-      setError('Ошибка при обработке выбора');
+  
+  // Get Convex mutations and queries
+  const getOrCreatePlayer = useMutation(api.player.getOrCreatePlayer);
+  const scene = useQuery(api.quest.getCurrentScene, playerId ? { playerId } : "skip");
+  
+  // Load player and current scene
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
     }
-  };
-
+    
+    const initializeGame = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Get player profile
+        const player = await getOrCreatePlayer({ userId: user.id as any });
+        if (!player) {
+          throw new Error("Could not create or find player profile");
+        }
+        
+        setPlayerId(player._id);
+        
+        // Get current scene
+        if (scene) {
+          setSceneKey(scene.sceneKey);
+        }
+      } catch (err) {
+        setError(`Error initializing game: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initializeGame();
+  }, [user, navigate]);
+  
+  // Show loading state
   if (loading) {
     return (
       <div className="game-screen-loading">
         <div className="loading-spinner"></div>
-        <p>Загрузка сцены...</p>
+        <p>Loading scene...</p>
       </div>
     );
   }
-
+  
+  // Show error state
   if (error) {
     return (
       <div className="game-screen-error">
         <p>{error}</p>
-        <button onClick={onExit}>Вернуться на карту</button>
+        <button onClick={onExit}>Return to Map</button>
       </div>
     );
   }
-
-  if (!currentScene) {
+  
+  // Show visual novel if we have a scene
+  if (sceneKey && playerId) {
     return (
-      <div className="game-screen-empty">
-        <p>Нет активной сцены</p>
-        <button onClick={onExit}>Вернуться на карту</button>
-      </div>
+      <VisualNovel
+        initialSceneId={sceneKey}
+        playerId={playerId}
+        onExit={onExit}
+      />
     );
   }
-
+  
+  // Show empty state
   return (
-    <div className="game-screen">
-      {currentScene.background && (
-        <div 
-          className="game-screen-background"
-          style={{ backgroundImage: `url(${currentScene.background})` }}
-        />
-      )}
-      
-      <div className="game-screen-content">
-        <div className="game-screen-text">
-          {currentScene.text}
-        </div>
-        
-        <div className="game-screen-choices">
-          {currentScene.choices.map((choice: any, index: number) => (
-            <button
-              key={index}
-              className="choice-button"
-              onClick={() => handleChoice(choice)}
-            >
-              {choice.text}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="game-screen-empty">
+      <p>No active scene</p>
+      <button onClick={onExit}>Return to Map</button>
     </div>
   );
-}; 
+};

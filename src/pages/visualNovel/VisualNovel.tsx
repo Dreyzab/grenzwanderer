@@ -1,6 +1,6 @@
 // src/pages/visualNovel/VisualNovel.tsx
 import React, { useEffect, useState } from 'react';
-import { useStore } from 'effector-react';
+import { useUnit } from 'effector-react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { Id, Doc } from '../../../convex/_generated/dataModel';
@@ -47,9 +47,9 @@ export const VisualNovel: React.FC<VisualNovelProps> = ({
   playerId,
   onExit
 }) => {
-  const currentScene = useStore($currentScene);
-  const playerStats = useStore($playerStats);
-  const isLoading = useStore($sceneLoading);
+  const currentScene = useUnit($currentScene);
+  const playerStats = useUnit($playerStats);
+  const isLoading = useUnit($sceneLoading);
   const [error, setError] = useState<string | null>(null);
   const [currentSceneKey, setCurrentSceneKey] = useState(initialSceneId || "");
   

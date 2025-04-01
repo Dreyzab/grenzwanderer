@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useUnit } from 'effector-react';
 import { $currentUser } from '../../entities/user/model';
 import { SignOutButton } from '../../components/SignOutButton/SignOutButton';
+import { useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import './MainPage.css';
 
 export const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const user = useUnit($currentUser);
+
 
   return (
     <div className="start-screen">
@@ -45,6 +48,8 @@ export const MainPage: React.FC = () => {
                 <div className="sign-out-container">
                   <SignOutButton />
                 </div>
+
+              
               </div>
             )}
           </div>

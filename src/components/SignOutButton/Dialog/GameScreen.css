@@ -112,3 +112,405 @@
   background: #357abd;
   transform: translateY(-2px);
 }
+
+.game-screen-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  min-height: 400px;
+  background: #1a1a1a;
+  border-radius: 10px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.game-screen-empty h2 {
+  margin-bottom: 1rem;
+  color: #4a9eff;
+}
+
+.game-screen-empty p {
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.delivery-quest-button {
+  background: #ff4a4a !important;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  animation: pulse 1.5s infinite;
+}
+
+.delivery-quest-button:hover {
+  background: #e43737 !important;
+  transform: translateY(-2px);
+}
+
+/* Стили для новой структуры диалогов */
+.dialog-screen {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a1a;
+  border-radius: 10px;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.dialog-header {
+  padding: 1.5rem;
+  background: #242424;
+  border-bottom: 1px solid #333;
+}
+
+.dialog-header h2 {
+  margin-bottom: 1rem;
+  color: #4a9eff;
+  text-align: center;
+}
+
+.dialog-tabs {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.dialog-tab {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.dialog-tab.active {
+  background: #4a9eff;
+  border-color: #4a9eff;
+  color: #ffffff;
+}
+
+.dialog-tab:hover:not(.active) {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.messages-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background-color: #ff4a4a;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  border: 2px solid #1a1a1a;
+  animation: pulse 1.5s infinite;
+}
+
+.dialog-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.message-item {
+  padding: 1rem;
+  background: #242424;
+  border-radius: 5px;
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.message-item:hover {
+  background: #2a2a2a;
+  transform: translateY(-2px);
+}
+
+.message-item.unread {
+  border-left-color: #ff4a4a;
+  background: #2a2a2a;
+}
+
+.message-title {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.message-info {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+.empty-messages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dialog-footer {
+  padding: 1rem;
+  background: #242424;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: center;
+}
+
+.exit-dialog {
+  background: #4a9eff;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.exit-dialog:hover {
+  background: #357abd;
+  transform: translateY(-2px);
+}
+
+/* Стили для просмотра сообщения */
+.message-details {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a1a;
+  border-radius: 10px;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.message-header {
+  padding: 1.5rem;
+  background: #242424;
+  border-bottom: 1px solid #333;
+}
+
+.message-header h2 {
+  margin-bottom: 0.5rem;
+  color: #4a9eff;
+}
+
+.message-meta {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+.message-content {
+  flex: 1;
+  padding: 1.5rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  overflow-y: auto;
+}
+
+.message-actions {
+  padding: 1rem;
+  background: #242424;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.action-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-button.primary {
+  background: #ff4a4a;
+  color: #ffffff;
+  animation: pulse 1.5s infinite;
+}
+
+.action-button.primary:hover {
+  background: #e43737;
+  transform: translateY(-2px);
+}
+
+.action-button.secondary {
+  background: #4a9eff;
+  color: #ffffff;
+}
+
+.action-button.secondary:hover {
+  background: #357abd;
+  transform: translateY(-2px);
+}
+
+.action-button.map {
+  background: #4caf50;
+  color: #ffffff;
+}
+
+.action-button.map:hover {
+  background: #3e8e41;
+  transform: translateY(-2px);
+}
+
+/* Стили для карты заданий */
+.quest-map-wrapper {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a1a;
+  border-radius: 10px;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.quest-map-header {
+  padding: 1rem;
+  background: #242424;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quest-map-header h2 {
+  margin: 0;
+  color: #4a9eff;
+}
+
+.back-to-messages {
+  background: #4a9eff;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.back-to-messages:hover {
+  background: #357abd;
+  transform: translateY(-2px);
+}
+
+.quest-map-markers {
+  padding: 1rem;
+  background: #242424;
+  border-top: 1px solid #333;
+}
+
+.quest-map-markers h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #4a9eff;
+}
+
+.markers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.marker-item {
+  padding: 0.75rem;
+  background: #2a2a2a;
+  border-radius: 5px;
+  border-left: 4px solid #666;
+}
+
+.marker-item.active {
+  border-left-color: #4a9eff;
+}
+
+.marker-item.completed {
+  border-left-color: #4caf50;
+  opacity: 0.8;
+}
+
+.marker-title {
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  color: #fff;
+}
+
+.marker-coords {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.5rem;
+}
+
+.test-qr-button {
+  background: #ff4a4a;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.8rem;
+  width: 100%;
+}
+
+.test-qr-button:hover {
+  background: #e43737;
+  transform: translateY(-2px);
+}
+
+.exit-map {
+  background: #4a9eff;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 1rem auto;
+  display: block;
+}
+
+.exit-map:hover {
+  background: #357abd;
+  transform: translateY(-2px);
+}

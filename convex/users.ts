@@ -1,24 +1,14 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { randomBytes, pbkdf2Sync } from "crypto";
 
-// Типы для функций хеширования
-type PasswordHash = string;
-type Salt = string;
-
-// Безопасная генерация соли
-function generateSalt(length: number = 16): Salt {
-  return randomBytes(length).toString('hex');
+// Простая имитация хеширования пароля (ТОЛЬКО ДЛЯ ДЕМОНСТРАЦИИ, не для продакшена)
+// В реальном приложении используйте bcrypt или другой безопасный алгоритм
+function hashPassword(password: string, salt: string): string {
+  return salt + password; // Очень небезопасно, только для демонстрации!
 }
 
-// Безопасное хеширование пароля с использованием PBKDF2
-function hashPassword(password: string, salt: Salt): PasswordHash {
-  return pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
-}
-
-function verifyPassword(password: string, salt: Salt, hashedPassword: PasswordHash): boolean {
-  const hash = hashPassword(password, salt);
-  return hash === hashedPassword;
+function verifyPassword(password: string, salt: string, hashedPassword: string): boolean {
+  return hashPassword(password, salt) === hashedPassword;
 }
 
 // Валидация email
@@ -29,11 +19,12 @@ function isValidEmail(email: string): boolean {
 
 // Валидация пароля
 function isValidPassword(password: string): boolean {
-  return password.length >= 8 && // минимальная длина
-    /[A-Z]/.test(password) && // хотя бы одна заглавная буква
-    /[a-z]/.test(password) && // хотя бы одна строчная буква
-    /[0-9]/.test(password) && // хотя бы одна цифра
-    /[^A-Za-z0-9]/.test(password); // хотя бы один специальный символ
+  return password.length >= 8;
+}
+
+// Генерация случайной строки для соли
+function generateSalt(): string {
+  return Math.random().toString(36).substring(2, 15);
 }
 
 export const registerUser = mutation({
@@ -48,10 +39,10 @@ export const registerUser = mutation({
     }
     
     if (!isValidPassword(password)) {
-      throw new Error("Пароль должен содержать минимум 8 символов, включая заглавные и строчные буквы, цифры и специальные символы");
+      throw new Error("Пароль должен содержать минимум 8 символов");
     }
 
-    // Check if user already exists
+    // Проверяем существует ли пользователь
     const existingUser = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", email))
@@ -61,11 +52,11 @@ export const registerUser = mutation({
       throw new Error("Пользователь с таким email уже существует");
     }
     
-    // Generate salt and hash the password
+    // Генерируем соль и "хешируем" пароль
     const salt = generateSalt();
     const hashedPassword = hashPassword(password, salt);
     
-    // Store the user with hashed password and salt
+    // Сохраняем пользователя с хешированным паролем и солью
     const userId = await ctx.db.insert("users", {
       email,
       password: hashedPassword,
@@ -89,29 +80,32 @@ export const loginUser = mutation({
       throw new Error("Неверный формат email");
     }
 
+    console.log(`Попытка входа для пользователя: ${email}`);
+
+    // Получаем пользователя из БД
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", email))
       .first();
     
     if (!user) {
+      console.log(`Пользователь не найден: ${email}`);
       throw new Error("Пользователь не найден");
     }
     
-    // Verify the password using the stored salt and hashed password
-    if (!verifyPassword(password, user.salt, user.password)) {
-      // Используем одинаковое сообщение об ошибке для безопасности
+    console.log(`Пользователь найден: ${user._id}`);
+    
+    // Проверяем пароль
+    if (!user.salt || !verifyPassword(password, user.salt, user.password)) {
+      console.log(`Неверный пароль для пользователя: ${email}`);
       throw new Error("Неверный email или пароль");
     }
     
-    // Update last login with rate limiting
+    // Обновляем время последнего входа
     const now = Date.now();
-    const lastLoginDiff = now - (user.lastLogin || 0);
+    await ctx.db.patch(user._id, { lastLogin: now });
     
-    if (lastLoginDiff > 1000) { // Предотвращаем слишком частые обновления
-      await ctx.db.patch(user._id, { lastLogin: now });
-    }
-    
+    console.log(`Успешный вход: ${user._id}, ${user.email}`);
     return { id: user._id, email: user.email };
   },
 });
@@ -121,7 +115,7 @@ export const resetPassword = mutation({
     email: v.string() 
   },
   handler: async (ctx, { email }) => {
-    // Проверить, существует ли пользователь
+    // Проверяем существование пользователя
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", email))
@@ -131,10 +125,10 @@ export const resetPassword = mutation({
       throw new Error("Пользователь с таким email не найден");
     }
     
-    // Генерируем временный пароль (В реальном приложении стоит использовать токены и отправлять email)
+    // Генерируем временный пароль
     const tempPassword = Math.random().toString(36).slice(-8);
     
-    // Generate new salt and hash for the temporary password
+    // "Хешируем" временный пароль
     const salt = generateSalt();
     const hashedPassword = hashPassword(tempPassword, salt);
     
@@ -150,16 +144,4 @@ export const resetPassword = mutation({
     
     return { success: true };
   },
-});
-
-export const getUser = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, { userId }) => {
-    const user = await ctx.db.get(userId);
-    if (!user) {
-      return null;
-    }
-    
-    return { id: user._id, email: user.email };
-  },
-});
+}); 

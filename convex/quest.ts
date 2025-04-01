@@ -29,7 +29,8 @@ export const SCENE_KEY = {
   ARTIFACT_FOUND: "Артефакт найден", // Используем существующее значение
   CHARACTER_CREATION_START: "character_creation_start",
   TRAINING_MISSION_START: "training_mission_start",
-  NEW_DELIVERY_QUEST: "new_delivery_quest"
+  NEW_DELIVERY_QUEST: "new_delivery_quest",
+  ARTIFACT_AREA: "artifact_area", // Добавляем ключ для сцены аномальной зоны
 } as const;
 
 // Определяем константы для действий
@@ -91,7 +92,6 @@ export const activateQuestByQR = mutation({
     }
 
     // Check if code is one-time and already used by this player
-    // Ensure usedBy is treated as an array even if initially null/undefined
     const usedBy = qrData.usedBy ?? [];
     if (qrData.isOneTime && usedBy.includes(playerId)) {
       throw new Error("Этот QR-код уже был использован вами");
@@ -120,7 +120,39 @@ export const activateQuestByQR = mutation({
         message: "Квестовая цепочка активирована! Пора создать вашего персонажа.",
         questState: QUEST_STATE.CHARACTER_CREATION
       };
-    } else if (qrData.type === "npc") {
+    }
+
+    // Check for location-based scene trigger
+    else if (player.questState === QUEST_STATE.ARTIFACT_HUNT && qrData.type === "location" && qrData.data?.triggerSceneKey) {
+      const sceneToTriggerKey = qrData.data.triggerSceneKey as string; // Use string type first
+
+      // Check if the scene key is valid (optional but recommended)
+      if (Object.values(SCENE_KEY).includes(sceneToTriggerKey as any)) {
+        const targetScene = await ctx.db
+          .query("scenes")
+          .withIndex("by_sceneKey", (q) => q.eq("sceneKey", sceneToTriggerKey))
+          .first();
+
+        if (targetScene) {
+          // Optionally mark QR as used if it's one-time
+          if (qrData.isOneTime && !usedBy.includes(playerId)) {
+              await ctx.db.patch(qrData._id, { usedBy: [...usedBy, playerId] });
+          }
+          return {
+              message: qrData.data?.message || "Вы прибыли в указанную локацию.", // Use message from QR data if available
+              sceneId: targetScene._id // Return the ID of the target scene
+          };
+        } else {
+          console.warn(`Scene with key '${sceneToTriggerKey}' not found for QR trigger.`);
+          throw new Error("Сцена для этой локации не найдена.");
+        }
+      } else {
+        console.warn(`Invalid sceneKey '${sceneToTriggerKey}' provided in QR data.`);
+        throw new Error("Неверный ключ сцены в данных QR-кода.");
+      }
+    }
+
+    else if (qrData.type === "npc") {
       // Interact with NPC
       const npcType = qrData.data.npcId; // Assuming npcId in data holds the NPC *type* (e.g., "trader")
 
@@ -137,17 +169,29 @@ export const activateQuestByQR = mutation({
       }
 
       // Find appropriate scene based on the NPC type and player quest state
-      // TODO: This logic is brittle. Consider storing scene transitions in data (NPCs, quests, or scenes).
-      // TODO: Replace title lookups with lookups by a unique, stable key (e.g., 'sceneKey').
       let sceneId = null;
       let targetSceneKey: string | null = null;
 
-      if (npcType === NPC_TYPE.TRADER && player.questState === QUEST_STATE.DELIVERY_STARTED) {
+      // Определяем ключ сцены в зависимости от типа NPC и состояния квеста игрока
+      if (npcType === NPC_TYPE.TRADER) {
         targetSceneKey = SCENE_KEY.TRADER_MEETING;
-      } else if (npcType === NPC_TYPE.CRAFTSMAN && player.questState === QUEST_STATE.PARTS_COLLECTED) {
+        
+        // Обновляем состояние квеста, если игрок в состоянии DELIVERY_STARTED
+        if (player.questState === QUEST_STATE.DELIVERY_STARTED) {
+          await ctx.db.patch(playerId, {
+            questState: QUEST_STATE.PARTS_COLLECTED
+          });
+        }
+      } else if (npcType === NPC_TYPE.CRAFTSMAN) {
         targetSceneKey = SCENE_KEY.CRAFTSMAN_MEETING;
+        
+        // Обновляем состояние квеста, если игрок собрал детали
+        if (player.questState === QUEST_STATE.PARTS_COLLECTED) {
+          await ctx.db.patch(playerId, {
+            questState: QUEST_STATE.QUEST_COMPLETION
+          });
+        }
       }
-      // Add more conditions for other NPC interactions here...
 
       if (targetSceneKey) {
         const targetScene = await ctx.db
@@ -245,6 +289,9 @@ export const getCurrentScene = query({
     } else if (player.questState === QUEST_STATE.TRAINING_MISSION) {
       targetSceneKey = SCENE_KEY.TRAINING_MISSION_START;
     } else if (player.questState === QUEST_STATE.NEW_MESSAGE) {
+      targetSceneKey = SCENE_KEY.NEW_DELIVERY_QUEST;
+    } else if (player.questState === QUEST_STATE.REGISTERED) {
+      // Если игрок в состоянии REGISTERED, отображаем сцену начала квеста доставки
       targetSceneKey = SCENE_KEY.NEW_DELIVERY_QUEST;
     }
     // Add mappings for other quest states...

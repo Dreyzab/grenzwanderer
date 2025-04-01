@@ -5,7 +5,7 @@ export default defineSchema({
   users: defineTable({
     email: v.string(),
     password: v.string(), // Хранит хеш пароля
-    salt: v.string(), // Соль для хеширования
+    salt: v.optional(v.string()), // Соль для хеширования
     createdAt: v.number(),
     lastLogin: v.optional(v.number()),
     passwordReset: v.optional(v.boolean()),

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { QRScanner } from '../../components/SignOutButton/QR/QRScanner';
 import { GameScreen } from '../../components/SignOutButton/Dialog/GameScreen';
@@ -17,7 +17,15 @@ export const GamePage: React.FC = () => {
   
   // Get player profile
   const getOrCreatePlayer = useMutation(api.player.getOrCreatePlayer);
+  const activateQuestByQR = useMutation(api.quest.activateQuestByQR);
   const [playerId, setPlayerId] = useState<string | null>(null);
+  const [hasNewMessage, setHasNewMessage] = useState(false);
+  
+  // Получаем текущую сцену для определения наличия нового сообщения
+  const getCurrentScene = useQuery(
+    api.quest.getCurrentScene, 
+    playerId ? { playerId: playerId as any } : "skip"
+  );
   
   // Get player profile on load
   useEffect(() => {
@@ -37,10 +45,43 @@ export const GamePage: React.FC = () => {
       });
   }, [user, navigate, getOrCreatePlayer]);
   
+  // Check for new messages when player is loaded
+  useEffect(() => {
+    if (getCurrentScene) {
+      setHasNewMessage(true);
+    } else {
+      setHasNewMessage(false);
+    }
+  }, [getCurrentScene]);
+  
   // Handle scanner success
-  const handleScannerSuccess = (message: string) => {
-    alert(message);
-    setActiveScreen('dialog');
+  const handleScannerSuccess = async (code: string) => {
+    if (!playerId) return;
+    
+    try {
+      // Здесь вызываем функцию активации квеста по QR-коду
+      const result = await activateQuestByQR({
+        playerId: playerId as any,
+        qrCode: code
+      });
+      
+      // Если получен ответ с сообщением, показываем его
+      if (result && result.message) {
+        alert(result.message);
+        
+        // Если есть сцена, переходим к диалогу
+        if (result.sceneId) {
+          setActiveScreen('dialog');
+        }
+      }
+    } catch (error) {
+      alert(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    }
+  };
+  
+  // Handle exit to main page
+  const handleExit = () => {
+    navigate('/');
   };
   
   // If no player ID yet, show loading
@@ -57,7 +98,12 @@ export const GamePage: React.FC = () => {
     <div className="game-page">
       {/* Navigation buttons */}
       <div className="game-nav">
-        <SignOutButton />
+        <div className="nav-buttons">
+          <SignOutButton />
+          <button className="exit-button" onClick={handleExit}>
+            Выйти в главное меню
+          </button>
+        </div>
         
         <div className="game-tabs">
           <button
@@ -71,6 +117,7 @@ export const GamePage: React.FC = () => {
             onClick={() => setActiveScreen('dialog')}
           >
             Диалог
+            {hasNewMessage && <span className="notification-badge">!</span>}
           </button>
           <button
             className={`game-tab ${activeScreen === 'scanner' ? 'active' : ''}`}

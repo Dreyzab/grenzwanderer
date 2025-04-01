@@ -17,10 +17,13 @@
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.80",
+    "@types/mapbox-gl": "^3.4.1",
     "convex": "^1.16.0",
     "effector": "^23.3.0",
     "effector-react": "^23.3.0",
     "jose": "^6.0.10",
+    "jsqr": "^1.4.0",
+    "mapbox-gl": "^3.11.0",
     "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

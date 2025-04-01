@@ -2,7 +2,6 @@ import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { QUEST_STATE, ACTION, SCENE_KEY } from "../quest";
 
-// Initialize the "Delivery and Dilemma" quest
 export const initializeDeliveryQuest = mutation({
   args: {},
   handler: async (ctx) => {

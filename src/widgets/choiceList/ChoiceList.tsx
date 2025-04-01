@@ -1,6 +1,6 @@
 // src/widgets/choiceList/ChoiceList.tsx
 import React, { useState } from 'react';
-import { useStore } from 'effector-react';
+import { useUnit } from 'effector-react';
 import { $playerStats } from '../../entities/player/model';
 import { $currentScene } from '../../entities/scene/model';
 import { Choice } from '../../schared/types/visualNovel';
@@ -11,8 +11,8 @@ interface ChoiceListProps {
 }
 
 export const ChoiceList: React.FC<ChoiceListProps> = ({ onChoiceSelected }) => {
-  const currentScene = useStore($currentScene);
-  const playerStats = useStore($playerStats);
+  const currentScene = useUnit($currentScene);
+  const playerStats = useUnit($playerStats);
   const [hoveredChoice, setHoveredChoice] = useState<string | null>(null);
   
   if (!currentScene || !currentScene.choices.length) return null;

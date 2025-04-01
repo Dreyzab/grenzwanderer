@@ -1,6 +1,6 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useStore } from 'effector-react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useUnit } from 'effector-react';
 import { $currentUser } from '../../entities/user/model';
 
 interface PrivateRouteProps {
@@ -8,7 +8,7 @@ interface PrivateRouteProps {
 }
 
 export const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const user = useStore($currentUser);
+  const user = useUnit($currentUser);
   
   if (!user) {
     return <Navigate to="/login" replace />;

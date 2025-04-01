@@ -1,13 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from 'effector-react';
+import { useUnit } from 'effector-react';
 import { $currentUser } from '../../entities/user/model';
 import { SignOutButton } from '../../components/SignOutButton/SignOutButton';
 import './MainPage.css';
 
 export const MainPage: React.FC = () => {
   const navigate = useNavigate();
-  const user = useStore($currentUser);
+  const user = useUnit($currentUser);
 
   return (
     <div className="start-screen">

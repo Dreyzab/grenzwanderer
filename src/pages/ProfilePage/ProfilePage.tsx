@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { useStore } from 'effector-react';
+import { useUnit } from 'effector-react';
 import { $currentUser } from '../../entities/user/model';
 import { SignOutButton } from '../../components/SignOutButton/SignOutButton';
 import './ProfilePage.css';
 
 export const ProfilePage: React.FC = () => {
-  const user = useStore($currentUser);
+  const user = useUnit($currentUser);
   const navigate = useNavigate();
   
   // Get player profile

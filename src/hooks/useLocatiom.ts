@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 // 47°59'42.1"N 7°50'45.1"E
 export const DEFAULT_LOCATION: [number, number] = [47.9950278, 7.8458611];
 
+// Максимальное количество попыток геолокации
+const MAX_ATTEMPTS = 3;
+
 // Интерфейс для ошибок геолокации с расширенной диагностикой
 interface GeoLocationErrorDetails {
   code: number;
@@ -29,6 +32,11 @@ interface LocationState {
 }
 
 export const useLocation = (options?: PositionOptions): LocationState => {
+  console.log('Инициализация хука useLocation');
+  
+  // Предотвращаем множественные инициализации
+  const hasInitialized = useRef(false);
+  
   const [state, setState] = useState<{
     position: [number, number] | null;
     error: string | null;
@@ -57,6 +65,19 @@ export const useLocation = (options?: PositionOptions): LocationState => {
   const retryTimerId = useRef<number | null>(null);
   // Добавляем ref для отслеживания последней ошибки
   const lastErrorRef = useRef<GeoLocationErrorDetails | null>(null);
+  
+  // Добавляем переменные для троттлинга и блокировки одновременных запросов
+  const MIN_UPDATE_INTERVAL = 3000; // Минимальный интервал между обновлениями в миллисекундах
+  const lastUpdateTimestampRef = useRef<number>(0);
+  const pendingPositionUpdateRef = useRef<boolean>(false);
+  const positionUpdateTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Максимальное количество попыток инициализации
+  const MAX_INIT_ATTEMPTS = 3;
+  const initAttemptCount = useRef(0);
+  
+  // Добавляем ref для троттлинга
+  const throttleTimer = useRef<number | null>(null);
   
   // Создаем функцию для сохранения деталей ошибки
   const createErrorDetails = useCallback((error: GeolocationPositionError | Error | unknown, source: string): GeoLocationErrorDetails => {
@@ -169,6 +190,14 @@ export const useLocation = (options?: PositionOptions): LocationState => {
       window.clearTimeout(retryTimerId.current);
       retryTimerId.current = null;
     }
+    
+    // Очищаем таймер обновления позиции при размонтировании
+    if (positionUpdateTimerRef.current) {
+      clearTimeout(positionUpdateTimerRef.current);
+      positionUpdateTimerRef.current = null;
+    }
+    
+    pendingPositionUpdateRef.current = false;
   }, []);
   
   // Функция для использования фиксированных координат
@@ -190,512 +219,232 @@ export const useLocation = (options?: PositionOptions): LocationState => {
     clearGeolocationResources();
   }, [clearGeolocationResources]);
   
-  // Ручное обновление позиции
+  // Настройка троттлинга обновления позиции
+  const throttledPositionUpdate = useCallback((newPosition: [number, number]) => {
+    if (throttleTimer.current) {
+      return; // Пропускаем обновление, если уже идет отложенное обновление
+    }
+    
+    throttleTimer.current = window.setTimeout(() => {
+      if (isMounted.current) {
+        setState(prev => ({
+          ...prev,
+          position: newPosition,
+          error: null,
+          loading: false,
+          permissionDenied: false,
+          usingDefaultLocation: false
+        }));
+      }
+      
+      throttleTimer.current = null;
+    }, 500); // Ограничиваем частоту обновлений до 2 раз в секунду
+  }, []);
+  
+  // Реализация updatePosition как обертки над throttledPositionUpdate
   const updatePosition = useCallback((newPosition: [number, number]) => {
     if (!isMounted.current) return;
     
-    setState(prev => ({
-      ...prev,
-      position: newPosition,
-      error: null,
-      timestamp: Date.now(),
-      loading: false,
-      isUsingDefaultLocation: false
-    }));
-  }, []);
+    console.log('Ручное обновление позиции:', newPosition);
+    throttledPositionUpdate(newPosition);
+  }, [throttledPositionUpdate]);
   
-  // Запрос геолокации вручную
-  const requestGeolocation = useCallback(() => {
-    // Не делаем ничего, если компонент размонтирован
-    if (!isMounted.current) {
-      console.log('Пропуск запроса геолокации, компонент размонтирован');
-      return;
-    }
-    
-    // Если ранее было явно отказано в разрешении и пользователь не решил проблему
-    if (state.permissionDenied) {
-      console.log('Доступ к геолокации запрещен, использование фиксированных координат');
-      useDefaultLocation();
-      return;
-    }
-    
-    // Проверяем поддержку геолокации
-    if (!checkGeolocationSupport()) {
-      setState(prev => ({
-        ...prev,
-        error: 'Геолокация не поддерживается вашим браузером',
-        loading: false,
-        errorDetails: createErrorDetails(
-          new Error('Геолокация не поддерживается браузером'),
-          'requestGeolocation.checkSupport'
-        )
-      }));
-      
-      // При отсутствии поддержки используем фиксированные координаты
-      useDefaultLocation();
-      return;
-    }
-    
-    // Очищаем предыдущие ресурсы
-    clearGeolocationResources();
+  // Функция обработки ошибок геолокации
+  const handleError = useCallback((error: GeolocationPositionError) => {
+    if (!isMounted.current) return;
     
     // Увеличиваем счетчик попыток
     attemptCount.current += 1;
     
-    // Устанавливаем флаг загрузки
-    setState(prev => ({
-      ...prev,
-      loading: true,
-      error: null
-    }));
+    // Выводим полное представление ошибки
+    console.log('Полное строковое представление ошибки геолокации:', error);
     
-    // Настройки геолокации с увеличенным таймаутом при повторных попытках
-    // Если видны повторяющиеся ошибки PERMISSION_DENIED, ограничиваем количество попыток
-    const maxAttempts = lastErrorRef.current && lastErrorRef.current.code === 1 ? 1 : 3;
+    // Создаем детальную информацию об ошибке для дальнейшего анализа
+    const errorDetails = createErrorDetails(error, 'handleError');
     
-    if (attemptCount.current > maxAttempts && lastErrorRef.current && lastErrorRef.current.code === 1) {
-      console.log(`Достигнуто максимальное количество попыток (${maxAttempts}) при отказе в разрешении, переключение на фиксированные координаты`);
+    // Если это ошибка из-за отказа в разрешении (код 1)
+    if (error.code === 1) {
+      clearGeolocationResources();
+      
+      // Устанавливаем флаг, что пользователь отказал в доступе
+      console.log('Обнаружен отказ в разрешении, обновляем состояние permissionDenied');
+      
+      // Обновляем состояние
       setState(prev => ({
         ...prev,
-        loading: false,
         permissionDenied: true,
-        error: 'Доступ к геолокации запрещен, переключение на фиксированное местоположение'
+        error: getGeoErrorMessage(error.code),
+        loading: false,
+        errorDetails
+      }));
+      
+      // Используем фиксированные координаты при отказе в доступе
+      console.log('Использование фиксированных координат:', DEFAULT_LOCATION);
+      useDefaultLocation();
+      
+      return;
+    }
+    
+    // Обновляем состояние с информацией об ошибке
+    setState(prev => ({
+      ...prev,
+      error: getGeoErrorMessage(error.code),
+      loading: false,
+      errorDetails
+    }));
+    
+    // Выводим информацию об ошибке для диагностики
+    console.error('Ошибка наблюдателя геолокации:', getGeoErrorMessage(error.code), error.code, error.message, {
+      permissionDenied: state.permissionDenied,
+      errorString: String(error),
+      timestamp: new Date().toISOString()
+    });
+    
+    // При ошибках с кодом 2 (POSITION_UNAVAILABLE) и 3 (TIMEOUT)
+    // можно реализовать логику повторных попыток или других стратегий
+    if ((error.code === 2 || error.code === 3) && attemptCount.current < 3) {
+      // При временных ошибках можно попробовать получить позицию еще раз через некоторое время
+      if (retryTimerId.current === null) {
+        console.log(`Ошибка геолокации, попытка ${attemptCount.current}/3. Повторный запрос через 5 секунд...`);
+        retryTimerId.current = window.setTimeout(() => {
+          if (isMounted.current && requestGeolocationRef.current) {
+            retryTimerId.current = null;
+            requestGeolocationRef.current();
+          }
+        }, 5000);
+      }
+    } else {
+      // После исчерпания всех попыток или при других ошибках используем фиксированную локацию
+      useDefaultLocation();
+    }
+  }, [state.permissionDenied, useDefaultLocation, createErrorDetails]);
+  
+  // Обновляем функцию успешного обновления позиции
+  const handleSuccess = useCallback((position: GeolocationPosition) => {
+    if (!isMounted.current) return;
+    
+    // Очищаем счетчик попыток при успешном получении позиции
+    attemptCount.current = 0;
+    
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    
+    console.log('Получены новые координаты:', latitude, longitude);
+    
+    setState(prev => ({
+      ...prev,
+      position: [longitude, latitude],
+      error: null,
+      loading: false,
+      permissionDenied: false
+    }));
+    
+    throttledPositionUpdate([latitude, longitude]);
+  }, [throttledPositionUpdate]);
+  
+  // Предварительное объявление функции для разрешения циклической зависимости
+  const requestGeolocationRef = useRef<() => void>();
+
+  // Функция для запроса геолокации
+  const requestGeolocation = useCallback(() => {
+    // Если компонент размонтирован, выходим
+    if (!isMounted.current) {
+      console.log('Компонент размонтирован, отмена запроса геолокации');
+      return;
+    }
+
+    // Проверяем наличие геолокации в браузере
+    if (!navigator.geolocation) {
+      console.log('Геолокация не поддерживается в этом браузере');
+      setState(prev => ({
+        ...prev,
+        error: 'Геолокация не поддерживается в вашем браузере',
+        loading: false
       }));
       useDefaultLocation();
       return;
     }
-    
-    const timeoutValue = Math.min(30000, 15000 + attemptCount.current * 5000);
-    
-    const locationOptions: PositionOptions = {
-      enableHighAccuracy: options?.enableHighAccuracy ?? true,
-      timeout: options?.timeout ?? timeoutValue,
-      maximumAge: options?.maximumAge ?? 0
-    };
-    
-    console.log(`Запрос геолокации (попытка ${attemptCount.current}), таймаут: ${locationOptions.timeout}мс, максимальное время хранения: ${locationOptions.maximumAge}мс`);
-    
-    try {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          if (!isMounted.current) {
-            console.log('Позиция получена, но компонент уже размонтирован');
-            return;
-          }
-          
-          console.log('Получены координаты:', position.coords.latitude, position.coords.longitude, {
-            accuracy: position.coords.accuracy,
-            timestamp: new Date(position.timestamp).toISOString()
-          });
-          
-          setState(prev => ({
-            ...prev,
-            position: [
-              position.coords.latitude,
-              position.coords.longitude
-            ],
-            error: null,
-            timestamp: position.timestamp,
-            loading: false,
-            isUsingDefaultLocation: false,
-            errorDetails: null // Сбрасываем детали ошибки при успехе
-          }));
-          
-          // Сбрасываем счетчик попыток при успехе
-          attemptCount.current = 0;
-          
-          // Сбрасываем последнюю ошибку
-          lastErrorRef.current = null;
-        },
-        (error) => {
-          if (!isMounted.current) {
-            console.log('Ошибка геолокации получена, но компонент уже размонтирован');
-            return;
-          }
-          
-          let errorMessage = 'Неизвестная ошибка при получении местоположения';
-          let recoverable = true;
-          let useDefault = false;
-          
-          const errorDetails = createErrorDetails(error, 'requestGeolocation.getCurrentPosition');
-          
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Доступ к геолокации запрещен. Проверьте настройки разрешений вашего браузера.';
-              recoverable = false;
-              useDefault = true;
-              
-              // Устанавливаем флаг отказа в разрешении
-              setState(prev => ({
-                ...prev,
-                permissionDenied: true,
-                errorDetails
-              }));
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Информация о вашем местоположении недоступна.';
-              useDefault = attemptCount.current >= 3;
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'Превышено время ожидания при определении местоположения.';
-              useDefault = attemptCount.current >= 3;
-              break;
-          }
-          
-          console.error('Ошибка геолокации:', errorMessage, error.code, error.message, {
-            attempt: attemptCount.current,
-            recoverable,
-            useDefault,
-            permissionDenied: error.code === error.PERMISSION_DENIED
-          });
-          
-          if (useDefault) {
-            console.log('Переключение на фиксированные координаты после ошибки');
-            useDefaultLocation();
-          } else {
-            setState(prev => ({
-              ...prev,
-              error: errorMessage,
-              loading: false,
-              errorDetails
-            }));
-            
-            // Если ошибка восстановимая и не превышено число попыток, повторяем
-            if (recoverable && attemptCount.current < 5) {
-              // Увеличиваем задержку с каждой попыткой
-              const delay = attemptCount.current * 1000;
-              console.log(`Планирование повторной попытки геолокации через ${delay}мс`);
-              
-              if (retryTimerId.current) {
-                window.clearTimeout(retryTimerId.current);
-              }
-              
-              retryTimerId.current = window.setTimeout(() => {
-                if (isMounted.current) {
-                  console.log(`Выполнение запланированной повторной попытки (попытка ${attemptCount.current + 1})`);
-                  requestGeolocation();
-                } else {
-                  console.log('Отмена запланированной повторной попытки, компонент размонтирован');
-                }
-              }, delay);
-            } else if (!recoverable || attemptCount.current >= 5) {
-              console.log('Достигнуто максимальное количество попыток или ошибка невосстановимая, переключение на фиксированные координаты');
-              useDefaultLocation();
-            }
-          }
-        },
-        locationOptions
-      );
-    } catch (e) {
-      const errorDetails = createErrorDetails(
-        e instanceof Error ? e : new Error(String(e)),
-        'requestGeolocation.exception'
-      );
-      
-      console.error('Исключение при запросе геолокации:', e, {
-        stack: e instanceof Error ? e.stack : undefined,
-        attempt: attemptCount.current
-      });
-      
-      setState(prev => ({
-        ...prev,
-        error: 'Ошибка при запросе геолокации: ' + (e instanceof Error ? e.message : String(e)),
-        loading: false,
-        errorDetails
-      }));
-      
-      // При непредвиденной ошибке используем фиксированные координаты
-      if (attemptCount.current >= 2) {
-        useDefaultLocation();
-      }
-    }
-  }, [
-    options?.enableHighAccuracy, 
-    options?.maximumAge, 
-    options?.timeout, 
-    clearGeolocationResources, 
-    useDefaultLocation, 
-    state.permissionDenied,
-    checkGeolocationSupport,
-    createErrorDetails
-  ]);
-  
-  // Основной эффект для настройки геолокации
-  useEffect(() => {
-    // Устанавливаем флаг монтирования
-    isMounted.current = true;
-    console.log('Инициализация хука useLocation');
-    
-    // Проверка разрешения через Permissions API (если доступно)
-    if (navigator.permissions && typeof navigator.permissions.query === 'function') {
-      try {
-        navigator.permissions.query({ name: 'geolocation' as PermissionName }).then(result => {
-          console.log('Статус разрешения геолокации из Permissions API:', result.state);
-          
-          if (result.state === 'denied') {
-            console.log('Разрешение геолокации явно запрещено через Permissions API');
-            setState(prev => ({
-              ...prev,
-              permissionDenied: true,
-              error: 'Доступ к геолокации запрещен в настройках браузера (определено через Permissions API)'
-            }));
-            
-            // При запрете прав сразу используем фиксированную локацию
-            useDefaultLocation();
-          }
-          
-          // Подписываемся на изменения статуса разрешений
-          result.addEventListener('change', () => {
-            console.log('Статус разрешения геолокации изменился:', result.state);
-            
-            if (result.state === 'denied' && isMounted.current) {
-              setState(prev => ({
-                ...prev,
-                permissionDenied: true,
-                error: 'Доступ к геолокации был запрещен в настройках браузера'
-              }));
-              useDefaultLocation();
-            } else if (result.state === 'granted' && isMounted.current) {
-              setState(prev => ({
-                ...prev,
-                permissionDenied: false,
-                error: null
-              }));
-              requestGeolocation();
-            }
-          });
-        }).catch(err => {
-          console.warn('Ошибка при запросе статуса разрешения через Permissions API:', err);
-        });
-      } catch (permErr) {
-        console.warn('Ошибка при использовании Permissions API:', permErr);
-      }
-    }
-    
-    // Проверяем поддержку геолокации
-    if (!checkGeolocationSupport()) {
-      const errorDetails = createErrorDetails(
-        new Error('Геолокация не поддерживается браузером'),
-        'useEffect.checkSupport'
-      );
-      
-      setState(prev => ({
-        ...prev,
-        error: 'Геолокация не поддерживается вашим браузером',
-        errorDetails
-      }));
-      
-      // При отсутствии поддержки используем фиксированные координаты
+
+    // Если у нас уже есть отказ в разрешении, используем фиксированные координаты
+    if (state.permissionDenied) {
+      console.log('Геолокация ранее была запрещена, используем координаты по умолчанию');
       useDefaultLocation();
-      return () => {
-        console.log('Очистка хука useLocation (геолокация не поддерживается)');
-        isMounted.current = false;
-        clearGeolocationResources();
-      };
+      return;
     }
-    
-    // Устанавливаем флаг загрузки
+
+    // Если мы уже пытались получить геолокацию слишком много раз и достигли лимита
+    if (attemptCount.current >= MAX_ATTEMPTS) {
+      console.log(`Достигнут лимит попыток (${MAX_ATTEMPTS}), используем координаты по умолчанию`);
+      useDefaultLocation();
+      return;
+    }
+
     setState(prev => ({ ...prev, loading: true }));
-    
-    // Настройки геолокации
-    const locationOptions: PositionOptions = {
-      enableHighAccuracy: options?.enableHighAccuracy ?? true,
-      timeout: options?.timeout ?? 15000,
-      maximumAge: options?.maximumAge ?? 0
-    };
-    
-    // Обработчик успешного получения локации
-    const handleSuccess = (position: GeolocationPosition) => {
-      if (!isMounted.current) {
-        console.log('Позиция получена от наблюдателя, но компонент уже размонтирован');
-        return;
+
+    // Запрашиваем текущую позицию с расширенными настройками
+    navigator.geolocation.getCurrentPosition(
+      handleSuccess,
+      handleError,
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 10000
       }
-      
-      console.log('Геолокация обновлена:', position.coords.latitude, position.coords.longitude, {
-        accuracy: position.coords.accuracy,
-        timestamp: new Date(position.timestamp).toISOString()
-      });
-      
-      setState(prev => ({
-        ...prev,
-        position: [
-          position.coords.latitude,
-          position.coords.longitude
-        ],
-        error: null,
-        timestamp: position.timestamp,
-        loading: false,
-        isUsingDefaultLocation: false,
-        errorDetails: null // Сбрасываем детали ошибки при успешном получении позиции
-      }));
-      
-      // Сбрасываем счетчик попыток при успехе
-      attemptCount.current = 0;
-      
-      // Сбрасываем последнюю ошибку
-      lastErrorRef.current = null;
-    };
-    
-    // Обработчик ошибки
-    const handleError = (error: GeolocationPositionError) => {
-      if (!isMounted.current) {
-        console.log('Ошибка получена от наблюдателя, но компонент уже размонтирован');
-        return;
-      }
-      
-      // Проверяем строковое представление ошибки для дополнительной диагностики
-      const errorString = String(error);
-      console.log('Полное строковое представление ошибки геолокации:', errorString);
-      
-      let errorMessage = 'Неизвестная ошибка при получении местоположения';
-      const errorDetails = createErrorDetails(error, 'useEffect.watchPosition');
-      const isPermissionError = error.code === 1 || errorDetails.isPermissionDenied;
-      
-      switch(error.code) {
-        case 1: // error.PERMISSION_DENIED
-          errorMessage = 'Доступ к геолокации запрещен. Проверьте настройки разрешений вашего браузера.';
-          
-          // Обновляем состояние для отображения соответствующего UI
-          setState(prev => ({
-            ...prev,
-            permissionDenied: true,
-            errorDetails
-          }));
-          
-          // Переключаемся на фиксированные координаты
-          useDefaultLocation();
-          break;
-        case 2: // error.POSITION_UNAVAILABLE
-          errorMessage = 'Информация о вашем местоположении недоступна.';
-          // Продолжаем использовать наблюдателя, но устанавливаем флаг ошибки
-          break;
-        case 3: // error.TIMEOUT
-          errorMessage = 'Превышено время ожидания при определении местоположения.';
-          // Для ошибки таймаута не предпринимаем специальных действий
-          break;
-        default:
-          // Если код ошибки неизвестен, но текст содержит упоминание разрешения
-          if (errorString.toLowerCase().includes('denied') || 
-              errorString.toLowerCase().includes('permission')) {
-            errorMessage = 'Доступ к геолокации запрещен (определено по тексту ошибки).';
-            
-            setState(prev => ({
-              ...prev,
-              permissionDenied: true,
-              errorDetails
-            }));
-            
-            useDefaultLocation();
-          }
-      }
-      
-      console.error('Ошибка наблюдателя геолокации:', errorMessage, error.code, error.message, {
-        permissionDenied: isPermissionError,
-        errorString,
-        timestamp: new Date().toISOString()
-      });
-      
-      setState(prev => ({
-        ...prev,
-        error: errorMessage,
-        loading: false,
-        errorDetails
-      }));
-    };
-    
-    // Запрашиваем текущую позицию
-    try {
-      console.log('Запрос начальной позиции с параметрами:', locationOptions);
-      navigator.geolocation.getCurrentPosition(
-        handleSuccess,
-        handleError,
-        locationOptions
-      );
-    } catch (e) {
-      console.error('Полное исключение при запросе геолокации:', e);
-      
-      // Проверяем, содержит ли ошибка текст об отказе в разрешении
-      const errorStr = String(e);
-      const isPossiblePermissionError = 
-        errorStr.toLowerCase().includes('denied') || 
-        errorStr.toLowerCase().includes('permission');
-      
-      const errorDetails = createErrorDetails(
-        e instanceof Error ? e : new Error(String(e)),
-        'useEffect.initialGetCurrentPosition'
-      );
-      
-      console.error('Исключение при начальном запросе геолокации:', e, {
-        stack: e instanceof Error ? e.stack : undefined,
-        errorStr,
-        isPossiblePermissionError
-      });
-      
-      setState(prev => ({
-        ...prev,
-        error: 'Ошибка при запросе геолокации: ' + (e instanceof Error ? e.message : String(e)),
-        loading: false,
-        errorDetails,
-        permissionDenied: prev.permissionDenied || isPossiblePermissionError || errorDetails.isPermissionDenied
-      }));
-      
-      // При ошибке используем фиксированные координаты
-      useDefaultLocation();
-    }
-    
-    // Создаем watcher для отслеживания изменений позиции
-    try {
-      console.log('Создание наблюдателя геолокации с параметрами:', {
-        ...locationOptions,
-        timeout: (locationOptions.timeout || 15000) * 2
-      });
+    );
+
+    // Устанавливаем наблюдатель только если нет активного и мы не получили отказ в разрешении
+    if (watcherId.current === null && !state.permissionDenied) {
+      console.log('Устанавливаем наблюдатель геолокации');
       
       watcherId.current = navigator.geolocation.watchPosition(
         handleSuccess,
         handleError,
         {
-          ...locationOptions,
-          // Увеличиваем таймаут для наблюдателя
-          timeout: (locationOptions.timeout || 15000) * 2
+          enableHighAccuracy: true,
+          timeout: 30000, // Увеличенный таймаут для наблюдателя
+          maximumAge: 15000
         }
       );
-      console.log('Геолокация активирована, ID:', watcherId.current);
-    } catch (err) {
-      const errorDetails = createErrorDetails(
-        err instanceof Error ? err : new Error(String(err)),
-        'useEffect.watchPosition'
-      );
-      
-      console.error('Ошибка при активации отслеживания геолокации:', err, {
-        stack: err instanceof Error ? err.stack : undefined
-      });
-      
-      setState(prev => ({
-        ...prev,
-        error: 'Ошибка при активации отслеживания геолокации: ' + (err instanceof Error ? err.message : String(err)),
-        errorDetails
-      }));
-      
-      // При ошибке используем фиксированные координаты
-      if (!state.position) {
-        useDefaultLocation();
-      }
     }
-  }, [
-    options?.enableHighAccuracy, 
-    options?.maximumAge, 
-    options?.timeout, 
-    clearGeolocationResources, 
-    useDefaultLocation, 
-    state.position,
-    checkGeolocationSupport,
-    createErrorDetails
-  ]);
+  }, [handleSuccess, handleError, state.permissionDenied, useDefaultLocation]);
+
+  // Сохраняем ссылку на функцию запроса геолокации
+  requestGeolocationRef.current = requestGeolocation;
+  
+  // Эффект для инициализации и очистки ресурсов
+  useEffect(() => {
+    isMounted.current = true;
+    
+    // Запрашиваем геолокацию при монтировании
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      console.log('Первичная инициализация хука useLocation');
+      requestGeolocation();
+    }
+
+    // Функция очистки ресурсов при размонтировании
+    return () => {
+      console.log('Очистка ресурсов геолокации при размонтировании');
+      isMounted.current = false;
+      clearGeolocationResources();
+      
+      // Очищаем таймеры
+      if (positionUpdateTimerRef.current) {
+        clearTimeout(positionUpdateTimerRef.current);
+        positionUpdateTimerRef.current = null;
+      }
+      
+      if (retryTimerId.current) {
+        clearTimeout(retryTimerId.current);
+        retryTimerId.current = null;
+      }
+    };
+  }, [requestGeolocation, clearGeolocationResources]);
   
   return {
     ...state,
-    updatePosition,
     requestGeolocation,
-    useDefaultLocation
+    useDefaultLocation,
+    updatePosition
   };
 };

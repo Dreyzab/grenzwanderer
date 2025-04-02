@@ -7,7 +7,7 @@ import { Id } from '../../../../convex/_generated/dataModel';
 import { useUnit } from 'effector-react';
 import { $currentUser } from '../../../entities/user/model';
 import { VisualNovel } from '../../../pages/visualNovel/VisualNovel';
-import { QuestMap } from '../Map/QuestMap';
+import { QuestMap, QuestMarker as MapQuestMarker } from '../Map/QuestMap';
 import './GameScreen.css';
 
 interface GameScreenProps {
@@ -236,10 +236,18 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
       const result = await startDeliveryQuest({ playerId });
       if (result && result.sceneId) {
         // Помечаем квест как начатый в локальном хранилище
-        setQuestProgress('QUEST_STARTED');
+        setQuestProgress('DELIVERY_STARTED');
+        
+        // Обновляем маркеры на основе нового прогресса
+        updateMarkersBasedOnProgress('DELIVERY_STARTED');
         
         // Переключаемся на карту после прочтения сообщения
         setGameView('map');
+        
+        // Помечаем активное сообщение как прочитанное
+        if (activeMessage) {
+          markMessageAsRead(activeMessage.id);
+        }
       }
     } catch (err) {
       setError(`Error starting quest: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -254,81 +262,88 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     
     try {
       setLoading(true);
+      const result = await activateQuestByQR({ 
+        playerId, 
+        qrCode 
+      });
       
-      console.log(`Обработка QR-кода: ${qrCode}`);
+      console.log('Результат сканирования QR-кода:', result);
       
-      // Проверяем, соответствует ли код одной из точек квеста
-      const matchingMarker = questMarkers.find(marker => marker.qrCode === qrCode);
-      
-      if (matchingMarker) {
-        // Активируем квест через серверный API
-        const result = await activateQuestByQR({
-          playerId,
-          qrCode
-        });
+      if (result && result.message) {
+        alert(result.message);
         
-        console.log('Результат активации QR-кода:', result);
-        
-        // Если есть sceneId, запускаем визуальную новеллу
-        if (result.sceneId) {
-          // Обновляем прогресс квеста в зависимости от типа QR-кода
-          if (qrCode === QR_CODES.TRADER) {
-            setQuestProgress('TRADER_MET');
-          } else if (qrCode === QR_CODES.CRAFTSMAN) {
-            setQuestProgress('CRAFTSMAN_MET');
-          }
+        // Обновляем состояние квеста, если оно изменилось
+        if (result.questState) {
+          console.log('Обновление состояния квеста:', result.questState);
           
-          // Обновляем маркеры
-          updateMarkersBasedOnProgress();
+          // Сохраняем новое состояние квеста в локальном хранилище
+          setQuestProgress(result.questState);
           
-          // Переходим к визуальной новелле
-          setSceneKey(result.sceneId);
-          setGameView('novel');
-        } else {
-          alert(result.message);
+          // Обновляем маркеры в соответствии с новым состоянием
+          updateMarkersBasedOnProgress(result.questState);
         }
-      } else {
-        // Отображаем сообщение, если QR-код не соответствует ни одной из точек
-        alert(`QR-код "${qrCode}" не распознан или не соответствует текущему заданию.`);
+        
+        // Если есть sceneId, переходим к визуальному роману
+        if (result.sceneId) {
+          // Если есть sceneId, не нужно устанавливать sceneKey,
+          // так как он будет получен при загрузке VisualNovel 
+          // на основе результата запроса getCurrentScene
+          setGameView('novel');
+        }
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
-      setError(`Ошибка при обработке QR-кода: ${errorMessage}`);
-      alert(`Ошибка: ${errorMessage}`);
+      console.error('Error scanning QR code:', err);
+      setError(`Error scanning QR code: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   };
   
   // Обновление маркеров на основе прогресса квеста
-  const updateMarkersBasedOnProgress = () => {
-    if (!questProgress) return;
+  const updateMarkersBasedOnProgress = (questState?: string) => {
+    const state = questState || questProgress;
+    if (!state) return;
     
-    const updatedMarkers = questMarkers.map(marker => {
-      let isActive = marker.isActive;
-      let isCompleted = marker.isCompleted;
-      
-      if (questProgress === 'TRADER_MET' && marker.qrCode === QR_CODES.TRADER) {
-        isCompleted = true;
-        // Активируем следующую точку
-        if (marker.qrCode === QR_CODES.TRADER) {
-          const craftsman = questMarkers.find(m => m.qrCode === QR_CODES.CRAFTSMAN);
-          if (craftsman) {
-            isActive = false;
-          }
+    // Получаем первое сообщение с квестом доставки
+    const deliveryQuest = messages.find(msg => msg.id === '1');
+    
+    if (deliveryQuest && deliveryQuest.mapPoints) {
+      // Создаем маркеры на основе точек квеста и прогресса
+      const markers: QuestMarker[] = deliveryQuest.mapPoints.map((point, index) => {
+        // Определяем активность и завершенность маркера на основе прогресса
+        let isActive = false;
+        let isCompleted = false;
+        
+        const isTrader = index === 0;
+        const isCraftsman = index === 1;
+        
+        // Обновляем состояние маркеров на основе прогресса квеста
+        if (state === 'DELIVERY_STARTED' && isTrader) {
+          // Если квест доставки начат, активируем только торговца
+          isActive = true;
+        } else if (state === 'PARTS_COLLECTED') {
+          // Если запчасти собраны, активируем мастерскую и отмечаем торговца как завершенный
+          isActive = isCraftsman;
+          isCompleted = isTrader;
+        } else if (state === 'QUEST_COMPLETION' || state === 'ARTIFACT_HUNT') {
+          // Если квест доставки завершен или начат поиск артефакта, все точки квеста доставки завершены
+          isCompleted = isTrader || isCraftsman;
         }
-      } else if (questProgress === 'CRAFTSMAN_MET' && marker.qrCode === QR_CODES.CRAFTSMAN) {
-        isCompleted = true;
-      }
+        
+        return {
+          id: `marker_${index}`,
+          title: point.title,
+          lat: point.lat,
+          lng: point.lng,
+          isActive,
+          isCompleted,
+          qrCode: point.qrCode
+        };
+      });
       
-      return {
-        ...marker,
-        isActive,
-        isCompleted
-      };
-    });
-    
-    setQuestMarkers(updatedMarkers);
+      setQuestMarkers(markers);
+      console.log('Маркеры обновлены на основе прогресса:', state, markers);
+    }
   };
   
   // Function to mark message as read
@@ -377,7 +392,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
   };
   
   // Тестовый обработчик для кнопок QR-кодов
-  const handleTestQRButton = (marker: QuestMarker | string) => {
+  const handleTestQRButton = (marker: MapQuestMarker | string) => {
     // Если передан объект маркера, используем его QR-код
     if (typeof marker === 'object' && marker.qrCode) {
       handleQRCodeScan(marker.qrCode);
@@ -430,6 +445,30 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     );
   }
   
+  // Если есть сцена, но нет активного визуального романа, переходим к карте
+  if (gameView === 'novel' && (!sceneKey || !playerId)) {
+    // Вместо показа "No active scene", автоматически переходим к карте
+    setTimeout(() => {
+      setGameView('map');
+      // Если есть последний активный маркер, центрируем карту на нём
+      if (questMarkers.length > 0) {
+        const activeMarker = questMarkers.find(m => m.isActive);
+        if (activeMarker) {
+          // Эмулируем центрирование карты на активной точке
+          console.log(`Центрирование на маркере: ${activeMarker.title}`, [activeMarker.lng, activeMarker.lat]);
+        }
+      }
+    }, 100);
+    
+    // Показываем загрузку на время перехода
+    return (
+      <div className="game-screen-loading">
+        <div className="loading-spinner"></div>
+        <p>Переход к интерактивной карте...</p>
+      </div>
+    );
+  }
+  
   // Show map view if active
   if (gameView === 'map') {
     return (
@@ -445,8 +484,13 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         </div>
         
         <QuestMap 
-          markers={questMarkers}
-          onMarkerClick={handleTestQRButton}
+          markers={questMarkers.map(marker => ({
+            ...marker,
+            markerType: 'quest_point',
+            isActive: marker.isActive || false,
+            isCompleted: marker.isCompleted || false
+          } as MapQuestMarker))}
+          onMarkerClick={async (marker) => handleTestQRButton(marker)}
         />
         
         <div className="quest-map-markers">

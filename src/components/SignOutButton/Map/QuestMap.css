@@ -1,689 +1,666 @@
 /* QuestMap.css*/
 .quest-map {
-  width: 100%;
-  height: 400px;
   position: relative;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .quest-map-container {
   width: 100%;
   height: 100%;
-  background-color: #121212;
 }
 
-.map-placeholder {
-  width: 100%;
+.quest-map-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   height: 100%;
-  background-color: #121212;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+}
+
+.loading-spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 4px solid #fff;
+  width: 40px;
+  height: 40px;
+  animation: spin 2s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Стили для оверлеев ошибок и загрузки */
+.map-error-overlay,
+.geolocation-error-overlay,
+.geolocation-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 10;
+}
+
+.map-error-overlay {
+  height: 100%;
+}
+
+.geolocation-error-overlay,
+.geolocation-loading-overlay {
+  height: auto;
+  padding: 10px 0;
+}
+
+.map-error-content,
+.geolocation-error-content,
+.geolocation-loading-content {
+  text-align: center;
+  padding: 20px;
+  max-width: 90%;
+  border-radius: 8px;
+  background-color: rgba(25, 25, 25, 0.9);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.geolocation-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.geolocation-loading-content .loading-spinner {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 10px;
+}
+
+.map-error-content button,
+.geolocation-error-content button {
+  margin-top: 15px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #4a9eff;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.map-error-content button:hover,
+.geolocation-error-content button:hover {
+  background-color: #3a8eef;
+}
+
+.geolocation-error-content button:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+/* Стили маркеров */
+.marker {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  cursor: pointer;
+  background-size: cover;
+  background-position: center;
   position: relative;
 }
 
-.map-info {
-  text-align: center;
-  color: #ffffff;
-  padding: 2rem;
-  max-width: 400px;
-  background-color: rgba(0, 0, 0, 0.7);
-  border-radius: 8px;
-  z-index: 1;
+.marker.npc {
+  background-color: #FF9800;
 }
 
-.map-info h3 {
-  margin-bottom: 1rem;
-  color: #4a9eff;
+.marker.npc.npc-trader {
+  background-color: #FF9800;
+  background-image: url('/icons/trader.png');
 }
 
-.map-point {
+.marker.npc.npc-craftsman {
+  background-color: #9C27B0;
+  background-image: url('/icons/craftsman.png');
+}
+
+.marker.npc.npc-guild_master {
+  background-color: #FFC107;
+  background-image: url('/icons/guildmaster.png');
+}
+
+.marker.npc.npc-story {
+  background-color: #F44336;
+  background-image: url('/icons/story.png');
+}
+
+.marker.quest_point {
+  background-color: #4CAF50;
+  background-image: url('/icons/quest.png');
+}
+
+.marker.quest_area {
+  background-color: #2196F3;
+  background-image: url('/icons/area.png');
+}
+
+.marker.inactive {
+  opacity: 0.6;
+}
+
+.marker.completed {
+  background-color: #4CAF50;
+  border-color: #388E3C;
+}
+
+.marker-pulse {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-}
-
-.point-marker {
-  width: 20px;
-  height: 20px;
-  background-color: #4a9eff;
-  border: 3px solid #ffffff;
+  top: -10px;
+  left: -10px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-.point-pulse {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 30px;
-  height: 30px;
-  background-color: rgba(74, 158, 255, 0.3);
-  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
   animation: pulse 1.5s infinite;
+  pointer-events: none;
 }
 
 @keyframes pulse {
   0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(1.2);
+    opacity: 0;
   }
   100% {
-    transform: translate(-50%, -50%) scale(2);
+    transform: scale(0.8);
     opacity: 0;
   }
 }
 
-.point-label {
-  position: absolute;
-  bottom: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  color: #ffffff;
+/* Стили для попапа */
+.mapboxgl-popup {
+  max-width: 300px;
+}
+
+.mapboxgl-popup-content {
+  padding: 0;
+  background-color: rgba(42, 42, 42, 0.95);
+  color: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.popup-content {
+  padding: 15px;
+}
+
+.popup-title {
+  font-size: 16px;
   font-weight: bold;
-  text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 8px;
 }
 
-.map-controls {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 3;
-}
-
-.map-button {
-  background-color: #242424;
-  color: #ffffff;
-  border: none;
-  border-radius: 5px;
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-  transition: all 0.2s;
+.popup-description {
+  margin: 10px 0;
   font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.map-button:hover {
+.popup-info {
+  margin: 10px 0;
+}
+
+.popup-row {
+  margin: 5px 0;
+  font-size: 13px;
+}
+
+.popup-button {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  text-align: center;
   background-color: #4a9eff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.map-icon {
-  font-size: 18px;
+.popup-button:hover {
+  background-color: #3a8eef;
 }
 
+/* Стили легенды */
 .map-legend {
   position: absolute;
-  bottom: 20px;
-  left: 20px;
-  background-color: rgba(36, 36, 36, 0.8);
+  bottom: 15px;
+  left: 15px;
+  background-color: rgba(0, 0, 0, 0.7);
   padding: 10px;
-  border-radius: 5px;
-  z-index: 3;
+  border-radius: 4px;
+  z-index: 1;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 5px;
-  color: #ffffff;
-  font-size: 0.9rem;
-}
-
-.legend-item:last-child {
-  margin-bottom: 0;
+  margin: 5px 0;
+  color: white;
+  font-size: 12px;
 }
 
 .legend-marker {
-  width: 15px;
-  height: 15px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
+  margin-right: 8px;
+}
+
+.legend-marker.npc {
+  background-color: #FF9800;
+}
+
+.legend-marker.quest_point {
+  background-color: #4CAF50;
+}
+
+.legend-marker.quest_area {
+  background-color: #2196F3;
 }
 
 .legend-marker.active {
-  background-color: #4a9eff;
-}
-
-.legend-marker.inactive {
-  background-color: #666666;
+  background-color: #FF5722;
 }
 
 .legend-marker.completed {
-  background-color: #4caf50;
-}
-
-.quest-map-loading,
-.quest-map-error {
-  width: 100%;
-  height: 400px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: #121212;
-  color: #ffffff;
-  border-radius: 8px;
-}
-
-.quest-map-loading .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  border-top-color: #4a9eff;
-  animation: spin 1s ease-in-out infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.quest-map-error button {
-  margin-top: 1rem;
-  background-color: #4a9eff;
-  color: #ffffff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.quest-map-error button:hover {
-  background-color: #357abd;
-  transform: translateY(-2px);
-}
-
-/* Стили для Mapbox */
-.mapboxgl-map {
-  width: 100%;
-  height: 100%;
-}
-
-.mapboxgl-marker {
-  cursor: pointer;
-}
-
-.mapboxgl-popup {
-  max-width: 250px;
-}
-
-.mapboxgl-popup-content {
-  background-color: #242424;
-  color: #ffffff;
-  padding: 15px;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-
-.mapboxgl-popup-close-button {
-  color: #ffffff;
-  font-size: 16px;
-  padding: 5px;
-}
-
-.marker {
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-.marker.active {
-  background-color: #4a9eff;
-  border: 3px solid #ffffff;
-}
-
-.marker.inactive {
-  background-color: #666666;
-  border: 3px solid #333333;
-}
-
-.marker.completed {
-  background-color: #4caf50;
-  border: 3px solid #ffffff;
-}
-
-.marker-pulse {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background-color: rgba(74, 158, 255, 0.3);
-  animation: marker-pulse 1.5s infinite;
-}
-
-@keyframes marker-pulse {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(2);
-    opacity: 0;
-  }
-}
-
-.popup-title {
-  color: #4a9eff;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.popup-content {
-  margin-bottom: 10px;
-}
-
-.popup-button {
-  background-color: #4a9eff;
-  color: #ffffff;
-  border: none;
-  border-radius: 5px;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  width: 100%;
-  transition: all 0.2s;
-}
-
-.popup-button:hover {
-  background-color: #357abd;
-  transform: translateY(-2px);
-}
-
-/* Стили для кнопки центрирования на игроке */
-.center-player-button {
-  position: absolute;
-  bottom: 70px;
-  right: 10px;
-  width: 40px;
-  height: 40px;
-  background-color: #ffffff;
-  border: none;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
-  transition: all 0.3s ease;
-}
-
-.center-player-button:hover {
-  background-color: #f2f2f2;
-  transform: scale(1.1);
-}
-
-.center-player-button.tracking {
-  background-color: #4a9eff;
-  color: white;
-}
-
-.center-icon {
-  font-size: 20px;
-}
-
-.tracking-timer {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background-color: #ff4a4a;
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: pulse 1s infinite;
+  background-color: #4CAF50;
 }
 
 /* Стили для маркера игрока */
 .player-marker {
   width: 20px;
   height: 20px;
-  background-color: #ff4a4a;
   border-radius: 50%;
-  border: 3px solid #ffffff;
+  background-color: #03A9F4;
+  border: 3px solid white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
   position: relative;
-  z-index: 10;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .player-marker-pulse {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 74, 74, 0.3);
+  top: -10px;
+  left: -10px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  animation: player-pulse 1.5s infinite;
+  background-color: rgba(3, 169, 244, 0.3);
+  animation: player-pulse 2s infinite;
 }
 
 @keyframes player-pulse {
   0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
+    transform: scale(0.7);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.5);
+    opacity: 0;
   }
   100% {
-    transform: translate(-50%, -50%) scale(3);
+    transform: scale(0.7);
     opacity: 0;
   }
 }
 
-/* Стили для маркеров и попапов */
-.marker {
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  position: relative;
-}
-
-.marker.npc {
-  background-color: #f39c12;
-  border: 3px solid #ffffff;
-}
-
-.marker.npc-trader {
-  background-color: #f1c40f;
-}
-
-.marker.npc-craftsman {
-  background-color: #e67e22;
-}
-
-.marker.npc-guild_master {
-  background-color: #d35400;
-}
-
-.marker.npc-story {
-  background-color: #e74c3c;
-}
-
-.marker.quest_point {
-  background-color: #4a9eff;
-  border: 3px solid #ffffff;
-}
-
-.marker.quest_area {
-  /* Области будут отображаться через mapbox layers */
-  display: none;
-}
-
-.marker.active {
-  z-index: 5;
-}
-
-.marker.inactive {
-  background-color: #666666;
-  border: 3px solid #333333;
-  opacity: 0.7;
-}
-
-.marker.completed {
-  background-color: #4caf50;
-  border: 3px solid #ffffff;
-}
-
-.marker-pulse {
+/* Кнопка центрирования на игроке */
+.center-player-button {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  background-color: rgba(74, 158, 255, 0.3);
-  border-radius: 50%;
-  animation: marker-pulse 1.5s infinite;
-}
-
-@keyframes marker-pulse {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(2);
-    opacity: 0;
-  }
-}
-
-/* Стили для попапов */
-.mapboxgl-popup {
-  max-width: 250px;
-}
-
-.mapboxgl-popup-content {
-  background-color: #242424;
-  color: #ffffff;
-  padding: 15px;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-
-.mapboxgl-popup-close-button {
-  color: #ffffff;
-  font-size: 16px;
-  padding: 5px;
-}
-
-.popup-title {
-  color: #4a9eff;
-  font-weight: bold;
-  margin-bottom: 10px;
-  font-size: 16px;
-}
-
-.popup-info {
-  margin-bottom: 10px;
-}
-
-.popup-row {
-  margin-bottom: 5px;
-}
-
-.popup-description {
-  margin-top: 10px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
-}
-
-.popup-button {
-  background-color: #4a9eff;
-  color: #ffffff;
-  border: none;
-  border-radius: 5px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 14px;
-  width: 100%;
-  margin-top: 10px;
-  transition: all 0.2s;
-}
-
-.popup-button:hover {
-  background-color: #357abd;
-  transform: translateY(-2px);
-}
-
-/* Стили для легенды */
-.map-legend {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  background-color: rgba(36, 36, 36, 0.8);
-  padding: 10px;
-  border-radius: 5px;
-  z-index: 3;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 5px;
-  color: #ffffff;
-  font-size: 0.9rem;
-}
-
-.legend-item:last-child {
-  margin-bottom: 0;
-}
-
-.legend-marker {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-}
-
-.legend-marker.npc {
-  background-color: #f39c12;
-}
-
-.legend-marker.quest_point {
-  background-color: #4a9eff;
-}
-
-.legend-marker.quest_area {
-  background-color: rgba(74, 158, 255, 0.2);
-  border: 2px solid rgba(74, 158, 255, 0.8);
-}
-
-.legend-marker.active {
-  background-color: #ffffff;
-  border: 2px solid #4a9eff;
-}
-
-.legend-marker.completed {
-  background-color: #4caf50;
-}
-
-/* Стили для состояний загрузки и ошибок */
-.quest-map-loading,
-.quest-map-error {
-  width: 100%;
-  height: 400px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: #121212;
-  color: #ffffff;
-  border-radius: 8px;
-  padding: 20px;
-  text-align: center;
-}
-
-.loading-spinner {
+  bottom: 100px;
+  right: 10px;
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
+  background: #2d2d2d;
+  border: 2px solid #444;
   border-radius: 50%;
-  border-top-color: #4a9eff;
-  animation: spin 1s ease-in-out infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.quest-map-error button {
-  margin-top: 15px;
-  background-color: #4a9eff;
-  color: #ffffff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
+  color: #fff;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+  transition: all 0.3s ease;
 }
 
-.quest-map-error button:hover {
-  background-color: #357abd;
-  transform: translateY(-2px);
+.center-player-button:hover {
+  background: #3d3d3d;
+  transform: scale(1.05);
 }
 
-/* Медиа-запросы для адаптивности */
+.center-player-button:active {
+  transform: scale(0.95);
+}
+
+.center-player-button.tracking {
+  background: #1976d2;
+  border-color: #2196f3;
+}
+
+.center-player-button.tracking:hover {
+  background: #1565c0;
+}
+
+.center-icon {
+  font-size: 18px;
+}
+
+.tracking-timer {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #F44336;
+  color: white;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Стили для кнопки фиксированного местоположения */
+.fixed-location-button {
+  position: absolute;
+  bottom: 150px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  background: #3d2d3d;
+  border: 2px solid #544454;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.fixed-location-button:hover {
+  background: #4d3d4d;
+  transform: scale(1.05);
+}
+
+.fixed-location-button:active {
+  transform: scale(0.95);
+}
+
+.fixed-location-button.map-button {
+  position: absolute;
+  bottom: 150px;
+  right: 10px;
+}
+
+/* Стиль для кнопки в overlay ошибки геолокации */
+.geolocation-error-content .fixed-location-button {
+  position: relative;
+  width: auto;
+  height: auto;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  font-size: 14px;
+  bottom: auto;
+  right: auto;
+}
+
+/* Адаптивные стили */
 @media (max-width: 768px) {
-  .quest-map {
-    height: 350px;
-  }
-  
   .map-legend {
-    max-width: 160px;
-    font-size: 0.8rem;
-  }
-  
-  .center-player-button {
-    width: 36px;
-    height: 36px;
-  }
-  
-  .center-icon {
-    font-size: 18px;
-  }
-  
-  .popup-title {
-    font-size: 14px;
-  }
-  
-  .popup-description {
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .quest-map {
-    height: 300px;
-  }
-  
-  .map-legend {
-    bottom: 5px;
-    left: 5px;
-    padding: 5px;
-    max-width: 140px;
+    max-width: 40%;
+    font-size: 10px;
   }
   
   .legend-item {
-    font-size: 0.7rem;
-    gap: 5px;
-    margin-bottom: 3px;
-  }
-  
-  .legend-marker {
-    width: 10px;
-    height: 10px;
+    margin: 3px 0;
   }
   
   .center-player-button {
-    bottom: 60px;
-    right: 5px;
+    bottom: 70px;
+  }
+  
+  .fixed-location-button.map-button {
+    bottom: 120px;
+  }
+}
+
+/* Стили для индикатора режима фиксированной локации */
+.location-mode-indicator {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+}
+
+.fixed-location-indicator {
+  display: flex;
+  align-items: center;
+}
+
+.fixed-location-indicator::before {
+  content: "📍";
+  margin-right: 5px;
+}
+
+/* Стили для кнопки переключения на реальную геолокацию */
+.real-location-button {
+  position: absolute;
+  bottom: 200px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  background: #2d4d2d;
+  border: 2px solid #446644;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.real-location-button:hover {
+  background: #3d5d3d;
+  transform: scale(1.05);
+}
+
+.real-location-button:active {
+  transform: scale(0.95);
+}
+
+.real-location-icon {
+  font-size: 18px;
+}
+
+/* Стили для временных уведомлений */
+.map-notification {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 10;
+  text-align: center;
+  animation: fadeInOut 5s forwards;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Улучшенные стили для индикатора фиксированной локации */
+.location-mode-indicator {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  border-left: 3px solid #FF9800;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  max-width: 70%;
+}
+
+/* Улучшенные стили для кнопок в оверлее ошибок */
+.error-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+  width: 100%;
+}
+
+.retry-button {
+  background-color: #4a9eff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.retry-button:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.permission-hint {
+  margin-top: 15px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+  line-height: 1.4;
+  text-align: center;
+  padding: 0 10px;
+}
+
+/* Улучшенные стили для кнопки фиксированной локации */
+.fixed-location-button {
+  position: relative;
+  background-color: #9c27b0;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.fixed-location-button:hover {
+  background-color: #7b1fa2;
+}
+
+.fixed-location-button.map-button {
+  position: absolute;
+  bottom: 150px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Улучшенные стили для оверлеев */
+.geolocation-error-overlay {
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.geolocation-error-content {
+  max-width: 350px;
+  width: 90%;
+}
+
+.geolocation-error-content p {
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+/* Адаптивные стили */
+@media (max-width: 480px) {
+  .map-notification {
+    width: 90%;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  
+  .location-mode-indicator {
+    top: 10px;
+    left: 10px;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .error-buttons {
+    gap: 8px;
+  }
+  
+  .permission-hint {
+    font-size: 11px;
   }
 }

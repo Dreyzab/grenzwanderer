@@ -1,14 +1,18 @@
-import React, { useState, useEffect, useRef, useMemo, FC } from 'react';
+import React, { useState, useEffect, useRef, useMemo, FC, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useLocation } from '../../../hooks/useLocatiom';
+import { useLocation, DEFAULT_LOCATION as FIXED_LOCATION } from '../../../hooks/useLocatiom';
 import './QuestMap.css';
 
 // Получаем токен из переменных окружения
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'sk.eyJ1IjoiaW5vdGkiLCJhIjoiY205MDNmMGN5MGhrZzJqc2Q2bmNrYXg5ZSJ9.iJmsnFEecg9k9H1ApnkE2Q';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiaW5vdGkiLCJhIjoiY205MDNmMGN5MGhrZzJqc2Q2bmNrYXg5ZSJ9.iJmsnFEecg9k9H1ApnkE2Q';
 
 // Добавляем логирование токена
-console.log('Mapbox token used:', mapboxgl.accessToken.substring(0, 10) + '...');
+console.log('Mapbox token used:', mapboxgl.accessToken ? mapboxgl.accessToken.substring(0, 10) + '...' : 'не задан');
+
+// Фиксированные координаты для использования при отсутствии геолокации
+// 47°59'42.1"N 7°50'45.1"E
+const DEFAULT_LOCATION: [number, number] = FIXED_LOCATION;
 
 // Типы маркеров
 export enum MarkerType {
@@ -67,17 +71,74 @@ export const QuestMap: FC<QuestMapProps> = ({
 }) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const { position, error } = useLocation();
+  const { 
+    position, 
+    error, 
+    loading: geoLoading, 
+    requestGeolocation, 
+    permissionDenied, 
+    useDefaultLocation, 
+    isUsingDefaultLocation 
+  } = useLocation({
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
+  });
   
-  // Добавляем логирование местоположения
+  // Добавляем локальные состояния
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [mapInitialized, setMapInitialized] = useState(false);
+  const [geolocationAttempted, setGeolocationAttempted] = useState(false);
+  const [geoPermissionDenied, setGeoPermissionDenied] = useState(false);
+  const [isTrackingPlayer, setIsTrackingPlayer] = useState(false);
+  const [mapNotification, setMapNotification] = useState<string | null>(null);
+  
+  // Мемоизируем маркеры для оптимизации
+  const memoizedMarkers = useMemo(() => markers, [markers]);
+  
+  // Функция для центрирования на фиксированных координатах
+  const centerOnFixedLocation = useCallback(() => {
+    if (!map.current || !mapInitialized) return;
+    
+    console.log('Центрирование на фиксированных координатах:', DEFAULT_LOCATION);
+    
+    // Применяем плавную анимацию при центрировании
+    map.current.flyTo({
+      center: [DEFAULT_LOCATION[1], DEFAULT_LOCATION[0]],
+      zoom: 13,
+      speed: 1.5,
+      essential: true // Важный параметр для обеспечения работы даже при низкой производительности
+    });
+    
+    // Показываем временное уведомление
+    setMapNotification('Карта центрирована на фиксированных координатах');
+    setTimeout(() => setMapNotification(null), 3000);
+    
+    // Останавливаем отслеживание игрока
+    setIsTrackingPlayer(false);
+  }, [map, mapInitialized]);
+  
+  // Обновляем функцию обработки ошибок с более детальной диагностикой
   useEffect(() => {
-    if (position) {
-      console.log('Получена геолокация:', position);
-    }
     if (error) {
-      console.error('Ошибка геолокации:', error);
+      console.log('Обработка ошибки геолокации в QuestMap:', error);
+      
+      if (permissionDenied) {
+        setGeoPermissionDenied(true);
+        
+        // Отображаем уведомление о переключении на фиксированную локацию
+        setMapNotification('Доступ к геолокации запрещен. Используется фиксированная локация.');
+        setTimeout(() => setMapNotification(null), 5000);
+        
+        // Центрируем карту на фиксированных координатах
+        centerOnFixedLocation();
+      } else if (!position && isUsingDefaultLocation) {
+        // Если используется фиксированная локация, но еще не центрировались
+        centerOnFixedLocation();
+      }
     }
-  }, [position, error]);
+  }, [error, permissionDenied, position, isUsingDefaultLocation, centerOnFixedLocation]);
   
   // Используем refs для хранения маркеров, чтобы избежать пересоздания при каждом рендере
   const markersRef = useRef<{ [key: string]: mapboxgl.Marker }>({});
@@ -85,13 +146,66 @@ export const QuestMap: FC<QuestMapProps> = ({
   const playerMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const playerTrackingTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  const [loading, setLoading] = useState(true);
-  const [mapError, setMapError] = useState<string | null>(null);
-  const [isTrackingPlayer, setIsTrackingPlayer] = useState(false);
-  const [mapInitialized, setMapInitialized] = useState(false);
+  // Добавляем функцию для обработки ошибок геолокации отдельно
+  const handleGeolocationError = useCallback((geoLocError: GeolocationPositionError) => {
+    let errorMessage = 'Неизвестная ошибка при получении местоположения';
+    
+    switch (geoLocError.code) {
+      case 1:
+        errorMessage = 'Доступ к определению местоположения запрещен';
+        setGeoPermissionDenied(true);
+        break;
+      case 2:
+        errorMessage = 'Не удалось определить местоположение';
+        break;
+      case 3:
+        errorMessage = 'Превышено время ожидания при определении местоположения';
+        break;
+    }
+    
+    console.error('Ошибка геолокации:', errorMessage, geoLocError);
+    
+    // Не блокируем отображение карты при ошибке геолокации
+    setGeolocationAttempted(true);
+    
+    // Показываем уведомление пользователю
+    if (!mapError) {
+      // Временно показываем ошибку, но через 5 секунд скрываем
+      setMapError(errorMessage);
+      setTimeout(() => setMapError(null), 5000);
+    }
+    
+    // Центрируем карту на фиксированном местоположении при ошибке геолокации
+    if (map.current && mapInitialized) {
+      console.log('Центрирование на фиксированном местоположении из-за ошибки геолокации');
+      map.current.flyTo({
+        center: [DEFAULT_LOCATION[1], DEFAULT_LOCATION[0]],
+        zoom: 13,
+        speed: 1.5
+      });
+    }
+    
+    // Предлагаем использовать фиксированную локацию
+    useDefaultLocation();
+  }, [mapError, mapInitialized, useDefaultLocation]);
   
-  // Мемоизируем маркеры для оптимизации
-  const memoizedMarkers = useMemo(() => markers, [markers]);
+  // Функция для получения геолокации напрямую
+  const triggerGeolocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      console.warn('Геолокация не поддерживается в этом браузере');
+      return;
+    }
+    
+    setGeolocationAttempted(true);
+    requestGeolocation();
+  }, [requestGeolocation]);
+  
+  // Попытка запросить геолокацию при монтировании
+  useEffect(() => {
+    if (!geolocationAttempted && !position) {
+      triggerGeolocation();
+    }
+  }, [geolocationAttempted, position, triggerGeolocation]);
   
   // Инициализация карты только при первом рендере
   useEffect(() => {
@@ -105,6 +219,7 @@ export const QuestMap: FC<QuestMapProps> = ({
         webGLSupported: mapboxgl.supported(),
         position: position ? `${position[0]}, ${position[1]}` : 'unavailable',
         center: center ? `${center[0]}, ${center[1]}` : 'using default',
+        defaultLocation: `${DEFAULT_LOCATION[0]}, ${DEFAULT_LOCATION[1]}`
       });
       
       // Проверяем размеры контейнера
@@ -115,8 +230,9 @@ export const QuestMap: FC<QuestMapProps> = ({
           height: clientHeight,
           container: mapContainer.current
         });
-        setMapError('Контейнер карты имеет нулевые размеры');
-        return;
+        // Не блокируем дальнейшую инициализацию, попробуем создать карту в любом случае
+        // setMapError('Контейнер карты имеет нулевые размеры');
+        // return;
       }
       
       // Проверяем поддержку WebGL
@@ -128,17 +244,32 @@ export const QuestMap: FC<QuestMapProps> = ({
       }
       
       // Определяем начальные координаты
-      const initialCenter = center || (position ? [position[1], position[0]] : [30.3056, 59.9391]);
+      const initialCenter = center || (position ? [position[1], position[0]] : [DEFAULT_LOCATION[1], DEFAULT_LOCATION[0]]);
       console.log('Using initial center:', initialCenter);
+      
+      // Настройки для карты с защитой от ошибок
+      let effectiveCenter: [number, number];
+      try {
+        effectiveCenter = initialCenter as [number, number];
+        // Проверяем корректность значений
+        if (isNaN(effectiveCenter[0]) || isNaN(effectiveCenter[1])) {
+          throw new Error('Invalid center coordinates');
+        }
+      } catch (err) {
+        console.error('Invalid center coordinates', initialCenter);
+        effectiveCenter = [DEFAULT_LOCATION[1], DEFAULT_LOCATION[0]]; // Дефолтные координаты при ошибке
+      }
       
       // Настройки для карты
       const mapOptions = {
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/dark-v10',
-        center: initialCenter as [number, number],
+        center: effectiveCenter,
         zoom: zoom,
         pitchWithRotate: false,
-        attributionControl: false
+        attributionControl: false,
+        // Разрешаем навигацию по всему миру без ограничений
+        maxBounds: undefined
       };
       console.log('Creating map with options:', mapOptions);
       
@@ -251,15 +382,19 @@ export const QuestMap: FC<QuestMapProps> = ({
         }
       });
       
-      // Улучшенный обработчик ошибки
+      // Улучшаем обработчик ошибки карты
       map.current.on('error', (e) => {
+        const errorSource = e.error || { message: 'Unknown error' };
         console.error('Mapbox error:', {
           error: e.error,
-          message: e.error ? e.error.message : 'Unknown error',
-          stack: e.error ? e.error.stack : undefined,
-          originalEvent: e.originalEvent
+          message: errorSource.message,
+          stack: errorSource.stack,
+          eventType: e.type
         });
-        setMapError(`Ошибка карты: ${e.error ? e.error.message : 'Неизвестная ошибка'}`);
+        
+        // Временно показываем ошибку, а затем скрываем
+        setMapError(`Ошибка карты: ${errorSource.message}`);
+        setTimeout(() => setMapError(null), 5000);
       });
       
       // Дополнительный обработчик для ошибок данных
@@ -310,11 +445,15 @@ export const QuestMap: FC<QuestMapProps> = ({
       setMapError(`Ошибка инициализации карты: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
       setLoading(false);
     }
-  }, []);
+  }, [center, mapInitialized, position, requestGeolocation, zoom]);
   
   // Функция для центрирования на игроке и активации отслеживания
   const centerOnPlayer = () => {
-    if (!map.current || !position) return;
+    if (!map.current || !position) {
+      // Если позиция недоступна, центрируем на фиксированном местоположении
+      centerOnFixedLocation();
+      return;
+    }
     
     // Центрируем карту на позиции игрока
     map.current.flyTo({
@@ -645,27 +784,133 @@ export const QuestMap: FC<QuestMapProps> = ({
     );
   }
   
-  // Показываем ошибку геолокации
-  if (error) {
-    return (
-      <div className="quest-map-error">
-        <p>{error}</p>
-        <p>Карта доступна, но без определения вашего местоположения.</p>
-        <button onClick={() => window.location.reload()}>
-          Попробовать снова
-        </button>
-      </div>
-    );
-  }
-  
-  // Показываем ошибку карты
+  // Показываем ошибку геолокации или карты со стилизацией
   if (mapError) {
     return (
-      <div className="quest-map-error">
-        <p>{mapError}</p>
-        <button onClick={() => window.location.reload()}>
-          Обновить
+      <div className="quest-map">
+        <div ref={mapContainer} className="quest-map-container"></div>
+        
+        {/* Индикатор режима локации */}
+        {isUsingDefaultLocation && (
+          <div className="location-mode-indicator">
+            <span className="fixed-location-indicator">Используется фиксированная локация</span>
+          </div>
+        )}
+        
+        {/* Временные уведомления */}
+        {mapNotification && (
+          <div className="map-notification">
+            <span>{mapNotification}</span>
+          </div>
+        )}
+        
+        {/* Ошибки карты */}
+        {mapError && (
+          <div className="map-error-overlay">
+            <div className="map-error-content">
+              <p>{mapError}</p>
+              <button onClick={() => setMapError(null)}>Закрыть</button>
+              {!isUsingDefaultLocation && (
+                <button onClick={useDefaultLocation} className="fixed-location-button">
+                  Использовать фиксированную локацию
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Ошибки геолокации */}
+        {error && !position && (
+          <div className="geolocation-error-overlay">
+            <div className="geolocation-error-content">
+              <p>{error}</p>
+              <div className="error-buttons">
+                <button 
+                  onClick={requestGeolocation}
+                  disabled={geoPermissionDenied}
+                  className="retry-button"
+                >
+                  {geoPermissionDenied ? 'Доступ запрещен' : 'Повторить определение'}
+                </button>
+                <button 
+                  onClick={useDefaultLocation}
+                  className="fixed-location-button"
+                >
+                  Использовать фиксированную локацию
+                </button>
+              </div>
+              {geoPermissionDenied && (
+                <p className="permission-hint">
+                  Для включения геолокации, разрешите доступ к местоположению в настройках браузера и перезагрузите страницу
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Индикатор загрузки */}
+        {geoLoading && !position && (
+          <div className="geolocation-loading-overlay">
+            <div className="geolocation-loading-content">
+              <div className="loading-spinner"></div>
+              <p>Определение местоположения...</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Кнопка для центрирования на игроке или на фиксированных координатах */}
+        <button
+          className={`center-player-button ${isTrackingPlayer ? 'tracking' : ''}`}
+          onClick={position ? centerOnPlayer : centerOnFixedLocation}
+          title={position && !isUsingDefaultLocation ? "Центрировать на моем местоположении" : "Центрировать на фиксированном местоположении"}
+        >
+          <span className="center-icon">📍</span>
+          {isTrackingPlayer && <span className="tracking-timer">30</span>}
         </button>
+        
+        {/* Кнопка для переключения между реальной геолокацией и фиксированной */}
+        {isUsingDefaultLocation && !geoPermissionDenied ? (
+          <button
+            className="real-location-button map-button"
+            onClick={requestGeolocation}
+            title="Попробовать определить моё местоположение"
+          >
+            <span className="real-location-icon">🔄</span>
+          </button>
+        ) : (
+          position && !isUsingDefaultLocation && (
+            <button
+              className="fixed-location-button map-button"
+              onClick={centerOnFixedLocation}
+              title="Центрировать на фиксированной локации"
+            >
+              <span className="fixed-location-icon">🏠</span>
+            </button>
+          )
+        )}
+        
+        <div className="map-legend">
+          <div className="legend-item">
+            <div className="legend-marker npc"></div>
+            <span>NPC</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-marker quest_point"></div>
+            <span>Точка задания</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-marker quest_area"></div>
+            <span>Область задания</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-marker active"></div>
+            <span>Активные точки</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-marker completed"></div>
+            <span>Завершенные точки</span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -674,32 +919,103 @@ export const QuestMap: FC<QuestMapProps> = ({
     <div className="quest-map">
       <div ref={mapContainer} className="quest-map-container"></div>
       
-      {/* Добавляем отладочную информацию */}
-      <div className="map-debug-info">
-        <button 
-          onClick={() => console.log('Map state:', {
-            initialized: mapInitialized,
-            mapInstance: !!map.current,
-            position,
-            markerCount: memoizedMarkers.length,
-            playerMarker: !!playerMarkerRef.current
-          })}
-          style={{position: 'absolute', bottom: '10px', left: '10px', zIndex: 1000}}
-        >
-          Debug
-        </button>
-      </div>
+      {/* Индикатор режима локации */}
+      {isUsingDefaultLocation && (
+        <div className="location-mode-indicator">
+          <span className="fixed-location-indicator">Используется фиксированная локация</span>
+        </div>
+      )}
       
-      {/* Кнопка для центрирования на игроке */}
-      {position && (
+      {/* Временные уведомления */}
+      {mapNotification && (
+        <div className="map-notification">
+          <span>{mapNotification}</span>
+        </div>
+      )}
+      
+      {/* Ошибки карты */}
+      {mapError && (
+        <div className="map-error-overlay">
+          <div className="map-error-content">
+            <p>{mapError}</p>
+            <button onClick={() => setMapError(null)}>Закрыть</button>
+            {!isUsingDefaultLocation && (
+              <button onClick={useDefaultLocation} className="fixed-location-button">
+                Использовать фиксированную локацию
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Ошибки геолокации */}
+      {error && !position && (
+        <div className="geolocation-error-overlay">
+          <div className="geolocation-error-content">
+            <p>{error}</p>
+            <div className="error-buttons">
+              <button 
+                onClick={requestGeolocation}
+                disabled={geoPermissionDenied}
+                className="retry-button"
+              >
+                {geoPermissionDenied ? 'Доступ запрещен' : 'Повторить определение'}
+              </button>
+              <button 
+                onClick={useDefaultLocation}
+                className="fixed-location-button"
+              >
+                Использовать фиксированную локацию
+              </button>
+            </div>
+            {geoPermissionDenied && (
+              <p className="permission-hint">
+                Для включения геолокации, разрешите доступ к местоположению в настройках браузера и перезагрузите страницу
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Индикатор загрузки */}
+      {geoLoading && !position && (
+        <div className="geolocation-loading-overlay">
+          <div className="geolocation-loading-content">
+            <div className="loading-spinner"></div>
+            <p>Определение местоположения...</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Кнопка для центрирования на игроке или на фиксированных координатах */}
+      <button
+        className={`center-player-button ${isTrackingPlayer ? 'tracking' : ''}`}
+        onClick={position ? centerOnPlayer : centerOnFixedLocation}
+        title={position && !isUsingDefaultLocation ? "Центрировать на моем местоположении" : "Центрировать на фиксированном местоположении"}
+      >
+        <span className="center-icon">📍</span>
+        {isTrackingPlayer && <span className="tracking-timer">30</span>}
+      </button>
+      
+      {/* Кнопка для переключения между реальной геолокацией и фиксированной */}
+      {isUsingDefaultLocation && !geoPermissionDenied ? (
         <button
-          className={`center-player-button ${isTrackingPlayer ? 'tracking' : ''}`}
-          onClick={centerOnPlayer}
-          title="Центрировать на моем местоположении"
+          className="real-location-button map-button"
+          onClick={requestGeolocation}
+          title="Попробовать определить моё местоположение"
         >
-          <span className="center-icon">📍</span>
-          {isTrackingPlayer && <span className="tracking-timer">30</span>}
+          <span className="real-location-icon">🔄</span>
         </button>
+      ) : (
+        position && !isUsingDefaultLocation && (
+          <button
+            className="fixed-location-button map-button"
+            onClick={centerOnFixedLocation}
+            title="Центрировать на фиксированной локации"
+          >
+            <span className="fixed-location-icon">🏠</span>
+          </button>
+        )
       )}
       
       <div className="map-legend">

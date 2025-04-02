@@ -11,6 +11,16 @@ import { $currentUser } from '../../entities/user/model';
 import { useLocation } from '../../hooks/useLocatiom';
 import './GamePage.css';
 
+// Включаем дополнительное логирование для отладки
+const DEBUG = true;
+
+// Вспомогательная функция для логирования
+const logDebug = (message: string, data?: any) => {
+  if (DEBUG) {
+    console.log(`[GamePage] ${message}`, data || '');
+  }
+};
+
 export const GamePage: React.FC = () => {
   const user = useUnit($currentUser);
   const navigate = useNavigate();
@@ -37,9 +47,24 @@ export const GamePage: React.FC = () => {
     playerId ? { playerId: playerId as any } : "skip"
   );
   
+  // Логируем ключевые обновления состояния
+  useEffect(() => {
+    logDebug('Active screen changed', activeScreen);
+  }, [activeScreen]);
+  
+  useEffect(() => {
+    logDebug('Player position updated', position);
+  }, [position]);
+  
   // Инициализация данных игрока
   useEffect(() => {
+    logDebug('User state changed', { 
+      userExists: !!user, 
+      userId: user?.id
+    });
+    
     if (!user) {
+      logDebug('No user found, redirecting to login');
       navigate('/login');
       return;
     }
@@ -47,20 +72,30 @@ export const GamePage: React.FC = () => {
     const initializePlayer = async () => {
       try {
         setLoading(true);
+        logDebug('Initializing player', { userId: user.id });
         
         // Получаем или создаем профиль игрока
         const player = await getOrCreatePlayer({ userId: user.id as any });
         if (player) {
+          logDebug('Player loaded', {
+            playerId: player._id,
+            questState: player.questState
+          });
+          
           setPlayerId(player._id);
           setPlayerQuestState(player.questState);
           
           // Проверяем наличие новых сообщений
           if (player.questState === 'NEW_MESSAGE' || player.questState === 'REGISTERED') {
+            logDebug('Player has new messages');
             setHasNewMessage(true);
           }
+        } else {
+          logDebug('No player returned from getOrCreatePlayer');
         }
       } catch (error) {
         console.error('Error getting player profile:', error);
+        logDebug('Error initializing player', { error });
         setError(error instanceof Error ? error.message : 'Неизвестная ошибка при загрузке профиля');
       } finally {
         setLoading(false);
@@ -73,16 +108,22 @@ export const GamePage: React.FC = () => {
   // Обновляем маркеры квестов при изменении состояния игрока
   useEffect(() => {
     if (playerId && playerQuestState) {
+      logDebug('Loading quest markers', { playerId, playerQuestState });
       loadQuestMarkers(playerQuestState);
     }
   }, [playerId, playerQuestState]);
   
   // Используем useMemo для оптимизации рендеринга маркеров
-  const memoizedMarkers = useMemo(() => questMarkers, [questMarkers]);
+  const memoizedMarkers = useMemo(() => {
+    logDebug('Memoizing markers', { count: questMarkers.length });
+    return questMarkers;
+  }, [questMarkers]);
   
   // Загрузка маркеров квестов
   const loadQuestMarkers = (questState: string) => {
     try {
+      logDebug('Building markers for quest state', questState);
+      
       // В реальном приложении здесь должен быть запрос к API для получения маркеров
       // В данной реализации используем фиктивные данные в зависимости от состояния игрока
       
@@ -127,40 +168,72 @@ export const GamePage: React.FC = () => {
         }
       ];
       
+      logDebug('Created markers', { count: markers.length });
+      markers.forEach(marker => {
+        logDebug(`Marker ${marker.id}`, {
+          type: marker.markerType,
+          active: marker.isActive,
+          completed: marker.isCompleted
+        });
+      });
+      
       setQuestMarkers(markers);
     } catch (error) {
       console.error('Error loading quest markers:', error);
+      logDebug('Error loading quest markers', { error });
       setError('Ошибка при загрузке маркеров квестов');
     }
   };
   
   // Обработка клика по маркеру
   const handleMarkerClick = async (marker: QuestMarker) => {
-    if (!playerId || !marker.qrCode) return;
+    if (!playerId || !marker.qrCode) {
+      logDebug('Cannot handle marker click - missing playerId or qrCode', {
+        playerId,
+        markerId: marker.id,
+        hasQrCode: !!marker.qrCode
+      });
+      return;
+    }
+    
+    logDebug('Marker clicked', {
+      markerId: marker.id,
+      markerType: marker.markerType,
+      qrCode: marker.qrCode
+    });
     
     try {
       setLoading(true);
       
+      logDebug('Activating QR code', marker.qrCode);
       const result = await activateQuestByQR({
         playerId: playerId as any,
         qrCode: marker.qrCode
       });
+      
+      logDebug('QR code activation result', result);
       
       if (result && result.message) {
         alert(result.message);
         
         // Если есть сцена, переходим к диалогу
         if (result.sceneId) {
+          logDebug('Switching to dialog screen', { sceneId: result.sceneId });
           setActiveScreen('dialog');
         }
         
         // Обновляем состояние квеста, если оно изменилось
         if (result.questState && result.questState !== playerQuestState) {
+          logDebug('Updating quest state', {
+            old: playerQuestState,
+            new: result.questState
+          });
           setPlayerQuestState(result.questState);
         }
       }
     } catch (error) {
       console.error('Error activating QR code:', error);
+      logDebug('Error activating QR code', { error });
       alert(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     } finally {
       setLoading(false);
@@ -170,13 +243,19 @@ export const GamePage: React.FC = () => {
   // Check for new messages when player is loaded
   useEffect(() => {
     if (getCurrentScene) {
+      logDebug('Current scene loaded, setting new message flag', { scene: getCurrentScene });
       setHasNewMessage(true);
     }
   }, [getCurrentScene]);
   
   // Handle scanner success
   const handleScannerSuccess = async (code: string) => {
-    if (!playerId) return;
+    if (!playerId) {
+      logDebug('Cannot handle scanner success - missing playerId');
+      return;
+    }
+    
+    logDebug('QR code scanned', { code });
     
     try {
       setLoading(true);
@@ -186,20 +265,28 @@ export const GamePage: React.FC = () => {
         qrCode: code
       });
       
+      logDebug('QR code activation result', result);
+      
       if (result && result.message) {
         alert(result.message);
         
         if (result.sceneId) {
+          logDebug('Switching to dialog screen', { sceneId: result.sceneId });
           setActiveScreen('dialog');
         }
         
         // Обновляем состояние квеста, если оно изменилось
         if (result.questState && result.questState !== playerQuestState) {
+          logDebug('Updating quest state', {
+            old: playerQuestState,
+            new: result.questState
+          });
           setPlayerQuestState(result.questState);
         }
       }
     } catch (error) {
       console.error('Error activating QR code:', error);
+      logDebug('Error activating QR code', { error });
       alert(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     } finally {
       setLoading(false);
@@ -208,11 +295,13 @@ export const GamePage: React.FC = () => {
   
   // Handle exit to main page
   const handleExit = () => {
+    logDebug('Exiting to main page');
     navigate('/');
   };
   
   // Обработка закрытия диалога
   const handleDialogClose = () => {
+    logDebug('Dialog closed, returning to map');
     setActiveScreen('map');
     setHasNewMessage(false);
   };
@@ -236,9 +325,30 @@ export const GamePage: React.FC = () => {
         <button onClick={() => window.location.reload()}>
           Попробовать снова
         </button>
+        <button onClick={() => {
+          console.log('Debug information');
+          console.log('Current state:', {
+            user,
+            playerId,
+            playerQuestState,
+            markers: questMarkers,
+            position,
+            activeScreen
+          });
+        }}>
+          Показать отладочную информацию
+        </button>
       </div>
     );
   }
+  
+  // Рендерим основной интерфейс
+  logDebug('Rendering GamePage', {
+    activeScreen, 
+    markerCount: memoizedMarkers.length,
+    hasNewMessage,
+    position: position ? 'available' : 'unavailable'
+  });
   
   return (
     <div className="game-page">
@@ -278,6 +388,33 @@ export const GamePage: React.FC = () => {
       {loading && playerId && (
         <div className="operation-loading">
           <div className="loading-spinner-small"></div>
+        </div>
+      )}
+      
+      {/* Debug bar */}
+      {DEBUG && (
+        <div className="debug-bar" style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          color: 'white',
+          padding: '4px',
+          fontSize: '10px',
+          zIndex: 9999
+        }}>
+          <div>QuestState: {playerQuestState || 'none'}</div>
+          <div>Markers: {memoizedMarkers.length}</div>
+          <div>Position: {position ? `${position[0].toFixed(5)}, ${position[1].toFixed(5)}` : 'unavailable'}</div>
+          <button onClick={() => {
+            console.log('==== GAME STATE DEBUG ====');
+            console.log('User:', user);
+            console.log('Player:', { id: playerId, questState: playerQuestState });
+            console.log('Markers:', memoizedMarkers);
+            console.log('Position:', position);
+            console.log('========================');
+          }} style={{ fontSize: '10px' }}>Log State</button>
         </div>
       )}
       

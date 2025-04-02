@@ -5,7 +5,7 @@ import { useLocation } from '../../../hooks/useLocatiom';
 import './QuestMap.css';
 
 // Получаем токен из переменных окружения
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiaW5vdGkiLCJhIjoiY204enAzcG1iMDV4MTJscW10dmo4M3E2cyJ9.b9Q63iJdEcuoeLLVd12WhA';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'sk.eyJ1IjoiaW5vdGkiLCJhIjoiY205MDNmMGN5MGhrZzJqc2Q2bmNrYXg5ZSJ9.iJmsnFEecg9k9H1ApnkE2Q';
 
 // Типы маркеров
 export enum MarkerType {

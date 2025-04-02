@@ -64,17 +64,19 @@ export const QuestMap: FC<QuestMapProps> = ({ markers = [], onMarkerClick, cente
   const markerRefs = useRef<Record<string, mapboxgl.Marker>>({});
   const playerMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [mapReady, setMapReady] = useState(false);
 
   // Используем хук геолокации с ограниченным числом попыток
   const { position, error: locationError, loading: locationLoading, permissionDenied } = useLocation();
 
   // Функция для центрирования карты на указанных координатах
-  const centerMapOn = useCallback((coords: [number, number]) => {
+  const centerMapOn = useCallback((coords: [number, number], zoom: number = 15, duration: number = 1500) => {
     if (map.current) {
       map.current.flyTo({
         center: coords,
-        zoom: 15,
-        essential: true
+        zoom,
+        essential: true,
+        duration
       });
     }
   }, []);
@@ -119,8 +121,42 @@ export const QuestMap: FC<QuestMapProps> = ({ markers = [], onMarkerClick, cente
       });
       
       // Обработчик события загрузки карты
-      map.current.on('load', () => {
+      const mapInstance = map.current;
+      mapInstance.on('load', () => {
         console.log('Карта успешно загружена');
+        setMapReady(true);
+
+        if (mapInstance) {
+          // Добавляем источник данных для областей квестов
+          mapInstance.addSource('quest-areas', {
+            type: 'geojson',
+            data: {
+              type: 'FeatureCollection',
+              features: []
+            }
+          });
+          
+          // Добавляем слой для областей квестов
+          mapInstance.addLayer({
+            id: 'quest-areas-fill',
+            type: 'circle',
+            source: 'quest-areas',
+            paint: {
+              'circle-radius': ['get', 'radius'],
+              'circle-color': ['case',
+                ['boolean', ['get', 'isActive'], false], 'rgba(74, 158, 255, 0.2)',
+                ['boolean', ['get', 'isCompleted'], false], 'rgba(76, 175, 80, 0.2)',
+                'rgba(102, 102, 102, 0.2)'
+              ],
+              'circle-stroke-width': 2,
+              'circle-stroke-color': ['case',
+                ['boolean', ['get', 'isActive'], false], 'rgba(74, 158, 255, 0.8)',
+                ['boolean', ['get', 'isCompleted'], false], 'rgba(76, 175, 80, 0.8)',
+                'rgba(102, 102, 102, 0.5)'
+              ]
+            }
+          });
+        }
       });
       
       // Обработчик ошибок карты
@@ -144,91 +180,204 @@ export const QuestMap: FC<QuestMapProps> = ({ markers = [], onMarkerClick, cente
     };
   }, [center]);
 
+  // Функция для создания маркера
+  const createMarker = useCallback((markerData: QuestMarker) => {
+    if (!map.current) return;
+    
+    // Создаем DOM элемент для маркера
+    const el = document.createElement('div');
+    
+    if (markerData.markerType === MarkerType.QUEST_AREA) {
+      // Обработка областей через GeoJSON слой
+      return;
+    }
+    
+    el.className = `map-marker ${markerData.markerType || 'quest_point'}`;
+    
+    // Добавляем классы на основе свойств маркера
+    if (markerData.isCompleted) el.classList.add('completed');
+    if (markerData.isActive) el.classList.add('active');
+    if (markerData.npcClass) el.classList.add(markerData.npcClass);
+    if (markerData.faction) el.classList.add(markerData.faction);
+    
+    // Для активных маркеров добавляем эффект пульсации
+    if (markerData.isActive) {
+      const pulse = document.createElement('div');
+      pulse.className = 'marker-pulse';
+      el.appendChild(pulse);
+    }
+    
+    // Создаем попап
+    const popup = new mapboxgl.Popup({ offset: 25 })
+      .setHTML(`
+        <div class="popup-content">
+          <h3>${markerData.title}</h3>
+          ${markerData.description ? `<p>${markerData.description}</p>` : ''}
+        </div>
+      `);
+    
+    // Создаем маркер и добавляем его на карту
+    const mapMarker = new mapboxgl.Marker(el)
+      .setLngLat([markerData.lng, markerData.lat])
+      .setPopup(popup);
+    
+    // Добавляем маркер на карту
+    if (map.current) {
+      mapMarker.addTo(map.current);
+    }
+    
+    // Добавляем обработчик клика, если он предоставлен
+    if (onMarkerClick) {
+      el.addEventListener('click', () => {
+        if (markerData.isActive) {
+          onMarkerClick(markerData).catch(err => {
+            console.error('Ошибка при обработке клика по маркеру:', err);
+          });
+        } else {
+          // Уведомление о том, что маркер неактивен
+          setNotification(`Точка "${markerData.title}" сейчас недоступна`);
+          setTimeout(() => setNotification(null), 2000);
+        }
+      });
+    }
+    
+    // Сохраняем ссылку на маркер
+    markerRefs.current[markerData.id] = mapMarker;
+  }, [onMarkerClick]);
+
+  // Функция для обновления маркера
+  const updateMarker = useCallback((markerData: QuestMarker) => {
+    const marker = markerRefs.current[markerData.id];
+    if (!marker) return;
+    
+    // Обновляем позицию
+    marker.setLngLat([markerData.lng, markerData.lat]);
+    
+    // Обновляем всплывающее окно
+    const popup = marker.getPopup();
+    if (popup) {
+      popup.setHTML(`
+        <div class="popup-content">
+          <h3>${markerData.title}</h3>
+          ${markerData.description ? `<p>${markerData.description}</p>` : ''}
+        </div>
+      `);
+    }
+    
+    // Обновляем стиль маркера
+    const el = marker.getElement();
+    el.className = `map-marker ${markerData.markerType || 'quest_point'}`;
+    
+    // Добавляем классы на основе свойств маркера
+    if (markerData.isCompleted) el.classList.add('completed');
+    if (markerData.isActive) el.classList.add('active');
+    if (markerData.npcClass) el.classList.add(markerData.npcClass);
+    if (markerData.faction) el.classList.add(markerData.faction);
+    
+    // Обновляем эффект пульсации
+    const pulse = el.querySelector('.marker-pulse');
+    if (markerData.isActive && !pulse) {
+      const newPulse = document.createElement('div');
+      newPulse.className = 'marker-pulse';
+      el.appendChild(newPulse);
+    } else if (!markerData.isActive && pulse) {
+      pulse.remove();
+    }
+  }, []);
+
+  // Обновление областей квестов
+  const updateQuestAreas = useCallback(() => {
+    if (!map.current || !mapReady) return;
+    
+    try {
+      const source = map.current.getSource('quest-areas');
+      if (!source || !('setData' in source)) return;
+      
+      // Получаем области из маркеров
+      const areaMarkers = markers.filter(marker => marker.markerType === MarkerType.QUEST_AREA);
+      
+      // Создаем GeoJSON фичи для областей
+      const areaFeatures = areaMarkers.map(area => ({
+        type: 'Feature' as const,
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [area.lng, area.lat]
+        },
+        properties: {
+          id: area.id,
+          title: area.title,
+          description: area.description,
+          radius: (area.radius || 40) / (map.current?.getZoom() || 10) * 5, // Масштабируем радиус в зависимости от зума
+          isActive: area.isActive,
+          isCompleted: area.isCompleted
+        }
+      }));
+      
+      // Обновляем источник данных
+      source.setData({
+        type: 'FeatureCollection' as const,
+        features: areaFeatures
+      });
+    } catch (error) {
+      console.error('Ошибка при обновлении областей:', error);
+    }
+  }, [markers, mapReady]);
+
   // Добавление маркеров на карту
   useEffect(() => {
-    if (!map.current || !markers.length) return;
+    if (!map.current) return;
+    
+    // Обновляем области квестов
+    updateQuestAreas();
+    
+    // Получаем обычные маркеры (не области)
+    const pointMarkers = markers.filter(marker => marker.markerType !== MarkerType.QUEST_AREA);
 
-    // Очистка текущих маркеров
-    Object.values(markerRefs.current).forEach(marker => marker.remove());
-    markerRefs.current = {};
-
-    // Добавление новых маркеров
-    markers.forEach(marker => {
-      try {
-        // Создаем DOM элемент для маркера
-        const el = document.createElement('div');
-        el.className = `map-marker ${marker.markerType || 'quest_point'}`;
-        
-        // Добавляем классы на основе свойств маркера
-        if (marker.isCompleted) el.classList.add('completed');
-        if (marker.isActive) el.classList.add('active');
-        if (marker.npcClass) el.classList.add(marker.npcClass);
-        if (marker.faction) el.classList.add(marker.faction);
-        
-        // Для областей добавляем доп. стиль и устанавливаем радиус
-        if (marker.markerType === MarkerType.QUEST_AREA && marker.radius) {
-          el.style.width = `${Math.min(100, marker.radius / 10)}px`;
-          el.style.height = `${Math.min(100, marker.radius / 10)}px`;
-        }
-
-        // Создаем маркер и добавляем его на карту
-        const mapMarker = new mapboxgl.Marker(el)
-          .setLngLat([marker.lng, marker.lat])
-          .setPopup(
-            new mapboxgl.Popup({ offset: 25 })
-              .setHTML(`<h3>${marker.title}</h3>${marker.description ? `<p>${marker.description}</p>` : ''}`)
-          );
-        
-        // Проверяем, что карта существует, прежде чем добавлять маркер
-        if (map.current) {
-          mapMarker.addTo(map.current);
-        }
-        
-        // Добавляем обработчик клика, если он предоставлен
-        if (onMarkerClick) {
-          el.addEventListener('click', () => {
-            onMarkerClick(marker).catch(err => {
-              console.error('Ошибка при обработке клика по маркеру:', err);
-            });
-          });
-        }
-        
-        // Сохраняем ссылку на маркер
-        markerRefs.current[marker.id] = mapMarker;
-      } catch (error) {
-        console.error('Ошибка при добавлении маркера:', error, marker);
+    // Удаляем маркеры, которых больше нет в данных
+    Object.keys(markerRefs.current).forEach(id => {
+      if (!pointMarkers.some(m => m.id === id)) {
+        markerRefs.current[id].remove();
+        delete markerRefs.current[id];
+      }
+    });
+    
+    // Добавляем новые или обновляем существующие маркеры
+    pointMarkers.forEach(markerData => {
+      if (markerRefs.current[markerData.id]) {
+        updateMarker(markerData);
+      } else {
+        createMarker(markerData);
       }
     });
 
-    return () => {
-      // Очистка при изменении маркеров
-      Object.values(markerRefs.current).forEach(marker => marker.remove());
-      markerRefs.current = {};
-    };
-  }, [markers, onMarkerClick]);
-
-  // Отдельный useEffect для центрирования карты на активной точке
-  useEffect(() => {
-    if (!map.current || !markers.length) return;
-    
-    // Находим первый активный маркер
+    // Находим активный маркер для центрирования
     const activeMarker = markers.find(m => m.isActive);
     if (activeMarker) {
       console.log(`Центрирование карты на активной точке: ${activeMarker.title}`, [activeMarker.lng, activeMarker.lat]);
       
-      // Используем flyTo для плавного перемещения
-      map.current.flyTo({
-        center: [activeMarker.lng, activeMarker.lat],
-        zoom: 15,
-        essential: true,
-        duration: 2000 // 2 секунды для плавной анимации
-      });
-      
-      // Показываем уведомление пользователю
-      setNotification(`Локация "${activeMarker.title}" отмечена на карте`);
-      setTimeout(() => setNotification(null), 3000);
+      // Задержка для плавности (чтобы карта сначала загрузилась)
+      setTimeout(() => {
+        if (map.current) {
+          map.current.flyTo({
+            center: [activeMarker.lng, activeMarker.lat],
+            zoom: 15,
+            essential: true,
+            duration: 2000 // 2 секунды для плавной анимации
+          });
+          
+          // Показываем уведомление пользователю
+          setNotification(`Локация "${activeMarker.title}" отмечена на карте`);
+          setTimeout(() => setNotification(null), 3000);
+        }
+      }, 300);
     }
-  }, [markers, map.current]);
+    
+    return () => {
+      // Очистка маркеров при изменении маркеров
+      Object.values(markerRefs.current).forEach(marker => marker.remove());
+      markerRefs.current = {};
+    };
+  }, [markers, createMarker, updateMarker, updateQuestAreas]);
 
   // Обновление маркера игрока при изменении его позиции
   useEffect(() => {

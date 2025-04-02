@@ -5,7 +5,7 @@ import { useLocation, DEFAULT_LOCATION as FIXED_LOCATION } from '../../../hooks/
 import './QuestMap.css';
 
 // Получаем токен из переменных окружения
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiaW5vdGkiLCJhIjoiY205MDNmMGN5MGhrZzJqc2Q2bmNrYXg5ZSJ9.iJmsnFEecg9k9H1ApnkE2Q';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'sk.eyJ1IjoiaW5vdGkiLCJhIjoiY205MDNmMGN5MGhrZzJqc2Q2bmNrYXg5ZSJ9.iJmsnFEecg9k9H1ApnkE2Q';
 
 // Добавляем логирование токена
 console.log('Mapbox token used:', mapboxgl.accessToken ? mapboxgl.accessToken.substring(0, 10) + '...' : 'не задан');

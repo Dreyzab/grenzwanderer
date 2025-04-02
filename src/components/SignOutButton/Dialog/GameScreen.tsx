@@ -37,7 +37,7 @@ interface Message {
 const QR_CODES = {
   TRADER: 'grenz_npc_trader_01',
   CRAFTSMAN: 'grenz_npc_craftsman_01',
-  ARTIFACT: 'grenz_item_artifact_01'
+  ARTIFACT: 'grenz_area_artifact_01'
 };
 
 interface QuestMarker {
@@ -76,15 +76,24 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
       mapPoints: [
         {
           title: 'Торговец',
-          lat: 51.5074,
-          lng: -0.1278,
+          // Торговец: 47°59'40.3"N 7°50'46.7"E => [47.9945278, 7.8463056]
+          lat: 47.9945278,
+          lng: 7.8463056,
           qrCode: QR_CODES.TRADER
         },
         {
           title: 'Мастерская Дитера',
-          lat: 51.5074,
-          lng: -0.1378,
+          // Мастерская Дитера: 47°59'37.6"N 7°50'55.8"E => [47.9937778, 7.8488333]
+          lat: 47.9937778,
+          lng: 7.8488333,
           qrCode: QR_CODES.CRAFTSMAN
+        },
+        {
+          title: 'Аномальная зона',
+          // Аномальная зона: 47°59'36.3"N 7°51'26.4"E => [47.9934167, 7.8573333]
+          lat: 47.9934167,
+          lng: 7.8573333,
+          qrCode: QR_CODES.ARTIFACT
         }
       ]
     },
@@ -200,6 +209,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         
         const isTrader = index === 0;
         const isCraftsman = index === 1;
+        const isArtifactArea = index === 2;
         
         if (playerQuestState === 'DELIVERY_STARTED' && isTrader) {
           isActive = true;
@@ -316,6 +326,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         
         const isTrader = index === 0;
         const isCraftsman = index === 1;
+        const isArtifactArea = index === 2;
         
         // Обновляем состояние маркеров на основе прогресса квеста
         if (state === 'DELIVERY_STARTED' && isTrader) {
@@ -325,9 +336,17 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
           // Если запчасти собраны, активируем мастерскую и отмечаем торговца как завершенный
           isActive = isCraftsman;
           isCompleted = isTrader;
-        } else if (state === 'QUEST_COMPLETION' || state === 'ARTIFACT_HUNT') {
-          // Если квест доставки завершен или начат поиск артефакта, все точки квеста доставки завершены
+        } else if (state === 'ARTIFACT_HUNT') {
+          // Если квест поиска артефакта начат, активируем аномальную зону и отмечаем предыдущие точки как завершенные
+          isActive = isArtifactArea;
           isCompleted = isTrader || isCraftsman;
+        } else if (state === 'ARTIFACT_FOUND' || state === 'QUEST_COMPLETION') {
+          // Если артефакт найден или все квесты завершены, все точки отмечены как завершенные
+          isCompleted = isTrader || isCraftsman || isArtifactArea;
+        } else if (state === 'FREE_ROAM') {
+          // В режиме свободного перемещения все точки доступны
+          isActive = true;
+          isCompleted = false;
         }
         
         return {

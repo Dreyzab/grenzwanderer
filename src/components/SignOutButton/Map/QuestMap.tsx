@@ -200,21 +200,35 @@ export const QuestMap: FC<QuestMapProps> = ({ markers = [], onMarkerClick, cente
       }
     });
 
-    // Центрирование на активном маркере при первой загрузке
-    const activeMarker = markers.find(m => m.isActive);
-    if (activeMarker) {
-      // Находим первый активный маркер и центрируем карту на нем
-      centerMapOn([activeMarker.lng, activeMarker.lat]);
-      setNotification(`Локация "${activeMarker.title}" отмечена на карте`);
-      setTimeout(() => setNotification(null), 3000);
-    }
-
     return () => {
       // Очистка при изменении маркеров
       Object.values(markerRefs.current).forEach(marker => marker.remove());
       markerRefs.current = {};
     };
-  }, [markers, onMarkerClick, centerMapOn]);
+  }, [markers, onMarkerClick]);
+
+  // Отдельный useEffect для центрирования карты на активной точке
+  useEffect(() => {
+    if (!map.current || !markers.length) return;
+    
+    // Находим первый активный маркер
+    const activeMarker = markers.find(m => m.isActive);
+    if (activeMarker) {
+      console.log(`Центрирование карты на активной точке: ${activeMarker.title}`, [activeMarker.lng, activeMarker.lat]);
+      
+      // Используем flyTo для плавного перемещения
+      map.current.flyTo({
+        center: [activeMarker.lng, activeMarker.lat],
+        zoom: 15,
+        essential: true,
+        duration: 2000 // 2 секунды для плавной анимации
+      });
+      
+      // Показываем уведомление пользователю
+      setNotification(`Локация "${activeMarker.title}" отмечена на карте`);
+      setTimeout(() => setNotification(null), 3000);
+    }
+  }, [markers, map.current]);
 
   // Обновление маркера игрока при изменении его позиции
   useEffect(() => {

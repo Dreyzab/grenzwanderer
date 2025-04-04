@@ -167,24 +167,24 @@
 
 .marker-pulse {
   position: absolute;
-  top: -10px;
-  left: -10px;
-  width: 50px;
-  height: 50px;
+  top: -15px;
+  left: -15px;
+  width: 55px;
+  height: 55px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.3);
-  animation: pulse 1.5s infinite;
+  background-color: rgba(255, 0, 0, 0.3);
+  animation: markerPulse 1.5s infinite;
   pointer-events: none;
 }
 
-@keyframes pulse {
+@keyframes markerPulse {
   0% {
     transform: scale(0.8);
     opacity: 0.8;
   }
-  70% {
-    transform: scale(1.2);
-    opacity: 0;
+  50% {
+    transform: scale(1.5);
+    opacity: 0.4;
   }
   100% {
     transform: scale(0.8);
@@ -770,30 +770,29 @@
   z-index: 2;
 }
 
-/* Стиль для пульсации маркера */
-.marker-pulse {
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  width: 45px;
-  height: 45px;
+/* Стиль для центральной точки аномальной зоны */
+.anomaly-center-marker {
+  width: 20px;
+  height: 20px;
+  background-color: rgba(255, 0, 0, 0.8);
   border-radius: 50%;
-  background-color: rgba(255, 235, 59, 0.3);
-  animation: markerPulse 1.5s infinite;
-  pointer-events: none;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+  animation: anomalyPulse 2s infinite;
 }
 
-@keyframes markerPulse {
+@keyframes anomalyPulse {
   0% {
-    transform: scale(0.8);
-    opacity: 0.8;
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+    transform: scale(1);
   }
-  70% {
-    transform: scale(1.4);
-    opacity: 0;
+  50% {
+    box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.5);
+    transform: scale(1.2);
   }
   100% {
-    transform: scale(0.8);
-    opacity: 0;
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+    transform: scale(1);
   }
 }

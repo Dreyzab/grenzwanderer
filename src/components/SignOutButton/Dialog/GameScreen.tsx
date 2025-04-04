@@ -7,7 +7,7 @@ import { Id } from '../../../../convex/_generated/dataModel';
 import { useUnit } from 'effector-react';
 import { $currentUser } from '../../../entities/user/model';
 import { VisualNovel } from '../../../pages/visualNovel/VisualNovel';
-import { QuestMap, QuestMarker as MapQuestMarker } from '../Map/QuestMap';
+import { QuestMap, QuestMarker as MapQuestMarker, MarkerType } from '../Map/QuestMap';
 import './GameScreen.css';
 
 interface GameScreenProps {
@@ -30,6 +30,8 @@ interface Message {
     lat: number;
     lng: number;
     qrCode?: string;
+    isArea?: boolean;
+    radius?: number;
   }[];
 }
 
@@ -48,6 +50,8 @@ interface QuestMarker {
   isActive: boolean;
   isCompleted: boolean;
   qrCode?: string;
+  markerType?: string;
+  radius?: number;
 }
 
 export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
@@ -76,24 +80,26 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
       mapPoints: [
         {
           title: 'Торговец',
-          // Торговец: 47°59'40.3"N 7°50'46.7"E => [47.9945278, 7.8463056]
-          lat: 47.9945278,
-          lng: 7.8463056,
+          // Обновленные координаты из GeoJSON
+          lat: 47.99443839098572,
+          lng: 7.846383071898231,
           qrCode: QR_CODES.TRADER
         },
         {
           title: 'Мастерская Дитера',
-          // Мастерская Дитера: 47°59'37.6"N 7°50'55.8"E => [47.9937778, 7.8488333]
-          lat: 47.9937778,
-          lng: 7.8488333,
+          // Обновленные координаты из GeoJSON
+          lat: 47.99378928825229,
+          lng: 7.8488525930746675,
           qrCode: QR_CODES.CRAFTSMAN
         },
         {
           title: 'Аномальная зона',
-          // Аномальная зона: 47°59'36.3"N 7°51'26.4"E => [47.9934167, 7.8573333]
-          lat: 47.9934167,
-          lng: 7.8573333,
-          qrCode: QR_CODES.ARTIFACT
+          // Обновленные координаты из GeoJSON (центр полигона)
+          lat: 47.99405714850842,
+          lng: 7.857825214463277,
+          qrCode: QR_CODES.ARTIFACT,
+          isArea: true,
+          radius: 40 // радиус области в метрах
         }
       ]
     },
@@ -217,8 +223,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
           isActive = true;
           // Если это состояние PARTS_COLLECTED, то торговец (первая точка) уже посещен
           isCompleted = isTrader;
+        } else if (playerQuestState === 'ARTIFACT_HUNT' && isArtifactArea) {
+          isActive = true;
+          isCompleted = isTrader || isCraftsman;
         } else if (playerQuestState === 'QUEST_COMPLETION') {
-          isCompleted = true;
+          isCompleted = isTrader || isCraftsman || isArtifactArea;
         }
         
         return {
@@ -226,10 +235,12 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
           title: point.title,
           lat: point.lat,
           lng: point.lng,
-          // Если игрок в начальном состоянии, показываем все точки как активные
-          isActive: isActive || playerQuestState === 'REGISTERED',
+          // Если игрок в начальном состоянии, активируем только после принятия квеста
+          isActive: isActive || (playerQuestState === 'REGISTERED' && isTrader),
           isCompleted,
-          qrCode: point.qrCode
+          qrCode: point.qrCode,
+          // Добавляем признак области и радиус, если они указаны
+          ...(point.isArea && { markerType: MarkerType.QUEST_AREA, radius: point.radius })
         };
       });
       
@@ -356,7 +367,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
           lng: point.lng,
           isActive,
           isCompleted,
-          qrCode: point.qrCode
+          qrCode: point.qrCode,
+          // Добавляем признак области и радиус, если они указаны
+          ...(point.isArea && { markerType: MarkerType.QUEST_AREA, radius: point.radius })
         };
       });
       
@@ -464,28 +477,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     );
   }
   
-  // Если есть сцена, но нет активного визуального романа, переходим к карте
-  if (gameView === 'novel' && (!sceneKey || !playerId)) {
-    // Вместо показа "No active scene", автоматически переходим к карте
-    setTimeout(() => {
-      setGameView('map');
-      // Если есть последний активный маркер, центрируем карту на нём
-      if (questMarkers.length > 0) {
-        const activeMarker = questMarkers.find(m => m.isActive);
-        if (activeMarker) {
-          // Эмулируем центрирование карты на активной точке
-          console.log(`Центрирование на маркере: ${activeMarker.title}`, [activeMarker.lng, activeMarker.lat]);
-        }
-      }
-    }, 100);
-    
-    // Показываем загрузку на время перехода
-    return (
-      <div className="game-screen-loading">
-        <div className="loading-spinner"></div>
-        <p>Переход к интерактивной карте...</p>
-      </div>
-    );
+  // Автоматический переход к карте, если нет активной сцены визуального романа
+  if (gameView === 'novel') {
+    setGameView('map');
+    return null;
   }
   
   // Show map view if active
@@ -505,11 +500,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         <QuestMap 
           markers={questMarkers.map(marker => ({
             ...marker,
-            markerType: 'quest_point',
+            // Явно преобразуем строковое представление типа маркера в enum MarkerType
+            markerType: marker.markerType === MarkerType.QUEST_AREA 
+              ? MarkerType.QUEST_AREA 
+              : MarkerType.QUEST_POINT,
             isActive: marker.isActive || false,
             isCompleted: marker.isCompleted || false
           } as MapQuestMarker))}
-          onMarkerClick={async (marker) => handleTestQRButton(marker)}
+          onMarkerClick={handleTestQRButton}
         />
         
         <div className="quest-map-markers">
@@ -522,7 +520,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
               >
                 <div className="marker-title">{marker.title}</div>
                 <div className="marker-coords">
-                  Координаты: {marker.lat.toFixed(4)}, {marker.lng.toFixed(4)}
+                  Координаты: {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
                 </div>
                 {marker.qrCode && marker.isActive && !marker.isCompleted && (
                   <button 

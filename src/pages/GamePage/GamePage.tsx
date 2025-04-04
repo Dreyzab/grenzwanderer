@@ -124,10 +124,10 @@ export const GamePage: React.FC = () => {
     try {
       logDebug('Building markers for quest state', questState);
       
-      // Преобразуем GPS координаты в формат [долгота, широта]
-      // Торговец: 47°59'40.3"N 7°50'46.7"E => [47.9945278, 7.8463056]
-      // Мастерская Дитера: 47°59'37.6"N 7°50'55.8"E => [47.9937778, 7.8488333]
-      // Аномальная зона: 47°59'36.3"N 7°51'26.4"E => [47.9934167, 7.8573333]
+      // Обновленные координаты из GeoJSON
+      // Торговец: [lng, lat] => [7.846383071898231, 47.99443839098572]
+      // Мастерская Дитера: [lng, lat] => [7.8488525930746675, 47.99378928825229]
+      // Аномальная зона: [lng, lat] => [7.857825214463277, 47.99405714850842] (центр области)
       
       const markers: QuestMarker[] = [];
       
@@ -155,8 +155,8 @@ export const GamePage: React.FC = () => {
           markerType: MarkerType.NPC,
           npcClass: NpcClass.TRADER,
           faction: Faction.TRADERS,
-          lat: 47.9945278,
-          lng: 7.8463056,
+          lat: 47.99443839098572,
+          lng: 7.846383071898231,
           isActive: questState === 'DELIVERY_STARTED',
           isCompleted: questState === 'PARTS_COLLECTED' || 
                       questState === 'QUEST_COMPLETION' || 
@@ -180,8 +180,8 @@ export const GamePage: React.FC = () => {
           markerType: MarkerType.NPC,
           npcClass: NpcClass.CRAFTSMAN,
           faction: Faction.CRAFTSMEN,
-          lat: 47.9937778, 
-          lng: 7.8488333,
+          lat: 47.99378928825229,
+          lng: 7.8488525930746675,
           isActive: questState === 'PARTS_COLLECTED',
           isCompleted: questState === 'QUEST_COMPLETION' || 
                       questState === 'ARTIFACT_HUNT' || 
@@ -200,8 +200,8 @@ export const GamePage: React.FC = () => {
           title: 'Аномальная зона',
           description: 'В этом районе можно найти ценные артефакты',
           markerType: MarkerType.QUEST_AREA,
-          lat: 47.9934167,
-          lng: 7.8573333,
+          lat: 47.99405714850842,
+          lng: 7.857825214463277,
           radius: 40, // радиус области в метрах
           isActive: questState === 'ARTIFACT_HUNT',
           isCompleted: questState === 'ARTIFACT_FOUND' || 

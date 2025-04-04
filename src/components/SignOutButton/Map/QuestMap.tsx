@@ -55,7 +55,7 @@ const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiaW5vdGkiLCJ
 mapboxgl.accessToken = mapboxToken;
 
 // Фиксированные координаты центра: [долгота, широта]
-const FIXED_CENTER: [number, number] = [7.84586, 47.99503];
+const FIXED_CENTER: [number, number] = [47.995281, 7.846160]; 
 
 export const QuestMap: FC<QuestMapProps> = ({ markers = [], onMarkerClick, center, followPlayer = false }) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -136,7 +136,7 @@ export const QuestMap: FC<QuestMapProps> = ({ markers = [], onMarkerClick, cente
             }
           });
           
-          // Добавляем слой для областей квестов
+          // Добавляем слой для областей квестов - круг 
           mapInstance.addLayer({
             id: 'quest-areas-fill',
             type: 'circle',
@@ -154,6 +154,127 @@ export const QuestMap: FC<QuestMapProps> = ({ markers = [], onMarkerClick, cente
                 ['boolean', ['get', 'isCompleted'], false], 'rgba(76, 175, 80, 0.8)',
                 'rgba(102, 102, 102, 0.5)'
               ]
+            }
+          });
+          
+          // Добавляем полигон аномальной зоны
+          mapInstance.addSource('anomaly-zone', {
+            type: 'geojson',
+            data: {
+              type: 'FeatureCollection',
+              features: [
+                {
+                  type: 'Feature',
+                  properties: {
+                    name: 'Аномальная зона',
+                    isActive: false,
+                    isCompleted: false
+                  },
+                  geometry: {
+                    type: 'Polygon',
+                    coordinates: [[
+                      [7.857825214463277, 47.99405714850842],
+                      [7.857743420153544, 47.994054459404175],
+                      [7.857662413593097, 47.99404641798983],
+                      [7.857582974943794, 47.994033101711075],
+                      [7.857505869265734, 47.99401463881496],
+                      [7.857431839148456, 47.99399120711469],
+                      [7.857361597558628, 47.993963032276945],
+                      [7.857295820973179, 47.993930385648326],
+                      [7.85723514286398, 47.99389358164189],
+                      [7.857180147596893, 47.99385297470883],
+                      [7.857131364803905, 47.99380895592458],
+                      [7.857089264282577, 47.993761949222275],
+                      [7.857054251471928, 47.993712407309665],
+                      [7.857026663548288, 47.993660807309055],
+                      [7.857006766178738, 47.99360764616207],
+                      [7.85699475096334, 47.99355343584363],
+                      [7.8569907335907905, 47.99349869843121],
+                      [7.856994752725215, 47.993443961076856],
+                      [7.857006769634778, 47.99338975093036],
+                      [7.857026668565682, 47.993336590062626],
+                      [7.857054257857858, 47.99328499043783],
+                      [7.857089271791637, 47.99323544898315],
+                      [7.857131373147528, 47.99318844280327],
+                      [7.857180156454435, 47.99314442458591],
+                      [7.8572351518950505, 47.99310381824239],
+                      [7.85729582983072, 47.993067014825485],
+                      [7.857361605902248, 47.99303436876375],
+                      [7.857431846657517, 47.99300619444844],
+                      [7.857505875651664, 47.9929827632061],
+                      [7.857582979961188, 47.992964300685806],
+                      [7.857662417049138, 47.99295098468628],
+                      [7.857743421915417, 47.99294294344389],
+                      [7.857825214463277, 47.992940254397716],
+                      [7.857907007011136, 47.99294294344389],
+                      [7.857988011877416, 47.99295098468628],
+                      [7.8580674489653655, 47.992964300685806],
+                      [7.858144553274889, 47.9929827632061],
+                      [7.8582185822690365, 47.99300619444844],
+                      [7.858288823024305, 47.99303436876375],
+                      [7.858354599095834, 47.993067014825485],
+                      [7.8584152770315026, 47.99310381824239],
+                      [7.858470272472118, 47.99314442458591],
+                      [7.858519055779025, 47.99318844280327],
+                      [7.858561157134916, 47.99323544898315],
+                      [7.858596171068696, 47.99328499043783],
+                      [7.858623760360871, 47.993336590062626],
+                      [7.858643659291775, 47.99338975093036],
+                      [7.858655676201338, 47.993443961076856],
+                      [7.858659695335763, 47.99349869843121],
+                      [7.858655677963213, 47.99355343584363],
+                      [7.8586436627478164, 47.99360764616207],
+                      [7.858623765378265, 47.993660807309055],
+                      [7.858596177454626, 47.993712407309665],
+                      [7.858561164643976, 47.993761949222275],
+                      [7.858519064122648, 47.99380895592458],
+                      [7.85847028132966, 47.99385297470883],
+                      [7.858415286062574, 47.99389358164189],
+                      [7.858354607953375, 47.993930385648326],
+                      [7.858288831367925, 47.993963032276945],
+                      [7.858218589778097, 47.99399120711469],
+                      [7.858144559660819, 47.99401463881496],
+                      [7.858067453982759, 47.994033101711075],
+                      [7.857988015333456, 47.99404641798983],
+                      [7.857907008773009, 47.994054459404175],
+                      [7.857825214463277, 47.99405714850842]
+                    ]]
+                  }
+                }
+              ]
+            }
+          });
+          
+          // Слой для заливки аномальной зоны
+          mapInstance.addLayer({
+            id: 'anomaly-zone-fill',
+            type: 'fill',
+            source: 'anomaly-zone',
+            paint: {
+              'fill-color': [
+                'case',
+                ['boolean', ['get', 'isActive'], false], 'rgba(255, 0, 0, 0.3)',
+                ['boolean', ['get', 'isCompleted'], false], 'rgba(76, 175, 80, 0.3)',
+                'rgba(198, 139, 139, 0.3)'
+              ],
+              'fill-opacity': 0.5
+            }
+          });
+          
+          // Слой для обводки аномальной зоны
+          mapInstance.addLayer({
+            id: 'anomaly-zone-line',
+            type: 'line',
+            source: 'anomaly-zone',
+            paint: {
+              'line-color': [
+                'case',
+                ['boolean', ['get', 'isActive'], false], '#f00000',
+                ['boolean', ['get', 'isCompleted'], false], '#4CAF50',
+                '#f00000'
+              ],
+              'line-width': 3,
+              'line-opacity': 0.8
             }
           });
         }
@@ -187,8 +308,51 @@ export const QuestMap: FC<QuestMapProps> = ({ markers = [], onMarkerClick, cente
     // Создаем DOM элемент для маркера
     const el = document.createElement('div');
     
-    if (markerData.markerType === MarkerType.QUEST_AREA) {
-      // Обработка областей через GeoJSON слой
+    if (markerData.markerType === MarkerType.QUEST_AREA && 
+        markerData.id !== 'artifact_area' && 
+        markerData.title !== 'Аномальная зона') {
+      // Обработка областей через GeoJSON слой (кроме Аномальной зоны)
+      return;
+    }
+    
+    // Если это Аномальная зона, не создаем маркер, она отображается как полигон
+    if (markerData.id === 'artifact_area' || markerData.title === 'Аномальная зона') {
+      // Добавляем точку в центре для возможности клика
+      const centerEl = document.createElement('div');
+      centerEl.className = 'anomaly-center-marker';
+      
+      // Создаем маркер точки в центре аномальной зоны
+      const centerMarker = new mapboxgl.Marker(centerEl)
+        .setLngLat([markerData.lng, markerData.lat])
+        .setPopup(new mapboxgl.Popup({ offset: 25 })
+          .setHTML(`
+            <div class="popup-content">
+              <h3>${markerData.title}</h3>
+              ${markerData.description ? `<p>${markerData.description}</p>` : ''}
+            </div>
+          `));
+      
+      if (map.current) {
+        centerMarker.addTo(map.current);
+      }
+      
+      if (onMarkerClick) {
+        centerEl.addEventListener('click', () => {
+          if (markerData.isActive) {
+            onMarkerClick(markerData).catch(err => {
+              console.error('Ошибка при обработке клика по маркеру:', err);
+            });
+          } else {
+            // Уведомление о том, что маркер неактивен
+            setNotification(`Точка "${markerData.title}" сейчас недоступна`);
+            setTimeout(() => setNotification(null), 2000);
+          }
+        });
+      }
+      
+      // Сохраняем ссылку на маркер
+      markerRefs.current[markerData.id] = centerMarker;
+      
       return;
     }
     
@@ -290,11 +454,47 @@ export const QuestMap: FC<QuestMapProps> = ({ markers = [], onMarkerClick, cente
     if (!map.current || !mapReady) return;
     
     try {
+      // Обновляем аномальную зону
+      const anomalyMarker = markers.find(marker => marker.id === 'artifact_area' || marker.title === 'Аномальная зона');
+      
+      if (anomalyMarker) {
+        const source = map.current.getSource('anomaly-zone');
+        if (source && 'setData' in source) {
+          source.setData({
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                properties: {
+                  name: anomalyMarker.title,
+                  isActive: anomalyMarker.isActive,
+                  isCompleted: anomalyMarker.isCompleted
+                },
+                geometry: {
+                  type: 'Polygon',
+                  coordinates: [[
+                    [7.857825214463277, 47.99405714850842],
+                    [7.857743420153544, 47.994054459404175],
+                    // ... existing polygon coordinates ...
+                    [7.857825214463277, 47.99405714850842]
+                  ]]
+                }
+              }
+            ]
+          });
+        }
+      }
+      
+      // Обновляем другие области (круги)
       const source = map.current.getSource('quest-areas');
       if (!source || !('setData' in source)) return;
       
-      // Получаем области из маркеров
-      const areaMarkers = markers.filter(marker => marker.markerType === MarkerType.QUEST_AREA);
+      // Получаем круглые области из маркеров (исключаем аномальную зону, она отдельно)
+      const areaMarkers = markers.filter(marker => 
+        marker.markerType === MarkerType.QUEST_AREA && 
+        marker.id !== 'artifact_area' && 
+        marker.title !== 'Аномальная зона'
+      );
       
       // Создаем GeoJSON фичи для областей
       const areaFeatures = areaMarkers.map(area => ({

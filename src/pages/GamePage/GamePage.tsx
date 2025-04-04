@@ -131,23 +131,16 @@ export const GamePage: React.FC = () => {
       
       const markers: QuestMarker[] = [];
       
-      // Добавляем маркеры в зависимости от состояния квеста
-      // REGISTERED - начальное состояние
-      // NEW_MESSAGE - получено новое сообщение с квестом
-      // DELIVERY_STARTED - квест доставки запчастей принят
-      // PARTS_COLLECTED - запчасти забраны у торговца
-      // QUEST_COMPLETION - запчасти доставлены мастеру
-      // ARTIFACT_HUNT - начат квест поиска артефакта
-      // ARTIFACT_FOUND - артефакт найден
-      // FREE_ROAM - все квесты завершены
+      // Добавляем маркеры только в зависимости от конкретных состояний квеста:
+      // REGISTERED или NEW_MESSAGE - не показываем никаких маркеров
+      // DELIVERY_STARTED - показываем только Торговца
+      // PARTS_COLLECTED - показываем только Мастерскую Дитера
+      // ARTIFACT_HUNT - показываем только Аномальную зону
+      // QUEST_COMPLETION, ARTIFACT_FOUND, FREE_ROAM - показываем все маркеры как завершенные
       
-      // Торговец 
-      if (questState === 'DELIVERY_STARTED' || 
-          questState === 'PARTS_COLLECTED' || 
-          questState === 'QUEST_COMPLETION' || 
-          questState === 'ARTIFACT_HUNT' || 
-          questState === 'ARTIFACT_FOUND' || 
-          questState === 'FREE_ROAM') {
+      // Торговец - показываем только когда квест доставки начат
+      if (questState === 'DELIVERY_STARTED') {
+        logDebug('Adding Trader marker - quest started');
         markers.push({
           id: 'trader',
           title: 'Торговец',
@@ -157,22 +150,15 @@ export const GamePage: React.FC = () => {
           faction: Faction.TRADERS,
           lat: 47.99443839098572,
           lng: 7.846383071898231,
-          isActive: questState === 'DELIVERY_STARTED',
-          isCompleted: questState === 'PARTS_COLLECTED' || 
-                      questState === 'QUEST_COMPLETION' || 
-                      questState === 'ARTIFACT_HUNT' || 
-                      questState === 'ARTIFACT_FOUND' || 
-                      questState === 'FREE_ROAM',
+          isActive: true, // Всегда активен, когда показан
+          isCompleted: false,
           qrCode: 'grenz_npc_trader_01'
         });
       }
       
-      // Мастерская Дитера
-      if (questState === 'PARTS_COLLECTED' ||
-          questState === 'QUEST_COMPLETION' ||
-          questState === 'ARTIFACT_HUNT' ||
-          questState === 'ARTIFACT_FOUND' ||
-          questState === 'FREE_ROAM') {
+      // Мастерская Дитера - показываем только когда запчасти собраны
+      if (questState === 'PARTS_COLLECTED') {
+        logDebug('Adding Craftsman marker - parts collected');
         markers.push({
           id: 'craftsman',
           title: 'Мастерская Дитера',
@@ -182,19 +168,15 @@ export const GamePage: React.FC = () => {
           faction: Faction.CRAFTSMEN,
           lat: 47.99378928825229,
           lng: 7.8488525930746675,
-          isActive: questState === 'PARTS_COLLECTED',
-          isCompleted: questState === 'QUEST_COMPLETION' || 
-                      questState === 'ARTIFACT_HUNT' || 
-                      questState === 'ARTIFACT_FOUND' || 
-                      questState === 'FREE_ROAM',
+          isActive: true, // Всегда активен, когда показан
+          isCompleted: false,
           qrCode: 'grenz_npc_craftsman_01'
         });
       }
       
-      // Аномальная зона
-      if (questState === 'ARTIFACT_HUNT' ||
-          questState === 'ARTIFACT_FOUND' ||
-          questState === 'FREE_ROAM') {
+      // Аномальная зона - показываем только когда начат квест поиска артефакта
+      if (questState === 'ARTIFACT_HUNT') {
+        logDebug('Adding Anomaly area - artifact hunt started');
         markers.push({
           id: 'artifact_area',
           title: 'Аномальная зона',
@@ -203,9 +185,59 @@ export const GamePage: React.FC = () => {
           lat: 47.99405714850842,
           lng: 7.857825214463277,
           radius: 40, // радиус области в метрах
-          isActive: questState === 'ARTIFACT_HUNT',
-          isCompleted: questState === 'ARTIFACT_FOUND' || 
-                      questState === 'FREE_ROAM',
+          isActive: true, // Всегда активна, когда показана
+          isCompleted: false,
+          qrCode: 'grenz_area_artifact_01'
+        });
+      }
+      
+      // Для завершенных состояний квеста - показываем все маркеры как завершенные
+      if (questState === 'ARTIFACT_FOUND' || 
+          questState === 'QUEST_COMPLETION' || 
+          questState === 'FREE_ROAM') {
+        logDebug('Adding all markers as completed');
+        
+        // Торговец (завершенный)
+        markers.push({
+          id: 'trader',
+          title: 'Торговец',
+          description: 'Здесь можно найти торговца с запчастями',
+          markerType: MarkerType.NPC,
+          npcClass: NpcClass.TRADER,
+          faction: Faction.TRADERS,
+          lat: 47.99443839098572,
+          lng: 7.846383071898231,
+          isActive: false,
+          isCompleted: true,
+          qrCode: 'grenz_npc_trader_01'
+        });
+        
+        // Мастерская Дитера (завершенная)
+        markers.push({
+          id: 'craftsman',
+          title: 'Мастерская Дитера',
+          description: 'Центральная мастерская города',
+          markerType: MarkerType.NPC,
+          npcClass: NpcClass.CRAFTSMAN,
+          faction: Faction.CRAFTSMEN,
+          lat: 47.99378928825229,
+          lng: 7.8488525930746675,
+          isActive: false,
+          isCompleted: true,
+          qrCode: 'grenz_npc_craftsman_01'
+        });
+        
+        // Аномальная зона (завершенная)
+        markers.push({
+          id: 'artifact_area',
+          title: 'Аномальная зона',
+          description: 'В этом районе можно найти ценные артефакты',
+          markerType: MarkerType.QUEST_AREA,
+          lat: 47.99405714850842,
+          lng: 7.857825214463277,
+          radius: 40,
+          isActive: false,
+          isCompleted: true,
           qrCode: 'grenz_area_artifact_01'
         });
       }

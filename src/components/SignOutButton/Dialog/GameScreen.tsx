@@ -330,48 +330,85 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     
     if (deliveryQuest && deliveryQuest.mapPoints) {
       // Создаем маркеры на основе точек квеста и прогресса
-      const markers: QuestMarker[] = deliveryQuest.mapPoints.map((point, index) => {
-        // Определяем активность и завершенность маркера на основе прогресса
-        let isActive = false;
-        let isCompleted = false;
+      const markers: QuestMarker[] = [];
+      
+      // Логика показа маркеров в зависимости от состояния
+      switch (state) {
+        case 'DELIVERY_STARTED':
+          // Показываем только торговца
+          {
+            const traderPoint = deliveryQuest.mapPoints.find(point => point.title === 'Торговец');
+            if (traderPoint) {
+              markers.push({
+                id: 'marker_0',
+                title: traderPoint.title,
+                lat: traderPoint.lat,
+                lng: traderPoint.lng,
+                isActive: true,
+                isCompleted: false,
+                qrCode: traderPoint.qrCode,
+                ...(traderPoint.isArea && { markerType: MarkerType.QUEST_AREA as any, radius: traderPoint.radius })
+              });
+            }
+          }
+          break;
         
-        const isTrader = index === 0;
-        const isCraftsman = index === 1;
-        const isArtifactArea = index === 2;
+        case 'PARTS_COLLECTED':
+          // Показываем только мастерскую
+          {
+            const craftsmanPoint = deliveryQuest.mapPoints.find(point => point.title === 'Мастерская Дитера');
+            if (craftsmanPoint) {
+              markers.push({
+                id: 'marker_1',
+                title: craftsmanPoint.title,
+                lat: craftsmanPoint.lat,
+                lng: craftsmanPoint.lng,
+                isActive: true,
+                isCompleted: false,
+                qrCode: craftsmanPoint.qrCode,
+                ...(craftsmanPoint.isArea && { markerType: MarkerType.QUEST_AREA as any, radius: craftsmanPoint.radius })
+              });
+            }
+          }
+          break;
         
-        // Обновляем состояние маркеров на основе прогресса квеста
-        if (state === 'DELIVERY_STARTED' && isTrader) {
-          // Если квест доставки начат, активируем только торговца
-          isActive = true;
-        } else if (state === 'PARTS_COLLECTED') {
-          // Если запчасти собраны, активируем мастерскую и отмечаем торговца как завершенный
-          isActive = isCraftsman;
-          isCompleted = isTrader;
-        } else if (state === 'ARTIFACT_HUNT') {
-          // Если квест поиска артефакта начат, активируем аномальную зону и отмечаем предыдущие точки как завершенные
-          isActive = isArtifactArea;
-          isCompleted = isTrader || isCraftsman;
-        } else if (state === 'ARTIFACT_FOUND' || state === 'QUEST_COMPLETION') {
-          // Если артефакт найден или все квесты завершены, все точки отмечены как завершенные
-          isCompleted = isTrader || isCraftsman || isArtifactArea;
-        } else if (state === 'FREE_ROAM') {
-          // В режиме свободного перемещения все точки доступны
-          isActive = true;
-          isCompleted = false;
-        }
+        case 'ARTIFACT_HUNT':
+          // Показываем только аномальную зону
+          {
+            const anomalyPoint = deliveryQuest.mapPoints.find(point => point.title === 'Аномальная зона');
+            if (anomalyPoint) {
+              markers.push({
+                id: 'marker_2',
+                title: anomalyPoint.title,
+                lat: anomalyPoint.lat,
+                lng: anomalyPoint.lng,
+                isActive: true,
+                isCompleted: false,
+                qrCode: anomalyPoint.qrCode,
+                ...(anomalyPoint.isArea && { markerType: MarkerType.QUEST_AREA as any, radius: anomalyPoint.radius })
+              });
+            }
+          }
+          break;
         
-        return {
-          id: `marker_${index}`,
-          title: point.title,
-          lat: point.lat,
-          lng: point.lng,
-          isActive,
-          isCompleted,
-          qrCode: point.qrCode,
-          // Добавляем признак области и радиус, если они указаны
-          ...(point.isArea && { markerType: MarkerType.QUEST_AREA, radius: point.radius })
-        };
-      });
+        case 'ARTIFACT_FOUND':
+        case 'QUEST_COMPLETION':
+        case 'FREE_ROAM':
+          // Показываем все точки как завершенные
+          deliveryQuest.mapPoints.forEach((point, index) => {
+            markers.push({
+              id: `marker_${index}`,
+              title: point.title,
+              lat: point.lat,
+              lng: point.lng,
+              isActive: false,
+              isCompleted: true,
+              qrCode: point.qrCode,
+              ...(point.isArea && { markerType: MarkerType.QUEST_AREA as any, radius: point.radius })
+            });
+          });
+          break;
+      }
       
       setQuestMarkers(markers);
       console.log('Маркеры обновлены на основе прогресса:', state, markers);
@@ -424,14 +461,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
   };
   
   // Тестовый обработчик для кнопок QR-кодов
-  const handleTestQRButton = (marker: MapQuestMarker | string) => {
+  const handleTestQRButton = async (marker: MapQuestMarker | string): Promise<void> => {
     // Если передан объект маркера, используем его QR-код
     if (typeof marker === 'object' && marker.qrCode) {
-      handleQRCodeScan(marker.qrCode);
+      await handleQRCodeScan(marker.qrCode);
     } 
     // Если передана строка, используем ее как QR-код
     else if (typeof marker === 'string') {
-      handleQRCodeScan(marker);
+      await handleQRCodeScan(marker);
     }
   };
   

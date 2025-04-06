@@ -19,6 +19,23 @@ export const LoginPage: React.FC = () => {
   const login = useMutation(api.users.loginUser);
   const resetPassword = useMutation(api.users.resetPassword);
 
+  // Проверка наличия сохраненного пользователя при загрузке
+  useEffect(() => {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        // Если пользователь уже сохранен, устанавливаем его в состояние
+        setUser(parsedUser);
+        // И перенаправляем на главную страницу
+        navigate('/');
+      } catch (e) {
+        // Если JSON невалиден, удаляем сохраненные данные
+        localStorage.removeItem('currentUser');
+      }
+    }
+  }, [navigate]);
+
   useEffect(() => {
     setIsFormValid(email.trim() !== '' && password.trim() !== '');
   }, [email, password]);
@@ -33,7 +50,11 @@ export const LoginPage: React.FC = () => {
 
     try {
       const response = await login({ email, password });
+      // Сохраняем пользователя в глобальное состояние
       setUser(response);
+      // И в localStorage для сохранения между сессиями
+      localStorage.setItem('currentUser', JSON.stringify(response));
+      localStorage.setItem('userId', response.id);
       navigate('/');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Ошибка при входе');

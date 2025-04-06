@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUnit } from 'effector-react';
 import { $currentUser } from '../../entities/user/model';
@@ -10,7 +10,34 @@ import './MainPage.css';
 export const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const user = useUnit($currentUser);
-
+  
+  // Проверяем наличие сохраненного пользователя при загрузке
+  useEffect(() => {
+    const savedUser = localStorage.getItem('currentUser');
+    if (!user && savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        // Если у нас уже есть пользователь в localStorage, но не в состоянии,
+        // мы можем использовать эти данные для перенаправления
+        console.log('Found saved user:', parsedUser);
+      } catch (e) {
+        // Если JSON невалиден, удаляем сохраненные данные
+        localStorage.removeItem('currentUser');
+      }
+    }
+  }, [user]);
+  
+  const handleStartGame = () => {
+    if (user) {
+      // Сохраняем пользователя в localStorage перед переходом на игровую страницу
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      localStorage.setItem('userId', user.id);
+      navigate('/game');
+    } else {
+      // Если пользователь не авторизован, перенаправляем на страницу входа
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="start-screen">
@@ -39,7 +66,7 @@ export const MainPage: React.FC = () => {
               </div>
             ) : (
               <div className="game-options">
-                <button onClick={() => navigate('/game')} className="game-button">
+                <button onClick={handleStartGame} className="game-button">
                   Начать игру
                 </button>
                 <button onClick={() => navigate('/profile')} className="game-button">

@@ -51,9 +51,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenDialog, onOpenInventory })
         // Если есть хотя бы одно непрочитанное сообщение, показываем индикатор
         const hasUnread = savedMessages.some((msg: {id: string, read: boolean}) => !msg.read);
         setHasUnreadMessages(hasUnread);
-      } else {
-        // Если нет сохраненных данных, предполагаем, что есть новые сообщения
-        setHasUnreadMessages(true);
       }
     } catch (e) {
       console.error("Ошибка при проверке статуса сообщений:", e);
@@ -70,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenDialog, onOpenInventory })
     // Устанавливаем интервал для периодической проверки
     const intervalId = setInterval(() => {
       checkUnreadMessages(playerId);
-    }, 30000); // Проверяем каждые 30 секунд
+    }, 300000); // Проверяем каждые 5 минут
     
     return () => clearInterval(intervalId);
   }, [playerId]);

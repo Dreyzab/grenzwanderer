@@ -77,20 +77,35 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView }) =
       try {
         setPlayerLoading(true);
         
-        // In a real app, get player from API
-        const playerData = await getOrCreatePlayer({ userId: "user123" as any });
+        // Получаем ID пользователя из localStorage
+        const userId = localStorage.getItem('userId');
         
-        if (playerData) {
-          setPlayer(playerData as unknown as PlayerData);
-        } else {
-          // Fallback to temporary player ID only for development
-          console.warn("Could not get player from API, using temporary data");
+        if (!userId) {
+          console.warn("User ID not found in localStorage, using mock data");
+          // Используем мок данные для игрока
           setPlayer({
             _id: "temporary-player-id" as unknown as Id<"players">,
             name: "Test Player",
             equipment: {},
             locationHistory: []
           });
+        } else {
+          // Пытаемся получить игрока из API
+          try {
+            const playerData = await getOrCreatePlayer({ userId: userId as any });
+            if (playerData) {
+              setPlayer(playerData as unknown as PlayerData);
+            }
+          } catch (apiError) {
+            console.error("API Error:", apiError);
+            // Если API недоступно, используем мок данные
+            setPlayer({
+              _id: "temporary-player-id" as unknown as Id<"players">,
+              name: "Test Player",
+              equipment: {},
+              locationHistory: []
+            });
+          }
         }
         
         // Set initial quest state
@@ -176,35 +191,34 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView }) =
     try {
       setLoading(true);
       
-      // Пока мы отлаживаем, используем моковые данные для API
-      // В реальном приложении получим реальный ID игрока из базы данных
+      let result;
       
-      // TODO: В продакшене удалить этот mock, т.к. у нас будет реальный ID игрока
-      // Проблема в том, что в режиме разработки выдает ArgumentValidationError
-      console.log("Player ID used for API call:", player._id);
-      
-      // Для отладки - пропускаем реальный вызов API и имитируем ответ
-      // в продакшене убрать и использовать реальный вызов API
-      /* 
-      const result = await activateQuestByQR({
-        playerId: player._id,
-        qrCode: marker.qrCode
-      });
-      */
-      
-      // Заменяем на моковый ответ для тестирования
-      const result = {
-        message: `Обработан маркер: ${marker.title}`,
-        // Моковые данные для тестирования
-        sceneId: undefined as string | undefined,
-        questState: undefined as string | undefined
-      };
+      // Пытаемся вызвать реальное API, но при ошибке используем мок
+      try {
+        // Проверяем, что ID игрока имеет правильный формат Convex
+        if (typeof player._id === 'string' && player._id.startsWith('players:')) {
+          result = await activateQuestByQR({
+            playerId: player._id,
+            qrCode: marker.qrCode
+          });
+        } else {
+          throw new Error("Invalid player ID format for API call");
+        }
+      } catch (apiError) {
+        console.warn("API call failed, using mock data:", apiError);
+        // Используем моковые данные
+        result = {
+          message: `Обработан маркер: ${marker.title}`,
+          sceneId: undefined as string | undefined,
+          questState: undefined as string | undefined
+        };
+      }
       
       if (result.message) {
         // Показываем уведомление
         alert(result.message);
         
-        // Если бы был настоящий ответ API:
+        // Обрабатываем результат
         if (result.sceneId) {
           setSceneKey(result.sceneId);
           setGameView(GameView.NOVEL);
@@ -233,21 +247,26 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView }) =
     try {
       setLoading(true);
       
-      // Аналогично с handleMarkerClick, используем моковые данные
-      console.log("Starting delivery quest for player:", player._id);
+      let result;
       
-      // Для отладки - пропускаем реальный вызов API
-      /*
-      const result = await startDeliveryQuest({ 
-        playerId: player._id
-      });
-      */
-      
-      // Моковый ответ
-      const result = {
-        message: "Задание получено!",
-        sceneId: "mock-scene-id" as string | undefined,
-      };
+      // Пытаемся вызвать реальное API, но при ошибке используем мок
+      try {
+        // Проверяем, что ID игрока имеет правильный формат
+        if (typeof player._id === 'string' && player._id.startsWith('players:')) {
+          result = await startDeliveryQuest({ 
+            playerId: player._id
+          });
+        } else {
+          throw new Error("Invalid player ID format for API call");
+        }
+      } catch (apiError) {
+        console.warn("API call failed, using mock data:", apiError);
+        // Используем моковые данные
+        result = {
+          message: "Задание получено!",
+          sceneId: "mock-scene-id" as string | undefined,
+        };
+      }
       
       if (result && result.sceneId) {
         // Обновляем состояние квеста

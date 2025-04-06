@@ -1,5 +1,26 @@
 import { createStore, createEvent } from 'effector';
-import { MarkerType, NpcClass, Faction, QuestMarker } from '../../components/SignOutButton/Map/QuestMap';
+import type { QuestMarker } from '../../components/SignOutButton/Map/QuestMap';
+
+// Определяем перечисления напрямую, вместо импорта из QuestMap
+export enum MarkerType {
+  NPC = 'npc',
+  QUEST_POINT = 'quest_point',
+  QUEST_AREA = 'quest_area'
+}
+
+export enum Faction {
+  TRADERS = 'traders',
+  CRAFTSMEN = 'craftsmen',
+  GOVERNMENT = 'government',
+  NEUTRAL = 'neutral'
+}
+
+export enum NpcClass {
+  TRADER = 'trader',
+  CRAFTSMAN = 'craftsman',
+  GUILD_MASTER = 'guild_master',
+  STORY = 'story'
+}
 
 // Константы для QR-кодов (позже могут быть вынесены в отдельный файл)
 export const QR_CODES = {
@@ -8,8 +29,25 @@ export const QR_CODES = {
   ARTIFACT: 'ARTIFACT_ITEM_2023'
 };
 
+// Структура маркера (на случай, если QuestMarker не импортируется корректно)
+export interface Marker {
+  id: string;
+  title: string;
+  description?: string;
+  markerType?: MarkerType;
+  lat: number;
+  lng: number;
+  radius?: number; // For areas (in meters)
+  isActive: boolean;
+  isCompleted: boolean;
+  qrCode?: string;
+  // For NPCs
+  npcClass?: NpcClass;
+  faction?: Faction;
+}
+
 // Начальные маркеры НПС с состоянием isVisible: false
-export const INITIAL_NPC_MARKERS: QuestMarker[] = [
+export const INITIAL_NPC_MARKERS: Marker[] = [
   {
     id: 'trader',
     title: 'Торговец',
@@ -50,7 +88,7 @@ export const INITIAL_NPC_MARKERS: QuestMarker[] = [
 ];
 
 // Интерфейс для расширенных данных маркера
-export interface MarkerData extends QuestMarker {
+export interface MarkerData extends Marker {
   isVisible: boolean;
   discoveredAt?: number | null;
 }
@@ -68,6 +106,8 @@ export const hideMarker = createEvent<string>(); // Скрыть маркер п
 export const completeMarker = createEvent<string>(); // Отметить маркер как выполненный
 export const resetMarkers = createEvent<void>(); // Сбросить все маркеры к начальному состоянию
 export const updateMarkersByQuestState = createEvent<string>(); // Обновить видимость маркеров по состоянию квеста
+export const loadSavedMarkers = createEvent<MarkerData[]>(); // Загрузить маркеры из сохранения
+export const loadSavedInteractions = createEvent<Record<string, NpcInteraction[]>>(); // Загрузить взаимодействия из сохранения
 
 // Хранилище маркеров
 export const $markers = createStore<MarkerData[]>(initialMarkers)
@@ -112,7 +152,8 @@ export const $markers = createStore<MarkerData[]>(initialMarkers)
       
       return { ...marker, isVisible };
     });
-  });
+  })
+  .on(loadSavedMarkers, (_, markers) => markers);
 
 // Интерфейс для отслеживания взаимодействий с НПС
 export interface NpcInteraction {
@@ -136,7 +177,8 @@ export const $npcInteractions = createStore<Record<string, NpcInteraction[]>>({}
         data
       }]
     };
-  });
+  })
+  .on(loadSavedInteractions, (_, interactions) => interactions);
 
 // Сохранение состояния маркеров в localStorage
 $markers.watch(markers => {
@@ -160,21 +202,33 @@ $npcInteractions.watch(interactions => {
 try {
   const savedMarkers = localStorage.getItem('game_markers');
   if (savedMarkers) {
-    const parsedMarkers = JSON.parse(savedMarkers);
-    $markers.setState(parsedMarkers);
+    try {
+      const parsedMarkers = JSON.parse(savedMarkers);
+      if (Array.isArray(parsedMarkers)) {
+        loadSavedMarkers(parsedMarkers);
+      }
+    } catch (e) {
+      console.error('Error parsing saved markers:', e);
+    }
   }
   
   const savedInteractions = localStorage.getItem('npc_interactions');
   if (savedInteractions) {
-    const parsedInteractions = JSON.parse(savedInteractions);
-    $npcInteractions.setState(parsedInteractions);
+    try {
+      const parsedInteractions = JSON.parse(savedInteractions);
+      if (typeof parsedInteractions === 'object') {
+        loadSavedInteractions(parsedInteractions);
+      }
+    } catch (e) {
+      console.error('Error parsing saved interactions:', e);
+    }
   }
 } catch (e) {
   console.error('Error loading saved game data:', e);
 }
 
 // Вспомогательные функции
-export const getVisibleMarkers = (): QuestMarker[] => 
+export const getVisibleMarkers = (): MarkerData[] => 
   $markers.getState().filter(marker => marker.isVisible);
 
 export const getMarkerById = (id: string): MarkerData | undefined => 

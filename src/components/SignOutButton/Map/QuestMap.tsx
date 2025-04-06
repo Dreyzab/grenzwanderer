@@ -3,7 +3,13 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './QuestMap.css';
 import { useUnit } from 'effector-react';
-import { $markers, getVisibleMarkers, MarkerData } from '../../../entities/markers/model';
+import { 
+  $markers, 
+  MarkerType, 
+  Faction, 
+  NpcClass,
+  Marker as QuestMarker
+} from '../../../entities/markers/model';
 
 // Default location coordinates
 const DEFAULT_LOCATION: [number, number] = [47.99443, 7.84638];
@@ -15,41 +21,9 @@ console.log('Mapbox Token:', mapboxToken);
 // Set the token for Mapbox
 mapboxgl.accessToken = mapboxToken;
 
-export enum MarkerType {
-  NPC = 'npc',
-  QUEST_POINT = 'quest_point',
-  QUEST_AREA = 'quest_area'
-}
-
-export enum Faction {
-  TRADERS = 'traders',
-  CRAFTSMEN = 'craftsmen',
-  GOVERNMENT = 'government',
-  NEUTRAL = 'neutral'
-}
-
-export enum NpcClass {
-  TRADER = 'trader',
-  CRAFTSMAN = 'craftsman',
-  GUILD_MASTER = 'guild_master',
-  STORY = 'story'
-}
-
-export interface QuestMarker {
-  id: string;
-  title: string;
-  description?: string;
-  markerType?: MarkerType;
-  lat: number;
-  lng: number;
-  radius?: number; // For areas (in meters)
-  isActive: boolean;
-  isCompleted: boolean;
-  qrCode?: string;
-  // For NPCs
-  npcClass?: NpcClass;
-  faction?: Faction;
-}
+// Переэкспортируем типы для обратной совместимости
+export type { QuestMarker };
+export { MarkerType, Faction, NpcClass };
 
 interface QuestMapProps {
   onMarkerClick?: (marker: QuestMarker) => Promise<void>;

@@ -14,8 +14,6 @@
   height: 100%;
   position: relative;
   background-color: #1a1a1a;
-  border-radius: 8px;
-  overflow: hidden;
 }
 
 .quest-map-header {
@@ -49,6 +47,29 @@
   background: rgba(66, 133, 244, 0.4);
 }
 
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 18px;
+  height: 18px;
+  background-color: #ff4a4a;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
 .map-container {
   flex: 1;
   position: relative;
@@ -64,6 +85,71 @@
   flex-direction: column;
   gap: 10px;
   z-index: 100;
+}
+
+.test-vn-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.test-vn-btn {
+  border: 1px solid;
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-size: 14px;
+  margin-bottom: 5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  min-width: 180px;
+}
+
+.test-vn-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Специфические стили для разных типов кнопок */
+.test-vn-btn:nth-child(1) {
+  background-color: rgba(52, 152, 219, 0.7); /* Синий для торговца */
+  border-color: #3498db;
+}
+
+.test-vn-btn:nth-child(1):hover {
+  background-color: rgba(52, 152, 219, 0.9);
+}
+
+.test-vn-btn:nth-child(2) {
+  background-color: rgba(243, 156, 18, 0.7); /* Оранжевый для мастерской */
+  border-color: #f39c12;
+}
+
+.test-vn-btn:nth-child(2):hover {
+  background-color: rgba(243, 156, 18, 0.9);
+}
+
+.test-vn-btn:nth-child(3) {
+  background-color: rgba(26, 188, 156, 0.7); /* Бирюзовый для аномальной зоны */
+  border-color: #1abc9c;
+}
+
+.test-vn-btn:nth-child(3):hover {
+  background-color: rgba(26, 188, 156, 0.9);
+}
+
+.test-vn-btn:nth-child(4) {
+  background-color: rgba(155, 89, 182, 0.7); /* Фиолетовый для встречи */
+  border-color: #9b59b6;
+}
+
+.test-vn-btn:nth-child(4):hover {
+  background-color: rgba(155, 89, 182, 0.9);
 }
 
 .game-nav-btn {
@@ -181,30 +267,6 @@
 
 .game-screen-error button:hover {
   background-color: #5c9aff;
-}
-
-/* Notification badge */
-.notification-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  width: 18px;
-  height: 18px;
-  background-color: #ff4a4a;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
 }
 
 /* Dialog screen */

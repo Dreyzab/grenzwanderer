@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUnit } from 'effector-react';
 import { $currentUser } from '../../entities/user/model';
@@ -10,21 +10,33 @@ import './MainPage.css';
 export const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const user = useUnit($currentUser);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Проверяем наличие сохраненного пользователя при загрузке
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (!user && savedUser) {
-      try {
-        const parsedUser = JSON.parse(savedUser);
-        // Если у нас уже есть пользователь в localStorage, но не в состоянии,
-        // мы можем использовать эти данные для перенаправления
-        console.log('Found saved user:', parsedUser);
-      } catch (e) {
-        // Если JSON невалиден, удаляем сохраненные данные
-        localStorage.removeItem('currentUser');
+    const checkUser = async () => {
+      setIsLoading(true);
+      
+      const savedUser = localStorage.getItem('currentUser');
+      const userId = localStorage.getItem('userId');
+      
+      if (!user && savedUser && userId) {
+        try {
+          const parsedUser = JSON.parse(savedUser);
+          console.log('Found saved user:', parsedUser);
+          // Мы не устанавливаем пользователя в глобальное состояние здесь,
+          // т.к. это должно быть сделано в LoginPage после проверки
+        } catch (e) {
+          // Если JSON невалиден, удаляем сохраненные данные
+          localStorage.removeItem('currentUser');
+          localStorage.removeItem('userId');
+        }
       }
-    }
+      
+      setIsLoading(false);
+    };
+    
+    checkUser();
   }, [user]);
   
   const handleStartGame = () => {
@@ -38,6 +50,29 @@ export const MainPage: React.FC = () => {
       navigate('/login');
     }
   };
+  
+  const handleLoginClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Прежде чем перейти на страницу логина, очищаем localStorage 
+    // чтобы избежать проблем с неверными данными
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('userId');
+    navigate('/login');
+  };
+  
+  if (isLoading) {
+    return (
+      <div className="start-screen">
+        <div className="overlay">
+          <h1 className="title">Grenzwanderer</h1>
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Загрузка...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="start-screen">
@@ -57,7 +92,7 @@ export const MainPage: React.FC = () => {
           <div className="panel center-panel">
             {!user ? (
               <div className="auth-buttons">
-                <button onClick={() => navigate('/login')} className="auth-button">
+                <button onClick={handleLoginClick} className="auth-button">
                   Войти
                 </button>
                 <button onClick={() => navigate('/register')} className="auth-button">

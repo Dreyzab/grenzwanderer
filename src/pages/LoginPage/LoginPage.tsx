@@ -14,6 +14,7 @@ export const LoginPage: React.FC = () => {
   const [resetEmail, setResetEmail] = useState('');
   const [resetSuccess, setResetSuccess] = useState(false);
   const [isResetFormValid, setIsResetFormValid] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const navigate = useNavigate();
   const login = useMutation(api.users.loginUser);
@@ -21,19 +22,24 @@ export const LoginPage: React.FC = () => {
 
   // Проверка наличия сохраненного пользователя при загрузке
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-      try {
-        const parsedUser = JSON.parse(savedUser);
-        // Если пользователь уже сохранен, устанавливаем его в состояние
-        setUser(parsedUser);
-        // И перенаправляем на главную страницу
-        navigate('/');
-      } catch (e) {
-        // Если JSON невалиден, удаляем сохраненные данные
-        localStorage.removeItem('currentUser');
+    const checkLoggedInUser = async () => {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        try {
+          const parsedUser = JSON.parse(savedUser);
+          // Если пользователь уже сохранен, устанавливаем его в состояние
+          setUser(parsedUser);
+          // И перенаправляем на главную страницу
+          navigate('/');
+        } catch (e) {
+          // Если JSON невалиден, удаляем сохраненные данные
+          localStorage.removeItem('currentUser');
+          localStorage.removeItem('userId');
+        }
       }
-    }
+    };
+    
+    checkLoggedInUser();
   }, [navigate]);
 
   useEffect(() => {
@@ -46,32 +52,52 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    if (!isFormValid || isLoading) return;
 
+    setIsLoading(true);
+    setError('');
+    
     try {
+      console.log(`Attempting to login with email: ${email}`);
       const response = await login({ email, password });
+      console.log('Login successful:', response);
+      
+      if (!response || !response.id) {
+        throw new Error('Некорректный ответ от сервера');
+      }
+      
       // Сохраняем пользователя в глобальное состояние
       setUser(response);
       // И в localStorage для сохранения между сессиями
       localStorage.setItem('currentUser', JSON.stringify(response));
       localStorage.setItem('userId', response.id);
+      
+      // Переходим на главную страницу
       navigate('/');
     } catch (error) {
+      console.error('Login error:', error);
       setError(error instanceof Error ? error.message : 'Ошибка при входе');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isResetFormValid) return;
+    if (!isResetFormValid || isLoading) return;
 
+    setIsLoading(true);
+    setError('');
+    
     try {
       await resetPassword({ email: resetEmail });
       setResetSuccess(true);
-      setError('');
     } catch (error) {
+      console.error('Password reset error:', error);
       setError(error instanceof Error ? error.message : 'Ошибка при сбросе пароля');
       setResetSuccess(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -100,19 +126,21 @@ export const LoginPage: React.FC = () => {
                 value={resetEmail}
                 onChange={(e) => setResetEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <button 
               type="submit" 
               className={`login-button ${isResetFormValid ? 'valid' : ''}`}
-              disabled={!isResetFormValid}
+              disabled={!isResetFormValid || isLoading}
             >
-              Отправить инструкции
+              {isLoading ? 'Отправка...' : 'Отправить инструкции'}
             </button>
             <button 
               type="button"
               className="back-button"
               onClick={toggleResetMode}
+              disabled={isLoading}
             >
               Вернуться ко входу
             </button>
@@ -128,6 +156,7 @@ export const LoginPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="form-group">
@@ -138,14 +167,15 @@ export const LoginPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <button 
                 type="submit" 
                 className={`login-button ${isFormValid ? 'valid' : ''}`}
-                disabled={!isFormValid}
+                disabled={!isFormValid || isLoading}
               >
-                Войти
+                {isLoading ? 'Вход...' : 'Войти'}
               </button>
             </form>
             <div className="auth-links">
@@ -155,12 +185,17 @@ export const LoginPage: React.FC = () => {
               <button 
                 className="forgot-password-link" 
                 onClick={toggleResetMode}
+                disabled={isLoading}
               >
                 Забыли пароль?
               </button>
             </div>
           </>
         )}
+        
+        <div className="back-home-link">
+          <Link to="/">На главную</Link>
+        </div>
       </div>
     </div>
   );

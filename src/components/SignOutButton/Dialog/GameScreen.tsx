@@ -17,6 +17,9 @@ import {
 } from '../../../entities/markers/model';
 import './GameScreen.css';
 
+// Импортируем константы квеста
+import { QuestState as VisualNovelQuestState } from '../../../pages/visualNovel/VisualNovel';
+
 // Interfaces
 interface PlayerData {
   _id: Id<"players">;
@@ -188,65 +191,74 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView, onV
     setQuestState(newState);
   }, []);
   
-  // Handle marker click
-  const handleMarkerClick = useCallback(async (marker: QuestMarker) => {
-    if (!player || !marker.qrCode) return;
+  // Обработка успешного сканирования QR-кода и интеграция с VisualNovel
+  const handleQRScanSuccess = useCallback(async (code: string) => {
+    if (!player) return;
     
     try {
       setLoading(true);
       
       let result;
       
-      // Пытаемся вызвать реальное API, но при ошибке используем мок
       try {
-        // Проверяем, что ID игрока имеет правильный формат Convex
+        // Проверяем, что ID игрока имеет правильный формат для API
         if (typeof player._id === 'string' && player._id.startsWith('players:')) {
           result = await activateQuestByQR({
             playerId: player._id,
-            qrCode: marker.qrCode
+            qrCode: code
           });
         } else {
           throw new Error("Invalid player ID format for API call");
         }
       } catch (apiError) {
-        console.warn("API call failed, using mock data:", apiError);
-        // Используем моковые данные
-        result = {
-          message: `Обработан маркер: ${marker.title}`,
-          sceneId: undefined as string | undefined,
-          questState: undefined as string | undefined
-        };
+        console.warn("API call failed, using mock data for QR activation:", apiError);
+        
+        // Используем моковые данные в зависимости от кода
+        if (code === QR_CODES.TRADER) {
+          result = {
+            message: "Вы встретили торговца",
+            sceneId: "trader_meeting", // ID сцены для встречи с торговцем
+            questState: QuestState.DELIVERY_STARTED
+          };
+        } else if (code === QR_CODES.CRAFTSMAN) {
+          result = {
+            message: "Вы встретили мастера Дитера",
+            sceneId: "craftsman_meeting", // ID сцены для встречи с мастером
+            questState: QuestState.PARTS_COLLECTED
+          };
+        } else if (code === QR_CODES.ARTIFACT) {
+          result = {
+            message: "Вы нашли артефакт!",
+            sceneId: "artifact_found", // ID сцены для находки артефакта
+            questState: QuestState.ARTIFACT_FOUND
+          };
+        } else {
+          result = {
+            message: "Неизвестный QR-код",
+            sceneId: undefined,
+            questState: undefined
+          };
+        }
       }
       
-      if (result.message) {
+      if (result) {
         // Показываем уведомление
         alert(result.message);
         
-        // Регистрируем взаимодействие с маркером
-        addInteraction({
-          markerId: marker.id,
-          action: 'activated',
-          data: { timestamp: Date.now() }
-        });
-        
-        // Если маркер - это задание, отмечаем его как выполненное
-        if (marker.markerType === 'quest_point') {
-          completeMarker(marker.id);
-        }
-        
         // Обрабатываем результат
         if (result.sceneId) {
+          // Открываем сцену в VisualNovel
           setSceneKey(result.sceneId);
           setGameView(GameView.NOVEL);
           if (onViewChange) onViewChange(GameView.NOVEL);
-          
-          // Отмечаем шаг как выполненный
-          completeQuestStep(marker.id);
         }
         
         // Обновляем состояние квеста, если оно изменилось
-        if (result.questState && typeof result.questState === 'string') {
+        if (result.questState && Object.values(QuestState).includes(result.questState as QuestState)) {
           updateQuestState(result.questState as QuestState);
+          
+          // Обновляем видимость маркеров на основе нового состояния
+          updateMarkersByQuestState(result.questState);
         }
       }
     } catch (err) {
@@ -255,7 +267,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView, onV
     } finally {
       setLoading(false);
     }
-  }, [player, activateQuestByQR, completeQuestStep, updateQuestState, onViewChange]);
+  }, [player, activateQuestByQR, updateQuestState, onViewChange]);
   
   // Handle quest start
   const handleStartDeliveryQuest = useCallback(async () => {
@@ -322,6 +334,38 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView, onV
     setGameView(GameView.MESSAGES);
     if (onViewChange) onViewChange(GameView.MESSAGES);
   }, [onViewChange]);
+  
+  // Обработка клика по маркеру на карте
+  const handleMarkerClick = useCallback(async (marker: QuestMarker) => {
+    if (!player || !marker.qrCode) return;
+    
+    try {
+      setLoading(true);
+      
+      // Регистрируем взаимодействие с маркером
+      addInteraction({
+        markerId: marker.id,
+        action: 'activated',
+        data: { timestamp: Date.now() }
+      });
+      
+      // Если маркер - это задание, отмечаем его как выполненное
+      if (marker.markerType === 'quest_point') {
+        completeMarker(marker.id);
+      }
+      
+      // Отмечаем шаг как выполненный
+      completeQuestStep(marker.id);
+      
+      // Обрабатываем QR-код маркера
+      await handleQRScanSuccess(marker.qrCode);
+    } catch (err) {
+      console.error('Error activating marker:', err);
+      setError(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [player, handleQRScanSuccess, completeQuestStep, addInteraction, completeMarker]);
   
   // Show loading
   if (playerLoading) {
@@ -396,6 +440,26 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView, onV
       
       {/* Game navigation */}
       <div className="game-nav-buttons">
+        <button 
+          className="game-nav-btn"
+          onClick={() => {
+            // Активируем маркер торговца
+            showMarker('trader');
+            alert('Маркер Торговца активирован');
+          }}
+        >
+          Тест: Торговец
+        </button>
+        <button 
+          className="game-nav-btn"
+          onClick={() => {
+            // Активируем маркер мастерской
+            showMarker('craftsman');
+            alert('Маркер Мастерской Дитера активирован');
+          }}
+        >
+          Тест: Мастер
+        </button>
         <button 
           className="exit-btn" 
           onClick={onExit}

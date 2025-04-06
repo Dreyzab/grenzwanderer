@@ -55,8 +55,8 @@ export const INITIAL_NPC_MARKERS: Marker[] = [
     markerType: MarkerType.NPC,
     npcClass: NpcClass.TRADER,
     faction: Faction.TRADERS,
-    lat: 47.99543, // Координаты необходимо заменить на реальные
-    lng: 7.84538,
+    lat: 47.99444150033625, // Обновленные координаты
+    lng: 7.846382279262514, // Обновленные координаты
     isActive: true,
     isCompleted: false,
     qrCode: QR_CODES.TRADER
@@ -68,8 +68,8 @@ export const INITIAL_NPC_MARKERS: Marker[] = [
     markerType: MarkerType.NPC,
     npcClass: NpcClass.CRAFTSMAN,
     faction: Faction.CRAFTSMEN,
-    lat: 47.99343,
-    lng: 7.84738,
+    lat: 47.99378656706719, // Обновленные координаты
+    lng: 7.8488731887252925, // Обновленные координаты
     isActive: true,
     isCompleted: false,
     qrCode: QR_CODES.CRAFTSMAN

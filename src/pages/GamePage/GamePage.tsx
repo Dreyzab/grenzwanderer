@@ -5,9 +5,10 @@ import { api } from '../../../convex/_generated/api';
 import { QRScanner } from '../../components/SignOutButton/QR/QRScanner';
 import { SignOutButton } from '../../components/SignOutButton/SignOutButton';
 import { GameScreen } from '../../components/SignOutButton/Dialog/GameScreen';
+import { VisualNovel } from '../visualNovel/VisualNovel';
 import './GamePage.css';
 
-type GameTab = 'map' | 'dialog' | 'scanner';
+type GameTab = 'map' | 'dialog' | 'scanner' | 'novel';
 
 // Импортируем перечисление из GameScreen
 import { GameView } from '../../components/SignOutButton/Dialog/GameScreen';
@@ -21,6 +22,8 @@ export const GamePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [player, setPlayer] = useState<any>(null);
+  const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
+  const [questState, setQuestState] = useState<string>('REGISTERED');
   
   // Получение API методов
   const activateQuestByQR = useMutation(api.quest.activateQuestByQR);
@@ -48,6 +51,11 @@ export const GamePage: React.FC = () => {
           // Проверяем наличие новых сообщений
           if (playerData.questState === 'NEW_MESSAGE' || playerData.questState === 'REGISTERED') {
             setHasNewMessage(true);
+          }
+          
+          // Устанавливаем текущее состояние квеста
+          if (playerData.questState) {
+            setQuestState(playerData.questState);
           }
         }
       } catch (error) {
@@ -80,7 +88,10 @@ export const GamePage: React.FC = () => {
       case GameView.MESSAGES:
         setActiveTab('dialog');
         break;
-      // Другие представления можно обрабатывать здесь
+      case GameView.NOVEL:
+        // Если открывается визуальный роман, переключаемся на вкладку novel
+        setActiveTab('novel');
+        break;
       default:
         break;
     }
@@ -91,25 +102,58 @@ export const GamePage: React.FC = () => {
     if (!player) return;
     
     try {
-      const result = await activateQuestByQR({
-        playerId: player._id,
-        qrCode: code
-      });
+      setLoading(true);
+      
+      let result;
+      
+      try {
+        result = await activateQuestByQR({
+          playerId: player._id,
+          qrCode: code
+        });
+      } catch (error) {
+        console.warn('API error while activating QR code:', error);
+        
+        // Используем мок данные для тестирования
+        result = {
+          message: "QR-код активирован (тестовый режим)",
+          sceneId: "artifact_task", // ID тестовой сцены для принятия задания с артефактом
+          questState: "DELIVERY_STARTED"
+        };
+      }
       
       if (result) {
         alert(result.message);
         
-        // Если есть sceneId, переключаемся на диалог
+        // Если есть sceneId, открываем визуальный роман
         if (result.sceneId) {
-          setActiveTab('dialog');
+          setCurrentSceneId(result.sceneId);
+          setActiveTab('novel');
+        }
+        
+        // Обновляем состояние квеста, если оно изменилось
+        if (result.questState) {
+          setQuestState(result.questState);
         }
       }
     } catch (error) {
       alert(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     } finally {
-      // Возвращаемся к карте после сканирования
-      setActiveTab('map');
+      setLoading(false);
     }
+  };
+  
+  // Обработчик выхода из визуального романа
+  const handleNovelExit = () => {
+    setActiveTab('map');
+    setCurrentSceneId(null);
+  };
+  
+  // Обработчик обновления состояния квеста
+  const updateQuestState = (newState: string) => {
+    setQuestState(newState);
+    
+    // Здесь также можно сохранить новое состояние на сервере, если нужно
   };
   
   // Если загрузка, показываем индикатор
@@ -186,6 +230,20 @@ export const GamePage: React.FC = () => {
               onExit={() => setActiveTab('map')}
               initialView={GameView.MESSAGES}
               onViewChange={handleViewChange}
+            />
+          </div>
+        )}
+        
+        {activeTab === 'novel' && currentSceneId && (
+          <div className="novel-content">
+            <VisualNovel
+              initialSceneId={currentSceneId}
+              playerId={player?._id}
+              onExit={handleNovelExit}
+              questState={{
+                currentState: questState,
+                updateState: updateQuestState
+              }}
             />
           </div>
         )}

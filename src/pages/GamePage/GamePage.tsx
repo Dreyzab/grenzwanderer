@@ -71,6 +71,21 @@ export const GamePage: React.FC = () => {
     navigate('/');
   };
   
+  // Функция синхронизации представления GameScreen с активной вкладкой
+  const handleViewChange = (view: GameView) => {
+    switch (view) {
+      case GameView.MAP:
+        setActiveTab('map');
+        break;
+      case GameView.MESSAGES:
+        setActiveTab('dialog');
+        break;
+      // Другие представления можно обрабатывать здесь
+      default:
+        break;
+    }
+  };
+  
   // Обработка успешного сканирования QR-кода
   const handleQRScanSuccess = async (code: string) => {
     if (!player) return;
@@ -160,6 +175,7 @@ export const GamePage: React.FC = () => {
             <GameScreen 
               onExit={() => setActiveTab('map')}
               initialView={GameView.MAP}
+              onViewChange={handleViewChange}
             />
           </div>
         )}
@@ -169,6 +185,7 @@ export const GamePage: React.FC = () => {
             <GameScreen 
               onExit={() => setActiveTab('map')}
               initialView={GameView.MESSAGES}
+              onViewChange={handleViewChange}
             />
           </div>
         )}

@@ -6,7 +6,14 @@ import { QuestMap, QuestMarker } from '../Map/QuestMap';
 import { VisualNovel } from '../../../pages/visualNovel/VisualNovel';
 import { Messages } from '../../Messages/Messages';
 import { useMessagesReducer } from '../../../hooks/useMessages';
-import { v4 as uuidv4 } from 'uuid';
+import { 
+  showMarker, 
+  hideMarker, 
+  completeMarker, 
+  addInteraction,
+  updateMarkersByQuestState,
+  QR_CODES
+} from '../../../entities/markers/model';
 import './GameScreen.css';
 
 // Interfaces
@@ -33,6 +40,7 @@ enum QuestState {
 interface GameScreenProps {
   onExit: () => void;
   initialView?: GameView;
+  onViewChange?: (view: GameView) => void;
 }
 
 export enum GameView {
@@ -41,7 +49,7 @@ export enum GameView {
   NOVEL = 'novel'
 }
 
-export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView }) => {
+export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView, onViewChange }) => {
   // Component state
   const [player, setPlayer] = useState<PlayerData | null>(null);
   const [playerLoading, setPlayerLoading] = useState(true);
@@ -70,6 +78,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView }) =
   const activateQuestByQR = useMutation(api.quest.activateQuestByQR);
   const startDeliveryQuest = useMutation(api.quest.startDeliveryQuest);
   const getOrCreatePlayer = useMutation(api.player.getOrCreatePlayer);
+  
+  // Обновляем маркеры при изменении состояния квеста
+  useEffect(() => {
+    // Обновляем видимость маркеров на основе текущего состояния квеста
+    updateMarkersByQuestState(questState);
+  }, [questState]);
+  
+  // Уведомляем родительский компонент при изменении представления
+  useEffect(() => {
+    if (onViewChange) {
+      onViewChange(gameView);
+    }
+  }, [gameView, onViewChange]);
   
   // Initialize data
   useEffect(() => {
@@ -166,24 +187,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView }) =
     setQuestState(newState);
   }, []);
   
-  // Memoized quest markers
-  const questMarkers = useMemo(() => {
-    // In a real app, this would generate markers based on quest state
-    // Sample implementation:
-    return [
-      {
-        id: 'marker1',
-        title: 'Starting Point',
-        description: 'This is where your adventure begins',
-        lat: 47.99443, 
-        lng: 7.84638,
-        isActive: true,
-        isCompleted: false,
-        qrCode: 'start_point'
-      }
-    ];
-  }, [questState]);
-  
   // Handle marker click
   const handleMarkerClick = useCallback(async (marker: QuestMarker) => {
     if (!player || !marker.qrCode) return;
@@ -218,10 +221,23 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView }) =
         // Показываем уведомление
         alert(result.message);
         
+        // Регистрируем взаимодействие с маркером
+        addInteraction({
+          markerId: marker.id,
+          action: 'activated',
+          data: { timestamp: Date.now() }
+        });
+        
+        // Если маркер - это задание, отмечаем его как выполненное
+        if (marker.markerType === 'quest_point') {
+          completeMarker(marker.id);
+        }
+        
         // Обрабатываем результат
         if (result.sceneId) {
           setSceneKey(result.sceneId);
           setGameView(GameView.NOVEL);
+          if (onViewChange) onViewChange(GameView.NOVEL);
           
           // Отмечаем шаг как выполненный
           completeQuestStep(marker.id);
@@ -238,7 +254,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView }) =
     } finally {
       setLoading(false);
     }
-  }, [player, activateQuestByQR, completeQuestStep, updateQuestState]);
+  }, [player, activateQuestByQR, completeQuestStep, updateQuestState, onViewChange]);
   
   // Handle quest start
   const handleStartDeliveryQuest = useCallback(async () => {
@@ -275,25 +291,36 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView }) =
         // Отмечаем шаг квеста как выполненный
         completeQuestStep('start_delivery');
         
+        // Показываем маркер торговца на карте
+        showMarker('trader');
+        
         // Переключаемся на карту
         setGameView(GameView.MAP);
+        if (onViewChange) onViewChange(GameView.MAP);
       }
     } catch (err) {
       setError(`Error starting quest: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
-  }, [player, startDeliveryQuest, updateQuestState, completeQuestStep]);
+  }, [player, startDeliveryQuest, updateQuestState, completeQuestStep, onViewChange]);
   
   // View handlers
   const handleNovelExit = useCallback(() => {
     setGameView(GameView.MAP);
+    if (onViewChange) onViewChange(GameView.MAP);
     setSceneKey(null);
-  }, []);
+  }, [onViewChange]);
   
   const handleOpenMap = useCallback(() => {
     setGameView(GameView.MAP);
-  }, []);
+    if (onViewChange) onViewChange(GameView.MAP);
+  }, [onViewChange]);
+  
+  const handleOpenMessages = useCallback(() => {
+    setGameView(GameView.MESSAGES);
+    if (onViewChange) onViewChange(GameView.MESSAGES);
+  }, [onViewChange]);
   
   // Show loading
   if (playerLoading) {
@@ -347,7 +374,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView }) =
         <h2>Quest Map</h2>
         <button 
           className="messages-button" 
-          onClick={() => setGameView(GameView.MESSAGES)}
+          onClick={handleOpenMessages}
         >
           Messages
           {hasUnreadMessages && <span className="notification-badge">!</span>}
@@ -362,7 +389,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView }) =
       )}
       
       <QuestMap 
-        markers={questMarkers}
         onMarkerClick={handleMarkerClick}
         followPlayer={true}
       />

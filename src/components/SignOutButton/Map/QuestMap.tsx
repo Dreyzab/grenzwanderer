@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef, FC, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './QuestMap.css';
+import { useUnit } from 'effector-react';
+import { $markers, getVisibleMarkers, MarkerData } from '../../../entities/markers/model';
 
 // Default location coordinates
 const DEFAULT_LOCATION: [number, number] = [47.99443, 7.84638];
 
 // Get token from environment variables or use hardcoded one for debugging
-const mapboxToken = 'pk.eyJ1IjoiaW5vdGkiLCJhIjoiY205MDhqbzFyMGs0dzJsczgzaHA1YWJscyJ9.AnUFZnF1NfhefBtsQLnvdA';
+const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiaW5vdGkiLCJhIjoiY205MDhqbzFyMGs0dzJsczgzaHA1YWJscyJ9.AnUFZnF1NfhefBtsQLnvdA';
 console.log('Mapbox Token:', mapboxToken);
 
 // Set the token for Mapbox
@@ -50,7 +52,6 @@ export interface QuestMarker {
 }
 
 interface QuestMapProps {
-  markers: QuestMarker[];
   onMarkerClick?: (marker: QuestMarker) => Promise<void>;
   center?: [number, number];
   zoom?: number;
@@ -58,7 +59,6 @@ interface QuestMapProps {
 }
 
 export const QuestMap: FC<QuestMapProps> = ({
-  markers,
   onMarkerClick,
   center,
   zoom = 12,
@@ -68,6 +68,11 @@ export const QuestMap: FC<QuestMapProps> = ({
   const [mapError, setMapError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [mapInitialized, setMapInitialized] = useState(false);
+  
+  // Используем маркеры из хранилища Effector
+  const allMarkers = useUnit($markers);
+  // Фильтруем только видимые маркеры
+  const visibleMarkers = allMarkers.filter(marker => marker.isVisible);
   
   // References
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -170,14 +175,14 @@ export const QuestMap: FC<QuestMapProps> = ({
   
   // Add markers when markers array changes and map is initialized
   useEffect(() => {
-    if (!map.current || !mapInitialized || !markers) return;
+    if (!map.current || !mapInitialized) return;
     
     // Clear existing markers
     Object.values(markersRef.current).forEach(marker => marker.remove());
     markersRef.current = {};
     
-    // Add new markers
-    markers.forEach(marker => {
+    // Add new markers - используем только видимые маркеры
+    visibleMarkers.forEach(marker => {
       try {
         // Create marker element
         const el = document.createElement('div');
@@ -206,7 +211,7 @@ export const QuestMap: FC<QuestMapProps> = ({
       }
     });
     
-  }, [markers, mapInitialized, onMarkerClick]);
+  }, [visibleMarkers, mapInitialized, onMarkerClick]);
   
   // Resize handler to ensure map fits container
   useEffect(() => {

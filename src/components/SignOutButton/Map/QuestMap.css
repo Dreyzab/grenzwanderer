@@ -1,16 +1,17 @@
-/* QuestMap.css*/
+/* QuestMap.css - Fixed version */
 .quest-map {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 400px;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  height: 100vh;
+  z-index: 1;
 }
 
 .quest-map-container {
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 .quest-map-loading {
@@ -24,21 +25,21 @@
 }
 
 .loading-spinner {
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top: 4px solid #4285f4;
   width: 40px;
   height: 40px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: #4285f4;
+  animation: spin 1s ease-in-out infinite;
+  margin: 0 auto 1rem;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
-/* Стили для оверлеев ошибок и загрузки */
+/* Error and loading overlays */
+.map-loading-overlay,
 .map-error-overlay {
   position: absolute;
   top: 0;
@@ -52,246 +53,97 @@
   z-index: 10;
 }
 
-.map-error-message {
-  background: white;
-  padding: 15px 20px;
-  border-radius: 6px;
-  max-width: 80%;
-  text-align: center;
-  color: #d32f2f;
-  font-weight: bold;
-}
-
-.map-error-content,
-.geolocation-error-content,
-.geolocation-loading-content {
-  text-align: center;
-  padding: 20px;
-  max-width: 90%;
+.map-loading-content,
+.map-error-content {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 2rem;
   border-radius: 8px;
-  background-color: rgba(25, 25, 25, 0.9);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-.geolocation-loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.geolocation-loading-content .loading-spinner {
-  width: 30px;
-  height: 30px;
-  margin-bottom: 10px;
-}
-
-.map-error-content button,
-.geolocation-error-content button {
-  margin-top: 15px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  background-color: #4a9eff;
+  text-align: center;
   color: white;
-  font-weight: bold;
+  max-width: 80%;
+}
+
+.map-error-content p {
+  color: #ff5252;
+  margin-bottom: 1rem;
+}
+
+.map-error-content button {
+  background: #4285f4;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 
-.map-error-content button:hover,
-.geolocation-error-content button:hover {
-  background-color: #3a8eef;
-}
-
-.geolocation-error-content button:disabled {
-  background-color: #666;
-  cursor: not-allowed;
-}
-
-/* Стили маркеров */
-.marker {
-  width: 25px;
-  height: 25px;
-  background-color: #666;
-  border-radius: 50%;
+/* Map markers */
+.map-marker {
+  width: 24px;
+  height: 24px;
+  background-color: #4A9EFF;
   border: 2px solid white;
-  cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-.marker.npc {
-  background-color: #ff9800;
-}
-
-.marker.npc.npc-trader {
-  background-color: #FF9800;
-  background-image: url('/icons/trader.png');
-}
-
-.marker.npc.npc-craftsman {
-  background-color: #9C27B0;
-  background-image: url('/icons/craftsman.png');
-}
-
-.marker.npc.npc-guild_master {
-  background-color: #FFC107;
-  background-image: url('/icons/guildmaster.png');
-}
-
-.marker.npc.npc-story {
-  background-color: #F44336;
-  background-image: url('/icons/story.png');
-}
-
-.marker.quest_point {
-  background-color: #4285f4;
-}
-
-.marker.quest_area {
-  background-color: rgba(66, 133, 244, 0.3);
-  border: 2px dashed #4285f4;
-}
-
-.marker.inactive {
-  opacity: 0.6;
-}
-
-.marker.completed {
-  background-color: #4caf50;
-}
-
-.marker.active {
-  border-color: #ffeb3b;
-  box-shadow: 0 0 15px rgba(255, 235, 59, 0.7);
-}
-
-.marker-pulse {
-  position: absolute;
-  top: -15px;
-  left: -15px;
-  width: 55px;
-  height: 55px;
   border-radius: 50%;
-  background-color: rgba(255, 0, 0, 0.3);
-  animation: markerPulse 1.5s infinite;
-  pointer-events: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-@keyframes markerPulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.5);
-    opacity: 0.4;
-  }
-  100% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
+.map-marker:hover {
+  transform: scale(1.2);
 }
 
-/* Стили для попапа */
-.mapboxgl-popup {
+.map-marker.active {
+  background-color: #4285f4;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.3);
+}
+
+.map-marker.completed {
+  background-color: #34A853;
+}
+
+.map-marker.quest_area {
+  background-color: transparent;
+  border: 2px dashed #4A9EFF;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.map-marker.npc {
+  background-color: #FBBC05;
+}
+
+.map-marker.npc-trader {
+  background-color: #EA4335;
+}
+
+.map-marker.npc-craftsman {
+  background-color: #34A853;
+}
+
+.map-marker.npc-guild_master {
+  background-color: #9C27B0;
+}
+
+.map-marker.npc-story {
+  background-color: #FF6D00;
+}
+
+/* Debug info */
+.map-debug-info {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #FFC107;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 100;
   max-width: 300px;
 }
 
-.mapboxgl-popup-content {
-  padding: 0;
-  background-color: rgba(42, 42, 42, 0.95);
-  color: white;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.popup-content {
-  padding: 10px;
-}
-
-.popup-title {
-  font-weight: bold;
-  margin-bottom: 5px;
-  font-size: 14px;
-}
-
-.popup-description {
-  font-size: 12px;
-  margin-bottom: 10px;
-  color: #666;
-}
-
-.popup-info {
-  margin: 10px 0;
-}
-
-.popup-row {
-  margin: 5px 0;
-  font-size: 13px;
-}
-
-.popup-button {
-  background-color: #4285f4;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.3s;
-}
-
-.popup-button:hover {
-  background-color: #356ac3;
-}
-
-/* Стили легенды */
-.map-legend {
-  position: absolute;
-  bottom: 15px;
-  left: 15px;
-  background-color: rgba(0, 0, 0, 0.7);
-  padding: 10px;
-  border-radius: 4px;
-  z-index: 1;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin: 5px 0;
-  color: white;
-  font-size: 12px;
-}
-
-.legend-marker {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 8px;
-}
-
-.legend-marker.npc {
-  background-color: #FF9800;
-}
-
-.legend-marker.quest_point {
-  background-color: #4CAF50;
-}
-
-.legend-marker.quest_area {
-  background-color: #2196F3;
-}
-
-.legend-marker.active {
-  background-color: #FF5722;
-}
-
-.legend-marker.completed {
-  background-color: #4CAF50;
-}
-
-/* Стили для маркера игрока */
+/* Player marker styles */
 .player-marker {
   width: 20px;
   height: 20px;
@@ -314,485 +166,54 @@
   }
 }
 
-/* Кнопка центрирования на игроке */
-.center-player-button {
-  position: absolute;
-  bottom: 70px;
-  right: 10px;
-  width: 40px;
-  height: 40px;
-  background: white;
-  border: none;
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  z-index: 1;
-  transition: all 0.3s ease;
-}
-
-.center-player-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-}
-
-.center-player-button.tracking {
-  background-color: #4285f4;
-  color: white;
-}
-
-.center-icon {
-  font-size: 18px;
-}
-
-.tracking-timer {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: #F44336;
-  color: white;
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Стили для кнопки фиксированного местоположения */
-.fixed-location-button {
-  position: absolute;
-  bottom: 150px;
-  right: 10px;
-  width: 40px;
-  height: 40px;
-  background: #3d2d3d;
-  border: 2px solid #544454;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  z-index: 1;
-  transition: all 0.3s ease;
-}
-
-.fixed-location-button:hover {
-  background: #4d3d4d;
-  transform: scale(1.05);
-}
-
-.fixed-location-button:active {
-  transform: scale(0.95);
-}
-
-.fixed-location-button.map-button {
-  position: absolute;
-  bottom: 150px;
-  right: 10px;
-}
-
-/* Стиль для кнопки в overlay ошибки геолокации */
-.geolocation-error-content .fixed-location-button {
-  position: relative;
-  width: auto;
-  height: auto;
-  border-radius: 4px;
-  padding: 8px 12px;
-  margin-top: 10px;
-  font-size: 14px;
-  bottom: auto;
-  right: auto;
-}
-
-/* Адаптивные стили */
-@media (max-width: 768px) {
-  .map-legend {
-    max-width: 40%;
-    font-size: 10px;
-  }
-  
-  .legend-item {
-    margin: 3px 0;
-  }
-  
-  .center-player-button {
-    bottom: 70px;
-  }
-  
-  .fixed-location-button.map-button {
-    bottom: 120px;
-  }
-}
-
-/* Стили для индикатора режима фиксированной локации */
-.location-mode-indicator {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  z-index: 1;
-}
-
-.fixed-location-indicator {
-  display: flex;
-  align-items: center;
-}
-
-.fixed-location-indicator::before {
-  content: "📍";
-  margin-right: 5px;
-}
-
-/* Стили для кнопки переключения на реальную геолокацию */
-.real-location-button {
-  position: absolute;
-  bottom: 200px;
-  right: 10px;
-  width: 40px;
-  height: 40px;
-  background: #2d4d2d;
-  border: 2px solid #446644;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  z-index: 1;
-  transition: all 0.3s ease;
-}
-
-.real-location-button:hover {
-  background: #3d5d3d;
-  transform: scale(1.05);
-}
-
-.real-location-button:active {
-  transform: scale(0.95);
-}
-
-.real-location-icon {
-  font-size: 18px;
-}
-
-/* Стили для временных уведомлений */
-.map-notification {
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 10px 15px;
-  border-radius: 20px;
-  z-index: 10;
-  font-size: 14px;
-  max-width: 80%;
-  text-align: center;
-  animation: fadeInOut 3s ease-in-out;
-  pointer-events: none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(5px);
-}
-
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translate(-50%, -10px); }
-  15% { opacity: 1; transform: translate(-50%, 0); }
-  85% { opacity: 1; transform: translate(-50%, 0); }
-  100% { opacity: 0; transform: translate(-50%, -10px); }
-}
-
-/* Улучшенные стили для индикатора фиксированной локации */
-.location-mode-indicator {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  z-index: 9;
-  display: flex;
-  align-items: center;
-  border-left: 3px solid #FF9800;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  max-width: 70%;
-}
-
-/* Улучшенные стили для кнопок в оверлее ошибок */
-.error-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 15px;
-  width: 100%;
-}
-
-.retry-button {
-  background-color: #4a9eff;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s;
-}
-
-.retry-button:disabled {
-  background-color: #666;
-  cursor: not-allowed;
-}
-
-.permission-hint {
-  margin-top: 15px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
-  font-style: italic;
-  line-height: 1.4;
-  text-align: center;
-  padding: 0 10px;
-}
-
-/* Улучшенные стили для кнопки фиксированной локации */
-.fixed-location-button {
-  position: relative;
-  background-color: #9c27b0;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.fixed-location-button:hover {
-  background-color: #7b1fa2;
-}
-
-.fixed-location-button.map-button {
-  position: absolute;
-  bottom: 150px;
-  right: 10px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Улучшенные стили для оверлеев */
-.geolocation-error-overlay {
-  padding: 15px;
-  background-color: rgba(0, 0, 0, 0.8);
-}
-
-.geolocation-error-content {
-  max-width: 350px;
-  width: 90%;
-}
-
-.geolocation-error-content p {
-  margin-bottom: 15px;
-  line-height: 1.5;
-}
-
-/* Адаптивные стили */
-@media (max-width: 480px) {
-  .map-notification {
-    width: 90%;
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-  
-  .location-mode-indicator {
-    top: 10px;
-    left: 10px;
-    font-size: 12px;
-    padding: 6px 10px;
-  }
-  
-  .error-buttons {
-    gap: 8px;
-  }
-  
-  .permission-hint {
-    font-size: 11px;
-  }
-}
-
-.map-info {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: #ffeb3b;
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  pointer-events: none;
-  max-width: 200px;
-}
-
-.token-info {
-  margin-top: 10px;
-  font-size: 12px;
-  opacity: 0.8;
-  word-break: break-all;
-}
-
-/* Стили для маркеров */
-.mapboxgl-marker {
-  cursor: pointer;
-}
-
-/* Обеспечиваем корректную работу с размерами контейнера */
+/* Make sure the mapboxgl canvas container is full size */
 .mapboxgl-canvas-container,
 .mapboxgl-canvas {
   width: 100% !important;
   height: 100% !important;
 }
 
-/* Стили для элементов управления */
-.map-controls {
-  position: absolute;
-  bottom: 20px;
-  right: 10px;
-  z-index: 10;
+/* Quest map wrapper styles - for GameScreen integration */
+.quest-map-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
-.center-player-btn {
-  background-color: #4285f4;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  padding: 8px 12px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+.quest-map-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  min-width: 100px;
+  padding: 10px 15px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.center-player-btn:hover {
-  background-color: #356ac3;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+.quest-map-header h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
 }
 
-.center-player-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+.map-container {
+  flex: 1;
+  position: relative;
 }
 
-.center-player-btn:disabled {
-  background-color: #a0a0a0;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Обновленные стили маркеров */
-.map-marker {
-  width: 25px;
-  height: 25px;
-  background-color: #666;
-  border-radius: 50%;
-  border: 2px solid white;
+.messages-button {
+  background: rgba(66, 133, 244, 0.2);
+  color: white;
+  border: 1px solid rgba(66, 133, 244, 0.5);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  transition: all 0.3s ease;
-  background-size: 60%;
-  background-position: center;
-  background-repeat: no-repeat;
+  position: relative;
+  transition: all 0.2s ease;
 }
 
-.map-marker.npc {
-  background-color: #ff9800;
-}
-
-.map-marker.quest_point {
-  background-color: #4285f4;
-}
-
-.map-marker.npc-trader {
-  background-color: #FF9800;
-  background-image: url('/icons/trader.png');
-}
-
-.map-marker.npc-craftsman {
-  background-color: #9C27B0;
-  background-image: url('/icons/craftsman.png');
-}
-
-.map-marker.npc-guild_master {
-  background-color: #FFC107;
-  background-image: url('/icons/guildmaster.png');
-}
-
-.map-marker.npc-story {
-  background-color: #F44336;
-  background-image: url('/icons/story.png');
-}
-
-.map-marker.completed {
-  background-color: #4caf50;
-}
-
-.map-marker.active {
-  border-color: #ffeb3b;
-  box-shadow: 0 0 15px rgba(255, 235, 59, 0.7);
-  transform: scale(1.1);
-  z-index: 2;
-}
-
-/* Стиль для центральной точки аномальной зоны */
-.anomaly-center-marker {
-  width: 20px;
-  height: 20px;
-  background-color: rgba(255, 0, 0, 0.8);
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  cursor: pointer;
-  box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
-  animation: anomalyPulse 2s infinite;
-}
-
-@keyframes anomalyPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.5);
-    transform: scale(1.2);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-    transform: scale(1);
-  }
+.messages-button:hover {
+  background: rgba(66, 133, 244, 0.4);
 }

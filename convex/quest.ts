@@ -490,7 +490,7 @@ export const makeSceneChoice = mutation({
 
     // --- Return result ---
     // Construct the result object based on calculated values
-    const result: { message: string; nextSceneId?: typeof sceneId; questState?: string } = {
+    const result: { message: string; nextSceneId?: Id<"scenes"> | string; questState?: string } = {
       message: message,
     };
     if (nextSceneId) {

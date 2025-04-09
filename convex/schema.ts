@@ -1,6 +1,27 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+// Определяем возможные типы NPC
+const NPCType = v.union(
+  v.literal("trader"),
+  v.literal("craftsman"),
+  v.literal("scientist"),
+  v.literal("guard"),
+  v.literal("smuggler"),
+  v.literal("quest_giver"), // Пример, можно добавить другие типы
+  v.literal("enemy")      // Пример враждебного NPC
+);
+
+// Определяем возможные фракции
+const Faction = v.union(
+  v.literal("neutrals"),
+  v.literal("officers"),
+  v.literal("villains"),
+  v.literal("survivors"),
+  v.literal("scientists"),
+  v.literal("mutants")     // Пример фракции мутантов
+);
+
 export default defineSchema({
   users: defineTable({
     email: v.string(),
@@ -20,24 +41,21 @@ export default defineSchema({
     userId: v.id("users"),
     nickname: v.string(),
     avatar: v.optional(v.string()),
-    faction: v.union(
-      v.literal("officers"), 
-      v.literal("villains"), 
-      v.literal("neutrals"), 
-      v.literal("survivors")
-    ),
+    faction: Faction,
     reputation: v.object({
       officers: v.number(),
       villains: v.number(),
       neutrals: v.number(),
-      survivors: v.number()
+      survivors: v.number(),
+      scientists: v.optional(v.number()), // Ученые как опциональная репутация
+      mutants: v.optional(v.number())      // Мутанты как опциональная репутация
     }),
     equipment: v.object({
-      primary: v.string(),
+      primary: v.optional(v.string()),
       secondary: v.optional(v.string()),
-      consumables: v.array(v.string())
+      consumables: v.optional(v.array(v.string()))
     }),
-    questState: v.string(), // "registered", "character_creation", "training_mission", etc.
+    questState: v.string(), // Можно детализировать с помощью v.union, если нужно
     creationStep: v.optional(v.number()),
     locationHistory: v.array(v.object({ // Ограничиваем размер массива в коде
       lat: v.number(),
@@ -74,27 +92,29 @@ export default defineSchema({
     character: v.optional(v.object({
       name: v.string(),
       image: v.string(),
-      position: v.optional(v.string()) // "left", "center", "right"
+      position: v.optional(v.union(v.literal('left'), v.literal('right'), v.literal('center')))
     })),
     choices: v.array(v.object({
       text: v.string(),
-      nextSceneId: v.optional(v.id("scenes")),
-      action: v.optional(v.string()), // Special action to perform (e.g., "end_character_creation")
-      equipmentChanges: v.optional(v.object({
+      nextSceneId: v.optional(v.union(v.id("scenes"), v.string())), // Может быть ID или ключом
+      action: v.optional(v.string()), // Действие, связанное с выбором
+      statChanges: v.optional(v.object({ // Изменения характеристик
+        energy: v.optional(v.number()),
+        willpower: v.optional(v.number()),
+        attractiveness: v.optional(v.number()),
+        fitness: v.optional(v.number()),
+        intelligence: v.optional(v.number()),
+        corruption: v.optional(v.number()),
+        money: v.optional(v.number())
+      })),
+      requiredState: v.optional(v.string()), // Требуемое состояние квеста/мира
+      requiredItems: v.optional(v.array(v.string())), // Требуемые предметы
+      equipmentChanges: v.optional(v.object({ // Изменения снаряжения
         primary: v.optional(v.string()),
         secondary: v.optional(v.string()),
         consumables: v.optional(v.array(v.string()))
-      })),
-      statChanges: v.optional(v.object({
-        energy: v.optional(v.number()),
-        money: v.optional(v.number()),
-        attractiveness: v.optional(v.number()),
-        willpower: v.optional(v.number()),
-        fitness: v.optional(v.number()),
-        intelligence: v.optional(v.number()),
-        corruption: v.optional(v.number())
       }))
-    }))
+    })),
   }).index("by_sceneKey", ["sceneKey"]),
 
   mapPoints: defineTable({
@@ -112,10 +132,10 @@ export default defineSchema({
 
   qrCodes: defineTable({
     code: v.string(),
-    type: v.string(), // "start_quest", "npc", "item", "location", etc.
-    data: v.any(), // Custom data based on the type
-    isOneTime: v.boolean(), // If true, can only be used once
-    usedBy: v.optional(v.array(v.id("players"))) // List of players who used this code
+    type: v.union(v.literal("npc"), v.literal("location"), v.literal("item"), v.literal("quest")), // Типы QR кодов
+    data: v.any(), // Данные, связанные с QR-кодом (ID NPC, локации, и т.д.)
+    isOneTime: v.boolean(),
+    usedBy: v.optional(v.array(v.id("players"))),
   }).index("by_code", ["code"]),
   
   events: defineTable({
@@ -147,22 +167,31 @@ export default defineSchema({
 
   npcs: defineTable({
     name: v.string(),
-    type: v.string(), // "trader", "craftsman", "officer", etc.
-    faction: v.string(),
+    type: NPCType,
+    faction: Faction,
     description: v.string(),
-    coordinates: v.object({
+    coordinates: v.object({ // Координаты NPC на карте
       lat: v.number(),
       lng: v.number()
     }),
-    isShop: v.boolean(),
-    shopItems: v.optional(v.array(v.string()))
-  }),
+    isShop: v.optional(v.boolean()), // Может ли NPC быть магазином
+    shopItems: v.optional(v.array(v.string())), // Товары NPC, если это магазин
+    dialogStartSceneKey: v.optional(v.string()) // Ключ начальной сцены диалога
+  }).index("by_name", ["name"]), // Индекс для поиска по имени
   
   items: defineTable({
+    itemId: v.string(),
     name: v.string(),
-    type: v.string(), // "weapon", "armor", "consumable", "quest", etc.
     description: v.string(),
-    value: v.number(),
-    effects: v.optional(v.array(v.string()))
-  })
+    type: v.union(v.literal("weapon"), v.literal("armor"), v.literal("consumable"), v.literal("quest"), v.literal("misc")),
+    effects: v.optional(v.any()) // Эффекты предмета
+  }).index("by_itemId", ["itemId"]),
+
+  // Таблица состояний квестов (опционально, для более сложных квестов)
+  questStates: defineTable({
+    playerId: v.id("players"),
+    questId: v.string(), // Идентификатор квеста
+    currentState: v.string(), // Текущее состояние квеста для игрока
+    progress: v.optional(v.any()) // Дополнительные данные о прогрессе
+  }).index("by_player_quest", ["playerId", "questId"])
 });

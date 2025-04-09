@@ -39,10 +39,10 @@ export const GamePage: React.FC = () => {
         
         if (!userId) {
           // Если нет ID пользователя, перенаправляем на страницу логина
-          navigate('/login');
-          return;
-        }
-        
+      navigate('/login');
+      return;
+    }
+    
         // Получаем или создаем профиль игрока
         const playerData = await getOrCreatePlayer({ userId: userId as any });
         if (playerData) {
@@ -104,6 +104,9 @@ export const GamePage: React.FC = () => {
     try {
       setLoading(true);
       
+      // Сбрасываем текущую сцену перед активацией новой
+      setCurrentSceneId(null);
+      
       let result;
       
       try {
@@ -114,21 +117,61 @@ export const GamePage: React.FC = () => {
       } catch (error) {
         console.warn('API error while activating QR code:', error);
         
-        // Используем мок данные для тестирования
-        result = {
-          message: "QR-код активирован (тестовый режим)",
-          sceneId: "artifact_task", // ID тестовой сцены для принятия задания с артефактом
-          questState: "DELIVERY_STARTED"
-        };
+        // Используем мок данные для тестирования в зависимости от считанного кода
+        switch (code) {
+          case 'grenz_npc_trader_01':
+            result = {
+              message: "Вы встретили торговца",
+              sceneId: "trader_meeting", // ID сцены для встречи с торговцем
+              questState: "DELIVERY_STARTED"
+            };
+            break;
+          case 'grenz_npc_craftsman_01':
+            result = {
+              message: "Вы встретили мастера Дитера",
+              sceneId: "craftsman_meeting", // ID сцены для встречи с мастером
+              questState: "PARTS_COLLECTED"
+            };
+            break;
+          case 'ARTIFACT_ITEM_2023':
+            result = {
+              message: "Вы нашли артефакт!",
+              sceneId: "artifact_found", // ID сцены для находки артефакта
+              questState: "ARTIFACT_FOUND"
+            };
+            break;
+          case 'location_anomaly_001':
+            result = {
+              message: "Вы прибыли в аномальную зону",
+              sceneId: "artifact_area", // ID сцены для аномальной зоны
+              questState: "ARTIFACT_HUNT"
+            };
+            break;
+          case 'encounter_001':
+            result = {
+              message: "Неожиданная встреча в лесу",
+              sceneId: "ork_encounter", // ID сцены для встречи в лесу
+              questState: "ARTIFACT_HUNT"
+            };
+            break;
+          default:
+            result = {
+              message: "QR-код активирован (тестовый режим)",
+              sceneId: "artifact_task", // ID тестовой сцены для принятия задания с артефактом
+              questState: "DELIVERY_STARTED"
+            };
+        }
       }
       
       if (result) {
-        alert(result.message);
-        
         // Если есть sceneId, открываем визуальный роман
         if (result.sceneId) {
-          setCurrentSceneId(result.sceneId);
-          setActiveTab('novel');
+          // Небольшая задержка для гарантированного обновления сцены
+          const sceneId = String(result.sceneId);
+          setTimeout(() => {
+            setCurrentSceneId(sceneId);
+            setActiveTab('novel');
+          }, 100);
         }
         
         // Обновляем состояние квеста, если оно изменилось
@@ -183,7 +226,7 @@ export const GamePage: React.FC = () => {
       {/* Навигационная панель */}
       <div className="game-nav">
         <div className="nav-buttons">
-          <SignOutButton />
+        <SignOutButton />
           <button className="exit-button" onClick={handleExit}>
             Выйти в меню
           </button>
@@ -226,7 +269,7 @@ export const GamePage: React.FC = () => {
         
         {activeTab === 'dialog' && (
           <div className="dialog-content">
-            <GameScreen 
+          <GameScreen 
               onExit={() => setActiveTab('map')}
               initialView={GameView.MESSAGES}
               onViewChange={handleViewChange}
@@ -235,7 +278,14 @@ export const GamePage: React.FC = () => {
         )}
         
         {activeTab === 'novel' && currentSceneId && (
-          <div className="novel-content">
+          <div className="novel-content" style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0,
+            width: '100%', 
+            height: '100%', 
+            zIndex: 9000 
+          }}>
             <VisualNovel
               initialSceneId={currentSceneId}
               playerId={player?._id}

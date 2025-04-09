@@ -26,7 +26,9 @@ export enum NpcClass {
 export const QR_CODES = {
   TRADER: 'grenz_npc_trader_01',
   CRAFTSMAN: 'grenz_npc_craftsman_01',
-  ARTIFACT: 'ARTIFACT_ITEM_2023'
+  ARTIFACT: 'ARTIFACT_ITEM_2023',
+  ANOMALY_ZONE: 'location_anomaly_001',
+  ENCOUNTER: 'encounter_001'
 };
 
 // Структура маркера (на случай, если QuestMarker не импортируется корректно)

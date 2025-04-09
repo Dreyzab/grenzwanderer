@@ -214,30 +214,52 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView, onV
         console.warn("API call failed, using mock data for QR activation:", apiError);
         
         // Используем моковые данные в зависимости от кода
-        if (code === QR_CODES.TRADER) {
-          result = {
-            message: "Вы встретили торговца",
-            sceneId: "trader_meeting", // ID сцены для встречи с торговцем
-            questState: QuestState.DELIVERY_STARTED
-          };
-        } else if (code === QR_CODES.CRAFTSMAN) {
-          result = {
-            message: "Вы встретили мастера Дитера",
-            sceneId: "craftsman_meeting", // ID сцены для встречи с мастером
-            questState: QuestState.PARTS_COLLECTED
-          };
-        } else if (code === QR_CODES.ARTIFACT) {
-          result = {
-            message: "Вы нашли артефакт!",
-            sceneId: "artifact_found", // ID сцены для находки артефакта
-            questState: QuestState.ARTIFACT_FOUND
-          };
-        } else {
-          result = {
-            message: "Неизвестный QR-код",
-            sceneId: undefined,
-            questState: undefined
-          };
+        switch (code) {
+          case QR_CODES.TRADER:
+          case 'grenz_npc_trader_01':
+            result = {
+              message: "Вы встретили торговца",
+              sceneId: "trader_meeting", // ID сцены для встречи с торговцем
+              questState: QuestState.DELIVERY_STARTED
+            };
+            break;
+          case QR_CODES.CRAFTSMAN:
+          case 'grenz_npc_craftsman_01':
+            result = {
+              message: "Вы встретили мастера Дитера",
+              sceneId: "craftsman_meeting", // ID сцены для встречи с мастером
+              questState: QuestState.PARTS_COLLECTED
+            };
+            break;
+          case QR_CODES.ARTIFACT:
+          case 'ARTIFACT_ITEM_2023':
+            result = {
+              message: "Вы нашли артефакт!",
+              sceneId: "artifact_found", // ID сцены для находки артефакта
+              questState: QuestState.ARTIFACT_FOUND
+            };
+            break;
+          case 'Grenz_loc_anomaly_01':
+          case 'location_anomaly_001':
+            result = {
+              message: "Вы прибыли в аномальную зону",
+              sceneId: "artifact_hunt_start", // ID сцены для начала охоты за артефактом
+              questState: QuestState.ARTIFACT_HUNT
+            };
+            break;
+          case 'encounter_001':
+            result = {
+              message: "Неожиданная встреча в лесу",
+              sceneId: "ork_encounter", // ID сцены для встречи в лесу
+              questState: QuestState.ARTIFACT_HUNT
+            };
+            break;
+          default:
+            result = {
+              message: "Неизвестный QR-код",
+              sceneId: undefined,
+              questState: undefined
+            };
         }
       }
       
@@ -412,61 +434,83 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit, initialView, onV
     );
   }
   
-  // Show map (default view)
+  // Show map view
   return (
-    <div className="quest-map-fullscreen">
-      <div className="quest-map-header">
-        <h2>Quest Map</h2>
-        <button 
-          className="messages-button" 
-          onClick={handleOpenMessages}
-        >
-          Messages
-          {hasUnreadMessages && <span className="notification-badge">!</span>}
-        </button>
-      </div>
-      
-      {/* Loading indicator for operations */}
-      {loading && (
-        <div className="operation-loading">
-          <div className="loading-spinner-small"></div>
+    <div className="game-screen">
+      {gameView === GameView.MAP && (
+        <div className="quest-map-wrapper">
+          <div className="quest-map-header">
+            <h2>Карта квестов</h2>
+            <button
+              className="messages-button"
+              onClick={handleOpenMessages}
+            >
+              Сообщения
+              {hasUnreadMessages && <div className="notification-badge"></div>}
+            </button>
+          </div>
+          
+          <div className="map-container">
+            <QuestMap 
+              onMarkerClick={handleMarkerClick}
+              followPlayer={true}
+            />
+          </div>
+          
+          {loading && (
+            <div className="operation-loading">
+              <div className="loading-spinner-small"></div>
+              <p>Загрузка...</p>
+            </div>
+          )}
+          
+          <div className="game-nav-buttons">
+            {questState === QuestState.REGISTERED && (
+              <button 
+                className="game-nav-btn"
+                onClick={handleStartDeliveryQuest}
+              >
+                Начать задание доставки
+              </button>
+            )}
+            
+            {/* Тестовые кнопки для запуска сцен визуальной новеллы */}
+            <div className="test-vn-buttons">
+              <button 
+                className="game-nav-btn test-vn-btn"
+                onClick={() => handleQRScanSuccess(QR_CODES.TRADER)}
+              >
+                Тест: Встреча с торговцем
+              </button>
+              <button 
+                className="game-nav-btn test-vn-btn"
+                onClick={() => handleQRScanSuccess(QR_CODES.CRAFTSMAN)}
+              >
+                Тест: Мастерская Дитера
+              </button>
+              <button 
+                className="game-nav-btn test-vn-btn"
+                onClick={() => handleQRScanSuccess(QR_CODES.ANOMALY_ZONE)}
+              >
+                Тест: Аномальная зона
+              </button>
+              <button 
+                className="game-nav-btn test-vn-btn"
+                onClick={() => handleQRScanSuccess(QR_CODES.ENCOUNTER)}
+              >
+                Тест: Неожиданная встреча
+              </button>
+            </div>
+            
+            <button 
+              className="exit-btn"
+              onClick={onExit}
+            >
+              Выйти
+            </button>
+          </div>
         </div>
       )}
-      
-      <QuestMap 
-        onMarkerClick={handleMarkerClick}
-        followPlayer={true}
-      />
-      
-      {/* Game navigation */}
-      <div className="game-nav-buttons">
-        <button 
-          className="game-nav-btn"
-          onClick={() => {
-            // Активируем маркер торговца
-            showMarker('trader');
-            alert('Маркер Торговца активирован');
-          }}
-        >
-          Тест: Торговец
-        </button>
-        <button 
-          className="game-nav-btn"
-          onClick={() => {
-            // Активируем маркер мастерской
-            showMarker('craftsman');
-            alert('Маркер Мастерской Дитера активирован');
-          }}
-        >
-          Тест: Мастер
-        </button>
-        <button 
-          className="exit-btn" 
-          onClick={onExit}
-        >
-          Exit
-        </button>
-      </div>
     </div>
   );
 };

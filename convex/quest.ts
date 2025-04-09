@@ -1,5 +1,20 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
+
+// Определяем интерфейс для сцены
+interface Scene {
+  _id: Id<"scenes">;
+  title: string;
+  sceneKey: string;
+  background: string;
+  text: string;
+  choices?: Array<{
+    text: string;
+    nextSceneId?: Id<"scenes">;
+    action?: string;
+  }>;
+}
 
 // Определяем константы для состояний квестов
 export const QUEST_STATE = {
@@ -75,6 +90,8 @@ export const activateQuestByQR = mutation({
     qrCode: v.string()
   },
   handler: async (ctx, { playerId, qrCode }) => {
+    console.log(`Активация QR-кода: ${qrCode} для игрока: ${playerId}`);
+    
     // Get the player
     const player = await ctx.db.get(playerId);
     if (!player) {
@@ -91,11 +108,17 @@ export const activateQuestByQR = mutation({
       throw new Error("Неверный QR-код");
     }
 
+    console.log(`Найден QR-код: ${qrData._id}, тип: ${qrData.type}`);
+
     // Check if code is one-time and already used by this player
     const usedBy = qrData.usedBy ?? [];
     if (qrData.isOneTime && usedBy.includes(playerId)) {
       throw new Error("Этот QR-код уже был использован вами");
     }
+
+    let resultMessage = "QR-код активирован";
+    let resultSceneId = undefined;
+    let resultQuestState = undefined;
 
     // Process the QR code based on its type
     if (qrData.type === "start_quest") {
@@ -116,109 +139,84 @@ export const activateQuestByQR = mutation({
         activeQuests: [...(player.activeQuests || []), questLine]
       });
 
-      return {
-        message: "Квестовая цепочка активирована! Пора создать вашего персонажа.",
-        questState: QUEST_STATE.CHARACTER_CREATION
-      };
-    }
-
-    // Check for location-based scene trigger
-    else if (player.questState === QUEST_STATE.ARTIFACT_HUNT && qrData.type === "location" && qrData.data?.triggerSceneKey) {
-      const sceneToTriggerKey = qrData.data.triggerSceneKey as string; // Use string type first
-
-      // Check if the scene key is valid (optional but recommended)
-      if (Object.values(SCENE_KEY).includes(sceneToTriggerKey as any)) {
-        const targetScene = await ctx.db
-          .query("scenes")
-          .withIndex("by_sceneKey", (q) => q.eq("sceneKey", sceneToTriggerKey))
-          .first();
-
-        if (targetScene) {
-          // Optionally mark QR as used if it's one-time
-          if (qrData.isOneTime && !usedBy.includes(playerId)) {
-              await ctx.db.patch(qrData._id, { usedBy: [...usedBy, playerId] });
-          }
-          return {
-              message: qrData.data?.message || "Вы прибыли в указанную локацию.", // Use message from QR data if available
-              sceneId: targetScene._id // Return the ID of the target scene
-          };
-        } else {
-          console.warn(`Scene with key '${sceneToTriggerKey}' not found for QR trigger.`);
-          throw new Error("Сцена для этой локации не найдена.");
-        }
-      } else {
-        console.warn(`Invalid sceneKey '${sceneToTriggerKey}' provided in QR data.`);
-        throw new Error("Неверный ключ сцены в данных QR-кода.");
-      }
+      resultMessage = "Квестовая цепочка активирована! Пора создать вашего персонажа.";
+      resultQuestState = QUEST_STATE.CHARACTER_CREATION;
     }
 
     else if (qrData.type === "npc") {
-      // Interact with NPC
-      const npcType = qrData.data.npcId; // Assuming npcId in data holds the NPC *type* (e.g., "trader")
-
-      // Find NPC by type
-      // TODO: Confirm if lookup should be by a unique ID instead of 'type' if these represent specific instances.
-      const npc = await ctx.db
-        .query("npcs")
-        .filter(q => q.eq(q.field("type"), npcType))
-        .first();
-
-      if (!npc) {
-        // Consider more specific error if type is known but NPC doc is missing
-        throw new Error(`NPC с типом '${npcType}' не найден`);
-      }
-
-      // Find appropriate scene based on the NPC type and player quest state
-      let sceneId = null;
-      let targetSceneKey: string | null = null;
-
-      // Определяем ключ сцены в зависимости от типа NPC и состояния квеста игрока
-      if (npcType === NPC_TYPE.TRADER) {
-        targetSceneKey = SCENE_KEY.TRADER_MEETING;
-        
-        // Обновляем состояние квеста, если игрок в состоянии DELIVERY_STARTED
-        if (player.questState === QUEST_STATE.DELIVERY_STARTED) {
-          await ctx.db.patch(playerId, {
-            questState: QUEST_STATE.PARTS_COLLECTED
-          });
-        }
-      } else if (npcType === NPC_TYPE.CRAFTSMAN) {
-        targetSceneKey = SCENE_KEY.CRAFTSMAN_MEETING;
-        
-        // Обновляем состояние квеста, если игрок собрал детали
-        if (player.questState === QUEST_STATE.PARTS_COLLECTED) {
-          await ctx.db.patch(playerId, {
-            questState: QUEST_STATE.QUEST_COMPLETION
-          });
+      console.log("Обработка NPC QR-кода:", qrData);
+      
+      // Определяем sceneKey в зависимости от данных QR-кода
+      let sceneKey = qrData.data.sceneId;
+      
+      // Для backwards compatibility используем и npcId для определения sceneKey
+      if (qrData.data.npcId) {
+        if (qrData.data.npcId === "trader") {
+          sceneKey = "trader_meeting";
+        } else if (qrData.data.npcId === "craftsman") {
+          sceneKey = "craftsman_meeting";
         }
       }
+      
+      console.log("Ищем сцену по ключу:", sceneKey);
+      
+      // Get the NPC scene
+      const scene = await ctx.db
+        .query("scenes")
+        .withIndex("by_sceneKey", (q) => q.eq("sceneKey", sceneKey))
+        .first() as Scene | null;
 
-      if (targetSceneKey) {
-        const targetScene = await ctx.db
-          .query("scenes")
-          .withIndex("by_sceneKey", (q) => q.eq("sceneKey", targetSceneKey))
-          .first();
-
-        if (targetScene) {
-          sceneId = targetScene._id;
-        } else {
-          console.warn(`Scene with key '${targetSceneKey}' not found`);
-        }
+      if (!scene) {
+        console.error(`Сцена с ключом '${sceneKey}' не найдена`);
+        throw new Error(`Сцена не найдена: ${sceneKey}`);
       }
 
-      // Add NPC to player's discovered NPCs if not already present
-      const discoveredNpcs = player.discoveredNpcs || [];
-      if (!discoveredNpcs.includes(npc._id)) {
-        await ctx.db.patch(playerId, {
-          discoveredNpcs: [...discoveredNpcs, npc._id]
-        });
+      console.log("Найдена сцена:", scene);
+
+      // Update player state based on NPC type
+      let questState = qrData.data.questState || player.questState;
+      if (qrData.data.npcId === "trader" && player.questState === QUEST_STATE.DELIVERY_STARTED) {
+        questState = QUEST_STATE.PARTS_COLLECTED;
+      } else if (qrData.data.npcId === "craftsman" && player.questState === QUEST_STATE.PARTS_COLLECTED) {
+        questState = QUEST_STATE.ARTIFACT_HUNT;
+      }
+      
+      await ctx.db.patch(playerId, {
+        questState: questState
+      });
+
+      resultMessage = `Вы встретили: ${scene.title}`;
+      resultSceneId = scene._id;
+      resultQuestState = questState;
+    }
+    else if (qrData.type === "location") {
+      console.log("Обработка Location QR-кода:", qrData);
+      
+      // Определяем sceneKey в зависимости от данных QR-кода
+      let sceneKey = qrData.data.triggerSceneKey || "artifact_hunt_start";
+      
+      console.log("Ищем сцену по ключу:", sceneKey);
+      
+      const scene = await ctx.db
+        .query("scenes")
+        .withIndex("by_sceneKey", (q) => q.eq("sceneKey", sceneKey))
+        .first() as Scene | null;
+
+      if (!scene) {
+        console.error(`Сцена с ключом '${sceneKey}' не найдена`);
+        throw new Error(`Сцена не найдена: ${sceneKey}`);
       }
 
-      return {
-        message: `Вы встретили ${npc.name}`,
-        npcId: npc._id, // Return the actual NPC document ID
-        sceneId // This might be null if no specific scene is triggered
-      };
+      console.log("Найдена сцена:", scene);
+      
+      // Update player state
+      await ctx.db.patch(playerId, {
+        questState: QUEST_STATE.ARTIFACT_HUNT
+      });
+      
+      resultMessage = qrData.data?.message || "Вы прибыли в указанную локацию.";
+      resultSceneId = scene._id;
+      resultQuestState = QUEST_STATE.ARTIFACT_HUNT;
     } else if (qrData.type === "item") {
       // Logic for item QR codes
       const itemId = qrData.data.itemId;
@@ -245,25 +243,30 @@ export const activateQuestByQR = mutation({
             inventory: [...(player.inventory || []), ITEM.ENERGY_CRYSTAL]
           });
 
-          return {
-            message: "Вы нашли кристалл чистой энергии!",
-            sceneId: artifactScene._id
-          };
+          resultMessage = "Вы нашли кристалл чистой энергии!";
+          resultSceneId = artifactScene._id;
+          resultQuestState = QUEST_STATE.ARTIFACT_FOUND;
         } else {
           console.warn(`Scene with key '${SCENE_KEY.ARTIFACT_FOUND}' not found.`);
           throw new Error("Сцена для найденного артефакта не найдена.");
         }
+      } else {
+        // If no condition matched for the item/quest state
+        throw new Error("Предмет не может быть использован в данный момент");
       }
-
-      // Add conditions for other items here...
-
-      // If no condition matched for the item/quest state
-      throw new Error("Предмет не может быть использован в данный момент");
+    } else {
+      // If QR code type is unknown or not handled
+      console.warn(`Неизвестный тип QR-кода: ${qrData.type}, данные:`, qrData.data);
+      throw new Error(`Неизвестный или необработанный тип QR-кода: ${qrData.type}`);
     }
 
-    // If QR code type is unknown or not handled
-    throw new Error(`Неизвестный или необработанный тип QR-кода: ${qrData.type}`);
-  },
+    // Возвращаем результат активации QR-кода
+    return { 
+      message: resultMessage, 
+      sceneId: resultSceneId, 
+      questState: resultQuestState 
+    };
+  },  
 });
 
 // Get current scene for player

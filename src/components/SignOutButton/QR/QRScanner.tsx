@@ -202,13 +202,23 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => 
           </button>
         </form>
         <div className="test-codes">
-          <p>Тестовые коды:</p>
-          <button onClick={() => onSuccess("grenz_npc_craftsman_01")}>
-            Тест: Мастер
-          </button>
+          <p>Тестовые коды для визуальной новеллы:</p>
           <button onClick={() => onSuccess("grenz_npc_trader_01")}>
-            Тест: Торговец
+            Встреча с Торговцем
           </button>
+          <button onClick={() => onSuccess("grenz_npc_craftsman_01")}>
+            Мастерская Дитера
+          </button>
+          <button onClick={() => onSuccess("ARTIFACT_ITEM_2023")}>
+            Найти артефакт
+          </button>
+          <button onClick={() => onSuccess("location_anomaly_001")}>
+            Аномальная зона
+          </button>
+          <button onClick={() => onSuccess("encounter_001")}>
+            Неожиданная встреча
+          </button>
+          <p className="test-hint">Нажмите на кнопку, чтобы активировать соответствующую сцену визуальной новеллы</p>
         </div>
       </div>
     </div>

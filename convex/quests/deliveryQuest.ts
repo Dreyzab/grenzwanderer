@@ -11,7 +11,8 @@ export const initializeDeliveryQuest = mutation({
       type: "npc",
       data: { 
         npcId: "trader",
-        questLine: "delivery" 
+        questLine: "delivery",
+        sceneId: "trader_meeting" 
       },
       isOneTime: false,
       usedBy: []
@@ -22,7 +23,20 @@ export const initializeDeliveryQuest = mutation({
       type: "npc",
       data: { 
         npcId: "craftsman",
-        questLine: "delivery" 
+        questLine: "delivery",
+        sceneId: "craftsman_meeting"
+      },
+      isOneTime: false,
+      usedBy: []
+    });
+    
+    const anomalyQrCode = await ctx.db.insert("qrCodes", {
+      code: "Grenz_loc_anomaly_01",
+      type: "location",
+      data: { 
+        locationId: "anomaly_zone",
+        questLine: "delivery",
+        triggerSceneKey: "artifact_hunt_start"
       },
       isOneTime: false,
       usedBy: []
@@ -416,7 +430,7 @@ export const initializeDeliveryQuest = mutation({
     
     return {
       message: "Квест 'Доставка и дилемма' успешно инициализирован",
-      qrCodes: [traderQrCode, craftsmanQrCode, artifactQrCode],
+      qrCodes: [traderQrCode, craftsmanQrCode, anomalyQrCode, artifactQrCode],
       npcs: [trader, craftsman],
       scenes: [
         questStartScene, traderMeetingScene, craftsmanMeetingScene, 

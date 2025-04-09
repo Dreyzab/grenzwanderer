@@ -22,18 +22,17 @@ import { ChoiceList } from '../../widgets/choiceList/ChoiceList';
 import { Choice, Scene } from '../../schared/types/visualNovel';
 import './VisualNovel.css';
 
-// Определяем константы для действий квеста
+// Константы для действий
 export const ACTION = {
-  ACCEPT_ARTIFACT_QUEST: 'ACCEPT_ARTIFACT_QUEST',
+  ACCEPT_ARTIFACT_QUEST: 'accept_artifact_quest',
   DECLINE_ARTIFACT_QUEST: 'decline_artifact_quest',
-  START_DELIVERY_QUEST: 'START_DELIVERY_QUEST',
-  TAKE_PARTS: 'TAKE_PARTS',
-  HELP_ORK: 'HELP_ORK',
-  KILL_BOTH: 'KILL_BOTH',
-  IGNORE_ENCOUNTER: 'IGNORE_ENCOUNTER',
-  RETURN_TO_CRAFTSMAN: 'RETURN_TO_CRAFTSMAN',
-  COMPLETE_DELIVERY_QUEST: 'COMPLETE_DELIVERY_QUEST',
-  ARTIFACT_FOUND: 'ARTIFACT_FOUND'
+  START_DELIVERY_QUEST: 'start_delivery_quest',
+  TAKE_PARTS: 'take_parts',
+  RETURN_TO_CRAFTSMAN: 'return_to_craftsman',
+  COMPLETE_DELIVERY_QUEST: 'complete_delivery_quest',
+  HELP_ORK: 'help_ork',
+  KILL_BOTH: 'kill_both',
+  IGNORE_ENCOUNTER: 'ignore_encounter'
 };
 
 // Определяем состояние квеста
@@ -267,6 +266,63 @@ const TEST_SCENES: Record<string, Scene> = {
       }
     ]
   },
+  'help_ork': {
+    id: 'help_ork',
+    title: 'Помощь орку',
+    background: '/backgrounds/forest_encounter.jpg',
+    text: 'Вы решаете вмешаться и помочь орку. Метким выстрелом вы раните зомби-волка, привлекая его внимание. Орк использует этот момент, чтобы нанести решающий удар.\n\nКогда существо падает, орк поворачивается к вам. Его лицо, покрытое шрамами, выражает смесь удивления и благодарности.\n\n«Человек помог Грукашу. Это редкость. Грукаш не забудет.»',
+    choices: [
+      {
+        id: 'choice_0',
+        text: 'Спросить о кристалле',
+        nextSceneId: 'ork_crystal_info'
+      },
+      {
+        id: 'choice_1',
+        text: 'Продолжить поиски артефакта',
+        nextSceneId: 'artifact_found'
+      }
+    ]
+  },
+  'ork_crystal_info': {
+    id: 'ork_crystal_info',
+    title: 'Информация о кристалле',
+    background: '/backgrounds/forest_encounter.jpg',
+    text: '«Грукаш знает о светящемся камне. Грукаш видел его глубже в лесу, возле искаженного дерева. Но там опасно - воздух жжет кожу, земля меняется.»\n\nОрк указывает направление и дает вам небольшой мешочек.\n\n«Это защитит от воздуха разлома. Берегись теней - они не то, чем кажутся.»',
+    choices: [
+      {
+        id: 'choice_0',
+        text: 'Поблагодарить и отправиться к кристаллу',
+        nextSceneId: 'artifact_found'
+      }
+    ]
+  },
+  'kill_both': {
+    id: 'kill_both',
+    title: 'Двойное убийство',
+    background: '/backgrounds/forest_encounter.jpg',
+    text: 'Вы решаете, что ни орк, ни волк не заслуживают жизни. Быстрыми и точными движениями вы устраняете обоих. Осмотрев тела, вы находите у орка карту с отметкой неподалеку.\n\nПохоже, он тоже искал что-то ценное в этом районе. Возможно, это поможет вам найти артефакт быстрее.',
+    choices: [
+      {
+        id: 'choice_0',
+        text: 'Использовать карту для поиска',
+        nextSceneId: 'artifact_found'
+      }
+    ]
+  },
+  'ignore_encounter': {
+    id: 'ignore_encounter',
+    title: 'Не вмешиваться',
+    background: '/backgrounds/forest_encounter.jpg',
+    text: 'Вы решаете не вмешиваться в естественный ход событий. Спрятавшись за деревом, вы наблюдаете жестокую схватку. В конце концов, обе стороны серьезно ранены, но орк все же побеждает и, шатаясь, уходит в лес.\n\nКогда все стихает, вы продолжаете свой путь. Детектор показывает, что артефакт совсем близко.',
+    choices: [
+      {
+        id: 'choice_0',
+        text: 'Продолжить поиски',
+        nextSceneId: 'artifact_found'
+      }
+    ]
+  },
   'artifact_found': {
     id: 'artifact_found',
     title: 'Артефакт найден',
@@ -310,6 +366,18 @@ const TEST_SCENES: Record<string, Scene> = {
   }
 };
 
+// Mapping между ID сцен из БД и локальными тестовыми сценами
+const SCENE_DB_ID_MAPPING: Record<string, string> = {
+  // ID сцены "Встреча с торговцем"
+  'ks74qv6bqz04312j7qj5bw6xsd7d7cw6': 'trader_meeting',
+  // ID сцены "Встреча с мастеровым"
+  'ks7d3k1dgt3yrwc1gqdmagdcf17d7k4c': 'craftsman_meeting',
+  // ID сцены "Дополнительное задание"
+  'ks7a7s9j2yryv32nz48z7m69ds7d6rct': 'additional_task',
+  // ID сцены "Поиск артефакта"
+  'ks741c7a0r6qvnx0fkf92y5e557d6a07': 'artifact_task'
+};
+
 interface VisualNovelProps {
   initialSceneId?: string;
   playerId?: string;
@@ -346,86 +414,199 @@ export const VisualNovel: React.FC<VisualNovelProps> = ({
   const isLoading = useUnit($sceneLoading);
   const [error, setError] = useState<string | null>(null);
   const [currentSceneKey, setCurrentSceneKey] = useState(initialSceneId || "");
+  const [sceneLoading, setSceneLoading] = useState(false);
+  const [canClick, setCanClick] = useState(true);
   
+  // Флаг для использования тестовых сцен, когда API недоступно
+  const [useTestScenes, setUseTestScenes] = useState(true);
+
   // Get Convex queries and mutations
   const scene = useQuery(api.quest.getSceneByKey, { sceneKey: currentSceneKey });
   const makeSceneChoice = useMutation(api.quest.makeSceneChoice);
   
-  // Load initial scene
+  // Инициализация сцены при монтировании
   useEffect(() => {
+    // Если есть начальная сцена, загружаем ее
     if (initialSceneId) {
-      setCurrentSceneKey(initialSceneId);
+      console.log(`Инициализация с начальной сценой: ${initialSceneId}`);
       loadScene(initialSceneId);
+    } else {
+      // Если нет начальной сцены, показываем сообщение
+      setError('Не указана начальная сцена. Пожалуйста, выберите сцену.');
+      setSceneLoading(false);
     }
+    
+    // Очистка при размонтировании
+    return () => {
+      setCurrentScene(null);
+      setCurrentSceneKey('');
+    };
   }, [initialSceneId]);
   
-  // Function to load a scene by ID
+  // Загрузка сцены
   const loadScene = async (sceneId: string) => {
     try {
-      setSceneLoading(true);
-      setError(null);
-      setCurrentSceneKey(sceneId);
-      
-      // Попробуем загрузить сцену из API
-      let parsedScene: Scene | null = null;
-      
-      // Если есть сцена в API
-      if (scene) {
-        // Convert Convex scene to our internal Scene type
-        parsedScene = {
-          id: scene._id.toString(),
-          title: scene.title,
-          background: scene.background || undefined,
-          text: scene.text,
-          character: scene.character ? {
-            id: scene.character.name,
-            name: scene.character.name,
-            image: scene.character.image,
-            position: scene.character.position as 'left' | 'center' | 'right'
-          } : undefined,
-          choices: scene.choices.map((choice: SceneChoice, index: number) => ({
-            id: `choice_${index}`,
-            text: choice.text,
-            nextSceneId: choice.nextSceneId?.toString(),
-            action: choice.action,
-            statChanges: choice.statChanges ? {
-              energy: choice.statChanges.energy,
-              willpower: choice.statChanges.willpower,
-              attractiveness: choice.statChanges.attractiveness,
-              fitness: choice.statChanges.fitness,
-              intelligence: choice.statChanges.intelligence,
-              corruption: choice.statChanges.corruption,
-              money: choice.statChanges.money
-            } : undefined
-          }))
-        };
-      } 
-      // Если сцены нет в API, но есть в локальных тестовых сценах
-      else if (TEST_SCENES[sceneId]) {
-        console.log(`Используем локальную тестовую сцену: ${sceneId}`);
-        parsedScene = TEST_SCENES[sceneId];
-      }
-      // Если сцены нигде нет
-      else {
-        setError(`Сцена не найдена: ${sceneId}`);
+      // Не показываем загрузку, если мы уже отображаем сцену с таким ID
+      if (currentScene?.id === sceneId) {
+        console.log(`Сцена ${sceneId} уже загружена`);
         return;
       }
       
-      // Устанавливаем сцену
-      setCurrentScene(parsedScene);
+      setError(null);
+      setSceneLoading(true);
+      
+      console.log(`Загрузка сцены: ${sceneId}`);
+      
+      // 1. Проверка QR-кодов и маппинг на ID сцен
+      const qrCodeMapping: Record<string, string> = {
+        'grenz_npc_trader_01': 'trader_meeting',
+        'grenz_npc_craftsman_01': 'craftsman_meeting',
+        'grenz_loc_anomaly_01': 'anomaly_exploration'
+      };
+      
+      let finalSceneId = sceneId;
+      
+      // Если это QR-код, заменяем его на ID сцены
+      if (sceneId.startsWith('grenz_')) {
+        const mappedId = qrCodeMapping[sceneId];
+        if (mappedId) {
+          console.log(`QR-код ${sceneId} соответствует сцене ${mappedId}`);
+          finalSceneId = mappedId;
+        } else {
+          console.log(`Неизвестный QR-код: ${sceneId}`);
+        }
+      }
+      
+      // Обработка ID в формате Convex (ks...)
+      if (sceneId.startsWith('ks')) {
+        console.log(`Получен ID сцены в формате Convex: ${sceneId}`);
+        // Для сцены с торговцем
+        if (sceneId === 'ks74qv6bqz04312j7qj5bw6xsd7d7cw6') {
+          console.log('Загрузка сцены с торговцем по ID');
+          finalSceneId = 'trader_meeting';
+        }
+        // Для сцены с мастером
+        else if (sceneId === 'ks7d3k1dgt3yrwc1gqdmagdcf17d7k4c') {
+          console.log('Загрузка сцены с мастером по ID');
+          finalSceneId = 'craftsman_meeting';
+        }
+        // Для сцены с аномалией
+        else if (sceneId === 'ks7a7s9j2yryv32nz48z7m69ds7d6rct') {
+          console.log('Загрузка сцены с аномалией по ID');
+          finalSceneId = 'anomaly_exploration';
+        }
+      }
+      
+      // Обновляем текущий ключ сцены
+      setCurrentSceneKey(finalSceneId);
+      
+      // 2. Загружаем из тестовых сцен
+      if (TEST_SCENES[finalSceneId]) {
+        console.log(`Найдена тестовая сцена: ${finalSceneId}`);
+        setCurrentScene(TEST_SCENES[finalSceneId]);
+        return;
+      }
+      
+      // 3. Поиск по ключевым словам
+      if (finalSceneId.includes('trader')) {
+        console.log('Загрузка сцены для торговца');
+        setCurrentScene(TEST_SCENES.trader_meeting);
+        return;
+      } 
+      
+      if (finalSceneId.includes('craft')) {
+        console.log('Загрузка сцены для мастера');
+        setCurrentScene(TEST_SCENES.craftsman_meeting);
+        return;
+      }
+      
+      if (finalSceneId.includes('anomaly')) {
+        console.log('Загрузка сцены для аномальной зоны');
+        setCurrentScene(TEST_SCENES.anomaly_exploration);
+        return;
+      }
+      
+      // 4. Если ничего не найдено, используем сцену по умолчанию
+      console.warn(`Сцена ${finalSceneId} не найдена, используем сцену по умолчанию`);
+      
+      // Создаем сцену с правильной структурой
+      const defaultScene: Scene = {
+        id: 'unknown_location',
+        title: 'Неизвестная локация',
+        background: 'wasteland.jpg',
+        text: `Здесь еще ничего не создано. Сцена "${finalSceneId}" не найдена.`,
+        choices: [
+          {
+            id: 'choice_0',
+            text: 'Вернуться к карте',
+            action: 'exit_to_map'
+          }
+        ]
+      };
+      
+      setCurrentScene(defaultScene);
+      
     } catch (err) {
+      console.error('Ошибка при загрузке сцены:', err);
       setError(`Ошибка загрузки сцены: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
     } finally {
       setSceneLoading(false);
     }
   };
   
-  // Handle player choice
+  // Обработка выбора
   const handleChoiceSelected = async (choice: Choice) => {
+    setCanClick(false);
+    
     try {
-      setSceneLoading(true);
+      console.log("Обработка выбора:", choice);
       
-      // Apply stat changes if any
+      // Особая обработка для кнопки "Взять запчасти" у торговца
+      if (currentScene?.id === 'trader_meeting' && choice.text.includes("Взять запчасти")) {
+        console.log("Выбрано 'Взять запчасти и отправиться к Дитеру'");
+        
+        // Обновляем состояние квеста для перехода к мастеру
+        if (questState) {
+          questState.updateState("PARTS_COLLECTED");
+        }
+        
+        // Активируем маркер мастерской
+        showMarker && showMarker('craftsman');
+        
+        // Выход из визуальной новеллы (возврат к карте)
+        onExit && onExit();
+        return;
+      }
+      
+      // Обработка ID в формате Convex
+      if (choice.nextSceneId && typeof choice.nextSceneId === 'string' && choice.nextSceneId.startsWith('ks')) {
+        console.log(`Распознаем ID сцены в формате Convex: ${choice.nextSceneId}`);
+        
+        // Для сцены с мастером
+        if (choice.nextSceneId === 'ks7d3k1dgt3yrwc1gqdmagdcf17d7k4c') {
+          console.log('Переход к сцене с мастером по ID');
+          loadScene('craftsman_meeting');
+          return;
+        }
+        
+        // Для сцены с аномалией
+        if (choice.nextSceneId === 'ks7a7s9j2yryv32nz48z7m69ds7d6rct') {
+          console.log('Переход к сцене с аномалией по ID');
+          loadScene('anomaly_exploration');
+          return;
+        }
+      }
+      
+      // Особая обработка для кнопки "Передать запчасти" у мастера
+      if (currentScene?.id === 'craftsman_meeting' && choice.text.includes("Передать запчасти")) {
+        console.log("Выбрано 'Передать запчасти'");
+        
+        // Загружаем сцену с дополнительным заданием
+        loadScene('additional_task');
+        return;
+      }
+      
+      // Обработка статистики и специальных действий
       if (choice.statChanges) {
         Object.entries(choice.statChanges).forEach(([stat, value]) => {
           if (value !== undefined) {
@@ -437,73 +618,48 @@ export const VisualNovel: React.FC<VisualNovelProps> = ({
         });
       }
       
-      // Handle special actions for quest state and markers
+      // Обработка специальных действий
       if (choice.action) {
         switch (choice.action) {
           case ACTION.ACCEPT_ARTIFACT_QUEST:
-            // Активируем маркер аномальной зоны при принятии задания
-            showMarker('anomaly');
-            if (questState) {
-              questState.updateState(QuestState.ARTIFACT_HUNT);
-            }
+            showMarker && showMarker('anomaly');
+            questState?.updateState(QuestState.ARTIFACT_HUNT);
             console.log('Маркер аномальной зоны активирован');
             break;
             
           case ACTION.DECLINE_ARTIFACT_QUEST:
-            // Скрываем маркер аномальной зоны при отказе от задания
-            hideMarker('anomaly');
+            hideMarker && hideMarker('anomaly');
             console.log('Маркер аномальной зоны скрыт');
             break;
             
           case ACTION.START_DELIVERY_QUEST:
-            // Активируем маркер торговца при начале задания доставки
-            showMarker('trader');
-            if (questState) {
-              questState.updateState(QuestState.DELIVERY_STARTED);
-            }
+            showMarker && showMarker('trader');
+            questState?.updateState(QuestState.DELIVERY_STARTED);
             console.log('Маркер торговца активирован');
             break;
             
           case ACTION.TAKE_PARTS:
-            // Активируем маркер мастерской при взятии запчастей
-            showMarker('craftsman');
-            if (questState) {
-              questState.updateState(QuestState.PARTS_COLLECTED);
-            }
+            showMarker && showMarker('craftsman');
+            questState?.updateState(QuestState.PARTS_COLLECTED);
             console.log('Маркер мастерской активирован');
             break;
             
           case ACTION.RETURN_TO_CRAFTSMAN:
-            // Показываем все маркеры при возвращении к мастеру
-            if (questState) {
-              questState.updateState(QuestState.ARTIFACT_FOUND);
-            }
+            questState?.updateState(QuestState.ARTIFACT_FOUND);
             break;
             
           case ACTION.COMPLETE_DELIVERY_QUEST:
-            // Завершаем квест
-            if (questState) {
-              questState.updateState(QuestState.QUEST_COMPLETION);
-            }
+            questState?.updateState(QuestState.QUEST_COMPLETION);
             break;
             
           case 'exit_to_map':
-            if (onExit) {
-              onExit();
-              return;
-            }
-            break;
-            
           case 'end_character_creation':
-            if (onExit) {
-              onExit();
-              return;
-            }
-            break;
+            onExit && onExit();
+            return;
         }
       }
       
-      // If we have playerId, send the choice to the server
+      // Стандартная обработка через API или локально
       if (playerId && currentScene) {
         try {
           const result = await makeSceneChoice({
@@ -512,94 +668,180 @@ export const VisualNovel: React.FC<VisualNovelProps> = ({
             choiceIndex: parseInt(choice.id.split('_')[1])
           });
           
-          // If there's a next scene, load it
+          // Если есть следующая сцена, загружаем её
           if (result.nextSceneId) {
             await loadScene(result.nextSceneId.toString());
-          } else if (onExit) {
-            onExit();
+          } else {
+            onExit && onExit();
           }
         } catch (apiErr) {
-          console.warn('API error, using local scene navigation:', apiErr);
-          // Если API недоступно, просто переходим к следующей сцене, если она есть
+          console.warn('Ошибка API, используем локальную навигацию:', apiErr);
+          // Если API недоступно, используем локальную навигацию
           if (choice.nextSceneId) {
-            await loadScene(choice.nextSceneId);
-          } else if (onExit) {
-            onExit();
+            await loadScene(choice.nextSceneId.toString());
+          } else {
+            onExit && onExit();
           }
         }
       } 
-      // Otherwise, just navigate if we have nextSceneId
+      // Если нет playerId, используем только локальную навигацию
       else if (choice.nextSceneId) {
-        await loadScene(choice.nextSceneId);
-      } else if (onExit) {
-        onExit();
+        await loadScene(choice.nextSceneId.toString());
+      } else {
+        onExit && onExit();
       }
     } catch (err) {
-      setError(`Error processing choice: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error('Ошибка при обработке выбора:', err);
+      setError(`Ошибка обработки выбора: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
     } finally {
       setSceneLoading(false);
+      setCanClick(true);
     }
   };
   
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="vn-loading">
-        <div className="loading-spinner"></div>
-        <p>Загрузка сцены...</p>
-      </div>
-    );
-  }
-  
-  // Show error state
-  if (error) {
-    return (
-      <div className="vn-error">
-        <p>{error}</p>
-        <button onClick={onExit}>Вернуться на карту</button>
-      </div>
-    );
-  }
-  
-  // Show empty state
-  if (!currentScene) {
-    return (
-      <div className="vn-empty">
-        <p>Нет активной сцены. Сцена с ID: {currentSceneKey} не найдена.</p>
-        <button onClick={onExit}>Вернуться на карту</button>
-      </div>
-    );
-  }
-  
+  // Проверка загрузки сцены
+  useEffect(() => {
+    if (currentScene) {
+      console.log("Сцена загружена и готова к отображению:", currentScene);
+    }
+  }, [currentScene]);
+
+  // Функция для обработки пути к изображению
+  const getImagePath = (path: string | undefined) => {
+    if (!path) return '';
+    
+    // Особый случай для торговца - используем конкретное имя файла
+    if (path.includes('trader_camp')) {
+      return 'backgrounds/trader_camp.png';
+    }
+    
+    // Для других сцен
+    if (path.startsWith('/')) {
+      path = path.substring(1);
+    }
+    
+    // Возвращаем путь
+    return path;
+  };
+
+  // Определяем, какой фон использовать для сцены
+  const getBackgroundStyle = () => {
+    if (!currentScene) return {};
+    
+    console.log("Подготовка стиля фона для сцены:", currentScene.id);
+    
+    // Для сцены торговца используем прямой путь
+    if (currentScene.id === 'trader_meeting' || currentSceneKey === 'trader_meeting') {
+      console.log("Устанавливаем фон для торговца:", `/backgrounds/trader_camp.png`);
+      return {
+        backgroundImage: `url(/backgrounds/trader_camp.png)`,
+        backgroundColor: '#352e4a', // Фиолетовый фон как запасной вариант
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      };
+    }
+    
+    // Для остальных сцен
+    const bgPath = getImagePath(currentScene.background);
+    console.log("Путь к фону для сцены:", bgPath);
+    
+    return {
+      backgroundImage: bgPath ? `url(/${bgPath})` : 'none',
+      backgroundColor: '#352e4a', // Фиолетовый фон как запасной вариант
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    };
+  };
+
+  // Основной рендер
   return (
     <div className="visual-novel">
-      {/* Background */}
-      {currentScene.background && (
-        <div 
-          className="vn-background"
-          style={{ backgroundImage: `url(${currentScene.background})` }}
-        />
+      {sceneLoading ? (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Загрузка сцены...</p>
+        </div>
+      ) : error ? (
+        <div className="error-container">
+          <p className="error-message">{error}</p>
+          <button onClick={() => onExit && onExit()}>Вернуться к карте</button>
+        </div>
+      ) : currentScene ? (
+        <>
+          {/* Фон */}
+          <div 
+            className="scene-background" 
+            style={getBackgroundStyle()}
+          >
+            <div className="background-overlay"></div>
+          </div>
+            
+          {/* Контейнер для содержимого */}
+          <div className="scene-content">
+            {/* Персонаж */}
+            {currentScene.character && (
+              <div className={`character ${currentScene.character.position || 'center'}`}>
+                <img src={`/${getImagePath(currentScene.character.image)}`} alt={currentScene.character.name} />
+              </div>
+            )}
+            
+            {/* Панель диалога */}
+            <div className="dialog-box">
+              <h2 className="scene-title">{currentScene.title || 'Неизвестная сцена'}</h2>
+              <div className="dialog-text">{currentScene.text || 'Текст сцены отсутствует'}</div>
+              
+              {/* Выборы */}
+              {currentScene.choices && currentScene.choices.length > 0 ? (
+                <div className="choices-container">
+                  {currentScene.choices.map((choice, index) => (
+                    <button
+                      key={choice.id || `choice_${index}`}
+                      className="choice-button"
+                      onClick={() => handleChoiceSelected(choice)}
+                      disabled={!canClick}
+                    >
+                      {choice.text}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="choices-container">
+                  <button
+                    className="choice-button"
+                    onClick={() => onExit && onExit()}
+                  >
+                    Вернуться к карте
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Отладочная информация */}
+          {import.meta.env.DEV && (
+            <div className="debug-info">
+              <p>Текущая сцена: {currentScene.id}</p>
+              <p>Ключ сцены: {currentSceneKey}</p>
+              <p>Путь к фону: {currentScene.background}</p>
+              <p>Исправленный путь: /{getImagePath(currentScene.background)}</p>
+              <p>Состояние квеста: {questState?.currentState}</p>
+              <button 
+                onClick={() => console.log("Текущая сцена:", currentScene)} 
+                className="debug-button"
+              >
+                Логировать сцену
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="error-container">
+          <p>Сцена не загружена. Пожалуйста, попробуйте еще раз.</p>
+          <button onClick={() => onExit && onExit()}>Вернуться к карте</button>
+        </div>
       )}
-      
-      {/* Character */}
-      <CharacterDisplay character={currentScene.character} />
-      
-      {/* UI Container */}
-      <div className="vn-ui-container">
-        {/* Title */}
-        <div className="vn-title">{currentScene.title}</div>
-        
-        {/* Stats Panel */}
-        <div className="vn-stats-container">
-          <StatsPanel />
-        </div>
-        
-        {/* Dialog & Choices */}
-        <div className="vn-dialog-container">
-          <DialogText />
-          <ChoiceList onChoiceSelected={handleChoiceSelected} />
-        </div>
-      </div>
     </div>
   );
 };

@@ -8,7 +8,7 @@ export const seedInitialData = mutation({
     // Create QR codes
     const startQrCode = await ctx.db.insert("qrCodes", {
       code: "START_QUEST_2023",
-      type: "start_quest",
+      type: "quest",
       data: { questLine: "main" },
       isOneTime: false,
       usedBy: []

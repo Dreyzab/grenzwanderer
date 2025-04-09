@@ -121,7 +121,7 @@ export const activateQuestByQR = mutation({
     let resultQuestState = undefined;
 
     // Process the QR code based on its type
-    if (qrData.type === "start_quest") {
+    if (qrData.type === "quest") {
       // Mark code as used if it's one-time
       if (qrData.isOneTime) {
         await ctx.db.patch(qrData._id, {

@@ -144,7 +144,7 @@ async function createCraftsmanNPC(ctx: MutationCtx) {
   });
 }
 
-async function createQRCode(ctx: MutationCtx, code: string, type: string, data: any, isOneTime: boolean) {
+async function createQRCode(ctx: MutationCtx, code: string, type: "npc" | "location" | "item" | "quest" | "start_quest", data: any, isOneTime: boolean) {
   return await ctx.db.insert("qrCodes", {
     code,
     type,

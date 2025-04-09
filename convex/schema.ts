@@ -132,7 +132,7 @@ export default defineSchema({
 
   qrCodes: defineTable({
     code: v.string(),
-    type: v.union(v.literal("npc"), v.literal("location"), v.literal("item"), v.literal("quest")), // Типы QR кодов
+    type: v.union(v.literal("npc"), v.literal("location"), v.literal("item"), v.literal("quest"), v.literal("start_quest")), // Типы QR кодов
     data: v.any(), // Данные, связанные с QR-кодом (ID NPC, локации, и т.д.)
     isOneTime: v.boolean(),
     usedBy: v.optional(v.array(v.id("players"))),

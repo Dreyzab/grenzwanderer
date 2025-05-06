@@ -1,4 +1,4 @@
-import { mutation } from "../_generated/server";
+import { mutation, query } from "../_generated/server";
 import { v } from "convex/values";
 import { QUEST_STATE, ACTION, SCENE_KEY } from "../quest";
 
@@ -97,7 +97,7 @@ export const initializeDeliveryQuest = mutation({
     const traderMeetingScene = await ctx.db.insert("scenes", {
       title: "Встреча с торговцем",
       sceneKey: "trader_meeting",
-      background: "/backgrounds/trader_camp.jpg",
+      background: "/backgrounds/trader_camp.png",
       text: "Вы находите временный лагерь на окраине города, где торговец в широкополой шляпе сортирует свои товары. Завидев вас, он поднимает взгляд.\n\n«А, ты за запчастями от Дитера? Вот, забирай, всё здесь. Только береги, их трудно добыть. И передай Дитеру, что в следующий раз пусть платит больше, или товар пойдёт в другие руки.»",
       choices: [
         {
@@ -441,4 +441,126 @@ export const initializeDeliveryQuest = mutation({
       mapPoints: [traderPoint, craftsmanPoint, anomalyPoint]
     };
   },
+});
+
+// Определение интерфейсов для статистики
+interface QuestChoice {
+  choiceId: string;
+  choiceText: string;
+  totalPicks: number;
+  lastPickedAt: number;
+}
+
+interface QuestScene {
+  sceneKey: string;
+  sceneId?: any;
+  title?: string;
+  found: boolean;
+  choices?: QuestChoice[];
+}
+
+interface DeliveryQuestStats {
+  questId: string;
+  scenes: QuestScene[];
+  totalChoices: number;
+  globalStats?: {
+    totalPlayers: number;
+    completedQuest: any[];
+    helpedOrk: number;
+    killedBoth: number;
+    ignored: number;
+  };
+}
+
+// Функция для получения статистики по квесту доставки
+export const getDeliveryQuestStats = query({
+  args: {
+    includeGlobalStats: v.optional(v.boolean())
+  },
+  handler: async (ctx, { includeGlobalStats = false }) => {
+    // Получаем статистику для квеста доставки
+    const questId = "delivery";
+    
+    // Получаем все сцены квеста доставки
+    const sceneKeys = [
+      "new_delivery_quest",
+      "trader_meeting",
+      "craftsman_meeting",
+      "additional_task",
+      "artifact_task",
+      "artifact_area",
+      "ork_encounter",
+      "help_ork",
+      "kill_both",
+      "ignore_encounter",
+      "artifact_found",
+      "quest_complete"
+    ];
+    
+    // Собираем статистику по сценам
+    const sceneStats = await Promise.all(
+      sceneKeys.map(async (sceneKey) => {
+        const scene = await ctx.db
+          .query("scenes")
+          .withIndex("by_sceneKey", q => q.eq("sceneKey", sceneKey))
+          .first();
+          
+        if (!scene) return { sceneKey, found: false };
+        
+        const choices = await ctx.db
+          .query("quest_choices_stats")
+          .withIndex("by_quest_scene", q => q.eq("questId", questId).eq("sceneId", scene._id.toString()))
+          .collect();
+          
+        return {
+          sceneKey,
+          sceneId: scene._id,
+          title: scene.title,
+          found: true,
+          choices: choices.map(choice => ({
+            choiceId: choice.choiceId,
+            choiceText: choice.choiceText,
+            totalPicks: choice.totalPicks,
+            lastPickedAt: choice.lastPickedAt
+          }))
+        };
+      })
+    );
+    
+    const result: DeliveryQuestStats = {
+      questId,
+      scenes: sceneStats.filter(scene => scene.found),
+      totalChoices: 0
+    };
+    
+    // Подсчитываем общее количество выборов
+    result.totalChoices = result.scenes.reduce((total, scene) => {
+      return total + (scene.choices && scene.choices.length > 0 ? scene.choices.reduce((sum, choice) => sum + choice.totalPicks, 0) : 0);
+    }, 0);
+    
+    // Добавляем глобальную статистику
+    if (includeGlobalStats) {
+      // Получаем количество игроков
+      const players = await ctx.db.query("players").collect();
+      const totalPlayers = players.length;
+      
+      // Получаем игроков, завершивших квест
+      const completedQuestChoices = await ctx.db
+        .query("player_quest_choices")
+        .withIndex("by_quest_choice", q => 
+          q.eq("questId", questId)
+           .eq("isCompleted", true))
+        .collect();
+      
+      const completedQuest = completedQuestChoices.length;
+      
+      result.globalStats = {
+        totalPlayers,
+        completedQuest,
+        completionRate: totalPlayers > 0 ? (completedQuest / totalPlayers) * 100 : 0
+      };
+    }
+    
+    return result;
+  }
 });

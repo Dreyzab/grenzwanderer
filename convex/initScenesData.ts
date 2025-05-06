@@ -1,3 +1,5 @@
+// Этот файл теперь предназначен только для инициализации других (неосновных) сцен и квестов.
+
 import { mutation, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";

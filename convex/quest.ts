@@ -343,6 +343,50 @@ export const makeSceneChoice = mutation({
     }
 
     const choice = scene.choices[choiceIndex];
+    
+    // Определяем questId из активных квестов игрока или используем текущий quest state
+    // Предполагаем, что игрок может быть только в одном активном квесте или берем первый
+    let questId = player.activeQuests && player.activeQuests.length > 0 
+      ? player.activeQuests[0] 
+      : player.questState || "unknown";
+    
+    // Записываем выбор игрока в историю
+    await ctx.db.insert("player_quest_choices", {
+      playerId,
+      questId: questId.toString(),
+      sceneId: sceneId.toString(),
+      choiceId: `choice_${choiceIndex}`, // Используем формат идентификатора который точно существует
+      choiceText: choice.text,
+      pickedAt: Date.now(),
+      actionResult: choice.action ? { action: choice.action } : undefined
+    });
+    
+    // Обновляем или создаем запись статистики для этого выбора в общей таблице
+    const choiceStats = await ctx.db
+      .query("quest_choices_stats")
+      .withIndex("by_quest_scene", q => 
+        q.eq("questId", questId.toString())
+         .eq("sceneId", sceneId.toString()))
+      .filter(q => q.eq(q.field("choiceId"), `choice_${choiceIndex}`))
+      .first();
+      
+    if (choiceStats) {
+      // Обновляем существующую статистику
+      await ctx.db.patch(choiceStats._id, {
+        totalPicks: choiceStats.totalPicks + 1,
+        lastPickedAt: Date.now()
+      });
+    } else {
+      // Создаем новую запись статистики
+      await ctx.db.insert("quest_choices_stats", {
+        questId: questId.toString(),
+        sceneId: sceneId.toString(),
+        choiceId: `choice_${choiceIndex}`,
+        choiceText: choice.text,
+        totalPicks: 1,
+        lastPickedAt: Date.now()
+      });
+    }
 
     // --- Prepare updates (gather all changes before patching) ---
     const playerUpdates: Partial<typeof player> = {};
@@ -505,6 +549,96 @@ export const makeSceneChoice = mutation({
   },
 });
 
+// Получение статистики выборов для админов или аналитики
+export const getQuestChoicesStats = query({
+  args: {
+    questId: v.optional(v.string()),
+    sceneId: v.optional(v.string())
+  },
+  handler: async (ctx, { questId, sceneId }) => {
+    let stats;
+    
+    if (questId && sceneId) {
+      stats = await ctx.db
+        .query("quest_choices_stats")
+        .withIndex("by_quest_scene", q => q.eq("questId", questId).eq("sceneId", sceneId))
+        .collect();
+    } else if (questId) {
+      stats = await ctx.db
+        .query("quest_choices_stats")
+        .withIndex("by_quest", q => q.eq("questId", questId))
+        .collect();
+    } else if (sceneId) {
+      stats = await ctx.db
+        .query("quest_choices_stats")
+        .withIndex("by_scene", q => q.eq("sceneId", sceneId))
+        .collect();
+    } else {
+      stats = await ctx.db
+        .query("quest_choices_stats")
+        .collect();
+    }
+    
+    // Агрегируем данные для удобства анализа
+    if (questId && !sceneId) {
+      // Группируем по сценам если запрошен только questId
+      const scenesMap: Record<string, {
+        sceneId: string, 
+        totalChoices: number, 
+        choices: any[] 
+      }> = {};
+      
+      for (const stat of stats) {
+        if (!scenesMap[stat.sceneId]) {
+          scenesMap[stat.sceneId] = {
+            sceneId: stat.sceneId,
+            totalChoices: 0,
+            choices: []
+          };
+        }
+        
+        scenesMap[stat.sceneId].choices.push({
+          choiceId: stat.choiceId,
+          choiceText: stat.choiceText,
+          totalPicks: stat.totalPicks,
+          lastPickedAt: stat.lastPickedAt
+        });
+        
+        scenesMap[stat.sceneId].totalChoices += stat.totalPicks;
+      }
+      
+      return Object.values(scenesMap);
+    }
+    
+    return stats;
+  }
+});
+
+// Получение истории выборов конкретного игрока
+export const getPlayerChoicesHistory = query({
+  args: {
+    playerId: v.id("players"),
+    questId: v.optional(v.string())
+  },
+  handler: async (ctx, { playerId, questId }) => {
+    let choices;
+    
+    if (questId) {
+      choices = await ctx.db
+        .query("player_quest_choices")
+        .withIndex("by_player_quest", q => q.eq("playerId", playerId).eq("questId", questId))
+        .collect();
+    } else {
+      choices = await ctx.db
+        .query("player_quest_choices")
+        .withIndex("by_player", q => q.eq("playerId", playerId))
+        .collect();
+    }
+    
+    // Сортируем по времени
+    return choices.sort((a, b) => a.pickedAt - b.pickedAt);
+  }
+});
 
 // Get player's discovered NPCs
 export const getDiscoveredNpcs = query({

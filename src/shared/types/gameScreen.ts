@@ -1,5 +1,5 @@
 import { Id } from '../../../convex/_generated/dataModel';
-import { MarkerData, QuestMarker } from '../../entities/markers';
+import { MarkerData, QuestMarker } from './marker.types';
 
 export enum GameView {
   MESSAGES = 'messages',

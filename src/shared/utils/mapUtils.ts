@@ -1,11 +1,10 @@
-import { MarkerType, NpcClass, Faction, QuestMarker } from '../../entities/markers';
-
-// QR-коды для тестирования
-export const QR_CODES = {
-  TRADER: 'grenz_npc_trader_01',
-  CRAFTSMAN: 'grenz_npc_craftsman_01',
-  ARTIFACT: 'grenz_item_artifact_01'
-};
+import { 
+  MarkerType, 
+  NpcClass, 
+  Faction, 
+  QuestMarker 
+} from '../types/marker.types';
+import { QR_CODES } from '../constants/marker';
 
 /**
  * Генерирует маркеры квестов на основе состояния игрока

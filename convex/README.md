@@ -1,90 +1,137 @@
-# Welcome to your Convex functions directory!
+# Документация Schema Convex для проекта "Грэнцвандерер"
 
-Write your Convex functions here.
-See https://docs.convex.dev/functions for more.
+## Структура базы данных
 
-A query function that takes two arguments looks like:
+В проекте используется база данных Convex со следующими таблицами:
 
-```ts
-// functions.js
-import { query } from "./_generated/server";
-import { v } from "convex/values";
+### Основные таблицы
 
-export const myQueryFunction = query({
-  // Validators for arguments.
-  args: {
-    first: v.number(),
-    second: v.string(),
-  },
+- **users** - Пользователи системы
+- **players** - Игровые персонажи, связанные с пользователями
+- **scenes** - Сцены визуальной новеллы 
+- **items** - Предметы в игре
+- **inventories** - Инвентари (связь между игроками и предметами)
+- **npcs** - Неигровые персонажи (NPC)
+- **mapPoints** - Точки на карте
+- **qrCodes** - QR-коды для интерактивных элементов
+- **shelters** - Убежища игроков
 
-  // Function implementation.
-  handler: async (ctx, args) => {
-    // Read the database as many times as you need here.
-    // See https://docs.convex.dev/database/reading-data.
-    const documents = await ctx.db.query("tablename").collect();
+### Таблицы для квестов
 
-    // Arguments passed from the client are properties of the args object.
-    console.log(args.first, args.second);
+- **questStates** - Состояния квестов для игроков
+- **player_quest_choices** - История выборов игроков в диалогах
 
-    // Write arbitrary JavaScript here: filter, aggregate, build derived data,
-    // remove non-public properties, or create new objects.
-    return documents;
-  },
+### Вспомогательные таблицы
+
+- **events** - События в игровом мире
+- **roles** - Роли персонажей
+
+## Схема связей между таблицами
+
+```
+┌───────────┐       ┌────────────┐       ┌───────────┐
+│   users   │───1:1─┤   players  │───1:N─┤  shelters │
+└───────────┘       └────────────┘       └───────────┘
+                         │
+                         │
+                         │1:N
+        ┌────────────────┼─────────────────────┐
+        │                │                     │
+        ▼                ▼                     ▼
+┌───────────────┐  ┌──────────────┐    ┌───────────────┐
+│ questStates   │  │ inventories  │    │player_quest_  │
+└───────────────┘  └──────────────┘    │   choices     │
+        │                │             └───────────────┘
+        │                │                     │
+        │                │M:1                  │
+        │                ▼                     │
+        │          ┌──────────┐               │
+        │          │  items   │               │
+        │          └──────────┘               │
+        │                                     │
+        │                                     │
+        │                                     │
+        │                                     │
+        │                 ┌───────────────────┘
+        │                 │
+        ▼                 ▼
+┌───────────────┐  ┌──────────────┐    ┌───────────────┐
+│    scenes     │  │   qrCodes    │    │   mapPoints   │
+└───────────────┘  └──────────────┘    └───────────────┘
+        ▲                 ▲                    │
+        │                 │                    │
+        │                 │                    │
+        └─────────────────┼────────────────────┘
+                          │
+                          │
+                     ┌──────────┐    
+                     │   npcs   │    
+                     └──────────┘    
+```
+
+## Описание ключевых связей
+
+1. **users → players** (1:1): Каждый пользователь имеет одного игрового персонажа
+
+2. **players → shelters** (1:N): Игрок может иметь несколько убежищ
+
+3. **players → inventories** (1:N): Игрок имеет несколько инвентарей (для разных мест хранения)
+
+4. **inventories → items** (M:1): В инвентаре может быть несколько предметов одного типа
+
+5. **players → questStates** (1:N): Игрок может иметь несколько состояний квестов
+
+6. **players → player_quest_choices** (1:N): Игрок делает множество выборов в диалогах
+
+7. **scenes → player_quest_choices** (1:N): Для каждой сцены могут быть сделаны различные выборы
+
+8. **qrCodes → scenes** (M:1): QR-код может активировать определенную сцену
+
+9. **mapPoints → scenes** (M:1): Точка на карте может быть связана со сценой
+
+10. **npcs → qrCodes** (1:N): NPC может быть связан с несколькими QR-кодами
+
+## Инструкции по работе с данными
+
+### Получение данных игрока
+
+```typescript
+// Получение данных игрока по userId
+const playerProfile = await ctx.db
+  .query("players")
+  .withIndex("by_userId", (q) => q.eq("userId", userId))
+  .first();
+```
+
+### Работа с квестами
+
+```typescript
+// Обновление состояния квеста
+await ctx.db.patch(playerId, {
+  questState: 'DELIVERY_STARTED',
+  activeQuests: [...player.activeQuests, 'delivery']
 });
 ```
 
-Using this query function in a React component looks like:
+### Работа с инвентарем
 
-```ts
-const data = useQuery(api.functions.myQueryFunction, {
-  first: 10,
-  second: "hello",
+```typescript
+// Добавление предмета в инвентарь
+await ctx.db.insert("inventories", {
+  ownerId: playerId,
+  ownerType: "player",
+  itemId: "energy_crystal",
+  quantity: 1,
+  location: "backpack",
+  equipped: false
 });
 ```
 
-A mutation function looks like:
+## Расширение системы
 
-```ts
-// functions.js
-import { mutation } from "./_generated/server";
-import { v } from "convex/values";
+При разработке новых модулей (крафт, система навыков) рекомендуется:
 
-export const myMutationFunction = mutation({
-  // Validators for arguments.
-  args: {
-    first: v.string(),
-    second: v.string(),
-  },
-
-  // Function implementation.
-  handler: async (ctx, args) => {
-    // Insert or modify documents in the database here.
-    // Mutations can also read from the database like queries.
-    // See https://docs.convex.dev/database/writing-data.
-    const message = { body: args.first, author: args.second };
-    const id = await ctx.db.insert("messages", message);
-
-    // Optionally, return a value from your mutation.
-    return await ctx.db.get(id);
-  },
-});
-```
-
-Using this mutation function in a React component looks like:
-
-```ts
-const mutation = useMutation(api.functions.myMutationFunction);
-function handleButtonPress() {
-  // fire and forget, the most common way to use mutations
-  mutation({ first: "Hello!", second: "me" });
-  // OR
-  // use the result once the mutation has completed
-  mutation({ first: "Hello!", second: "me" }).then((result) =>
-    console.log(result),
-  );
-}
-```
-
-Use the Convex CLI to push your functions to a deployment. See everything
-the Convex CLI can do by running `npx convex -h` in your project root
-directory. To learn more, launch the docs with `npx convex docs`.
+1. Создавать отдельные таблицы для данных модуля
+2. Использовать индексы для оптимизации часто используемых запросов
+3. Создать четкие связи с существующими таблицами
+4. Документировать изменения в этом файле

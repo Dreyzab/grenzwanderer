@@ -1,14 +1,20 @@
+/**
+ * @deprecated Этот файл устарел и будет удален. Используйте marker.types.ts
+ */
+
 import { Id } from '../../../convex/_generated/dataModel';
-import { 
+
+// Реэкспортируем все из нового местоположения для обратной совместимости
+export { 
   MarkerType, 
   NpcClass, 
-  Faction, 
-  MarkerData, 
-  QuestMarker,
-  MarkerInteraction,
-  QR_CODES
-} from '../../entities/markers';
+  Faction 
+} from './marker.types';
 
-// Экспортируем все типы из модуля entities/markers для обратной совместимости
-export { MarkerType, NpcClass, Faction, QR_CODES };
-export type { MarkerData, QuestMarker, MarkerInteraction }; 
+export type { 
+  MarkerData, 
+  QuestMarker, 
+  MarkerInteraction 
+} from './marker.types';
+
+export { QR_CODES } from '../constants/marker'; 

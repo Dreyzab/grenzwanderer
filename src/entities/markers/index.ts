@@ -1,3 +1,9 @@
+/**
+ * Публичное API модуля маркеров
+ * @module Markers
+ */
+
+// Экспортируем события и сторы для управления маркерами
 export {
   showMarker,
   hideMarker,
@@ -9,20 +15,23 @@ export {
   $markers,
   $activeMarkers,
   $markerInteractions,
-  initialMarkers,
-  // Экспортируем перечисления и интерфейсы для использования в других модулях
-  MarkerType,
-  NpcClass,
-  Faction,
-  QR_CODES
+  initialMarkers
 } from './model';
 
-// Экспортируем типы и интерфейсы для использования в других модулях
+// Реэкспортируем типы из shared слоя для обратной совместимости
 export type { 
   MarkerData, 
   QuestMarker, 
   MarkerInteraction 
-} from './model';
+} from '../../shared/types/marker.types';
+
+export { 
+  MarkerType, 
+  NpcClass, 
+  Faction 
+} from '../../shared/types/marker.types';
+
+export { QR_CODES } from '../../shared/constants/marker';
 
 // Если в будущем будут компоненты UI, экспортировать их отсюда:
 // export { MarkerIcon } from './ui/MarkerIcon'; 

@@ -2,8 +2,9 @@
  * Quest feature model using Effector
  */
 import { createStore, createEvent, createEffect, sample } from 'effector';
-import { QuestStateEnum, QuestActionEnum, QuestAction, QuestTransition } from './types';
-import { convexClient } from '../../utils/convex';
+import { QuestStateEnum, QuestActionEnum } from '../../shared/constants/quest';
+import { QuestAction, QuestTransition } from './types';
+import { convexClient } from '../../shared/utils/convex';
 import { api } from '../../../convex/_generated/api';
 
 // --- Events ---

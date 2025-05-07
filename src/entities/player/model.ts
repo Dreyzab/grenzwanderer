@@ -1,6 +1,6 @@
 // src/entities/player/model.ts
 import { createStore, createEvent } from 'effector';
-import { PlayerStats } from '../../schared/types/visualNovel';
+import { PlayerStats } from '../../shared/types/visualNovel';
 
 // Initial player stats
 export const DEFAULT_PLAYER_STATS: PlayerStats = {

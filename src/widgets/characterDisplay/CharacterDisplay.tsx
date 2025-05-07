@@ -1,7 +1,7 @@
 // src/widgets/characterDisplay/CharacterDisplay.tsx
 import React from 'react';
 import './CharacterDisplay.css';
-import { Character } from '../../schared/types/visualNovel';
+import { Character } from '../../shared/types/visualNovel';
 
 interface CharacterDisplayProps {
   character?: Character;

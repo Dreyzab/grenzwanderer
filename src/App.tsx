@@ -8,7 +8,7 @@ import { LoginPage } from "./pages/LoginPage/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage/RegisterPage";
 import { GamePage } from "./pages/GamePage/GamePage";
 import { ProfilePage } from "./pages/ProfilePage/ProfilePage";
-import { PrivateRoute } from "./components/PrivateRoute/PrivateRoute";
+import { PrivateRoute } from "./widgets/auth/PrivateRoute";
 
 const App: React.FC = () => {
   const { isLoading } = useConvexAuth();

@@ -2,16 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { QRScanner } from '../../components/SignOutButton/QR/QRScanner';
-import { SignOutButton } from '../../components/SignOutButton/SignOutButton';
-import { GameScreen } from '../../components/SignOutButton/Dialog/GameScreen';
+import { QRScanner } from '../../widgets/qrScanner/QRScanner';
+import { SignOutButton } from '../../widgets/signOutButton/SignOutButton';
+import { GameScreen, GameView } from '../../widgets/gameScreen/GameScreen';
 import { VisualNovel } from '../visualNovel/VisualNovel';
 import './GamePage.css';
 
 type GameTab = 'map' | 'dialog' | 'scanner' | 'novel';
 
 // Импортируем перечисление из GameScreen
-import { GameView } from '../../components/SignOutButton/Dialog/GameScreen';
 
 export const GamePage: React.FC = () => {
   const navigate = useNavigate();

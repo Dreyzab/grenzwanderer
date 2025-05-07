@@ -1,10 +1,10 @@
-import { mutation, query } from "../_generated/server";
+import { mutation, query } from "../../_generated/server";
 import { v } from "convex/values";
-import { QUEST_STATE, ACTION, SCENE_KEY } from "../quest";
+import { QUEST_STATE, ACTION, SCENE_KEY } from "../../quest";
 
 export const initializeDeliveryQuest = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: any) => {
     // Create QR codes for NPCs
     const traderQrCode = await ctx.db.insert("qrCodes", {
       code: "grenz_npc_trader_01",
@@ -465,10 +465,11 @@ interface DeliveryQuestStats {
   totalChoices: number;
   globalStats?: {
     totalPlayers: number;
-    completedQuest: any[];
-    helpedOrk: number;
-    killedBoth: number;
-    ignored: number;
+    completedQuest: number;
+    helpedOrk?: number;
+    killedBoth?: number;
+    ignored?: number;
+    completionRate?: number;
   };
 }
 
@@ -477,7 +478,7 @@ export const getDeliveryQuestStats = query({
   args: {
     includeGlobalStats: v.optional(v.boolean())
   },
-  handler: async (ctx, { includeGlobalStats = false }) => {
+  handler: async (ctx: any, { includeGlobalStats = false }: any) => {
     // Получаем статистику для квеста доставки
     const questId = "delivery";
     
@@ -502,14 +503,14 @@ export const getDeliveryQuestStats = query({
       sceneKeys.map(async (sceneKey) => {
         const scene = await ctx.db
           .query("scenes")
-          .withIndex("by_sceneKey", q => q.eq("sceneKey", sceneKey))
+          .withIndex("by_sceneKey", (q: any) => q.eq("sceneKey", sceneKey))
           .first();
           
         if (!scene) return { sceneKey, found: false };
         
         const choices = await ctx.db
           .query("quest_choices_stats")
-          .withIndex("by_quest_scene", q => q.eq("questId", questId).eq("sceneId", scene._id.toString()))
+          .withIndex("by_quest_scene", (q: any) => q.eq("questId", questId).eq("sceneId", scene._id.toString()))
           .collect();
           
         return {
@@ -517,7 +518,7 @@ export const getDeliveryQuestStats = query({
           sceneId: scene._id,
           title: scene.title,
           found: true,
-          choices: choices.map(choice => ({
+          choices: choices.map((choice: any) => ({
             choiceId: choice.choiceId,
             choiceText: choice.choiceText,
             totalPicks: choice.totalPicks,
@@ -547,7 +548,7 @@ export const getDeliveryQuestStats = query({
       // Получаем игроков, завершивших квест
       const completedQuestChoices = await ctx.db
         .query("player_quest_choices")
-        .withIndex("by_quest_choice", q => 
+        .withIndex("by_quest_choice", (q: any) => 
           q.eq("questId", questId)
            .eq("isCompleted", true))
         .collect();

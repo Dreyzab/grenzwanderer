@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUnit } from 'effector-react';
 import { $currentUser } from '../../entities/user/model';
-import { QuestStats } from '../../components/Admin/QuestStats';
+import { QuestStats } from '../../widgets/admin/QuestStats';
 import './AdminPage.css';
 
 // Список квестов
@@ -19,12 +19,12 @@ export const AdminPage: React.FC = () => {
   
   // Проверка на администратора
   React.useEffect(() => {
-    if (!user || !user.isAdmin) {
+    if (!user || user.email !== 'admin@admin.com') {
       navigate('/');
     }
   }, [user, navigate]);
   
-  if (!user || !user.isAdmin) {
+  if (!user || user.email !== 'admin@admin.com') {
     return (
       <div className="admin-loading">
         <p>Доступ ограничен. Перенаправление...</p>

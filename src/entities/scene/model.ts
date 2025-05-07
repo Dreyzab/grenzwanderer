@@ -1,6 +1,6 @@
 // src/entities/scene/model.ts
 import { createStore, createEvent } from 'effector';
-import { Scene } from '../../schared/types/visualNovel';
+import { Scene } from '../../shared/types/visualNovel';
 
 // Events
 export const setCurrentScene = createEvent<Scene | null>();

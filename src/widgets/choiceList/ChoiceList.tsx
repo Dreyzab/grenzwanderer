@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useUnit } from 'effector-react';
 import { $playerStats } from '../../entities/player/model';
 import { $currentScene } from '../../entities/scene/model';
-import { Choice } from '../../schared/types/visualNovel';
+import { Choice } from '../../shared/types/visualNovel';
 import './ChoiceList.css';
 
 interface ChoiceListProps {

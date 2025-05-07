@@ -1,6 +1,6 @@
 import { createStore, createEvent, createEffect } from 'effector';
 import { api } from '../../../convex/_generated/api';
-import { Shelter, ShelterStation, CraftJob } from '../../schared/types/shelter';
+import { Shelter, ShelterStation, CraftJob } from '../../shared/types/shelter';
 import { convex } from '../../app/convex';
 import { Id } from '../../../convex/_generated/dataModel';
 

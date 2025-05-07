@@ -4,7 +4,7 @@ import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useUnit } from 'effector-react';
 import { $currentUser } from '../../entities/user/model';
-import { SignOutButton } from '../../components/SignOutButton/SignOutButton';
+import { SignOutButton } from '../../widgets/signOutButton/SignOutButton';
 import './ProfilePage.css';
 
 export const ProfilePage: React.FC = () => {

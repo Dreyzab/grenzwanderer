@@ -15,10 +15,10 @@ import {
 const DEFAULT_LOCATION: [number, number] = [47.99443, 7.84638];
 
 // Get token from environment variables or use hardcoded one for debugging
-const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || 'sk.eyJ1IjoiaW5vdGkiLCJhIjoiY205MDNmMGN5MGhrZzJqc2Q2bmNrYXg5ZSJ9.iJmsnFEecg9k9H1ApnkE2Q';
-console.log('Mapbox Token:', mapboxToken);
-
-// Set the token for Mapbox
+const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+if (!mapboxToken) {
+  throw new Error('VITE_MAPBOX_TOKEN не задан в .env. Получите публичный токен на https://account.mapbox.com/ и добавьте его в .env');
+}
 mapboxgl.accessToken = mapboxToken;
 
 // Переэкспортируем типы для обратной совместимости
@@ -160,23 +160,38 @@ export const QuestMap: FC<QuestMapProps> = ({
       try {
         // Create marker element
         const el = document.createElement('div');
-        el.className = `map-marker ${marker.markerType || 'quest_point'}`;
-        if (marker.isActive) el.classList.add('active');
-        if (marker.isCompleted) el.classList.add('completed');
-        if (marker.npcClass) el.classList.add(`npc-${marker.npcClass}`);
-        
-        // Create marker
-        const markerElement = new mapboxgl.Marker(el)
-          .setLngLat([marker.lng, marker.lat])
-          .addTo(map.current!);
-        
-        // Store marker reference
-        markersRef.current[marker.id] = markerElement;
+        el.className = 'quest-marker';
+        // Вставить перед закрывающей скобкой компонента
+        return (
+          <div className="quest-map">
+            <div 
+              ref={mapContainer} 
+              className="quest-map-container" 
+              data-testid="map-container"
+            />
+            {loading && (
+              <div className="map-loading-overlay">
+                <div className="map-loading-content">
+                  <div className="loading-spinner"></div>
+                  <p>Loading map...</p>
+                </div>
+              </div>
+            )}
+            {mapError && (
+              <div className="map-error-overlay">
+                <div className="map-error-content">
+                  <p>{mapError}</p>
+                  <button onClick={() => window.location.reload()}>Обновить страницу</button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
       } catch (err) {
         console.error("QuestMap: Error adding marker:", err);
       }
     });
-  }, [visibleMarkers, map, mapInitialized]);
+  }, [visibleMarkers, map, mapInitialized, mapContainer, loading, mapError]);
   
   return (
     <div className="quest-map">
@@ -197,10 +212,10 @@ export const QuestMap: FC<QuestMapProps> = ({
         <div className="map-error-overlay">
           <div className="map-error-content">
             <p>{mapError}</p>
-            <button onClick={() => window.location.reload()}>Refresh page</button>
+            <button onClick={() => window.location.reload()}>Обновить страницу</button>
           </div>
         </div>
       )}
     </div>
   );
-}
+};

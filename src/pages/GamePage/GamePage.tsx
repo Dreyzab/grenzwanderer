@@ -4,7 +4,7 @@ import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { QRScanner } from '../../widgets/qrScanner/QRScanner';
 import { SignOutButton } from '../../widgets/signOutButton/SignOutButton';
-import { GameScreen, GameView } from '../../widgets/gameScreen/GameScreen';
+import { GameScreen, GameView } from '../../widgets/gameScreen';
 import { VisualNovel } from '../visualNovel/VisualNovel';
 import './GamePage.css';
 

@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import { Id } from '../../../../convex/_generated/dataModel';
+import { PlayerStats } from '../../../shared/types/visualNovel';
 
 export interface PlayerData {
   _id: Id<"players">;
   name: string;
   locationHistory: any[];
   equipment: Record<string, any>;
+  stats: PlayerStats;
 }
 
 export function usePlayer() {
@@ -33,13 +35,34 @@ export function usePlayer() {
             _id: "temporary-player-id" as unknown as Id<"players">,
             name: "Test Player",
             equipment: {},
-            locationHistory: []
+            locationHistory: [],
+            stats: {
+              energy: 100,
+              money: 0,
+              attractiveness: 1,
+              willpower: 1,
+              fitness: 4,
+              intelligence: 7,
+              corruption: 0
+            }
           });
         } else {
           // Пытаемся получить игрока из API
           try {
             const playerData = await getOrCreatePlayer({ userId: userId as any });
             if (playerData) {
+              // Если в полученных данных нет поля stats, добавляем стандартные значения
+              if (!playerData.stats) {
+                playerData.stats = {
+                  energy: 100,
+                  money: 0,
+                  attractiveness: 1,
+                  willpower: 1,
+                  fitness: 4,
+                  intelligence: 7,
+                  corruption: 0
+                };
+              }
               setPlayer(playerData as unknown as PlayerData);
             }
           } catch (apiError) {
@@ -49,7 +72,16 @@ export function usePlayer() {
               _id: "temporary-player-id" as unknown as Id<"players">,
               name: "Test Player",
               equipment: {},
-              locationHistory: []
+              locationHistory: [],
+              stats: {
+                energy: 100,
+                money: 0,
+                attractiveness: 1,
+                willpower: 1,
+                fitness: 4,
+                intelligence: 7,
+                corruption: 0
+              }
             });
           }
         }
@@ -87,7 +119,7 @@ export function usePlayer() {
         (error) => {
           console.warn('Geolocation error:', error.message);
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
       );
       
       return () => {

@@ -5,7 +5,7 @@ import './MessageStyles.css';
 interface MessageListProps {
   messages: Message[];
   onMessageClick: (message: Message) => void;
-  activeTab: 'new' | 'archive';
+  activeTab?: 'new' | 'archive';
 }
 
 export const MessageList: React.FC<MessageListProps> = ({ 

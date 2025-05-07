@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { QuestMap } from '../../widgets/questMap/QuestMap';
-import { VisualNovel } from '../../pages/visualNovel/VisualNovel';
+import { VisualNovelPage } from '../../pages/VisualNovelPage/VisualNovelPage';
 import { Messages } from '../../widgets/messages/Messages';
 import { useMessagesReducer } from '../../hooks/useMessages';
 import { updateMarkersByQuestState, QR_CODES } from '../../entities/markers/model';
@@ -106,9 +106,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   // Показываем визуальную новеллу
   if (gameView === GameView.NOVEL && sceneKey && player) {
     return (
-      <VisualNovel
+      <VisualNovelPage
         initialSceneId={sceneKey}
         playerId={player._id}
+        initialQuestState={questState}
+        initialPlayerStats={player.stats}
         onExit={handleNovelExit}
       />
     );

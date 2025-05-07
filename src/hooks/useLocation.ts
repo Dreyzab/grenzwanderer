@@ -491,7 +491,7 @@ export const useLocation = (options?: PositionOptions): LocationState => {
       handleError,
       {
         enableHighAccuracy: true,
-        timeout: 15000,
+        timeout: 30000, // Увеличиваем таймаут с 15000 до 30000 мс
         maximumAge: 10000
       }
     );
@@ -505,7 +505,7 @@ export const useLocation = (options?: PositionOptions): LocationState => {
         handleError,
         {
           enableHighAccuracy: true,
-          timeout: 30000, // Увеличенный таймаут для наблюдателя
+          timeout: 60000, // Увеличиваем таймаут для наблюдателя с 30000 до 60000 мс
           maximumAge: 15000
         }
       );

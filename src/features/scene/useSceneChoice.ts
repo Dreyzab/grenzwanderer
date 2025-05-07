@@ -1,63 +1,104 @@
 import { useCallback } from 'react';
-import { Choice } from '../../shared/types/visualNovel';
-import { useSceneLoader } from './useSceneLoader';
-import { updatePlayerStat } from '../../entities/player/model';
-import { showMarker, hideMarker } from '../../entities/markers/model';
+import { ChoiceOption } from '../../shared/types/visualNovel';
 import { questActionPerformed } from '../quest/model';
 import { QuestActionEnum } from '../../shared/constants/quest';
 
 interface UseSceneChoiceProps {
-  onExit?: () => void;
+  setCurrentSceneId: (sceneId: string) => void;
+  sceneStateManager: any; // Используем any временно, впоследствии нужно типизировать
+  onExit?: (finalQuestState?: any, finalPlayerStats?: any) => void;
 }
 
-export function useSceneChoice({ onExit }: UseSceneChoiceProps = {}) {
-  const { loadScene } = useSceneLoader();
-
-  const handleChoice = useCallback(async (choice: Choice) => {
-    // Обновление статов, если есть
-    if (choice.statChanges) {
-      Object.entries(choice.statChanges).forEach(([stat, value]) => {
-        updatePlayerStat({ stat: stat as any, value: value as number });
-      });
+export function useSceneChoice({ 
+  setCurrentSceneId, 
+  sceneStateManager, 
+  onExit 
+}: UseSceneChoiceProps) {
+  const handleChoice = useCallback((choice: ChoiceOption) => {
+    // Проверка условий для выполнения выбора
+    const isValid = sceneStateManager.checkCondition(choice.condition);
+    
+    // Если условия не прошли проверку
+    if (!isValid) {
+      // Если есть специальный обработчик для неудачного чека
+      if (choice.action?.type === 'CHECK_STAT' && choice.action.payload.failScene) {
+        setCurrentSceneId(choice.action.payload.failScene);
+      }
+      // Можно показать уведомление с текстом об ошибке
+      console.log(choice.feedbackOnFail || 'Вы не соответствуете требованиям для этого выбора');
+      return;
     }
-    // Обработка action (квесты, маркеры, спецдействия)
+    
+    // Если есть действие, выполняем его
     if (choice.action) {
-      switch (choice.action) {
-        case QuestActionEnum.ACCEPT_ARTIFACT_QUEST:
-          showMarker('anomaly');
-          questActionPerformed({ type: QuestActionEnum.ACCEPT_ARTIFACT_QUEST, stepId: choice.id });
+      switch (choice.action.type) {
+        case 'UPDATE_QUEST_STATE':
+          const { questId, state, ...otherData } = choice.action.payload;
+          sceneStateManager.updateQuestState(questId, { state, ...otherData });
+          
+          // Если это стандартное квестовое действие, отправляем в Effector
+          if (Object.values(QuestActionEnum).includes(state as QuestActionEnum)) {
+            questActionPerformed({ 
+              type: state as QuestActionEnum, 
+              stepId: choice.id 
+            });
+          }
           break;
-        case QuestActionEnum.DECLINE_ARTIFACT_QUEST:
-          hideMarker('anomaly');
-          questActionPerformed({ type: QuestActionEnum.DECLINE_ARTIFACT_QUEST, stepId: choice.id });
+          
+        case 'GIVE_ITEM':
+          const { itemId, itemName, quantity } = choice.action.payload;
+          sceneStateManager.givePlayerItem(itemId, itemName, quantity);
           break;
-        case QuestActionEnum.START_DELIVERY_QUEST:
-          showMarker('trader');
-          questActionPerformed({ type: QuestActionEnum.START_DELIVERY_QUEST, stepId: choice.id });
+          
+        case 'EXIT_VN':
+          if (onExit) {
+            onExit(
+              sceneStateManager.getQuestState(), 
+              sceneStateManager.getPlayerStats()
+            );
+          }
+          return; // Важно: прерываем выполнение, чтобы избежать перехода к другой сцене
+          
+        case 'CHECK_STAT':
+          // Проверка статов уже выполнена выше
+          if (choice.action.payload.successScene) {
+            setCurrentSceneId(choice.action.payload.successScene);
+            return; // Прерываем выполнение, т.к. уже переходим на другую сцену
+          }
           break;
-        case QuestActionEnum.TAKE_PARTS:
-          showMarker('craftsman');
-          questActionPerformed({ type: QuestActionEnum.TAKE_PARTS, stepId: choice.id });
+          
+        case 'UPDATE_STATS':
+          const { stats } = choice.action.payload;
+          if (stats) {
+            Object.entries(stats).forEach(([stat, value]) => {
+              sceneStateManager.updatePlayerStat(stat, Number(value));
+            });
+          }
           break;
-        case QuestActionEnum.RETURN_TO_CRAFTSMAN:
-          questActionPerformed({ type: QuestActionEnum.RETURN_TO_CRAFTSMAN, stepId: choice.id });
+          
+        case 'CUSTOM_SCRIPT':
+          sceneStateManager.executeScript(choice.action.payload);
           break;
-        case QuestActionEnum.COMPLETE_DELIVERY_QUEST:
-          questActionPerformed({ type: QuestActionEnum.COMPLETE_DELIVERY_QUEST, stepId: choice.id });
-          break;
-        case 'exit_to_map':
-          if (onExit) onExit();
-          return;
+          
         default:
-          // Можно добавить другие действия
+          console.warn(`Неизвестный тип действия: ${choice.action.type}`);
           break;
       }
     }
-    // Переход к следующей сцене
+    
+    // Если указана следующая сцена, переходим к ней
     if (choice.nextSceneId) {
-      await loadScene(choice.nextSceneId);
+      setCurrentSceneId(choice.nextSceneId);
+    } else if (!choice.action?.type || choice.action?.type !== 'EXIT_VN') {
+      // Если нет явного перехода или выхода, завершаем визуальную новеллу
+      if (onExit) {
+        onExit(
+          sceneStateManager.getQuestState(),
+          sceneStateManager.getPlayerStats()
+        );
+      }
     }
-  }, [loadScene, onExit]);
+  }, [setCurrentSceneId, sceneStateManager, onExit]);
 
   return { handleChoice };
 } 

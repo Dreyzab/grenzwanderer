@@ -4,29 +4,41 @@ import './CharacterDisplay.css';
 import { Character } from '../../shared/types/visualNovel';
 
 interface CharacterDisplayProps {
-  character?: Character;
+  characters: Character[];
+  activeSpeakerSpriteId?: string;
   fadeIn?: boolean;
 }
 
 export const CharacterDisplay: React.FC<CharacterDisplayProps> = ({ 
-  character, 
+  characters, 
+  activeSpeakerSpriteId,
   fadeIn = true 
 }) => {
-  if (!character) return null;
-  
-  const positionClass = character.position ? `character-${character.position}` : 'character-center';
-  const animationClass = fadeIn ? 'character-fade-in' : '';
+  if (!characters || characters.length === 0) return null;
   
   return (
-    <div className={`character-display ${positionClass} ${animationClass}`}>
-      <img 
-        src={character.image} 
-        alt={character.name} 
-        className="character-image" 
-      />
-      {character.name && (
-        <div className="character-name">{character.name}</div>
-      )}
+    <div className="characters-container">
+      {characters.map((character) => {
+        const positionClass = character.position ? `character-${character.position}` : 'character-center';
+        const animationClass = fadeIn ? 'character-fade-in' : '';
+        const isActive = character.id === activeSpeakerSpriteId;
+        
+        return (
+          <div 
+            key={character.id}
+            className={`character-display ${positionClass} ${animationClass} ${isActive ? 'character-active' : 'character-inactive'}`}
+          >
+            <img 
+              src={character.spriteUrl} 
+              alt={character.name} 
+              className="character-image" 
+            />
+            {character.name && isActive && (
+              <div className="character-name">{character.name}</div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };

@@ -1,35 +1,38 @@
 // src/widgets/choiceList/ChoiceList.tsx
 import React, { useState } from 'react';
-import { useUnit } from 'effector-react';
-import { $playerStats } from '../../entities/player/model';
-import { $currentScene } from '../../entities/scene/model';
-import { Choice } from '../../shared/types/visualNovel';
+import { ChoiceOption, PlayerStats } from '../../shared/types/visualNovel';
 import './ChoiceList.css';
 
 interface ChoiceListProps {
-  onChoiceSelected: (choice: Choice) => void;
+  choices: ChoiceOption[];
+  onChoiceSelected: (choice: ChoiceOption) => void;
+  playerStats: PlayerStats;
+  questState: Record<string, any>;
 }
 
-export const ChoiceList: React.FC<ChoiceListProps> = ({ onChoiceSelected }) => {
-  const currentScene = useUnit($currentScene);
-  const playerStats = useUnit($playerStats);
+export const ChoiceList: React.FC<ChoiceListProps> = ({ 
+  choices, 
+  onChoiceSelected,
+  playerStats,
+  questState 
+}) => {
   const [hoveredChoice, setHoveredChoice] = useState<string | null>(null);
   
-  if (!currentScene || !currentScene.choices.length) return null;
+  if (!choices || choices.length === 0) return null;
   
   // Check if player meets the stat requirements for a choice
-  const isChoiceAvailable = (choice: Choice) => {
+  const isChoiceAvailable = (choice: ChoiceOption) => {
     if (!choice.requiredStats) return true;
     
     for (const [stat, requiredValue] of Object.entries(choice.requiredStats)) {
-      const playerValue = playerStats[stat as keyof typeof playerStats];
+      const playerValue = playerStats[stat as keyof PlayerStats];
       if (playerValue < requiredValue) return false;
     }
     
     return true;
   };
   
-  const handleChoiceClick = (choice: Choice) => {
+  const handleChoiceClick = (choice: ChoiceOption) => {
     if (isChoiceAvailable(choice)) {
       onChoiceSelected(choice);
     }
@@ -45,7 +48,7 @@ export const ChoiceList: React.FC<ChoiceListProps> = ({ onChoiceSelected }) => {
   
   return (
     <div className="choice-list">
-      {currentScene.choices.map((choice) => {
+      {choices.map((choice) => {
         const isAvailable = isChoiceAvailable(choice);
         const isHovered = hoveredChoice === choice.id;
         
@@ -63,7 +66,7 @@ export const ChoiceList: React.FC<ChoiceListProps> = ({ onChoiceSelected }) => {
             {choice.requiredStats && (
               <div className="choice-requirements">
                 {Object.entries(choice.requiredStats).map(([stat, value]) => {
-                  const playerValue = playerStats[stat as keyof typeof playerStats];
+                  const playerValue = playerStats[stat as keyof PlayerStats];
                   const isMet = playerValue >= value;
                   
                   return (

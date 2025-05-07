@@ -35,6 +35,14 @@ export const Messages: React.FC<MessagesProps> = ({
     setSelectedMessage(null);
   };
 
+  const handleStartQuest = () => {
+    console.log("Запуск квеста из сообщения...");
+    // Если выбрано сообщение, закрываем его детали после запуска квеста
+    setSelectedMessage(null);
+    // Вызываем переданную функцию запуска квеста
+    onStartQuest();
+  };
+
   // Если выбрано сообщение, показываем его детали
   if (selectedMessage) {
     return (
@@ -42,11 +50,12 @@ export const Messages: React.FC<MessagesProps> = ({
         message={selectedMessage} 
         onBackClick={handleBackToList}
         onMapClick={onOpenMap}
-        onStartQuest={onStartQuest}
+        onStartQuest={handleStartQuest}
       />
     );
   }
 
+  // Если не выбрано сообщение, показываем список сообщений
   return (
     <div className="messages-container">
       <div className="messages-header">
@@ -56,7 +65,8 @@ export const Messages: React.FC<MessagesProps> = ({
             className={`tab ${activeTab === 'new' ? 'active' : ''}`}
             onClick={() => setActiveTab('new')}
           >
-            Новые {newMessages.length > 0 && <span className="badge">{newMessages.length}</span>}
+            Новые
+            {newMessages.length > 0 && <span className="badge">{newMessages.length}</span>}
           </button>
           <button 
             className={`tab ${activeTab === 'archive' ? 'active' : ''}`}
@@ -68,16 +78,26 @@ export const Messages: React.FC<MessagesProps> = ({
       </div>
       
       <div className="messages-content">
-        <MessageList
+        <MessageList 
           messages={activeTab === 'new' ? newMessages : archiveMessages}
           onMessageClick={handleMessageClick}
-          activeTab={activeTab}
         />
+        
+        {activeTab === 'new' && newMessages.length === 0 && (
+          <div className="empty-messages">Нет новых сообщений</div>
+        )}
+        
+        {activeTab === 'archive' && archiveMessages.length === 0 && (
+          <div className="empty-messages">Архив пуст</div>
+        )}
       </div>
       
       <div className="messages-footer">
-        <button className="back-button" onClick={onBackClick}>
-          Вернуться к карте
+        <button 
+          className="back-button"
+          onClick={onBackClick}
+        >
+          Назад
         </button>
       </div>
     </div>

@@ -3,7 +3,7 @@
 export interface Character {
     id: string;
     name: string;
-    image: string;
+    spriteUrl: string;
     position?: 'left' | 'center' | 'right';
   }
   
@@ -23,22 +23,54 @@ export interface Character {
     message?: string;
   }
   
-  export interface Choice {
+  export interface ScriptPayload {
+    type: string;
+    params: Record<string, any>;
+  }
+  
+  export interface ConditionObject {
+    type: 'STAT_CHECK' | 'QUEST_STATE' | 'HAS_ITEM' | 'CUSTOM';
+    data: Record<string, any>;
+  }
+  
+  export interface ActionObject {
+    type: string;
+    payload: Record<string, any>;
+  }
+  
+  export interface DialogueLine {
+    text: string;
+    characterSpriteId?: string;
+    speakerName?: string;
+    emotion?: string;
+    portrait?: string;
+    voiceoverFile?: string;
+    timing?: number; // в миллисекундах для автоматического перехода
+    animation?: string;
+  }
+  
+  export interface ChoiceOption {
     id: string;
     text: string;
     nextSceneId?: string;
     statChanges?: Partial<PlayerStats>;
-    action?: string;
+    action?: ActionObject;
     requiredStats?: Partial<PlayerStats>;
+    condition?: ConditionObject;
+    feedbackOnFail?: string;
   }
   
   export interface Scene {
     id: string;
     title: string;
-    background?: string;
-    text: string;
-    character?: Character;
-    choices: Choice[];
+    backgroundUrl?: string;
+    musicTrack?: string;
+    dialogueLines: DialogueLine[];
+    charactersInScene: Character[];
+    choices: ChoiceOption[];
+    onEnterScript?: ScriptPayload;
+    onExitScript?: ScriptPayload;
+    action?: ActionObject;
     time?: string;
     date?: string;
     location?: string;

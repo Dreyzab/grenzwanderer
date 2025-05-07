@@ -171,3 +171,47 @@
     font-size: 0.9rem;
   }
 }
+
+/* Общие стили для кнопок */
+.game-tab, .exit-button, .sign-out-button, .action-button {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-tab:active, .exit-button:active, .sign-out-button:active, .action-button:active {
+  transform: scale(0.95);
+}
+
+/* Эффект ряби при клике */
+.game-tab::after, .exit-button::after, .sign-out-button::after, .action-button::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.game-tab:active::after, .exit-button:active::after, .sign-out-button:active::after, .action-button:active::after {
+  animation: button-ripple 0.6s ease-out;
+}
+
+@keyframes button-ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.5;
+  }
+  100% {
+    width: 200%;
+    height: 200%;
+    opacity: 0;
+  }
+}

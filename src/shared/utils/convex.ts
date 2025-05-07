@@ -4,7 +4,7 @@
 import { ConvexReactClient } from 'convex/react';
 
 // Initialize Convex client
-export const convexClient = new ConvexReactClient(process.env.CONVEX_URL || '');
+export const convexClient = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL || '');
 
 // Export by default
 export default convexClient; 

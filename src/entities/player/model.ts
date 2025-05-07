@@ -2,7 +2,7 @@
 import { createStore, createEvent } from 'effector';
 import { PlayerStats } from '../../shared/types/visualNovel';
 import { Id } from '../../../convex/_generated/dataModel';
-import { useStore } from 'effector-react';
+import { useUnit } from 'effector-react';
 import { $questState, $completedSteps, questStepCompleted, questStateChanged } from '../../features/quest/model';
 
 // Initial player stats

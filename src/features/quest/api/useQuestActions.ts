@@ -11,6 +11,13 @@ import {
 } from '../../../entities/markers/model';
 import { getMockQRScanResult, getMockQuestStartResult } from '../model/mockData';
 
+// Функция для проверки валидности ID игрока
+const isValidPlayerId = (playerId: any): boolean => {
+  return typeof playerId === 'string' && 
+         playerId.startsWith('players:') && 
+         playerId.length > 8;
+};
+
 export interface QuestActionsResult {
   loading: boolean;
   error: string | null;
@@ -41,13 +48,14 @@ export function useQuestActions(
       let result;
       
       try {
-        // Проверяем, что ID игрока имеет правильный формат для API
-        if (typeof player._id === 'string' && player._id.startsWith('players:')) {
+        // Улучшенная проверка ID игрока
+        if (isValidPlayerId(player._id)) {
           result = await activateQuestByQR({
             playerId: player._id,
             qrCode: code
           });
         } else {
+          console.warn("Invalid player ID format:", player._id);
           throw new Error("Invalid player ID format for API call");
         }
       } catch (apiError) {
@@ -93,12 +101,13 @@ export function useQuestActions(
       
       // Пытаемся вызвать реальное API, но при ошибке используем мок
       try {
-        // Проверяем, что ID игрока имеет правильный формат
-        if (typeof player._id === 'string' && player._id.startsWith('players:')) {
+        // Улучшенная проверка ID игрока
+        if (isValidPlayerId(player._id)) {
           result = await startDeliveryQuest({ 
             playerId: player._id
           });
         } else {
+          console.warn("Invalid player ID format:", player._id);
           throw new Error("Invalid player ID format for API call");
         }
       } catch (apiError) {

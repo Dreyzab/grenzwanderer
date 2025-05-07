@@ -1,97 +1,73 @@
-import React, { useState, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { QuestMap } from '../../widgets/questMap/QuestMap';
-import { VisualNovelPage } from '../../pages/VisualNovelPage/VisualNovelPage';
 import { Messages } from '../../widgets/messages/Messages';
-import { useMessagesReducer } from '../../hooks/useMessages';
-import { updateMarkersByQuestState, QR_CODES } from '../../entities/markers/model';
+import { VisualNovel } from '../../pages/visualNovel/VisualNovel';
+import { GameScreenProps, GameView } from '../../shared/types/gameScreen';
 import { QuestStateEnum } from '../../shared/constants/quest';
-import { GameView, GameScreenProps, QuestMarker } from './model/types';
-import { usePlayer } from '../../features/player/api/usePlayer';
-import { useQuestActions } from '../../features/quest/api/useQuestActions';
-import { GameHeader } from './ui/GameHeader';
-import { GameNavButtons } from './ui/GameNavButtons';
+import { Header } from './Header';
 import { LoadingIndicator } from './ui/LoadingIndicator';
 import { ErrorDisplay } from './ui/ErrorDisplay';
+import { GameNavButtons } from './ui/GameNavButtons';
+import { useGameScreen } from '../../features/game/api/useGameScreen';
+import { QR_CODES } from '../../shared/types/markers';
+import { Message as HookMessage } from '../../hooks/useMessages';
+import { Message as ApiMessage } from '../../features/messages/api/useMessages';
 import './GameScreen.css';
+
+// Адаптер для преобразования формата сообщений
+const adaptMessagesToHookFormat = (messages: ApiMessage[]): HookMessage[] => {
+  return messages.map(msg => ({
+    id: msg.id,
+    title: msg.title,
+    content: msg.content,
+    sender: msg.sender || 'Система',
+    date: new Date(msg.timestamp).toLocaleDateString(),
+    read: msg.read,
+    // Дополнительные поля можно добавить по необходимости
+  }));
+};
 
 export const GameScreen: React.FC<GameScreenProps> = ({ 
   onExit, 
   initialView, 
   onViewChange 
 }) => {
-  // Состояние игры и квеста
-  const [questState, setQuestState] = useState<QuestStateEnum>(QuestStateEnum.REGISTERED);
-  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
-  const [gameView, setGameView] = useState<GameView>(initialView || GameView.MAP);
-  const [sceneKey, setSceneKey] = useState<string | null>(null);
-  
-  // Данные игрока
-  const { player, loading: playerLoading, error: playerError } = usePlayer();
-  
-  // Сообщения
-  const { 
-    newMessages, 
-    archiveMessages, 
-    hasUnreadMessages, 
-    markMessageAsRead
-  } = useMessagesReducer(player?._id);
-  
-  // Квестовые действия
-  const { 
-    loading: questLoading, 
-    error: questError,
-    handleQRScanSuccess, 
-    handleStartDeliveryQuest 
-  } = useQuestActions(
+  const {
+    // Состояние
+    questState,
+    gameView,
+    sceneKey,
     player,
-    setQuestState,
-    completeQuestStep,
-    openScene
+    
+    // Сообщения
+    newMessages: apiNewMessages,
+    archiveMessages: apiArchiveMessages,
+    hasUnreadMessages,
+    markMessageAsRead,
+    
+    // Загрузка и ошибки
+    playerLoading,
+    playerError,
+    questLoading,
+    questError,
+    
+    // Обработчики
+    handleOpenMap,
+    handleOpenMessages,
+    handleNovelExit,
+    handleMarkerClick,
+    handleStartDeliveryQuest,
+    handleQRScanSuccess
+  } = useGameScreen(initialView, onViewChange);
+  
+  // Адаптируем сообщения к ожидаемому формату
+  const newMessages = useMemo(() => 
+    adaptMessagesToHookFormat(apiNewMessages), [apiNewMessages]
   );
   
-  // Обновляем маркеры при изменении состояния квеста
-  React.useEffect(() => {
-    updateMarkersByQuestState(questState);
-  }, [questState]);
-  
-  // Уведомляем родительский компонент при изменении представления
-  React.useEffect(() => {
-    if (onViewChange) {
-      onViewChange(gameView);
-    }
-  }, [gameView, onViewChange]);
-  
-  // Обработчики вью
-  const handleOpenMap = useCallback(() => {
-    setGameView(GameView.MAP);
-  }, []);
-  
-  const handleOpenMessages = useCallback(() => {
-    setGameView(GameView.MESSAGES);
-  }, []);
-  
-  const handleNovelExit = useCallback(() => {
-    setGameView(GameView.MAP);
-    setSceneKey(null);
-  }, []);
-  
-  // Вспомогательные функции
-  function completeQuestStep(stepId: string) {
-    if (!completedSteps.includes(stepId)) {
-      setCompletedSteps(prev => [...prev, stepId]);
-    }
-  }
-  
-  function openScene(sceneId: string) {
-    setSceneKey(sceneId);
-    setGameView(GameView.NOVEL);
-  }
-  
-  // Обработка клика по маркеру на карте
-  const handleMarkerClick = useCallback(async (marker: QuestMarker) => {
-    if (!marker.qrCode) return;
-    await handleQRScanSuccess(marker.qrCode);
-  }, [handleQRScanSuccess]);
+  const archiveMessages = useMemo(() => 
+    adaptMessagesToHookFormat(apiArchiveMessages), [apiArchiveMessages]
+  );
   
   // Показываем загрузку
   if (playerLoading) {
@@ -106,7 +82,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   // Показываем визуальную новеллу
   if (gameView === GameView.NOVEL && sceneKey && player) {
     return (
-      <VisualNovelPage
+      <VisualNovel
         initialSceneId={sceneKey}
         playerId={player._id}
         initialQuestState={questState}
@@ -135,9 +111,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     <div className="game-screen">
       {gameView === GameView.MAP && (
         <div className="quest-map-wrapper">
-          <GameHeader 
-            onOpenMessages={handleOpenMessages}
-            hasUnreadMessages={hasUnreadMessages}
+          <Header 
+            onOpenDialog={handleOpenMessages}
+            onOpenInventory={() => {}} // TODO: Реализовать открытие инвентаря
           />
           
           <div className="map-container">

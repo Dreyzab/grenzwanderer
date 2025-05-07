@@ -3,12 +3,7 @@ import { api } from '../../../../convex/_generated/api';
 import { useState, useCallback } from 'react';
 import { QuestStateEnum } from '../../../shared/constants/quest';
 import { PlayerData } from '../../player/api/usePlayer';
-import { 
-  showMarker,
-  completeMarker,
-  addInteraction,
-  updateMarkersByQuestState
-} from '../../../entities/markers/model';
+import { useMarkers } from '../../markers/api';
 import { getMockQRScanResult, getMockQuestStartResult } from '../model/mockData';
 
 // Функция для проверки валидности ID игрока
@@ -37,6 +32,14 @@ export function useQuestActions(
   // Получаем Convex мутации
   const activateQuestByQR = useMutation(api.quest.activateQuestByQR);
   const startDeliveryQuest = useMutation(api.quest.startDeliveryQuest);
+  
+  // Получаем API маркеров
+  const { 
+    addMarkerInteraction, 
+    toggleComplete, 
+    showMarkerById, 
+    updateMarkersByQuest 
+  } = useMarkers();
   
   // Обработка успешного сканирования QR-кода
   const handleQRScanSuccess = useCallback(async (code: string) => {
@@ -79,7 +82,7 @@ export function useQuestActions(
           onStateChange(result.questState as QuestStateEnum);
           
           // Обновляем видимость маркеров на основе нового состояния
-          updateMarkersByQuestState(result.questState);
+          updateMarkersByQuest(result.questState);
         }
       }
     } catch (err) {
@@ -88,7 +91,7 @@ export function useQuestActions(
     } finally {
       setLoading(false);
     }
-  }, [player, activateQuestByQR, onStateChange, onSceneOpen]);
+  }, [player, activateQuestByQR, onStateChange, onSceneOpen, updateMarkersByQuest]);
   
   // Обработка начала квеста
   const handleStartDeliveryQuest = useCallback(async () => {
@@ -124,14 +127,14 @@ export function useQuestActions(
         onStepComplete('start_delivery');
         
         // Показываем маркер торговца на карте
-        showMarker('trader');
+        showMarkerById('trader');
       }
     } catch (err) {
       setError(`Error starting quest: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
-  }, [player, startDeliveryQuest, onStateChange, onStepComplete]);
+  }, [player, startDeliveryQuest, onStateChange, onStepComplete, showMarkerById]);
   
   // Обработка клика по маркеру на карте
   const handleMarkerClick = useCallback(async (marker: any) => {
@@ -141,15 +144,16 @@ export function useQuestActions(
       setLoading(true);
       
       // Регистрируем взаимодействие с маркером
-      addInteraction({
+      addMarkerInteraction({
         markerId: marker.id,
-        action: 'activated',
-        data: { timestamp: Date.now() }
+        interactionType: 'activated',
+        timestamp: Date.now(),
+        data: { player: player._id }
       });
       
       // Если маркер - это задание, отмечаем его как выполненное
       if (marker.markerType === 'quest_point') {
-        completeMarker(marker.id);
+        toggleComplete(marker.id);
       }
       
       // Отмечаем шаг как выполненный
@@ -163,7 +167,7 @@ export function useQuestActions(
     } finally {
       setLoading(false);
     }
-  }, [player, handleQRScanSuccess, onStepComplete]);
+  }, [player, handleQRScanSuccess, onStepComplete, addMarkerInteraction]);
   
   return {
     loading,

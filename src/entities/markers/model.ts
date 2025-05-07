@@ -1,146 +1,115 @@
 import { createStore, createEvent } from 'effector';
+import { MarkerData, MarkerType, NpcClass, Faction, MarkerInteraction } from '../../shared/types/markers';
 import { QuestStateEnum } from '../../shared/constants/quest';
 
-// Перечисления для типов маркеров
-export enum MarkerType {
-  QUEST_POINT = 'quest_point',
-  NPC = 'npc',
-  PLAYER = 'player',
-  LOCATION = 'location',
-  ITEM = 'item'
-}
+// --- Events ---
+export const showMarker = createEvent<string>();
+export const hideMarker = createEvent<string>();
+export const markersReset = createEvent();
+export const addMarker = createEvent<MarkerData>();
+export const toggleMarkerActive = createEvent<string>();
+export const toggleMarkerComplete = createEvent<string>();
+export const addInteraction = createEvent<MarkerInteraction>();
 
-export enum Faction {
-  NEUTRAL = 'neutral',
-  FRIENDLY = 'friendly',
-  HOSTILE = 'hostile'
-}
+// --- Initial data ---
+export const initialMarkers: MarkerData[] = [
+  {
+    id: 'trader',
+    title: 'Торговец',
+    description: 'Здесь можно найти торговца с запчастями',
+    markerType: MarkerType.NPC,
+    npcClass: NpcClass.TRADER,
+    faction: Faction.TRADERS,
+    lat: 59.9391,
+    lng: 30.3156,
+    isActive: false,
+    isCompleted: false
+  },
+  {
+    id: 'craftsman',
+    title: 'Мастерская Дитера',
+    description: 'Центральная мастерская города',
+    markerType: MarkerType.NPC,
+    npcClass: NpcClass.CRAFTSMAN, 
+    faction: Faction.CRAFTSMEN,
+    lat: 59.9391,
+    lng: 30.2956,
+    isActive: false,
+    isCompleted: false
+  },
+  {
+    id: 'anomaly_zone',
+    title: 'Аномальная зона',
+    description: 'В этом районе можно найти ценные артефакты',
+    markerType: MarkerType.QUEST_AREA,
+    lat: 59.9371,
+    lng: 30.3056,
+    radius: 100,
+    isActive: false,
+    isCompleted: false
+  },
+  {
+    id: 'encounter',
+    title: 'Странные звуки',
+    description: 'Отсюда доносятся странные звуки',
+    markerType: MarkerType.QUEST_POINT,
+    lat: 59.9401,
+    lng: 30.3086,
+    isActive: false,
+    isCompleted: false
+  }
+];
 
-export enum NpcClass {
-  TRADER = 'trader',
-  CRAFTSMAN = 'craftsman',
-  GUARD = 'guard',
-  CITIZEN = 'citizen',
-  OUTLAW = 'outlaw'
-}
+// --- Stores ---
+export const $markers = createStore<MarkerData[]>(initialMarkers)
+  .on(showMarker, (state, markerId) => 
+    state.map(marker => 
+      marker.id === markerId 
+        ? { ...marker, isActive: true }
+        : marker
+    )
+  )
+  .on(hideMarker, (state, markerId) => 
+    state.map(marker => 
+      marker.id === markerId 
+        ? { ...marker, isActive: false }
+        : marker
+    )
+  )
+  .on(toggleMarkerActive, (state, markerId) => 
+    state.map(marker => 
+      marker.id === markerId 
+        ? { ...marker, isActive: !marker.isActive }
+        : marker
+    )
+  )
+  .on(toggleMarkerComplete, (state, markerId) => 
+    state.map(marker => 
+      marker.id === markerId 
+        ? { ...marker, isCompleted: !marker.isCompleted }
+        : marker
+    )
+  )
+  .on(addMarker, (state, marker) => [...state, marker])
+  .reset(markersReset);
+
+// --- Selectors ---
+export const $activeMarkers = $markers.map(markers => 
+  markers.filter(marker => marker.isActive)
+);
 
 // QR коды для тестов
 export const QR_CODES = {
   TRADER: 'grenz_npc_trader_01',
   CRAFTSMAN: 'grenz_npc_craftsman_01',
   ARTIFACT: 'ARTIFACT_ITEM_2023',
-  ANOMALY_ZONE: 'Grenz_loc_anomaly_01',
+  ANOMALY_ZONE: 'location_anomaly_001',
   ENCOUNTER: 'encounter_001'
 };
 
-// Базовая структура маркера
-export interface MarkerData {
-  id: string;
-  name: string;
-  description?: string;
-  coordinates: [number, number]; // [lng, lat]
-  markerType: MarkerType | string;
-  isVisible: boolean;
-  isCompleted?: boolean;
-  faction?: Faction;
-  npcClass?: NpcClass;
-  icon?: string;
-  qrCode?: string;
-}
-
-// Интерфейс для взаимодействия с маркером
-export interface MarkerInteraction {
-  markerId: string;
-  action: 'activated' | 'viewed' | 'completed';
-  data?: Record<string, any>;
-  timestamp?: number;
-}
-
-// Начальное состояние
-const initialMarkers: MarkerData[] = [
-  {
-    id: 'trader',
-    name: 'Торговец',
-    description: 'Странствующий торговец',
-    coordinates: [7.84751, 47.99589],
-    markerType: MarkerType.NPC,
-    isVisible: false,
-    faction: Faction.FRIENDLY,
-    npcClass: NpcClass.TRADER,
-    qrCode: QR_CODES.TRADER
-  },
-  {
-    id: 'craftsman',
-    name: 'Мастер Дитер',
-    description: 'Опытный инженер и изобретатель',
-    coordinates: [7.84953, 47.99349],
-    markerType: MarkerType.NPC,
-    isVisible: false,
-    faction: Faction.FRIENDLY,
-    npcClass: NpcClass.CRAFTSMAN,
-    qrCode: QR_CODES.CRAFTSMAN
-  },
-  {
-    id: 'artifact',
-    name: 'Артефакт',
-    description: 'Загадочный артефакт',
-    coordinates: [7.84851, 47.99489],
-    markerType: MarkerType.ITEM,
-    isVisible: false,
-    qrCode: QR_CODES.ARTIFACT
-  },
-  {
-    id: 'anomaly_zone',
-    name: 'Аномальная зона',
-    description: 'Место с необычными свойствами',
-    coordinates: [7.85053, 47.99249],
-    markerType: MarkerType.LOCATION,
-    isVisible: false,
-    qrCode: QR_CODES.ANOMALY_ZONE
-  },
-  {
-    id: 'encounter',
-    name: 'Встреча в лесу',
-    description: 'Необычные звуки из глубины леса',
-    coordinates: [7.84651, 47.99389],
-    markerType: MarkerType.QUEST_POINT,
-    isVisible: false,
-    qrCode: QR_CODES.ENCOUNTER
-  }
-];
-
-// События для управления маркерами
-export const showMarker = createEvent<string>();
-export const hideMarker = createEvent<string>();
-export const completeMarker = createEvent<string>();
-export const addMarker = createEvent<MarkerData>();
-export const removeMarker = createEvent<string>();
-export const updateMarker = createEvent<{id: string, data: Partial<MarkerData>}>();
-export const addInteraction = createEvent<MarkerInteraction>();
-
-// Хранилище маркеров
-export const $markers = createStore<MarkerData[]>(initialMarkers)
-  .on(showMarker, (state, id) => 
-    state.map(marker => marker.id === id ? {...marker, isVisible: true} : marker)
-  )
-  .on(hideMarker, (state, id) => 
-    state.map(marker => marker.id === id ? {...marker, isVisible: false} : marker)
-  )
-  .on(completeMarker, (state, id) => 
-    state.map(marker => marker.id === id ? {...marker, isCompleted: true} : marker)
-  )
-  .on(addMarker, (state, marker) => [...state, marker])
-  .on(removeMarker, (state, id) => state.filter(marker => marker.id !== id))
-  .on(updateMarker, (state, {id, data}) => 
-    state.map(marker => marker.id === id ? {...marker, ...data} : marker)
-  );
-
 // Хранилище взаимодействий
 export const $markerInteractions = createStore<MarkerInteraction[]>([])
-  .on(addInteraction, (state, interaction) => [
-    ...state, 
-    { ...interaction, timestamp: interaction.timestamp || Date.now() }
-  ]);
+  .on(addInteraction, (state, interaction) => [...state, interaction]);
 
 // Функция для обновления видимости маркеров в зависимости от состояния квеста
 export function updateMarkersByQuestState(state: QuestStateEnum) {
@@ -153,23 +122,19 @@ export function updateMarkersByQuestState(state: QuestStateEnum) {
       showMarker('trader');
       break;
     case QuestStateEnum.PARTS_COLLECTED:
-      showMarker('trader');
       showMarker('craftsman');
-      break;
-    case QuestStateEnum.PARTS_COLLECTED:
-      showMarker('craftsman');
-      showMarker('anomaly_zone');
       break;
     case QuestStateEnum.ARTIFACT_HUNT:
       showMarker('anomaly_zone');
       showMarker('encounter');
       break;
     case QuestStateEnum.ARTIFACT_FOUND:
-      showMarker('artifact');
-      showMarker('trader');
+      showMarker('craftsman');
       break;
-    case QuestStateEnum.QUEST_COMPLETION:
-      // Все маркеры скрыты
+    case QuestStateEnum.FREE_ROAM:
+      showMarker('trader');
+      showMarker('craftsman');
+      showMarker('anomaly_zone');
       break;
     default:
       // Ничего не показываем

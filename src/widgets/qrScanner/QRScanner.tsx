@@ -1,19 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { QRScannerProps } from '../../shared/types/scanner';
 import './QRScanner.css';
 import jsQR from 'jsqr';
 
-interface QRScannerProps {
-  onSuccess: (code: string) => void;
-  onCancel: () => void;
-}
-
-export const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
+export const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel, onScan }) => {
   const [error, setError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState('');
   const [scanning, setScanning] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // Выбираем функцию обработки сканирования
+  const handleScanSuccess = onScan || onSuccess;
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -82,7 +81,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => 
           ctx.stroke();
           
           // Вызываем функцию успеха с данными
-          onSuccess(code.data);
+          handleScanSuccess(code.data);
         }
       }
     };
@@ -95,12 +94,12 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => 
         streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  }, [onSuccess, scanning]);
+  }, [handleScanSuccess, scanning]);
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (manualCode.trim()) {
-      onSuccess(manualCode.trim());
+      handleScanSuccess(manualCode.trim());
     }
   };
   
@@ -138,7 +137,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => 
         ctx.stroke();
         
         // Вызываем функцию успеха с данными
-        onSuccess(code.data);
+        handleScanSuccess(code.data);
       } else {
         // QR-код не найден
         setError('QR-код не обнаружен. Попробуйте снова или введите код вручную.');
@@ -180,12 +179,14 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => 
         >
           Сделать фото
         </button>
-        <button 
-          className="qr-scanner-cancel"
-          onClick={onCancel}
-        >
-          Отмена
-        </button>
+        {onCancel && (
+          <button 
+            className="qr-scanner-cancel"
+            onClick={onCancel}
+          >
+            Отмена
+          </button>
+        )}
       </div>
       
       <div className="qr-scanner-manual">
@@ -203,11 +204,11 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => 
         </form>
         <div className="test-codes">
           <p>Тестовые коды для визуальной новеллы:</p>
-          <button onClick={() => onSuccess("grenz_npc_trader_01")}>Встреча с Торговцем</button>
-          <button onClick={() => onSuccess("grenz_npc_craftsman_01")}>Мастерская Дитера</button>
-          <button onClick={() => onSuccess("ARTIFACT_ITEM_2023")}>Найти артефакт</button>
-          <button onClick={() => onSuccess("location_anomaly_001")}>Аномальная зона</button>
-          <button onClick={() => onSuccess("encounter_001")}>Неожиданная встреча</button>
+          <button onClick={() => handleScanSuccess("grenz_npc_trader_01")}>Встреча с Торговцем</button>
+          <button onClick={() => handleScanSuccess("grenz_npc_craftsman_01")}>Мастерская Дитера</button>
+          <button onClick={() => handleScanSuccess("ARTIFACT_ITEM_2023")}>Найти артефакт</button>
+          <button onClick={() => handleScanSuccess("location_anomaly_001")}>Аномальная зона</button>
+          <button onClick={() => handleScanSuccess("encounter_001")}>Неожиданная встреча</button>
           <p className="test-hint">Нажмите на кнопку, чтобы активировать соответствующую сцену визуальной новеллы</p>
         </div>
       </div>

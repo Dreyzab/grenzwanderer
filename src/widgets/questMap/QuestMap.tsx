@@ -3,13 +3,8 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './QuestMap.css';
 import { useUnit } from 'effector-react';
-import { 
-  $markers, 
-  MarkerType, 
-  Faction, 
-  NpcClass,
-  MarkerData
-} from '../../entities/markers/model';
+import { $markers } from '../../entities/markers/model';
+import { MarkerType, Faction, NpcClass, MarkerData } from '../../shared/types/markers';
 
 // Default location coordinates
 const DEFAULT_LOCATION: [number, number] = [47.99443, 7.84638];
@@ -46,7 +41,7 @@ export const QuestMap: FC<QuestMapProps> = ({
   // Используем маркеры из хранилища Effector
   const allMarkers = useUnit($markers);
   // Фильтруем только видимые маркеры
-  const visibleMarkers = allMarkers.filter((marker: MarkerData) => marker.isVisible);
+  const visibleMarkers = allMarkers.filter((marker: MarkerData) => marker.isActive);
   
   // References
   const mapContainer = useRef<HTMLDivElement | null>(null);

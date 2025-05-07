@@ -1,10 +1,6 @@
 import React from 'react';
+import { DialogChoiceProps } from '../../shared/types/gameScreen';
 import './DialogChoice.css';
-
-interface DialogChoiceProps {
-  text: string;
-  onClick: () => void;
-}
 
 export const DialogChoice: React.FC<DialogChoiceProps> = ({ text, onClick }) => {
   return (

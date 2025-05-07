@@ -1,16 +1,24 @@
 import React from 'react';
 import { SceneRenderer } from '../../widgets/SceneRenderer/SceneRenderer';
+import { VisualNovelPageProps } from '../../shared/types/gameScreen';
+import './VisualNovel.css';
 
-interface VisualNovelProps {
-  initialSceneId?: string;
-  playerId?: string;
-  onExit?: () => void;
-  questState?: any;
-}
-
-export const VisualNovel: React.FC<VisualNovelProps> = (props) => {
-  // Пробрасываем все пропсы в SceneRenderer
-  return <SceneRenderer {...props} />;
-};
-
-export default VisualNovel; 
+export const VisualNovel: React.FC<VisualNovelPageProps> = ({
+  initialSceneId,
+  playerId,
+  initialQuestState,
+  initialPlayerStats,
+  onExit
+}) => {
+  return (
+    <div className="visual-novel-page">
+      <SceneRenderer
+        initialSceneId={initialSceneId}
+        playerId={playerId}
+        initialQuestState={initialQuestState}
+        initialPlayerStats={initialPlayerStats}
+        onExit={onExit}
+      />
+    </div>
+  );
+}; 

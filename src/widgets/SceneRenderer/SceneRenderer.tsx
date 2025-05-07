@@ -48,8 +48,16 @@ export const SceneRenderer: React.FC<SceneRendererProps> = ({
   const [showChoices, setShowChoices] = useState(false);
   const [dialogueCompleted, setDialogueCompleted] = useState(false);
 
+  // Отладочное логирование при изменении состояния
+  useEffect(() => {
+    console.log("Текущий индекс диалога:", currentDialogueLineIndex);
+    console.log("Показывать выборы:", showChoices);
+    console.log("Диалог завершен:", dialogueCompleted);
+  }, [currentDialogueLineIndex, showChoices, dialogueCompleted]);
+
   useEffect(() => {
     // Сбрасываем состояние при смене сцены (новый ID)
+    console.log("Загружена новая сцена:", currentScene?.title);
     setCurrentDialogueLineIndex(0);
     setShowChoices(false);
     setDialogueCompleted(false);
@@ -61,22 +69,32 @@ export const SceneRenderer: React.FC<SceneRendererProps> = ({
   }, [currentScene, sceneStateManager]);
 
   const advanceDialogue = useCallback(() => {
-    if (!currentScene) return;
-
-    // Если диалог уже завершен, не делаем ничего, чтобы избежать повторного запуска сцены
-    if (dialogueCompleted) {
+    if (!currentScene) {
+      console.warn("Невозможно продвинуть диалог: сцена не загружена");
       return;
     }
 
+    // Если диалог уже завершен, не делаем ничего, чтобы избежать повторного запуска сцены
+    if (dialogueCompleted) {
+      console.log("Диалог уже завершен, игнорируем нажатие");
+      return;
+    }
+
+    console.log(`Продвигаем диалог: ${currentDialogueLineIndex} из ${currentScene.dialogueLines.length - 1}`);
+
     if (currentDialogueLineIndex < currentScene.dialogueLines.length - 1) {
+      console.log("Переходим к следующей строке диалога");
       setCurrentDialogueLineIndex((prev) => prev + 1);
     } else {
       // Диалог закончен
+      console.log("Все строки диалога показаны, завершаем диалог");
       setDialogueCompleted(true);
       
       if (currentScene.choices && currentScene.choices.length > 0) {
+        console.log("Показываем варианты выбора:", currentScene.choices);
         setShowChoices(true);
       } else if (currentScene.action) { // Если нет выборов, но есть авто-действие на сцене
+        console.log("Автоматическое действие:", currentScene.action);
         // Создаем временный объект Choice из action
         const tempChoice: ChoiceOption = {
           id: 'auto_action',
@@ -85,6 +103,7 @@ export const SceneRenderer: React.FC<SceneRendererProps> = ({
         };
         handleChoice(tempChoice);
       } else {
+        console.log("Нет выборов и действий, выходим из визуальной новеллы");
         // Конец ВН или ветки без явного выхода/выбора
         if (onExit) onExit(sceneStateManager.getQuestState(), sceneStateManager.getPlayerStats());
       }
@@ -96,9 +115,10 @@ export const SceneRenderer: React.FC<SceneRendererProps> = ({
   if (!currentScene) return <div>Сцена не найдена.</div>;
 
   const currentLine = currentScene.dialogueLines[currentDialogueLineIndex];
+  console.log("Текущая строка диалога:", currentLine);
 
   return (
-    <div className="visual-novel-container"  /* Стили для позиционирования */ >
+    <div className="visual-novel-container">
       <MusicPlayer trackUrl={currentScene.musicTrack} />
       <BackgroundDisplay imageUrl={currentScene.backgroundUrl} />
 
@@ -118,6 +138,7 @@ export const SceneRenderer: React.FC<SceneRendererProps> = ({
         <ChoiceList
           choices={currentScene.choices}
           onChoiceSelected={(choice) => {
+            console.log("Выбран вариант:", choice);
             if (currentScene.onExitScript) {
               // TODO: sceneStateManager.executeScript(currentScene.onExitScript);
             }

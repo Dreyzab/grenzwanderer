@@ -1,0 +1,98 @@
+.itemGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  padding: 10px;
+}
+
+.itemCell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.itemCell:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.selected {
+  background-color: #f0f5ff;
+  border-color: #5b9bff;
+  box-shadow: 0 0 8px rgba(91, 155, 255, 0.4);
+}
+
+.itemImage {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.itemImage img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.newBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ff4b4b;
+  color: white;
+  font-size: 9px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.itemName {
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  white-space: nowrap;
+}
+
+/* Стили для различных редкостей предметов */
+.common {
+  border-color: #b0b0b0;
+}
+
+.uncommon {
+  border-color: #2ecc71;
+}
+
+.rare {
+  border-color: #3498db;
+}
+
+.epic {
+  border-color: #9b59b6;
+}
+
+.legendary {
+  border-color: #f39c12;
+  background-color: rgba(243, 156, 18, 0.1);
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+} 

@@ -1,0 +1,78 @@
+.characterSheet {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+  background-color: rgba(30, 30, 30, 0.9);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.basicInfo {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.levelInfo {
+  margin-top: 12px;
+}
+
+.level {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.expBar {
+  width: 100%;
+  height: 12px;
+  background-color: rgba(60, 60, 60, 0.8);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.expFill {
+  height: 100%;
+  background-color: #6d9feb;
+  transition: width 0.3s ease;
+}
+
+.expText {
+  font-size: 14px;
+  color: #aaa;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.attributesPanel, .secondaryStats {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.attributesList, .statsList {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attributeItem, .statItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: rgba(60, 60, 60, 0.5);
+  border-radius: 4px;
+}
+
+.attributeName, .statName {
+  color: #ddd;
+}
+
+.attributeValue, .statValue {
+  font-weight: bold;
+  color: #6d9feb;
+}
+
+.skills {
+  padding-bottom: 16px;
+} 

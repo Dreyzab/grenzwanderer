@@ -1,0 +1,145 @@
+.skillAllocator {
+  background-color: #f7f7f7;
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+}
+
+.title {
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  font-weight: 600;
+  text-align: center;
+}
+
+.pointsInfo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.pointsRemaining {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  background-color: #e0f3ff;
+  border-radius: 20px;
+  color: #007bff;
+  font-weight: 500;
+}
+
+.pointsValue {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.attributesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.attributeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.attributeName {
+  font-weight: 500;
+  color: #555;
+}
+
+.attributeControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.attributeValue {
+  min-width: 50px;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+}
+
+.increasedValue {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.decreasedValue {
+  color: #f44336;
+  font-weight: 600;
+}
+
+.controlButton {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f2f2f2;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.controlButton:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.controlButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.applyButton, .resetButton {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.applyButton {
+  background-color: #4caf50;
+  color: white;
+}
+
+.applyButton:hover:not(:disabled) {
+  background-color: #388e3c;
+}
+
+.resetButton {
+  background-color: #f44336;
+  color: white;
+}
+
+.resetButton:hover:not(:disabled) {
+  background-color: #d32f2f;
+}
+
+.applyButton:disabled, .resetButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+} 

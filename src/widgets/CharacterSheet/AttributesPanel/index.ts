@@ -1,0 +1,1 @@
+export { AttributesPanel } from './ui/AttributesPanel'; 

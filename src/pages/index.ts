@@ -1,0 +1,13 @@
+export { MainPage } from './MainPage/MainPage';
+export { GamePage } from './GamePage/GamePage';
+export { LoginPage } from './LoginPage/LoginPage';
+export { RegisterPage } from './RegisterPage/RegisterPage';
+export { ProfilePage } from './ProfilePage/ProfilePage';
+export { AdminPage } from './AdminPage/AdminPage';
+export { VisualNovelPage } from './VisualNovelPage';
+export { QuestLogPage } from './QuestLogPage';
+export { InventoryPage } from './InventoryPage';
+export { CharacterStatsPage } from './CharacterStatsPage';
+export { SocialPage } from './SocialPage';
+export { SettingsPage } from './SettingsPage';
+export { NotFoundPage } from './NotFoundPage'; 

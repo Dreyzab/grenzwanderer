@@ -1,0 +1,1 @@
+export { SkillAllocator } from './ui/SkillAllocator'; 

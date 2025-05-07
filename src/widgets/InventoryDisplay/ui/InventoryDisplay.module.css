@@ -1,0 +1,61 @@
+.inventoryDisplay {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+  background-color: rgba(30, 30, 30, 0.9);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.inventoryGrid {
+  flex: 1;
+}
+
+.itemGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.emptySlot {
+  background-color: rgba(60, 60, 60, 0.5);
+  border: 1px solid rgba(100, 100, 100, 0.5);
+  border-radius: 4px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(200, 200, 200, 0.5);
+}
+
+.equipmentSlots {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 16px;
+}
+
+.equipmentContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.equipSlot {
+  background-color: rgba(60, 60, 60, 0.5);
+  border: 1px solid rgba(100, 100, 100, 0.5);
+  border-radius: 4px;
+  height: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  color: rgba(200, 200, 200, 0.8);
+}
+
+.itemInfo {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 16px;
+} 

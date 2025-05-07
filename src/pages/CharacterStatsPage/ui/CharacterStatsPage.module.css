@@ -1,0 +1,127 @@
+.characterStatsPage {
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.characterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #eaeaea;
+}
+
+.characterHeader h1 {
+  margin: 0;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.powerRating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #3a55c5;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.powerLabel {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.powerValue {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.characterContent {
+  display: flex;
+  gap: 2rem;
+}
+
+.mainColumn {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sideColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.attributesSection,
+.secondaryStatsSection,
+.experienceSection,
+.skillAllocatorSection,
+.equipmentBonusSection {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #444;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.bonusList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bonusItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.bonusName {
+  color: #666;
+}
+
+.bonusValue {
+  font-weight: 600;
+  color: #4caf50;
+}
+
+@media (max-width: 768px) {
+  .characterContent {
+    flex-direction: column;
+  }
+  
+  .powerRating {
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .powerLabel {
+    font-size: 0.8rem;
+  }
+  
+  .powerValue {
+    font-size: 1rem;
+  }
+  
+  .characterHeader h1 {
+    font-size: 1.5rem;
+  }
+} 

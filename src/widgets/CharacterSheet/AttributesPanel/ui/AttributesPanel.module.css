@@ -1,0 +1,141 @@
+.attributesPanel {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.title {
+  font-size: 1.3rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.pointsAvailable {
+  background-color: #f8f4de;
+  border: 1px dashed #e6c74c;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #866d1b;
+}
+
+.pointsIcon {
+  font-size: 1.2rem;
+}
+
+.attributesList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.attributeRow {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px;
+  border-radius: 6px;
+  background-color: #f5f5f5;
+  transition: all 0.2s ease;
+}
+
+.attributeRow:hover {
+  background-color: #eaeaea;
+}
+
+.attributeInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.attributeIcon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.3rem;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.attributeNameValue {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.attributeName {
+  font-weight: 600;
+  color: #444;
+}
+
+.attributeValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.attributeLow {
+  color: #e74c3c;
+}
+
+.attributeAverage {
+  color: #e67e22;
+}
+
+.attributeGood {
+  color: #3498db;
+}
+
+.attributeGreat {
+  color: #2ecc71;
+}
+
+.attributeExcellent {
+  color: #9b59b6;
+}
+
+.attributeDescription {
+  font-size: 0.85rem;
+  color: #666;
+  margin-left: 40px;
+}
+
+.attributeControls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 5px;
+}
+
+.attributeIncreaseButton {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background-color: #3a55c5;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.attributeIncreaseButton:hover:not(:disabled) {
+  background-color: #2c429e;
+  transform: scale(1.1);
+}
+
+.attributeIncreaseButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+} 

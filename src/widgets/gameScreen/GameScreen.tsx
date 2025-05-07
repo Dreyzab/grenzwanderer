@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { QuestMap } from '../../widgets/questMap/QuestMap';
 import { Messages } from '../../widgets/messages/Messages';
-import { VisualNovel } from '../../pages/visualNovel/VisualNovel';
+import { VisualNovel } from '../../pages/VisualNovelPage/VisualNovel';
 import { GameScreenProps, GameView } from '../../shared/types/gameScreen';
 import { QuestStateEnum } from '../../shared/constants/quest';
 import { Header } from './Header';

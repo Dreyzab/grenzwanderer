@@ -1,0 +1,73 @@
+.navBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  height: 60px;
+  background-color: rgba(20, 20, 20, 0.95);
+  border-bottom: 1px solid rgba(60, 60, 60, 0.8);
+}
+
+.logoContainer {
+  flex: 0 0 auto;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  color: #6d9feb;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+
+.navLinks {
+  display: flex;
+  gap: 24px;
+}
+
+.navLink {
+  font-size: 16px;
+  color: #ccc;
+  text-decoration: none;
+  padding: 8px 0;
+  transition: color 0.2s ease;
+  position: relative;
+}
+
+.navLink:hover {
+  color: #fff;
+}
+
+.navLink.active {
+  color: #6d9feb;
+}
+
+.navLink.active:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #6d9feb;
+}
+
+.userActions {
+  display: flex;
+  gap: 16px;
+}
+
+.userLink {
+  font-size: 14px;
+  color: #aaa;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.userLink:hover {
+  color: #fff;
+}
+
+.userLink.active {
+  color: #6d9feb;
+} 

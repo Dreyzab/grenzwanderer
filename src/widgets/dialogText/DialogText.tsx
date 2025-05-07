@@ -26,6 +26,7 @@ export const DialogText: React.FC<DialogTextProps> = ({
   // Reset state when line changes
   useEffect(() => {
     if (line) {
+      console.log("Новая строка диалога:", line.text);
       setDisplayedText('');
       setIsTyping(true);
       setShowAll(instantText);
@@ -66,19 +67,48 @@ export const DialogText: React.FC<DialogTextProps> = ({
   }, [displayedText, autoScroll]);
   
   // Handle click to show all text immediately or advance to next
-  const handleTextClick = () => {
+  const handleTextClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Предотвращаем всплытие события
+    console.log("Клик по тексту, isTyping:", isTyping);
+    
     if (isTyping) {
+      console.log("Показываем весь текст сразу");
       setShowAll(true);
     } else {
-      // Text is fully shown, go to next line/choice
+      console.log("Переходим к следующей строке/выбору");
       onNext();
+    }
+  };
+  
+  // Обработчик клика по подсказке "Нажмите, чтобы продолжить..."
+  const handleContinueClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Предотвращаем всплытие события
+    console.log("Клик по подсказке продолжения");
+    if (!isTyping) {
+      console.log("Вызываем onNext() из подсказки");
+      onNext();
+    }
+  };
+  
+  // Обработчик клика по контейнеру диалога
+  const handleContainerClick = (e: React.MouseEvent) => {
+    console.log("Клик по контейнеру диалога");
+    if (!isTyping) {
+      console.log("Вызываем onNext() из контейнера");
+      onNext();
+    } else {
+      console.log("Показываем весь текст сразу из контейнера");
+      setShowAll(true);
     }
   };
   
   if (!line) return null;
   
   return (
-    <div className="dialog-container">
+    <div 
+      className="dialog-container"
+      onClick={handleContainerClick}
+    >
       {line.speakerName && (
         <div className="dialog-speaker">
           {line.speakerName}
@@ -95,7 +125,10 @@ export const DialogText: React.FC<DialogTextProps> = ({
       </div>
       
       {!isTyping && (
-        <div className="dialog-continue-hint">
+        <div 
+          className="dialog-continue-hint"
+          onClick={handleContinueClick}
+        >
           Нажмите, чтобы продолжить...
         </div>
       )}

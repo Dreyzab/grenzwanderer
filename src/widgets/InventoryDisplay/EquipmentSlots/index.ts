@@ -1,0 +1,1 @@
+export { EquipmentSlots } from './ui/EquipmentSlots'; 

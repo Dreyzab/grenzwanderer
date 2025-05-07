@@ -1,0 +1,1 @@
+export { InventoryDisplay } from './ui/InventoryDisplay'; 

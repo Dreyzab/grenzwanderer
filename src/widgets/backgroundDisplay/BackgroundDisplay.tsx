@@ -3,59 +3,50 @@ import './BackgroundDisplay.css';
 
 interface BackgroundDisplayProps {
   imageUrl?: string;
-  transitionDuration?: number;
 }
 
-export const BackgroundDisplay: React.FC<BackgroundDisplayProps> = ({
-  imageUrl,
-  transitionDuration = 800
-}) => {
-  const [currentBackground, setCurrentBackground] = useState<string | undefined>(imageUrl);
-  const [previousBackground, setPreviousBackground] = useState<string | undefined>(undefined);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+export const BackgroundDisplay: React.FC<BackgroundDisplayProps> = ({ imageUrl }) => {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
 
+  // Сбрасываем состояние загрузки при изменении URL
   useEffect(() => {
-    if (imageUrl !== currentBackground) {
-      setPreviousBackground(currentBackground);
-      setCurrentBackground(imageUrl);
-      setIsTransitioning(true);
-      
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-        setPreviousBackground(undefined);
-      }, transitionDuration);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [imageUrl, currentBackground, transitionDuration]);
+    setLoaded(false);
+    setError(false);
+  }, [imageUrl]);
 
-  // Стандартный фон (может быть градиент), если URL не предоставлен
-  const defaultStyle = {
-    background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)',
-  };
+  // Если URL не был предоставлен, используем черный фон
+  if (!imageUrl) {
+    return <div className="background-display background-fallback" />;
+  }
+
+  // Исправляем URL при необходимости, убедившись, что пути относительны от public/
+  const fixedImageUrl = imageUrl.startsWith('/') 
+    ? imageUrl 
+    : `/${imageUrl}`;
+
+  // Проверяем, существует ли файл по указанному пути
+  console.log(`Загрузка фонового изображения: ${fixedImageUrl}`);
 
   return (
     <div className="background-display">
-      {previousBackground && isTransitioning && (
-        <div 
-          className="background-layer fading-out" 
-          style={{ 
-            backgroundImage: `url(${previousBackground})`,
-            transition: `opacity ${transitionDuration}ms ease-out`
-          }}
-        />
-      )}
-      
-      {currentBackground ? (
-        <div 
-          className={`background-layer ${isTransitioning ? 'fading-in' : ''}`}
-          style={{ 
-            backgroundImage: `url(${currentBackground})`,
-            transition: `opacity ${transitionDuration}ms ease-in`
-          }}
-        />
-      ) : (
-        <div className="background-layer default-background" style={defaultStyle} />
+      <img
+        src={fixedImageUrl}
+        alt="Scene background"
+        className={`background-image ${loaded ? 'loaded' : ''}`}
+        onLoad={() => {
+          console.log(`Фоновое изображение успешно загружено: ${fixedImageUrl}`);
+          setLoaded(true);
+        }}
+        onError={(e) => {
+          console.error(`Ошибка загрузки фонового изображения: ${fixedImageUrl}`, e);
+          setError(true);
+        }}
+      />
+      {error && (
+        <div className="background-error">
+          Ошибка загрузки фона
+        </div>
       )}
     </div>
   );

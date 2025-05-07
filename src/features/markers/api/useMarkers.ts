@@ -4,12 +4,12 @@ import {
   hideMarker, 
   toggleMarkerActive, 
   toggleMarkerComplete, 
-  addInteraction, 
-  updateMarkersByQuestState,
+  addInteraction,
   $markers,
   $activeMarkers,
-  $markerInteractions
-} from '../../../entities/markers/model';
+  $markerInteractions,
+  initialMarkers
+} from '../../../entities/markers';
 import { MarkerData, MarkerInteraction } from '../../../shared/types/markers';
 import { useUnit } from 'effector-react';
 import { QuestStateEnum } from '../../../shared/constants/quest';
@@ -46,7 +46,33 @@ export function useMarkers() {
 
   // Обновить маркеры в зависимости от состояния квеста
   const updateMarkersByQuest = useCallback((state: QuestStateEnum) => {
-    updateMarkersByQuestState(state);
+    // Сначала скрываем все маркеры
+    initialMarkers.forEach(marker => hideMarker(marker.id));
+    
+    // Затем показываем нужные в зависимости от состояния
+    switch (state) {
+      case QuestStateEnum.DELIVERY_STARTED:
+        showMarker('trader');
+        break;
+      case QuestStateEnum.PARTS_COLLECTED:
+        showMarker('craftsman');
+        break;
+      case QuestStateEnum.ARTIFACT_HUNT:
+        showMarker('anomaly_zone');
+        showMarker('encounter');
+        break;
+      case QuestStateEnum.ARTIFACT_FOUND:
+        showMarker('craftsman');
+        break;
+      case QuestStateEnum.FREE_ROAM:
+        showMarker('trader');
+        showMarker('craftsman');
+        showMarker('anomaly_zone');
+        break;
+      default:
+        // Ничего не показываем
+        break;
+    }
   }, []);
 
   return {

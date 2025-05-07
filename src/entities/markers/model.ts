@@ -98,46 +98,6 @@ export const $activeMarkers = $markers.map(markers =>
   markers.filter(marker => marker.isActive)
 );
 
-// QR коды для тестов
-export const QR_CODES = {
-  TRADER: 'grenz_npc_trader_01',
-  CRAFTSMAN: 'grenz_npc_craftsman_01',
-  ARTIFACT: 'ARTIFACT_ITEM_2023',
-  ANOMALY_ZONE: 'location_anomaly_001',
-  ENCOUNTER: 'encounter_001'
-};
-
 // Хранилище взаимодействий
 export const $markerInteractions = createStore<MarkerInteraction[]>([])
-  .on(addInteraction, (state, interaction) => [...state, interaction]);
-
-// Функция для обновления видимости маркеров в зависимости от состояния квеста
-export function updateMarkersByQuestState(state: QuestStateEnum) {
-  // Сначала скрываем все маркеры
-  initialMarkers.forEach(marker => hideMarker(marker.id));
-  
-  // Затем показываем нужные в зависимости от состояния
-  switch (state) {
-    case QuestStateEnum.DELIVERY_STARTED:
-      showMarker('trader');
-      break;
-    case QuestStateEnum.PARTS_COLLECTED:
-      showMarker('craftsman');
-      break;
-    case QuestStateEnum.ARTIFACT_HUNT:
-      showMarker('anomaly_zone');
-      showMarker('encounter');
-      break;
-    case QuestStateEnum.ARTIFACT_FOUND:
-      showMarker('craftsman');
-      break;
-    case QuestStateEnum.FREE_ROAM:
-      showMarker('trader');
-      showMarker('craftsman');
-      showMarker('anomaly_zone');
-      break;
-    default:
-      // Ничего не показываем
-      break;
-  }
-} 
+  .on(addInteraction, (state, interaction) => [...state, interaction]); 

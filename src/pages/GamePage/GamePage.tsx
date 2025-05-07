@@ -47,6 +47,42 @@ export const GamePage: React.FC = () => {
     );
   }
   
+  // Функция для проверки возможности переключения между вкладками
+  const canSwitchTo = (targetTab: GameTab): boolean => {
+    // Всегда можно переключиться на сканер с любой вкладки
+    if (targetTab === 'scanner') {
+      return true;
+    }
+    
+    // Если активна вкладка 'novel' (диалог с NPC), то запрещаем переключение
+    // на карту или диалог до завершения сцены
+    if (activeTab === 'novel') {
+      return false;
+    }
+    
+    // Запрещаем переключаться с диалогов на карту
+    if (activeTab === 'dialog' && targetTab === 'map') {
+      return false;
+    }
+    
+    // Запрещаем переключаться с карты на диалоги, если активна сцена
+    if (activeTab === 'map' && targetTab === 'dialog' && currentSceneId) {
+      return false;
+    }
+    
+    return true;
+  };
+  
+  // Обновленный обработчик клика по вкладке с проверкой возможности переключения
+  const handleTabClickWithCheck = (tab: GameTab) => {
+    if (canSwitchTo(tab)) {
+      handleTabClick(tab);
+    } else {
+      // Можно добавить уведомление о невозможности переключения
+      alert('Невозможно переключиться на эту вкладку сейчас.');
+    }
+  };
+  
   return (
     <div className="game-page">
       {/* Навигационная панель */}
@@ -61,20 +97,20 @@ export const GamePage: React.FC = () => {
         <div className="game-tabs">
           <button
             className={`game-tab ${activeTab === 'map' ? 'active' : ''}`}
-            onClick={() => handleTabClick('map')}
+            onClick={() => handleTabClickWithCheck('map')}
           >
             Карта
           </button>
           <button
             className={`game-tab ${activeTab === 'dialog' ? 'active' : ''}`}
-            onClick={() => handleTabClick('dialog')}
+            onClick={() => handleTabClickWithCheck('dialog')}
           >
             Диалог
             {hasNewMessage && <span className="notification-badge">!</span>}
           </button>
           <button
             className={`game-tab ${activeTab === 'scanner' ? 'active' : ''}`}
-            onClick={() => handleTabClick('scanner')}
+            onClick={() => handleTabClickWithCheck('scanner')}
           >
             Сканер
           </button>
@@ -86,7 +122,7 @@ export const GamePage: React.FC = () => {
         {activeTab === 'scanner' && (
           <QRScanner 
             onSuccess={handleQRScanSuccess} 
-            onCancel={() => handleTabClick('map')}
+            onCancel={() => handleTabClickWithCheck('map')}
           />
         )}
         

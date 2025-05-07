@@ -46,10 +46,14 @@ export const SceneRenderer: React.FC<SceneRendererProps> = ({
 
   const [currentDialogueLineIndex, setCurrentDialogueLineIndex] = useState(0);
   const [showChoices, setShowChoices] = useState(false);
+  const [dialogueCompleted, setDialogueCompleted] = useState(false);
 
   useEffect(() => {
+    // Сбрасываем состояние при смене сцены (новый ID)
     setCurrentDialogueLineIndex(0);
     setShowChoices(false);
+    setDialogueCompleted(false);
+    
     if (currentScene?.onEnterScript) {
       // TODO: Execute onEnterScript (может менять state через sceneStateManager)
       // Например, sceneStateManager.executeScript(currentScene.onEnterScript);
@@ -59,10 +63,17 @@ export const SceneRenderer: React.FC<SceneRendererProps> = ({
   const advanceDialogue = useCallback(() => {
     if (!currentScene) return;
 
+    // Если диалог уже завершен, не делаем ничего, чтобы избежать повторного запуска сцены
+    if (dialogueCompleted) {
+      return;
+    }
+
     if (currentDialogueLineIndex < currentScene.dialogueLines.length - 1) {
       setCurrentDialogueLineIndex((prev) => prev + 1);
     } else {
       // Диалог закончен
+      setDialogueCompleted(true);
+      
       if (currentScene.choices && currentScene.choices.length > 0) {
         setShowChoices(true);
       } else if (currentScene.action) { // Если нет выборов, но есть авто-действие на сцене
@@ -78,7 +89,7 @@ export const SceneRenderer: React.FC<SceneRendererProps> = ({
         if (onExit) onExit(sceneStateManager.getQuestState(), sceneStateManager.getPlayerStats());
       }
     }
-  }, [currentScene, currentDialogueLineIndex, handleChoice, onExit, sceneStateManager]);
+  }, [currentScene, currentDialogueLineIndex, handleChoice, onExit, sceneStateManager, dialogueCompleted]);
 
   if (loading) return <div>Загрузка сцены...</div>;
   if (error) return <div>Ошибка загрузки сцены: {error}</div>;

@@ -213,6 +213,27 @@ export const useItem = mutation({
   },
 });
 
+export const getItemsDetails = query({
+  args: { itemIds: v.array(v.string()) },
+  handler: async (ctx, { itemIds }) => {
+    const items = [];
+    
+    for (const itemId of itemIds) {
+      try {
+        const item = await ctx.db.get(itemId as Id<"items">);
+        if (item) {
+          items.push(item);
+        }
+      } catch (error) {
+        // Пропускаем невалидные ID
+        console.error(`Ошибка при получении предмета с ID ${itemId}:`, error);
+      }
+    }
+    
+    return items;
+  },
+});
+
 function getDefaultSlotForItemType(itemType: string): string | null {
   switch (itemType) {
     case "weapon": return "primary";

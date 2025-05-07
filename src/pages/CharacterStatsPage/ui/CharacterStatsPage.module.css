@@ -1,127 +1,229 @@
 .characterStatsPage {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #1a1b26;
+  color: #a9b1d6;
+  padding: 16px;
 }
 
-.characterHeader {
+/* Стили для шапки страницы */
+.header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #eaeaea;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #414868;
 }
 
-.characterHeader h1 {
-  margin: 0;
-  color: #333;
+.header h1 {
   font-size: 1.8rem;
+  margin: 0;
+  color: #7aa2f7;
 }
 
-.powerRating {
+.characterInfo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background-color: #3a55c5;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.powerLabel {
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.powerValue {
-  font-weight: 700;
-  font-size: 1.2rem;
-}
-
-.characterContent {
-  display: flex;
-  gap: 2rem;
-}
-
-.mainColumn {
-  flex: 2;
+.levelBadge {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  background-color: #3b4261;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  margin-right: 16px;
 }
 
-.sideColumn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.levelLabel {
+  font-size: 0.75rem;
+  color: #c0caf5;
+  margin-bottom: 2px;
 }
 
-.attributesSection,
-.secondaryStatsSection,
-.experienceSection,
-.skillAllocatorSection,
-.equipmentBonusSection {
-  background-color: white;
+.levelValue {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #9ece6a;
+}
+
+.experienceBar {
+  width: 200px;
+  height: 16px;
+  background-color: #24283b;
   border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
 }
 
-.sectionTitle {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  color: #444;
-  font-size: 1.2rem;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 0.5rem;
+.experienceFill {
+  height: 100%;
+  background: linear-gradient(to right, #7aa2f7, #9ece6a);
+  transition: width 0.5s ease;
 }
 
-.bonusList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.bonusItem {
+.experienceText {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px dashed #eee;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: #1a1b26;
+  font-weight: bold;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
-.bonusName {
-  color: #666;
+/* Стили для вкладок */
+.tabsContainer {
+  margin-bottom: 20px;
 }
 
-.bonusValue {
-  font-weight: 600;
-  color: #4caf50;
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #414868;
 }
 
-@media (max-width: 768px) {
-  .characterContent {
-    flex-direction: column;
+.tabButton {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  color: #c0caf5;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.tabButton:hover {
+  background-color: #24283b;
+}
+
+.activeTab {
+  color: #7aa2f7;
+  background-color: #24283b;
+  border-bottom: 3px solid #7aa2f7;
+}
+
+.pointsBadge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #9ece6a;
+  color: #1a1b26;
+  font-size: 0.7rem;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Стили для контента страницы */
+.content {
+  flex: 1;
+}
+
+.attributesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .attributesContainer {
+    flex-direction: row;
   }
   
-  .powerRating {
-    padding: 0.4rem 0.8rem;
+  .attributesContainer > *:first-child {
+    flex: 1;
+    margin-right: 20px;
   }
   
-  .powerLabel {
-    font-size: 0.8rem;
+  .attributesContainer > *:last-child {
+    flex: 1;
   }
-  
-  .powerValue {
-    font-size: 1rem;
-  }
-  
-  .characterHeader h1 {
-    font-size: 1.5rem;
-  }
+}
+
+.skillsContainer {
+  width: 100%;
+}
+
+.comingSoon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  text-align: center;
+  color: #565f89;
+  border: 2px dashed #414868;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.comingSoon h3 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  color: #7aa2f7;
+}
+
+.comingSoon p {
+  max-width: 400px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Стили для панели отладки */
+.debugPanel {
+  margin-top: 20px;
+  padding: 16px;
+  background-color: rgba(255, 0, 0, 0.1);
+  border: 1px dashed #f7768e;
+  border-radius: 8px;
+}
+
+.debugPanel h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #f7768e;
+  font-size: 1rem;
+}
+
+.debugButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.debugButtons button {
+  padding: 8px 12px;
+  background-color: #24283b;
+  color: #c0caf5;
+  border: 1px solid #414868;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.debugButtons button:hover {
+  background-color: #3b4261;
+}
+
+.pageContainer {
+  padding: 2rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgba(30, 30, 40, 0.95) 0%, rgba(20, 20, 30, 0.95) 100%);
 } 

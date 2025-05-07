@@ -1,96 +1,104 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './QuickAccessBar.module.css';
-
-interface QuickSlotItem {
-  id: string;
-  name: string;
-  image: string;
-  cooldown?: {
-    current: number;
-    max: number;
-  };
-  quantity?: number;
-}
+import { useInventory, InventoryItemWithDetails } from '../../../../features/player/api/useInventory';
 
 interface QuickAccessBarProps {
   onAssignSlot: (itemId: string, slotIndex: number) => void;
   onUseItem: (itemId: string) => void;
+  onItemSelect: (itemId: string) => void;
 }
 
 // Количество слотов быстрого доступа
 const SLOT_COUNT = 6;
 
-// Моковые данные для быстрых слотов
-const MOCK_QUICK_SLOTS: (QuickSlotItem | null)[] = [
-  {
-    id: 'item3',
-    name: 'Аптечка',
-    image: '/assets/items/medkit.png',
-    quantity: 3
-  },
-  {
-    id: 'item6',
-    name: 'Стимулятор',
-    image: '/assets/items/stimulator.png',
-    cooldown: {
-      current: 45,
-      max: 120
-    },
-    quantity: 1
-  },
-  null, // пустой слот
-  {
-    id: 'item7',
-    name: 'Дымовая граната',
-    image: '/assets/items/smokebomb.png',
-    quantity: 2
-  },
-  null, // пустой слот
-  null  // пустой слот
-];
-
 export const QuickAccessBar: React.FC<QuickAccessBarProps> = ({
   onAssignSlot,
-  onUseItem
+  onUseItem,
+  onItemSelect
 }) => {
-  // Получение элемента для слота по индексу
-  const getSlotItem = (index: number): QuickSlotItem | null => {
-    if (index >= 0 && index < MOCK_QUICK_SLOTS.length) {
-      return MOCK_QUICK_SLOTS[index];
-    }
-    return null;
+  const { inventoryItems, loading, error } = useInventory();
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  
+  // Получаем предметы, подходящие для быстрого доступа (расходники)
+  const usableItems = inventoryItems.filter(item => 
+    item.details?.type === 'consumable' && !item.equipped
+  );
+  
+  // Получаем предметы, присвоенные быстрым слотам
+  // В реальном приложении здесь будет логика получения назначенных предметов из базы данных
+  // Пока используем временное решение: считаем, что quickSlot хранится в эффектах предмета
+  const getQuickSlotItem = (slotIndex: number): InventoryItemWithDetails | null => {
+    const item = usableItems.find(item => 
+      item.details?.effects && item.details.effects.quickSlot === slotIndex
+    );
+    return item || null;
   };
+  
+  // Обработчик перетаскивания предмета
+  const handleDragStart = (itemId: string) => {
+    setDraggedItemId(itemId);
+  };
+  
+  // Обработчик отпускания предмета на слоте
+  const handleDrop = (slotIndex: number) => {
+    if (draggedItemId) {
+      onAssignSlot(draggedItemId, slotIndex);
+      setDraggedItemId(null);
+    }
+  };
+  
+  // Обработчик окончания перетаскивания
+  const handleDragEnd = () => {
+    setDraggedItemId(null);
+  };
+  
+  if (loading) {
+    return (
+      <div className={styles.loading}>
+        Загрузка быстрого доступа...
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className={styles.error}>
+        Ошибка: {error}
+      </div>
+    );
+  }
   
   // Рендер кнопки для слота
   const renderSlotButton = (index: number) => {
-    const item = getSlotItem(index);
+    const item = getQuickSlotItem(index);
     const slotNumber = index + 1;
     
     return (
       <div 
         key={`slot-${index}`}
         className={`${styles.quickSlot} ${item ? styles.filled : styles.empty}`}
-        onClick={() => item && onUseItem(item.id)}
+        onClick={() => item && onUseItem(item._id)}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={() => handleDrop(index)}
       >
         {item ? (
           <div className={styles.slotContent}>
-            <img src={item.image} alt={item.name} className={styles.itemImage} />
+            <img 
+              src={item.details?.image || '/assets/items/placeholder.png'} 
+              alt={item.details?.name || 'Предмет'} 
+              className={styles.itemImage} 
+              onClick={(e) => {
+                e.stopPropagation();
+                onItemSelect(item._id);
+              }}
+            />
             <span className={styles.keyBinding}>{slotNumber}</span>
             
-            {item.quantity !== undefined && (
+            {item.quantity > 1 && (
               <span className={styles.quantity}>{item.quantity}</span>
             )}
             
-            {item.cooldown && (
-              <div 
-                className={styles.cooldownOverlay}
-                style={{
-                  height: `${(item.cooldown.current / item.cooldown.max) * 100}%`
-                }}
-              ></div>
-            )}
-            
-            <span className={styles.itemName}>{item.name}</span>
+            <span className={styles.itemName}>{item.details?.name || 'Предмет'}</span>
           </div>
         ) : (
           <div className={styles.emptySlot}>
@@ -102,11 +110,45 @@ export const QuickAccessBar: React.FC<QuickAccessBarProps> = ({
     );
   };
   
+  // Рендер доступных предметов для перетаскивания
+  const renderDraggableItems = () => {
+    return (
+      <div className={styles.draggableItems}>
+        <h3>Доступные предметы:</h3>
+        <div className={styles.itemsList}>
+          {usableItems.length > 0 ? (
+            usableItems.map(item => (
+              <div 
+                key={item._id}
+                className={styles.draggableItem}
+                draggable
+                onDragStart={() => handleDragStart(item._id)}
+                onDragEnd={handleDragEnd}
+                onClick={() => onItemSelect(item._id)}
+              >
+                <img 
+                  src={item.details?.image || '/assets/items/placeholder.png'} 
+                  alt={item.details?.name || 'Предмет'} 
+                />
+                <span>{item.details?.name || 'Предмет'}</span>
+                <span className={styles.dragItemQuantity}>x{item.quantity}</span>
+              </div>
+            ))
+          ) : (
+            <div className={styles.noItems}>Нет доступных предметов</div>
+          )}
+        </div>
+      </div>
+    );
+  };
+  
   return (
     <div className={styles.quickAccessBar}>
       <div className={styles.slotsContainer}>
         {Array.from({ length: SLOT_COUNT }).map((_, index) => renderSlotButton(index))}
       </div>
+      
+      {renderDraggableItems()}
       
       <div className={styles.helpText}>
         <p>Перетащите предметы на слоты для быстрого доступа или нажмите клавиши 1-6 для использования</p>

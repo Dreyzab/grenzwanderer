@@ -1,14 +1,6 @@
 import React from 'react';
 import styles from './ItemGrid.module.css';
-
-interface Item {
-  id: string;
-  name: string;
-  type: 'weapon' | 'armor' | 'consumable' | 'quest';
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-  image: string;
-  isNew: boolean;
-}
+import { useInventory, InventoryItemWithDetails } from '../../../../features/player/api/useInventory';
 
 interface ItemGridProps {
   selectedItemId: string | null;
@@ -17,61 +9,24 @@ interface ItemGridProps {
   filterOption: 'all' | 'weapons' | 'armor' | 'consumables' | 'quest';
 }
 
-// Моковые данные для примера
-const MOCK_ITEMS: Item[] = [
-  {
-    id: 'item1',
-    name: 'Осколок Звезд',
-    type: 'weapon',
-    rarity: 'rare',
-    image: '/assets/items/starfragment.png',
-    isNew: true
-  },
-  {
-    id: 'item2',
-    name: 'Легкий бронежилет',
-    type: 'armor',
-    rarity: 'uncommon',
-    image: '/assets/items/lightvest.png',
-    isNew: false
-  },
-  {
-    id: 'item3',
-    name: 'Аптечка',
-    type: 'consumable',
-    rarity: 'common',
-    image: '/assets/items/medkit.png',
-    isNew: false
-  },
-  {
-    id: 'item4',
-    name: 'Таинственный ключ',
-    type: 'quest',
-    rarity: 'epic',
-    image: '/assets/items/mysterykey.png',
-    isNew: true
-  },
-  {
-    id: 'item5',
-    name: 'Электронная отмычка',
-    type: 'quest',
-    rarity: 'uncommon',
-    image: '/assets/items/lockpick.png',
-    isNew: false
-  }
-];
-
 export const ItemGrid: React.FC<ItemGridProps> = ({
   selectedItemId,
   onItemSelect,
   sortOption,
   filterOption
 }) => {
+  const { inventoryItems, loading } = useInventory();
+  
+  // Получение предметов рюкзака (не экипированные)
+  const backpackItems = inventoryItems.filter(item => 
+    item.location === 'backpack' && !item.equipped
+  );
+  
   // Фильтрация предметов
-  let filteredItems = [...MOCK_ITEMS];
+  let filteredItems = [...backpackItems];
   
   if (filterOption !== 'all') {
-    const filterMap = {
+    const filterMap: Record<string, string> = {
       'weapons': 'weapon',
       'armor': 'armor',
       'consumables': 'consumable',
@@ -79,41 +34,54 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
     };
     
     filteredItems = filteredItems.filter(item => 
-      item.type === filterMap[filterOption as keyof typeof filterMap]
+      item.details?.type === filterMap[filterOption]
     );
   }
   
   // Сортировка предметов
   filteredItems.sort((a, b) => {
+    if (!a.details || !b.details) return 0;
+    
     switch (sortOption) {
       case 'newest':
-        return (a.isNew === b.isNew) ? 0 : a.isNew ? -1 : 1;
+        return (a.details.isNew === b.details.isNew) ? 0 : a.details.isNew ? -1 : 1;
       case 'rarity': 
         const rarityOrder = { 'common': 0, 'uncommon': 1, 'rare': 2, 'epic': 3, 'legendary': 4 };
-        return rarityOrder[b.rarity] - rarityOrder[a.rarity];
+        const aRarity = a.details.rarity || 'common';
+        const bRarity = b.details.rarity || 'common';
+        return (rarityOrder[bRarity] || 0) - (rarityOrder[aRarity] || 0);
       case 'type':
-        return a.type.localeCompare(b.type);
+        return (a.details.type || '').localeCompare(b.details.type || '');
       case 'name':
-        return a.name.localeCompare(b.name);
+        return (a.details.name || '').localeCompare(b.details.name || '');
       default:
         return 0;
     }
   });
+  
+  if (loading) {
+    return (
+      <div className={styles.loading}>
+        Загрузка инвентаря...
+      </div>
+    );
+  }
   
   return (
     <div className={styles.itemGrid}>
       {filteredItems.length > 0 ? (
         filteredItems.map(item => (
           <div 
-            key={item.id} 
-            className={`${styles.itemCell} ${selectedItemId === item.id ? styles.selected : ''} ${styles[item.rarity]}`}
-            onClick={() => onItemSelect(item.id)}
+            key={item._id} 
+            className={`${styles.itemCell} ${selectedItemId === item._id ? styles.selected : ''} ${styles[item.details?.rarity || 'common']}`}
+            onClick={() => onItemSelect(item._id)}
           >
             <div className={styles.itemImage}>
-              <img src={item.image} alt={item.name} />
-              {item.isNew && <span className={styles.newBadge}>Новый</span>}
+              <img src={item.details?.image || '/assets/items/placeholder.png'} alt={item.details?.name || 'Предмет'} />
+              {item.details?.isNew && <span className={styles.newBadge}>Новый</span>}
+              {item.quantity > 1 && <span className={styles.quantityBadge}>{item.quantity}</span>}
             </div>
-            <div className={styles.itemName}>{item.name}</div>
+            <div className={styles.itemName}>{item.details?.name || 'Неизвестный предмет'}</div>
           </div>
         ))
       ) : (

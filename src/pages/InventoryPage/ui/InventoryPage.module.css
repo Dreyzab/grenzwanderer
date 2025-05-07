@@ -2,128 +2,174 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 1rem;
-  background-color: #f2f2f2;
+  padding: 20px;
+  background-color: #1a1b26;
+  color: #a9b1d6;
+}
+
+.loadingContainer,
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+}
+
+.loadingSpinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(169, 177, 214, 0.3);
+  border-radius: 50%;
+  border-top-color: #7aa2f7;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.errorContainer {
+  color: #f7768e;
+}
+
+.errorContainer button {
+  margin-top: 20px;
+  padding: 8px 16px;
+  background-color: #7aa2f7;
+  color: #1a1b26;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.errorContainer button:hover {
+  background-color: #9ece6a;
 }
 
 .inventoryHeader {
-  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .inventoryHeader h1 {
-  margin-bottom: 0.8rem;
-  font-size: 1.8rem;
-  color: #333;
+  font-size: 24px;
+  color: #7aa2f7;
+  margin: 0;
 }
 
 .controlsPanel {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: 0.8rem;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  gap: 20px;
 }
 
-.filterControl, .sortControl {
+.filterControl,
+.sortControl {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.filterControl label, .sortControl label {
-  font-weight: 500;
-  color: #555;
+  gap: 8px;
 }
 
 .selectControl {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
+  padding: 8px 12px;
+  background-color: #24283b;
+  color: #a9b1d6;
+  border: 1px solid #414868;
   border-radius: 4px;
-  background-color: #fff;
-  cursor: pointer;
 }
 
 .inventoryContent {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 20px;
+  height: calc(100vh - 120px);
   overflow: hidden;
 }
 
 .equipmentSection {
-  background-color: #fff;
+  grid-column: 1;
+  grid-row: 1;
+  background-color: #24283b;
   border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  overflow-y: auto;
 }
 
 .equipmentSection h2 {
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
-  color: #444;
+  font-size: 18px;
+  color: #bb9af7;
+  margin-top: 0;
+  margin-bottom: 15px;
 }
 
 .inventoryMainSection {
-  display: flex;
-  flex: 1;
-  gap: 1.5rem;
-  overflow: hidden;
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  height: 100%;
 }
 
 .itemsSection {
-  flex: 1;
-  min-width: 250px;
-  background-color: #fff;
+  background-color: #24283b;
   border-radius: 8px;
-  padding: 1rem;
+  padding: 15px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .itemsSection h2 {
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
-  color: #444;
+  font-size: 18px;
+  color: #bb9af7;
+  margin-top: 0;
+  margin-bottom: 15px;
 }
 
 .itemsContainer {
-  height: calc(100% - 2.5rem);
+  flex: 1;
   overflow-y: auto;
 }
 
 .itemDetailsSection {
-  flex: 1;
-  max-width: 400px;
-  background-color: #fff;
+  background-color: #24283b;
   border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px;
   overflow-y: auto;
 }
 
 .emptySelection {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   height: 100%;
-  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #565f89;
   font-style: italic;
+  padding: 20px;
 }
 
 .quickAccessSection {
-  background-color: #fff;
+  grid-column: 1 / 3;
+  grid-row: 2;
+  background-color: #24283b;
   border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px;
 }
 
 .quickAccessSection h2 {
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
-  color: #444;
+  font-size: 18px;
+  color: #bb9af7;
+  margin-top: 0;
+  margin-bottom: 15px;
 }
 
 @media (max-width: 768px) {

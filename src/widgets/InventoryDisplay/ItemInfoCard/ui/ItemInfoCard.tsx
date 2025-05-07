@@ -1,5 +1,7 @@
 import React from 'react';
 import styles from './ItemInfoCard.module.css';
+import { useInventory, InventoryItemWithDetails } from '../../../../features/player/api/useInventory';
+import { Id } from '../../../../../convex/_generated/dataModel';
 
 interface ItemInfoCardProps {
   itemId: string;
@@ -8,101 +10,32 @@ interface ItemInfoCardProps {
   onEquip: (itemId: string, slotId: string) => void;
 }
 
-interface ItemDetails {
-  id: string;
-  name: string;
-  type: 'weapon' | 'armor' | 'consumable' | 'quest';
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-  image: string;
-  description: string;
-  stats: { [key: string]: number | string };
-  equippableSlots?: string[];
-  isEquipped?: boolean;
-  durability?: { current: number; max: number };
-}
-
-// Моковые данные предметов
-const MOCK_ITEMS: Record<string, ItemDetails> = {
-  'item1': {
-    id: 'item1',
-    name: 'Осколок Звезд',
-    type: 'weapon',
-    rarity: 'rare',
-    image: '/assets/items/starfragment.png',
-    description: 'Древнее оружие, выкованное из осколка упавшей звезды. Обладает мистической энергией.',
-    stats: {
-      'Урон': 75,
-      'Скорость атаки': 1.2,
-      'Крит. шанс': '15%',
-      'Бонус': '+10% к урону по механическим противникам'
-    },
-    equippableSlots: ['weapon'],
-    durability: { current: 85, max: 100 }
-  },
-  'item2': {
-    id: 'item2',
-    name: 'Легкий бронежилет',
-    type: 'armor',
-    rarity: 'uncommon',
-    image: '/assets/items/lightvest.png',
-    description: 'Современный легкий бронежилет, обеспечивающий хорошую защиту без потери подвижности.',
-    stats: {
-      'Защита': 45,
-      'Вес': 3.2,
-      'Сопротивление огню': '10%',
-      'Бонус': '+5% к скорости передвижения'
-    },
-    equippableSlots: ['body'],
-    durability: { current: 70, max: 100 },
-    isEquipped: true
-  },
-  'item3': {
-    id: 'item3',
-    name: 'Аптечка',
-    type: 'consumable',
-    rarity: 'common',
-    image: '/assets/items/medkit.png',
-    description: 'Базовая аптечка с медикаментами для оказания первой помощи. Восстанавливает здоровье.',
-    stats: {
-      'Восстановление здоровья': 50,
-      'Время использования': '2 сек',
-      'Бонус': 'Останавливает кровотечение'
-    }
-  },
-  'item4': {
-    id: 'item4',
-    name: 'Таинственный ключ',
-    type: 'quest',
-    rarity: 'epic',
-    image: '/assets/items/mysterykey.png',
-    description: 'Древний ключ странной формы. Неизвестно, что он открывает, но кажется важным.',
-    stats: {
-      'Требуется для': 'Квест "Тайны Старого города"',
-      'Прогресс': 'Этап 2/5'
-    }
-  },
-  'item5': {
-    id: 'item5',
-    name: 'Электронная отмычка',
-    type: 'quest',
-    rarity: 'uncommon',
-    image: '/assets/items/lockpick.png',
-    description: 'Устройство для взлома электронных замков. Может быть использовано специалистами.',
-    stats: {
-      'Требуется для': 'Различные задания',
-      'Шанс успеха': '75%',
-      'Перезарядка': '30 сек'
-    }
-  }
-};
-
 export const ItemInfoCard: React.FC<ItemInfoCardProps> = ({
   itemId,
   onUse,
   onDrop,
   onEquip
 }) => {
-  const item = MOCK_ITEMS[itemId];
+  const { inventoryItems, loading, error } = useInventory();
+  
+  // Находим выбранный предмет в инвентаре
+  const item = inventoryItems.find(item => item._id === itemId);
+  
+  if (loading) {
+    return (
+      <div className={styles.loading}>
+        Загрузка информации о предмете...
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className={styles.error}>
+        Ошибка: {error}
+      </div>
+    );
+  }
   
   if (!item) {
     return (
@@ -113,7 +46,9 @@ export const ItemInfoCard: React.FC<ItemInfoCardProps> = ({
   }
   
   // Функция для определения цвета редкости
-  const getRarityColor = (rarity: string): string => {
+  const getRarityColor = (rarity: string | undefined): string => {
+    if (!rarity) return '#b0b0b0'; // default gray
+    
     const rarityColors: Record<string, string> = {
       'common': '#b0b0b0',
       'uncommon': '#2ecc71',
@@ -125,7 +60,9 @@ export const ItemInfoCard: React.FC<ItemInfoCardProps> = ({
   };
   
   // Функция для получения текстового представления редкости
-  const getRarityText = (rarity: string): string => {
+  const getRarityText = (rarity: string | undefined): string => {
+    if (!rarity) return 'Обычный';
+    
     const rarityTexts: Record<string, string> = {
       'common': 'Обычный',
       'uncommon': 'Необычный',
@@ -137,105 +74,123 @@ export const ItemInfoCard: React.FC<ItemInfoCardProps> = ({
   };
   
   // Функция для получения текстового представления типа
-  const getTypeText = (type: string): string => {
+  const getTypeText = (type: string | undefined): string => {
+    if (!type) return 'Предмет';
+    
     const typeTexts: Record<string, string> = {
       'weapon': 'Оружие',
       'armor': 'Броня',
       'consumable': 'Расходник',
-      'quest': 'Квестовый'
+      'quest': 'Квестовый',
+      'misc': 'Разное'
     };
     return typeTexts[type] || 'Предмет';
   };
+  
+  // Получаем информацию о предмете
+  const details = item.details;
+  
+  // Определяем доступные слоты для экипировки
+  const getEquipSlots = (type: string | undefined): string[] => {
+    if (!type) return [];
+    
+    switch (type) {
+      case 'weapon': return ['primary'];
+      case 'armor': return ['body'];
+      case 'consumable': return [];
+      case 'quest': return [];
+      case 'misc': return [];
+      default: return [];
+    }
+  };
+  
+  const equipSlots = details ? getEquipSlots(details.type) : [];
+  const canEquip = equipSlots.length > 0;
+  const canUse = details?.type === 'consumable';
 
   return (
     <div className={styles.itemInfoCard}>
       <div 
         className={styles.itemHeader} 
-        style={{ borderColor: getRarityColor(item.rarity) }}
+        style={{ borderColor: getRarityColor(details?.rarity) }}
       >
         <div className={styles.itemImage}>
-          <img src={item.image} alt={item.name} />
+          <img src={details?.image || '/assets/items/placeholder.png'} alt={details?.name || 'Предмет'} />
         </div>
         <div className={styles.itemTitleInfo}>
-          <h3 className={styles.itemName}>{item.name}</h3>
+          <h3 className={styles.itemName}>{details?.name || 'Неизвестный предмет'}</h3>
           <div className={styles.itemMeta}>
             <span 
               className={styles.itemRarity} 
-              style={{ color: getRarityColor(item.rarity) }}
+              style={{ color: getRarityColor(details?.rarity) }}
             >
-              {getRarityText(item.rarity)}
+              {getRarityText(details?.rarity)}
             </span>
-            <span className={styles.itemType}>{getTypeText(item.type)}</span>
+            <span className={styles.itemType}>{getTypeText(details?.type)}</span>
           </div>
-          {item.durability && (
-            <div className={styles.durabilityBar}>
-              <div 
-                className={styles.durabilityFill} 
-                style={{ 
-                  width: `${(item.durability.current / item.durability.max) * 100}%`,
-                  backgroundColor: item.durability.current < 30 ? '#e74c3c' : '#2ecc71'
-                }}
-              ></div>
-              <span className={styles.durabilityText}>
-                {item.durability.current}/{item.durability.max}
-              </span>
-            </div>
-          )}
+          <div className={styles.quantityInfo}>
+            <span className={styles.quantity}>Количество: {item.quantity}</span>
+          </div>
         </div>
       </div>
       
       <div className={styles.itemDescription}>
-        <p>{item.description}</p>
+        <p>{details?.description || 'Нет описания'}</p>
       </div>
       
-      <div className={styles.itemStats}>
-        <h4>Характеристики:</h4>
-        <ul className={styles.statsList}>
-          {Object.entries(item.stats).map(([key, value]) => (
-            <li key={key} className={styles.statItem}>
-              <span className={styles.statLabel}>{key}:</span>
-              <span className={styles.statValue}>{value}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {details?.effects && (
+        <div className={styles.itemStats}>
+          <h4>Характеристики:</h4>
+          <ul className={styles.statsList}>
+            {Object.entries(details.effects).map(([key, value]) => (
+              <li key={key} className={styles.statItem}>
+                <span className={styles.statLabel}>{key}:</span>
+                <span className={styles.statValue}>{String(value)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       
       <div className={styles.itemActions}>
-        {item.type === 'consumable' && (
-          <button 
-            className={`${styles.actionButton} ${styles.useButton}`}
-            onClick={() => onUse(item.id)}
-          >
-            Использовать
-          </button>
+        {canEquip && (
+          <div className={styles.equipSection}>
+            <h4>Экипировать:</h4>
+            <div className={styles.slotButtons}>
+              {equipSlots.map(slot => (
+                <button 
+                  key={slot}
+                  className={styles.slotButton}
+                  onClick={() => onEquip(itemId, slot)}
+                >
+                  {slot === 'primary' ? 'Основное оружие' : 
+                   slot === 'secondary' ? 'Второстепенное оружие' : 
+                   slot === 'head' ? 'Голова' : 
+                   slot === 'body' ? 'Тело' : 
+                   slot === 'accessory' ? 'Аксессуар' : slot}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
         
-        {item.equippableSlots && !item.isEquipped && (
-          <button 
-            className={`${styles.actionButton} ${styles.equipButton}`}
-            onClick={() => onEquip(item.id, item.equippableSlots![0])}
-          >
-            Экипировать
-          </button>
-        )}
-        
-        {item.isEquipped && (
-          <button 
-            className={`${styles.actionButton} ${styles.unequipButton}`}
-            onClick={() => onEquip(item.id, '')}
-          >
-            Снять
-          </button>
-        )}
-        
-        {item.type !== 'quest' && (
+        <div className={styles.actionButtons}>
+          {canUse && (
+            <button 
+              className={`${styles.actionButton} ${styles.useButton}`}
+              onClick={() => onUse(itemId)}
+            >
+              Использовать
+            </button>
+          )}
+          
           <button 
             className={`${styles.actionButton} ${styles.dropButton}`}
-            onClick={() => onDrop(item.id)}
+            onClick={() => onDrop(itemId)}
           >
             Выбросить
           </button>
-        )}
+        </div>
       </div>
     </div>
   );

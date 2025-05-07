@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { PageLayout } from '@/shared/ui';
-import { InventoryDisplay } from '@/widgets/InventoryDisplay';
 import { ItemGrid } from '@/widgets/InventoryDisplay/ItemGrid';
 import { EquipmentSlots } from '@/widgets/InventoryDisplay/EquipmentSlots';
 import { ItemInfoCard } from '@/widgets/InventoryDisplay/ItemInfoCard';
 import { QuickAccessBar } from '@/widgets/InventoryDisplay/QuickAccessBar';
+import { useInventory } from '@/features/player/api/useInventory';
+import { Id } from '../../../../convex/_generated/dataModel';
 import styles from './InventoryPage.module.css';
 
 // Типы для сортировки предметов
@@ -18,6 +19,16 @@ export const InventoryPage: React.FC = () => {
   // Состояние для сортировки и фильтрации
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [filterOption, setFilterOption] = useState<FilterOption>('all');
+  
+  // Используем наш хук для работы с инвентарем
+  const { 
+    equipItem, 
+    unequipItem, 
+    useItem, 
+    dropItem, 
+    loading, 
+    error 
+  } = useInventory();
   
   // Обработчики событий
   const handleItemSelect = (itemId: string) => {
@@ -34,28 +45,52 @@ export const InventoryPage: React.FC = () => {
   
   const handleEquipItem = (itemId: string, slotId: string) => {
     console.log(`Экипирован предмет ${itemId} в слот ${slotId}`);
-    // Здесь будет вызов соответствующего API
+    equipItem(itemId as Id<"inventories">, slotId);
   };
   
   const handleUnequipItem = (slotId: string) => {
     console.log(`Снят предмет из слота ${slotId}`);
-    // Здесь будет вызов соответствующего API
+    // В нашей реализации нам нужно знать ID предмета для снятия
+    // Это можно добавить позже, когда компонент EquipmentSlots сможет передавать itemId
   };
   
   const handleUseItem = (itemId: string) => {
     console.log(`Использован предмет ${itemId}`);
-    // Здесь будет вызов соответствующего API
+    useItem(itemId as Id<"inventories">);
   };
   
   const handleDropItem = (itemId: string) => {
     console.log(`Выброшен предмет ${itemId}`);
-    // Здесь будет вызов соответствующего API
+    dropItem(itemId as Id<"inventories">);
   };
   
   const handleQuickSlotAssign = (itemId: string, slotIndex: number) => {
     console.log(`Предмет ${itemId} назначен на быстрый слот ${slotIndex}`);
-    // Здесь будет вызов соответствующего API
+    // Здесь будет реализация назначения предмета на быстрый слот
+    // Это может быть реализовано как специальный эффект предмета в базе данных
   };
+
+  if (loading) {
+    return (
+      <PageLayout>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Загрузка инвентаря...</p>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageLayout>
+        <div className={styles.errorContainer}>
+          <p>Ошибка загрузки инвентаря: {error}</p>
+          <button onClick={() => window.location.reload()}>Обновить страницу</button>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
@@ -100,6 +135,7 @@ export const InventoryPage: React.FC = () => {
             <EquipmentSlots 
               onEquip={handleEquipItem}
               onUnequip={handleUnequipItem}
+              onItemSelect={handleItemSelect}
             />
           </div>
           
@@ -137,6 +173,7 @@ export const InventoryPage: React.FC = () => {
             <QuickAccessBar 
               onAssignSlot={handleQuickSlotAssign}
               onUseItem={handleUseItem}
+              onItemSelect={handleItemSelect}
             />
           </div>
         </div>

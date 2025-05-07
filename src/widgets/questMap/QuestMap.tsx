@@ -15,7 +15,7 @@ import {
 const DEFAULT_LOCATION: [number, number] = [47.99443, 7.84638];
 
 // Get token from environment variables or use hardcoded one for debugging
-const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiaW5vdGkiLCJhIjoiY205MDhqbzFyMGs0dzJsczgzaHA1YWJscyJ9.AnUFZnF1NfhefBtsQLnvdA';
+const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || 'sk.eyJ1IjoiaW5vdGkiLCJhIjoiY205MDNmMGN5MGhrZzJqc2Q2bmNrYXg5ZSJ9.iJmsnFEecg9k9H1ApnkE2Q';
 console.log('Mapbox Token:', mapboxToken);
 
 // Set the token for Mapbox

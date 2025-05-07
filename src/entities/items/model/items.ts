@@ -423,7 +423,7 @@ export function playerMeetsRequirements(
   // Проверка требуемых атрибутов
   if (item.requirementAttributes) {
     for (const [attr, value] of Object.entries(item.requirementAttributes)) {
-      if (!playerAttributes[attr] || playerAttributes[attr] < value) {
+      if (!playerAttributes[attr] || playerAttributes[attr] < (value ?? 0)) {
         return false;
       }
     }

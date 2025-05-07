@@ -1,4 +1,4 @@
-import { MarkerType, NpcClass, Faction, QuestMarker } from '../../components/SignOutButton/Map/QuestMap';
+import { MarkerType, NpcClass, Faction, QuestMarker } from '../../entities/markers';
 
 // QR-коды для тестирования
 export const QR_CODES = {

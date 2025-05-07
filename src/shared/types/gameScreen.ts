@@ -1,5 +1,5 @@
 import { Id } from '../../../convex/_generated/dataModel';
-import { MarkerData } from './markers';
+import { MarkerData, QuestMarker } from '../../entities/markers';
 
 export enum GameView {
   MESSAGES = 'messages',
@@ -11,10 +11,6 @@ export interface GameScreenProps {
   onExit: () => void;
   initialView?: GameView;
   onViewChange?: (view: GameView) => void;
-}
-
-export interface QuestMarker extends MarkerData {
-  qrCode?: string;
 }
 
 export interface DialogChoiceProps {

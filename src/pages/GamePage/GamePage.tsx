@@ -49,27 +49,17 @@ export const GamePage: React.FC = () => {
   
   // Функция для проверки возможности переключения между вкладками
   const canSwitchTo = (targetTab: GameTab): boolean => {
-    // Всегда можно переключиться на сканер с любой вкладки
-    if (targetTab === 'scanner') {
+    // Всегда можно переключиться на сканер, карту или диалог
+    if (targetTab === 'scanner' || targetTab === 'map' || targetTab === 'dialog') {
+      // Но если активна вкладка 'novel' (диалог с NPC), то запрещаем переключение
+      // на другие вкладки до завершения сцены
+      if (activeTab === 'novel') {
+        return false;
+      }
       return true;
     }
     
-    // Если активна вкладка 'novel' (диалог с NPC), то запрещаем переключение
-    // на карту или диалог до завершения сцены
-    if (activeTab === 'novel') {
-      return false;
-    }
-    
-    // Запрещаем переключаться с диалогов на карту
-    if (activeTab === 'dialog' && targetTab === 'map') {
-      return false;
-    }
-    
-    // Запрещаем переключаться с карты на диалоги, если активна сцена
-    if (activeTab === 'map' && targetTab === 'dialog' && currentSceneId) {
-      return false;
-    }
-    
+    // По умолчанию разрешаем переключение
     return true;
   };
   
@@ -79,7 +69,7 @@ export const GamePage: React.FC = () => {
       handleTabClick(tab);
     } else {
       // Можно добавить уведомление о невозможности переключения
-      alert('Невозможно переключиться на эту вкладку сейчас.');
+      alert('Невозможно переключиться на эту вкладку во время диалога. Сначала завершите текущий диалог.');
     }
   };
   

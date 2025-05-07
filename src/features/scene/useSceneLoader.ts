@@ -49,7 +49,7 @@ const TEST_SCENES: Record<string, Scene> = {
     backgroundUrl: '/backgrounds/trader_camp.png',
     musicTrack: '/audio/ambient_market.mp3',
     charactersInScene: [
-      { id: 'trader', name: 'Торговец', spriteUrl: '/sprites/trader.png' }
+      { id: 'trader', name: 'Торговец', spriteUrl: '/characters/trader.png' }
     ],
     dialogueLines: [
       {

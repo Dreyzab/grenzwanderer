@@ -1,178 +1,230 @@
 import { useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import { useState, useCallback } from 'react';
-import { QuestStateEnum } from '../../../shared/constants/quest';
-import { PlayerData } from '../../player/api/usePlayer';
-import { useMarkers } from '../../markers/api';
+import { 
+  QuestState,
+  QuestAction,
+  QRScanResult,
+  QuestStartResult,
+  QuestActionResult
+} from '../../../shared/types/quest.types';
+import { PlayerData } from '../../../entities/player/api/usePlayer';
+import { useMarkers } from '../../markers/api/useMarkers';
 import { getMockQRScanResult, getMockQuestStartResult } from '../model/mockData';
+import { Id } from '../../../../convex/_generated/dataModel';
+import { questActionPerformed } from '../model';
 
-// Функция для проверки валидности ID игрока
-const isValidPlayerId = (playerId: any): boolean => {
-  return typeof playerId === 'string' && 
-         playerId.startsWith('players:') && 
-         playerId.length > 8;
-};
-
-export interface QuestActionsResult {
-  loading: boolean;
-  error: string | null;
-  handleQRScanSuccess: (code: string) => Promise<void>;
-  handleStartDeliveryQuest: () => Promise<void>;
+// Интерфейс для коллбэков изменений
+interface QuestCallbacks {
+  onStateChange?: (state: QuestState) => void;
+  onSceneOpen?: (sceneId: string) => void;
+  onStepComplete?: (stepId: string) => void;
 }
 
-export function useQuestActions(
-  player: PlayerData | null,
-  onStateChange: (state: QuestStateEnum) => void, 
-  onStepComplete: (stepId: string) => void,
-  onSceneOpen: (sceneId: string) => void
-): QuestActionsResult {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Получаем Convex мутации
-  const activateQuestByQR = useMutation(api.quest.activateQuestByQR);
-  const startDeliveryQuest = useMutation(api.quest.startDeliveryQuest);
-  
-  // Получаем API маркеров
-  const { 
-    addMarkerInteraction, 
-    toggleComplete, 
-    showMarkerById, 
-    updateMarkersByQuest 
-  } = useMarkers();
-  
-  // Обработка успешного сканирования QR-кода
-  const handleQRScanSuccess = useCallback(async (code: string) => {
-    if (!player) return;
-    
-    try {
-      setLoading(true);
-      
-      let result;
-      
-      try {
-        // Улучшенная проверка ID игрока
-        if (isValidPlayerId(player._id)) {
-          result = await activateQuestByQR({
-            playerId: player._id,
-            qrCode: code
-          });
-        } else {
-          console.warn("Invalid player ID format:", player._id);
-          throw new Error("Invalid player ID format for API call");
-        }
-      } catch (apiError) {
-        console.warn("API call failed, using mock data for QR activation:", apiError);
-        // Используем моковые данные
-        result = getMockQRScanResult(code);
-      }
-      
-      if (result) {
-        // Показываем уведомление
-        alert(result.message);
-        
-        // Обрабатываем результат
-        if (result.sceneId) {
-          // Открываем сцену
-          onSceneOpen(result.sceneId);
-        }
-        
-        // Обновляем состояние квеста, если оно изменилось
-        if (result.questState && Object.values(QuestStateEnum).includes(result.questState as QuestStateEnum)) {
-          onStateChange(result.questState as QuestStateEnum);
-          
-          // Обновляем видимость маркеров на основе нового состояния
-          updateMarkersByQuest(result.questState);
-        }
-      }
-    } catch (err) {
-      console.error('Error activating QR code:', err);
-      setError(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [player, activateQuestByQR, onStateChange, onSceneOpen, updateMarkersByQuest]);
-  
-  // Обработка начала квеста
-  const handleStartDeliveryQuest = useCallback(async () => {
-    if (!player) return;
-    
-    try {
-      setLoading(true);
-      
-      let result;
-      
-      // Пытаемся вызвать реальное API, но при ошибке используем мок
-      try {
-        // Улучшенная проверка ID игрока
-        if (isValidPlayerId(player._id)) {
-          result = await startDeliveryQuest({ 
-            playerId: player._id
-          });
-        } else {
-          console.warn("Invalid player ID format:", player._id);
-          throw new Error("Invalid player ID format for API call");
-        }
-      } catch (apiError) {
-        console.warn("API call failed, using mock data:", apiError);
-        // Используем моковые данные
-        result = getMockQuestStartResult();
-      }
-      
-      if (result && result.sceneId) {
-        // Обновляем состояние квеста
-        onStateChange(QuestStateEnum.DELIVERY_STARTED);
-        
-        // Отмечаем шаг квеста как выполненный
-        onStepComplete('start_delivery');
-        
-        // Показываем маркер торговца на карте
-        showMarkerById('trader');
-      }
-    } catch (err) {
-      setError(`Error starting quest: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [player, startDeliveryQuest, onStateChange, onStepComplete, showMarkerById]);
-  
-  // Обработка клика по маркеру на карте
-  const handleMarkerClick = useCallback(async (marker: any) => {
-    if (!player || !marker.qrCode) return;
-    
-    try {
-      setLoading(true);
-      
-      // Регистрируем взаимодействие с маркером
-      addMarkerInteraction({
-        markerId: marker.id,
-        interactionType: 'activated',
-        timestamp: Date.now(),
-        data: { player: player._id }
-      });
-      
-      // Если маркер - это задание, отмечаем его как выполненное
-      if (marker.markerType === 'quest_point') {
-        toggleComplete(marker.id);
-      }
-      
-      // Отмечаем шаг как выполненный
-      onStepComplete(marker.id);
-      
-      // Обрабатываем QR-код маркера
-      await handleQRScanSuccess(marker.qrCode);
-    } catch (err) {
-      console.error('Error activating marker:', err);
-      setError(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [player, handleQRScanSuccess, onStepComplete, addMarkerInteraction]);
-  
+// Результат хука
+export interface QuestActionsResult {
+  scanQRCode: (code: string) => Promise<{ message: string }>;
+  startQuest: (questId?: string) => Promise<{ message: string }>;
+  questState: QuestState | null;
+  loading: boolean;
+  error: string | null;
+}
+
+/**
+ * Создаем квестовое действие указанного типа
+ * Вспомогательная функция для типизированного создания действий
+ */
+function createQuestAction(
+  type: QuestAction, 
+  payload?: Record<string, any>
+): { type: QuestAction } & Record<string, any> {
   return {
+    type,
+    ...payload
+  };
+}
+
+/**
+ * Хук для действий, связанных с квестами
+ */
+export function useQuestActions({
+  playerId,
+  onStateChange,
+  onSceneOpen,
+  onStepComplete
+}: {
+  playerId?: string;
+} & QuestCallbacks): QuestActionsResult {
+  // Состояние
+  const [questState, setQuestState] = useState<QuestState | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Получаем функции для управления маркерами
+  const { updateMarkersByQuest } = useMarkers();
+
+  // Мутации Convex
+  const activateQuestByQR = useMutation(api.quest.activateQuestByQR);
+  const startDeliveryQuestMutation = useMutation(api.quest.startDeliveryQuest);
+
+  // Функция сканирования QR-кода
+  const scanQRCode = useCallback(
+    async (code: string): Promise<{ message: string }> => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // В реальном приложении вызываем API
+        let result: QuestActionResult | null = null;
+        
+        if (playerId) {
+          result = await activateQuestByQR({ 
+            qrCode: code, 
+            playerId: playerId as Id<"players"> 
+          }) as QuestActionResult;
+        }
+        
+        if (result) {
+          // Обрабатываем результат
+          if (result.questState && onStateChange) {
+            setQuestState(result.questState);
+            onStateChange(result.questState);
+            updateMarkersByQuest(result.questState);
+            
+            // Диспетчеризуем событие для модели Effector
+            if (result.action) {
+              const action = createQuestAction(result.action, {});
+              questActionPerformed(action);
+            }
+          }
+          
+          // Если есть шаг для завершения, отмечаем его
+          if (result.completedStep && onStepComplete) {
+            onStepComplete(result.completedStep);
+          }
+          
+          // Если есть sceneKey, открываем его
+          if (result.sceneId && onSceneOpen) {
+            onSceneOpen(result.sceneId);
+          }
+
+          return { message: result.message };
+        } else {
+          // Используем моковые данные, если API недоступно или вернуло null
+          const mockResult = getMockQRScanResult(code);
+          setQuestState(mockResult.questState || null);
+          
+          if (mockResult.questState && onStateChange) {
+            onStateChange(mockResult.questState);
+            updateMarkersByQuest(mockResult.questState);
+            
+            if (mockResult.action) {
+              const action = createQuestAction(mockResult.action, {});
+              questActionPerformed(action);
+            }
+          }
+          
+          if (mockResult.completedStep && onStepComplete) {
+            onStepComplete(mockResult.completedStep);
+          }
+          
+          if (mockResult.sceneId && onSceneOpen) {
+            onSceneOpen(mockResult.sceneId);
+          }
+          
+          return { message: mockResult.message };
+        }
+      } catch (err) {
+        console.error('Ошибка при сканировании QR:', err);
+        setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+        return { message: 'Ошибка при сканировании QR-кода' };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [playerId, activateQuestByQR, onStateChange, onSceneOpen, onStepComplete, updateMarkersByQuest]
+  );
+
+  // Функция запуска квеста
+  const startQuest = useCallback(
+    async (questId?: string): Promise<{ message: string }> => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // В реальном приложении вызываем API
+        let result: QuestStartResult | null = null;
+        
+        if (playerId) {
+          result = await startDeliveryQuestMutation({ 
+            playerId: playerId as Id<"players">
+          }) as QuestStartResult;
+        }
+        
+        if (result) {
+          // Обрабатываем результат так же, как и при сканировании QR
+          if (result.questState && onStateChange) {
+            setQuestState(result.questState);
+            onStateChange(result.questState);
+            
+            if (result.action) {
+              const action = createQuestAction(result.action, {});
+              questActionPerformed(action);
+            }
+          }
+          
+          if (result.sceneId && onSceneOpen) {
+            onSceneOpen(result.sceneId);
+          }
+          
+          return { message: result.message };
+        } else {
+          // Используем моковые данные
+          const mockResult = getMockQuestStartResult();
+          
+          if (mockResult.questState && onStateChange) {
+            setQuestState(mockResult.questState);
+            onStateChange(mockResult.questState);
+            
+            if (mockResult.action) {
+              const action = createQuestAction(mockResult.action, {});
+              questActionPerformed(action);
+            }
+          }
+          
+          if (mockResult.sceneId && onSceneOpen) {
+            onSceneOpen(mockResult.sceneId);
+          }
+          
+          return { message: mockResult.message };
+        }
+      } catch (err) {
+        console.error('Ошибка при запуске квеста:', err);
+        setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+        return { message: 'Ошибка при запуске квеста' };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [playerId, startDeliveryQuestMutation, onStateChange, onSceneOpen]
+  );
+
+  // Создаем отдельную функцию для начала квеста с действием START_GAME
+  const handleQuestStart = useCallback(
+    (questId?: string): Promise<{ message: string }> => {
+      // Создаем действие START_GAME и отправляем его в модель
+      const action = createQuestAction(QuestAction.START_GAME, { playerId });
+      questActionPerformed(action);
+      return startQuest(questId);
+    },
+    [playerId, startQuest]
+  );
+
+  return {
+    scanQRCode,
+    startQuest: handleQuestStart,
+    questState,
     loading,
-    error,
-    handleQRScanSuccess,
-    handleStartDeliveryQuest
+    error
   };
 } 

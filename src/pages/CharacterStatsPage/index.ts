@@ -1,3 +1,1 @@
-import CharacterStatsPage from './ui/CharacterStatsPage';
-
-export { CharacterStatsPage }; 
+export { CharacterStatsPage } from './ui/CharacterStatsPage'; 

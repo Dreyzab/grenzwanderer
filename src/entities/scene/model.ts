@@ -11,18 +11,20 @@ export const $currentScene = createStore<Scene | null>(null)
   .on(setCurrentScene, (_, scene) => scene)
   .reset(clearScene);
 
-// Event history store - keeps track of previous text for scrollback
-export const $sceneHistory = createStore<{text: string, character?: string}[]>([])
-  .on(setCurrentScene, (history, scene) => {
-    if (!scene) return history;
-    
-    const newEntry = {
-      text: scene.text,
-      character: scene.character?.name
-    };
-    
-    return [...history, newEntry].slice(-50); // Keep last 50 entries
-  });
+// Event history store упрощен и объединен с dialogHistory
+
+// Событие для записи каждой строки диалога в историю
+export const dialogueLineDisplayed = createEvent<{ text: string, speakerName?: string }>();
+
+// История диалогов
+export const $dialogHistory = createStore<{ text: string, speakerName?: string }[]>([])
+  .on(dialogueLineDisplayed, (history, newLine) => {
+    if (newLine.text) {
+      return [...history, newLine].slice(-50); // Сохраняем последние 50 записей
+    }
+    return history;
+  })
+  .reset(clearScene);
 
 // Scene loading state
 export const setSceneLoading = createEvent<boolean>();

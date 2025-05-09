@@ -13,7 +13,9 @@ import {
   CharacterStatsPage,
   SocialPage,
   SettingsPage,
-  NotFoundPage
+  NotFoundPage,
+  BattlePage,
+  MapPage
 } from '@/pages';
 import { PrivateRoute } from '@/widgets/auth/PrivateRoute';
 
@@ -55,7 +57,13 @@ export const routerConfig: RouteObject[] = [
     ...protectedPage(AdminPage)
   },
   {
+    // Маршрут без параметров для инициализации через state
     path: '/novel',
+    ...protectedPage(VisualNovelPage)
+  },
+  {
+    // Параметризованный маршрут для прямой инициализации через URL
+    path: '/novel/:sceneId',
     ...protectedPage(VisualNovelPage)
   },
   {
@@ -77,6 +85,14 @@ export const routerConfig: RouteObject[] = [
   {
     path: '/settings',
     ...protectedPage(SettingsPage)
+  },
+  {
+    path: '/battle',
+    ...protectedPage(BattlePage)
+  },
+  {
+    path: '/map',
+    ...protectedPage(MapPage)
   },
   {
     path: '*',

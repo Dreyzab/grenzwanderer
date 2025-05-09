@@ -2,14 +2,45 @@
  * Quest feature model using Effector
  */
 import { createStore, createEvent, createEffect, sample } from 'effector';
-import { QuestStateEnum, QuestActionEnum } from '../../shared/constants/quest';
-import { QuestAction, QuestTransition } from './types';
-import { convexClient } from '../../shared/utils/convex';
+import { QuestState, QuestAction } from '../../shared/types/quest.types';
+import { QuestTransition, QuestActionData } from './types';
+import { convex } from '../../app/convex';
 import { api } from '../../../convex/_generated/api';
 
+// Определяем расширенные состояния для нашей игры
+export enum GameQuestState {
+  REGISTERED = 'REGISTERED',
+  CHARACTER_CREATION = 'CHARACTER_CREATION',
+  TRAINING_MISSION = 'TRAINING_MISSION',
+  NEW_MESSAGE = 'NEW_MESSAGE',
+  DELIVERY_STARTED = 'DELIVERY_STARTED',
+  PARTS_COLLECTED = 'PARTS_COLLECTED',
+  ARTIFACT_HUNT = 'ARTIFACT_HUNT',
+  ARTIFACT_FOUND = 'ARTIFACT_FOUND',
+  QUEST_COMPLETION = 'QUEST_COMPLETION',
+  FREE_ROAM = 'FREE_ROAM'
+}
+
+// Дополнительные действия для нашей игры
+export enum GameQuestAction {
+  START_DELIVERY_QUEST = 'START_DELIVERY_QUEST',
+  END_CHARACTER_CREATION = 'END_CHARACTER_CREATION',
+  COMPLETE_TRAINING = 'COMPLETE_TRAINING',
+  TAKE_PARTS = 'TAKE_PARTS',
+  ACCEPT_ARTIFACT_QUEST = 'ACCEPT_ARTIFACT_QUEST',
+  DECLINE_ARTIFACT_QUEST = 'DECLINE_ARTIFACT_QUEST',
+  FIND_ARTIFACT = 'FIND_ARTIFACT',
+  RETURN_TO_CRAFTSMAN = 'RETURN_TO_CRAFTSMAN',
+  COMPLETE_DELIVERY_QUEST = 'COMPLETE_DELIVERY_QUEST'
+}
+
+// Объединяем стандартные и игровые состояния для типизации
+export type AllQuestStates = QuestState | GameQuestState;
+export type AllQuestActions = QuestAction | GameQuestAction;
+
 // --- Events ---
-export const questActionPerformed = createEvent<QuestAction>();
-export const questStateChanged = createEvent<QuestStateEnum>();
+export const questActionPerformed = createEvent<QuestActionData>();
+export const questStateChanged = createEvent<AllQuestStates>();
 export const questStepCompleted = createEvent<string>();
 export const questReset = createEvent();
 
@@ -20,11 +51,11 @@ export const updateServerQuestStateEffect = createEffect(async ({
   action
 }: {
   playerId: string;
-  state: QuestStateEnum;
-  action: QuestActionEnum;
+  state: AllQuestStates;
+  action: AllQuestActions;
 }) => {
   try {
-    return await convexClient.mutation("player:updateQuestState", {
+    return await convex.mutation(api.player.updateQuestState, {
       playerId,
       questState: state,
       completedAction: action
@@ -36,7 +67,7 @@ export const updateServerQuestStateEffect = createEffect(async ({
 });
 
 // --- Stores ---
-export const $questState = createStore<QuestStateEnum>(QuestStateEnum.REGISTERED)
+export const $questState = createStore<AllQuestStates>(GameQuestState.REGISTERED)
   .on(questStateChanged, (_, state) => state)
   .reset(questReset);
 
@@ -56,54 +87,71 @@ export const $questLoading = createStore(false)
 
 // --- Define the quest state machine transitions ---
 const questStateMachine: {
-  [state in QuestStateEnum]?: Partial<Record<QuestActionEnum, QuestStateEnum>>
+  [key in AllQuestStates]?: Partial<Record<AllQuestActions, AllQuestStates>>
 } = {
-  [QuestStateEnum.REGISTERED]: {
-    [QuestActionEnum.START_GAME]: QuestStateEnum.CHARACTER_CREATION,
-    [QuestActionEnum.START_DELIVERY_QUEST]: QuestStateEnum.DELIVERY_STARTED,
+  [GameQuestState.REGISTERED]: {
+    [QuestAction.START_GAME]: GameQuestState.CHARACTER_CREATION,
+    [GameQuestAction.START_DELIVERY_QUEST]: GameQuestState.DELIVERY_STARTED,
   },
-  [QuestStateEnum.CHARACTER_CREATION]: {
-    [QuestActionEnum.END_CHARACTER_CREATION]: QuestStateEnum.TRAINING_MISSION,
+  [GameQuestState.CHARACTER_CREATION]: {
+    [GameQuestAction.END_CHARACTER_CREATION]: GameQuestState.TRAINING_MISSION,
   },
-  [QuestStateEnum.TRAINING_MISSION]: {
-    [QuestActionEnum.COMPLETE_TRAINING]: QuestStateEnum.NEW_MESSAGE,
+  [GameQuestState.TRAINING_MISSION]: {
+    [GameQuestAction.COMPLETE_TRAINING]: GameQuestState.NEW_MESSAGE,
   },
-  [QuestStateEnum.NEW_MESSAGE]: {
-    [QuestActionEnum.START_DELIVERY_QUEST]: QuestStateEnum.DELIVERY_STARTED,
+  [GameQuestState.NEW_MESSAGE]: {
+    [GameQuestAction.START_DELIVERY_QUEST]: GameQuestState.DELIVERY_STARTED,
   },
-  [QuestStateEnum.DELIVERY_STARTED]: {
-    [QuestActionEnum.TAKE_PARTS]: QuestStateEnum.PARTS_COLLECTED,
+  [GameQuestState.DELIVERY_STARTED]: {
+    [GameQuestAction.TAKE_PARTS]: GameQuestState.PARTS_COLLECTED,
   },
-  [QuestStateEnum.PARTS_COLLECTED]: {
-    [QuestActionEnum.ACCEPT_ARTIFACT_QUEST]: QuestStateEnum.ARTIFACT_HUNT,
-    [QuestActionEnum.DECLINE_ARTIFACT_QUEST]: QuestStateEnum.QUEST_COMPLETION,
+  [GameQuestState.PARTS_COLLECTED]: {
+    [GameQuestAction.ACCEPT_ARTIFACT_QUEST]: GameQuestState.ARTIFACT_HUNT,
+    [GameQuestAction.DECLINE_ARTIFACT_QUEST]: GameQuestState.QUEST_COMPLETION,
   },
-  [QuestStateEnum.ARTIFACT_HUNT]: {
-    [QuestActionEnum.FIND_ARTIFACT]: QuestStateEnum.ARTIFACT_FOUND,
+  [GameQuestState.ARTIFACT_HUNT]: {
+    [GameQuestAction.FIND_ARTIFACT]: GameQuestState.ARTIFACT_FOUND,
   },
-  [QuestStateEnum.ARTIFACT_FOUND]: {
-    [QuestActionEnum.RETURN_TO_CRAFTSMAN]: QuestStateEnum.QUEST_COMPLETION,
+  [GameQuestState.ARTIFACT_FOUND]: {
+    [GameQuestAction.RETURN_TO_CRAFTSMAN]: GameQuestState.QUEST_COMPLETION,
   },
-  [QuestStateEnum.QUEST_COMPLETION]: {
-    [QuestActionEnum.COMPLETE_DELIVERY_QUEST]: QuestStateEnum.FREE_ROAM,
+  [GameQuestState.QUEST_COMPLETION]: {
+    [GameQuestAction.COMPLETE_DELIVERY_QUEST]: GameQuestState.FREE_ROAM,
   },
-  [QuestStateEnum.FREE_ROAM]: {
+  [GameQuestState.FREE_ROAM]: {
     // Free roam can transition to new quests in the future
   },
+  // Стандартные состояния квеста также включены
+  [QuestState.NOT_STARTED]: {
+    [QuestAction.START_GAME]: QuestState.IN_PROGRESS,
+  },
+  [QuestState.IN_PROGRESS]: {
+    [QuestAction.COMPLETE_SCENE]: QuestState.COMPLETED,
+  },
+  [QuestState.COMPLETED]: {
+    // Завершенный квест
+  },
+  [QuestState.FAILED]: {
+    // Проваленный квест
+  }
 };
 
 // Define marker visibility for each quest state
-const questStateMarkers: Record<QuestStateEnum, string[]> = {
-  [QuestStateEnum.REGISTERED]: [],
-  [QuestStateEnum.CHARACTER_CREATION]: [],
-  [QuestStateEnum.TRAINING_MISSION]: ['training_zone'],
-  [QuestStateEnum.NEW_MESSAGE]: [],
-  [QuestStateEnum.DELIVERY_STARTED]: ['trader'],
-  [QuestStateEnum.PARTS_COLLECTED]: ['craftsman'],
-  [QuestStateEnum.ARTIFACT_HUNT]: ['anomaly'],
-  [QuestStateEnum.ARTIFACT_FOUND]: ['craftsman'],
-  [QuestStateEnum.QUEST_COMPLETION]: [],
-  [QuestStateEnum.FREE_ROAM]: ['trader', 'craftsman', 'anomaly'],
+const questStateMarkers: Record<string, string[]> = {
+  [GameQuestState.REGISTERED]: [],
+  [GameQuestState.CHARACTER_CREATION]: [],
+  [GameQuestState.TRAINING_MISSION]: ['training_zone'],
+  [GameQuestState.NEW_MESSAGE]: [],
+  [GameQuestState.DELIVERY_STARTED]: ['trader'],
+  [GameQuestState.PARTS_COLLECTED]: ['craftsman'],
+  [GameQuestState.ARTIFACT_HUNT]: ['anomaly'],
+  [GameQuestState.ARTIFACT_FOUND]: ['craftsman'],
+  [GameQuestState.QUEST_COMPLETION]: [],
+  [GameQuestState.FREE_ROAM]: ['trader', 'craftsman', 'anomaly'],
+  [QuestState.NOT_STARTED]: [],
+  [QuestState.IN_PROGRESS]: ['current_objective'],
+  [QuestState.COMPLETED]: [],
+  [QuestState.FAILED]: []
 };
 
 // --- Events for map markers ---
@@ -127,9 +175,9 @@ sample({
     return { currentState, nextState, action };
   },
   target: createEffect((payload: { 
-    currentState: QuestStateEnum; 
-    nextState: QuestStateEnum | null; 
-    action: QuestAction 
+    currentState: AllQuestStates; 
+    nextState: AllQuestStates | null; 
+    action: QuestActionData
   }) => {
     const { currentState, nextState, action } = payload;
     if (!nextState) return;

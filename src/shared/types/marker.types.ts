@@ -1,67 +1,70 @@
 /**
  * Типы для маркеров на карте
- * @module MarkerTypes
  */
 
-// Перечисления для типов маркеров
+// Виды маркеров
 export enum MarkerType {
-  QUEST_POINT = 'quest_point',
+  QUEST = 'quest',
   NPC = 'npc',
-  PLAYER = 'player',
-  LOCATION = 'location',
-  ITEM = 'item',
-  QUEST_AREA = 'quest_area'
+  POINT_OF_INTEREST = 'poi',
+  SHOP = 'shop',
+  SHELTER = 'shelter',
+  DANGER = 'danger'
 }
 
-// Перечисления для класса NPC
-export enum NpcClass {
+// Классы NPC
+export enum NPCClass {
   TRADER = 'trader',
-  CRAFTSMAN = 'craftsman',
-  GUARD = 'guard',
-  QUEST_GIVER = 'quest_giver',
-  STORY = 'story',
-  GUILD_MASTER = 'guild_master'
+  QUEST_GIVER = 'questGiver',
+  FACTION_LEADER = 'factionLeader',
+  INFORMANT = 'informant',
+  COMPANION = 'companion'
 }
 
-// Перечисления для фракций
+// Фракции 
 export enum Faction {
-  NEUTRALS = 'neutrals',
-  TRADERS = 'traders',
-  CRAFTSMEN = 'craftsmen',
-  GUARDS = 'guards',
-  BANDITS = 'bandits',
-  SURVIVORS = 'survivors',
-  SCIENTISTS = 'scientists'
+  NEUTRAL = 'neutral',
+  SCAVENGERS = 'scavengers',
+  MILITARY = 'military',
+  SCIENTISTS = 'scientists',
+  NOMADS = 'nomads'
 }
 
-// Определение базового типа для маркера
+// Данные маркера
 export interface MarkerData {
   id: string;
+  type: MarkerType;
+  position: {
+    lat: number;
+    lng: number;
+  };
   title: string;
   description?: string;
-  markerType: MarkerType;
-  npcClass?: NpcClass;
-  faction?: Faction;
-  lat: number;
-  lng: number;
-  radius?: number;
-  isActive?: boolean;
+  isVisible: boolean;
   isCompleted?: boolean;
-  qrCode?: string;
+  questId?: string;
+  npcClass?: NPCClass;
+  faction?: Faction;
+  iconUrl?: string;
 }
 
-// Расширенный тип для маркеров квестов
+// Интерфейс для маркера квеста
 export interface QuestMarker extends MarkerData {
-  isActive: boolean;
-  isCompleted: boolean;
-  qrCode: string;
+  type: MarkerType.QUEST;
+  questId: string;
 }
 
-// Интерфейс для взаимодействия с маркером
-export interface MarkerInteraction {
-  markerId: string;
-  interactionType: string;
-  timestamp: number;
-  data?: any;
-  playerId?: string;
+// Интерфейс для маркера NPC
+export interface NPCMarker extends MarkerData {
+  type: MarkerType.NPC;
+  npcClass: NPCClass;
+  faction: Faction;
+}
+
+// Коды взаимодействия с маркерами
+export enum MarkerInteractionType {
+  SCAN = 'scan',
+  DIALOG = 'dialog',
+  TRADE = 'trade',
+  CRAFT = 'craft'
 } 

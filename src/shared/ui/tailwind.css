@@ -1,0 +1,240 @@
+/**
+ * Дополнительные стили и анимации для расширения функциональности Tailwind CSS
+ */
+
+/* Анимации */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* Классы для анимаций */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-pulse-opacity {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.animate-blink {
+  animation: blink 1s infinite;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+.animate-glitch {
+  animation: glitch 0.5s infinite;
+}
+
+.animate-typing {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typing 1s steps(40, end);
+}
+
+/* Позиционирование персонажей */
+.character-left {
+  position: absolute;
+  left: 10%;
+  bottom: 0;
+  z-index: 10;
+  transform-origin: bottom center;
+}
+
+.character-center {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 20;
+  transform-origin: bottom center;
+}
+
+.character-right {
+  position: absolute;
+  right: 10%;
+  bottom: 0;
+  z-index: 10;
+  transform-origin: bottom center;
+}
+
+/* Эффекты для персонажей */
+.character-active {
+  filter: brightness(1.2) contrast(1.1);
+  z-index: 30;
+}
+
+.character-inactive {
+  filter: brightness(0.7) contrast(0.9);
+  opacity: 0.8;
+}
+
+.character-enter {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.character-exit {
+  animation: fadeOut 0.5s ease-in;
+}
+
+/* Эффекты для диалогов */
+.dialog-box {
+  background-color: var(--color-bg-card);
+  border: var(--border-width-thin) solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  z-index: 40;
+  max-width: 90%;
+  margin: 0 auto;
+}
+
+.dialog-name {
+  display: inline-block;
+  background-color: var(--color-primary);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  font-family: var(--font-family-display);
+}
+
+.dialog-text {
+  font-family: var(--font-family-primary);
+  line-height: var(--line-height-normal);
+}
+
+/* Эффекты неона */
+.neon-text-primary {
+  color: var(--color-primary-light);
+  text-shadow: 0 0 5px var(--color-primary), 0 0 20px var(--color-primary-dark);
+}
+
+.neon-text-secondary {
+  color: var(--color-secondary-light);
+  text-shadow: 0 0 5px var(--color-secondary), 0 0 20px var(--color-secondary-dark);
+}
+
+.neon-border {
+  border: var(--border-width-normal) solid var(--color-primary);
+  box-shadow: 0 0 10px var(--color-primary), inset 0 0 5px var(--color-primary);
+}
+
+/* Эффекты сцены */
+.rain-effect {
+  background-image: url('/assets/effects/rain.png');
+  animation: rain 0.5s linear infinite;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  opacity: 0.7;
+}
+
+.fog-effect {
+  background-image: url('/assets/effects/fog.png');
+  animation: fog 60s linear infinite;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  opacity: 0.5;
+}
+
+@keyframes rain {
+  from { background-position: 0 0; }
+  to { background-position: 0 100%; }
+}
+
+@keyframes fog {
+  from { background-position: 0 0; }
+  to { background-position: 100% 0; }
+}
+
+/* Стили для сканера QR-кодов */
+.scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 100;
+}
+
+.scanner-viewfinder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 250px;
+  height: 250px;
+  border: 2px solid var(--color-primary);
+  border-radius: 16px;
+  box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.scanner-line {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-primary);
+  animation: scanLine 2s linear infinite;
+}
+
+@keyframes scanLine {
+  from { top: 0; }
+  to { top: 100%; }
+} 

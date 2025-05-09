@@ -1,160 +1,230 @@
-import { useStore } from 'effector-react';
-import { useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { usePlayer } from './usePlayer';
 
-import { 
-  $primaryAttributes, 
-  $secondaryStats, 
-  $playerLevel,
-  PrimaryAttributes,
-  SecondaryStats,
-  PlayerLevel,
-  updatePrimaryAttribute,
-  addExperience,
-  levelUp,
-  resetAttributes
-} from '../../../entities/player/model/playerAttributes';
+interface PrimaryAttributes {
+  strength: number;
+  dexterity: number;
+  intelligence: number;
+  willpower: number;
+  charisma: number;
+}
 
-import {
-  $availableSkillPoints,
-  $pathsProgress,
-  $allSkills,
-  SkillNode,
-  PathProgress,
-  spendSkillPoint,
-  resetSkills
-} from '../../../entities/player/model/playerSkills';
+interface SecondaryStats {
+  health: number;
+  energy: number;
+  evasion: number;
+  criticalChance: number;
+  poisonResistance: number;
+  hackingSkill: number;
+  persuasion: number;
+}
 
-import { ClassPath } from '../../../entities/player/model/playerAttributes';
-import { createEvent } from 'effector';
+interface SkillNode {
+  id: string;
+  name: string;
+  description: string;
+  path: 'combat' | 'survival' | 'social';
+  requires?: string[];
+  cost: number;
+}
 
-// Создаем события для изменения количества доступных очков атрибутов
-const decreaseAttributePoints = createEvent();
-const increaseAttributePoints = createEvent();
+interface Perk {
+  id: string;
+  name: string;
+  description: string;
+  effects: string[];
+}
 
-// Обновляем модель, добавляя обработчики для этих событий
-$playerLevel.on(decreaseAttributePoints, (state) => ({
-  ...state,
-  availableAttributePoints: state.availableAttributePoints - 1
-}));
-
-$playerLevel.on(increaseAttributePoints, (state) => ({
-  ...state,
-  availableAttributePoints: state.availableAttributePoints + 1
-}));
-
-export function useCharacterStats() {
-  // Получаем состояние из хранилищ
-  const primaryAttributes = useStore($primaryAttributes);
-  const secondaryStats = useStore($secondaryStats);
-  const playerLevel = useStore($playerLevel);
-  const availableAttributePoints = playerLevel.availableAttributePoints;
+export const useCharacterStats = () => {
+  const { player, loading: playerLoading } = usePlayer();
+  const [attributes, setAttributes] = useState<PrimaryAttributes>({
+    strength: 5,
+    dexterity: 5,
+    intelligence: 5,
+    willpower: 5,
+    charisma: 5
+  });
   
-  const availableSkillPoints = useStore($availableSkillPoints);
-  const pathsProgress = useStore($pathsProgress);
-  const allSkills = useStore($allSkills);
+  const [secondaryStats, setSecondaryStats] = useState<SecondaryStats>({
+    health: 100,
+    energy: 70,
+    evasion: 15,
+    criticalChance: 5,
+    poisonResistance: 10,
+    hackingSkill: 25,
+    persuasion: 20
+  });
   
-  // Обработчики для первичных атрибутов
-  const increaseAttribute = useCallback((attribute: keyof PrimaryAttributes) => {
+  const [perks, setPerks] = useState<Perk[]>([
+    {
+      id: 'perk-1',
+      name: 'Цифровой след',
+      description: 'Обнаруживает скрытую информацию в цифровом пространстве.',
+      effects: ['+10% к обнаружению скрытых данных', '+5 к навыку хакинга']
+    }
+  ]);
+  
+  const [availableAttributePoints, setAvailableAttributePoints] = useState(3);
+  const [availableSkillPoints, setAvailableSkillPoints] = useState(2);
+  const [level, setLevel] = useState(1);
+  const [experience, setExperience] = useState(0);
+  
+  // Демо набор навыков
+  const allSkillNodes: SkillNode[] = [
+    {
+      id: 'combat-1',
+      name: 'Меткий стрелок',
+      description: 'Повышает точность при стрельбе',
+      path: 'combat',
+      cost: 1
+    },
+    {
+      id: 'combat-2',
+      name: 'Мастер ближнего боя',
+      description: 'Улучшает урон в ближнем бою',
+      path: 'combat',
+      requires: ['combat-1'],
+      cost: 2
+    },
+    {
+      id: 'survival-1',
+      name: 'Травник',
+      description: 'Позволяет создавать лечебные зелья',
+      path: 'survival',
+      cost: 1
+    },
+    {
+      id: 'social-1',
+      name: 'Харизматичная речь',
+      description: 'Улучшает убедительность в диалогах',
+      path: 'social',
+      cost: 1
+    }
+  ];
+  
+  // Список изученных навыков (для демо)
+  const [playerSkills, setPlayerSkills] = useState<string[]>(['combat-1']);
+  
+  // Загрузка данных из профиля игрока
+  useEffect(() => {
+    if (player) {
+      // Обновляем первичные атрибуты из данных игрока
+      const playerStats = player.stats || {};
+      
+      setAttributes({
+        strength: playerStats.strength || 5,
+        dexterity: playerStats.dexterity || 5,
+        intelligence: playerStats.intelligence || 5,
+        willpower: playerStats.willpower || 5,
+        charisma: playerStats.charisma || 5
+      });
+      
+      // Обновляем уровень и опыт
+      setLevel(player.level || 1);
+      setExperience(player.experience || 0);
+      
+      // Обновляем вторичные характеристики на основе атрибутов
+      updateSecondaryStats({
+        strength: playerStats.strength || 5,
+        dexterity: playerStats.dexterity || 5,
+        intelligence: playerStats.intelligence || 5,
+        willpower: playerStats.willpower || 5,
+        charisma: playerStats.charisma || 5
+      });
+    }
+  }, [player]);
+  
+  // Обновление вторичных характеристик на основе атрибутов
+  const updateSecondaryStats = (attrs: PrimaryAttributes) => {
+    setSecondaryStats({
+      health: 80 + (attrs.strength * 4) + (attrs.willpower * 2),
+      energy: 50 + (attrs.willpower * 5),
+      evasion: 10 + (attrs.dexterity * 1),
+      criticalChance: 5 + Math.floor(attrs.dexterity / 2),
+      poisonResistance: 5 + Math.floor(attrs.willpower / 2),
+      hackingSkill: 15 + (attrs.intelligence * 2),
+      persuasion: 10 + (attrs.charisma * 2)
+    });
+  };
+  
+  // Увеличение атрибута
+  const increaseAttribute = (attributeName: keyof PrimaryAttributes) => {
     if (availableAttributePoints > 0) {
-      updatePrimaryAttribute({ attribute, value: 1 });
-      // Уменьшаем количество доступных очков атрибутов
-      decreaseAttributePoints();
+      const newAttributes = {
+        ...attributes,
+        [attributeName]: attributes[attributeName] + 1
+      };
+      
+      setAttributes(newAttributes);
+      setAvailableAttributePoints(availableAttributePoints - 1);
+      updateSecondaryStats(newAttributes);
     }
-  }, [availableAttributePoints]);
+  };
   
-  const decreaseAttribute = useCallback((attribute: keyof PrimaryAttributes) => {
-    // Уменьшение атрибута, если позволяют правила игры
-    // Обычно используется только при создании персонажа или сбросе
-    updatePrimaryAttribute({ attribute, value: -1 });
-    // Увеличиваем количество доступных очков атрибутов
-    increaseAttributePoints();
-  }, []);
-  
-  // Обработчик для изучения навыка
-  const learnSkill = useCallback((skillId: string) => {
-    if (availableSkillPoints > 0) {
-      spendSkillPoint(skillId);
+  // Изучение навыка
+  const learnSkill = (skillId: string) => {
+    const skill = allSkillNodes.find(node => node.id === skillId);
+    
+    if (!skill) return;
+    
+    // Проверка требований
+    if (skill.requires && !skill.requires.every(reqId => playerSkills.includes(reqId))) {
+      return;
     }
-  }, [availableSkillPoints]);
+    
+    // Проверка доступности очков навыков
+    if (availableSkillPoints < skill.cost) {
+      return;
+    }
+    
+    // Изучаем навык
+    setPlayerSkills([...playerSkills, skillId]);
+    setAvailableSkillPoints(availableSkillPoints - skill.cost);
+  };
   
-  // Обработчик для получения опыта
-  const gainExperience = useCallback((amount: number) => {
-    addExperience(amount);
-  }, []);
-  
-  // Обработчик для принудительного повышения уровня (для тестирования)
-  const forceLevel = useCallback(() => {
-    levelUp();
-  }, []);
-  
-  // Обработчик для сброса всех характеристик (для тестирования)
-  const resetAll = useCallback(() => {
-    resetAttributes();
-    resetSkills('all');
-  }, []);
-  
-  // Функция для получения навыка по ID
-  const getSkillById = useCallback((skillId: string): SkillNode | undefined => {
-    return allSkills.find(skill => skill.id === skillId);
-  }, [allSkills]);
-  
-  // Функция для получения всех навыков определенного пути
-  const getSkillsByPath = useCallback((path: ClassPath): SkillNode[] => {
-    return allSkills.filter(skill => skill.path === path);
-  }, [allSkills]);
-  
-  // Функция для проверки, доступен ли навык для изучения
-  const isSkillAvailable = useCallback((skillId: string): boolean => {
-    const skill = getSkillById(skillId);
+  // Проверяет, удовлетворены ли требования для навыка
+  const calculateRequirementsMet = (skillId: string) => {
+    const skill = allSkillNodes.find(node => node.id === skillId);
+    
     if (!skill) return false;
     
-    const pathProgress = pathsProgress[skill.path];
+    // Если нет требований, то требования выполнены
+    if (!skill.requires) return true;
     
-    // Если навык уже разблокирован, он недоступен для повторного изучения
-    if (pathProgress.unlockedNodes.includes(skillId)) return false;
+    // Проверяем, изучены ли все требуемые навыки
+    return skill.requires.every(reqId => playerSkills.includes(reqId));
+  };
+  
+  // Добавление опыта
+  const addExperience = (amount: number) => {
+    const newExperience = experience + amount;
+    setExperience(newExperience);
     
-    // Если недостаточно очков навыков, он недоступен
-    if (availableSkillPoints < skill.cost) return false;
-    
-    // Если у навыка есть пререквизиты, проверяем, разблокированы ли они
-    if (skill.prerequisites.length > 0) {
-      const allPrerequisitesMet = skill.prerequisites.every(
-        prereqId => pathProgress.activeNodes.includes(prereqId)
-      );
-      if (!allPrerequisitesMet) return false;
+    // Простая система уровней: каждые 1000 опыта = 1 уровень
+    const newLevel = Math.floor(newExperience / 1000) + 1;
+    if (newLevel > level) {
+      const levelDifference = newLevel - level;
+      setLevel(newLevel);
+      
+      // За каждый новый уровень даем 2 очка атрибутов и 1 очко навыков
+      setAvailableAttributePoints(availableAttributePoints + (levelDifference * 2));
+      setAvailableSkillPoints(availableSkillPoints + levelDifference);
     }
-    
-    // Проверяем, достигнут ли необходимый уровень в пути для разблокировки
-    if (pathProgress.level < skill.level - 1) return false;
-    
-    return true;
-  }, [availableSkillPoints, pathsProgress, getSkillById]);
+  };
   
   return {
-    // Состояние
-    primaryAttributes,
+    attributes,
     secondaryStats,
-    playerLevel,
     availableAttributePoints,
     availableSkillPoints,
-    pathsProgress,
-    allSkills,
-    
-    // Методы для работы с атрибутами
+    level,
+    experience,
+    playerSkills,
+    allSkillNodes,
+    perks,
     increaseAttribute,
-    decreaseAttribute,
-    
-    // Методы для работы с навыками
     learnSkill,
-    getSkillById,
-    getSkillsByPath,
-    isSkillAvailable,
-    
-    // Методы для работы с опытом и уровнем
-    gainExperience,
-    forceLevel,
-    
-    // Утилиты
-    resetAll
+    calculateRequirementsMet,
+    addExperience
   };
-} 
+}; 

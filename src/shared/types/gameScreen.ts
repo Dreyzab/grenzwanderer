@@ -1,32 +1,56 @@
-import { Id } from '../../../convex/_generated/dataModel';
-import { MarkerData, QuestMarker } from './marker.types';
+/**
+ * Типы для различных игровых экранов и их пропсов
+ */
 
+// Возможные представления игрового экрана
 export enum GameView {
-  MESSAGES = 'messages',
   MAP = 'map',
-  NOVEL = 'novel'
+  NOVEL = 'novel',
+  INVENTORY = 'inventory',
+  MESSAGES = 'messages',
+  SCANNER = 'scanner'
+}
+
+export enum GameScreenType {
+  MAP = 'map',
+  DIALOG = 'dialog',
+  SCANNER = 'scanner',
+  NOVEL = 'novel',
+  INVENTORY = 'inventory'
 }
 
 export interface GameScreenProps {
-  onExit: () => void;
-  initialView?: GameView;
-  onViewChange?: (view: GameView) => void;
-}
-
-export interface DialogChoiceProps {
-  text: string;
-  onClick: () => void;
-}
-
-export interface HeaderProps {
-  onOpenDialog: () => void;
-  onOpenInventory: () => void;
-}
-
-export interface VisualNovelPageProps {
-  initialSceneId: string;
+  initialView: GameView;
+  onViewChange: (view: GameView) => void;
   playerId?: string;
-  initialQuestState?: any;
-  initialPlayerStats?: any;
-  onExit?: (finalQuestState?: any, finalPlayerStats?: any) => void;
-} 
+}
+
+export interface MapScreenProps extends GameScreenProps {
+  type: GameScreenType.MAP;
+}
+
+export interface DialogScreenProps extends GameScreenProps {
+  type: GameScreenType.DIALOG;
+  dialogId: string;
+}
+
+export interface ScannerScreenProps extends GameScreenProps {
+  type: GameScreenType.SCANNER;
+  onScan: (code: string) => void;
+}
+
+export interface NovelScreenProps extends GameScreenProps {
+  type: GameScreenType.NOVEL;
+  sceneId: string;
+}
+
+export interface InventoryScreenProps extends GameScreenProps {
+  type: GameScreenType.INVENTORY;
+}
+
+export type GameScreen = 
+  | MapScreenProps
+  | DialogScreenProps
+  | ScannerScreenProps
+  | NovelScreenProps
+  | InventoryScreenProps; 

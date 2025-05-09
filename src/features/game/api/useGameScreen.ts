@@ -1,152 +1,118 @@
-import { useState, useCallback, useEffect } from 'react';
-import { QuestStateEnum } from '../../../shared/constants/quest';
-import { GameView } from '../../../shared/types/gameScreen';
-import { usePlayer } from '../../player/api/usePlayer';
+import { useState, useEffect } from 'react';
+import { usePlayer } from '../../../entities/player/api/usePlayer';
 import { useQuestActions } from '../../quest/api/useQuestActions';
-import { useMessagesReducer, Message } from '../../messages/api/useMessages';
-import { useMarkers } from '../../markers/api';
+import { useMessagesReducer } from '../../messages/api/useMessages';
+import { useMarkers } from '../../markers/api/useMarkers';
+import { QuestSessionState } from '../../../shared/constants/quest';
+import { GameView } from '../../../shared/types/game.types';
+import type { ExtendedMarkerData } from '../../../entities/markers';
 
-interface GameScreenResult {
-  // Состояние
-  questState: QuestStateEnum;
-  completedSteps: string[];
-  gameView: GameView;
-  sceneKey: string | null;
-  player: any;
-  
-  // Сообщения
-  newMessages: Message[];
-  archiveMessages: Message[];
-  hasUnreadMessages: boolean;
-  markMessageAsRead: (id: string) => void;
-  
-  // Загрузка и ошибки
-  playerLoading: boolean;
-  playerError: string | null;
-  questLoading: boolean;
-  questError: string | null;
-  
-  // Обработчики
-  handleOpenMap: () => void;
-  handleOpenMessages: () => void;
-  handleNovelExit: () => void;
-  handleMarkerClick: (marker: any) => Promise<void>;
-  handleStartDeliveryQuest: () => Promise<void>;
-  handleQRScanSuccess: (code: string) => Promise<void>;
-  
-  // Утилиты
-  completeQuestStep: (stepId: string) => void;
-  openScene: (sceneId: string) => void;
-}
+/**
+ * Кастомный хук для управления состоянием игрового экрана
+ * Центральный оркестратор различных состояний и действий в игре
+ */
+export function useGameScreen({ 
+  initialSceneKey = null,
+  onViewChange,
+  playerId 
+}: {
+  initialSceneKey?: string | null;
+  onViewChange?: (view: GameView) => void;
+  playerId?: string;
+}) {
+  // Состояние представления (вкладки)
+  const [currentView, setCurrentView] = useState<GameView>(GameView.MAP);
+  const [sceneKey, setSceneKey] = useState<string | null>(initialSceneKey);
+  const [ready, setReady] = useState<boolean>(false);
 
-export function useGameScreen(initialView?: GameView, onViewChange?: (view: GameView) => void): GameScreenResult {
-  // Состояние игры и квеста
-  const [questState, setQuestState] = useState<QuestStateEnum>(QuestStateEnum.REGISTERED);
-  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
-  const [gameView, setGameView] = useState<GameView>(initialView || GameView.MAP);
-  const [sceneKey, setSceneKey] = useState<string | null>(null);
-  
-  // Данные игрока
-  const { player, loading: playerLoading, error: playerError } = usePlayer();
-  
-  // Маркеры
-  const { updateMarkersByQuest } = useMarkers();
-  
-  // Сообщения
+  // Получаем данные игрока
+  const { player, loading: playerLoading } = usePlayer(playerId);
+
+  // Инициализируем хуки для квестов, сообщений и маркеров
   const { 
-    newMessages, 
-    archiveMessages, 
-    hasUnreadMessages, 
-    markMessageAsRead
-  } = useMessagesReducer(player?._id);
-  
-  // Квестовые действия
+    scanQRCode, 
+    startQuest, 
+    questState 
+  } = useQuestActions({
+    playerId,
+    onStateChange: (state) => {
+      console.log('Quest state changed:', state);
+      // Дополнительная логика при изменении состояния квеста
+    },
+    onSceneOpen: (sceneId) => {
+      setSceneKey(sceneId);
+      setCurrentView(GameView.NOVEL);
+    },
+    onStepComplete: (stepId) => {
+      console.log('Step completed:', stepId);
+      // Логика при завершении шага
+    }
+  });
+
+  // Получаем данные о сообщениях
   const { 
-    loading: questLoading, 
-    error: questError,
-    handleQRScanSuccess, 
-    handleStartDeliveryQuest 
-  } = useQuestActions(
-    player,
-    setQuestState,
-    completeQuestStep,
-    openScene
-  );
-  
-  // Обновляем маркеры при изменении состояния квеста
+    messages, 
+    unreadCount, 
+    markAsRead, 
+    addMessage 
+  } = useMessagesReducer(playerId);
+
+  // Получаем данные о маркерах
+  const { 
+    markers, 
+    activeMarkers, 
+    addMarkerInteraction,
+    updateMarkersByQuest,
+    toggleComplete
+  } = useMarkers();
+
+  // Эффект для отслеживания готовности всех компонентов
   useEffect(() => {
-    updateMarkersByQuest(questState);
-  }, [questState, updateMarkersByQuest]);
-  
-  // Уведомляем родительский компонент при изменении представления
-  useEffect(() => {
+    if (!playerLoading) {
+      setReady(true);
+    }
+  }, [playerLoading]);
+
+  // Функция смены представления (вкладки)
+  const changeView = (view: GameView) => {
+    setCurrentView(view);
     if (onViewChange) {
-      onViewChange(gameView);
+      onViewChange(view);
     }
-  }, [gameView, onViewChange]);
-  
-  // Обработчики вью
-  const handleOpenMap = useCallback(() => {
-    setGameView(GameView.MAP);
-  }, []);
-  
-  const handleOpenMessages = useCallback(() => {
-    setGameView(GameView.MESSAGES);
-  }, []);
-  
-  const handleNovelExit = useCallback(() => {
-    setGameView(GameView.MAP);
-    setSceneKey(null);
-  }, []);
-  
-  // Вспомогательные функции
-  function completeQuestStep(stepId: string) {
-    if (!completedSteps.includes(stepId)) {
-      setCompletedSteps(prev => [...prev, stepId]);
-    }
-  }
-  
-  function openScene(sceneId: string) {
-    setSceneKey(sceneId);
-    setGameView(GameView.NOVEL);
-  }
-  
-  // Обработка клика по маркеру на карте
-  const handleMarkerClick = useCallback(async (marker: any) => {
-    if (!marker.qrCode) return;
-    await handleQRScanSuccess(marker.qrCode);
-  }, [handleQRScanSuccess]);
-  
+  };
+
+  // Обработчик сканирования QR
+  const handleQRScan = async (code: string) => {
+    return await scanQRCode(code);
+  };
+
+  // Функция для запуска игры
+  const startGame = async () => {
+    return await startQuest();
+  };
+
+  // Функция для отметки маркера как завершенного
+  const toggleMarkerComplete = (markerId: string) => {
+    toggleComplete(markerId);
+  };
+
   return {
-    // Состояние
-    questState,
-    completedSteps,
-    gameView,
+    currentView,
+    changeView,
     sceneKey,
+    setSceneKey,
     player,
-    
-    // Сообщения
-    newMessages,
-    archiveMessages,
-    hasUnreadMessages,
-    markMessageAsRead,
-    
-    // Загрузка и ошибки
-    playerLoading,
-    playerError,
-    questLoading,
-    questError,
-    
-    // Обработчики
-    handleOpenMap,
-    handleOpenMessages,
-    handleNovelExit,
-    handleMarkerClick,
-    handleStartDeliveryQuest,
-    handleQRScanSuccess,
-    
-    // Утилиты
-    completeQuestStep,
-    openScene
+    ready,
+    messages,
+    unreadCount,
+    markAsRead,
+    addMessage,
+    markers,
+    activeMarkers,
+    addMarkerInteraction,
+    handleQRScan,
+    startGame,
+    questState,
+    toggleMarkerComplete
   };
 } 

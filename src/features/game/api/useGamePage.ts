@@ -1,202 +1,163 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
-import { GameView } from '../../../shared/types/gameScreen';
+import { Id } from '../../../../convex/_generated/dataModel';
+import { QuestSessionState } from '../../../shared/constants/quest';
+import { GameView } from '../../../shared/types/game.types';
 
-type GameTab = 'map' | 'dialog' | 'scanner' | 'novel';
+// Обновляем тип GameTab, используя GameView
+type GameTab = GameView;
 
-export function useGamePage(navigate: any) {
-  // Состояние компонента
-  const [activeTab, setActiveTab] = useState<GameTab>('map');
-  const [loading, setLoading] = useState(true);
+type Player = {
+  id: Id<'players'>;
+  name: string;
+  stats: Record<string, number>;
+  // Прочие свойства игрока
+};
+
+type QuestState = Record<string, any>;
+
+/**
+ * Хук для управления состоянием и логикой главной игровой страницы
+ * Обрабатывает навигацию по вкладкам, инициализацию игрока и сканирование QR-кодов
+ */
+export function useGamePage() {
+  // Состояние страницы
+  const [activeTab, setActiveTab] = useState<GameTab>(GameView.MAP);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [hasNewMessage, setHasNewMessage] = useState(false);
   const [player, setPlayer] = useState<any>(null);
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
-  const [questState, setQuestState] = useState<string>('REGISTERED');
-  
-  // Получение API методов
-  const activateQuestByQR = useMutation(api.quest.activateQuestByQR);
+  const [questState, setQuestState] = useState<QuestState>({});
+  const [hasNewMessage, setHasNewMessage] = useState(false);
+
+  // Роутинг
+  const navigate = useNavigate();
+
+  // Мутации Convex
   const getOrCreatePlayer = useMutation(api.player.getOrCreatePlayer);
-  
-  // Инициализация данных игрока
-  useEffect(() => {
-    const initPlayer = async () => {
-      try {
-        setLoading(true);
-        // Здесь мы предполагаем, что ID пользователя хранится где-то (например, localStorage)
-        const userId = localStorage.getItem('userId');
-        
-        if (!userId) {
-          // Если нет ID пользователя, перенаправляем на страницу логина
-          navigate('/login');
-          return;
-        }
-        
-        // Получаем или создаем профиль игрока
-        const playerData = await getOrCreatePlayer({ userId: userId as any });
-        if (playerData) {
-          setPlayer(playerData);
-          
-          // Проверяем наличие новых сообщений
-          if (playerData.questState === 'NEW_MESSAGE' || playerData.questState === 'REGISTERED') {
-            setHasNewMessage(true);
-          }
-          
-          // Устанавливаем текущее состояние квеста
-          if (playerData.questState) {
-            setQuestState(playerData.questState);
-          }
-        }
-      } catch (error) {
-        console.error('Error initializing player:', error);
-        setError(error instanceof Error ? error.message : 'Неизвестная ошибка при загрузке профиля');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    initPlayer();
-  }, [navigate, getOrCreatePlayer]);
-  
-  // Обработка клика по вкладке
-  const handleTabClick = (tab: GameTab) => {
-    setActiveTab(tab);
-  };
-  
-  // Обработка выхода в главное меню
-  const handleExit = () => {
-    navigate('/');
-  };
-  
-  // Функция синхронизации представления GameScreen с активной вкладкой
-  const handleViewChange = (view: GameView) => {
-    switch (view) {
-      case GameView.MAP:
-        setActiveTab('map');
-        break;
-      case GameView.MESSAGES:
-        setActiveTab('dialog');
-        break;
-      case GameView.NOVEL:
-        // Если открывается визуальный роман, переключаемся на вкладку novel
-        setActiveTab('novel');
-        break;
-      default:
-        break;
-    }
-  };
-  
-  // Обработка успешного сканирования QR-кода
-  const handleQRScanSuccess = async (code: string) => {
-    if (!player) return;
-    
+  const activateQuestByQR = useMutation(api.quest.activateQuestByQR);
+
+  // Инициализация игрока
+  const initPlayer = async () => {
     try {
       setLoading(true);
       
-      // Сбрасываем текущую сцену перед активацией новой
-      setCurrentSceneId(null);
+      // Получаем userId из localStorage
+      const userId = localStorage.getItem('userId');
       
-      let result;
-      
-      try {
-        result = await activateQuestByQR({
-          playerId: player._id,
-          qrCode: code
-        });
-      } catch (error) {
-        console.warn('API error while activating QR code:', error);
-        
-        // Используем мок данные для тестирования в зависимости от считанного кода
-        switch (code) {
-          case 'grenz_npc_trader_01':
-            result = {
-              message: "Вы встретили торговца",
-              sceneId: "trader_meeting", // ID сцены для встречи с торговцем
-              questState: "DELIVERY_STARTED"
-            };
-            break;
-          case 'grenz_npc_craftsman_01':
-            result = {
-              message: "Вы встретили мастера Дитера",
-              sceneId: "craftsman_meeting", // ID сцены для встречи с мастером
-              questState: "PARTS_COLLECTED"
-            };
-            break;
-          case 'ARTIFACT_ITEM_2023':
-            result = {
-              message: "Вы нашли артефакт!",
-              sceneId: "artifact_found", // ID сцены для находки артефакта
-              questState: "ARTIFACT_FOUND"
-            };
-            break;
-          case 'location_anomaly_001':
-            result = {
-              message: "Вы прибыли в аномальную зону",
-              sceneId: "artifact_area", // ID сцены для аномальной зоны
-              questState: "ARTIFACT_HUNT"
-            };
-            break;
-          case 'encounter_001':
-            result = {
-              message: "Неожиданная встреча в лесу",
-              sceneId: "ork_encounter", // ID сцены для встречи в лесу
-              questState: "ARTIFACT_HUNT"
-            };
-            break;
-          default:
-            result = {
-              message: "QR-код активирован (тестовый режим)",
-              sceneId: "artifact_task", // ID тестовой сцены для принятия задания с артефактом
-              questState: "DELIVERY_STARTED"
-            };
-        }
+      if (!userId) {
+        // Если пользователь не авторизован, перенаправляем на страницу входа
+        navigate('/login');
+        return;
       }
       
-      if (result) {
-        // Если есть sceneId, открываем визуальный роман
-        if (result.sceneId) {
-          // Небольшая задержка для гарантированного обновления сцены
-          const sceneId = String(result.sceneId);
-          setTimeout(() => {
-            setCurrentSceneId(sceneId);
-            setActiveTab('novel');
-          }, 100);
-        }
-        
-        // Обновляем состояние квеста, если оно изменилось
-        if (result.questState) {
-          setQuestState(result.questState);
+      // Получаем или создаем игрока через API Convex
+      const playerData = await getOrCreatePlayer({ userId: userId as any });
+      
+      if (playerData) {
+        setPlayer(playerData);
+        // Инициализируем состояние квеста из данных игрока
+        if (playerData.questState) {
+          setQuestState(JSON.parse(JSON.stringify(playerData.questState)) as QuestState);
         }
       }
     } catch (error) {
-      alert(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+      setError(error instanceof Error ? error.message : 'Неизвестная ошибка при загрузке профиля');
     } finally {
       setLoading(false);
     }
   };
-  
-  // Обработчик выхода из визуального романа
-  const handleNovelExit = () => {
-    setActiveTab('map');
-    setCurrentSceneId(null);
+
+  // Вызываем инициализацию при монтировании компонента
+  useEffect(() => {
+    initPlayer();
+  }, [navigate]);
+
+  // Обработчик сканирования QR-кода
+  const handleQRScanSuccess = async (code: string) => {
+    try {
+      // Пытаемся активировать квест по QR через API Convex
+      const result = await activateQuestByQR({ 
+        playerId: player?.id, 
+        qrCode: code 
+      });
+      
+      if (result && result.sceneId) {
+        // Если получили sceneId, устанавливаем его и переключаемся на вкладку новеллы
+        setTimeout(() => {
+          setCurrentSceneId(result.sceneId as string);
+          setActiveTab(GameView.NOVEL);
+        }, 100);
+        return;
+      }
+    } catch (error) {
+      console.error('Ошибка при активации квеста:', error);
+      
+      // В случае ошибки API, используем мок-данные для разработки
+      // Мок-логика на основе кода QR
+      switch (code) {
+        case 'delivery_start':
+          setTimeout(() => {
+            setCurrentSceneId('delivery_start');
+            setActiveTab(GameView.NOVEL);
+          }, 100);
+          break;
+        case 'shelter':
+          setTimeout(() => {
+            setCurrentSceneId('shelter_intro');
+            setActiveTab(GameView.NOVEL);
+          }, 100);
+          break;
+        case 'inventory':
+          setActiveTab(GameView.INVENTORY);
+          break;
+        default:
+          alert('Неизвестный QR-код: ' + code);
+      }
+    }
   };
   
+  // Обработчик клика по вкладке
+  const handleTabClick = (tab: GameTab) => {
+    setActiveTab(tab);
+  };
+  
+  // Обработчик выхода из игры
+  const handleExit = () => {
+    navigate('/');
+  };
+  
+  // Обработчик выхода из режима визуальной новеллы
+  const handleNovelExit = () => {
+    setActiveTab(GameView.MAP);
+  };
+  
+  // Обработчик изменения представления игры
+  const handleViewChange = (view: GameView) => {
+    setActiveTab(view);
+  };
+
   return {
     // Состояние
     activeTab,
     loading,
     error,
-    hasNewMessage,
+    player,
     currentSceneId,
     questState,
-    player,
+    hasNewMessage,
     
-    // Обработчики
+    // Методы
+    setActiveTab,
+    handleQRScanSuccess,
+    handleViewChange,
     handleTabClick,
     handleExit,
-    handleQRScanSuccess,
     handleNovelExit,
-    handleViewChange
+    
+    // Утилиты
+    refreshPlayer: initPlayer
   };
 } 

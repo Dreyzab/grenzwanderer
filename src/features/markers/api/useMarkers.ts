@@ -9,19 +9,34 @@ import {
   $activeMarkers,
   $markerInteractions,
   initialMarkers
-} from '../../../entities/markers';
-import { MarkerData, MarkerInteraction } from '../../../shared/types/markers';
+} from '../../../entities/markers/model';
+import { QuestState } from '../../../shared/types/quest.types';
 import { useUnit } from 'effector-react';
-import { QuestStateEnum } from '../../../shared/constants/quest';
+import { MarkerData, MarkerInteractionType } from '../../../shared/types/marker.types';
 
+// Создаем интерфейс для взаимодействия с маркером
+interface MarkerInteraction {
+  markerId: string;
+  timestamp: number;
+  interactionType: MarkerInteractionType;
+}
+
+/**
+ * Хук для взаимодействия с маркерами на карте
+ */
 export function useMarkers() {
   const markers = useUnit($markers);
   const activeMarkers = useUnit($activeMarkers);
   const interactions = useUnit($markerInteractions);
 
   // Функция для добавления нового взаимодействия с маркером
-  const addMarkerInteraction = useCallback((interaction: MarkerInteraction) => {
-    addInteraction(interaction);
+  const addMarkerInteraction = useCallback((markerId: string, interactionType: MarkerInteractionType = MarkerInteractionType.SCAN) => {
+    const interaction: MarkerInteraction = {
+      markerId,
+      timestamp: Date.now(),
+      interactionType
+    };
+    addInteraction(interaction as any); // Временное решение с приведением типа
   }, []);
 
   // Функция для активации/деактивации маркера
@@ -45,35 +60,38 @@ export function useMarkers() {
   }, []);
 
   // Обновить маркеры в зависимости от состояния квеста
-  const updateMarkersByQuest = useCallback((state: QuestStateEnum) => {
+  const updateMarkersByQuest = useCallback((questState: QuestState) => {
     // Сначала скрываем все маркеры
-    initialMarkers.forEach(marker => hideMarker(marker.id));
+    markers.forEach(marker => hideMarker(marker.id));
     
-    // Затем показываем нужные в зависимости от состояния
-    switch (state) {
-      case QuestStateEnum.DELIVERY_STARTED:
-        showMarker('trader');
+    // Потом показываем нужные в зависимости от состояния квеста
+    switch (questState) {
+      case QuestState.IN_PROGRESS:
+        // Показываем маркеры доставки
+        showMarker('delivery_point_1');
+        showMarker('delivery_point_2');
         break;
-      case QuestStateEnum.PARTS_COLLECTED:
-        showMarker('craftsman');
+        
+      case QuestState.COMPLETED:
+        // Показываем маркеры для поиска артефактов
+        showMarker('artifact_zone_1');
+        showMarker('artifact_zone_2');
+        showMarker('trader_location');
         break;
-      case QuestStateEnum.ARTIFACT_HUNT:
-        showMarker('anomaly_zone');
-        showMarker('encounter');
+        
+      case QuestState.NOT_STARTED:
+        // Показываем базовые локации
+        showMarker('starter_npc');
+        showMarker('shelter_location');
         break;
-      case QuestStateEnum.ARTIFACT_FOUND:
-        showMarker('craftsman');
-        break;
-      case QuestStateEnum.FREE_ROAM:
-        showMarker('trader');
-        showMarker('craftsman');
-        showMarker('anomaly_zone');
-        break;
+        
       default:
-        // Ничего не показываем
-        break;
+        // По умолчанию показываем все важные локации
+        showMarker('starter_npc');
+        showMarker('shelter_location');
+        showMarker('trader_location');
     }
-  }, []);
+  }, [markers]);
 
   return {
     markers,
@@ -86,4 +104,52 @@ export function useMarkers() {
     hideMarkerById,
     updateMarkersByQuest
   };
-} 
+}
+
+// Экспортируем функцию обновления маркеров для использования без необходимости создавать экземпляр хука
+export const updateMarkersByQuest = (questState: QuestState) => {
+  // Сначала скрываем все маркеры
+  // Примечание: так как здесь мы не можем получить список маркеров напрямую,
+  // мы просто скрываем и показываем конкретные маркеры
+  
+  // Скрываем маркеры доставки
+  hideMarker('delivery_point_1');
+  hideMarker('delivery_point_2');
+  
+  // Скрываем маркеры артефактов
+  hideMarker('artifact_zone_1');
+  hideMarker('artifact_zone_2');
+  hideMarker('trader_location');
+  
+  // Скрываем базовые локации
+  hideMarker('starter_npc');
+  hideMarker('shelter_location');
+  
+  // Потом показываем нужные в зависимости от состояния квеста
+  switch (questState) {
+    case QuestState.IN_PROGRESS:
+      // Показываем маркеры доставки
+      showMarker('delivery_point_1');
+      showMarker('delivery_point_2');
+      break;
+      
+    case QuestState.COMPLETED:
+      // Показываем маркеры для поиска артефактов
+      showMarker('artifact_zone_1');
+      showMarker('artifact_zone_2');
+      showMarker('trader_location');
+      break;
+      
+    case QuestState.NOT_STARTED:
+      // Показываем базовые локации
+      showMarker('starter_npc');
+      showMarker('shelter_location');
+      break;
+      
+    default:
+      // По умолчанию показываем все важные локации
+      showMarker('starter_npc');
+      showMarker('shelter_location');
+      showMarker('trader_location');
+  }
+}; 

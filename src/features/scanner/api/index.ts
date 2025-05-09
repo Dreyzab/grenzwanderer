@@ -1,1 +1,1 @@
-export { useQRScanner } from './useQRScanner'; 
+export { useQRScanner } from './useQRScanner';   

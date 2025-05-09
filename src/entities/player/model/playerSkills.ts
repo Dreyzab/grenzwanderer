@@ -415,6 +415,11 @@ export const resetSkillPath = createEvent<ClassPath>();
 export const resetAllSkillPaths = createEvent();
 export const setAvailableSkillPoints = createEvent<number>();
 
+// Экспортируем функцию unlockSkill как spendSkillPoint для обратной совместимости
+export const spendSkillPoint = unlockSkill;
+// Экспортируем функцию resetAllSkillPaths как resetSkills для обратной совместимости
+export const resetSkills = resetAllSkillPaths;
+
 // Создание начального состояния для путей навыков
 const createInitialPathProgress = (): Record<ClassPath, PathProgress> => {
   const paths: Partial<Record<ClassPath, PathProgress>> = {};
@@ -583,6 +588,11 @@ export const $playerSkills = createStore<PlayerSkillsState>(initialSkillsState)
     availableSkillPoints: points
   }));
 
+// Экспортируем хранилища для обратной совместимости
+export const $availableSkillPoints = $playerSkills.map(state => state.availableSkillPoints);
+export const $pathsProgress = $playerSkills.map(state => state.paths);
+export const $allSkills = createStore<SkillNode[]>(ALL_SKILL_NODES);
+
 // Функция определения доступности навыка для изучения
 function isSkillAvailable(pathsState: Record<ClassPath, PathProgress>, skill: SkillNode): boolean {
   const pathProgress = pathsState[skill.path];
@@ -603,15 +613,6 @@ function isSkillAvailable(pathsState: Record<ClassPath, PathProgress>, skill: Sk
   }
   
   return true;
-}
-
-// Вычисление уровня пути на основе потраченных очков
-function calculatePathLevel(points: number): number {
-  if (points < 3) return 0;
-  if (points < 8) return 1;
-  if (points < 15) return 2;
-  if (points < 25) return 3;
-  return 4;
 }
 
 // Селекторы для получения данных о навыках

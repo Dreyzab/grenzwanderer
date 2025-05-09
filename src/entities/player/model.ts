@@ -7,45 +7,75 @@ import { $questState, $completedSteps, questStepCompleted, questStateChanged } f
 
 // Initial player stats
 export const DEFAULT_PLAYER_STATS: PlayerStats = {
-  energy: 100,
-  money: 0,
-  attractiveness: 1,
-  willpower: 1,
-  fitness: 4,
-  intelligence: 7,
-  corruption: 0
+  attributes: {
+    strength: 5,
+    intelligence: 7,
+    charisma: 4,
+    agility: 3,
+    wisdom: 4,
+    endurance: 6
+  },
+  resources: {
+    health: 100,
+    energy: 100,
+    money: 0,
+    reputation: 50
+  },
+  skills: {
+    conversation: 1,
+    persuasion: 1,
+    hacking: 3,
+    survival: 2
+  },
+  relationships: {}
 };
 
-// Events for updating player stats
-export const updatePlayerStat = createEvent<{stat: keyof PlayerStats, value: number}>();
+// События для обновления статистики игрока
+export type StatPath = `attributes.${keyof PlayerStats['attributes']}` | 
+                       `resources.${keyof PlayerStats['resources']}` | 
+                       `skills.${string}` | 
+                       `relationships.${string}`;
+
+export const updatePlayerStat = createEvent<{path: StatPath, value: number}>();
 export const resetPlayerStats = createEvent();
 export const setPlayerStats = createEvent<Partial<PlayerStats>>();
 
-// Player stats store
+// Функция для обновления вложенных свойств объекта по пути
+const updateNestedProperty = (obj: any, path: string, value: number): any => {
+  const [category, property] = path.split('.');
+  if (!category || !property) return obj;
+  
+  return {
+    ...obj,
+    [category]: {
+      ...obj[category],
+      [property]: Math.max(0, (obj[category][property] || 0) + value)
+    }
+  };
+};
+
+// Хранилище статистики игрока
 export const $playerStats = createStore<PlayerStats>(DEFAULT_PLAYER_STATS)
-  .on(updatePlayerStat, (state, {stat, value}) => ({
-    ...state,
-    [stat]: Math.max(0, state[stat] + value) // Ensure stats don't go below 0
-  }))
+  .on(updatePlayerStat, (state, {path, value}) => updateNestedProperty(state, path, value))
   .on(resetPlayerStats, () => DEFAULT_PLAYER_STATS)
   .on(setPlayerStats, (state, newStats) => ({
     ...state,
     ...newStats
   }));
 
-// Store for tracking gained/lost stats
-export const $recentStatChanges = createStore<Array<{stat: keyof PlayerStats, value: number}>>([])
+// Хранилище для отслеживания полученных/потерянных статов
+export const $recentStatChanges = createStore<Array<{path: StatPath, value: number}>>([])
   .on(updatePlayerStat, (state, change) => {
-    // Only add significant changes
+    // Добавляем только значимые изменения
     if (change.value !== 0) {
-      // Add the new change and keep only the 5 most recent changes
+      // Добавляем изменение и сохраняем только 5 последних
       return [...state, change].slice(-5);
     }
     return state;
   })
   .reset(resetPlayerStats);
 
-// Special skills/perks
+// Специальные навыки/перки
 export interface Perk {
   id: string;
   name: string;

@@ -97,3 +97,34 @@ export const updatePlayerLocation = mutation({
     return locationHistory;
   },
 });
+
+// Update player quest state
+export const updateQuestState = mutation({
+  args: { 
+    playerId: v.string(),
+    questState: v.string(),
+    completedAction: v.string()
+  },
+  handler: async (ctx, { playerId, questState, completedAction }) => {
+    // Преобразуем строковый ID в типизированный ID, если нужно
+    const playerIdObj = ctx.db.normalizeId("players", playerId);
+    if (!playerIdObj) {
+      throw new Error("Неверный формат ID игрока");
+    }
+    
+    const player = await ctx.db.get(playerIdObj);
+    if (!player) {
+      throw new Error("Игрок не найден");
+    }
+    
+    await ctx.db.patch(playerIdObj, {
+      questState
+    });
+    
+    return { 
+      success: true, 
+      state: questState,
+      completedAction
+    };
+  },
+});

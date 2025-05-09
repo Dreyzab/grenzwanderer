@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { QuestMap } from '../../widgets/questMap/QuestMap';
-import { Messages } from '../../widgets/messages/Messages';
+import { PlayerMessages } from '../../widgets/playerMessages/PlayerMessages';
 import { VisualNovel } from '../../pages/VisualNovelPage/VisualNovel';
 import { GameScreenProps, GameView } from '../../shared/types/gameScreen';
 import { QuestStateEnum } from '../../shared/constants/quest';
@@ -9,110 +9,113 @@ import { LoadingIndicator } from './ui/LoadingIndicator';
 import { ErrorDisplay } from './ui/ErrorDisplay';
 import { GameNavButtons } from './ui/GameNavButtons';
 import { useGameScreen } from '../../features/game/api/useGameScreen';
-import { QR_CODES } from '../../shared/types/markers';
-import { Message as HookMessage } from '../../hooks/useMessages';
-import { Message as ApiMessage } from '../../features/messages/api/useMessages';
+import { QR_CODES } from '../../shared/constants/marker';
 import './GameScreen.css';
-
-// Адаптер для преобразования формата сообщений
-const adaptMessagesToHookFormat = (messages: ApiMessage[]): HookMessage[] => {
-  return messages.map(msg => ({
-    id: msg.id,
-    title: msg.title,
-    content: msg.content,
-    sender: msg.sender || 'Система',
-    date: new Date(msg.timestamp).toLocaleDateString(),
-    read: msg.read,
-    // Дополнительные поля можно добавить по необходимости
-  }));
-};
+import { MarkerData } from '../../shared/types/marker.types';
+import { PlayerData } from '../../entities/player/api/usePlayer';
+import { PlayerStats } from '../../shared/types/visualNovel';
 
 export const GameScreen: React.FC<GameScreenProps> = ({ 
   onExit, 
   initialView, 
-  onViewChange 
+  onViewChange,
+  playerId
 }) => {
+  const gameScreenState = useGameScreen({ 
+    initialSceneKey: null,
+    onViewChange,
+    playerId
+  });
+  
   const {
-    // Состояние
-    questState,
-    gameView,
+    currentView,
     sceneKey,
     player,
-    
-    // Сообщения
-    newMessages: apiNewMessages,
-    archiveMessages: apiArchiveMessages,
-    hasUnreadMessages,
-    markMessageAsRead,
-    
-    // Загрузка и ошибки
-    playerLoading,
-    playerError,
-    questLoading,
-    questError,
-    
-    // Обработчики
-    handleOpenMap,
-    handleOpenMessages,
-    handleNovelExit,
-    handleMarkerClick,
-    handleStartDeliveryQuest,
-    handleQRScanSuccess
-  } = useGameScreen(initialView, onViewChange);
+    questState,
+    ready,
+    changeView,
+    handleQRScan,
+    startGame,
+    toggleMarkerComplete
+  } = gameScreenState;
   
-  // Адаптируем сообщения к ожидаемому формату
-  const newMessages = useMemo(() => 
-    adaptMessagesToHookFormat(apiNewMessages), [apiNewMessages]
-  );
-  
-  const archiveMessages = useMemo(() => 
-    adaptMessagesToHookFormat(apiArchiveMessages), [apiArchiveMessages]
-  );
+  // Извлекаем дополнительные поля из хука для проверки ошибок
+  const playerLoading = (gameScreenState as any).playerLoading || false;
+  const playerError = (gameScreenState as any).playerError || null;
   
   // Показываем загрузку
-  if (playerLoading) {
-    return <LoadingIndicator fullScreen message="Loading game..." />;
+  if (playerLoading || !ready) {
+    return <LoadingIndicator fullScreen message="Загрузка игры..." />;
   }
   
   // Показываем ошибку
-  if (playerError || questError) {
-    return <ErrorDisplay message={playerError || questError} onRetry={onExit} />;
+  if (playerError) {
+    return <ErrorDisplay message={playerError} onRetry={onExit} />;
   }
   
   // Показываем визуальную новеллу
-  if (gameView === GameView.NOVEL && sceneKey && player) {
+  if (currentView === GameView.NOVEL && sceneKey && player) {
+    // Преобразуем типы для соответствия ожидаемым в VisualNovel
+    const defaultPlayerStats: PlayerStats = {
+      energy: 100,
+      money: 0,
+      attractiveness: 10,
+      willpower: 10,
+      fitness: 10,
+      intelligence: 10,
+      corruption: 0
+    };
+    
+    // Объединяем значения по умолчанию с фактическими данными игрока
+    const playerStats: PlayerStats = {
+      ...defaultPlayerStats,
+      ...(player.stats || {})
+    };
+    
     return (
       <VisualNovel
         initialSceneId={sceneKey}
         playerId={player._id}
-        initialQuestState={questState}
-        initialPlayerStats={player.stats}
-        onExit={handleNovelExit}
+        initialQuestState={{}}
+        initialPlayerStats={playerStats}
+        onExit={() => changeView(GameView.MAP)}
       />
     );
   }
   
   // Показываем сообщения
-  if (gameView === GameView.MESSAGES) {
+  if (currentView === GameView.MESSAGES) {
     return (
-      <Messages
-        newMessages={newMessages}
-        archiveMessages={archiveMessages}
-        onBackClick={handleOpenMap}
-        onOpenMap={handleOpenMap}
-        onStartQuest={handleStartDeliveryQuest}
-        markMessageAsRead={markMessageAsRead}
-      />
+      <div className="messages-screen">
+        <PlayerMessages
+          playerId={playerId}
+          className="h-full"
+        />
+        <button 
+          className="back-button fixed bottom-4 left-4"
+          onClick={() => changeView(GameView.MAP)}
+        >
+          Назад к карте
+        </button>
+      </div>
     );
   }
+  
+  // Обработчик клика по маркеру - адаптер
+  const handleMarkerClick = async (marker: MarkerData) => {
+    if (marker.id) {
+      toggleMarkerComplete(marker.id);
+    }
+    return Promise.resolve();
+  };
   
   // Показываем карту
   return (
     <div className="game-screen">
-      {gameView === GameView.MAP && (
+      {currentView === GameView.MAP && (
         <div className="quest-map-wrapper">
           <Header 
-            onOpenDialog={handleOpenMessages}
+            onOpenDialog={() => changeView(GameView.MESSAGES)}
             onOpenInventory={() => {}} // TODO: Реализовать открытие инвентаря
           />
           
@@ -123,12 +126,12 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             />
           </div>
           
-          {questLoading && <LoadingIndicator message="Загрузка..." />}
+          {!ready && <LoadingIndicator message="Загрузка..." />}
           
           <GameNavButtons 
-            questState={questState}
-            onStartQuest={handleStartDeliveryQuest}
-            onQRScanTest={handleQRScanSuccess}
+            questState={questState || QuestStateEnum.REGISTERED}
+            onStartQuest={startGame}
+            onQRScanTest={handleQRScan}
             onExit={onExit}
             qrCodes={QR_CODES}
           />

@@ -2,7 +2,7 @@ import { useUnit } from 'effector-react';
 import { useState, useCallback, useEffect } from 'react';
 import { $currentScene, setCurrentScene, setSceneLoading, $sceneLoading } from '../../entities/scene/model';
 import { Scene, DialogLine, CharacterPosition, CharacterEmotion } from '../../shared/types/visualNovel';
-import { convex } from '../../shared/utils/convex';
+import { convex } from '../../app/convex';
 import { api } from '../../../convex/_generated/api';
 import { Id } from '../../../convex/_generated/dataModel';
 import { useMutation, useQuery } from 'convex/react';

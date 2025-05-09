@@ -1,132 +1,62 @@
 import { useState, useEffect } from 'react';
-import { useMutation } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
-import { Id } from '../../../../convex/_generated/dataModel';
-import { PlayerStats } from '../../../shared/types/visualNovel';
 
 export interface PlayerData {
-  _id: Id<"players">;
+  id: string;
   name: string;
-  locationHistory: any[];
-  equipment: Record<string, any>;
-  stats: PlayerStats;
+  level: number;
+  experience: number;
+  avatar: string;
+  health: number;
+  maxHealth: number;
+  energy: number;
+  maxEnergy: number;
+  inventory: string[];
+  stats: Record<string, number>;
 }
 
-export function usePlayer() {
+export const usePlayer = () => {
   const [player, setPlayer] = useState<PlayerData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
-  const getOrCreatePlayer = useMutation(api.player.getOrCreatePlayer);
-  
-  // Initialize data
+
   useEffect(() => {
-    const initData = async () => {
+    const fetchPlayer = async () => {
       try {
         setLoading(true);
-        
-        // Получаем ID пользователя из localStorage
-        const userId = localStorage.getItem('userId');
-        
-        if (!userId) {
-          console.warn("User ID not found in localStorage, using mock data");
-          // Используем мок данные для игрока
-          setPlayer({
-            _id: "temporary-player-id" as unknown as Id<"players">,
-            name: "Test Player",
-            equipment: {},
-            locationHistory: [],
-            stats: {
-              energy: 100,
-              money: 0,
-              attractiveness: 1,
-              willpower: 1,
-              fitness: 4,
-              intelligence: 7,
-              corruption: 0
-            }
-          });
-        } else {
-          // Пытаемся получить игрока из API
-          try {
-            const playerData = await getOrCreatePlayer({ userId: userId as any });
-            if (playerData) {
-              // Если в полученных данных нет поля stats, добавляем стандартные значения
-              if (!playerData.stats) {
-                playerData.stats = {
-                  energy: 100,
-                  money: 0,
-                  attractiveness: 1,
-                  willpower: 1,
-                  fitness: 4,
-                  intelligence: 7,
-                  corruption: 0
-                };
-              }
-              setPlayer(playerData as unknown as PlayerData);
-            }
-          } catch (apiError) {
-            console.error("API Error:", apiError);
-            // Если API недоступно, используем мок данные
-            setPlayer({
-              _id: "temporary-player-id" as unknown as Id<"players">,
-              name: "Test Player",
-              equipment: {},
-              locationHistory: [],
-              stats: {
-                energy: 100,
-                money: 0,
-                attractiveness: 1,
-                willpower: 1,
-                fitness: 4,
-                intelligence: 7,
-                corruption: 0
-              }
-            });
+        // Здесь были бы запросы к API, но пока используем моковые данные
+        const mockPlayer: PlayerData = {
+          id: "player-1",
+          name: "Путник",
+          level: 5,
+          experience: 2500,
+          avatar: "👤",
+          health: 85,
+          maxHealth: 100,
+          energy: 70,
+          maxEnergy: 100,
+          inventory: ["med_kit", "energy_drink", "data_chip"],
+          stats: {
+            strength: 6,
+            dexterity: 8,
+            intelligence: 7,
+            willpower: 5,
+            charisma: 6
           }
-        }
+        };
+        
+        // Имитация задержки сети
+        setTimeout(() => {
+          setPlayer(mockPlayer);
+          setLoading(false);
+        }, 500);
       } catch (err) {
-        console.error('Error initializing player data:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
+        setError('Ошибка загрузки данных игрока');
         setLoading(false);
       }
     };
     
-    initData();
-  }, [getOrCreatePlayer]);
-  
-  // Отслеживание геолокации игрока
-  useEffect(() => {
-    if (player && navigator.geolocation) {
-      const watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          // Update player position
-          const newPosition = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            timestamp: Date.now()
-          };
-          
-          setPlayer((prevPlayer) => {
-            if (!prevPlayer) return prevPlayer;
-            return {
-              ...prevPlayer,
-              locationHistory: [...(prevPlayer.locationHistory || []), newPosition].slice(-20)
-            };
-          });
-        },
-        (error) => {
-          console.warn('Geolocation error:', error.message);
-        },
-        { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
-      );
-      
-      return () => {
-        navigator.geolocation.clearWatch(watchId);
-      };
-    }
-  }, [player]);
+    fetchPlayer();
+  }, []);
   
   return { player, loading, error };
-} 
+}; 

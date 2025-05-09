@@ -1,90 +1,181 @@
-// src/shared/types/visualNovel.ts
+/**
+ * Детальные типы для системы визуальной новеллы 
+ * (персонажи, сцены, диалоги, выборы, статистика игрока)
+ */
 
+// Возможные представления игрового экрана
+export enum GameView {
+  MAP = 'map',
+  NOVEL = 'novel',
+  INVENTORY = 'inventory',
+  MESSAGES = 'messages',
+  SCANNER = 'scanner'
+}
+
+// Позиции персонажей на экране
+export enum CharacterPosition {
+  LEFT = 'left',
+  CENTER = 'center',
+  RIGHT = 'right',
+  OFF_SCREEN = 'offScreen'
+}
+
+// Эмоции персонажей
+export enum CharacterEmotion {
+  NEUTRAL = 'neutral',
+  HAPPY = 'happy',
+  SAD = 'sad',
+  ANGRY = 'angry',
+  SURPRISED = 'surprised',
+  THOUGHTFUL = 'thoughtful',
+  AFRAID = 'afraid',
+  CONFIDENT = 'confident'
+}
+
+// Персонаж в сцене
 export interface Character {
-    id: string;
-    name: string;
-    spriteUrl: string;
-    position?: 'left' | 'center' | 'right';
-  }
-  
-  export interface PlayerStats {
-    energy: number;
-    money: number;
-    attractiveness: number;
-    willpower: number;
-    fitness: number;
-    intelligence: number;
-    corruption: number;
-  }
-  
-  export interface StatChange {
-    stat: keyof PlayerStats;
-    value: number;
-    message?: string;
-  }
-  
-  export interface ScriptPayload {
-    type: string;
-    params: Record<string, any>;
-  }
-  
-  export interface ConditionObject {
-    type: 'STAT_CHECK' | 'QUEST_STATE' | 'HAS_ITEM' | 'CUSTOM';
-    data: Record<string, any>;
-  }
-  
-  export interface ActionObject {
-    type: string;
-    payload: Record<string, any>;
-  }
-  
-  export interface DialogueLine {
-    text: string;
-    characterSpriteId?: string;
-    speakerName?: string;
-    emotion?: string;
-    portrait?: string;
-    voiceoverFile?: string;
-    timing?: number; // в миллисекундах для автоматического перехода
-    animation?: string;
-  }
-  
-  export interface ChoiceOption {
-    id: string;
-    text: string;
-    nextSceneId?: string;
-    statChanges?: Partial<PlayerStats>;
-    action?: ActionObject;
-    requiredStats?: Partial<PlayerStats>;
-    condition?: ConditionObject;
-    feedbackOnFail?: string;
-  }
-  
-  export interface Scene {
-    id: string;
-    title: string;
-    backgroundUrl?: string;
-    musicTrack?: string;
-    dialogueLines: DialogueLine[];
-    charactersInScene: Character[];
-    choices: ChoiceOption[];
-    onEnterScript?: ScriptPayload;
-    onExitScript?: ScriptPayload;
-    action?: ActionObject;
-    time?: string;
-    date?: string;
-    location?: string;
-    additionalInfo?: {
-      energy?: number;
-      money?: number;
-    };
-  }
-  
-  export interface SceneResult {
-    nextSceneId?: string;
-    statChanges?: StatChange[];
-    gainedItems?: string[];
-    specialEffects?: string[];
-  }
+  id: string;
+  name: string;
+  baseImageUrl?: string;
+  expressions: {
+    [key in CharacterEmotion]?: string;
+  };
+  faction?: string;
+  relationship?: number; // от -100 до 100
+  color?: string; // цвет текста для персонажа
+  position?: CharacterPosition; // позиция персонажа на экране
+}
 
-// Квестовые типы теперь импортируются из shared/constants/quest.ts
+// Фон сцены
+export interface SceneBackground {
+  id: string;
+  imageUrl: string;
+  name: string;
+  description?: string;
+  overlay?: string; // возможный наложенный эффект (туман, дождь и т.д.)
+}
+
+// Звуковые эффекты
+export interface SoundEffect {
+  id: string;
+  soundUrl: string;
+  name: string;
+  volume?: number; // от 0 до 1
+  loop?: boolean;
+}
+
+// Музыка
+export interface Music {
+  id: string;
+  musicUrl: string;
+  name: string;
+  volume?: number; // от 0 до 1
+  fadeIn?: number; // время плавного появления в мс
+  fadeOut?: number; // время плавного исчезновения в мс
+}
+
+// Анимационные эффекты для сцены
+export enum SceneEffect {
+  RAIN = 'rain',
+  SNOW = 'snow',
+  FOG = 'fog',
+  GLITCH = 'glitch',
+  SHAKE = 'shake',
+  FLASH = 'flash',
+  FADE = 'fade'
+}
+
+// Типы переходов между сценами
+export enum TransitionType {
+  FADE = 'fade',
+  SLIDE_LEFT = 'slideLeft',
+  SLIDE_RIGHT = 'slideRight',
+  DISSOLVE = 'dissolve',
+  WIPE = 'wipe',
+  NONE = 'none'
+}
+
+// Данные перехода
+export interface Transition {
+  type: TransitionType;
+  duration: number; // время перехода в мс
+}
+
+// Ответ игрока в диалоге
+export interface DialogChoice {
+  id: string;
+  text: string;
+  nextSceneId?: string;
+  condition?: {
+    type: 'stat' | 'item' | 'quest' | 'relationship';
+    id: string;
+    value: number;
+    operator: '>' | '<' | '=' | '>=' | '<=' | '!=';
+  };
+  effect?: Array<{
+    type: 'stat' | 'item' | 'quest' | 'relationship';
+    id: string;
+    value: number;
+    operator: '+' | '-' | '=' | '*' | '/';
+  }>;
+  tooltip?: string;
+}
+
+// Линия диалога
+export interface DialogLine {
+  id: string;
+  characterId?: string; // если null, то рассказчик
+  text: string;
+  emotion?: CharacterEmotion;
+  position?: CharacterPosition;
+  animation?: string;
+  choices?: DialogChoice[];
+  autoAdvance?: boolean;
+  delay?: number; // задержка перед показом в мс
+}
+
+// Полная сцена визуальной новеллы
+export interface Scene {
+  id: string;
+  title: string;
+  background: SceneBackground;
+  characters: {
+    id: string;
+    position: CharacterPosition;
+    emotion: CharacterEmotion;
+    active: boolean;
+  }[];
+  dialog: DialogLine[];
+  music?: Music;
+  soundEffects?: SoundEffect[];
+  effects?: SceneEffect[];
+  transition?: Transition;
+  isQuestScene?: boolean;
+  questId?: string;
+  timeLimit?: number; // ограничение времени для принятия решения в мс
+  visited?: boolean;
+}
+
+// Статистика игрока в рамках визуальной новеллы
+export interface PlayerStats {
+  attributes: {
+    strength: number;      // сила
+    intelligence: number;  // интеллект
+    charisma: number;      // харизма
+    agility: number;       // ловкость
+    wisdom: number;        // мудрость
+    endurance: number;     // выносливость
+  };
+  resources: {
+    health: number;        // здоровье
+    energy: number;        // энергия
+    money: number;         // деньги
+    reputation: number;    // репутация
+  };
+  skills: {
+    [key: string]: number; // навыки
+  };
+  relationships: {
+    [characterId: string]: number; // отношения с персонажами
+  };
+} 

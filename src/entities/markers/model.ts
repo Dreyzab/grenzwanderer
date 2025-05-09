@@ -1,14 +1,14 @@
 import { createStore, createEvent } from 'effector';
-import { QuestStateEnum } from '../../shared/constants/quest';
+import { QuestSessionState } from '../../shared/constants/quest';
 import { 
   MarkerType, 
-  NpcClass, 
+  NPCClass, 
   Faction, 
   MarkerData, 
   QuestMarker,
-  MarkerInteraction 
+  MarkerInteractionType 
 } from '../../shared/types/marker.types';
-import { QR_CODES } from '../../shared/constants/marker';
+import { QR_CODE_PREFIXES } from '../../shared/constants/marker';
 
 // --- Events ---
 export const showMarker = createEvent<string>();
@@ -17,7 +17,7 @@ export const markersReset = createEvent();
 export const addMarker = createEvent<MarkerData>();
 export const toggleMarkerActive = createEvent<string>();
 export const toggleMarkerComplete = createEvent<string>();
-export const addInteraction = createEvent<MarkerInteraction>();
+export const addInteraction = createEvent<MarkerInteractionType>();
 
 // --- Initial data ---
 export const initialMarkers: MarkerData[] = [
@@ -25,51 +25,64 @@ export const initialMarkers: MarkerData[] = [
     id: 'trader',
     title: 'Торговец',
     description: 'Здесь можно найти торговца с запчастями',
-    markerType: MarkerType.NPC,
-    npcClass: NpcClass.TRADER,
-    faction: Faction.TRADERS,
-    lat: 59.9391,
-    lng: 30.3156,
-    isActive: false,
+    type: MarkerType.NPC,
+    npcClass: NPCClass.TRADER,
+    faction: Faction.SCAVENGERS,
+    position: {
+      lat: 47.9959,
+      lng: 7.8494
+    },
+    isVisible: true,
     isCompleted: false
   },
   {
     id: 'craftsman',
     title: 'Мастерская Дитера',
     description: 'Центральная мастерская города',
-    markerType: MarkerType.NPC,
-    npcClass: NpcClass.CRAFTSMAN, 
-    faction: Faction.CRAFTSMEN,
-    lat: 59.9391,
-    lng: 30.2956,
-    isActive: false,
+    type: MarkerType.NPC,
+    npcClass: NPCClass.TRADER, 
+    faction: Faction.SCIENTISTS,
+    position: {
+      lat: 47.9979,
+      lng: 7.8444
+    },
+    isVisible: true,
     isCompleted: false
   },
   {
     id: 'anomaly_zone',
     title: 'Аномальная зона',
     description: 'В этом районе можно найти ценные артефакты',
-    markerType: MarkerType.QUEST_AREA,
-    lat: 59.9371,
-    lng: 30.3056,
-    radius: 100,
-    isActive: false,
+    type: MarkerType.POINT_OF_INTEREST,
+    position: {
+      lat: 47.9929,
+      lng: 7.8514
+    },
+    isVisible: true,
     isCompleted: false
   },
   {
     id: 'encounter',
     title: 'Странные звуки',
     description: 'Отсюда доносятся странные звуки',
-    markerType: MarkerType.QUEST_POINT,
-    lat: 59.9401,
-    lng: 30.3086,
-    isActive: false,
-    isCompleted: false
+    type: MarkerType.QUEST,
+    position: {
+      lat: 47.9989,
+      lng: 7.8474
+    },
+    isVisible: true,
+    isCompleted: false,
+    questId: "encounter_quest"
   }
 ];
 
+// Добавляем поле isActive к MarkerData для внутреннего использования
+export interface ExtendedMarkerData extends MarkerData {
+  isActive?: boolean;
+}
+
 // --- Stores ---
-export const $markers = createStore<MarkerData[]>(initialMarkers)
+export const $markers = createStore<ExtendedMarkerData[]>(initialMarkers)
   .on(showMarker, (state, markerId) => 
     state.map(marker => 
       marker.id === markerId 
@@ -107,5 +120,5 @@ export const $activeMarkers = $markers.map(markers =>
 );
 
 // Хранилище взаимодействий
-export const $markerInteractions = createStore<MarkerInteraction[]>([])
+export const $markerInteractions = createStore<MarkerInteractionType[]>([])
   .on(addInteraction, (state, interaction) => [...state, interaction]); 

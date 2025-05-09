@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import { QRScanner } from '../../widgets/qrScanner/QRScanner';
 import { SignOutButton } from '../../widgets/signOutButton/SignOutButton';
 import { GameScreen } from '../../widgets/gameScreen/GameScreen';
@@ -7,23 +6,21 @@ import { GameView } from '../../shared/types/gameScreen';
 import { useGamePage } from '../../features/game/api/useGamePage';
 import './GamePage.css';
 
-type GameTab = 'map' | 'dialog' | 'scanner' | 'novel';
-
 export const GamePage: React.FC = () => {
-  const navigate = useNavigate();
-  
   const {
     activeTab,
     loading,
     error,
-    hasNewMessage,
+    player,
     currentSceneId,
+    questState,
+    hasNewMessage,
     handleTabClick,
     handleExit,
     handleQRScanSuccess,
     handleNovelExit,
     handleViewChange
-  } = useGamePage(navigate);
+  } = useGamePage();
   
   // Если загрузка, показываем индикатор
   if (loading) {
@@ -48,12 +45,12 @@ export const GamePage: React.FC = () => {
   }
   
   // Функция для проверки возможности переключения между вкладками
-  const canSwitchTo = (targetTab: GameTab): boolean => {
-    // Всегда можно переключиться на сканер, карту или диалог
-    if (targetTab === 'scanner' || targetTab === 'map' || targetTab === 'dialog') {
+  const canSwitchTo = (targetTab: GameView): boolean => {
+    // Всегда можно переключиться на сканер, карту или сообщения
+    if (targetTab === GameView.SCANNER || targetTab === GameView.MAP || targetTab === GameView.MESSAGES) {
       // Но если активна вкладка 'novel' (диалог с NPC), то запрещаем переключение
       // на другие вкладки до завершения сцены
-      if (activeTab === 'novel') {
+      if (activeTab === GameView.NOVEL) {
         return false;
       }
       return true;
@@ -64,7 +61,7 @@ export const GamePage: React.FC = () => {
   };
   
   // Обновленный обработчик клика по вкладке с проверкой возможности переключения
-  const handleTabClickWithCheck = (tab: GameTab) => {
+  const handleTabClickWithCheck = (tab: GameView) => {
     if (canSwitchTo(tab)) {
       handleTabClick(tab);
     } else {
@@ -86,21 +83,21 @@ export const GamePage: React.FC = () => {
         
         <div className="game-tabs">
           <button
-            className={`game-tab ${activeTab === 'map' ? 'active' : ''}`}
-            onClick={() => handleTabClickWithCheck('map')}
+            className={`game-tab ${activeTab === GameView.MAP ? 'active' : ''}`}
+            onClick={() => handleTabClickWithCheck(GameView.MAP)}
           >
             Карта
           </button>
           <button
-            className={`game-tab ${activeTab === 'dialog' ? 'active' : ''}`}
-            onClick={() => handleTabClickWithCheck('dialog')}
+            className={`game-tab ${activeTab === GameView.MESSAGES ? 'active' : ''}`}
+            onClick={() => handleTabClickWithCheck(GameView.MESSAGES)}
           >
-            Диалог
+            Сообщения
             {hasNewMessage && <span className="notification-badge">!</span>}
           </button>
           <button
-            className={`game-tab ${activeTab === 'scanner' ? 'active' : ''}`}
-            onClick={() => handleTabClickWithCheck('scanner')}
+            className={`game-tab ${activeTab === GameView.SCANNER ? 'active' : ''}`}
+            onClick={() => handleTabClickWithCheck(GameView.SCANNER)}
           >
             Сканер
           </button>
@@ -109,26 +106,20 @@ export const GamePage: React.FC = () => {
       
       {/* Основной контент */}
       <div className="game-content">
-        {activeTab === 'scanner' && (
+        {activeTab === GameView.SCANNER && (
           <QRScanner 
             onSuccess={handleQRScanSuccess} 
-            onCancel={() => handleTabClickWithCheck('map')}
+            onCancel={() => handleTabClickWithCheck(GameView.MAP)}
           />
         )}
         
-        {activeTab === 'map' || activeTab === 'dialog' || activeTab === 'novel' ? (
+        {(activeTab === GameView.MAP || activeTab === GameView.MESSAGES || activeTab === GameView.NOVEL) && (
           <GameScreen 
-            onExit={handleExit}
-            initialView={
-              activeTab === 'map' 
-                ? GameView.MAP 
-                : activeTab === 'dialog' 
-                  ? GameView.MESSAGES 
-                  : GameView.NOVEL
-            }
+            initialView={activeTab}
             onViewChange={handleViewChange}
+            playerId={player?.id}
           />
-        ) : null}
+        )}
       </div>
     </div>
   );

@@ -1,10 +1,10 @@
 // src/widgets/dialogText/DialogText.tsx
-import React, { useState, useEffect, useRef } from 'react';
-import { DialogueLine } from '../../shared/types/visualNovel';
-import './DialogText.css';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { DialogLine } from '../../shared/types/visualNovel';
+import { dialogueLineDisplayed } from '../../entities/scene/model';
 
 interface DialogTextProps {
-  line: DialogueLine;
+  line: DialogLine;
   onNext: () => void;
   textSpeed?: number; // ms per character
   autoScroll?: boolean;
@@ -22,42 +22,77 @@ export const DialogText: React.FC<DialogTextProps> = ({
   const [isTyping, setIsTyping] = useState(false);
   const [showAll, setShowAll] = useState(instantText);
   const textRef = useRef<HTMLDivElement>(null);
+  const [recordedInHistory, setRecordedInHistory] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lineTextRef = useRef<string>('');
   
-  // Reset state when line changes
-  useEffect(() => {
-    if (line) {
-      console.log("Новая строка диалога:", line.text);
-      setDisplayedText('');
-      setIsTyping(true);
-      setShowAll(instantText);
+  // Мемоизированная функция для запуска typewriter эффекта
+  const startTypewriterEffect = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
-  }, [line, instantText]);
-  
-  // Handle typewriter effect
-  useEffect(() => {
-    if (!line || !isTyping) return;
     
-    if (showAll) {
-      setDisplayedText(line.text);
+    if (showAll || !line) {
+      setDisplayedText(line?.text || '');
       setIsTyping(false);
       return;
     }
     
-    let index = 0;
     const text = line.text;
+    lineTextRef.current = text; // Сохраняем текущий текст в реф
+    let index = 0;
     
-    const interval = setInterval(() => {
+    setIsTyping(true);
+    intervalRef.current = setInterval(() => {
       if (index <= text.length) {
         setDisplayedText(text.substring(0, index));
         index++;
       } else {
-        clearInterval(interval);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
         setIsTyping(false);
       }
     }, textSpeed);
+  }, [line?.text, showAll, textSpeed]);
+  
+  // Reset state when line changes
+  useEffect(() => {
+    if (!line) return;
     
-    return () => clearInterval(interval);
-  }, [line, isTyping, showAll, textSpeed]);
+    // Проверяем, изменилась ли строка по сравнению с предыдущей
+    if (lineTextRef.current !== line.text) {
+      console.log("Новая строка диалога:", line.text);
+      setDisplayedText('');
+      setIsTyping(true);
+      setShowAll(instantText);
+      setRecordedInHistory(false);
+      
+      // Запускаем эффект печати
+      startTypewriterEffect();
+    }
+    
+    // Очистка интервала при размонтировании
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [line?.text, instantText, startTypewriterEffect]);
+  
+  // Записываем строку диалога в историю когда она полностью отображена
+  useEffect(() => {
+    if (!isTyping && line && !recordedInHistory) {
+      // Записываем строку только один раз после завершения печати
+      dialogueLineDisplayed({
+        text: line.text,
+        speakerName: line.characterId // Передаем ID персонажа вместо имени
+      });
+      setRecordedInHistory(true);
+    }
+  }, [isTyping, line, recordedInHistory]);
   
   // Auto-scroll to bottom when text changes
   useEffect(() => {
@@ -69,13 +104,17 @@ export const DialogText: React.FC<DialogTextProps> = ({
   // Handle click to show all text immediately or advance to next
   const handleTextClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Предотвращаем всплытие события
-    console.log("Клик по тексту, isTyping:", isTyping);
     
     if (isTyping) {
-      console.log("Показываем весь текст сразу");
+      // Останавливаем интервал
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       setShowAll(true);
+      setDisplayedText(line?.text || '');
+      setIsTyping(false);
     } else {
-      console.log("Переходим к следующей строке/выбору");
       onNext();
     }
   };
@@ -83,22 +122,24 @@ export const DialogText: React.FC<DialogTextProps> = ({
   // Обработчик клика по подсказке "Нажмите, чтобы продолжить..."
   const handleContinueClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Предотвращаем всплытие события
-    console.log("Клик по подсказке продолжения");
     if (!isTyping) {
-      console.log("Вызываем onNext() из подсказки");
       onNext();
     }
   };
   
   // Обработчик клика по контейнеру диалога
   const handleContainerClick = (e: React.MouseEvent) => {
-    console.log("Клик по контейнеру диалога");
     if (!isTyping) {
-      console.log("Вызываем onNext() из контейнера");
       onNext();
     } else {
-      console.log("Показываем весь текст сразу из контейнера");
+      // Останавливаем интервал
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       setShowAll(true);
+      setDisplayedText(line?.text || '');
+      setIsTyping(false);
     }
   };
   
@@ -106,27 +147,27 @@ export const DialogText: React.FC<DialogTextProps> = ({
   
   return (
     <div 
-      className="dialog-container"
+      className="w-full bg-surface/80 backdrop-blur-sm rounded-lg border border-surface-variant shadow-lg p-4 relative" 
       onClick={handleContainerClick}
     >
-      {line.speakerName && (
-        <div className="dialog-speaker">
-          {line.speakerName}
+      {line.characterId && (
+        <div className="text-accent font-heading text-lg mb-2 px-2">
+          {line.characterId}
         </div>
       )}
       
       <div 
         ref={textRef}
-        className="dialog-text"
+        className="text-text-primary text-lg leading-relaxed max-h-48 overflow-y-auto p-2 whitespace-pre-wrap"
         onClick={handleTextClick}
       >
         {displayedText}
-        {isTyping && <span className="typing-cursor">_</span>}
+        {isTyping && <span className="inline-block w-3 h-5 bg-text-primary ml-1 animate-blink align-middle">_</span>}
       </div>
       
       {!isTyping && (
         <div 
-          className="dialog-continue-hint"
+          className="absolute bottom-2 right-4 text-text-secondary text-sm animate-bounce cursor-pointer"
           onClick={handleContinueClick}
         >
           Нажмите, чтобы продолжить...

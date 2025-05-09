@@ -1,12 +1,17 @@
 import { useUnit } from 'effector-react';
 import { useState, useCallback, useEffect } from 'react';
 import { $currentScene, setCurrentScene, setSceneLoading, $sceneLoading } from '../../entities/scene/model';
-import { Scene, DialogueLine, ActionObject } from '../../shared/types/visualNovel';
-import { QR_CODES } from '../../shared/types/markers';
-import { convexClient } from '../../shared/utils/convex';
+import { Scene, DialogLine, CharacterPosition, CharacterEmotion } from '../../shared/types/visualNovel';
+import { convex } from '../../shared/utils/convex';
 import { api } from '../../../convex/_generated/api';
 import { Id } from '../../../convex/_generated/dataModel';
 import { useMutation, useQuery } from 'convex/react';
+
+// Определяем тип ActionObject локально, так как его нет в импортированных типах
+interface ActionObject {
+  type: string;
+  payload: Record<string, any>;
+}
 
 // Расширяем тип сцены из Convex для включения дополнительных полей, которые не описаны в схеме
 interface ConvexScene {
@@ -29,6 +34,15 @@ interface ConvexScene {
   };
 }
 
+// Определяем QR_CODES локально, так как они не экспортируются из marker.ts
+const QR_CODES = {
+  TRADER: 'TRADER',
+  CRAFTSMAN: 'CRAFTSMAN',
+  ARTIFACT: 'ARTIFACT',
+  ANOMALY: 'ANOMALY',
+  ENCOUNTER: 'ENCOUNTER'
+};
+
 // Маппинг QR-кодов и Convex ID на sceneId
 const QR_SCENE_MAPPING: Record<string, string> = {
   [QR_CODES.TRADER]: 'trader_meeting',
@@ -46,79 +60,75 @@ const TEST_SCENES: Record<string, Scene> = {
   trader_meeting: {
     id: 'trader_meeting',
     title: 'Встреча с торговцем',
-    backgroundUrl: '/backgrounds/trader_camp.png',
-    musicTrack: '/audio/ambient_market.mp3',
-    charactersInScene: [
-      { id: 'trader', name: 'Торговец', spriteUrl: '/characters/trader.png' }
+    background: {
+      id: 'trader_camp',
+      imageUrl: '/backgrounds/trader_camp.png',
+      name: 'Лагерь торговца'
+    },
+    characters: [
+      { 
+        id: 'trader', 
+        position: CharacterPosition.CENTER, 
+        emotion: CharacterEmotion.NEUTRAL, 
+        active: true 
+      }
     ],
-    dialogueLines: [
+    dialog: [
       {
+        id: 'line1',
         text: 'Я собрал все запчасти для Дитера. Вы как раз вовремя.',
-        characterSpriteId: 'trader',
-        speakerName: 'Торговец'
+        characterId: 'trader'
       },
       {
+        id: 'line2',
         text: 'Вот пакет. Отнесите его Дитеру, он уже заждался.',
-        characterSpriteId: 'trader',
-        speakerName: 'Торговец'
+        characterId: 'trader'
       }
     ],
-    choices: [
-      { 
-        id: 'choice_0', 
-        text: 'Взять запчасти и отправиться к Дитеру', 
-        nextSceneId: 'craftsman_meeting',
-        action: {
-          type: 'UPDATE_QUEST_STATE',
-          payload: { questId: 'delivery', state: 'parts_taken' }
-        }
-      }
-    ],
-    onEnterScript: {
-      type: 'UPDATE_STATS',
-      params: { stats: { energy: -5 } }
+    music: {
+      id: 'ambient_market',
+      musicUrl: '/audio/ambient_market.mp3',
+      name: 'Музыка рынка'
     }
   },
   craftsman_meeting: {
     id: 'craftsman_meeting',
     title: 'Встреча с мастеровым',
-    backgroundUrl: '/backgrounds/workshop.jpg',
-    musicTrack: '/audio/workshop_ambience.mp3',
-    charactersInScene: [
-      { id: 'craftsman', name: 'Дитер', spriteUrl: '/sprites/craftsman.png' }
-    ],
-    dialogueLines: [
-      {
-        text: 'А, вот и вы! Наконец-то мои запчасти!',
-        characterSpriteId: 'craftsman',
-        speakerName: 'Дитер'
-      },
-      {
-        text: 'Спасибо, что доставили их. Это очень важно для моей работы.',
-        characterSpriteId: 'craftsman',
-        speakerName: 'Дитер'
-      },
-      {
-        text: 'Кстати, не хотите заработать ещё немного? У меня есть для вас дополнительное задание...',
-        characterSpriteId: 'craftsman',
-        speakerName: 'Дитер'
-      }
-    ],
-    choices: [
+    background: {
+      id: 'workshop',
+      imageUrl: '/backgrounds/workshop.jpg',
+      name: 'Мастерская'
+    },
+    characters: [
       { 
-        id: 'choice_1', 
-        text: 'Расскажите подробнее', 
-        nextSceneId: 'additional_task'
+        id: 'craftsman', 
+        position: CharacterPosition.CENTER, 
+        emotion: CharacterEmotion.NEUTRAL, 
+        active: true 
+      }
+    ],
+    dialog: [
+      {
+        id: 'line1',
+        text: 'А, вот и вы! Наконец-то мои запчасти!',
+        characterId: 'craftsman'
       },
       {
-        id: 'choice_2',
-        text: 'Нет, спасибо, может в другой раз',
-        action: {
-          type: 'EXIT_VN',
-          payload: {}
-        }
+        id: 'line2',
+        text: 'Спасибо, что доставили их. Это очень важно для моей работы.',
+        characterId: 'craftsman'
+      },
+      {
+        id: 'line3',
+        text: 'Кстати, не хотите заработать ещё немного? У меня есть для вас дополнительное задание...',
+        characterId: 'craftsman'
       }
-    ]
+    ],
+    music: {
+      id: 'workshop_ambience',
+      musicUrl: '/audio/workshop_ambience.mp3',
+      name: 'Звуки мастерской'
+    }
   },
   // ... другие тестовые сцены
 };
@@ -129,13 +139,27 @@ export function useSceneLoader(initialSceneId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [alreadyLoaded, setAlreadyLoaded] = useState<Record<string, boolean>>({});
+  const [dataProcessed, setDataProcessed] = useState(false);
 
   // Используем query вместо mutation для получения сцены по ключу
   const getSceneByKey = useQuery(api.quest.getSceneByKey, 
     currentSceneId ? { sceneKey: currentSceneId } : "skip");
 
-  // Загружаем сцену при изменении ID
+  // Эффект для обработки изменения currentSceneId
   useEffect(() => {
+    // Если сменился ID сцены - сбрасываем флаг обработки данных
+    console.log("ID сцены изменился на:", currentSceneId);
+    setDataProcessed(false);
+    setLoading(true);
+  }, [currentSceneId]);
+
+  // Эффект для обработки полученных данных
+  useEffect(() => {
+    // Если данные уже обработаны или отсутствуют - выходим
+    if (dataProcessed || !getSceneByKey) {
+      return;
+    }
+    
     const fetchScene = async () => {
       if (!currentSceneId) {
         setLoading(false);
@@ -144,96 +168,59 @@ export function useSceneLoader(initialSceneId: string) {
       }
 
       try {
-        setLoading(true);
-        setError(null);
-
         // Проверяем, не загружаем ли мы ту же сцену повторно
         if (alreadyLoaded[currentSceneId] && currentScene && currentScene.id === currentSceneId) {
           console.log(`Сцена уже загружена: ${currentSceneId}`);
           setLoading(false);
+          setDataProcessed(true);
           return;
         }
 
         // Получаем сцену из Convex
-        if (getSceneByKey) {
-          const sceneData = getSceneByKey as ConvexScene;
-          
-          if (!sceneData) {
-            throw new Error(`Сцена с ключом ${currentSceneId} не найдена`);
-          }
-
-          // Логирование для отладки
-          console.log(`Загружена сцена: ${sceneData.title || 'Без названия'} (ID: ${currentSceneId})`);
-          console.log('Фон сцены:', sceneData.background);
-          
-          // Преобразуем данные сцены из API в формат, ожидаемый компонентом
-          const adaptedScene: Scene = {
-            id: currentSceneId,
-            title: sceneData.title || 'Без названия',
-            backgroundUrl: sceneData.background || '',
-            musicTrack: sceneData.music || '',
-            dialogueLines: [{
-              text: sceneData.text || '',
-              characterSpriteId: sceneData.character?.name || '',
-              speakerName: sceneData.character?.name || ''
-            }],
-            charactersInScene: sceneData.character ? [{
-              id: 'character_1',
-              name: sceneData.character.name,
-              spriteUrl: sceneData.character.image,
-              position: sceneData.character.position
-            }] : [],
-            choices: (sceneData.choices || []).map(choice => ({
-              id: `choice_${Math.random().toString(36).substr(2, 9)}`,
-              text: choice.text,
-              nextSceneId: choice.nextSceneId ? String(choice.nextSceneId) : undefined,
-              action: choice.action ? {
-                type: choice.action,
-                payload: {}
-              } as ActionObject : undefined
-            })),
-            action: undefined // Convex API не возвращает поле action
-          };
-          
-          // Добавляем ID в список уже загруженных сцен
-          setAlreadyLoaded(prev => ({...prev, [currentSceneId]: true}));
-          
-          // Устанавливаем сцену
-          setCurrentScene(adaptedScene);
-        } else {
-          // Используем тестовую сцену, если API запрос еще не выполнен
-          const testScene = TEST_SCENES[currentSceneId];
-          if (testScene) {
-            setCurrentScene(testScene);
-            setAlreadyLoaded(prev => ({...prev, [currentSceneId]: true}));
-          } else {
-            // Если нет тестовой сцены, создаем моковую
-            const mockScene: Scene = {
-              id: currentSceneId,
-              title: 'Демо-сцена',
-              backgroundUrl: '/backgrounds/trader_camp.png',
-              musicTrack: '',
-              dialogueLines: [{
-                text: `Вы находите временный лагерь на окраине города, где торговец в широкополой шляпе сортирует свои товары. Завидев вас, он поднимает взгляд.\n\n«А, ты за запчастями от Дитера? Вот, забирай, всё здесь. Только береги, их трудно добыть. И передай Дитеру, что в следующий раз пусть платит больше, или товар пойдёт в другие руки.»`,
-                characterSpriteId: '',
-                speakerName: 'Торговец'
-              }],
-              charactersInScene: [],
-              choices: [
-                {
-                  id: 'take_parts',
-                  text: 'Взять запчасти и отправиться к Дитеру',
-                  action: {
-                    type: 'TAKE_PARTS',
-                    payload: {}
-                  }
-                }
-              ]
-            };
-            
-            setCurrentScene(mockScene);
-          }
+        const sceneData = getSceneByKey as ConvexScene;
+        
+        if (!sceneData) {
+          throw new Error(`Сцена с ключом ${currentSceneId} не найдена`);
         }
+
+        // Логирование для отладки
+        console.log(`Загружена сцена: ${sceneData.title || 'Без названия'} (ID: ${currentSceneId})`);
+        
+        // Преобразуем данные сцены из API в формат, ожидаемый компонентом
+        const adaptedScene: Scene = {
+          id: currentSceneId,
+          title: sceneData.title || 'Без названия',
+          background: {
+            id: sceneData.background || 'default_bg',
+            imageUrl: sceneData.background || '',
+            name: 'Сцена'
+          },
+          dialog: [{
+            id: 'line1',
+            text: sceneData.text || '',
+            characterId: sceneData.character?.name
+          }],
+          characters: sceneData.character ? [{
+            id: 'character_1',
+            position: convertToCharacterPosition(sceneData.character.position),
+            emotion: CharacterEmotion.NEUTRAL,
+            active: true
+          }] : [],
+          music: sceneData.music ? {
+            id: 'music_1',
+            musicUrl: sceneData.music,
+            name: 'Музыка'
+          } : undefined
+        };
+        
+        // Добавляем ID в список уже загруженных сцен
+        setAlreadyLoaded(prev => ({...prev, [currentSceneId]: true}));
+        
+        // Устанавливаем сцену
+        setCurrentScene(adaptedScene);
+        
+        // Помечаем данные как обработанные
+        setDataProcessed(true);
       } catch (err) {
         console.error('Ошибка загрузки сцены:', err);
         setError(err instanceof Error ? err.message : 'Неизвестная ошибка при загрузке сцены');
@@ -242,8 +229,65 @@ export function useSceneLoader(initialSceneId: string) {
       }
     };
 
-    fetchScene();
-  }, [currentSceneId, getSceneByKey]);
+    // Если у нас есть данные от API - используем их
+    if (getSceneByKey) {
+      fetchScene();
+    } 
+    // Если данных от API нет - используем тестовые данные
+    else {
+      // Проверяем, не загружаем ли мы ту же сцену повторно
+      if (alreadyLoaded[currentSceneId] && currentScene && currentScene.id === currentSceneId) {
+        console.log(`Сцена уже загружена: ${currentSceneId}`);
+        setLoading(false);
+        setDataProcessed(true);
+        return;
+      }
+
+      // Используем тестовую сцену
+      const testScene = TEST_SCENES[currentSceneId];
+      if (testScene) {
+        console.log(`Загружена тестовая сцена: ${testScene.title} (ID: ${currentSceneId})`);
+        setCurrentScene(testScene);
+        setAlreadyLoaded(prev => ({...prev, [currentSceneId]: true}));
+      } else {
+        // Если нет тестовой сцены, создаем моковую
+        const mockScene: Scene = {
+          id: currentSceneId,
+          title: 'Демо-сцена',
+          background: {
+            id: 'demo_bg',
+            imageUrl: '/backgrounds/trader_camp.png',
+            name: 'Демо фон'
+          },
+          characters: [],
+          dialog: [{
+            id: 'demo_dialog',
+            text: 'Это демонстрационная сцена. Фактическое содержимое отсутствует.',
+          }]
+        };
+        
+        console.log(`Загружена моковая сцена (ID: ${currentSceneId})`);
+        setCurrentScene(mockScene);
+        setAlreadyLoaded(prev => ({...prev, [currentSceneId]: true}));
+      }
+      
+      setLoading(false);
+      setDataProcessed(true);
+    }
+  }, [currentSceneId, getSceneByKey, alreadyLoaded, currentScene, dataProcessed]);
+
+  // Вспомогательная функция для конвертации строковых позиций в enum
+  const convertToCharacterPosition = (position?: string): CharacterPosition => {
+    switch (position) {
+      case 'left': 
+        return CharacterPosition.LEFT;
+      case 'right': 
+        return CharacterPosition.RIGHT;
+      case 'center': 
+      default:
+        return CharacterPosition.CENTER;
+    }
+  };
 
   return {
     currentScene,

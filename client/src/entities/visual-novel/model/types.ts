@@ -1,0 +1,69 @@
+export interface CharacterInstance {
+  id: string
+  name?: string
+  sprite: string
+  emotion?: string
+  position?: 'left' | 'center' | 'right'
+}
+
+export interface DialogueItem {
+  speaker?: string
+  text: string
+  emotion?: string
+  sound?: string
+}
+
+export interface Choice {
+  id: string
+  text: string
+  nextScene?: string
+  setFlags?: Record<string, boolean>
+  conditions?: Condition[]
+}
+
+export interface Condition {
+  flag: string
+  equals: boolean
+}
+
+export interface Scene {
+  id: string
+  background: string
+  characters: CharacterInstance[]
+  dialogue: DialogueItem[]
+  choices?: Choice[]
+  nextScene?: string
+  conditions?: Condition[]
+}
+
+export interface DialogueHistoryItem {
+  sceneId: string
+  lineIndex: number
+  speaker?: string
+  text: string
+}
+
+export interface Item {
+  id: string
+  title: string
+}
+
+export interface GameState {
+  currentSceneId: string
+  lineIndex: number
+  characterStates: Record<string, { emotion?: string }>
+  inventory: Item[]
+  flags: Record<string, boolean>
+  history: DialogueHistoryItem[]
+}
+
+export interface GameActions {
+  setScene: (sceneId: string) => void
+  nextLine: () => void
+  choose: (choiceId: string) => void
+  setFlag: (key: string, value: boolean) => void
+  reset: (sceneId: string) => void
+  hydrate: (state: GameState) => void
+}
+
+

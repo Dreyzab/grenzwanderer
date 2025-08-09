@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { useVNStore } from '@/entities/visual-novel/model/store'
 
 export function Component() {
   const [status, setStatus] = useState<string>('')
@@ -11,7 +12,16 @@ export function Component() {
   const clearQuestProgress = useCallback(() => {
     // зарезервировано под ключи прогресса квестов, когда появятся
     localStorage.removeItem('quest-progress')
-    setStatus('Прогресс квестов сброшен')
+    // сброс VN сохранений и состояния
+    const keys: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k && k.startsWith('vn_save_')) keys.push(k)
+    }
+    keys.forEach((k) => localStorage.removeItem(k))
+    // сброс состояния VN к стартовой сцене
+    useVNStore.getState().actions.reset('intro')
+    setStatus('Прогресс квестов и визуальной новеллы сброшен')
   }, [])
 
   const clearAll = useCallback(() => {

@@ -64,7 +64,7 @@ export function MapWidget() {
           return p.dialogKey === 'craftsman_meeting_dialog'
         if (step === 'go_to_anomaly') return p.dialogKey === 'anomaly_exploration_dialog'
         if (step === 'return_to_craftsman') return p.dialogKey === 'craftsman_meeting_dialog'
-        if (step === 'completed') return p.id === 'settlement_center'
+        if (step === 'completed') return p.id === 'fjr_office_start'
         return true
       })
       logger.info(
@@ -190,11 +190,7 @@ export function MapWidget() {
             dialogKey = 'quest_complete_with_artifact_dialog'
           }
         }
-        if (p.dialogKey === 'quest_start_dialog') {
-          if (step === 'completed') {
-            dialogKey = 'loyalty_quest_start'
-          }
-        }
+        if (p.id === 'fjr_office_start') dialogKey = 'loyalty_quest_start'
 
         if (!dialogKey) return
         logger.info('MAP', 'Open dialog', dialogKey, 'for step', step)

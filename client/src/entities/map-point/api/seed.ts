@@ -18,6 +18,32 @@ export async function seedDemoMapPoints(): Promise<void> {
       radius: 0,
       icon: '',
     },
+    // Старт FJR после завершения доставки
+    {
+      id: 'fjr_office_start',
+      title: 'Пункт FJR',
+      description: 'Капрал Ганс может выдать особое поручение.',
+      coordinates: { lat: 47.99679276901679, lng: 7.8509922034320425 },
+      type: 'npc',
+      isActive: true,
+      dialogKey: 'loyalty_quest_start',
+      questId: 'loyalty_fjr',
+      radius: 0,
+      icon: '',
+    },
+    // Квартал анархистов «Дыра»
+    {
+      id: 'anarchist_hole',
+      title: '«Дыра» (Анархисты)',
+      description: 'Свободная зона под управлением анархистов.',
+      coordinates: { lat: 47.99385334623585, lng: 7.852047469737187 },
+      type: 'settlement',
+      isActive: true,
+      dialogKey: 'infiltration_squat_dialog',
+      questId: 'loyalty_fjr',
+      radius: 0,
+      icon: '',
+    },
     {
       id: 'trader_camp',
       title: 'Лагерь торговца',

@@ -69,7 +69,14 @@ export const loyaltyQuestDialogs = [
       quest_accepted_fjr: {
         text: '«Отлично. На твоём КПК уже есть метка, как добраться до \'Дыры\' наиболее незаметным маршрутом. Удачи. Не подведи.»',
         speakerKey: 'Капрал Ганс',
-        choices: [{ text: 'Выдвигаюсь.', nextNodeKey: null }],
+        choices: [
+          {
+            text: 'Выдвигаюсь.',
+            nextNodeKey: null,
+            action: 'go_to_hole',
+            eventOutcomeKey: 'go_to_hole',
+          },
+        ],
       },
       quest_declined: {
         text:

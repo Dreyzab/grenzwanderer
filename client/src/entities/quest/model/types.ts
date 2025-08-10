@@ -1,4 +1,4 @@
-export type DeliveryQuestId = 'delivery_and_dilemma'
+export type DeliveryQuestId = 'delivery_and_dilemma' | 'loyalty_fjr'
 
 export type DeliveryQuestStep =
   | 'not_started'
@@ -8,6 +8,7 @@ export type DeliveryQuestStep =
   | 'go_to_anomaly'
   | 'return_to_craftsman'
   | 'completed'
+  | 'go_to_hole'
 
 export interface ActiveQuest {
   id: DeliveryQuestId

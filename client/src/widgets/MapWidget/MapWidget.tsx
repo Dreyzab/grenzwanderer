@@ -65,6 +65,7 @@ export function MapWidget() {
         if (step === 'go_to_anomaly') return p.dialogKey === 'anomaly_exploration_dialog'
         if (step === 'return_to_craftsman') return p.dialogKey === 'craftsman_meeting_dialog'
         if (step === 'completed') return p.id === 'fjr_office_start'
+        if (step === 'go_to_hole') return p.id === 'anarchist_hole'
         return true
       })
       logger.info('MAP', 'Filtered points by step', step, '→ ids:', filtered.map((p) => p.id))
@@ -241,6 +242,10 @@ export function MapWidget() {
               case 'complete_delivery_quest':
               case 'complete_delivery_quest_with_artifact':
                 quest.completeQuest('delivery_and_dilemma')
+                break
+              case 'go_to_hole':
+                // старт второго квеста: показываем метку «Дыра»
+                quest.startQuest('loyalty_fjr', 'go_to_hole')
                 break
               default:
                 break

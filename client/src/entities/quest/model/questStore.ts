@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import type { ActiveQuest, DeliveryQuestId, DeliveryQuestStep } from './types'
 import logger from '@/shared/lib/logger'
 
@@ -8,9 +9,12 @@ interface QuestState {
   startQuest: (id: DeliveryQuestId, step: DeliveryQuestStep) => void
   advanceQuest: (id: DeliveryQuestId, step: DeliveryQuestStep) => void
   completeQuest: (id: DeliveryQuestId) => void
+  hydrate: (data: { id: DeliveryQuestId; currentStep: DeliveryQuestStep; completedAt?: number | null }[]) => void
 }
 
-export const useQuestStore = create<QuestState>((set) => ({
+export const useQuestStore = create<QuestState>()(
+  persist(
+    (set) => ({
   activeQuests: {},
   completedQuests: [],
   startQuest: (id, step) =>
@@ -45,6 +49,30 @@ export const useQuestStore = create<QuestState>((set) => ({
         completedQuests: Array.from(new Set([...(s.completedQuests ?? []), id])),
       }
     }),
-}))
+  hydrate: (data) =>
+    set(() => {
+      const active: Partial<Record<DeliveryQuestId, ActiveQuest>> = {}
+      const completed: DeliveryQuestId[] = []
+      const now = Date.now()
+      for (const d of data) {
+        if (d.completedAt) {
+          completed.push(d.id)
+        } else {
+          active[d.id] = { id: d.id, currentStep: d.currentStep, startedAt: now }
+        }
+      }
+      logger.info('STORE', 'hydrate', { activeKeys: Object.keys(active), completed })
+      return { activeQuests: active, completedQuests: completed }
+    }),
+    }),
+    {
+      name: 'quest-progress',
+      version: 1,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (s) => ({ activeQuests: s.activeQuests, completedQuests: s.completedQuests }),
+      migrate: (persisted, _version) => persisted as any,
+    },
+  ),
+)
 
 

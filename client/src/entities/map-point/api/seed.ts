@@ -2,9 +2,7 @@ import type { MapPoint } from '../model/types'
 import { mapPointApi } from './local'
 import logger from '@/shared/lib/logger'
 
-export async function seedDemoMapPoints(): Promise<void> {
-  const existing = await mapPointApi.getPoints()
-
+export function getDemoMapPoints(): MapPoint[] {
   const demo: MapPoint[] = [
     {
       id: 'settlement_center',
@@ -15,6 +13,84 @@ export async function seedDemoMapPoints(): Promise<void> {
       isActive: true,
       dialogKey: 'quest_start_dialog',
       questId: 'delivery_and_dilemma',
+      radius: 0,
+      icon: '',
+    },
+    // Мастерская Карла — старт "Искры Свободы"
+    {
+      id: 'carl_private_workshop',
+      title: 'Мастерская Карла',
+      description: 'Личная мастерская Карла "Шестерёнки".',
+      coordinates: { lat: 47.994097368864146, lng: 7.850222931413185 },
+      type: 'npc',
+      isActive: true,
+      dialogKey: 'freedom_spark_start',
+      questId: 'freedom_spark',
+      radius: 0,
+      icon: '',
+    },
+    // Бар Одина в "Дыре" для разговора
+    {
+      id: 'anarchist_bar',
+      title: 'Бар Одина',
+      description: 'Захудалый бар в квартале анархистов.',
+      coordinates: { lat: 47.99385334623585, lng: 7.852047469737187 },
+      type: 'npc',
+      isActive: true,
+      dialogKey: 'hole_investigation_dialog',
+      questId: 'freedom_spark',
+      radius: 0,
+      icon: '',
+    },
+    // Подвал под ареной (встреча с Заклёпкой)
+    {
+      id: 'anarchist_arena_basement',
+      title: 'Подвал Арены',
+      description: 'Место, где скрывается Заклёпка и его люди.',
+      coordinates: { lat: 47.9936, lng: 7.8526 },
+      type: 'npc',
+      isActive: true,
+      dialogKey: 'rivet_confrontation_dialog',
+      questId: 'freedom_spark',
+      radius: 0,
+      icon: '',
+    },
+    // Староверы: Отец Иоанн (старт воды)
+    {
+      id: 'old_believers_square',
+      title: 'Центральная площадь (Отец Иоанн)',
+      description: 'Пожилой настоятель Катедраля — Отец Иоанн просит о помощи.',
+      coordinates: { lat: 47.99554815122133, lng: 7.851961457760126 },
+      type: 'npc',
+      isActive: true,
+      dialogKey: 'water_quest_start_v2',
+      questId: 'water_crisis',
+      radius: 0,
+      icon: '',
+    },
+    // Пивоварня Гюнтера
+    {
+      id: 'gunter_brewery',
+      title: 'Пивоварня «Гюнтер»',
+      description: 'Один из глав фермеров, отвечает за городскую воду.',
+      coordinates: { lat: 47.9903824558821, lng: 7.857654372334707 },
+      type: 'npc',
+      isActive: true,
+      dialogKey: 'gunter_meeting_dialog_v2',
+      questId: 'water_crisis',
+      radius: 0,
+      icon: '',
+    },
+    // КПП Траверса / ворота
+    {
+      id: 'city_gate_travers',
+      title: 'Городские ворота (Траверс)',
+      description: 'Контрольно-пропускной пункт, лавка Траверса.',
+      coordinates: { lat: 47.99286477134066, lng: 7.854099265544107 },
+      type: 'npc',
+      isActive: true,
+      dialogKey: 'travers_investigation_dialog',
+      questId: 'water_crisis',
       radius: 0,
       icon: '',
     },
@@ -81,6 +157,12 @@ export async function seedDemoMapPoints(): Promise<void> {
       icon: '',
     },
   ]
+  return demo
+}
+
+export async function seedDemoMapPoints(): Promise<void> {
+  const existing = await mapPointApi.getPoints()
+  const demo = getDemoMapPoints()
 
   // Мержим: добавляем недостающие точки по id, не перезаписывая существующие
   const existingById = new Map(existing.map((p) => [p.id, p]))

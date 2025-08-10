@@ -16,6 +16,7 @@ npm i
 VITE_MAPBOX_TOKEN=your_mapbox_token
 VITE_CONVEX_URL=https://<from_convex>
 CONVEX_DEPLOYMENT=<from_convex>
+VITE_DEV_SEED_TOKEN=some_dev_secret # dev-only сид map_points
 ```
 
 3) Запустить dev-сервер:
@@ -74,7 +75,8 @@ npx convex dev --once
   - `@import "tailwindcss";`
 - Виджет: `src/widgets/MapWidget/MapWidget.tsx`
   - Инициализация карты, контролы
-  - Загрузка точек из `localStorage` (`game-map-points`)
+  - Запрос точек с сервера: `mapPoints.listVisible({ userId|deviceId })`
+  - Dev-фоллбэк: сид локально (`game-map-points`) только в dev
   - Маркеры: `mapboxgl.Marker({ anchor: 'bottom' })` — компактные, не «прыгают» при зуме
   - Попапы (`mapboxgl.Popup`) стилизованы через `MapWidget.css`
   - Автопоказ диалога по query-параметру `?dialog=<dialogKey>`
@@ -86,14 +88,19 @@ npx convex dev --once
 - Локальный API: `src/entities/map-point/api/local.ts`
 - UI (готово к интеграции через порталы): `MapMarker`, `MapPointTooltip`
   
-Загрузка демо-точек: сидер `map-point/api/seed.ts` добавляет недостающие точки. Все координаты находятся в `bounds` города (см. `shared/config/map.ts`).
+Загрузка демо-точек: сидер `map-point/api/seed.ts` (dev) добавляет недостающие точки локально. Серверный сид — `/settings` → «Отправить демо-точки в Convex» (dev-only, требует `VITE_DEV_SEED_TOKEN`). Все координаты в `bounds` города.
 
 ## Convex
 
-- Схема: `convex/schema.ts`
-- Функции: `convex/quests.ts` (list/create)
-- Клиент: `src/shared/lib/convexClient.ts` + провайдер
-- Страница `/quests` показывает пример запроса/мутации
+- Схема: `convex/schema.ts` — `map_points`, `quest_progress` (+ демо `quests`)
+- Квесты: `convex/quests.ts`
+  - `getProgress({ userId?, deviceId? })`, `start/advance/complete`
+  - `migrateDeviceProgressToUser(deviceId, userId)`
+- Точки: `convex/mapPoints.ts`
+  - `listVisible({ userId?, deviceId? })`, `listAll()`
+  - `upsertManyDev(points, devToken)` — dev-сид на сервер
+- Auth: `convex/auth.ts: me()` — отдаёт `userId` при настроенном провайдере
+- Клиент: `shared/lib/convexClient.ts` + `AppConvexProvider` + `QuestHydrator`
 
 ## Visual Novel
 
@@ -114,10 +121,13 @@ npx convex dev --once
 
 ## Прогресс квестов
 
-- Локальный прогресс «Доставка и дилемма» хранится в Zustand (`entities/quest/model/questStore.ts`).
-- `MapWidget` фильтрует точки на основе шага квеста, фокусирует камеру на актуальной точке.
-- После завершения доставки показывается FJR-точка; клик по ней запускает `loyalty_quest_start`.
-- Принятие поручения FJR (реплика с action `start_loyalty_quest_fjr`) запускает квест лояльности и открывает точку «Дыра» (шаг `go_to_hole`).
+- Источник истины — Convex (`quest_progress`), Zustand — кэш/persist
+- `QuestHydrator` поднимает прогресс из Convex при старте (если локально пусто)
+- Обработка `action` из диалогов — через `features/quest-progress/model/actionCoordinator`
+- Диалоговые `condition` поддерживаются; проверки на основе стора игрока (`entities/player`)
+- `/settings`:
+  - «Синхронизировать прогресс квестов с Convex» — разовая отправка локального состояния на сервер
+  - «Миграция device → user (dev)» — перенос прогресса при появлении real `userId`
 
 ### Ключевые точки на карте (демо)
 - `settlement_center` — Городской центр (старт доставки)
@@ -157,7 +167,8 @@ npx convex dev   # Dev-сервер Convex (без --yes)
 
 ## Дальнейшие шаги
 
-- Связать VN и карту через единые флаги/состояние квестов (Convex)
-- Синхронизация mappoints с Convex (сервер — источник истины, localStorage — кеш)
+- Интеграция Convex Auth/Better Auth (реальный `userId`)
+- Тесты (юнит/интеграция/E2E): `decideDialogKey`, `conditions`, `listVisible`
+- Полностью опираться на серверную фильтрацию `listVisible` в prod
 - Подключить аудио/анимации (framer-motion/howler)
 

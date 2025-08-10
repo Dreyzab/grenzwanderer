@@ -3,6 +3,8 @@ export interface DialogChoice {
   nextNodeKey: string | null
   action?: string
   eventOutcomeKey?: string
+  condition?: string
+  tags?: string[]
 }
 
 export interface DialogNode {

@@ -12,6 +12,12 @@ import type { DialogDefinition } from '@/shared/dialogs/types'
 import DialogModal from '@/shared/ui/DialogModal'
 import { useQuest } from '@/entities/quest/model/useQuest'
 import logger from '@/shared/lib/logger'
+import { filterVisiblePoints } from '@/features/quest-progress/model/visibility'
+import { useDialogActionCoordinator } from '@/features/quest-progress/model/actionCoordinator'
+import { mapPointsApi } from '@/shared/api/mapPoints'
+import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
+import { useAuthStore } from '@/entities/auth/model/store'
+import { decideDialogKey } from '@/features/quest-progress/model/decideDialogKey'
 
 export function MapWidget() {
   const ref = useRef<HTMLDivElement | null>(null)
@@ -49,52 +55,63 @@ export function MapWidget() {
   const [activeDialog, setActiveDialog] = useState<DialogDefinition | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const quest = useQuest()
+  const { handle: handleDialogAction } = useDialogActionCoordinator()
+  const { userId } = useAuthStore()
 
   useEffect(() => {
     ;(async () => {
-      await seedDemoMapPoints()
-      const stored = await mapPointApi.getPoints()
-      const step = quest.getStep('delivery_and_dilemma')
-      const loyaltyStep = quest.activeQuests['loyalty_fjr']?.currentStep
-      logger.info('MAP', 'Current quest step:', step, 'completedQuests:', quest.completedQuests, 'loyaltyStep:', loyaltyStep)
-      const filtered = stored.filter((p) => {
-        // Приоритет: если запущен квест лояльности и нужно идти в «Дыру», показываем только её
-        if (loyaltyStep === 'go_to_hole') return p.id === 'anarchist_hole'
-        // Показываем точки в зависимости от текущего шага
-        if (step === 'not_started') return p.dialogKey === 'quest_start_dialog'
-        if (step === 'need_pickup_from_trader') return p.dialogKey === 'trader_meeting_dialog'
-        if (step === 'deliver_parts_to_craftsman' || step === 'artifact_offer')
-          return p.dialogKey === 'craftsman_meeting_dialog'
-        if (step === 'go_to_anomaly') return p.dialogKey === 'anomaly_exploration_dialog'
-        if (step === 'return_to_craftsman') return p.dialogKey === 'craftsman_meeting_dialog'
-        if (step === 'completed') return p.id === 'fjr_office_start'
-        return true
-      })
-      logger.info('MAP', 'Filtered points by step', step, '→ ids:', filtered.map((p) => p.id))
-      logger.info(
-        'MAP',
-        'Points total:',
-        stored.length,
-        'visible:',
-        filtered.length,
-        'ids:',
-        filtered.map((p) => p.id),
-      )
+      let stored: VisibleMapPoint[] = []
+      let serverFiltered = false
+      try {
+        const serverPoints = (await mapPointsApi.listVisible({
+          deviceId: userId ? undefined : getOrCreateDeviceId(),
+          userId: userId ?? undefined,
+        })) as any[]
+        if (Array.isArray(serverPoints) && serverPoints.length > 0) {
+          stored = serverPoints.map((sp) => ({
+            id: sp.key,
+            title: sp.title,
+            description: sp.description ?? '',
+            coordinates: sp.coordinates,
+            type: sp.type ?? 'poi',
+            isActive: sp.active,
+            dialogKey: sp.dialogKey ?? '',
+            questId: sp.questId ?? '',
+            radius: sp.radius ?? 0,
+            icon: sp.icon ?? '',
+            isDiscovered: true,
+          })) as VisibleMapPoint[]
+          serverFiltered = true
+        }
+      } catch (e) {
+        logger.info('MAP', 'Convex map_points fetch failed, fallback to local', e)
+      }
+
+      if (stored.length === 0 && import.meta.env.DEV) {
+        await seedDemoMapPoints()
+        const local = await mapPointApi.getPoints()
+        stored = local.map((p) => ({ ...p, isDiscovered: true })) as VisibleMapPoint[]
+      }
+
+      let visible = stored
+      if (!serverFiltered) {
+        const deliveryStep = quest.getStep('delivery_and_dilemma')
+        const loyaltyStep = quest.activeQuests['loyalty_fjr']?.currentStep ?? null
+        const waterStep = quest.activeQuests['water_crisis']?.currentStep ?? null
+        const freedomStep = quest.activeQuests['freedom_spark']?.currentStep ?? null
+        visible = filterVisiblePoints(stored, { deliveryStep, loyaltyStep, waterStep, freedomStep })
+      }
+      logger.info('MAP', 'Points total:', stored.length, 'visible:', visible.length)
 
       // Авто-фокус на следующую цель, чтобы пользователь видел новый маркер
-      if (mapRef.current && filtered.length > 0) {
-        const p = filtered[0]
+      if (mapRef.current && visible.length > 0) {
+        const p = visible[0]
         logger.info('MAP', 'Focus to', p.id, p.title, p.coordinates)
         try {
           mapRef.current.easeTo({ center: [p.coordinates.lng, p.coordinates.lat], duration: 500 })
         } catch {}
       }
-      setPoints(
-        filtered.map((p) => ({
-          ...p,
-          isDiscovered: true,
-        })) as VisibleMapPoint[],
-      )
+      setPoints(visible)
     })()
     // обновлять при смене шага квеста
   }, [quest.activeQuests])
@@ -185,20 +202,14 @@ export function MapWidget() {
 
       el.addEventListener('click', () => {
         logger.info('MAP', 'Marker clicked', p.id, p.title, p.dialogKey)
-        const step = quest.getStep('delivery_and_dilemma')
-        let dialogKey = p.dialogKey
-
-        // Динамический выбор диалога в зависимости от шага квеста
-        if (p.dialogKey === 'craftsman_meeting_dialog') {
-          if (step === 'return_to_craftsman') {
-            dialogKey = 'quest_complete_with_artifact_dialog'
-          }
-        }
-        if (p.id === 'fjr_office_start') dialogKey = 'loyalty_quest_start'
-
-        if (!dialogKey) return
-        logger.info('MAP', 'Open dialog', dialogKey, 'for step', step)
-        const def = getDialogByKey(dialogKey)
+        const def = decideDialogKey(p, {
+          deliveryStep: quest.getStep('delivery_and_dilemma'),
+          loyaltyStep: quest.activeQuests['loyalty_fjr']?.currentStep ?? null,
+          waterStep: quest.activeQuests['water_crisis']?.currentStep ?? null,
+          freedomStep: quest.activeQuests['freedom_spark']?.currentStep ?? null,
+        })
+        if (!def) return
+        logger.info('MAP', 'Open dialog', def.dialogKey)
         if (def) {
           setActiveDialog(def)
           setIsDialogOpen(true)
@@ -223,41 +234,7 @@ export function MapWidget() {
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           onAction={(actionKey) => {
-            // Маппинг действий диалогов на простую локальную логику прогресса
-            switch (actionKey) {
-              case 'start_delivery_quest':
-                quest.startQuest('delivery_and_dilemma', 'need_pickup_from_trader')
-                break
-              case 'take_parts':
-                quest.advanceQuest('delivery_and_dilemma', 'deliver_parts_to_craftsman')
-                break
-              case 'deliver_parts':
-                // после доставки появляется ветка с артефактом
-                quest.advanceQuest('delivery_and_dilemma', 'artifact_offer')
-                break
-              case 'accept_artifact_quest':
-                quest.advanceQuest('delivery_and_dilemma', 'go_to_anomaly')
-                break
-              case 'return_to_craftsman':
-                quest.advanceQuest('delivery_and_dilemma', 'return_to_craftsman')
-                break
-              case 'complete_delivery_quest':
-              case 'complete_delivery_quest_with_artifact':
-                quest.completeQuest('delivery_and_dilemma')
-                break
-              case 'start_loyalty_quest_fjr':
-                // старт квеста FJR сразу после принятия поручения
-                quest.startQuest('loyalty_fjr', 'go_to_hole')
-                logger.info('QUEST', 'loyalty_fjr started → go_to_hole')
-                break
-              case 'go_to_hole':
-                // старт второго квеста: показываем метку «Дыра»
-                quest.startQuest('loyalty_fjr', 'go_to_hole')
-                logger.info('QUEST', 'loyalty_fjr set to go_to_hole')
-                break
-              default:
-                break
-            }
+            handleDialogAction(actionKey)
           }}
         />
       )}

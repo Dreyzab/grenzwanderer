@@ -1,11 +1,15 @@
 import type { DialogDefinition } from '@/shared/dialogs/types'
 import { deliveryQuestDialogs } from './deliveryQuestDialogs'
 import { loyaltyQuestDialogs } from './loyaltyQuestDialogs'
+import { waterQuestDialogs } from './waterQuestDialogs'
+import { freedomQuestDialogs } from './freedomQuestDialogs'
 
 const registry: Record<string, DialogDefinition> = Object.fromEntries(
   [
     ...(deliveryQuestDialogs as unknown as DialogDefinition[]),
     ...(loyaltyQuestDialogs as unknown as DialogDefinition[]),
+    ...(waterQuestDialogs as unknown as DialogDefinition[]),
+    ...(freedomQuestDialogs as unknown as DialogDefinition[]),
   ].map((d) => [d.dialogKey, d]),
 )
 

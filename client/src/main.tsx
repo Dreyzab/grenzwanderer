@@ -4,7 +4,7 @@ import './index.css'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import MainLayout from '@/app/layouts/MainLayout'
 import FullScreenLayout from '@/app/layouts/FullScreenLayout'
-import { AppConvexProvider } from '@/app/ConvexProvider'
+import { AppConvexProvider, QuestHydrator } from '@/app/ConvexProvider'
 import './App.tsx'
 
 const router = createBrowserRouter([
@@ -30,7 +30,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppConvexProvider>
-      <RouterProvider router={router as any} />
+      <QuestHydrator>
+        <RouterProvider router={router as any} />
+      </QuestHydrator>
     </AppConvexProvider>
   </StrictMode>,
 )

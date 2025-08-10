@@ -7,8 +7,11 @@ export function useQuest() {
 
   const isActive = useCallback((id: DeliveryQuestId) => Boolean(activeQuests[id]), [activeQuests])
   const getStep = useCallback(
-    (id: DeliveryQuestId): DeliveryQuestStep | 'not_started' => activeQuests[id]?.currentStep ?? 'not_started',
-    [activeQuests],
+    (id: DeliveryQuestId): DeliveryQuestStep | 'not_started' => {
+      if (completedQuests.includes(id)) return 'completed'
+      return activeQuests[id]?.currentStep ?? 'not_started'
+    },
+    [activeQuests, completedQuests],
   )
 
   return {

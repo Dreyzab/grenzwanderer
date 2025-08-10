@@ -11,6 +11,8 @@ export interface DialogueItem {
   text: string
   emotion?: string
   sound?: string
+  action?: string
+  dialogKey?: string
 }
 
 export interface Choice {

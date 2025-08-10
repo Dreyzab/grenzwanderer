@@ -7,6 +7,7 @@ import { mapPointApi } from '@/entities/map-point/api/local'
 import type { VisibleMapPoint } from '@/entities/map-point/model/types'
 import { seedDemoMapPoints } from '@/entities/map-point/api/seed'
 import { getDialogByKey } from '@/shared/storage/dialogs'
+import { useLocation } from 'react-router-dom'
 import type { DialogDefinition } from '@/shared/dialogs/types'
 import DialogModal from '@/shared/ui/DialogModal'
 import { useQuest } from '@/entities/quest/model/useQuest'
@@ -15,6 +16,7 @@ import logger from '@/shared/lib/logger'
 export function MapWidget() {
   const ref = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
+  const location = useLocation()
 
   useEffect(() => {
     if (!ref.current || mapRef.current) return
@@ -92,6 +94,19 @@ export function MapWidget() {
     })()
     // обновлять при смене шага квеста
   }, [quest.activeQuests])
+
+  // Автопоказ диалога, если в query есть ?dialog=quest_start_dialog
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const dlg = params.get('dialog')
+    if (dlg) {
+      const def = getDialogByKey(dlg)
+      if (def) {
+        setActiveDialog(def)
+        setIsDialogOpen(true)
+      }
+    }
+  }, [location.search])
 
   const markersRef = useRef<mapboxgl.Marker[]>([])
 

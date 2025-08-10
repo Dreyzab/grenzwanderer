@@ -1,5 +1,6 @@
 import { useVNStore } from './store'
 import type { GameState } from './types'
+import { useNavigate } from 'react-router-dom'
 
 export const useGameState = () => {
   const game = useVNStore((s) => s.game)
@@ -22,6 +23,24 @@ export const useSaveSystem = () => {
     actions.hydrate(parsed.gameState)
   }
   return { saveGame, loadGame }
+}
+
+export const useSceneEngine = () => {
+  const navigate = useNavigate()
+  const { currentScene } = useGameState()
+  const actions = useVNStore((s) => s.actions)
+
+  const handleInlineActions = () => {
+    const line = currentScene?.dialogue?.[useVNStore.getState().game.lineIndex]
+    if (!line) return
+    if (line.action === 'go_to_map_with_dialog' && line.dialogKey) {
+      // Переход на карту c автопоказом нужного диалога
+      navigate(`/map?dialog=${encodeURIComponent(line.dialogKey)}`)
+      // Можно также установить флаг, чтобы автопоказать диалог при входе
+    }
+  }
+
+  return { handleInlineActions, setScene: actions.setScene }
 }
 
 

@@ -55,8 +55,11 @@ export function MapWidget() {
       await seedDemoMapPoints()
       const stored = await mapPointApi.getPoints()
       const step = quest.getStep('delivery_and_dilemma')
-      logger.info('MAP', 'Current quest step:', step, 'completedQuests:', quest.completedQuests)
+      const loyaltyStep = quest.activeQuests['loyalty_fjr']?.currentStep
+      logger.info('MAP', 'Current quest step:', step, 'completedQuests:', quest.completedQuests, 'loyaltyStep:', loyaltyStep)
       const filtered = stored.filter((p) => {
+        // Приоритет: если запущен квест лояльности и нужно идти в «Дыру», показываем только её
+        if (loyaltyStep === 'go_to_hole') return p.id === 'anarchist_hole'
         // Показываем точки в зависимости от текущего шага
         if (step === 'not_started') return p.dialogKey === 'quest_start_dialog'
         if (step === 'need_pickup_from_trader') return p.dialogKey === 'trader_meeting_dialog'
@@ -65,7 +68,6 @@ export function MapWidget() {
         if (step === 'go_to_anomaly') return p.dialogKey === 'anomaly_exploration_dialog'
         if (step === 'return_to_craftsman') return p.dialogKey === 'craftsman_meeting_dialog'
         if (step === 'completed') return p.id === 'fjr_office_start'
-        if (step === 'go_to_hole') return p.id === 'anarchist_hole'
         return true
       })
       logger.info('MAP', 'Filtered points by step', step, '→ ids:', filtered.map((p) => p.id))

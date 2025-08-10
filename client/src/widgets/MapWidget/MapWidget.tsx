@@ -243,9 +243,15 @@ export function MapWidget() {
               case 'complete_delivery_quest_with_artifact':
                 quest.completeQuest('delivery_and_dilemma')
                 break
+              case 'start_loyalty_quest_fjr':
+                // старт квеста FJR сразу после принятия поручения
+                quest.startQuest('loyalty_fjr', 'go_to_hole')
+                logger.info('QUEST', 'loyalty_fjr started → go_to_hole')
+                break
               case 'go_to_hole':
                 // старт второго квеста: показываем метку «Дыра»
                 quest.startQuest('loyalty_fjr', 'go_to_hole')
+                logger.info('QUEST', 'loyalty_fjr set to go_to_hole')
                 break
               default:
                 break

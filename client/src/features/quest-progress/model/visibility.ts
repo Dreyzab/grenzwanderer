@@ -1,5 +1,6 @@
 import type { VisibleMapPoint } from '@/entities/map-point/model/types'
 import logger from '@/shared/lib/logger'
+import { useProgressionStore } from '@/entities/quest/model/progressionStore'
 
 export interface QuestStepsState {
   deliveryStep?: string | null
@@ -10,9 +11,24 @@ export interface QuestStepsState {
 
 export function filterVisiblePoints(points: VisibleMapPoint[], steps: QuestStepsState): VisibleMapPoint[] {
   const { deliveryStep, loyaltyStep, waterStep, freedomStep } = steps
+  const phase = useProgressionStore.getState().phase
+  const N = 3
 
   const filtered = points.filter((p) => {
-    // Ветвь квеста лояльности
+    // ФАЗЫ
+    const phase1Starts = ['settlement_center', 'synthesis_medbay', 'quiet_cove_bar', 'cathedral']
+    const phase2Starts = ['rathaus', 'seepark', 'wasserschlossle', 'fjr_office_start']
+    if (phase === 1 && phase1Starts.includes(p.id)) return true
+    if (phase === 2 && (phase2Starts.includes(p.id) || phase1Starts.includes(p.id))) return true
+
+    // Разблокировка гражданства при выполнении N вводных
+    if (phase === 1) {
+      // Примечание: Клиентскую проверку лучше делать из стора; быстрое временное решение — только сервер должен быть источником истины
+      if (Array.isArray((steps as any).completedPhase1) && (steps as any).completedPhase1 >= N) {
+        if (p.id === 'rathaus') return true
+      }
+    }
+    // Ветвь квеста лояльности (появляется только в Фазе 2 либо после завершения доставки)
     if (loyaltyStep === 'go_to_hole') return p.id === 'anarchist_hole'
 
     // Ветвь квеста воды

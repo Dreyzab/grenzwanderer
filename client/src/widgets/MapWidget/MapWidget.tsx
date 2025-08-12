@@ -10,8 +10,10 @@ import { getDialogByKey } from '@/shared/storage/dialogs'
 import { useLocation } from 'react-router-dom'
 import type { DialogDefinition } from '@/shared/dialogs/types'
 import DialogModal from '@/shared/ui/DialogModal'
+import AvailableQuestsModal from '@/shared/ui/AvailableQuestsModal'
 import { useQuest } from '@/entities/quest/model/useQuest'
 import logger from '@/shared/lib/logger'
+import { questsApi } from '@/shared/api/quests'
 import { filterVisiblePoints } from '@/features/quest-progress/model/visibility'
 import { useDialogActionCoordinator } from '@/features/quest-progress/model/actionCoordinator'
 import { mapPointsApi } from '@/shared/api/mapPoints'
@@ -54,6 +56,9 @@ export function MapWidget() {
   const [points, setPoints] = useState<VisibleMapPoint[]>([])
   const [activeDialog, setActiveDialog] = useState<DialogDefinition | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [availableModal, setAvailableModal] = useState<
+    { title: string; ids?: string[]; items?: { id: string; type?: string; priority?: number }[] } | null
+  >(null)
   const quest = useQuest()
   const { handle: handleDialogAction } = useDialogActionCoordinator()
   const { userId } = useAuthStore()
@@ -94,7 +99,7 @@ export function MapWidget() {
       }
 
       let visible = stored
-      if (!serverFiltered) {
+      if (!serverFiltered && import.meta.env.DEV) {
         const deliveryStep = quest.getStep('delivery_and_dilemma')
         const loyaltyStep = quest.activeQuests['loyalty_fjr']?.currentStep ?? null
         const waterStep = quest.activeQuests['water_crisis']?.currentStep ?? null
@@ -116,7 +121,7 @@ export function MapWidget() {
     // обновлять при смене шага квеста
   }, [quest.activeQuests])
 
-  // Автопоказ диалога, если в query есть ?dialog=quest_start_dialog
+  // Автопоказ любого диалога по ключу: ?dialog=<key>
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const dlg = params.get('dialog')
@@ -200,8 +205,31 @@ export function MapWidget() {
         popup.remove()
       })
 
-      el.addEventListener('click', () => {
+      el.addEventListener('click', async () => {
         logger.info('MAP', 'Marker clicked', p.id, p.title, p.dialogKey)
+        // Поддержка UI досок и NPC-хабов: показать доступные квесты (серверная фильтрация)
+        try {
+          if (p.id === 'fjr_board') {
+            const available = await questsApi.getAvailableBoardQuests('fjr_board')
+            if (Array.isArray(available)) {
+              setAvailableModal({
+                title: 'Доска FJR — доступные квесты',
+                items: available.map((q: any) => ({ id: q.questId, type: q.type, priority: q.priority })),
+              })
+            }
+          }
+          if (p.id === 'fjr_office_start') {
+            const availableNpc = await questsApi.getAvailableQuestsForNpc('hans')
+            if (Array.isArray(availableNpc)) {
+              setAvailableModal({
+                title: 'NPC Hans — доступные квесты',
+                items: availableNpc.map((q: any) => ({ id: q.questId, type: q.type, priority: q.priority })),
+              })
+            }
+          }
+        } catch (e) {
+          logger.error?.('MAP', 'Ошибка получения списка доступных квестов', e as any)
+        }
         const def = decideDialogKey(p, {
           deliveryStep: quest.getStep('delivery_and_dilemma'),
           loyaltyStep: quest.activeQuests['loyalty_fjr']?.currentStep ?? null,
@@ -233,8 +261,48 @@ export function MapWidget() {
           dialog={activeDialog}
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
-          onAction={(actionKey) => {
-            handleDialogAction(actionKey)
+          onAction={(actionKey, eventOutcomeKey) => {
+            handleDialogAction(actionKey, eventOutcomeKey)
+          }}
+          isChoiceAllowed={(choice) => {
+            // Пока допускаем все варианты; при необходимости можно импортировать conditions
+            return !choice.condition || true
+          }}
+        />
+      )}
+      {availableModal && (
+        <AvailableQuestsModal
+          title={availableModal.title}
+          questIds={availableModal.ids}
+          items={availableModal.items}
+          onClose={() => setAvailableModal(null)}
+          onRefresh={async () => {
+            try {
+              if (availableModal.title.includes('FJR')) {
+                const available = await questsApi.getAvailableBoardQuests('fjr_board')
+                if (Array.isArray(available)) {
+                  setAvailableModal({
+                    title: 'Доска FJR — доступные квесты',
+                    items: available.map((q: any) => ({ id: q.questId, type: q.type, priority: q.priority })),
+                  })
+                }
+              } else {
+                const availableNpc = await questsApi.getAvailableQuestsForNpc('hans')
+                if (Array.isArray(availableNpc)) {
+                  setAvailableModal({
+                    title: 'NPC Hans — доступные квесты',
+                    items: availableNpc.map((q: any) => ({ id: q.questId, type: q.type, priority: q.priority })),
+                  })
+                }
+              }
+            } catch {}
+          }}
+          onAcceptAllDev={(ids) => {
+            for (const id of ids) {
+              const meta = getQuestMeta(id as any)
+              if (meta) quest.startQuest(id as any, meta.startStep as any)
+            }
+            setAvailableModal(null)
           }}
         />
       )}

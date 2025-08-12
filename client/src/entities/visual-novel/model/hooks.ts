@@ -1,6 +1,7 @@
 import { useVNStore } from './store'
 import type { GameState } from './types'
 import { useNavigate } from 'react-router-dom'
+import { useProgressionStore } from '@/entities/quest/model/progressionStore'
 
 export const useGameState = () => {
   const game = useVNStore((s) => s.game)
@@ -29,12 +30,15 @@ export const useSceneEngine = () => {
   const navigate = useNavigate()
   const { currentScene } = useGameState()
   const actions = useVNStore((s) => s.actions)
+  // const quest = useQuest()
+  const { setPhase } = useProgressionStore()
 
   const handleInlineActions = () => {
     const line = currentScene?.dialogue?.[useVNStore.getState().game.lineIndex]
     if (!line) return
     if (line.action === 'go_to_map_with_dialog') {
-      // Всегда начинаем с доставки после VN вступления
+      // После вводной сцены переводим игрока к стартовому диалогу с Гансом
+      setPhase(1)
       navigate(`/map?dialog=${encodeURIComponent('quest_start_dialog')}`)
     }
   }

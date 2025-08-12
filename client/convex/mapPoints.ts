@@ -10,10 +10,15 @@ export const listVisible = query({
   handler: async ({ db }, { deviceId, userId }) => {
     const points = await db.query('map_points').withIndex('by_active', (q) => q.eq('active', true)).collect()
     let progresses = [] as any[]
+    let phase = 0
     if (userId) {
       progresses = await db.query('quest_progress').withIndex('by_user', (q) => q.eq('userId', userId)).collect()
+      const st = await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', userId)).unique()
+      phase = st?.phase ?? 0
     } else if (deviceId) {
       progresses = await db.query('quest_progress').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).collect()
+      const st = await db.query('player_state').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).unique()
+      phase = st?.phase ?? 0
     }
 
     const getStep = (questId: string): string | 'not_started' => {
@@ -28,7 +33,29 @@ export const listVisible = query({
     const waterStep = getStep('water_crisis')
     const freedomStep = getStep('freedom_spark')
 
+    // Подсчёт завершённых вводных квестов фазы 1
+    const phase1Ids = new Set<string>([
+      'delivery_and_dilemma',
+      'field_medicine',
+      'combat_baptism',
+      'quiet_cove_whisper',
+      'bell_for_lost',
+    ])
+    const completedPhase1 = progresses.filter((pr: any) => pr.completedAt && phase1Ids.has(pr.questId)).length
+
     const filtered = points.filter((p) => {
+      // ФАЗЫ: подсветка стартовых точек доступных квестов
+      const phase1Starts = ['settlement_center', 'synthesis_medbay', 'quiet_cove_bar', 'cathedral']
+      const phase2Starts = ['rathaus', 'seepark', 'wasserschlossle', 'fjr_office_start']
+      if (phase === 1 && phase1Starts.includes(p.key)) return true
+      if (phase === 2 && (phase2Starts.includes(p.key) || phase1Starts.includes(p.key))) return true
+
+      // Разблокировка гражданства при выполнении N вводных квестов в фазе 1
+      const N = 3
+      const citizenshipStep = getStep('citizenship_invitation')
+      if (phase === 1 && completedPhase1 >= N) {
+        if (p.key === 'rathaus' && citizenshipStep === 'not_started') return true
+      }
       if (loyaltyStep === 'go_to_hole') return p.key === 'anarchist_hole'
 
       if (waterStep === 'need_to_talk_to_gunter') return p.key === 'gunter_brewery'
@@ -104,7 +131,7 @@ export const upsertManyDev = mutation({
     ),
   },
   handler: async ({ db }, { points, devToken }) => {
-    const expected = (process as any).env?.VITE_DEV_SEED_TOKEN || (globalThis as any)?.VITE_DEV_SEED_TOKEN
+    const expected = (globalThis as any)?.VITE_DEV_SEED_TOKEN
     if (!expected || devToken !== expected) {
       throw new Error('Forbidden: invalid dev token')
     }

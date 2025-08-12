@@ -1,4 +1,4 @@
-import { api } from '../../../convex/_generated/api'
+import { api } from '../../../../convex/_generated/api'
 import { convexClient } from '@/shared/lib/convexClient'
 import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
 
@@ -6,6 +6,21 @@ export const questsApiConvex = {
   getProgress: async () => {
     const deviceId = getOrCreateDeviceId()
     return convexClient.query(api.quests.getProgress, { deviceId })
+  },
+  getPlayerState: async () => {
+    const deviceId = getOrCreateDeviceId()
+    return convexClient.query(api.quests.getPlayerState, { deviceId })
+  },
+  setPlayerPhase: async (phase: number) => {
+    const deviceId = getOrCreateDeviceId()
+    // Оборачиваем на случай, если функция ещё не задеплоена на Convex
+    try {
+      return await convexClient.mutation(api.quests.setPlayerPhase, { deviceId, phase })
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('setPlayerPhase not available yet, skipping', e)
+      return null
+    }
   },
   startQuest: async (questId: string, step: string) => {
     const deviceId = getOrCreateDeviceId()
@@ -22,6 +37,39 @@ export const questsApiConvex = {
   migrateDeviceToUser: async (userId: string) => {
     const deviceId = getOrCreateDeviceId()
     return convexClient.mutation(api.quests.migrateDeviceProgressToUser, { deviceId, userId })
+  },
+  getWorldState: async () => {
+    // @ts-ignore — появится после обновления Convex codegen
+    return convexClient.query(api.quests.getWorldState, {})
+  },
+  getAvailableQuestsForNpc: async (npcId: string) => {
+    const deviceId = getOrCreateDeviceId()
+    // @ts-ignore — появится после обновления Convex codegen
+    return convexClient.query(api.quests.getAvailableQuestsForNpc, { npcId, deviceId })
+  },
+  getAvailableBoardQuests: async (boardKey: string) => {
+    const deviceId = getOrCreateDeviceId()
+    // @ts-ignore — появится после обновления Convex codegen
+    return convexClient.query(api.quests.getAvailableBoardQuests, { boardKey, deviceId })
+  },
+  applyOutcome: async (args: {
+    fameDelta?: number
+    reputationsDelta?: Record<string, number>
+    relationshipsDelta?: Record<string, number>
+    addFlags?: string[]
+    removeFlags?: string[]
+    addWorldFlags?: string[]
+    removeWorldFlags?: string[]
+    setPhase?: number
+    setStatus?: string
+  }) => {
+    const deviceId = getOrCreateDeviceId()
+    // @ts-ignore — появится после обновления Convex codegen
+    return convexClient.mutation(api.quests.applyOutcome, { deviceId, ...args })
+  },
+  seedQuestRegistryDev: async (devToken: string) => {
+    // @ts-ignore — появится после обновления Convex codegen
+    return convexClient.mutation(api.quests.seedQuestRegistryDev, { devToken })
   },
 }
 

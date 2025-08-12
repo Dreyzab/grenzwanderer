@@ -6,6 +6,8 @@ import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
 import { useEffect } from 'react'
 import { useQuest } from '@/entities/quest/model/useQuest'
 import { useAuthStore } from '@/entities/auth/model/store'
+import { useProgressionStore } from '@/entities/quest/model/progressionStore'
+import { usePlayerStore } from '@/entities/player/model/store'
 
 type Props = { children: ReactNode }
 
@@ -18,7 +20,10 @@ export function QuestHydrator({ children }: Props) {
   const { userId, setUserId } = useAuthStore()
   const me = useQuery((api as any).auth?.me, {})
   const serverProgress = useQuery(api.quests.getProgress, { deviceId, userId: (me?.userId ?? userId) || undefined })
+  const world = useQuery((api as any).quests?.getWorldState, {})
   const quest = useQuest()
+  const progression = useProgressionStore()
+  const player = usePlayerStore()
 
   useEffect(() => {
     if (me?.userId && me.userId !== userId) setUserId(me.userId)
@@ -32,7 +37,23 @@ export function QuestHydrator({ children }: Props) {
     if (Object.keys(quest.activeQuests).length === 0 && (quest.completedQuests?.length ?? 0) === 0) {
       quest.hydrate(mapped as any)
     }
+    void progression.hydrateFromServer()
+    // Попробуем подтянуть и состояние игрока (fame/rep/rel/flags/status)
+    ;(async () => {
+      try {
+        const st = await (await import('@/shared/api/quests')).questsApi.getPlayerState()
+        player.hydrateFromServer(st as any)
+      } catch {}
+    })()
   }, [serverProgress, userId, me?.userId])
+
+  useEffect(() => {
+    if (!world || typeof world.phase !== 'number') return
+    // Синхронизируем фазу игрока с мировым состоянием при расхождении, если игрок отстаёт
+    if (world.phase > progression.phase) {
+      progression.setPhase(world.phase as any)
+    }
+  }, [world?.phase])
 
   return children as any
 }

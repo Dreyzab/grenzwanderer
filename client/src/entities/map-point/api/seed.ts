@@ -16,7 +16,7 @@ export function getDemoMapPoints(): MapPoint[] {
       radius: 0,
       icon: '',
     },
-    // Мастерская Карла — старт "Искры Свободы"
+    // Мастерская Карла — старт "Искры Свободы" (отложено до Фазы 2)
     {
       id: 'carl_private_workshop',
       title: 'Мастерская Карла',
@@ -24,12 +24,12 @@ export function getDemoMapPoints(): MapPoint[] {
       coordinates: { lat: 47.994097368864146, lng: 7.850222931413185 },
       type: 'npc',
       isActive: true,
-      dialogKey: 'freedom_spark_start',
-      questId: 'freedom_spark',
+      dialogKey: undefined as any,
+      questId: undefined as any,
       radius: 0,
       icon: '',
     },
-    // Бар Одина в "Дыре" для разговора
+    // Бар Одина — контент для Фазы 2 (скрыт до поступления)
     {
       id: 'anarchist_bar',
       title: 'Бар Одина',
@@ -37,12 +37,12 @@ export function getDemoMapPoints(): MapPoint[] {
       coordinates: { lat: 47.99385334623585, lng: 7.852047469737187 },
       type: 'npc',
       isActive: true,
-      dialogKey: 'hole_investigation_dialog',
-      questId: 'freedom_spark',
+      dialogKey: undefined as any,
+      questId: undefined as any,
       radius: 0,
       icon: '',
     },
-    // Подвал под ареной (встреча с Заклёпкой)
+    // Подвал под ареной — контент для Фазы 2 (скрыт до поступления)
     {
       id: 'anarchist_arena_basement',
       title: 'Подвал Арены',
@@ -50,12 +50,12 @@ export function getDemoMapPoints(): MapPoint[] {
       coordinates: { lat: 47.9936, lng: 7.8526 },
       type: 'npc',
       isActive: true,
-      dialogKey: 'rivet_confrontation_dialog',
-      questId: 'freedom_spark',
+      dialogKey: undefined as any,
+      questId: undefined as any,
       radius: 0,
       icon: '',
     },
-    // Староверы: Отец Иоанн (старт воды)
+    // Староверы: Отец Иоанн (квест воды — Фаза 2)
     {
       id: 'old_believers_square',
       title: 'Центральная площадь (Отец Иоанн)',
@@ -63,12 +63,12 @@ export function getDemoMapPoints(): MapPoint[] {
       coordinates: { lat: 47.99554815122133, lng: 7.851961457760126 },
       type: 'npc',
       isActive: true,
-      dialogKey: 'water_quest_start_v2',
-      questId: 'water_crisis',
+      dialogKey: undefined as any,
+      questId: undefined as any,
       radius: 0,
       icon: '',
     },
-    // Пивоварня Гюнтера
+    // Пивоварня Гюнтера (Фаза 2)
     {
       id: 'gunter_brewery',
       title: 'Пивоварня «Гюнтер»',
@@ -76,12 +76,12 @@ export function getDemoMapPoints(): MapPoint[] {
       coordinates: { lat: 47.9903824558821, lng: 7.857654372334707 },
       type: 'npc',
       isActive: true,
-      dialogKey: 'gunter_meeting_dialog_v2',
-      questId: 'water_crisis',
+      dialogKey: undefined as any,
+      questId: undefined as any,
       radius: 0,
       icon: '',
     },
-    // КПП Траверса / ворота
+    // КПП Траверса / ворота (Фаза 2)
     {
       id: 'city_gate_travers',
       title: 'Городские ворота (Траверс)',
@@ -89,8 +89,8 @@ export function getDemoMapPoints(): MapPoint[] {
       coordinates: { lat: 47.99286477134066, lng: 7.854099265544107 },
       type: 'npc',
       isActive: true,
-      dialogKey: 'travers_investigation_dialog',
-      questId: 'water_crisis',
+      dialogKey: undefined as any,
+      questId: undefined as any,
       radius: 0,
       icon: '',
     },
@@ -106,6 +106,19 @@ export function getDemoMapPoints(): MapPoint[] {
       questId: 'loyalty_fjr',
       radius: 0,
       icon: '',
+    },
+    // Доска объявлений FJR — старт "Боевого крещения"
+    {
+      id: 'fjr_board',
+      title: 'Доска FJR',
+      description: 'Официальные объявления и набор добровольцев.',
+      coordinates: { lat: 47.9969, lng: 7.8513 },
+      type: 'board',
+      isActive: true,
+      dialogKey: 'fjr_bulletin_board_dialog',
+      questId: 'combat_baptism',
+      radius: 0,
+      icon: '/images/backgrounds/trader_camp.png',
     },
     // Квартал анархистов «Дыра»
     {

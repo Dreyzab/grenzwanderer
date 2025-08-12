@@ -12,8 +12,60 @@
 
 ### Предварительные требования
 - **Node.js** 18+
-- **yarn**
--  mapbox
+- **npm** (или yarn)
+- **Mapbox токен** (получите на https://mapbox.com)
+
+### Запуск проекта
+
+#### Вариант 1: Автоматический запуск (рекомендуется)
+
+**Linux/macOS:**
+```bash
+chmod +x start.sh
+./start.sh
+```
+
+**Windows:**
+```cmd
+start.bat
+```
+
+**Или через npm:**
+```bash
+cd client
+npm install
+npm run start
+```
+
+#### Вариант 2: Ручной запуск
+
+1. Установите зависимости:
+```bash
+cd client
+npm install
+```
+
+2. Создайте файл `.env.local` в папке `client/`:
+```env
+VITE_MAPBOX_TOKEN=your_mapbox_token_here
+VITE_CONVEX_URL=https://your_convex_deployment.convex.cloud
+CONVEX_DEPLOYMENT=your_deployment_id
+VITE_DEV_SEED_TOKEN=dev_secret_token_123
+```
+
+3. Запустите Convex backend:
+```bash
+npx convex dev --until-success
+```
+
+4. В новом терминале запустите Vite dev-сервер:
+```bash
+npm run dev
+```
+
+### После запуска
+- 📱 **Фронтенд:** http://localhost:5173
+- 📡 **Convex Dashboard:** https://dashboard.convex.dev
 
 ## ✨ Основные возможности
 
@@ -25,13 +77,17 @@
 
 ### 🗺️ Интерактивная карта мира
 - **Mapbox GL JS** интеграция с постапокалиптическими стилями
-- **Умная фильтрация точек** по активным квестам
+- **Серверная фильтрация точек** по фазе/флагам/прогрессу (Convex `map_points.listVisible`) — в dev есть клиентский фоллбэк
 - **Поэтапное открытие контента** согласно прогрессу квестов
 
 ### 🎯 Система квестов
 - **Real-time синхронизация** с Convex backend
 - **QR-коды** для активации квестов в реальном мире
 - **Интеграция с диалогами** и картой
+- **FSM (XState)** для ключевых квестов (`delivery_and_dilemma`, `combat_baptism`)
+- **Таблица маппинга** `dialogAction → questEvent | outcome` (вместо большого `switch`)
+- **Outcomes**: применение последствий (fame/rep/relations/flags/phase/status) через `applyOutcome`
+- **NPC‑хабы и Доски**: модальное окно доступных квестов (фильтрация на сервере, сортировка по приоритету)
 
 ## 🏗️ Архитектура
 
@@ -74,6 +130,7 @@ import { Button } from '@/shared/ui/button/Button'
 - **Convex** - backend-as-a-service
 - **IndexedDB** - локальное хранилище (offline-first)
 - **Mapbox GL JS** - интерактивные карты
+ - **XState v5** - конечные автоматы для сценариев квестов
 
 ### Development & Quality
 - **ESLint** + **Prettier** - качество кода
@@ -187,3 +244,19 @@ logger.info(LogCategory.DIALOG, 'Dialog choice made', choiceIndex, selectedChoic
 │  │ (composite) │  │   (routes)      │   │
 │  └─────────────┘  └─────────────────┘   │
 └─────────────────────────────────────────┘
+
+## 🆕 Что нового
+
+- Квестовая система:
+  - XState FSM для `delivery_and_dilemma` и `combat_baptism`
+  - `dialogAction → questEvent|outcome` через таблицу маппинга
+  - Outcomes с вызовом `applyOutcome` на Convex (fame/rep/relations/flags/phase/status)
+- NPC/Доски:
+  - Модалка доступных квестов на карте (тип/приоритет из `quest_registry`, кнопки «Обновить», «Принять все (dev)»)
+- Серверная фильтрация карты:
+  - `map_points.listVisible` учитывает фазу/прогресс/флаги; клиентский `visibility.ts` остаётся только как dev‑фоллбэк
+
+## 🔑 Полезно для dev
+
+- Сид реестра квестов: на странице `/settings` кнопка «Сид реестра квестов (dev)» (нужен `VITE_DEV_SEED_TOKEN` в `client/.env.local`).
+- Быстрый старт квестов: модалка на `fjr_board`/`fjr_office_start` позволяет сразу начать квест.

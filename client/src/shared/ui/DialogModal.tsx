@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { DialogDefinition, DialogNode } from '@/shared/dialogs/types'
-import { isChoiceAllowed } from '@/features/quest-progress/model/conditions'
+import type { DialogChoice, DialogDefinition, DialogNode } from '@/shared/dialogs/types'
 import logger from '@/shared/lib/logger'
 
 interface DialogModalProps {
@@ -8,9 +7,10 @@ interface DialogModalProps {
   isOpen: boolean
   onClose: () => void
   onAction?: (actionKey: string, eventOutcomeKey?: string) => void
+  isChoiceAllowed?: (choice: DialogChoice) => boolean
 }
 
-export function DialogModal({ dialog, isOpen, onClose, onAction }: DialogModalProps) {
+export function DialogModal({ dialog, isOpen, onClose, onAction, isChoiceAllowed }: DialogModalProps) {
   const [currentNodeKey, setCurrentNodeKey] = useState<string>(dialog.startNodeKey)
 
   const node: DialogNode | undefined = useMemo(() => dialog.nodes[currentNodeKey], [dialog, currentNodeKey])
@@ -58,7 +58,7 @@ export function DialogModal({ dialog, isOpen, onClose, onAction }: DialogModalPr
           </div>
 
           <div className="pt-2 grid gap-2">
-            {node.choices.filter((c) => isChoiceAllowed(c)).map((c, idx) => (
+            {node.choices.filter((c) => (isChoiceAllowed ? isChoiceAllowed(c) : true)).map((c, idx) => (
               <button
                 key={idx}
                 onClick={() => handleChoice(c.nextNodeKey, c.action, c.eventOutcomeKey)}

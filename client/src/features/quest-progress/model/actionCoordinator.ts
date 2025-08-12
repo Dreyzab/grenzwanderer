@@ -1,6 +1,6 @@
 import { useQuest } from '@/entities/quest/model/useQuest'
 import { useProgressionStore } from '@/entities/quest/model/progressionStore'
-import logger from '@/shared/lib/logger'
+//import logger from '@/shared/lib/logger'
 import { questsApi } from '@/shared/api/quests'
 import { useRef } from 'react'
 import { createDeliveryQuestActor } from '@/entities/quest/model/fsm/deliveryMachine'
@@ -31,20 +31,41 @@ export function useDialogActionCoordinator() {
   }
 
   function handle(actionKey: string, eventOutcomeKey?: string) {
+    // Debug-трейс действий диалога
+    // eslint-disable-next-line no-console
+    console.log('[COORDINATOR] action:', actionKey, 'outcome:', eventOutcomeKey)
     // Если есть outcome — применяем его на сервере
     if (eventOutcomeKey) {
       const args = resolveOutcome(eventOutcomeKey)
       if (args) void questsApi.applyOutcome(args)
     }
     const mapped = dialogActionMap[actionKey]
+    // eslint-disable-next-line no-console
+    console.log('[COORDINATOR] mapped:', mapped)
     if (!mapped) return
     if (mapped.kind === 'phase') {
       setPhase(mapped.phase)
       return
     }
     if (mapped.kind === 'fsm') {
-      if (mapped.machine === 'delivery') ensureDeliveryActor().send(mapped.event)
-      if (mapped.machine === 'combat') ensureCombatActor().send(mapped.event)
+      if (mapped.machine === 'delivery') {
+        const actor = ensureDeliveryActor()
+        actor.send(mapped.event)
+        // Мгновенная синхронизация стора для UI (на случай отложенных акторов)
+        if (mapped.event?.type === 'START') quest.startQuest('delivery_and_dilemma' as any, 'need_pickup_from_trader' as any)
+        if (mapped.event?.type === 'ADVANCE' && mapped.event.step) {
+          quest.advanceQuest('delivery_and_dilemma' as any, mapped.event.step as any)
+        }
+        if (mapped.event?.type === 'COMPLETE') quest.completeQuest('delivery_and_dilemma' as any)
+      }
+      if (mapped.machine === 'combat') {
+        const actor = ensureCombatActor()
+        actor.send(mapped.event)
+        if (mapped.event?.type === 'START') quest.startQuest('combat_baptism' as any, 'combat_available_on_board' as any)
+        if (mapped.event?.type === 'ASSIGN') quest.startQuest('combat_baptism' as any, 'assigned_to_patrol' as any)
+        if (mapped.event?.type === 'ADVANCE' && mapped.event.step) quest.advanceQuest('combat_baptism' as any, mapped.event.step as any)
+        if (mapped.event?.type === 'COMPLETE') quest.completeQuest('combat_baptism' as any)
+      }
       return
     }
     if (mapped.kind === 'quest') {

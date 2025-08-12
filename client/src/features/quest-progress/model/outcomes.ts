@@ -35,6 +35,15 @@ const outcomeTable: Record<string, OutcomeArgs> = {
 
   // Water Crisis
   accept_water_quest: { addFlags: ['water_quest_accepted'] },
+  // Delivery quest
+  accept_delivery_quest: { addFlags: ['accept_delivery_quest'] },
+  decline_delivery_quest: { addFlags: ['decline_delivery_quest'] },
+  parts_collected: { addFlags: ['delivery_parts_collected'] },
+  deliver_parts_to_craftsman: { addFlags: ['delivery_delivered_to_craftsman'] },
+  accept_artifact_quest: { addFlags: ['delivery_artifact_branch'] },
+  decline_artifact_quest: { addFlags: ['delivery_declined_artifact'] },
+  complete_delivery_quest: { addFlags: ['delivery_completed'] },
+  complete_delivery_quest_with_artifact: { addFlags: ['delivery_completed_with_artifact'] },
   gunter_proof_gained: { addFlags: ['water_proof_collected'] },
   water_quest_outcome_blackmail: { reputationsDelta: { traders: 10, synthesis: -10 }, addFlags: ['water_blackmail'] },
   water_quest_update_travers: { addFlags: ['water_update_travers'] },

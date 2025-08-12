@@ -20,6 +20,7 @@ import { mapPointsApi } from '@/shared/api/mapPoints'
 import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
 import { useAuthStore } from '@/entities/auth/model/store'
 import { decideDialogKey } from '@/features/quest-progress/model/decideDialogKey'
+import { getQuestMeta } from '@/entities/quest/model/catalog'
 
 export function MapWidget() {
   const ref = useRef<HTMLDivElement | null>(null)
@@ -130,6 +131,9 @@ export function MapWidget() {
       if (def) {
         setActiveDialog(def)
         setIsDialogOpen(true)
+        // Сбрасываем query-параметр, чтобы не повторно открывать диалог при следующих монтированиях
+        const cleanUrl = location.pathname
+        window.history.replaceState({}, '', cleanUrl)
       }
     }
   }, [location.search])

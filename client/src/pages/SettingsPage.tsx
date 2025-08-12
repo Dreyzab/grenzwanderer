@@ -98,7 +98,7 @@ export function Component() {
 
   const seedQuestRegistry = useCallback(async () => {
     try {
-      const token = devSeedToken ?? prompt('DEV seed token:') || ''
+      const token = (devSeedToken ?? prompt('DEV seed token:')) || ''
       if (!token) return
       const res = await questsApi.seedQuestRegistryDev(token)
       setStatus(`Сид реестра квестов выполнен. Добавлено/обновлено: ${(res as any)?.count ?? '?'} записей`)
@@ -133,7 +133,7 @@ export function Component() {
       <div className="text-sm text-neutral-400">Команды для разработки/сброса прогресса.</div>
 
       <div className="grid gap-2">
-        <div className="text-sm text-neutral-400">Auth (dev): userId: {auth.userId ?? 'аноним'}</div>
+        <div className="text-sm text-neutral-400">Auth (dev): userId: {(auth.userId ?? 'аноним') as string}</div>
         <button className="bg-neutral-800 hover:bg-neutral-700 rounded px-4 py-2" onClick={clearMapPoints}>
           Сбросить точки карты
         </button>

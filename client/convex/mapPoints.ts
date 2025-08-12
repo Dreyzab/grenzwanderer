@@ -11,15 +11,16 @@ export const listVisible = query({
     const points = await db.query('map_points').withIndex('by_active', (q) => q.eq('active', true)).collect()
     let progresses = [] as any[]
     let phase = 0
+    let player: any | null = null
     if (userId) {
       progresses = await db.query('quest_progress').withIndex('by_user', (q) => q.eq('userId', userId)).collect()
-      const st = await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', userId)).unique()
-      phase = st?.phase ?? 0
+      player = await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', userId)).unique()
     } else if (deviceId) {
       progresses = await db.query('quest_progress').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).collect()
-      const st = await db.query('player_state').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).unique()
-      phase = st?.phase ?? 0
+      player = await db.query('player_state').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).unique()
     }
+    phase = player?.phase ?? 0
+    const playerFlags = new Set<string>(player?.flags ?? [])
 
     const getStep = (questId: string): string | 'not_started' => {
       const p = progresses.find((x) => x.questId === questId)
@@ -67,13 +68,17 @@ export const listVisible = query({
       if (freedomStep === 'friendship_final') return p.key === 'anarchist_bar'
       if (freedomStep === 'order_final') return p.key === 'carl_private_workshop'
 
-      if (deliveryStep === 'not_started') return p.dialogKey === 'quest_start_dialog'
+      // Стартовый диалог квеста доставки показываем ТОЛЬКО если игрок явно отказался ранее
+      if (deliveryStep === 'not_started') {
+        if (p.dialogKey === 'quest_start_dialog' && playerFlags.has('decline_delivery_quest')) return true
+        return false
+      }
       if (deliveryStep === 'need_pickup_from_trader') return p.dialogKey === 'trader_meeting_dialog'
       if (deliveryStep === 'deliver_parts_to_craftsman' || deliveryStep === 'artifact_offer')
         return p.dialogKey === 'craftsman_meeting_dialog'
       if (deliveryStep === 'go_to_anomaly') return p.dialogKey === 'anomaly_exploration_dialog'
       if (deliveryStep === 'return_to_craftsman') return p.dialogKey === 'craftsman_meeting_dialog'
-      if (deliveryStep === 'completed') return p.key === 'fjr_office_start'
+      // Точки фазы 2 (например, 'fjr_office_start') показываются только при мировой фазе 2 через phase2Starts
       return true
     })
 
@@ -131,7 +136,7 @@ export const upsertManyDev = mutation({
     ),
   },
   handler: async ({ db }, { points, devToken }) => {
-    const expected = (globalThis as any)?.VITE_DEV_SEED_TOKEN
+    const expected = (globalThis as any)?.process?.env?.VITE_DEV_SEED_TOKEN ?? (globalThis as any)?.VITE_DEV_SEED_TOKEN
     if (!expected || devToken !== expected) {
       throw new Error('Forbidden: invalid dev token')
     }

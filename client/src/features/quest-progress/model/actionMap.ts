@@ -42,6 +42,11 @@ export const dialogActionMap: Record<string, ActionDescriptor> = {
   complete_loyalty_quest_fjr: { kind: 'quest', op: 'complete', questId: 'loyalty_fjr' },
   complete_loyalty_quest_anarchist: { kind: 'quest', op: 'complete', questId: 'loyalty_fjr' },
   complete_loyalty_quest_double_cross: { kind: 'quest', op: 'complete', questId: 'loyalty_fjr' },
+  accept_double_cross: { kind: 'quest', op: 'advance', questId: 'loyalty_fjr', step: 'go_to_hole' },
+  accept_anarchist_side: { kind: 'quest', op: 'advance', questId: 'loyalty_fjr', step: 'go_to_hole' },
+  fight_scar_for_map: { kind: 'quest', op: 'advance', questId: 'loyalty_fjr', step: 'go_to_hole' },
+  fail_loyalty_quest_no_map: { kind: 'quest', op: 'advance', questId: 'loyalty_fjr', step: 'go_to_hole' },
+  return_to_fjr_with_fake_map: { kind: 'quest', op: 'advance', questId: 'loyalty_fjr', step: 'go_to_hole' },
 
   // Water crisis
   start_water_quest: { kind: 'quest', op: 'start', questId: 'water_crisis', step: 'need_to_talk_to_gunter' },

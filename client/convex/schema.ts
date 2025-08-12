@@ -52,6 +52,8 @@ export default defineSchema({
     // Глобальная известность героя
     fame: v.optional(v.number()),
     // Репутации по фракциям −100..+100
+    // legacy: иногда встречается поле `reputation` (ед. число) — оставляем как совместимость
+    reputation: v.optional(v.record(v.string(), v.number())),
     reputations: v.optional(v.record(v.string(), v.number())),
     // Отношения с ключевыми NPC 0..100
     relationships: v.optional(v.record(v.string(), v.number())),

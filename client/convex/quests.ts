@@ -62,6 +62,7 @@ export const startQuest = mutation({
     // Простая серверная валидация по фазе
     const st = await db.query('player_state').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).unique()
     const phase = st?.phase ?? 0
+    // Разрешаем старт всех квестов своей фазы, квесты фазы 1 остаются доступны и в фазе 2
     const phase1 = new Set<string>([
       'delivery_and_dilemma',
       'field_medicine',
@@ -69,7 +70,8 @@ export const startQuest = mutation({
       'quiet_cove_whisper',
       'bell_for_lost',
     ])
-    const phase2Only = new Set<string>([
+    // Разрешаем старт квестов фазы 2 только при фазе >= 2
+    const phase2 = new Set<string>([
       'citizenship_invitation',
       'eyes_in_the_dark',
       'void_shards',
@@ -77,12 +79,7 @@ export const startQuest = mutation({
       'loyalty_fjr',
       'freedom_spark',
     ])
-    const allowedByPhase: Record<number, Set<string>> = {
-      0: new Set<string>([]),
-      1: phase1,
-      2: new Set<string>([...phase1, ...phase2Only]),
-    }
-    const allowed = allowedByPhase[phase] ?? new Set<string>()
+    const allowed = phase >= 2 ? new Set<string>([...phase1, ...phase2]) : phase1
     if (!allowed.has(questId)) {
       throw new Error(`Quest ${questId} is not allowed in phase ${phase}`)
     }
@@ -430,7 +427,7 @@ export const upsertQuestRegistry = mutation({
 export const seedQuestRegistryDev = mutation({
   args: { devToken: v.string() },
   handler: async ({ db }, { devToken }) => {
-    const expected = (globalThis as any)?.VITE_DEV_SEED_TOKEN
+    const expected = (globalThis as any)?.process?.env?.VITE_DEV_SEED_TOKEN ?? (globalThis as any)?.VITE_DEV_SEED_TOKEN
     if (!expected || devToken !== expected) {
       throw new Error('Forbidden: invalid dev token')
     }

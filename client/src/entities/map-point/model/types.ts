@@ -15,6 +15,7 @@ export type MapPointType =
   | 'event'
   | 'landmark'
   | 'resource'
+  | 'board'
 
 export interface MapPoint {
   id: string

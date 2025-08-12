@@ -89,7 +89,45 @@ export function resolveOutcome(key?: string | null): OutcomeArgs | null {
   if (!key) return null
   // Базовое правило: всегда добавляем флаг с ключом события (для трассировки), если конкретного маппинга нет
   const base: OutcomeArgs = { addFlags: [key] }
-  return outcomeTable[key] ? { ...base, ...outcomeTable[key] } : base
+  const merged = outcomeTable[key] ? { ...base, ...outcomeTable[key] } : base
+  // Валидация и нормализация числовых полей
+  const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val))
+  const out: OutcomeArgs = {}
+  if (merged.fameDelta != null) {
+    if (typeof merged.fameDelta !== 'number' || !Number.isFinite(merged.fameDelta)) return null
+    out.fameDelta = clamp(merged.fameDelta, -100, 100)
+  }
+  if (merged.reputationsDelta) {
+    const rep: Record<string, number> = {}
+    for (const k of Object.keys(merged.reputationsDelta)) {
+      const v = merged.reputationsDelta[k]
+      if (typeof v !== 'number' || !Number.isFinite(v)) return null
+      rep[k] = clamp(v, -100, 100)
+    }
+    out.reputationsDelta = rep
+  }
+  if (merged.relationshipsDelta) {
+    const rel: Record<string, number> = {}
+    for (const k of Object.keys(merged.relationshipsDelta)) {
+      const v = merged.relationshipsDelta[k]
+      if (typeof v !== 'number' || !Number.isFinite(v)) return null
+      rel[k] = clamp(v, -100, 100)
+    }
+    out.relationshipsDelta = rel
+  }
+  if (merged.addFlags) out.addFlags = merged.addFlags
+  if (merged.removeFlags) out.removeFlags = merged.removeFlags
+  if (merged.addWorldFlags) out.addWorldFlags = merged.addWorldFlags
+  if (merged.removeWorldFlags) out.removeWorldFlags = merged.removeWorldFlags
+  if (merged.setPhase != null) {
+    if (typeof merged.setPhase !== 'number' || !Number.isFinite(merged.setPhase)) return null
+    out.setPhase = clamp(merged.setPhase, 0, 99)
+  }
+  if (merged.setStatus != null) {
+    if (typeof merged.setStatus !== 'string') return null
+    out.setStatus = merged.setStatus
+  }
+  return out
 }
 
 

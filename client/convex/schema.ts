@@ -75,7 +75,7 @@ export default defineSchema({
   // Реестр квестов (метаданные; один источник правды для условий/приоритетов)
   quest_registry: defineTable({
     questId: v.string(),
-    type: v.string(), // 'story' | 'faction' | 'personal' | 'procedural'
+    type: v.union(v.literal('story'), v.literal('faction'), v.literal('personal'), v.literal('procedural')),
     giverNpcId: v.optional(v.string()),
     boardKey: v.optional(v.string()),
     repeatable: v.optional(v.boolean()),

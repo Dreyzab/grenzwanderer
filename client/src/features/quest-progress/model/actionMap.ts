@@ -1,7 +1,21 @@
+import type { DeliveryQuestId, DeliveryQuestStep } from '@/entities/quest/model/types'
+
+export type DeliveryFsmEvent =
+  | { type: 'START' }
+  | { type: 'ADVANCE'; step: DeliveryQuestStep }
+  | { type: 'COMPLETE' }
+
+export type CombatFsmEvent =
+  | { type: 'START' }
+  | { type: 'ASSIGN' }
+  | { type: 'ADVANCE'; step: DeliveryQuestStep }
+  | { type: 'COMPLETE' }
+
 export type ActionDescriptor =
   | { kind: 'phase'; phase: 1 | 2 }
-  | { kind: 'fsm'; machine: 'delivery' | 'combat'; event: any }
-  | { kind: 'quest'; op: 'start' | 'advance' | 'complete'; questId: string; step?: string }
+  | { kind: 'fsm'; machine: 'delivery'; event: DeliveryFsmEvent }
+  | { kind: 'fsm'; machine: 'combat'; event: CombatFsmEvent }
+  | { kind: 'quest'; op: 'start' | 'advance' | 'complete'; questId: DeliveryQuestId; step?: DeliveryQuestStep }
 
 export const dialogActionMap: Record<string, ActionDescriptor> = {
   // Фазы

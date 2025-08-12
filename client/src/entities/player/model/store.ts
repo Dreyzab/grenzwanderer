@@ -43,21 +43,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const current = get().credits ?? 0
     if (current < amount) return false
     set({ credits: current - amount })
-      logger.info('STORE', 'spendCredits', amount, '→', current - amount)
+    logger.info('STORE', 'spendCredits', amount, '→', current - amount)
     return true
   },
   addSkill: (skill) =>
     set((s) => {
       const next = new Set(s.skills)
       next.add(skill)
-        logger.info('STORE', 'addSkill', skill)
+      logger.info('STORE', 'addSkill', skill)
       return { skills: next }
     }),
   removeSkill: (skill) =>
     set((s) => {
       const next = new Set(s.skills)
       next.delete(skill)
-        logger.info('STORE', 'removeSkill', skill)
+      logger.info('STORE', 'removeSkill', skill)
       return { skills: next }
     }),
   hydrateFromServer: (p) =>

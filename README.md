@@ -48,10 +48,16 @@ npm install
 2. Создайте файл `.env.local` в папке `client/`:
 ```env
 VITE_MAPBOX_TOKEN=your_mapbox_token_here
-VITE_CONVEX_URL=https://your_convex_deployment.convex.cloud
+VITE_CONVEX_URL="https://your_convex_deployment.convex.cloud"
 CONVEX_DEPLOYMENT=your_deployment_id
 VITE_DEV_SEED_TOKEN=dev_secret_token_123
 ```
+
+> Важно:
+> - Не коммитьте реальные токены (Mapbox/Dev seed) в репозиторий. Используйте только `client/.env.local` (он в `.gitignore`).
+> - Для разных окружений используйте `client/.env.development` и `client/.env.production` (без секретов).
+> - Значения URL в `.env` оборачивайте в кавычки, например: `VITE_CONVEX_URL="https://...convex.cloud"`.
+> - Подробности и примеры — в `client/README.md`.
 
 3. Запустите Convex backend:
 ```bash

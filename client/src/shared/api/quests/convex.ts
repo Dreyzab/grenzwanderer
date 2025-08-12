@@ -39,17 +39,14 @@ export const questsApiConvex = {
     return convexClient.mutation(api.quests.migrateDeviceProgressToUser, { deviceId, userId })
   },
   getWorldState: async () => {
-    // @ts-ignore — появится после обновления Convex codegen
     return convexClient.query(api.quests.getWorldState, {})
   },
   getAvailableQuestsForNpc: async (npcId: string) => {
     const deviceId = getOrCreateDeviceId()
-    // @ts-ignore — появится после обновления Convex codegen
     return convexClient.query(api.quests.getAvailableQuestsForNpc, { npcId, deviceId })
   },
   getAvailableBoardQuests: async (boardKey: string) => {
     const deviceId = getOrCreateDeviceId()
-    // @ts-ignore — появится после обновления Convex codegen
     return convexClient.query(api.quests.getAvailableBoardQuests, { boardKey, deviceId })
   },
   applyOutcome: async (args: {
@@ -64,11 +61,9 @@ export const questsApiConvex = {
     setStatus?: string
   }) => {
     const deviceId = getOrCreateDeviceId()
-    // @ts-ignore — появится после обновления Convex codegen
     return convexClient.mutation(api.quests.applyOutcome, { deviceId, ...args })
   },
   seedQuestRegistryDev: async (devToken: string) => {
-    // @ts-ignore — появится после обновления Convex codegen
     return convexClient.mutation(api.quests.seedQuestRegistryDev, { devToken })
   },
 }

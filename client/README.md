@@ -14,10 +14,15 @@ npm i
 
 ```env
 VITE_MAPBOX_TOKEN=your_mapbox_token
-VITE_CONVEX_URL=https://<from_convex>
+VITE_CONVEX_URL="https://<from_convex>"
 CONVEX_DEPLOYMENT=<from_convex>
 VITE_DEV_SEED_TOKEN=some_dev_secret # dev-only сид map_points
 ```
+
+Примечания по безопасности и структуре env-файлов:
+- Не храните реальные токены в VCS. Файл `client/.env.local` добавлен в `.gitignore` и не коммитится.
+- Общие значения можно хранить в `client/.env` без секретов. Для окружений используйте `client/.env.development` и `client/.env.production`.
+- Пример: `VITE_CONVEX_URL` должен быть в кавычках, чтобы пройти линтер dotenv.
 
 3) Запустить dev-сервер:
 

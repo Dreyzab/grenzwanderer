@@ -238,37 +238,8 @@ export const getAvailableQuestsForNpc = query({
     const done = new Set(progress.filter((p: any) => p.completedAt).map((p: any) => p.questId))
 
     const all = await db.query('quest_registry').withIndex('by_giver', (q) => q.eq('giverNpcId', npcId)).collect()
-    const filtered = all
-      .filter((qmeta: any) => {
-        if (!player || !world) return false
-        if (qmeta.phaseGate != null && world.phase < qmeta.phaseGate) return false
-        if (!qmeta.repeatable && done.has(qmeta.questId)) return false
-        const req = qmeta.requirements ?? {}
-        if (req.phaseMin != null && player.phase < req.phaseMin) return false
-        if (req.phaseMax != null && player.phase > req.phaseMax) return false
-        if (req.fameMin != null && (player.fame ?? 0) < req.fameMin) return false
-        if (req.requiredFlags) {
-          const have = new Set(player.flags ?? [])
-          for (const fl of req.requiredFlags) if (!have.has(fl)) return false
-        }
-        if (req.forbiddenFlags) {
-          const have = new Set(player.flags ?? [])
-          for (const fl of req.forbiddenFlags) if (have.has(fl)) return false
-        }
-        if (req.reputations) {
-          for (const k of Object.keys(req.reputations)) {
-            const min = req.reputations[k]!
-            if (((player.reputations ?? {})[k] ?? 0) < min) return false
-          }
-        }
-        if (req.relationships) {
-          for (const k of Object.keys(req.relationships)) {
-            const min = req.relationships[k]!
-            if (((player.relationships ?? {})[k] ?? 0) < min) return false
-          }
-        }
-        return true
-      })
+
+    const filtered = filterQuestsByRequirements(all, player as any, world as any, done)
       .sort((a: any, b: any) => b.priority - a.priority)
 
     return filtered
@@ -293,37 +264,7 @@ export const getAvailableBoardQuests = query({
     const done = new Set(progress.filter((p: any) => p.completedAt).map((p: any) => p.questId))
 
     const all = await db.query('quest_registry').withIndex('by_board', (q) => q.eq('boardKey', boardKey)).collect()
-    const filtered = all
-      .filter((qmeta: any) => {
-        if (!player || !world) return false
-        if (qmeta.phaseGate != null && world.phase < qmeta.phaseGate) return false
-        if (!qmeta.repeatable && done.has(qmeta.questId)) return false
-        const req = qmeta.requirements ?? {}
-        if (req.phaseMin != null && player.phase < req.phaseMin) return false
-        if (req.phaseMax != null && player.phase > req.phaseMax) return false
-        if (req.fameMin != null && (player.fame ?? 0) < req.fameMin) return false
-        if (req.requiredFlags) {
-          const have = new Set(player.flags ?? [])
-          for (const f of req.requiredFlags) if (!have.has(f)) return false
-        }
-        if (req.forbiddenFlags) {
-          const have = new Set(player.flags ?? [])
-          for (const f of req.forbiddenFlags) if (have.has(f)) return false
-        }
-        if (req.reputations) {
-          for (const k of Object.keys(req.reputations)) {
-            const min = req.reputations[k]!
-            if (((player.reputations ?? {})[k] ?? 0) < min) return false
-          }
-        }
-        if (req.relationships) {
-          for (const k of Object.keys(req.relationships)) {
-            const min = req.relationships[k]!
-            if (((player.relationships ?? {})[k] ?? 0) < min) return false
-          }
-        }
-        return true
-      })
+    const filtered = filterQuestsByRequirements(all, player as any, world as any, done)
       .sort((a: any, b: any) => b.priority - a.priority)
 
     return filtered
@@ -394,7 +335,7 @@ export const applyOutcome = mutation({
 export const upsertQuestRegistry = mutation({
   args: {
     questId: v.string(),
-    type: v.string(),
+    type: v.union(v.literal('story'), v.literal('faction'), v.literal('personal'), v.literal('procedural')),
     giverNpcId: v.optional(v.string()),
     boardKey: v.optional(v.string()),
     repeatable: v.optional(v.boolean()),
@@ -427,11 +368,33 @@ export const upsertQuestRegistry = mutation({
 export const seedQuestRegistryDev = mutation({
   args: { devToken: v.string() },
   handler: async ({ db }, { devToken }) => {
-    const expected = (globalThis as any)?.process?.env?.VITE_DEV_SEED_TOKEN ?? (globalThis as any)?.VITE_DEV_SEED_TOKEN
+    const expected = (
+      // Vite runtime (build-time injected)
+      (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_DEV_SEED_TOKEN) ||
+      // Fallback for non-Vite/Convex server contexts
+      (globalThis as any)?.process?.env?.VITE_DEV_SEED_TOKEN
+    )
     if (!expected || devToken !== expected) {
       throw new Error('Forbidden: invalid dev token')
     }
-    const metas = [
+    const metas: Array<{
+      questId: string
+      type: 'story' | 'faction' | 'personal' | 'procedural'
+      giverNpcId?: string
+      boardKey?: string
+      repeatable?: boolean
+      priority: number
+      phaseGate?: number
+      requirements?: {
+        fameMin?: number
+        phaseMin?: number
+        phaseMax?: number
+        requiredFlags?: string[]
+        forbiddenFlags?: string[]
+        reputations?: Record<string, number>
+        relationships?: Record<string, number>
+      }
+    }> = [
       {
         questId: 'delivery_and_dilemma',
         type: 'story',
@@ -541,5 +504,44 @@ export const seedQuestRegistryDev = mutation({
     return { ok: true, count: metas.length }
   },
 })
+
+// Shared helper to filter quests by player/world state and completion
+function filterQuestsByRequirements(
+  quests: any[],
+  player: any,
+  world: any,
+  completedQuestIds: Set<string>,
+): any[] {
+  return quests.filter((qmeta: any) => {
+    if (!player || !world) return false
+    if (qmeta.phaseGate != null && world.phase < qmeta.phaseGate) return false
+    if (!qmeta.repeatable && completedQuestIds.has(qmeta.questId)) return false
+    const req = qmeta.requirements ?? {}
+    if (req.phaseMin != null && player.phase < req.phaseMin) return false
+    if (req.phaseMax != null && player.phase > req.phaseMax) return false
+    if (req.fameMin != null && (player.fame ?? 0) < req.fameMin) return false
+    if (req.requiredFlags) {
+      const have = new Set(player.flags ?? [])
+      for (const fl of req.requiredFlags) if (!have.has(fl)) return false
+    }
+    if (req.forbiddenFlags) {
+      const have = new Set(player.flags ?? [])
+      for (const fl of req.forbiddenFlags) if (have.has(fl)) return false
+    }
+    if (req.reputations) {
+      for (const k of Object.keys(req.reputations)) {
+        const min = req.reputations[k]!
+        if (((player.reputations ?? {})[k] ?? 0) < min) return false
+      }
+    }
+    if (req.relationships) {
+      for (const k of Object.keys(req.relationships)) {
+        const min = req.relationships[k]!
+        if (((player.relationships ?? {})[k] ?? 0) < min) return false
+      }
+    }
+    return true
+  })
+}
 
 

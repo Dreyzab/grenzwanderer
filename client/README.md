@@ -24,6 +24,12 @@ VITE_DEV_SEED_TOKEN=some_dev_secret # dev-only сид map_points
 - Общие значения можно хранить в `client/.env` без секретов. Для окружений используйте `client/.env.development` и `client/.env.production`.
 - Пример: `VITE_CONVEX_URL` должен быть в кавычках, чтобы пройти линтер dotenv.
 
+Дополнительно по окружениям:
+- `client/.env.development` — значения для dev (без секретов):
+  - Пример: `VITE_CONVEX_URL="https://dev-your.convex.cloud"`
+- `client/.env.production` — значения для prod (без секретов):
+  - Пример: `VITE_CONVEX_URL="https://prod-your.convex.cloud"`
+
 3) Запустить dev-сервер:
 
 ```bash

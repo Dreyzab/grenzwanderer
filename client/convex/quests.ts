@@ -237,10 +237,14 @@ export const getAvailableQuestsForNpc = query({
 
     const done = new Set(progress.filter((p: any) => p.completedAt).map((p: any) => p.questId))
 
-    const all = await db.query('quest_registry').withIndex('by_giver', (q) => q.eq('giverNpcId', npcId)).collect()
+    const all = (await db
+      .query('quest_registry')
+      .withIndex('by_giver', (q) => q.eq('giverNpcId', npcId))
+      .collect()) as QuestMeta[]
 
-    const filtered = filterQuestsByRequirements(all, player as any, world as any, done)
-      .sort((a: any, b: any) => b.priority - a.priority)
+    const filtered = filterQuestsByRequirements(all, player, world, done).sort(
+      (a, b) => b.priority - a.priority,
+    )
 
     return filtered
   },
@@ -263,9 +267,11 @@ export const getAvailableBoardQuests = query({
 
     const done = new Set(progress.filter((p: any) => p.completedAt).map((p: any) => p.questId))
 
-    const all = await db.query('quest_registry').withIndex('by_board', (q) => q.eq('boardKey', boardKey)).collect()
-    const filtered = filterQuestsByRequirements(all, player as any, world as any, done)
-      .sort((a: any, b: any) => b.priority - a.priority)
+    const all = (await db
+      .query('quest_registry')
+      .withIndex('by_board', (q) => q.eq('boardKey', boardKey))
+      .collect()) as QuestMeta[]
+    const filtered = filterQuestsByRequirements(all, player, world, done).sort((a, b) => b.priority - a.priority)
 
     return filtered
   },
@@ -505,14 +511,50 @@ export const seedQuestRegistryDev = mutation({
   },
 })
 
+// Типы реестра квестов и состояний игрока/мира для типобезопасной фильтрации
+interface QuestRequirementsMeta {
+  fameMin?: number
+  phaseMin?: number
+  phaseMax?: number
+  requiredFlags?: string[]
+  forbiddenFlags?: string[]
+  reputations?: Record<string, number>
+  relationships?: Record<string, number>
+}
+
+interface QuestMeta {
+  questId: string
+  type: 'story' | 'faction' | 'personal' | 'procedural'
+  giverNpcId?: string
+  boardKey?: string
+  repeatable?: boolean
+  priority: number
+  phaseGate?: number
+  requirements?: QuestRequirementsMeta
+}
+
+interface PlayerStateRow {
+  phase: number
+  fame?: number
+  status?: string
+  flags?: string[]
+  reputations?: Record<string, number>
+  relationships?: Record<string, number>
+}
+
+interface WorldStateRow {
+  phase: number
+  flags?: string[]
+}
+
 // Shared helper to filter quests by player/world state and completion
 function filterQuestsByRequirements(
-  quests: any[],
-  player: any,
-  world: any,
+  quests: QuestMeta[],
+  player: PlayerStateRow | null,
+  world: WorldStateRow | null,
   completedQuestIds: Set<string>,
-): any[] {
-  return quests.filter((qmeta: any) => {
+): QuestMeta[] {
+  return quests.filter((qmeta) => {
     if (!player || !world) return false
     if (qmeta.phaseGate != null && world.phase < qmeta.phaseGate) return false
     if (!qmeta.repeatable && completedQuestIds.has(qmeta.questId)) return false
@@ -520,23 +562,23 @@ function filterQuestsByRequirements(
     if (req.phaseMin != null && player.phase < req.phaseMin) return false
     if (req.phaseMax != null && player.phase > req.phaseMax) return false
     if (req.fameMin != null && (player.fame ?? 0) < req.fameMin) return false
-    if (req.requiredFlags) {
+    if (req.requiredFlags && req.requiredFlags.length > 0) {
       const have = new Set(player.flags ?? [])
       for (const fl of req.requiredFlags) if (!have.has(fl)) return false
     }
-    if (req.forbiddenFlags) {
+    if (req.forbiddenFlags && req.forbiddenFlags.length > 0) {
       const have = new Set(player.flags ?? [])
       for (const fl of req.forbiddenFlags) if (have.has(fl)) return false
     }
     if (req.reputations) {
       for (const k of Object.keys(req.reputations)) {
-        const min = req.reputations[k]!
+        const min = req.reputations[k] ?? 0
         if (((player.reputations ?? {})[k] ?? 0) < min) return false
       }
     }
     if (req.relationships) {
       for (const k of Object.keys(req.relationships)) {
-        const min = req.relationships[k]!
+        const min = req.relationships[k] ?? 0
         if (((player.relationships ?? {})[k] ?? 0) < min) return false
       }
     }

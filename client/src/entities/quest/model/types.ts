@@ -78,4 +78,11 @@ export interface ActiveQuest {
   startedAt: number
 }
 
+// Узкоспециализированный тип шагов для боевого туториала, чтобы не тянуть весь DeliveryQuestStep
+export type CombatQuestStep =
+  | 'combat_available_on_board'
+  | 'assigned_to_patrol'
+  | 'patrol_in_progress'
+  | 'combat_completed'
+
 

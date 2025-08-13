@@ -21,6 +21,7 @@ import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
 import { useAuthStore } from '@/entities/auth/model/store'
 import { decideDialogKey } from '@/features/quest-progress/model/decideDialogKey'
 import { getQuestMeta } from '@/entities/quest/model/catalog'
+import { sanitizeQuestItems } from '@/shared/lib/sanitizeQuests'
 
 export function MapWidget() {
   const ref = useRef<HTMLDivElement | null>(null)
@@ -215,13 +216,8 @@ export function MapWidget() {
         try {
           if (p.id === 'fjr_board') {
             const available = await questsApi.getAvailableBoardQuests('fjr_board')
-            if (Array.isArray(available)) {
-              const sanitized = available
-                .filter((q: any) => q && typeof q === 'object')
-                .filter((q: any) => typeof q.questId === 'string' || typeof q.questId === 'number')
-                .filter((q: any) => (q.type == null ? true : typeof q.type === 'string'))
-                .filter((q: any) => (q.priority == null ? true : Number.isFinite(q.priority)))
-                .map((q: any) => ({ id: String(q.questId), type: q.type, priority: q.priority }))
+              if (Array.isArray(available)) {
+              const sanitized = sanitizeQuestItems(available)
               if (sanitized.length > 0) {
                 setAvailableModal({
                   title: 'Доска FJR — доступные квесты',
@@ -235,13 +231,8 @@ export function MapWidget() {
           }
           if (p.id === 'fjr_office_start') {
             const availableNpc = await questsApi.getAvailableQuestsForNpc('hans')
-            if (Array.isArray(availableNpc)) {
-              const sanitized = availableNpc
-                .filter((q: any) => q && typeof q === 'object')
-                .filter((q: any) => typeof q.questId === 'string' || typeof q.questId === 'number')
-                .filter((q: any) => (q.type == null ? true : typeof q.type === 'string'))
-                .filter((q: any) => (q.priority == null ? true : Number.isFinite(q.priority)))
-                .map((q: any) => ({ id: String(q.questId), type: q.type, priority: q.priority }))
+              if (Array.isArray(availableNpc)) {
+              const sanitized = sanitizeQuestItems(availableNpc)
               if (sanitized.length > 0) {
                 setAvailableModal({
                   title: 'NPC Hans — доступные квесты',
@@ -253,7 +244,7 @@ export function MapWidget() {
               }
             }
           }
-        } catch (e) {
+            } catch (e) {
           logger.error?.('MAP', 'Ошибка получения списка доступных квестов', e as any)
         }
         const def = decideDialogKey(p, {
@@ -307,12 +298,7 @@ export function MapWidget() {
               if (availableModal.title.includes('FJR')) {
                 const available = await questsApi.getAvailableBoardQuests('fjr_board')
                 if (Array.isArray(available)) {
-                  const sanitized = available
-                    .filter((q: any) => q && typeof q === 'object')
-                    .filter((q: any) => typeof q.questId === 'string' || typeof q.questId === 'number')
-                    .filter((q: any) => (q.type == null ? true : typeof q.type === 'string'))
-                    .filter((q: any) => (q.priority == null ? true : Number.isFinite(q.priority)))
-                    .map((q: any) => ({ id: String(q.questId), type: q.type, priority: q.priority }))
+                  const sanitized = sanitizeQuestItems(available)
                   if (sanitized.length > 0) {
                     setAvailableModal({
                       title: 'Доска FJR — доступные квесты',
@@ -323,12 +309,7 @@ export function MapWidget() {
               } else {
                 const availableNpc = await questsApi.getAvailableQuestsForNpc('hans')
                 if (Array.isArray(availableNpc)) {
-                  const sanitized = availableNpc
-                    .filter((q: any) => q && typeof q === 'object')
-                    .filter((q: any) => typeof q.questId === 'string' || typeof q.questId === 'number')
-                    .filter((q: any) => (q.type == null ? true : typeof q.type === 'string'))
-                    .filter((q: any) => (q.priority == null ? true : Number.isFinite(q.priority)))
-                    .map((q: any) => ({ id: String(q.questId), type: q.type, priority: q.priority }))
+                  const sanitized = sanitizeQuestItems(availableNpc)
                   if (sanitized.length > 0) {
                     setAvailableModal({
                       title: 'NPC Hans — доступные квесты',
@@ -337,7 +318,9 @@ export function MapWidget() {
                   }
                 }
               }
-            } catch {}
+            } catch (err) {
+              logger.error?.('MAP', 'Ошибка обновления списка доступных квестов', err as any)
+            }
           }}
           onAcceptAllDev={(ids) => {
             for (const id of ids) {

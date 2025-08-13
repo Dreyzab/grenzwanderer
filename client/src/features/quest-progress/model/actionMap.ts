@@ -1,4 +1,4 @@
-import type { DeliveryQuestId, DeliveryQuestStep } from '@/entities/quest/model/types'
+import type { DeliveryQuestId, DeliveryQuestStep, CombatQuestStep } from '@/entities/quest/model/types'
 
 export type DeliveryFsmEvent =
   | { type: 'START' }
@@ -8,7 +8,7 @@ export type DeliveryFsmEvent =
 export type CombatFsmEvent =
   | { type: 'START' }
   | { type: 'ASSIGN' }
-  | { type: 'ADVANCE'; step: DeliveryQuestStep }
+  | { type: 'ADVANCE'; step: CombatQuestStep }
   | { type: 'COMPLETE' }
 
 export type ActionDescriptor =

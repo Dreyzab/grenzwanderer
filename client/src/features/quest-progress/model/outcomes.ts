@@ -115,10 +115,10 @@ export function resolveOutcome(key?: string | null): OutcomeArgs | null {
     }
     out.relationshipsDelta = rel
   }
-  if (merged.addFlags) out.addFlags = merged.addFlags
-  if (merged.removeFlags) out.removeFlags = merged.removeFlags
-  if (merged.addWorldFlags) out.addWorldFlags = merged.addWorldFlags
-  if (merged.removeWorldFlags) out.removeWorldFlags = merged.removeWorldFlags
+  if (merged.addFlags) out.addFlags = [...merged.addFlags]
+  if (merged.removeFlags) out.removeFlags = [...merged.removeFlags]
+  if (merged.addWorldFlags) out.addWorldFlags = [...merged.addWorldFlags]
+  if (merged.removeWorldFlags) out.removeWorldFlags = [...merged.removeWorldFlags]
   if (merged.setPhase != null) {
     if (typeof merged.setPhase !== 'number' || !Number.isFinite(merged.setPhase)) return null
     out.setPhase = clamp(merged.setPhase, 0, 99)

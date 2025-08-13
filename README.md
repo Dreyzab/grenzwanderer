@@ -262,6 +262,17 @@ logger.info(LogCategory.DIALOG, 'Dialog choice made', choiceIndex, selectedChoic
 - Серверная фильтрация карты:
   - `map_points.listVisible` учитывает фазу/прогресс/флаги; клиентский `visibility.ts` остаётся только как dev‑фоллбэк
 
+### Технические улучшения (актуально)
+- Типобезопасная фильтрация квестов на сервере:
+  - `convex/quests.ts`: `filterQuestsByRequirements` переписан на явные интерфейсы (`QuestMeta`, `PlayerStateRow`, `WorldStateRow`, `QuestRequirementsMeta`) и используется без `any`‑кастов.
+  - Вызовы фильтрации (`getAvailableQuestsForNpc`, `getAvailableBoardQuests`) теперь передают строго типизированные значения и сортируют по `priority` без `as any`.
+- Общий хелпер санации списка квестов:
+  - `shared/lib/sanitizeQuests.ts` → `sanitizeQuestItems(input)` нормализует массив к форме `{ id: string, type?, priority? }`.
+  - Применён в `widgets/MapWidget/MapWidget.tsx` для клика по маркерам и `onRefresh` в модалке.
+- Улучшено логирование ошибок карты: ошибки обновления списка доступных квестов теперь логируются через `logger.error` вместо «тихого» игнора.
+- FSM (боевой): событие `ADVANCE` использует `CombatQuestStep` (развязан от `DeliveryQuestStep`).
+- Outcomes: выдаваемые массивы (`addFlags/removeFlags/addWorldFlags/removeWorldFlags`) клонируются, чтобы исключить непреднамеренные мутации.
+
 ## 🔑 Полезно для dev
 
 - Сид реестра квестов: на странице `/settings` кнопка «Сид реестра квестов (dev)» (нужен `VITE_DEV_SEED_TOKEN` в `client/.env.local`).

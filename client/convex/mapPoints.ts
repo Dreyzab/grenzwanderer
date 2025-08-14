@@ -97,10 +97,10 @@ export const listVisible = query({
       if (freedomStep === 'friendship_final') return p.key === 'anarchist_bar'
       if (freedomStep === 'order_final') return p.key === 'carl_private_workshop'
 
-      // Стартовый диалог квеста доставки показываем ТОЛЬКО если игрок явно отказался ранее
+      // Стартовый диалог доставки: не показывать повторно, кроме случая явного отказа ранее
       if (deliveryStep === 'not_started') {
         if (p.dialogKey === 'quest_start_dialog' && playerFlags.has('decline_delivery_quest')) return true
-        return false
+        if (p.dialogKey === 'quest_start_dialog') return false
       }
       if (deliveryStep === 'need_pickup_from_trader') return p.dialogKey === 'trader_meeting_dialog'
       if (deliveryStep === 'deliver_parts_to_craftsman' || deliveryStep === 'artifact_offer')

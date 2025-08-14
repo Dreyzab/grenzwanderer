@@ -124,6 +124,66 @@ export const deliveryQuestDialogs = [
     updatedAt: Date.now()
   },
 
+  // ===================== ПРОВЕРКА ПРОГРЕССА: ГАНС (FJR) =====================
+  {
+    _id: 'delivery_progress_check',
+    dialogKey: 'delivery_progress_check',
+    title: 'Как продвигается?',
+    startNodeKey: 'start',
+    nodes: {
+      start: {
+        text:
+          '«Как там задание? Курьерская работа — это не марафон, но и не прогулка. Забрал у торговца и несёшь Дитеру?»',
+        speakerKey: 'Ганс, боец FJR',
+        choices: [
+          { text: 'Да, работаю над этим.', nextNodeKey: null },
+        ],
+      },
+    },
+    backgroundImage: '/images/backgrounds/trader_camp.png',
+    updatedAt: Date.now(),
+  },
+
+  // ===================== ПРОВЕРКА ПРОГРЕССА: ТОРГОВЕЦ ЭЛИАС =====================
+  {
+    _id: 'trader_progress_check',
+    dialogKey: 'trader_progress_check',
+    title: 'Ржавый Якорь — повторный визит',
+    startNodeKey: 'start',
+    nodes: {
+      start: {
+        text:
+          '«Ну что, посылку Дитеру донёс? Не задерживайся у меня — дело ждёт. Дитер не любит, когда железо простаивает.»',
+        speakerKey: 'Элиас, торговец',
+        choices: [
+          { text: 'Иду к нему прямо сейчас.', nextNodeKey: null },
+        ],
+      },
+    },
+    backgroundImage: '/images/backgrounds/trader_camp.png',
+    updatedAt: Date.now(),
+  },
+
+  // ===================== ПРОВЕРКА ПРОГРЕССА: ДИТЕР =====================
+  {
+    _id: 'craftsman_progress_check',
+    dialogKey: 'craftsman_progress_check',
+    title: 'Мастерская — повторный визит',
+    startNodeKey: 'start',
+    nodes: {
+      start: {
+        text:
+          '«Не тяни, если на тебе поручение! Лес не станет безопаснее, а мне нужен кристалл. Жду результатов.»',
+        speakerKey: 'Дитер',
+        choices: [
+          { text: 'Понял, работаю.', nextNodeKey: null },
+        ],
+      },
+    },
+    backgroundImage: '/images/backgrounds/workshop.jpg',
+    updatedAt: Date.now(),
+  },
+
   // ===================== ВСТРЕЧА С МАСТЕРОВЫМ =====================
   {
     _id: 'craftsman_meeting_dialog',

@@ -14,8 +14,26 @@ export function decideDialogKey(point: VisibleMapPoint, qs: QuestStateSnapshot):
 
   if (point.id === 'fjr_office_start') dialogKey = 'loyalty_quest_start'
 
+  // Доставка: возврат к Дитеру с кристаллом
   if (point.dialogKey === 'craftsman_meeting_dialog' && qs.deliveryStep === 'return_to_craftsman') {
     dialogKey = 'quest_complete_with_artifact_dialog'
+  }
+
+  // Повторные визиты/проверка прогресса вместо повторного старта
+  if (qs.deliveryStep !== 'not_started') {
+    if (point.id === 'settlement_center' && point.dialogKey === 'quest_start_dialog') {
+      dialogKey = 'delivery_progress_check'
+    }
+  }
+  if (qs.deliveryStep && ['need_pickup_from_trader', 'deliver_parts_to_craftsman', 'artifact_offer', 'go_to_anomaly'].includes(qs.deliveryStep)) {
+    if (point.id === 'trader_camp' && point.dialogKey === 'trader_meeting_dialog') {
+      dialogKey = 'trader_progress_check'
+    }
+  }
+  if (qs.deliveryStep && ['go_to_anomaly', 'return_to_craftsman'].includes(qs.deliveryStep)) {
+    if (point.id === 'workshop_center' && point.dialogKey === 'craftsman_meeting_dialog') {
+      dialogKey = 'craftsman_progress_check'
+    }
   }
 
   // Finals for freedom_spark

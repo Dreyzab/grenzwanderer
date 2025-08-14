@@ -107,8 +107,8 @@ export const listVisible = query({
         return p.dialogKey === 'craftsman_meeting_dialog'
       if (deliveryStep === 'go_to_anomaly') return p.dialogKey === 'anomaly_exploration_dialog'
       if (deliveryStep === 'return_to_craftsman') return p.dialogKey === 'craftsman_meeting_dialog'
-      // Точки фазы 2 (например, 'fjr_office_start') показываются только при мировой фазе 2 через phase2Starts
-      return true
+      // По умолчанию не показываем точку, если она не прошла условия
+      return false
     })
 
     return filtered

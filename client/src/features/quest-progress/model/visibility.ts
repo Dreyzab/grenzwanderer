@@ -57,7 +57,7 @@ export function filterVisiblePoints(points: VisibleMapPoint[], steps: QuestSteps
     if (deliveryStep === 'return_to_craftsman') return p.dialogKey === 'craftsman_meeting_dialog'
     if (deliveryStep === 'completed') return p.id === 'fjr_office_start'
 
-    return true
+    return false
   })
 
   logger.info(

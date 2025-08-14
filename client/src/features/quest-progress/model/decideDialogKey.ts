@@ -50,6 +50,17 @@ export function decideDialogKey(point: VisibleMapPoint, qs: QuestStateSnapshot):
     dialogKey = 'chaos_path_final'
   }
 
+  // ВОДА: повторные визиты
+  if (point.id === 'old_believers_square' && qs.waterStep && qs.waterStep !== 'completed') {
+    dialogKey = 'water_quest_start_v2' // старт или прогресс обсуждается у Отца Иоанна
+  }
+  if (point.id === 'gunter_brewery' && qs.waterStep && ['need_to_talk_to_gunter', 'talk_to_travers', 'got_proof', 'final_talk_with_gunter'].includes(qs.waterStep)) {
+    dialogKey = qs.waterStep === 'need_to_talk_to_gunter' ? 'gunter_meeting_dialog_v2' : 'final_choice_dialog_v2'
+  }
+  if (point.id === 'city_gate_travers' && qs.waterStep && ['talk_to_travers', 'got_proof'].includes(qs.waterStep)) {
+    dialogKey = qs.waterStep === 'talk_to_travers' ? 'travers_investigation_dialog' : 'final_choice_dialog_v2'
+  }
+
   if (!dialogKey) return null
   const def = getDialogByKey(dialogKey)
   return def ?? null

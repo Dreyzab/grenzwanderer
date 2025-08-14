@@ -18,9 +18,9 @@ export const mapPointsApiConvex = {
   listAll: async () => convexClient.query(api.mapPoints.listAll, {}),
   listVisible: async (args: { deviceId?: string; userId?: string }) =>
     convexClient.query(api.mapPoints.listVisible, args),
-  upsertManyDev: async (points: MapPointDTO[]) =>
+  upsertManyDev: async (points: MapPointDTO[], devToken?: string) =>
     convexClient.mutation(api.mapPoints.upsertManyDev, {
-      devToken: (import.meta as any).env.VITE_DEV_SEED_TOKEN as string,
+      devToken: (devToken ?? ((import.meta as any).env.VITE_DEV_SEED_TOKEN as string)) ?? '',
       points,
     }),
 }

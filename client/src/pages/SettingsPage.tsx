@@ -58,8 +58,13 @@ export function Component() {
         radius: p.radius,
         icon: p.icon,
       }))
+      const token = devSeedToken ?? prompt('DEV seed token:') ?? ''
+      if (!token) {
+        setStatus('Сид отменён: не указан dev token')
+        return
+      }
       if ((mapPointsApi as any).upsertManyDev) {
-        await (mapPointsApi as any).upsertManyDev(points)
+        await (mapPointsApi as any).upsertManyDev(points, token)
       }
       setStatus('Демо-точки отправлены на сервер (Convex).')
     } catch (e) {

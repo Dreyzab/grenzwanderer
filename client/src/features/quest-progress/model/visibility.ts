@@ -15,6 +15,12 @@ export function filterVisiblePoints(points: VisibleMapPoint[], steps: QuestSteps
   const N = 3
 
   const filtered = points.filter((p) => {
+    // Никогда не показывать точки завершённых квестов
+    if (deliveryStep === 'completed' && p.questId === 'delivery_and_dilemma') return false
+    if (loyaltyStep === 'completed' && p.questId === 'loyalty_fjr') return false
+    if (waterStep === 'completed' && p.questId === 'water_crisis') return false
+    if (freedomStep === 'completed' && p.questId === 'freedom_spark') return false
+
     // ФАЗЫ
     const phase1Starts = ['settlement_center', 'synthesis_medbay', 'quiet_cove_bar', 'cathedral']
     const phase2Starts = ['rathaus', 'seepark', 'wasserschlossle', 'fjr_office_start']

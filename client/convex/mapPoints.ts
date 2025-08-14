@@ -74,6 +74,12 @@ export const listVisible = query({
       if (phase === 1 && phase1Starts.includes(p.key)) return true
       if (phase === 2 && (phase2Starts.includes(p.key) || phase1Starts.includes(p.key))) return true
 
+      // Не показывать точки завершённых квестов
+      if (p.questId === 'delivery_and_dilemma' && deliveryStep === 'completed') return false
+      if (p.questId === 'loyalty_fjr' && loyaltyStep === 'completed') return false
+      if (p.questId === 'water_crisis' && waterStep === 'completed') return false
+      if (p.questId === 'freedom_spark' && freedomStep === 'completed') return false
+
       // Разблокировка гражданства при выполнении N вводных квестов в фазе 1
       const N = 3
       const citizenshipStep = getStep('citizenship_invitation')

@@ -94,10 +94,18 @@ export function MapWidget() {
         logger.info('MAP', 'Convex map_points fetch failed, fallback to local', e)
       }
 
-      if (stored.length === 0 && import.meta.env.DEV) {
+      // Dev: дополняем серверные точки локальными демо-точками (если чего-то не хватает)
+      if (import.meta.env.DEV) {
         await seedDemoMapPoints()
         const local = await mapPointApi.getPoints()
-        stored = local.map((p) => ({ ...p, isDiscovered: true })) as VisibleMapPoint[]
+        const localVisible = local.map((p) => ({ ...p, isDiscovered: true })) as VisibleMapPoint[]
+        if (stored.length === 0) {
+          stored = localVisible
+        } else {
+          const byId = new Map(stored.map((p) => [p.id, p]))
+          for (const lp of localVisible) if (!byId.has(lp.id)) byId.set(lp.id, lp)
+          stored = Array.from(byId.values())
+        }
       }
 
       let visible = stored

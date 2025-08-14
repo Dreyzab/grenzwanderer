@@ -181,5 +181,25 @@ export const combatBaptismQuestDialogs = [
     },
     backgroundImage: '/images/backgrounds/fjr_headquarters.jpg',
     updatedAt: Date.now()
+  },
+
+  // ===================== ПРОВЕРКА ПРОГРЕССА: FJR ДОСКА / СБОРНЫЙ ПУНКТ =====================
+  {
+    _id: 'combat_progress_check',
+    dialogKey: 'combat_progress_check',
+    title: 'Боевые будни',
+    startNodeKey: 'start',
+    nodes: {
+      start: {
+        text:
+          '«Записан на патруль? Тогда явись к сборному пункту вовремя. Уже идёт набор добровольцев — не подведи.»',
+        speakerKey: 'Дежурный офицер',
+        choices: [
+          { text: 'Понял, буду.', nextNodeKey: null },
+        ],
+      },
+    },
+    backgroundImage: '/images/backgrounds/fjr_headquarters.jpg',
+    updatedAt: Date.now(),
   }
 ];

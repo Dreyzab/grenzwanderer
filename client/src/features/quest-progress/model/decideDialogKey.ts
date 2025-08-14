@@ -61,6 +61,14 @@ export function decideDialogKey(point: VisibleMapPoint, qs: QuestStateSnapshot):
     dialogKey = qs.waterStep === 'talk_to_travers' ? 'travers_investigation_dialog' : 'final_choice_dialog_v2'
   }
 
+  // COMBAT: на доске FJR после записи — короткий прогресс-диалог
+  if (point.id === 'fjr_board' && point.dialogKey === 'fjr_bulletin_board_dialog') {
+    // Если квест уже принят или в процессе — показываем напоминание
+    if (qs.deliveryStep !== 'not_started' || qs.loyaltyStep || qs.waterStep || qs.freedomStep) {
+      dialogKey = 'combat_progress_check'
+    }
+  }
+
   if (!dialogKey) return null
   const def = getDialogByKey(dialogKey)
   return def ?? null

@@ -1,13 +1,14 @@
-import type { DeliveryQuestId, DeliveryQuestStep } from './types'
+import type { QuestStep } from './types'
+import type { QuestId } from './ids'
 
 export type PhaseId = 0 | 1 | 2
 
 export interface QuestMeta {
-  id: DeliveryQuestId
+  id: QuestId
   phase: PhaseId
-  prerequisites?: DeliveryQuestId[]
+  prerequisites?: QuestId[]
   startPointKey: string
-  startStep: DeliveryQuestStep
+  startStep: QuestStep
 }
 
 export const questCatalog: QuestMeta[] = [
@@ -17,21 +18,23 @@ export const questCatalog: QuestMeta[] = [
     startPointKey: 'settlement_center',
     startStep: 'need_pickup_from_trader',
   },
-  { id: 'field_medicine', phase: 1, startPointKey: 'synthesis_medbay', startStep: 'medical_emergency' as DeliveryQuestStep },
-  { id: 'combat_baptism', phase: 1, startPointKey: 'fjr_office_start', startStep: 'combat_available_on_board' as DeliveryQuestStep },
-  { id: 'quiet_cove_whisper', phase: 1, startPointKey: 'quiet_cove_bar', startStep: 'courier_missing' as DeliveryQuestStep },
-  { id: 'bell_for_lost', phase: 1, startPointKey: 'cathedral', startStep: 'bell_mission_offered' as DeliveryQuestStep },
-  { id: 'citizenship_invitation', phase: 2, startPointKey: 'rathaus', startStep: 'official_summons_received' as DeliveryQuestStep },
-  { id: 'eyes_in_the_dark', phase: 2, startPointKey: 'seepark', startStep: 'special_assignment_available' as DeliveryQuestStep },
-  { id: 'void_shards', phase: 2, startPointKey: 'wasserschlossle', startStep: 'crystal_collection_offer' as DeliveryQuestStep },
+  { id: 'field_medicine', phase: 1, startPointKey: 'synthesis_medbay', startStep: 'medical_emergency' as QuestStep },
+  { id: 'combat_baptism', phase: 1, startPointKey: 'fjr_office_start', startStep: 'combat_available_on_board' as QuestStep },
+  { id: 'quiet_cove_whisper', phase: 1, startPointKey: 'quiet_cove_bar', startStep: 'courier_missing' as QuestStep },
+  { id: 'bell_for_lost', phase: 1, startPointKey: 'cathedral', startStep: 'bell_mission_offered' as QuestStep },
+  { id: 'citizenship_invitation', phase: 2, startPointKey: 'rathaus', startStep: 'official_summons_received' as QuestStep },
+  { id: 'eyes_in_the_dark', phase: 2, startPointKey: 'seepark', startStep: 'special_assignment_available' as QuestStep },
+  { id: 'void_shards', phase: 2, startPointKey: 'wasserschlossle', startStep: 'crystal_collection_offer' as QuestStep },
 ]
 
-export function getQuestMeta(id: DeliveryQuestId): QuestMeta | undefined {
+export function getQuestMeta(id: QuestId): QuestMeta | undefined {
   return questCatalog.find((q) => q.id === id)
 }
 
 export function listQuestsByPhase(phase: PhaseId): QuestMeta[] {
   return questCatalog.filter((q) => q.phase === phase)
 }
+
+export const ALL_QUEST_IDS = questCatalog.map((q) => q.id) as QuestId[]
 
 

@@ -59,6 +59,7 @@ npx convex dev --once
   - `map-point/model/types.ts` — типы точек карты
   - `map-point/api/local.ts` — локальный API (localStorage)
   - `map-point/ui/MapMarker.tsx`, `MapPointTooltip.tsx` — UI-компоненты
+  - `entities/quest/model/ids.ts` — единый реестр `QUEST_IDS` и тип `QuestId` (авторасширение)
 - `src/shared/` — общие модули
   - `config/map.ts` — конфиг карты (центр, зум, bounds)
   - `types/core/mapPoint.ts` — базовые типы для карты
@@ -308,10 +309,12 @@ npx convex dev   # Dev-сервер Convex (без --yes)
 ## Недавние изменения
 
 - Типобезопасность сервера квестов (Convex): удалены `any`-касты, добавлены интерфейсы для фильтрации.
-- Общий хелпер `shared/lib/sanitizeQuests.ts` для нормализации списка доступных квестов.
+- Общий хелпер `shared/lib/sanitizeQuests.ts`: однопроходная санация без `any`, с type guard, возвращает строго типизированные элементы (`id: QuestId`).
 - `MapWidget`: переиспользование хелпера санации и корректное логирование ошибок `onRefresh`.
 - FSM: событие боя `ADVANCE` теперь использует `CombatQuestStep`.
 - Outcomes: массивы флагов клонируются при возврате из `resolveOutcome`.
+- Квесты: введён общий тип `QuestId` (ед.источник истины — `QUEST_IDS`) и `QuestStep` (вместо узкого `DeliveryQuestStep`). Исторические алиасы сохранены для совместимости.
+- Убраны точечные `as any` при передаче данных о квестах в UI; строгие типы прокинуты до `AvailableQuestsModal`.
 
 ## Частые проблемы
 

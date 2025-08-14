@@ -1,14 +1,15 @@
 import { useMemo } from 'react'
 import { getQuestMeta } from '@/entities/quest/model/catalog'
-import type { DeliveryQuestId, DeliveryQuestStep } from '@/entities/quest/model/types'
+import type { QuestStep } from '@/entities/quest/model/types'
+import type { QuestId } from '@/entities/quest/model/ids'
 import { useQuest } from '@/entities/quest/model/useQuest'
 
-type QuestMeta = ReturnType<typeof getQuestMeta>
-type QuestItemWithMeta = { id: string; type?: string; priority?: number; meta: QuestMeta }
+type QuestMeta = NonNullable<ReturnType<typeof getQuestMeta>>
+type QuestItemWithMeta = { id: QuestId; type?: string; priority?: number; meta: QuestMeta }
 interface Props {
   title: string
-  questIds?: string[]
-  items?: { id: string; type?: string; priority?: number }[]
+  questIds?: QuestId[]
+  items?: { id: QuestId; type?: string; priority?: number }[]
   onClose: () => void
   onRefresh?: () => void
   onAcceptAllDev?: (ids: string[]) => void
@@ -22,7 +23,7 @@ export function AvailableQuestsModal({ title, questIds, items: itemsProp, onClos
         .map((i) => ({ ...i, meta: getQuestMeta(i.id) }))
         .filter((x): x is QuestItemWithMeta => Boolean(x.meta))
     }
-    const ids = questIds ?? []
+    const ids = (questIds ?? []) as QuestId[]
     return ids
       .map((id) => ({ id, meta: getQuestMeta(id) }))
       .filter((x): x is QuestItemWithMeta => Boolean(x.meta))
@@ -53,7 +54,7 @@ export function AvailableQuestsModal({ title, questIds, items: itemsProp, onClos
           </div>
         </div>
         <ul className="space-y-2">
-          {items.map(({ id, meta, type, priority }) => (
+           {items.map(({ id, meta, type, priority }) => (
             <li key={id} className="flex items-center justify-between rounded bg-neutral-800/40 p-2">
               <div>
                 <div className="font-medium">{id}</div>
@@ -66,7 +67,7 @@ export function AvailableQuestsModal({ title, questIds, items: itemsProp, onClos
               <button
                 className="text-xs bg-emerald-700 hover:bg-emerald-600 rounded px-3 py-1"
                 onClick={() => {
-                  quest.startQuest(id as DeliveryQuestId, meta.startStep as DeliveryQuestStep)
+                  quest.startQuest(id, meta.startStep as QuestStep)
                   onClose()
                 }}
               >

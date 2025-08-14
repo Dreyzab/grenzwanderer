@@ -59,7 +59,7 @@ export function MapWidget() {
   const [activeDialog, setActiveDialog] = useState<DialogDefinition | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [availableModal, setAvailableModal] = useState<
-    { title: string; ids?: string[]; items?: { id: string; type?: string; priority?: number }[] } | null
+    { title: string; ids?: import('@/entities/quest/model/ids').QuestId[]; items?: { id: import('@/entities/quest/model/ids').QuestId; type?: string; priority?: number }[] } | null
   >(null)
   const quest = useQuest()
   const { handle: handleDialogAction } = useDialogActionCoordinator()

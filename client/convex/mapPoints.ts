@@ -1,17 +1,40 @@
 import { internalMutation, mutation, query } from './_generated/server'
-import { v } from 'convex/values'
+import type { QueryCtx, MutationCtx } from './_generated/server'
+import type { Doc } from './_generated/dataModel'
+import { v, type Infer } from 'convex/values'
 
-export const listAll = query(async ({ db }) => {
+const pointInput = v.object({
+  key: v.string(),
+  title: v.string(),
+  description: v.optional(v.string()),
+  coordinates: v.object({ lat: v.number(), lng: v.number() }),
+  type: v.optional(v.string()),
+  dialogKey: v.optional(v.string()),
+  questId: v.optional(v.string()),
+  active: v.boolean(),
+  radius: v.optional(v.number()),
+  icon: v.optional(v.string()),
+})
+
+type PointInput = Infer<typeof pointInput>
+
+export const listAll = query(async ({ db }: QueryCtx) => {
   return db.query('map_points').withIndex('by_active', (q) => q.eq('active', true)).collect()
 })
 
 export const listVisible = query({
   args: { deviceId: v.optional(v.string()), userId: v.optional(v.string()) },
-  handler: async ({ db }, { deviceId, userId }) => {
-    const points = await db.query('map_points').withIndex('by_active', (q) => q.eq('active', true)).collect()
-    let progresses = [] as any[]
+  handler: async (
+    { db }: QueryCtx,
+    { deviceId, userId }: { deviceId?: string; userId?: string },
+  ) => {
+    const points: Doc<'map_points'>[] = await db
+      .query('map_points')
+      .withIndex('by_active', (q) => q.eq('active', true))
+      .collect()
+    let progresses: Doc<'quest_progress'>[] = []
     let phase = 0
-    let player: any | null = null
+    let player: Doc<'player_state'> | null = null
     if (userId) {
       progresses = await db.query('quest_progress').withIndex('by_user', (q) => q.eq('userId', userId)).collect()
       player = await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', userId)).unique()
@@ -88,22 +111,9 @@ export const listVisible = query({
 
 export const upsertMany = internalMutation({
   args: {
-    points: v.array(
-      v.object({
-        key: v.string(),
-        title: v.string(),
-        description: v.optional(v.string()),
-        coordinates: v.object({ lat: v.number(), lng: v.number() }),
-        type: v.optional(v.string()),
-        dialogKey: v.optional(v.string()),
-        questId: v.optional(v.string()),
-        active: v.boolean(),
-        radius: v.optional(v.number()),
-        icon: v.optional(v.string()),
-      }),
-    ),
+    points: v.array(pointInput),
   },
-  handler: async ({ db }, { points }) => {
+  handler: async ({ db }: MutationCtx, { points }: { points: PointInput[] }) => {
     const now = Date.now()
     for (const p of points) {
       const existing = await db.query('map_points').withIndex('by_key', (q) => q.eq('key', p.key)).unique()
@@ -120,22 +130,12 @@ export const upsertMany = internalMutation({
 export const upsertManyDev = mutation({
   args: {
     devToken: v.string(),
-    points: v.array(
-      v.object({
-        key: v.string(),
-        title: v.string(),
-        description: v.optional(v.string()),
-        coordinates: v.object({ lat: v.number(), lng: v.number() }),
-        type: v.optional(v.string()),
-        dialogKey: v.optional(v.string()),
-        questId: v.optional(v.string()),
-        active: v.boolean(),
-        radius: v.optional(v.number()),
-        icon: v.optional(v.string()),
-      }),
-    ),
+    points: v.array(pointInput),
   },
-  handler: async ({ db }, { points, devToken }) => {
+  handler: async (
+    { db }: MutationCtx,
+    { points, devToken }: { points: PointInput[]; devToken: string },
+  ) => {
     const expected = (globalThis as any)?.process?.env?.VITE_DEV_SEED_TOKEN ?? (globalThis as any)?.VITE_DEV_SEED_TOKEN
     if (!expected || devToken !== expected) {
       throw new Error('Forbidden: invalid dev token')

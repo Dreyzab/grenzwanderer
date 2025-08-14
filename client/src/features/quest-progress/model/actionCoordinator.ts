@@ -7,7 +7,8 @@ import { createDeliveryQuestActor } from '@/entities/quest/model/fsm/deliveryMac
 import { createCombatQuestActor } from '@/entities/quest/model/fsm/combatMachine'
 import { resolveOutcome } from './outcomes'
 import { dialogActionMap } from './actionMap'
-import type { DeliveryQuestId, DeliveryQuestStep } from '@/entities/quest/model/types'
+import type { QuestStep } from '@/entities/quest/model/types'
+import type { QuestId } from '@/entities/quest/model/ids'
 
 export function useDialogActionCoordinator() {
   const quest = useQuest()
@@ -54,33 +55,33 @@ export function useDialogActionCoordinator() {
         actor.send(mapped.event)
         // Мгновенная синхронизация стора для UI (на случай отложенных акторов)
         if (mapped.event?.type === 'START')
-          quest.startQuest('delivery_and_dilemma' as DeliveryQuestId, 'need_pickup_from_trader' as DeliveryQuestStep)
+          quest.startQuest('delivery_and_dilemma' as QuestId, 'need_pickup_from_trader' as QuestStep)
         if (mapped.event?.type === 'ADVANCE' && mapped.event.step) {
-          quest.advanceQuest('delivery_and_dilemma' as DeliveryQuestId, mapped.event.step as DeliveryQuestStep)
+          quest.advanceQuest('delivery_and_dilemma' as QuestId, mapped.event.step as QuestStep)
         }
         if (mapped.event?.type === 'COMPLETE')
-          quest.completeQuest('delivery_and_dilemma' as DeliveryQuestId)
+          quest.completeQuest('delivery_and_dilemma' as QuestId)
       }
       if (mapped.machine === 'combat') {
         const actor = ensureCombatActor()
         actor.send(mapped.event)
         if (mapped.event?.type === 'START')
-          quest.startQuest('combat_baptism' as DeliveryQuestId, 'combat_available_on_board' as DeliveryQuestStep)
+          quest.startQuest('combat_baptism' as QuestId, 'combat_available_on_board' as QuestStep)
         if (mapped.event?.type === 'ASSIGN')
-          quest.startQuest('combat_baptism' as DeliveryQuestId, 'assigned_to_patrol' as DeliveryQuestStep)
+          quest.startQuest('combat_baptism' as QuestId, 'assigned_to_patrol' as QuestStep)
         if (mapped.event?.type === 'ADVANCE' && mapped.event.step)
-          quest.advanceQuest('combat_baptism' as DeliveryQuestId, mapped.event.step as DeliveryQuestStep)
+          quest.advanceQuest('combat_baptism' as QuestId, mapped.event.step as QuestStep)
         if (mapped.event?.type === 'COMPLETE')
-          quest.completeQuest('combat_baptism' as DeliveryQuestId)
+          quest.completeQuest('combat_baptism' as QuestId)
       }
       return
     }
     if (mapped.kind === 'quest') {
       const { op, questId, step } = mapped
-      if (op === 'start' && step) quest.startQuest(questId as DeliveryQuestId, step as DeliveryQuestStep)
-      if (op === 'advance' && step) quest.advanceQuest(questId as DeliveryQuestId, step as DeliveryQuestStep)
+      if (op === 'start' && step) quest.startQuest(questId as QuestId, step as QuestStep)
+      if (op === 'advance' && step) quest.advanceQuest(questId as QuestId, step as QuestStep)
       if (op === 'complete') {
-        quest.completeQuest(questId as DeliveryQuestId)
+        quest.completeQuest(questId as QuestId)
         const phase1Ids = new Set(['delivery_and_dilemma', 'field_medicine', 'combat_baptism', 'quiet_cove_whisper', 'bell_for_lost'])
         if (phase1Ids.has(questId as unknown as string)) checkPhaseAdvance()
       }

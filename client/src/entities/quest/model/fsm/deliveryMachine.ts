@@ -1,7 +1,8 @@
 import { createActor, createMachine } from 'xstate'
 import { useQuestStore } from '../questStore'
 import { questsApi } from '@/shared/api/quests'
-import type { DeliveryQuestId, DeliveryQuestStep } from '../types'
+import type { DeliveryQuestStep } from '../types'
+import type { QuestId } from '../ids'
 
 // Минимальная XState-машина для квеста "delivery_and_dilemma"
 // Источником истины остаётся zustand-стор; машина лишь оркестрирует события
@@ -37,8 +38,8 @@ const deliveryMachine = createMachine({
       const e = ev as { type: string; step?: DeliveryQuestStep }
       if (e.type !== 'ADVANCE' || !e.step) return
       const store = useQuestStore.getState()
-      store.advanceQuest('delivery_and_dilemma' as DeliveryQuestId, e.step)
-      void questsApi.advanceQuest('delivery_and_dilemma' as DeliveryQuestId, e.step)
+      store.advanceQuest('delivery_and_dilemma' as QuestId, e.step)
+      void questsApi.advanceQuest('delivery_and_dilemma' as QuestId, e.step)
     },
     completeDelivery: () => {
       const store = useQuestStore.getState()

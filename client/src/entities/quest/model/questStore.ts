@@ -1,15 +1,16 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import type { ActiveQuest, DeliveryQuestId, DeliveryQuestStep } from './types'
+import type { ActiveQuest, QuestStep } from './types'
+import type { QuestId } from './ids'
 import logger from '@/shared/lib/logger'
 
 interface QuestState {
-  activeQuests: Partial<Record<DeliveryQuestId, ActiveQuest>>
-  completedQuests: DeliveryQuestId[]
-  startQuest: (id: DeliveryQuestId, step: DeliveryQuestStep) => void
-  advanceQuest: (id: DeliveryQuestId, step: DeliveryQuestStep) => void
-  completeQuest: (id: DeliveryQuestId) => void
-  hydrate: (data: { id: DeliveryQuestId; currentStep: DeliveryQuestStep; completedAt?: number | null }[]) => void
+  activeQuests: Partial<Record<QuestId, ActiveQuest>>
+  completedQuests: QuestId[]
+  startQuest: (id: QuestId, step: QuestStep) => void
+  advanceQuest: (id: QuestId, step: QuestStep) => void
+  completeQuest: (id: QuestId) => void
+  hydrate: (data: { id: QuestId; currentStep: QuestStep; completedAt?: number | null }[]) => void
 }
 
 export const useQuestStore = create<QuestState>()(
@@ -51,8 +52,8 @@ export const useQuestStore = create<QuestState>()(
     }),
   hydrate: (data) =>
     set(() => {
-      const active: Partial<Record<DeliveryQuestId, ActiveQuest>> = {}
-      const completed: DeliveryQuestId[] = []
+      const active: Partial<Record<QuestId, ActiveQuest>> = {}
+      const completed: QuestId[] = []
       const now = Date.now()
       for (const d of data) {
         if (d.completedAt) {

@@ -1,8 +1,9 @@
-import type { DeliveryQuestId, DeliveryQuestStep, CombatQuestStep } from '@/entities/quest/model/types'
+import type { QuestStep, CombatQuestStep } from '@/entities/quest/model/types'
+import type { QuestId } from '@/entities/quest/model/ids'
 
 export type DeliveryFsmEvent =
   | { type: 'START' }
-  | { type: 'ADVANCE'; step: DeliveryQuestStep }
+  | { type: 'ADVANCE'; step: QuestStep }
   | { type: 'COMPLETE' }
 
 export type CombatFsmEvent =
@@ -15,7 +16,7 @@ export type ActionDescriptor =
   | { kind: 'phase'; phase: 1 | 2 }
   | { kind: 'fsm'; machine: 'delivery'; event: DeliveryFsmEvent }
   | { kind: 'fsm'; machine: 'combat'; event: CombatFsmEvent }
-  | { kind: 'quest'; op: 'start' | 'advance' | 'complete'; questId: DeliveryQuestId; step?: DeliveryQuestStep }
+  | { kind: 'quest'; op: 'start' | 'advance' | 'complete'; questId: QuestId; step?: QuestStep }
 
 export const dialogActionMap: Record<string, ActionDescriptor> = {
   // Фазы

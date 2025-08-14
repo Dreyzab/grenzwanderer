@@ -1,6 +1,7 @@
-export type DeliveryQuestId = 'delivery_and_dilemma' | 'loyalty_fjr' | 'water_crisis' | 'freedom_spark' | 'combat_baptism' | 'field_medicine' | 'quiet_cove_whisper' | 'bell_for_lost' | 'citizenship_invitation' | 'eyes_in_the_dark' | 'void_shards'
+import type { QuestId } from './ids'
+export type DeliveryQuestId = QuestId
 
-export type DeliveryQuestStep =
+export type QuestStep =
   | 'not_started'
   | 'need_pickup_from_trader'
   | 'deliver_parts_to_craftsman'
@@ -73,8 +74,8 @@ export type DeliveryQuestStep =
   | 'void_shards_delivered'
 
 export interface ActiveQuest {
-  id: DeliveryQuestId
-  currentStep: DeliveryQuestStep
+  id: QuestId
+  currentStep: QuestStep
   startedAt: number
 }
 
@@ -84,5 +85,8 @@ export type CombatQuestStep =
   | 'assigned_to_patrol'
   | 'patrol_in_progress'
   | 'combat_completed'
+
+// Deprecated alias for backward compatibility; replace usage with QuestStep
+export type DeliveryQuestStep = QuestStep
 
 

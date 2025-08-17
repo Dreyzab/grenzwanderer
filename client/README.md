@@ -40,12 +40,15 @@ npm run dev
 
 ```bash
 npx convex dev --once
+# если на серверных функциях Convex видите "import.meta unsupported",
+# замените использование import.meta.env на process.env и задайте секреты через CLI:
+# npx convex env set VITE_DEV_SEED_TOKEN your_secret
 ```
 
 ## Навигация по кодовой базе (FSD)
 
 - `src/app/` — провайдеры и инициализация приложения
-  - `AppConvexProvider.tsx` — Convex React Provider
+  - `ConvexProvider.tsx` — Convex React Provider
 - `src/pages/` — страницы-роуты
   - `HomePage.tsx` — главная, кнопка старта VN
   - `NovelPage.tsx` — полноэкранная Visual Novel (`/novel`)
@@ -102,6 +105,11 @@ npx convex dev --once
   - Попапы (`mapboxgl.Popup`) стилизованы через `MapWidget.css`
   - Автопоказ диалога по query-параметру `?dialog=<dialogKey>`
 
+### Видимость точек (dev vs prod)
+
+- Prod: источник истины — серверная `convex/mapPoints.listVisible` (по умолчанию точки скрыты, явные матчинги по фазе/шагу/старту; завершённые квесты скрывают точки).
+- Dev: всегда накладывается клиентская `features/quest-progress/model/visibility.filterVisiblePoints` поверх ответа сервера (в `MapWidget`), чтобы избежать сценария «видно всё» при несинхронизации. Логика идентична серверной.
+
 ## Mappoints
 
 - Базовые типы: `src/shared/types/core/mapPoint.ts`
@@ -121,7 +129,44 @@ npx convex dev --once
   - `listVisible({ userId?, deviceId? })`, `listAll()`
   - `upsertManyDev(points, devToken)` — dev-сид на сервер
 - Auth: `convex/auth.ts: me()` — отдаёт `userId` при настроенном провайдере
-- Клиент: `shared/lib/convexClient.ts` + `AppConvexProvider` + `QuestHydrator`
+- Клиент: `shared/lib/convexClient.ts` + `ConvexProvider` + `QuestHydrator`
+
+### Auth (Clerk + Convex JWT)
+
+Для работы `ConvexProviderWithClerk` нужен JWT-шаблон в Clerk с именем `convex`.
+
+Шаги:
+
+1) В Clerk (Development instance) создайте JWT Template:
+- Name: `convex`
+- Algorithm: `RS256`
+- Audience (aud): `convex`
+- Claims (пример):
+
+```json
+{
+  "aud": "convex",
+  "sub": "{{user.id}}",
+  "sid": "{{session.id}}",
+  "email": "{{user.primary_email_address}}",
+  "username": "{{user.username}}",
+  "created_at": "{{user.created_at}}"
+}
+```
+
+2) В Convex задайте домен Issuer (из карточки JWT Template):
+
+```bash
+npx convex env set CLERK_JWT_ISSUER_DOMAIN https://<your>.clerk.accounts.dev
+```
+
+3) Перезапустите Convex:
+
+```bash
+npx convex dev
+```
+
+Подсказка: предупреждение «No HydrateFallback…» в dev можно игнорировать (см. «Частые проблемы»).
 
 ## Visual Novel
 
@@ -158,7 +203,8 @@ npx convex dev --once
 - `fjr_office_start` — Пункт FJR (после завершения доставки)
   - координаты: lng 7.8509922034320425, lat 47.99679276901679
 - `anarchist_hole` — «Дыра», квартал анархистов (после принятия поручения FJR)
-  - координаты: lng 7.852047469737187, lat 47.99385334623585- `synthesis_medbay` — Медпункт "Синтеза" (Karl-Rahner-Platz)
+  - координаты: lng 7.852047469737187, lat 47.99385334623585
+- `synthesis_medbay` — Медпункт "Синтеза" (Karl-Rahner-Platz)
   - координаты: lng 7.84722226058264, lat 47.99317708133805
 - `cathedral` — Кафедральный собор (квесты Староверов)
 - `quiet_cove_bar` — Бар "Тихая Заводь" (Gerberau)
@@ -288,8 +334,10 @@ npx convex dev --once
 
 ### Отладка
 - В консоль выводятся шаги и фильтрованные точки:
-  - `MAP Current quest step: <step> completedQuests: [...] loyaltyStep: <step>`
-  - `Filtered points by step <step> → ids: [ ... ]`
+  - `MAP` логи: итоговые числа (`Points total: X visible: Y`), фокус карты и клики по маркерам
+  - `STORE` логи: `startQuest/advanceQuest/completeQuest/hydratePlayer`
+  - `SEED` логи: загрузка/обновление демо-точек
+  - `DIALOG` логи: выбранные опции и ключи диалогов
   - События стора: `STORE startQuest/advanceQuest/completeQuest`
 
 ## Tailwind v4
@@ -308,19 +356,32 @@ npx convex dev   # Dev-сервер Convex (без --yes)
 
 ## Недавние изменения
 
-- Типобезопасность сервера квестов (Convex): удалены `any`-касты, добавлены интерфейсы для фильтрации.
-- Общий хелпер `shared/lib/sanitizeQuests.ts`: однопроходная санация без `any`, с type guard, возвращает строго типизированные элементы (`id: QuestId`).
-- `MapWidget`: переиспользование хелпера санации и корректное логирование ошибок `onRefresh`.
-- FSM: событие боя `ADVANCE` теперь использует `CombatQuestStep`.
-- Outcomes: массивы флагов клонируются при возврате из `resolveOutcome`.
-- Квесты: введён общий тип `QuestId` (ед.источник истины — `QUEST_IDS`) и `QuestStep` (вместо узкого `DeliveryQuestStep`). Исторические алиасы сохранены для совместимости.
-- Убраны точечные `as any` при передаче данных о квестах в UI; строгие типы прокинуты до `AvailableQuestsModal`.
+- Введён единый источник истины для `QuestId`: `entities/quest/model/ids.ts` (`QUEST_IDS`, `isQuestId`) — авторасширяемость и типобезопасность.
+- Обобщён тип шагов: `QuestStep` вместо `DeliveryQuestStep` (сохранён алиас для обратной совместимости).
+- `shared/lib/sanitizeQuests.ts`: однопроходная валидация без `as any`, строгая типизация выходного массива.
+- Убраны `as any` в UI: `AvailableQuestsModal`, `MapWidget` теперь принимают/отдают `QuestId`.
+- Фильтрация видимости точек:
+  - Сервер (`convex/mapPoints.ts`): по умолчанию точки скрыты; показываются только при явном совпадении условий (фаза/шаг/старт). Завершённые квесты скрывают свои точки.
+  - Клиент (`features/quest-progress/model/visibility.ts`): идентичная логика; в dev накладывается поверх ответа сервера, чтобы избежать «видно всё» при расхождениях.
+  - `MapWidget`: в dev всегда применяет клиентский фильтр поверх данных сервера.
+- Переписана логика выбора диалогов (`decideDialogKey.ts`): прогресс-чек диалоги на повторном клике по точкам (городской центр, лагерь торговца, мастерская и др.).
+- Convex env: на стороне сервера используется `process.env` вместо `import.meta`. Для dev-сидов токен читается через `(globalThis as any)?.process?.env?.VITE_DEV_SEED_TOKEN`.
+
+— Рефакторинг MapWidget по FSD:
+- Добавлены хуки виджета: `useMapInstance`, `useVisiblePoints`, `useDialogAutoplay`, `useRegistrationPrompt`, `useMarkers` (порталы с `MapMarker/MapPointTooltip`), `useAvailableQuests`.
+- Удалена ручная DOM-логика маркеров, дубли и строковые попапы.
+- Унифицированы запросы доступных квестов (NPC/доски) через единый хук.
+
+— Централизация выдачи квестов:
+- Сервер: добавлен универсальный метод `quests.getAvailableQuests({ sourceType, sourceKey })` и вынесены хелперы в `convex/quests.helpers.ts` (фильтрация по требованиям, приоритизация типов, загрузка состояния игрока/мира).
+- Клиент: `questsApi.getAvailableQuests(type, key)` + хук `useAvailableQuests`.
 
 ## Частые проблемы
 
-- «No HydrateFallback…»: добавлен `fallbackElement` в `RouterProvider` — предупреждение исчезает.
+- «No HydrateFallback…»: `fallbackElement` в React Router v7 не поддерживается — убрать из `RouterProvider`.
 - «Missing mapbox-gl.css»: стили Mapbox импортируются первыми в `src/index.css`.
 - «@import must precede…»: директивы `@import` должны быть первыми в CSS (Tailwind v4).
+ - «import.meta unsupported (Convex server)»: используйте `process.env` в `convex/*`. Секреты задавайте через `npx convex env set KEY VALUE` или в Convex Dashboard.
 
 ## Дальнейшие шаги
 

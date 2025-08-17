@@ -21,11 +21,13 @@ export const useQuestStore = create<QuestState>()(
   startQuest: (id, step) =>
     set((s) => {
       logger.info('STORE', 'startQuest', id, step)
+      const nextCompleted = (s.completedQuests ?? []).filter((q) => q !== (id as any))
       return {
         activeQuests: {
           ...s.activeQuests,
           [id]: { id, currentStep: step, startedAt: Date.now() },
         },
+        completedQuests: nextCompleted,
       }
     }),
   advanceQuest: (id, step) =>

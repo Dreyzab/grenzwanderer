@@ -21,17 +21,73 @@ export function useQuest() {
     completedQuests,
     isActive,
     getStep,
-    startQuest: (id: QuestId, step: QuestStep) => {
-      startQuest(id, step)
-      void questsApi.startQuest(id, step)
+    startQuest: async (id: QuestId, step: QuestStep) => {
+      // Для квестов с серверными гейтами — сначала сервер, потом локально
+      const serverFirst = new Set<QuestId>([
+        'loyalty_fjr' as QuestId,
+        'water_crisis' as QuestId,
+        'freedom_spark' as QuestId,
+        'citizenship_invitation' as QuestId,
+        'eyes_in_the_dark' as QuestId,
+        'void_shards' as QuestId,
+      ])
+      if (serverFirst.has(id)) {
+        try {
+          await questsApi.startQuest(id, step)
+          startQuest(id, step)
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[QUEST] startQuest failed on server, skipping local update', id, step, e)
+        }
+      } else {
+        // Быстрый локальный апдейт для UX, сервер асинхронно
+        startQuest(id, step)
+        void questsApi.startQuest(id, step)
+      }
     },
-    advanceQuest: (id: QuestId, step: QuestStep) => {
-      advanceQuest(id, step)
-      void questsApi.advanceQuest(id, step)
+    advanceQuest: async (id: QuestId, step: QuestStep) => {
+      const serverFirst = new Set<QuestId>([
+        'loyalty_fjr' as QuestId,
+        'water_crisis' as QuestId,
+        'freedom_spark' as QuestId,
+        'citizenship_invitation' as QuestId,
+        'eyes_in_the_dark' as QuestId,
+        'void_shards' as QuestId,
+      ])
+      if (serverFirst.has(id)) {
+        try {
+          await questsApi.advanceQuest(id, step)
+          advanceQuest(id, step)
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[QUEST] advanceQuest failed on server, skipping local update', id, step, e)
+        }
+      } else {
+        advanceQuest(id, step)
+        void questsApi.advanceQuest(id, step)
+      }
     },
-    completeQuest: (id: QuestId) => {
-      completeQuest(id)
-      void questsApi.completeQuest(id)
+    completeQuest: async (id: QuestId) => {
+      const serverFirst = new Set<QuestId>([
+        'loyalty_fjr' as QuestId,
+        'water_crisis' as QuestId,
+        'freedom_spark' as QuestId,
+        'citizenship_invitation' as QuestId,
+        'eyes_in_the_dark' as QuestId,
+        'void_shards' as QuestId,
+      ])
+      if (serverFirst.has(id)) {
+        try {
+          await questsApi.completeQuest(id)
+          completeQuest(id)
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[QUEST] completeQuest failed on server, skipping local update', id, e)
+        }
+      } else {
+        completeQuest(id)
+        void questsApi.completeQuest(id)
+      }
     },
     hydrate,
   }

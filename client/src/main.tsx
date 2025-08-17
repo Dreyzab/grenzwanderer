@@ -5,6 +5,9 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import MainLayout from '@/app/layouts/MainLayout'
 import FullScreenLayout from '@/app/layouts/FullScreenLayout'
 import { AppConvexProvider, QuestHydrator } from '@/app/ConvexProvider'
+import { ClerkProvider, useAuth } from '@clerk/clerk-react'
+import { ConvexProviderWithClerk } from 'convex/react-clerk'
+import { convexClient } from '@/shared/lib/convexClient'
 import './App.tsx'
 
 const router = createBrowserRouter([
@@ -27,12 +30,25 @@ const router = createBrowserRouter([
   },
 ])
 
+const clerkPublishableKey = (import.meta as any).env?.VITE_CLERK_PUBLISHABLE_KEY as string | undefined
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AppConvexProvider>
-      <QuestHydrator>
-        <RouterProvider router={router as any} />
-      </QuestHydrator>
-    </AppConvexProvider>
+    {clerkPublishableKey ? (
+      <ClerkProvider publishableKey={clerkPublishableKey}>
+        <ConvexProviderWithClerk client={convexClient as any} useAuth={useAuth}>
+          <QuestHydrator>
+            <RouterProvider router={router as any} />
+          </QuestHydrator>
+        </ConvexProviderWithClerk>
+      </ClerkProvider>
+    ) : (
+      // Fallback на старый ConvexProvider если ключа нет (dev без Clerk)
+      <AppConvexProvider>
+        <QuestHydrator>
+          <RouterProvider router={router as any} />
+        </QuestHydrator>
+      </AppConvexProvider>
+    )}
   </StrictMode>,
 )

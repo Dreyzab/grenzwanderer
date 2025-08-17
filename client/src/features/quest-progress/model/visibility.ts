@@ -21,8 +21,16 @@ export function filterVisiblePoints(points: VisibleMapPoint[], steps: QuestSteps
     if (waterStep === 'completed' && p.questId === 'water_crisis') return false
     if (freedomStep === 'completed' && p.questId === 'freedom_spark') return false
 
-    // ФАЗЫ
-    const phase1Starts = ['settlement_center', 'synthesis_medbay', 'quiet_cove_bar', 'cathedral']
+    // ФАЗЫ: после вступления (фаза 1) показываем стартовые точки квестов Фазы 1
+    // В Фазе 1 должны быть видны стартовые точки всех доступных квестов фазы 1.
+    // Включаем сюда и 'fjr_office_start' (старт "combat_baptism" по каталогу).
+    const phase1Starts = [
+      'settlement_center',
+      'synthesis_medbay',
+      'quiet_cove_bar',
+      'old_believers_square',
+      'fjr_office_start',
+    ]
     const phase2Starts = ['rathaus', 'seepark', 'wasserschlossle', 'fjr_office_start']
     if (phase === 1 && phase1Starts.includes(p.id)) return true
     if (phase === 2 && (phase2Starts.includes(p.id) || phase1Starts.includes(p.id))) return true
@@ -35,7 +43,8 @@ export function filterVisiblePoints(points: VisibleMapPoint[], steps: QuestSteps
       }
     }
     // Ветвь квеста лояльности (появляется только в Фазе 2 либо после завершения доставки)
-    if (loyaltyStep === 'go_to_hole') return p.id === 'anarchist_hole'
+    // FJR ветка должна появляться только с фазы 2
+    if (useProgressionStore.getState().phase >= 2 && loyaltyStep === 'go_to_hole') return p.id === 'anarchist_hole'
 
     // Ветвь квеста воды
     if (waterStep === 'need_to_talk_to_gunter') return p.id === 'gunter_brewery'
@@ -70,6 +79,15 @@ export function filterVisiblePoints(points: VisibleMapPoint[], steps: QuestSteps
     '→ ids:',
     filtered.map((p) => p.id),
   )
+
+  // Доп. лог для отладки фазового автопоказа
+  // eslint-disable-next-line no-constant-binary-expression
+  if (import.meta.env.DEV !== false) {
+    const ids = points.map((p) => p.id)
+    const phase1 = ['settlement_center', 'synthesis_medbay', 'quiet_cove_bar', 'cathedral', 'fjr_office_start']
+    const shownByPhase = filtered.filter((p) => phase1.includes(p.id)).map((p) => p.id)
+    logger.info('MAP', 'Phase', phase, 'phase1Starts present:', ids.filter((id) => phase1.includes(id)), 'shown:', shownByPhase)
+  }
 
   return filtered
 }

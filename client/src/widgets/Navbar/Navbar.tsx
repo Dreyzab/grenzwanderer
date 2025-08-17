@@ -1,4 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
+import { SignInButton, UserButton } from '@clerk/clerk-react'
+import { Authenticated, Unauthenticated } from 'convex/react'
 
 const tabs = [
   { to: '/', label: 'Главная' },
@@ -29,6 +31,16 @@ export function Navbar() {
             )
           })}
         </nav>
+        <div className="flex items-center gap-2">
+          <Authenticated>
+            <UserButton />
+          </Authenticated>
+          <Unauthenticated>
+            <SignInButton mode="modal">
+              <button className="bg-neutral-800 hover:bg-neutral-700 rounded px-3 py-1.5 text-sm">Войти</button>
+            </SignInButton>
+          </Unauthenticated>
+        </div>
       </div>
     </header>
   )

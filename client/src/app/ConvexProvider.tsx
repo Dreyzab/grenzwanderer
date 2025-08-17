@@ -47,10 +47,27 @@ export function QuestHydrator({ children }: Props) {
     })()
   }, [serverProgress, userId, me?.userId])
 
+  // После успешного логина — однократно переносим гостевой прогресс на user
+  useEffect(() => {
+    if (!me?.userId) return
+    const flag = localStorage.getItem('device_progress_migrated') === '1'
+    if (flag) return
+    ;(async () => {
+      try {
+        const { questsApi } = await import('@/shared/api/quests')
+        await questsApi.migrateDeviceToUser(me.userId as string)
+        // После регистрации/миграции переводим игрока в Фазу 1
+        await questsApi.setPlayerPhase(1)
+        localStorage.setItem('device_progress_migrated', '1')
+      } catch {}
+    })()
+  }, [me?.userId])
+
   useEffect(() => {
     if (!world || typeof world.phase !== 'number') return
-    // Синхронизируем фазу игрока с мировым состоянием при расхождении, если игрок отстаёт
-    if (world.phase > progression.phase) {
+    // До регистрации/аутентификации не поднимаем локальную фазу автоматически
+    // Синхронизируем только для аутентифицированных пользователей
+    if (me?.userId && world.phase > progression.phase) {
       progression.setPhase(world.phase as any)
     }
   }, [world?.phase])

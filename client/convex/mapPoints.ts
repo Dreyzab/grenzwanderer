@@ -25,9 +25,11 @@ export const listAll = query(async ({ db }: QueryCtx) => {
 export const listVisible = query({
   args: { deviceId: v.optional(v.string()), userId: v.optional(v.string()) },
   handler: async (
-    { db }: QueryCtx,
+    { db, auth }: QueryCtx,
     { deviceId, userId }: { deviceId?: string; userId?: string },
   ) => {
+    const identity = await auth.getUserIdentity()
+    const resolvedUserId = userId ?? identity?.subject ?? undefined
     const points: Doc<'map_points'>[] = await db
       .query('map_points')
       .withIndex('by_active', (q) => q.eq('active', true))
@@ -35,9 +37,9 @@ export const listVisible = query({
     let progresses: Doc<'quest_progress'>[] = []
     let phase = 0
     let player: Doc<'player_state'> | null = null
-    if (userId) {
-      progresses = await db.query('quest_progress').withIndex('by_user', (q) => q.eq('userId', userId)).collect()
-      player = await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', userId)).unique()
+    if (resolvedUserId) {
+      progresses = await db.query('quest_progress').withIndex('by_user', (q) => q.eq('userId', resolvedUserId)).collect()
+      player = await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', resolvedUserId)).unique()
     } else if (deviceId) {
       progresses = await db.query('quest_progress').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).collect()
       player = await db.query('player_state').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).unique()
@@ -68,8 +70,8 @@ export const listVisible = query({
     const completedPhase1 = progresses.filter((pr: any) => pr.completedAt && phase1Ids.has(pr.questId)).length
 
     const filtered = points.filter((p) => {
-      // ФАЗЫ: подсветка стартовых точек доступных квестов
-      const phase1Starts = ['settlement_center', 'synthesis_medbay', 'quiet_cove_bar', 'cathedral']
+      // ФАЗЫ: после вступления (фаза 1) показываем стартовые точки квестов Фазы 1
+      const phase1Starts = ['settlement_center', 'synthesis_medbay', 'quiet_cove_bar', 'old_believers_square', 'fjr_office_start', 'fjr_board']
       const phase2Starts = ['rathaus', 'seepark', 'wasserschlossle', 'fjr_office_start']
       if (phase === 1 && phase1Starts.includes(p.key)) return true
       if (phase === 2 && (phase2Starts.includes(p.key) || phase1Starts.includes(p.key))) return true
@@ -86,7 +88,8 @@ export const listVisible = query({
       if (phase === 1 && completedPhase1 >= N) {
         if (p.key === 'rathaus' && citizenshipStep === 'not_started') return true
       }
-      if (loyaltyStep === 'go_to_hole') return p.key === 'anarchist_hole'
+      // FJR ветка — только с фазы 2
+      if (phase >= 2 && loyaltyStep === 'go_to_hole') return p.key === 'anarchist_hole'
 
       if (waterStep === 'need_to_talk_to_gunter') return p.key === 'gunter_brewery'
       if (waterStep === 'talk_to_travers') return p.key === 'city_gate_travers'

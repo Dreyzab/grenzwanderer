@@ -38,6 +38,10 @@ export const questsApiConvex = {
     const deviceId = getOrCreateDeviceId()
     return convexClient.mutation(api.quests.migrateDeviceProgressToUser, { deviceId, userId })
   },
+  // Dev-only helper to set phase 1 after registration
+  setPhaseAfterRegistration: async () => {
+    return questsApiConvex.setPlayerPhase(1)
+  },
   getWorldState: async () => {
     return convexClient.query(api.quests.getWorldState, {})
   },
@@ -48,6 +52,10 @@ export const questsApiConvex = {
   getAvailableBoardQuests: async (boardKey: string) => {
     const deviceId = getOrCreateDeviceId()
     return convexClient.query(api.quests.getAvailableBoardQuests, { boardKey, deviceId })
+  },
+  getAvailableQuests: async (sourceType: 'npc' | 'board', sourceKey: string) => {
+    const deviceId = getOrCreateDeviceId()
+    return convexClient.query(api.quests.getAvailableQuests, { sourceType, sourceKey, deviceId })
   },
   applyOutcome: async (args: {
     fameDelta?: number

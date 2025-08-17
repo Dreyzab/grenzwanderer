@@ -16,6 +16,7 @@ import type {
 import type * as auth from "../auth.js";
 import type * as mapPoints from "../mapPoints.js";
 import type * as quests from "../quests.js";
+import type * as server from "../server.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   mapPoints: typeof mapPoints;
   quests: typeof quests;
+  server: typeof server;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

@@ -3,6 +3,17 @@ import { v } from 'convex/values'
 
 // Минимальная схема для стартовых квестов/QR-задач
 export default defineSchema({
+  // Пользователи (внешние провайдеры/анонимные гости)
+  users: defineTable({
+    // Внешний идентификатор провайдера (OIDC subject) или anon:<deviceId>
+    externalId: v.string(),
+    // Полезные данные профиля (опционально)
+    name: v.optional(v.string()),
+    email: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_externalId', ['externalId']),
   quests: defineTable({
     title: v.string(),
     status: v.string(), // new | active | done

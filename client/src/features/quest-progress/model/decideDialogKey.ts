@@ -7,14 +7,19 @@ export interface QuestStateSnapshot {
   loyaltyStep?: string | null
   waterStep?: string | null
   freedomStep?: string | null
+  phase?: number
 }
 
 export function decideDialogKey(point: VisibleMapPoint, qs: QuestStateSnapshot): DialogDefinition | null {
   let dialogKey = point.dialogKey
 
-  if (point.id === 'fjr_office_start') dialogKey = 'loyalty_quest_start'
+  // Гейт по фазе для FJR офиса: диалог старта лояльности открываем только с фазы 2
+  if (point.id === 'fjr_office_start') {
+    if ((qs.phase ?? 1) >= 2) dialogKey = 'loyalty_quest_start'
+    else dialogKey = null as any
+  }
 
-  // Доставка: возврат к Дитеру с кристаллом
+  // Доставка: возврат к Дитеру с кристаллом — всегда приоритетен над прогресс-чеком
   if (point.dialogKey === 'craftsman_meeting_dialog' && qs.deliveryStep === 'return_to_craftsman') {
     dialogKey = 'quest_complete_with_artifact_dialog'
   }
@@ -25,12 +30,13 @@ export function decideDialogKey(point: VisibleMapPoint, qs: QuestStateSnapshot):
       dialogKey = 'delivery_progress_check'
     }
   }
-  if (qs.deliveryStep && ['need_pickup_from_trader', 'deliver_parts_to_craftsman', 'artifact_offer', 'go_to_anomaly'].includes(qs.deliveryStep)) {
+  // У торговца прогресс-чек должен показываться только ПОСЛЕ первого визита
+  if (qs.deliveryStep && ['deliver_parts_to_craftsman', 'artifact_offer', 'go_to_anomaly'].includes(qs.deliveryStep)) {
     if (point.id === 'trader_camp' && point.dialogKey === 'trader_meeting_dialog') {
       dialogKey = 'trader_progress_check'
     }
   }
-  if (qs.deliveryStep && ['go_to_anomaly', 'return_to_craftsman'].includes(qs.deliveryStep)) {
+  if (qs.deliveryStep === 'go_to_anomaly') {
     if (point.id === 'workshop_center' && point.dialogKey === 'craftsman_meeting_dialog') {
       dialogKey = 'craftsman_progress_check'
     }

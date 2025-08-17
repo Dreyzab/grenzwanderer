@@ -1,12 +1,32 @@
 import { mutation, query } from './_generated/server'
 import { v } from 'convex/values'
+import { computeAvailableQuests, pickWinnerProgress, isQuestAllowedByPhase } from './quests.helpers'
+
+// ===== Constants & simple helpers =====
+// (helpers moved to quests.helpers)
+// ===== Универсальная выдача доступных квестов по источнику (NPC/доски/объекты) =====
+export const getAvailableQuests = query({
+  args: {
+    sourceType: v.union(v.literal('npc'), v.literal('board')),
+    sourceKey: v.string(),
+    deviceId: v.optional(v.string()),
+    userId: v.optional(v.string()),
+  },
+  handler: async ({ db }, { sourceType, sourceKey, deviceId, userId }) => {
+    return computeAvailableQuests(db, sourceType, sourceKey, deviceId, userId)
+  },
+})
+
 
 // ===== Прогресс квестов (промежуточная реализация на deviceId) =====
 
 export const getProgress = query({
   args: { deviceId: v.optional(v.string()), userId: v.optional(v.string()) },
-  handler: async ({ db }, { deviceId, userId }) => {
-    if (userId) {
+  handler: async ({ db, auth }, { deviceId, userId }) => {
+    // Автоматическая аутентификация через Convex providers
+    const identity = await auth.getUserIdentity()
+    const resolvedUserId = userId ?? identity?.subject ?? undefined
+    if (resolvedUserId) {
       return db.query('quest_progress').withIndex('by_user', (q) => q.eq('userId', userId)).collect()
     }
     if (deviceId) {
@@ -19,8 +39,10 @@ export const getProgress = query({
 // ===== Состояние игрока (фаза) =====
 export const getPlayerState = query({
   args: { deviceId: v.optional(v.string()), userId: v.optional(v.string()) },
-  handler: async ({ db }, { deviceId, userId }) => {
-    if (userId) {
+  handler: async ({ db, auth }, { deviceId, userId }) => {
+    const identity = await auth.getUserIdentity()
+    const resolvedUserId = userId ?? identity?.subject ?? undefined
+    if (resolvedUserId) {
       const row = await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', userId)).unique()
       return row ?? null
     }
@@ -34,16 +56,18 @@ export const getPlayerState = query({
 
 export const setPlayerPhase = mutation({
   args: { deviceId: v.string(), phase: v.number() },
-  handler: async ({ db }, { deviceId, phase }) => {
+  handler: async ({ db, auth }, { deviceId, phase }) => {
+    const identity = await auth.getUserIdentity()
+    const userId = identity?.subject
     const existing = await db.query('player_state').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).unique()
     const now = Date.now()
     if (existing) {
-      await db.patch(existing._id, { phase, updatedAt: now })
+      await db.patch(existing._id, { phase, updatedAt: now, userId: userId ?? existing.userId })
       return existing._id
     }
     return db.insert('player_state', {
       deviceId,
-      userId: undefined,
+      userId: userId ?? undefined,
       phase,
       status: 'refugee',
       inventory: ['rags', '1x_canned_food'],
@@ -62,25 +86,7 @@ export const startQuest = mutation({
     // Простая серверная валидация по фазе
     const st = await db.query('player_state').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).unique()
     const phase = st?.phase ?? 0
-    // Разрешаем старт всех квестов своей фазы, квесты фазы 1 остаются доступны и в фазе 2
-    const phase1 = new Set<string>([
-      'delivery_and_dilemma',
-      'field_medicine',
-      'combat_baptism',
-      'quiet_cove_whisper',
-      'bell_for_lost',
-    ])
-    // Разрешаем старт квестов фазы 2 только при фазе >= 2
-    const phase2 = new Set<string>([
-      'citizenship_invitation',
-      'eyes_in_the_dark',
-      'void_shards',
-      'water_crisis',
-      'loyalty_fjr',
-      'freedom_spark',
-    ])
-    const allowed = phase >= 2 ? new Set<string>([...phase1, ...phase2]) : phase1
-    if (!allowed.has(questId)) {
+    if (!isQuestAllowedByPhase(phase, questId)) {
       throw new Error(`Quest ${questId} is not allowed in phase ${phase}`)
     }
     const existing = await db
@@ -157,13 +163,21 @@ export const completeQuest = mutation({
 export const migrateDeviceProgressToUser = mutation({
   args: { deviceId: v.string(), userId: v.string() },
   handler: async ({ db }, { deviceId, userId }) => {
+    // Обновим/создадим запись в users под внешний/анонимный идентификатор
+    const now = Date.now()
+    const externalId = userId
+    const u = await db.query('users').withIndex('by_externalId', (q) => q.eq('externalId', externalId)).unique()
+    if (!u) {
+      await db.insert('users', { externalId, createdAt: now, updatedAt: now })
+    } else {
+      await db.patch(u._id, { updatedAt: now })
+    }
     const deviceProgress = await db
       .query('quest_progress')
       .withIndex('by_device', (q) => q.eq('deviceId', deviceId))
       .collect()
 
     for (const dp of deviceProgress) {
-      // Проверим, нет ли записи для userId по этому квесту
       const existingForUser = await db
         .query('quest_progress')
         .withIndex('by_user_quest', (q) => q.eq('userId', userId).eq('questId', dp.questId))
@@ -174,14 +188,7 @@ export const migrateDeviceProgressToUser = mutation({
         continue
       }
 
-      // Слить записи: приоритет completed, иначе более свежая updatedAt
-      const choose = (a: any, b: any) => {
-        if (a.completedAt && !b.completedAt) return a
-        if (b.completedAt && !a.completedAt) return b
-        return (a.updatedAt ?? 0) >= (b.updatedAt ?? 0) ? a : b
-      }
-      const winner = choose(dp, existingForUser)
-      const loser = winner === dp ? existingForUser : dp
+      const { winner, loser } = pickWinnerProgress(dp, existingForUser)
 
       await db.patch(winner._id, {
         userId,
@@ -189,8 +196,42 @@ export const migrateDeviceProgressToUser = mutation({
         updatedAt: Date.now(),
         completedAt: winner.completedAt,
       })
-      // Удаляем дубликат
       await db.delete(loser._id)
+    }
+
+    // Миграция состояния игрока (player_state)
+    const devicePlayer = await db
+      .query('player_state')
+      .withIndex('by_device', (q) => q.eq('deviceId', deviceId))
+      .unique()
+
+    if (devicePlayer) {
+      const userPlayer = await db
+        .query('player_state')
+        .withIndex('by_user', (q) => q.eq('userId', userId))
+        .unique()
+
+      if (!userPlayer) {
+        // Привязываем текущее состояние к userId
+        await db.patch(devicePlayer._id, { userId, updatedAt: Date.now() })
+      } else {
+        // Слить состояния: выбираем более «свежее»
+        const winner = (devicePlayer.updatedAt ?? 0) >= (userPlayer.updatedAt ?? 0) ? devicePlayer : userPlayer
+        const loser = winner === devicePlayer ? userPlayer : devicePlayer
+        await db.patch(winner._id, {
+          userId,
+          phase: winner.phase,
+          status: winner.status,
+          inventory: winner.inventory,
+          fame: winner.fame,
+          reputation: winner.reputation,
+          reputations: winner.reputations,
+          relationships: winner.relationships,
+          flags: winner.flags,
+          updatedAt: Date.now(),
+        })
+        await db.delete(loser._id)
+      }
     }
 
     return { migrated: deviceProgress.length }
@@ -223,57 +264,14 @@ export const setWorldPhase = mutation({
 export const getAvailableQuestsForNpc = query({
   args: { npcId: v.string(), deviceId: v.optional(v.string()), userId: v.optional(v.string()) },
   handler: async ({ db }, { npcId, deviceId, userId }) => {
-    const player = userId
-      ? await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', userId)).unique()
-      : deviceId
-      ? await db.query('player_state').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).unique()
-      : null
-    const world = await db.query('world_state').withIndex('by_key', (q) => q.eq('key', 'global')).unique()
-    const progress = userId
-      ? await db.query('quest_progress').withIndex('by_user', (q) => q.eq('userId', userId)).collect()
-      : deviceId
-      ? await db.query('quest_progress').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).collect()
-      : []
-
-    const done = new Set(progress.filter((p: any) => p.completedAt).map((p: any) => p.questId))
-
-    const all = (await db
-      .query('quest_registry')
-      .withIndex('by_giver', (q) => q.eq('giverNpcId', npcId))
-      .collect()) as QuestMeta[]
-
-    const filtered = filterQuestsByRequirements(all, player, world, done).sort(
-      (a, b) => b.priority - a.priority,
-    )
-
-    return filtered
+    return computeAvailableQuests(db, 'npc', npcId, deviceId, userId)
   },
 })
 
 export const getAvailableBoardQuests = query({
   args: { boardKey: v.string(), deviceId: v.optional(v.string()), userId: v.optional(v.string()) },
   handler: async ({ db }, { boardKey, deviceId, userId }) => {
-    const player = userId
-      ? await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', userId)).unique()
-      : deviceId
-      ? await db.query('player_state').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).unique()
-      : null
-    const world = await db.query('world_state').withIndex('by_key', (q) => q.eq('key', 'global')).unique()
-    const progress = userId
-      ? await db.query('quest_progress').withIndex('by_user', (q) => q.eq('userId', userId)).collect()
-      : deviceId
-      ? await db.query('quest_progress').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).collect()
-      : []
-
-    const done = new Set(progress.filter((p: any) => p.completedAt).map((p: any) => p.questId))
-
-    const all = (await db
-      .query('quest_registry')
-      .withIndex('by_board', (q) => q.eq('boardKey', boardKey))
-      .collect()) as QuestMeta[]
-    const filtered = filterQuestsByRequirements(all, player, world, done).sort((a, b) => b.priority - a.priority)
-
-    return filtered
+    return computeAvailableQuests(db, 'board', boardKey, deviceId, userId)
   },
 })
 
@@ -374,12 +372,7 @@ export const upsertQuestRegistry = mutation({
 export const seedQuestRegistryDev = mutation({
   args: { devToken: v.string() },
   handler: async ({ db }, { devToken }) => {
-    const expected = (
-      // Vite runtime (build-time injected)
-      (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_DEV_SEED_TOKEN) ||
-      // Fallback for non-Vite/Convex server contexts
-      (globalThis as any)?.process?.env?.VITE_DEV_SEED_TOKEN
-    )
+    const expected = (globalThis as any)?.process?.env?.VITE_DEV_SEED_TOKEN
     if (!expected || devToken !== expected) {
       throw new Error('Forbidden: invalid dev token')
     }
@@ -511,79 +504,6 @@ export const seedQuestRegistryDev = mutation({
   },
 })
 
-// Типы реестра квестов и состояний игрока/мира для типобезопасной фильтрации
-interface QuestRequirementsMeta {
-  fameMin?: number
-  phaseMin?: number
-  phaseMax?: number
-  requiredFlags?: string[]
-  forbiddenFlags?: string[]
-  reputations?: Record<string, number>
-  relationships?: Record<string, number>
-}
-
-interface QuestMeta {
-  questId: string
-  type: 'story' | 'faction' | 'personal' | 'procedural'
-  giverNpcId?: string
-  boardKey?: string
-  repeatable?: boolean
-  priority: number
-  phaseGate?: number
-  requirements?: QuestRequirementsMeta
-}
-
-interface PlayerStateRow {
-  phase: number
-  fame?: number
-  status?: string
-  flags?: string[]
-  reputations?: Record<string, number>
-  relationships?: Record<string, number>
-}
-
-interface WorldStateRow {
-  phase: number
-  flags?: string[]
-}
-
-// Shared helper to filter quests by player/world state and completion
-function filterQuestsByRequirements(
-  quests: QuestMeta[],
-  player: PlayerStateRow | null,
-  world: WorldStateRow | null,
-  completedQuestIds: Set<string>,
-): QuestMeta[] {
-  return quests.filter((qmeta) => {
-    if (!player || !world) return false
-    if (qmeta.phaseGate != null && world.phase < qmeta.phaseGate) return false
-    if (!qmeta.repeatable && completedQuestIds.has(qmeta.questId)) return false
-    const req = qmeta.requirements ?? {}
-    if (req.phaseMin != null && player.phase < req.phaseMin) return false
-    if (req.phaseMax != null && player.phase > req.phaseMax) return false
-    if (req.fameMin != null && (player.fame ?? 0) < req.fameMin) return false
-    if (req.requiredFlags && req.requiredFlags.length > 0) {
-      const have = new Set(player.flags ?? [])
-      for (const fl of req.requiredFlags) if (!have.has(fl)) return false
-    }
-    if (req.forbiddenFlags && req.forbiddenFlags.length > 0) {
-      const have = new Set(player.flags ?? [])
-      for (const fl of req.forbiddenFlags) if (have.has(fl)) return false
-    }
-    if (req.reputations) {
-      for (const k of Object.keys(req.reputations)) {
-        const min = req.reputations[k] ?? 0
-        if (((player.reputations ?? {})[k] ?? 0) < min) return false
-      }
-    }
-    if (req.relationships) {
-      for (const k of Object.keys(req.relationships)) {
-        const min = req.relationships[k] ?? 0
-        if (((player.relationships ?? {})[k] ?? 0) < min) return false
-      }
-    }
-    return true
-  })
-}
+// (helpers moved to quests.helpers.ts)
 
 

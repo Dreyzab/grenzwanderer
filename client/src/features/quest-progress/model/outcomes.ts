@@ -42,6 +42,7 @@ const outcomeTable: Record<string, OutcomeArgs> = {
   deliver_parts_to_craftsman: { addFlags: ['delivery_delivered_to_craftsman'] },
   accept_artifact_quest: { addFlags: ['delivery_artifact_branch'] },
   decline_artifact_quest: { addFlags: ['delivery_declined_artifact'] },
+  // Завершение доставки: без автоперехода фазы — покажем регистрацию и поднимем фазу после логина
   complete_delivery_quest: { addFlags: ['delivery_completed'] },
   complete_delivery_quest_with_artifact: { addFlags: ['delivery_completed_with_artifact'] },
   gunter_proof_gained: { addFlags: ['water_proof_collected'] },

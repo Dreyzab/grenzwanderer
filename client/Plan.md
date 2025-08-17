@@ -1,91 +1,242 @@
-Модернизация квестовой системы — пошаговый план (масштабируемо на все квесты)
+# Квестовая подсистема — обзор и связи
 
-Цели коротко
-- NPC‑хабы и приоритеты: выдача квестов по приоритетам (сюжетные → личные → процедурные) с проверкой условий.
-- Доски объявлений: список доступных квестов, авто‑фильтрация по требованиям.
-- Fame/Репутации/Отношения: глобальные критерии доступа и реакции мира.
-- Флаги и фазы мира: последствия действий и gateway‑квесты.
-- Диалоги ↔ квесты: ветвления, проверки, триггеры.
+```mermaid
+flowchart TD
+  subgraph Client
+    subgraph UI
+      MapWidget[widgets/MapWidget/MapWidget.tsx]
+      DialogModal[shared/ui/DialogModal.tsx]
+      AvailableQuestsModal[shared/ui/AvailableQuestsModal.tsx]
+      SettingsPage[pages/SettingsPage.tsx]
+      QuestsPage[pages/QuestsPage.tsx]
+    end
 
-Дорожная карта по спринтам
+    subgraph MapWidget:model
+      useMapInstance[useMapInstance]
+      useVisiblePoints[useVisiblePoints]
+      useMarkers[useMarkers.tsx]
+      questSources[server npcId / eventKey]
+      useAvailableQuests[useAvailableQuests]
+      useDialogAutoplay[useDialogAutoplay]
+      useRegistrationPrompt[useRegistrationPrompt]
+    end
 
-Спринт 1 — Серверная база (Convex)
-1) Расширить схему `player_state`:
-   - `fame?: number`, `reputations?: Record<string, number>`, `relationships?: Record<string, number>`, `flags?: string[]`, `status?: string`.
-2) Добавить таблицу `world_state` (глобальные флаги/фаза):
-   - `{ key: 'global', phase: number, flags: string[], updatedAt: number }` + индекс `by_key`.
-3) Добавить таблицу `quest_registry` (метаданные всех квестов):
-   - `questId: string`, `type: 'story'|'faction'|'personal'|'procedural'`, `giverNpcId?: string`, `boardKey?: string`, `repeatable?: boolean`, `priority: number`,
-     `phaseGate?: number`, `requirements?: { fameMin?; phaseMin?; phaseMax?; requiredFlags?; forbiddenFlags?; reputations?; relationships? }`.
-   - Индексы: `by_giver` (giverNpcId), `by_board` (boardKey), `by_type` (type).
-4) Новые серверные методы в `quests.ts`:
-   - `getAvailableQuestsForNpc(npcId)`: вернуть квесты (по giverNpcId), отсортированные по приоритету, с фильтром по `requirements`, фазе и прогрессу (неповторяемые недоступны после завершения).
-   - `getAvailableBoardQuests(boardKey)`: вернуть квесты для доски с теми же правилами фильтрации.
-   - `applyOutcome(...)`: атомарно применить последствия (fameΔ, repΔ, relΔ, flagsAdd/Remove, worldFlagsAdd/Remove, phaseSet?, statusSet?).
-   - (Опционально) `setWorldPhase(phase)`.
-5) Усилить валидацию в `startQuest/advanceQuest/completeQuest` (guard по фазе и `quest_registry` при наличии).
+    subgraph Feature:quest-progress
+      visibility[server-side in convex/mapPoints.ts]
+      decideDialogKey[features/quest-progress/model/decideDialogKey.ts]
+      actionCoordinator[features/quest-progress/model/actionCoordinator.ts]
+      conditions[features/quest-progress/model/conditions.ts]
+      outcomes[features/quest-progress/model/outcomes.ts]
+    end
 
-Спринт 2 — Клиентские стора и API
-6) Zustand‑стора игрока/мира:
-   - В `usePlayerStore`: добавить проекции `fame`, `reputations`, `relationships`, `flags`, `status` с синхронизацией из сервера.
-   - Добавить store для `worldState` (phase, flags) либо расширить имеющийся `progressionStore`.
-7) API‑обертки:
-   - В `shared/api/quests/convex.ts`: методы для `getAvailableQuestsForNpc`, `getAvailableBoardQuests`, `applyOutcome`.
-   - Хелперы нормализации данных (значения по умолчанию).
+    subgraph Entities:quest
+      questStore[entities/quest/model/questStore.ts]
+      progressionStore[entities/quest/model/progressionStore.ts]
+      useQuest[entities/quest/model/useQuest.ts]
+      catalog[entities/quest/model/catalog.ts]
+      ids[entities/quest/model/ids.ts]
+      types[entities/quest/model/types.ts]
+      fsmDelivery[entities/quest/model/fsm/deliveryMachine.ts]
+      fsmCombat[entities/quest/model/fsm/combatMachine.ts]
+    end
 
-Спринт 3 — FSM (XState) для квестов
-8) Ввести XState‑машины для ключевых квестов (`delivery_and_dilemma`, `combat_baptism`, `citizenship_invitation`, далее — остальные):
-   - Вложенные состояния = шаги/ветки; guards = fame/rep/relations/flags/phase; actions = вызовы Convex (`start/advance/complete`, `applyOutcome`).
-   - Унифицированные события: `QUEST/START`, `QUEST/ADVANCE`, `QUEST/COMPLETE`, `OUTCOME/APPLY`.
-9) Общий координатор действий из диалогов:
-   - [ГОТОВО] Заменено разветвление `switch(actionKey)` на диспетчер по таблице маппинга `dialogAction → questEvent | outcome` + FSM (delivery/combat).
+    subgraph Shared
+      dialogs[shared/storage/dialogs.ts]
+      questDialogs[shared/storage/*QuestDialogs.ts]
+      sanitizeQuests[shared/lib/sanitizeQuests.ts]
+      convexClient[shared/lib/convexClient.ts]
+      questsApi[shared/api/quests/convex.ts]
+      mapPointsApi[shared/api/mapPoints/convex.ts]
+      mapTypes[shared/types/core/mapPoint.ts]
+    end
+  end
 
-Спринт 4 — NPC‑хабы и Доски
-10) UI NPC‑хаба: экран «Доступные задания» (первый пункт — топ‑приоритет), запрос `getAvailableQuestsForNpc`.
-11) Доски объявлений: открывают список `getAvailableBoardQuests(boardKey)`; пример FJR — «Боевое крещение» при `player_can_join_fjr`.
+  subgraph Server(Convex)
+    schema[convex/schema.ts]
+    mapPoints[convex/mapPoints.ts]
+    quests[convex/quests.ts]
+    questsHelpers[convex/quests.helpers.ts]
+    auth[convex/auth.ts]
+  end
 
-Спринт 5 — Интеграция с картой и диалогами
-12) Серверная фильтрация `map_points` с учётом фазы/флагов/прогресса (минимизировать клиентские заглушки в `visibility.ts`).
-13) Диалоговые проверки (fame/skills/flags/relations) и действия переводов в события FSM.
+  %% Flows
+  MapWidget --> useMapInstance
+  MapWidget --> useVisiblePoints
+  MapWidget --> useMarkers
+  MapWidget --> useAvailableQuests
+  MapWidget --> useDialogAutoplay
+  MapWidget --> useRegistrationPrompt
 
-Спринт 6 — Фазы и gateway‑квесты
-14) «Приглашение в Цитадель»: открыть при `fame > 50` и выполненных N вводных; завершение ставит `status='citizen'`, `world.phase=2`, включает пул Фазы 2.
-15) Перенести логику прохода фаз на сервер (`setWorldPhase`/`setPlayerPhase` с проверками прогресса).
+  useVisiblePoints --> mapPointsApi
+  useMarkers --> AvailableQuestsModal
+  useMarkers --> DialogModal
+  useAvailableQuests --> questsApi
 
-Спринт 7 — Масштабирование на все квесты
-16) Заполнить `quest_registry` для всех существующих квестов (type, priority, requirements, giver/board).
-17) Для оставшихся квестов ввести FSM по шаблону (единую фабрику/утилиты guards/actions) для повторного использования.
+  actionCoordinator --> questsApi
+  actionCoordinator --> questStore
+  actionCoordinator --> outcomes
 
-Acceptance criteria
-- NPC‑хабы и доски возвращают корректные стеки, отсортированные и отфильтрованные по условиям.
-- Delivery: автозапуск из вводной VN, ветка артефакта после Дитера.
-- Combat baptism: старт с доски FJR; исход влияет на отношения/репутации.
-- Citizenship: доступ при `fame > 50`, переход во 2‑ю фазу.
-- Все серверные изменения идемпотентны, клиентские стора синхронизируются.
+  questsApi --> convexClient
+  mapPointsApi --> convexClient
+  convexClient --> quests
+  convexClient --> mapPoints
 
-Порядок выполнения сейчас
-- Реализовать Спринт 1 (схемы и серверные методы) + Спринт 2 (API‑обертки).
-- Затем начать Спринт 3 для `delivery_and_dilemma` (как эталон для масштабирования).
+  quests --> questsHelpers
+  quests --> schema
+  mapPoints --> schema
 
+  DialogModal --> dialogs
+  dialogs --> questDialogs
 
+  MapWidget --> questStore
+  MapWidget --> progressionStore
+  MapWidget --> catalog
+  MapWidget --> ids
 
-Обновление плана — что уже сделано
-- Сервер (Convex):
-  - Расширен `player_state` (`fame`, `reputations`, `relationships`, `flags`, `status`).
-  - Добавлены `world_state` и `quest_registry` с индексами.
-  - Реализованы: `getWorldState`, `setWorldPhase`, `getAvailableQuestsForNpc`, `getAvailableBoardQuests`, `applyOutcome`, `upsertQuestRegistry`.
-  - Добавлен дев‑сид `seedQuestRegistryDev` для массовой регистрации квестов (типы, приоритеты, гейты, giver/board).
-- Клиент:
-  - API (`shared/api/quests/convex.ts`): `getWorldState`, `getAvailableQuestsForNpc`, `getAvailableBoardQuests`, `applyOutcome`, `seedQuestRegistryDev` — готово.
-  - Гидрация: `QuestHydrator` синхронизирует локальную фазу с `world_state`; дополнительно гидрируется `player_state` (`fame/rep/relations/flags/status`) в `usePlayerStore`.
-  - UI NPC/Доски: на карте клик по `fjr_board`/`fjr_office_start` открывает модалку со списком доступных квестов (серверная фильтрация) и кнопкой старта.
-  - FSM: машины для `delivery_and_dilemma` и `combat_baptism`; координатор работает через `actionMap` (switch удалён).
-  - Outcomes: добавлена таблица `eventOutcomeKey → applyOutcome` для всех ключевых квестов (loyalty, freedom, water, eyes, void, bell, citizenship).
-  - QuestsPage: разделы «Активные/Завершённые» для отладки.
-- Контент/карта:
-  - Добавлена карта‑точка `fjr_board` (доска объявлений FJR), диалог `fjr_bulletin_board_dialog` уже был.
+  auth --> schema
+```
 
-Следующие шаги (ближайшие)
-- Довести серверную фильтрацию `map_points` до единого источника истины (в prod — без `visibility.ts`, сохранить его как dev‑fallback).
-- В модалке доступных квестов: описания из `quest_registry`, фильтры/сортировки, иконки.
-- Журнал квестов: отдельная страница или секция с историей событий/outcomes и репутациями.
+Примечания:
+- Списки квестов на хабах: `quests.getAvailableQuests({ sourceType, sourceKey })` (источники npc/board приходят с сервера через `npcId`/`eventKey`).
+- FSM для квестов: `deliveryMachine.ts`, `combatMachine.ts` (остальные по мере добавления).
+
+Сервер (Convex)
+client/convex/schema.ts — таблицы: quest_progress, player_state(hasPda), world_state, quest_registry, map_points, mappoint_bindings(npcId/startKey/dialogKey), quest_dependencies, qr_codes.
+client/convex/quests.ts — публичные query/mutation: прогресс, выдача доступных квестов (учёт зависимостей), применение исходов, сид реестра.
+client/convex/quests.helpers.ts — фильтры по требованиям, приоритезация, загрузка состояния игрока/мира, унифицированная выдача, зависимости.
+client/convex/mapPoints.ts — серверная фильтрация видимых точек по `mappoint_bindings`/требованиям/зависимостям; обогащение `dialogKey/eventKey/npcId`.
+client/convex/auth.ts — me, вспомогательная миграция device→user.
+client/convex/auth.config.ts — конфиг провайдера JWT (Clerk) для Convex.
+
+Доменные сущности (клиент)
+client/src/entities/quest/model/ids.ts — реестр QuestId и типобезопасность.
+client/src/entities/quest/model/types.ts — типы шагов/квестов.
+client/src/entities/quest/model/catalog.ts — метаданные стартов квестов (фаза/точка/стартовый шаг).
+client/src/entities/quest/model/questStore.ts — локальный Zustand-стор квестов.
+client/src/entities/quest/model/progressionStore.ts — фаза/прогресс игрока.
+client/src/entities/quest/model/useQuest.ts — хуки доступа к сторам.
+client/src/entities/quest/model/fsm/deliveryMachine.ts — FSM «Доставка…».
+client/src/entities/quest/model/fsm/combatMachine.ts — FSM «Боёвое Крещение».
+
+Фича «Прогресс квестов»
+client/src/features/quest-progress/model/actionCoordinator.ts — диспетчер действий из диалогов → FSM/мутации.
+client/src/features/quest-progress/model/actionMap.ts — карта action→обработчик.
+client/src/features/quest-progress/model/conditions.ts — условия выбора в диалогах.
+client/src/features/quest-progress/model/decideDialogKey.ts — выбор нужного диалога по точке/состоянию квестов.
+client/src/features/quest-progress/model/outcomes.ts — применение игровых исходов.
+
+API-слой (клиент)
+client/src/shared/api/quests/convex.ts — обёртки над Convex: прогресс, выдача квестов (NPC/доски/универсальная), applyOutcome, сид реестра, фаза.
+client/src/shared/api/quests/index.ts — экспорт API.
+client/src/shared/api/mapPoints/convex.ts — запросы/сид карты (связь точек с квестами через questId).
+
+Контент диалогов (квесты)
+client/src/shared/storage/dialogs.ts — реестр всех диалогов.
+client/src/shared/storage/.ts — файлы диалогов квестов: deliveryQuestDialogs.ts, loyaltyQuestDialogs.ts, waterQuestDialogs.ts, freedomQuestDialogs.ts, combatBaptismQuestDialogs.ts, fieldMedicineQuestDialogs.ts, quietCoveQuestDialogs.ts, bellQuestDialogs.ts, citizenshipQuestDialogs.ts, eyesInDarkQuestDialogs.ts, voidShardsQuestDialogs.ts.
+client/src/shared/dialogs/types.ts — типы диалоговой системы.
+
+Виджет карты (интеграция квестов в карту)
+client/src/widgets/MapWidget/MapWidget.tsx — композиция: загрузка точек, диалоги, модалки квестов.
+client/src/widgets/MapWidget/model/useVisiblePoints.ts — загрузка точек (server/local fallback), автофокус.
+client/src/widgets/MapWidget/model/useMarkers.tsx — рендер маркеров/тултипов, обработка кликов (NPC/доски по server `npcId`/`board`, диалоги).
+client/src/widgets/MapWidget/model/useAvailableQuests.ts — универсальный хук открытия модалки со списком квестов.
+client/src/widgets/MapWidget/model/useDialogAutoplay.ts — автозапуск диалога по query / QR nextAction.
+client/src/widgets/MapWidget/model/useRegistrationPrompt.ts — приглашение к регистрации по прогрессу.
+client/src/widgets/MapWidget/model/useMapInstance.ts — инициализация карты.
+
+UI-модалки/экраны
+client/src/shared/ui/DialogModal.tsx — показ диалогов квестов.
+client/src/shared/ui/AvailableQuestsModal.tsx — список доступных квестов (NPC/доски).
+client/src/shared/ui/RegistrationPrompt.tsx — приглашение к регистрации (после доставки, гость).
+client/src/pages/QuestsPage.tsx — экран квестов (список/создание).
+client/src/pages/SettingsPage.tsx — сиды/синхронизация/фаза/отладка.
+
+Инициализация/гидрация
+client/src/app/ConvexProvider.tsx — QuestHydrator: подтягивает прогресс/мир/состояние игрока из Convex, миграции, установка фазы.
+
+Прочее полезное
+client/src/shared/lib/sanitizeQuests.ts — валидация и нормализация выдачи списков квестов (NPC/доски).
+client/src/entities/map-point/api/seed.ts — демо-точки (привязка questId/dialogKey к маркерам).
+client/src/shared/types/core/mapPoint.ts — базовые типы карты (вкл. questId в точках).
+
+Основные сущности (Entity/типовые структуры)
+QuestId, QuestStep, ActiveQuest — идентификаторы и шаги квестов.
+QuestMeta, QuestRequirementsMeta — метаданные квестов и требования (phase/fame/flags/reps/relations).
+PlayerStateRow, WorldStateRow — состояние игрока/мира на сервере.
+MapPoint/VisibleMapPoint — точка карты и её расширения (questId, dialogKey, type, npcId, eventKey).
+DialogDefinition — описание диалога (узлы, переходы, action/condition).
+
+Сторы/хранилища (Zustand)
+questStore — активные/завершённые квесты, методы: startQuest, advanceQuest, completeQuest, hydrate.
+progressionStore — текущая фаза/синхронизация фазы.
+player store (hydrateFromServer, credits/skills).
+
+Серверные функции (Convex)
+Прогресс/состояние: getProgress, getPlayerState, setPlayerPhase, migrateDeviceProgressToUser.
+completeQuest, startQuest, advanceQuest.
+getWorldState, setWorldPhase.
+
+Реестр/выдача квестов:
+getAvailableQuests({ sourceType, sourceKey }) — универсальная выдача (NPC/доски).
+getAvailableQuestsForNpc(npcId), getAvailableBoardQuests(boardKey).
+applyOutcome (fame/rep/relations/flags/phase/status).
+upsertQuestRegistry, seedQuestRegistryDev.
+
+Карта:
+mapPoints.listVisible({ deviceId?, userId?, bbox? }) — серверная видимость; возвращает `dialogKey/eventKey/npcId`.
+listAll(), upsertManyDev(points, devToken).
+
+Клиентские API-функции
+questsApi: getProgress, getPlayerState, setPlayerPhase, migrateDeviceToUser.
+startQuest, advanceQuest, completeQuest, applyOutcome.
+getAvailableQuests(sourceType, sourceKey), getAvailableQuestsForNpc(npcId), getAvailableBoardQuests(boardKey).
+seedQuestRegistryDev.
+mapPointsApi: listVisible, listAll, upsertManyDev(points, token).
+
+Фиче‑логика (модели/хелперы)
+- decideDialogKey(point, qs) — фолбэк выбора диалога по точке и состоянию квестов.
+- actionCoordinator.handle(actionKey, eventOutcomeKey) — диспетчер действий из диалогов.
+- conditions.* — проверка условий диалогов (по игроку/прогрессу).
+- outcomes.* — вычисление и применение исходов.
+
+Серверные хелперы (quests.helpers.ts)
+filterQuestsByRequirements(quests, player, world, completedSet).
+questTypeRank(type) — сортировка по типу: story > personal > faction > procedural.
+loadPlayerWorldProgress(db, deviceId?, userId?).
+listFromSource(db, sourceType, sourceKey) — выборка из quest_registry.
+computeAvailableQuests(db, sourceType, sourceKey, deviceId?, userId?).
+pickWinnerProgress(a, b) — слияние дублей прогресса (completed/updatedAt).
+
+Виджет карты — хуки
+useMapInstance(ref) — инициализация Mapbox GL.
+useVisiblePoints() — загрузка (server/local), автофокус.
+useMarkers(mapRef, points, interactions) — создание маркеров/попапов, обработчики кликов (NPC/доски/диалоги/старт по eventKey), безопасный unmount.
+useAvailableQuests(setModal) — openBoard/openNpc/refresh (центральный источник списков).
+useDialogAutoplay() — автопоказ диалога по query/QR.
+useRegistrationPrompt() — показ приглашения к регистрации по прогрессу.
+
+## Дорожная карта реализации (пошагово)
+
+1) Сервер: индексы, события и видимость
+- Добавить действие `actions.resolveEventKey` (обработка `quest:*`/`npc:*`/`board:*`, валидация, идемпотентность).
+- Расширить `mapPoints.listVisible({ bbox? })` и клиентскую передачу `bbox`.
+
+2) Социальная система
+- Таблицы/поля репутации фракций и отношений с NPC; пороги в `quest_registry.requirements`.
+- UI подсказки порогов + бейджи фракций.
+
+3) QR‑скан
+- Страница `QRScanPage` (zxing) → `qr.resolvePoint` → nextAction; E2E сценарий.
+
+4) UX
+- Фильтры карты (тип/фракция), журнал квестов, тосты.
+
+5) Админ/контент
+- Формы и импорт/экспорт для `quest_registry`/`mappoint_bindings`/`quest_dependencies`.
+- YAML/JSON формат + валидатор + импорт→сид.
+
+6) Тесты/CI
+- Юнит Convex, интеграция, E2E; CI pipeline.
+
+7) Наблюдаемость/безопасность
+- Rate limiting для QR/сидов, роли; метрики `listVisible`, Sentry.

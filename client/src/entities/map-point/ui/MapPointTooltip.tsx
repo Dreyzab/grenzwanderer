@@ -1,5 +1,6 @@
 import type { VisibleMapPoint } from '../model/types'
 import { InteractionState } from '../model/types'
+import FactionBadge from '@/shared/ui/FactionBadge'
 
 interface MapPointTooltipProps {
   point: VisibleMapPoint
@@ -60,7 +61,13 @@ export function MapPointTooltip({
   return (
     <div className={`bg-zinc-900 border border-zinc-700 rounded-md p-3 shadow-lg max-w-xs ${className}`}>
       <div className="space-y-2">
-        <h3 className="text-lg font-medium text-white">{point.title}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-medium text-white">{point.title}</h3>
+          {point.factionId && (
+            // @ts-ignore
+            <FactionBadge factionId={point.factionId as any} />
+          )}
+        </div>
         <div className="text-xs text-zinc-500">
           {getPointTypeText()} {point.isDiscovered ? '' : '(Не исследовано)'}
         </div>

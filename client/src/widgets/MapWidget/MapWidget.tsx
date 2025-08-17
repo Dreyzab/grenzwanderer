@@ -28,7 +28,7 @@ export function MapWidget() {
     { title: string; ids?: import('@/entities/quest/model/ids').QuestId[]; items?: { id: import('@/entities/quest/model/ids').QuestId; type?: string; priority?: number }[] } | null
   >(null)
   const { handle: handleDialogAction } = useDialogActionCoordinator()
-  const points = useVisiblePoints()
+  const points = useVisiblePoints(mapRef)
   const { activeDialog, setActiveDialog } = useDialogAutoplay()
   const { showRegistration, setShowRegistration } = useRegistrationPrompt()
   const quest = useQuest()
@@ -45,13 +45,8 @@ export function MapWidget() {
   }, [points, mapRef])
 
   useMarkers(mapRef, points, {
-    onBoardOpen: async (title) => {
-      // title приходит от обработчика клика — сценарий для универсальности оставлен здесь
-      // фактический ключ доски определяется по точке в useMarkers → questSources
-      // по умолчанию используем стандартную доску FJR при отсутствии меты
-      await openBoard('fjr_board', title)
-    },
-    onNpcOpen: async (title) => { await openNpc('hans', title) },
+    onBoardOpen: async (boardKey, title) => { await openBoard(boardKey, title) },
+    onNpcOpen: async (npcId, title) => { await openNpc(npcId, title) },
     onOpenDialog: (dialogKey) => {
       const def = getDialogByKey(dialogKey)
       if (def) {

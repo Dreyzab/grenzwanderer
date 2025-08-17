@@ -119,6 +119,28 @@ export function filterQuestsByRequirements(
   })
 }
 
+// Загрузка зависимостей квестов и проверка удовлетворённости
+export async function loadQuestDependencies(db: any): Promise<Map<string, Set<string>>> {
+  const deps = await db.query('quest_dependencies').collect()
+  const map = new Map<string, Set<string>>()
+  for (const d of deps) {
+    if (!map.has(d.questId)) map.set(d.questId, new Set<string>())
+    map.get(d.questId)!.add(d.requiresQuestId)
+  }
+  return map as Map<string, Set<string>>
+}
+
+export function dependenciesSatisfied(
+  questId: string,
+  completedQuestIds: Set<string>,
+  depsMap: Map<string, Set<string>>,
+): boolean {
+  const req = depsMap.get(questId)
+  if (!req || req.size === 0) return true
+  for (const r of req) if (!completedQuestIds.has(r)) return false
+  return true
+}
+
 export async function loadPlayerWorldProgress(db: any, deviceId?: string, userId?: string) {
   const player = userId
     ? await db.query('player_state').withIndex('by_user', (q: any) => q.eq('userId', userId)).unique()

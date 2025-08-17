@@ -54,7 +54,7 @@ export function AvailableQuestsModal({ title, questIds, items: itemsProp, onClos
           </div>
         </div>
         <ul className="space-y-2">
-           {items.map(({ id, meta, type, priority }) => (
+          {items.map(({ id, meta, type, priority }) => (
             <li key={id} className="flex items-center justify-between rounded bg-neutral-800/40 p-2">
               <div>
                 <div className="font-medium">{id}</div>
@@ -63,6 +63,8 @@ export function AvailableQuestsModal({ title, questIds, items: itemsProp, onClos
                   {type ? ` • ${type}` : ''}
                   {priority != null ? ` • prio ${priority}` : ''}
                 </div>
+                {/* Заглушка: когда сервер начнёт возвращать причины/пороги, здесь можно отобразить их.
+                    Пример: Требуется репутация FJR ≥ 10, отношения с Hans ≥ 30 */}
               </div>
               <button
                 className="text-xs bg-emerald-700 hover:bg-emerald-600 rounded px-3 py-1"

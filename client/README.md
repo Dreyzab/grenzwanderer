@@ -100,15 +100,19 @@ npx convex dev --once
 - Виджет: `src/widgets/MapWidget/MapWidget.tsx`
   - Инициализация карты, контролы
   - Запрос точек с сервера: `mapPoints.listVisible({ userId|deviceId })`
-  - Dev-фоллбэк: сид локально (`game-map-points`) только в dev
+  - Сервер — источник истины: видимость точек считается по `mappoint_bindings` + `quest_registry` + `quest_dependencies` и фазе игрока/мира
+  - Dev-фоллбэк: при недоступности сервера — локальный сид (`game-map-points`)
   - Маркеры: `mapboxgl.Marker({ anchor: 'bottom' })` — компактные, не «прыгают» при зуме
   - Попапы (`mapboxgl.Popup`) стилизованы через `MapWidget.css`
   - Автопоказ диалога по query-параметру `?dialog=<dialogKey>`
+  - Вход по QR через `?qr=<code>`: резолвит точку на сервере (`qr.resolvePoint`) и
+    - если у игрока нет КПК — редирект на `/novel` для интро и выдачи КПК
+    - иначе открывает диалог точки (если указан `dialogKey`)
 
 ### Видимость точек (dev vs prod)
 
-- Prod: источник истины — серверная `convex/mapPoints.listVisible` (по умолчанию точки скрыты, явные матчинги по фазе/шагу/старту; завершённые квесты скрывают свои точки).
-- Dev: всегда накладывается клиентская `features/quest-progress/model/visibility.filterVisiblePoints` поверх ответа сервера (в `MapWidget`) для устойчивости.
+- Prod: источник истины — серверная `convex/mapPoints.listVisible` (по умолчанию точки скрыты; видимость определяется биндингами `mappoint_bindings` к квестам, фазовыми окнами, требованиями `quest_registry` и зависимостями `quest_dependencies`; завершённые квесты скрывают свои точки).
+- Dev: клиентская фильтрация отключена; используется только серверная логика. Локальные сиды остаются как резервный источник данных.
 
 #### Стартовые маркеры и триггеры
 
@@ -134,6 +138,9 @@ npx convex dev --once
 - Точки: `convex/mapPoints.ts`
   - `listVisible({ userId?, deviceId? })`, `listAll()`
   - `upsertManyDev(points, devToken)` — dev-сид на сервер
+  - `mappoint_bindings` — связи точек и квестов (порядок/фазовые окна)
+  - `quest_dependencies` — пререквизиты квестов
+  - `qr_codes` — QR→точка
 - Auth: `convex/auth.ts: me()` — отдаёт `userId` при настроенном провайдере
 - Клиент: `shared/lib/convexClient.ts` + `ConvexProvider` + `QuestHydrator`
 
@@ -141,7 +148,8 @@ npx convex dev --once
 
 - Универсальный метод: `quests.getAvailableQuests({ sourceType, sourceKey })`. Совместимость: `getAvailableQuestsForNpc`, `getAvailableBoardQuests`.
 - Приоритезация: `story → personal → faction → procedural`, затем `priority`.
-- Соответствия `point.id → npcId/boardKey`: `widgets/MapWidget/model/questSources.ts`.
+- Фильтры: требования `quest_registry` + зависимости `quest_dependencies` + фаза игрока/мира.
+- Соответствия точек и источников заданий: определяются на сервере в `mappoint_bindings` (поле `npcId` или через `eventKey` `board:<key>`/`npc:<id>`).
 
 ### Auth (Clerk + Convex JWT)
 
@@ -203,6 +211,7 @@ npx convex dev
 - `QuestHydrator` поднимает прогресс из Convex при старте (если локально пусто)
 - Обработка `action` из диалогов — через `features/quest-progress/model/actionCoordinator`
 - Диалоговые `condition` поддерживаются; проверки на основе стора игрока (`entities/player`)
+- Вводный поток: интро VN по завершении вызывает `qr.grantPda` (выдача КПК) и `quests.startQuest('delivery_and_dilemma', startStep)`, затем переходит на `/map?dialog=quest_start_dialog`.
 - `/settings`:
   - «Синхронизировать прогресс квестов с Convex» — разовая отправка локального состояния на сервер
   - «Миграция device → user (dev)» — перенос прогресса при появлении real `userId`
@@ -374,11 +383,26 @@ npx convex dev   # Dev-сервер Convex (без --yes)
 - `shared/lib/sanitizeQuests.ts`: однопроходная валидация без `as any`, строгая типизация выходного массива.
 - Убраны `as any` в UI: `AvailableQuestsModal`, `MapWidget` теперь принимают/отдают `QuestId`.
 - Фильтрация видимости точек:
-  - Сервер (`convex/mapPoints.ts`): по умолчанию точки скрыты; показываются только при явном совпадении условий (фаза/шаг/старт). Завершённые квесты скрывают свои точки.
-  - Клиент (`features/quest-progress/model/visibility.ts`): идентичная логика; в dev накладывается поверх ответа сервера, чтобы избежать «видно всё» при расхождениях.
-  - `MapWidget`: в dev всегда применяет клиентский фильтр поверх данных сервера.
+  - Сервер (`convex/mapPoints.ts`): по умолчанию точки скрыты; показываются только при явном совпадении условий (биндинги `mappoint_bindings`, требования `quest_registry`, зависимости `quest_dependencies`, фаза). Завершённые квесты скрывают свои точки. Выдаёт `dialogKey` и `eventKey` (из `startKey`).
+  - Клиент: бизнес-фильтрация отключена; рудиментный фильтр удалён.
 - Переписана логика выбора диалогов (`decideDialogKey.ts`): прогресс-чек диалоги на повторном клике по точкам (городской центр, лагерь торговца, мастерская и др.).
 - Convex env: на стороне сервера используется `process.env` вместо `import.meta`. Для dev-сидов токен читается через `(globalThis as any)?.process?.env?.VITE_DEV_SEED_TOKEN`.
+
+- Добавлены новые серверные сущности и логику:
+  - Таблицы: `mappoint_bindings`, `quest_dependencies`, `qr_codes` и поле `hasPda` в `player_state`.
+  - `mapPoints.listVisible` теперь использует биндинги/требования/зависимости вместо хардкода шагов.
+  - QR-вход: `qr.resolvePoint`, `qr.grantPda`.
+
+## Dev-сиды и QR
+
+- На странице `/settings` доступны кнопки (dev):
+  - «Отправить демо-точки в Convex» — сид коллекции `map_points`.
+  - «Сид реестра квестов (dev)» — `quest_registry`.
+  - «Сид зависимостей квестов (dev)» — `quest_dependencies`.
+  - «Сид биндингов точек↔квесты (dev)» — `mappoint_bindings`.
+  - «Сид QR-кодов (dev)» — `qr_codes` (по схеме `QR::<pointKey>`).
+- Тест QR входа: откройте `/map?qr=QR::settlement_center`.
+- Поток: если КПК нет, произойдёт редирект на интро VN → выдача КПК и старт квеста → `/map?dialog=quest_start_dialog`.
 
 — Рефакторинг MapWidget по FSD:
 - Добавлены хуки виджета: `useMapInstance`, `useVisiblePoints`, `useDialogAutoplay`, `useRegistrationPrompt`, `useMarkers` (порталы с `MapMarker/MapPointTooltip`), `useAvailableQuests`.

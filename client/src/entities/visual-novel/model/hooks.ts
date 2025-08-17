@@ -1,6 +1,9 @@
 import { useVNStore } from './store'
 import type { GameState } from './types'
 import { useNavigate } from 'react-router-dom'
+import { qrApi } from '@/shared/api/quests'
+import { questsApi } from '@/shared/api/quests'
+import { getQuestMeta } from '@/entities/quest/model/catalog'
 import { useProgressionStore } from '@/entities/quest/model/progressionStore'
 
 export const useGameState = () => {
@@ -37,9 +40,18 @@ export const useSceneEngine = () => {
     const line = currentScene?.dialogue?.[useVNStore.getState().game.lineIndex]
     if (!line) return
     if (line.action === 'go_to_map_with_dialog') {
-      // После вводной сцены переводим игрока к стартовому диалогу с Гансом
-      setPhase(1)
-      navigate(`/map?dialog=${encodeURIComponent('quest_start_dialog')}`)
+      // После вводной сцены: выдаём КПК, запускаем стартовый квест, ставим фазу и переводим на карту
+      ;(async () => {
+        try {
+          await qrApi.grantPda()
+        } catch {}
+        const meta = getQuestMeta('delivery_and_dilemma' as any)
+        if (meta) {
+          try { await questsApi.startQuest('delivery_and_dilemma' as any, meta.startStep as any) } catch {}
+        }
+        setPhase(1)
+        navigate(`/map?dialog=${encodeURIComponent('quest_start_dialog')}`)
+      })()
     }
   }
 

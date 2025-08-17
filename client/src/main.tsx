@@ -18,6 +18,7 @@ const router = createBrowserRouter([
       { index: true, lazy: async () => ({ Component: (await import('./pages/HomePage')).Component }) },
       { path: 'quests', lazy: async () => ({ Component: (await import('./pages/QuestsPage')).Component }) },
       { path: 'map', lazy: async () => ({ Component: (await import('./pages/MapPage')).Component }) },
+      { path: 'scan', lazy: async () => ({ Component: (await import('./pages/QRScanPage')).Component }) },
       { path: 'settings', lazy: async () => ({ Component: (await import('./pages/SettingsPage')).Component }) },
     ],
   },

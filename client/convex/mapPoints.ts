@@ -2,6 +2,7 @@ import { internalMutation, mutation, query } from './_generated/server'
 import type { QueryCtx, MutationCtx } from './_generated/server'
 import type { Doc } from './_generated/dataModel'
 import { v, type Infer } from 'convex/values'
+import { filterQuestsByRequirements, loadQuestDependencies, dependenciesSatisfied } from './quests.helpers'
 
 const pointInput = v.object({
   key: v.string(),
@@ -23,20 +24,37 @@ export const listAll = query(async ({ db }: QueryCtx) => {
 })
 
 export const listVisible = query({
-  args: { deviceId: v.optional(v.string()), userId: v.optional(v.string()) },
+  args: {
+    deviceId: v.optional(v.string()),
+    userId: v.optional(v.string()),
+    bbox: v.optional(
+      v.object({ minLat: v.number(), minLng: v.number(), maxLat: v.number(), maxLng: v.number() }),
+    ),
+  },
   handler: async (
     { db, auth }: QueryCtx,
-    { deviceId, userId }: { deviceId?: string; userId?: string },
+    {
+      deviceId,
+      userId,
+      bbox,
+    }: { deviceId?: string; userId?: string; bbox?: { minLat: number; minLng: number; maxLat: number; maxLng: number } },
   ) => {
     const identity = await auth.getUserIdentity()
     const resolvedUserId = userId ?? identity?.subject ?? undefined
-    const points: Doc<'map_points'>[] = await db
+    let points: Doc<'map_points'>[] = await db
       .query('map_points')
       .withIndex('by_active', (q) => q.eq('active', true))
       .collect()
+    if (bbox) {
+      points = points.filter((p) => {
+        const { lat, lng } = p.coordinates as any
+        return lat >= bbox.minLat && lat <= bbox.maxLat && lng >= bbox.minLng && lng <= bbox.maxLng
+      })
+    }
     let progresses: Doc<'quest_progress'>[] = []
     let phase = 0
     let player: Doc<'player_state'> | null = null
+    let world: Doc<'world_state'> | null = null
     if (resolvedUserId) {
       progresses = await db.query('quest_progress').withIndex('by_user', (q) => q.eq('userId', resolvedUserId)).collect()
       player = await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', resolvedUserId)).unique()
@@ -44,77 +62,74 @@ export const listVisible = query({
       progresses = await db.query('quest_progress').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).collect()
       player = await db.query('player_state').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).unique()
     }
+    world = await db.query('world_state').withIndex('by_key', (q) => q.eq('key', 'global')).unique()
     phase = player?.phase ?? 0
-    const playerFlags = new Set<string>(player?.flags ?? [])
+    const done = new Set(progresses.filter((p: any) => p.completedAt).map((p: any) => p.questId))
 
-    const getStep = (questId: string): string | 'not_started' => {
-      const p = progresses.find((x) => x.questId === questId)
-      if (!p) return 'not_started'
-      if (p.completedAt) return 'completed'
-      return p.currentStep
+    // Загрузим биндинги точек и метаданные квестов
+    const bindings = await db.query('mappoint_bindings').collect()
+    const byPoint = new Map<string, Array<Doc<'mappoint_bindings'>>>()
+    for (const b of bindings) {
+      if (!byPoint.has(b.pointKey)) byPoint.set(b.pointKey, [])
+      byPoint.get(b.pointKey)!.push(b)
     }
-
-    const deliveryStep = getStep('delivery_and_dilemma')
-    const loyaltyStep = getStep('loyalty_fjr')
-    const waterStep = getStep('water_crisis')
-    const freedomStep = getStep('freedom_spark')
-
-    // Подсчёт завершённых вводных квестов фазы 1
-    const phase1Ids = new Set<string>([
-      'delivery_and_dilemma',
-      'field_medicine',
-      'combat_baptism',
-      'quiet_cove_whisper',
-      'bell_for_lost',
-    ])
-    const completedPhase1 = progresses.filter((pr: any) => pr.completedAt && phase1Ids.has(pr.questId)).length
+    const questMetas = await db.query('quest_registry').collect()
+    const metaById = new Map<string, any>(questMetas.map((m: any) => [m.questId, m]))
+    const deps = await loadQuestDependencies(db)
 
     const filtered = points.filter((p) => {
-      // ФАЗЫ: после вступления (фаза 1) показываем стартовые точки квестов Фазы 1
+      // ФАЗЫ: после вступления (фаза 1) показываем стартовые точки квестов Фазы 1 (включая доску)
       const phase1Starts = ['settlement_center', 'synthesis_medbay', 'quiet_cove_bar', 'old_believers_square', 'fjr_office_start', 'fjr_board']
       const phase2Starts = ['rathaus', 'seepark', 'wasserschlossle', 'fjr_office_start']
       if (phase === 1 && phase1Starts.includes(p.key)) return true
       if (phase === 2 && (phase2Starts.includes(p.key) || phase1Starts.includes(p.key))) return true
-
-      // Не показывать точки завершённых квестов
-      if (p.questId === 'delivery_and_dilemma' && deliveryStep === 'completed') return false
-      if (p.questId === 'loyalty_fjr' && loyaltyStep === 'completed') return false
-      if (p.questId === 'water_crisis' && waterStep === 'completed') return false
-      if (p.questId === 'freedom_spark' && freedomStep === 'completed') return false
-
-      // Разблокировка гражданства при выполнении N вводных квестов в фазе 1
-      const N = 3
-      const citizenshipStep = getStep('citizenship_invitation')
-      if (phase === 1 && completedPhase1 >= N) {
-        if (p.key === 'rathaus' && citizenshipStep === 'not_started') return true
-      }
-      // FJR ветка — только с фазы 2
-      if (phase >= 2 && loyaltyStep === 'go_to_hole') return p.key === 'anarchist_hole'
-
-      if (waterStep === 'need_to_talk_to_gunter') return p.key === 'gunter_brewery'
-      if (waterStep === 'talk_to_travers') return p.key === 'city_gate_travers'
-      if (waterStep === 'got_proof' || waterStep === 'final_talk_with_gunter') return p.key === 'gunter_brewery'
-
-      if (freedomStep === 'talk_to_odin') return p.key === 'anarchist_bar'
-      if (freedomStep === 'find_rivet') return p.key === 'anarchist_arena_basement'
-      if (freedomStep === 'friendship_final') return p.key === 'anarchist_bar'
-      if (freedomStep === 'order_final') return p.key === 'carl_private_workshop'
-
-      // Стартовый диалог доставки: не показывать повторно, кроме случая явного отказа ранее
-      if (deliveryStep === 'not_started') {
-        if (p.dialogKey === 'quest_start_dialog' && playerFlags.has('decline_delivery_quest')) return true
-        if (p.dialogKey === 'quest_start_dialog') return false
-      }
-      if (deliveryStep === 'need_pickup_from_trader') return p.dialogKey === 'trader_meeting_dialog'
-      if (deliveryStep === 'deliver_parts_to_craftsman' || deliveryStep === 'artifact_offer')
-        return p.dialogKey === 'craftsman_meeting_dialog'
-      if (deliveryStep === 'go_to_anomaly') return p.dialogKey === 'anomaly_exploration_dialog'
-      if (deliveryStep === 'return_to_craftsman') return p.dialogKey === 'craftsman_meeting_dialog'
-      // По умолчанию не показываем точку, если она не прошла условия
-      return false
+      // Для остальных точек: используем биндинги и метаданные
+      const bList = byPoint.get(p.key) ?? []
+      if (bList.length === 0) return false
+      // Фильтр по фазовому окну биндинга
+      const bForPhase = bList.filter((b) => {
+        const fromOk = b.phaseFrom == null || phase >= b.phaseFrom
+        const toOk = b.phaseTo == null || phase <= b.phaseTo
+        return fromOk && toOk
+      })
+      if (bForPhase.length === 0) return false
+      // Получаем метаданные квестов и фильтруем по требованиям
+      const metas = bForPhase
+        .map((b) => metaById.get(b.questId))
+        .filter((m): m is any => Boolean(m))
+      const allowed = filterQuestsByRequirements(metas, player as any, (world as any) ?? { phase }, done)
+      if (allowed.length === 0) return false
+      // Фильтр по зависимостям
+      const allowedByDeps = allowed.filter((m) => dependenciesSatisfied(m.questId, done, deps))
+      return allowedByDeps.length > 0
     })
 
-    return filtered
+    // Обогащаем выдачу dialogKey/startKey из биндингов (если заданы)
+    const enriched = filtered.map((p) => {
+      const bList = byPoint.get(p.key) ?? []
+      const bForPhase = bList.filter((b) => {
+        const fromOk = b.phaseFrom == null || phase >= b.phaseFrom
+        const toOk = b.phaseTo == null || phase <= b.phaseTo
+        return fromOk && toOk
+      })
+      // Выбираем первый по order биндинг, удовлетворяющий требованиям/зависимостям
+      const metas = bForPhase.map((b) => metaById.get(b.questId)).filter((m): m is any => Boolean(m))
+      const allowed = filterQuestsByRequirements(metas, player as any, (world as any) ?? { phase }, done)
+      const allowedIds = new Set(allowed.map((m) => m.questId))
+      const candidates = bForPhase.filter((b) => allowedIds.has(b.questId)).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      const chosen = candidates.find((b) => dependenciesSatisfied(b.questId, done, deps))
+      if (!chosen) return p
+      return {
+        ...p,
+        dialogKey: chosen.dialogKey ?? p.dialogKey,
+        questId: p.questId ?? chosen.questId,
+        // Кладём startKey как eventKey для клиентской обработки
+        eventKey: (chosen as any).startKey,
+        npcId: (chosen as any).npcId,
+      }
+    })
+
+    return enriched
   },
 })
 

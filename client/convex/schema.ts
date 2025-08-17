@@ -60,6 +60,8 @@ export default defineSchema({
     phase: v.number(), // 0: пролог, 1: первые шаги, 2: гражданин
     status: v.optional(v.string()), // например, 'refugee' | 'citizen'
     inventory: v.optional(v.array(v.string())),
+    // Наличие КПК (после интро/QR-входа)
+    hasPda: v.optional(v.boolean()),
     // Глобальная известность героя
     fame: v.optional(v.number()),
     // Репутации по фракциям −100..+100
@@ -109,6 +111,38 @@ export default defineSchema({
     .index('by_board', ['boardKey'])
     .index('by_type', ['type'])
     .index('by_quest', ['questId']),
+
+  // Связи точек карты и квестов (M:N) с фазовыми окнами и порядком выдачи
+  mappoint_bindings: defineTable({
+    pointKey: v.string(), // map_points.key
+    questId: v.string(),
+    order: v.optional(v.number()), // порядок на точке (низкое число — раньше)
+    phaseFrom: v.optional(v.number()),
+    phaseTo: v.optional(v.number()),
+    // Ключи: старт квеста и диалог (если требуется показать конкретный диалог на этой точке для квеста)
+    startKey: v.optional(v.string()),
+    dialogKey: v.optional(v.string()),
+    npcId: v.optional(v.string()),
+    updatedAt: v.number(),
+  })
+    .index('by_point', ['pointKey'])
+    .index('by_quest', ['questId']),
+
+  // Зависимости квестов (пререквизиты)
+  quest_dependencies: defineTable({
+    questId: v.string(),
+    requiresQuestId: v.string(),
+    updatedAt: v.number(),
+  })
+    .index('by_quest', ['questId'])
+    .index('by_requires', ['requiresQuestId']),
+
+  // QR-коды → привязка к точкам карты
+  qr_codes: defineTable({
+    code: v.string(), // строка из QR
+    pointKey: v.string(), // map_points.key
+    createdAt: v.number(),
+  }).index('by_code', ['code']),
 })
 
 

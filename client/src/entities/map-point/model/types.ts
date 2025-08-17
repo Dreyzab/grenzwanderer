@@ -27,6 +27,7 @@ export interface MapPoint {
   questId?: string
   dialogKey?: string
   eventKey?: string
+  npcId?: string
   radius?: number
   icon?: string
 }

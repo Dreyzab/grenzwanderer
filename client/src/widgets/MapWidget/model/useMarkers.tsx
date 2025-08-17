@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
-import { createRoot } from 'react-dom/client'
+import { createRoot, type Root } from 'react-dom/client'
 import type { VisibleMapPoint } from '@/entities/map-point/model/types'
 import logger from '@/shared/lib/logger'
 import { decideDialogKey } from '@/features/quest-progress/model/decideDialogKey'
@@ -8,11 +8,13 @@ import { useQuest } from '@/entities/quest/model/useQuest'
 import { useProgressionStore } from '@/entities/quest/model/progressionStore'
 import { MapMarker } from '@/entities/map-point/ui/MapMarker'
 import { MapPointTooltip } from '@/entities/map-point/ui/MapPointTooltip'
-import { getQuestSourceForPoint } from './questSources'
+import { api } from '../../../../convex/_generated/api'
+import { convexClient } from '@/shared/lib/convexClient'
+import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
 
 export interface MarkerInteractions {
-  onBoardOpen: (title: string) => Promise<void>
-  onNpcOpen: (title: string) => Promise<void>
+  onBoardOpen: (boardKey: string, title: string) => Promise<void>
+  onNpcOpen: (npcId: string, title: string) => Promise<void>
   onOpenDialog: (dialogKey: string) => void
 }
 
@@ -25,6 +27,16 @@ export function useMarkers(
   const cleanupsRef = useRef<(() => void)[]>([])
   const quest = useQuest()
   const phase = useProgressionStore((s) => s.phase)
+
+  const scheduleUnmount = (root: Root | null) => {
+    if (!root) return
+    // Избегаем синхронного unmount во время рендера React
+    setTimeout(() => {
+      try {
+        root.unmount()
+      } catch {}
+    }, 0)
+  }
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -45,9 +57,37 @@ export function useMarkers(
       const markerRoot = createRoot(el)
       const onMarkerClick = async () => {
         logger.info('MAP', 'Marker clicked', p.id, p.title, p.dialogKey)
-        const src = getQuestSourceForPoint(p)
-        if (src?.type === 'board') await interactions.onBoardOpen('Доска FJR — доступные квесты')
-        if (src?.type === 'npc') await interactions.onNpcOpen('NPC Hans — доступные квесты')
+        // Приоритет: явные серверные eventKey/dialogKey — через server action
+        if (p.eventKey) {
+          try {
+            const deviceId = getOrCreateDeviceId()
+            const res = (await convexClient.action((api as any).actions.resolveEventKey, {
+              eventKey: p.eventKey,
+              deviceId,
+            })) as { type: string; [k: string]: any }
+            if (res?.type === 'open_board') {
+              await interactions.onBoardOpen(res.boardKey, `${p.title} — доступные квесты`)
+              return
+            }
+            if (res?.type === 'open_npc') {
+              await interactions.onNpcOpen(res.npcId, `${p.title} — доступные квесты`)
+              return
+            }
+            if (res?.type === 'quest_started' && p.dialogKey) {
+              interactions.onOpenDialog(p.dialogKey)
+              return
+            }
+          } catch {}
+        }
+        // Используем npcId прямо из сервера, без клиентских маппингов
+        if (p.type === 'board') await interactions.onBoardOpen(p.id, `${p.title} — доступные квесты`)
+        if ((p.type === 'npc' || p.type === 'npc_spawn') && p.npcId) await interactions.onNpcOpen(p.npcId, `${p.title} — доступные квесты`)
+        // Если точка содержит явный dialogKey (с сервера через биндинг) — открываем его напрямую
+        if (p.dialogKey) {
+          interactions.onOpenDialog(p.dialogKey)
+          return
+        }
+        // Старт квеста по eventKey обрабатывается через server action выше
         const def = decideDialogKey(p, {
           deliveryStep: quest.getStep('delivery_and_dilemma'),
           loyaltyStep: quest.activeQuests['loyalty_fjr']?.currentStep ?? null,
@@ -86,10 +126,10 @@ export function useMarkers(
 
       markersRef.current.push(marker)
 
-      // Cleanup for react roots and popup
+      // Cleanup for react roots and popup (асинхронно, чтобы избежать sync unmount в рендере)
       cleanupsRef.current.push(() => {
-        try { markerRoot.unmount() } catch {}
-        try { tooltipRoot.unmount() } catch {}
+        scheduleUnmount(markerRoot)
+        scheduleUnmount(tooltipRoot)
         try { popup.remove() } catch {}
       })
     })

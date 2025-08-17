@@ -5,6 +5,7 @@ import { getDemoMapPoints } from '@/entities/map-point/api/seed'
 import { useQuest } from '@/entities/quest/model/useQuest'
 import { questsApi } from '@/shared/api/quests'
 import { usePlayerStore } from '@/entities/player/model/store'
+import { seedsApiConvex } from '@/shared/api/seeds/convex'
 import { useAuthStore } from '@/entities/auth/model/store'
 import { useProgressionStore } from '@/entities/quest/model/progressionStore'
 
@@ -112,6 +113,39 @@ export function Component() {
     }
   }, [devSeedToken])
 
+  const seedQuestDependencies = useCallback(async () => {
+    try {
+      const token = (devSeedToken ?? prompt('DEV seed token:')) || ''
+      if (!token) return
+      const res = await seedsApiConvex.seedQuestDependenciesDev(token)
+      setStatus(`Сид зависимостей квестов выполнен. Добавлено/обновлено: ${(res as any)?.count ?? '?'} связей`)
+    } catch (e) {
+      setStatus('Ошибка сида зависимостей квестов.')
+    }
+  }, [devSeedToken])
+
+  const seedMappointBindings = useCallback(async () => {
+    try {
+      const token = (devSeedToken ?? prompt('DEV seed token:')) || ''
+      if (!token) return
+      const res = await seedsApiConvex.seedMappointBindingsDev(token)
+      setStatus(`Сид биндингов точек выполнен. Добавлено/обновлено: ${(res as any)?.count ?? '?'} записей`)
+    } catch (e) {
+      setStatus('Ошибка сида биндингов точек.')
+    }
+  }, [devSeedToken])
+
+  const seedQrCodes = useCallback(async () => {
+    try {
+      const token = (devSeedToken ?? prompt('DEV seed token:')) || ''
+      if (!token) return
+      const res = await seedsApiConvex.seedQrCodesDev(token)
+      setStatus(`Сид QR-кодов выполнен. Добавлено/обновлено: ${(res as any)?.count ?? '?'} записей`)
+    } catch (e) {
+      setStatus('Ошибка сида QR-кодов.')
+    }
+  }, [devSeedToken])
+
   const fetchNpcQuests = useCallback(async () => {
     try {
       const res = await questsApi.getAvailableQuestsForNpc('hans')
@@ -139,6 +173,7 @@ export function Component() {
 
       <div className="grid gap-2">
         <div className="text-sm text-neutral-400">Auth (dev): userId: {(auth.userId ?? 'аноним') as string}</div>
+        <div className="text-xs text-neutral-500">Dev порядок: 1) Демо-точки → 2) Реестр квестов → 3) Зависимости → 4) Биндинги → 5) QR</div>
         <button className="bg-neutral-800 hover:bg-neutral-700 rounded px-4 py-2" onClick={clearMapPoints}>
           Сбросить точки карты
         </button>
@@ -158,6 +193,36 @@ export function Component() {
             Сид реестра квестов (dev)
           </button>
         )}
+        {import.meta.env.DEV && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <button className="bg-emerald-800 hover:bg-emerald-700 rounded px-3 py-2" onClick={seedQuestDependencies}>
+              Сид зависимостей квестов (dev)
+            </button>
+            <button className="bg-emerald-800 hover:bg-emerald-700 rounded px-3 py-2" onClick={seedMappointBindings}>
+              Сид биндингов точек↔квесты (dev)
+            </button>
+            <button className="bg-emerald-800 hover:bg-emerald-700 rounded px-3 py-2" onClick={seedQrCodes}>
+              Сид QR-кодов (dev)
+            </button>
+          </div>
+        )}
+        {import.meta.env.DEV && (
+          <button
+            className="bg-emerald-800 hover:bg-emerald-700 rounded px-4 py-2"
+            onClick={async () => {
+              try {
+                const token = (devSeedToken ?? prompt('DEV seed token:')) || ''
+                if (!token) return
+                await seedsApiConvex.seedAllDev(token)
+                setStatus('Комплексный сид выполнен: зависимости, биндинги, QR')
+              } catch (e) {
+                setStatus('Ошибка комплексного сида (проверьте токен/Convex)')
+              }
+            }}
+          >
+            Сид всего (dev)
+          </button>
+        )}
         <button className="bg-indigo-800 hover:bg-indigo-700 rounded px-4 py-2" onClick={syncQuestProgressToServer}>
           Синхронизировать прогресс квестов с Convex
         </button>
@@ -166,10 +231,32 @@ export function Component() {
         </button>
         <div className="pt-2 text-sm text-neutral-400">Фазы (dev): текущая — {progression.phase}</div>
         <div className="flex gap-2">
-          <button className="bg-emerald-800 hover:bg-emerald-700 rounded px-3 py-1" onClick={() => progression.setPhase(1)}>
+          <button
+            className="bg-emerald-800 hover:bg-emerald-700 rounded px-3 py-1"
+            onClick={async () => {
+              try {
+                await questsApi.setPlayerPhase(1)
+                progression.setPhase(1)
+                setStatus('Серверная фаза установлена в 1')
+              } catch {
+                setStatus('Не удалось установить серверную фазу 1')
+              }
+            }}
+          >
             Фаза 1
           </button>
-          <button className="bg-emerald-800 hover:bg-emerald-700 rounded px-3 py-1" onClick={() => progression.setPhase(2)}>
+          <button
+            className="bg-emerald-800 hover:bg-emerald-700 rounded px-3 py-1"
+            onClick={async () => {
+              try {
+                await questsApi.setPlayerPhase(2)
+                progression.setPhase(2)
+                setStatus('Серверная фаза установлена в 2')
+              } catch {
+                setStatus('Не удалось установить серверную фазу 2')
+              }
+            }}
+          >
             Фаза 2
           </button>
         </div>

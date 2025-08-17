@@ -5,6 +5,15 @@
   --color-secondary: oklch(0.715 0.143 215.221);
   --spacing-base: 0.25rem;
   --font-display: "Satoshi", system-ui, sans-serif;
+  /* Фракционные палитры */
+  --color-faction-fjr: #D32F2F; /* красный */
+  --color-faction-an: #111111; /* чёрный */
+  --color-faction-syn: #FFFFFF; /* белый */
+  --color-faction-pol: #001F3F; /* navy blue */
+  --color-faction-art: #7C4A21; /* медно-коричневый */
+  --color-faction-tr: #FFD700; /* золотисто-жёлтый */
+  --color-faction-ob: #6A0DAD; /* пурпурный */
+  --color-faction-farm: #795548; /* коричневый */
 }
 
 html, body, #root {

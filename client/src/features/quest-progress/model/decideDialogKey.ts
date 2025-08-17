@@ -7,6 +7,7 @@ export interface QuestStateSnapshot {
   loyaltyStep?: string | null
   waterStep?: string | null
   freedomStep?: string | null
+  quietCoveStep?: string | null
   phase?: number
 }
 
@@ -72,6 +73,17 @@ export function decideDialogKey(point: VisibleMapPoint, qs: QuestStateSnapshot):
     // Если квест уже принят или в процессе — показываем напоминание
     if (qs.deliveryStep !== 'not_started' || qs.loyaltyStep || qs.waterStep || qs.freedomStep) {
       dialogKey = 'combat_progress_check'
+    }
+  }
+
+  // QUIET COVE: старт и прогресс у Люды (бар "Тихая Заводь")
+  if (point.id === 'quiet_cove_bar') {
+    // если квест ещё не начинался
+    if (!qs.quietCoveStep || qs.quietCoveStep === 'courier_missing') {
+      dialogKey = 'whisper_in_quiet_cove_quest'
+    }
+    if (qs.quietCoveStep === 'find_scar') {
+      dialogKey = 'whisper_in_quiet_cove_quest' // возвращение к Люде допустимо, остаёмся в том же диалоге
     }
   }
 

@@ -5,16 +5,38 @@ import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
 import { useAuthStore } from '@/entities/auth/model/store'
 import { seedDemoMapPoints } from '@/entities/map-point/api/seed'
 import { mapPointApi } from '@/entities/map-point/api/local'
-import { filterVisiblePoints } from '@/features/quest-progress/model/visibility'
 import logger from '@/shared/lib/logger'
-import { useQuest } from '@/entities/quest/model/useQuest'
-import { useProgressionStore } from '@/entities/quest/model/progressionStore'
+// Принимаем опционально mapRef, чтобы слать bbox на сервер
 
-export function useVisiblePoints() {
+export function useVisiblePoints(mapRef?: React.RefObject<any>) {
   const [points, setPoints] = useState<VisibleMapPoint[]>([])
   const { userId } = useAuthStore()
-  const quest = useQuest()
-  const phase = useProgressionStore((s) => s.phase)
+  const [bbox, setBbox] = useState<{ minLat: number; minLng: number; maxLat: number; maxLng: number } | undefined>(undefined)
+
+  // Подписка на изменения карты и дебаунс обновления bbox
+  useEffect(() => {
+    if (!mapRef?.current) return
+    let timer: any
+    const update = () => {
+      try {
+        const b = mapRef.current.getBounds()
+        setBbox({ minLat: b.getSouth(), minLng: b.getWest(), maxLat: b.getNorth(), maxLng: b.getEast() })
+      } catch {}
+    }
+    const handler = () => {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(update, 150)
+    }
+    mapRef.current.on('moveend', handler)
+    mapRef.current.on('zoomend', handler)
+    // начальная инициализация
+    update()
+    return () => {
+      try { mapRef.current?.off('moveend', handler); mapRef.current?.off('zoomend', handler) } catch {}
+      if (timer) clearTimeout(timer)
+    }
+  }, [mapRef?.current])
+  
 
   useEffect(() => {
     ;(async () => {
@@ -23,6 +45,8 @@ export function useVisiblePoints() {
         const serverPoints = (await mapPointsApi.listVisible({
           deviceId: userId ? undefined : getOrCreateDeviceId(),
           userId: userId ?? undefined,
+          // @ts-ignore — расширенный аргумент поддержан на сервере
+          bbox,
         })) as any[]
         if (Array.isArray(serverPoints) && serverPoints.length > 0) {
           stored = serverPoints.map((sp) => ({
@@ -30,10 +54,12 @@ export function useVisiblePoints() {
             title: sp.title,
             description: sp.description ?? '',
             coordinates: sp.coordinates,
-            type: sp.type ?? 'poi',
+            type: sp.type ?? 'quest',
             isActive: sp.active,
-            dialogKey: sp.dialogKey ?? '',
-            questId: sp.questId ?? '',
+            dialogKey: sp.dialogKey,
+            eventKey: sp.eventKey,
+            npcId: (sp as any).npcId,
+            questId: sp.questId,
             radius: sp.radius ?? 0,
             icon: sp.icon ?? '',
             isDiscovered: true,
@@ -56,19 +82,10 @@ export function useVisiblePoints() {
         }
       }
 
-      let visible = stored
-      if (import.meta.env.DEV) {
-        const deliveryStep = quest.getStep('delivery_and_dilemma')
-        const loyaltyStep = quest.activeQuests['loyalty_fjr']?.currentStep ?? null
-        const waterStep = quest.activeQuests['water_crisis']?.currentStep ?? null
-        const freedomStep = quest.activeQuests['freedom_spark']?.currentStep ?? null
-        visible = filterVisiblePoints(stored, { deliveryStep, loyaltyStep, waterStep, freedomStep })
-      }
-
-      logger.info('MAP', 'Points total:', stored.length, 'visible:', visible.length)
-      setPoints(visible)
+      logger.info('MAP', 'Points total:', stored.length)
+      setPoints(stored)
     })()
-  }, [quest.activeQuests, phase, userId])
+  }, [userId, bbox])
 
   return points
 }

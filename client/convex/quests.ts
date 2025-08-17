@@ -1,6 +1,6 @@
 import { mutation, query } from './_generated/server'
 import { v } from 'convex/values'
-import { computeAvailableQuests, pickWinnerProgress, isQuestAllowedByPhase } from './quests.helpers'
+import { computeAvailableQuests, pickWinnerProgress, isQuestAllowedByPhase, loadQuestDependencies, dependenciesSatisfied } from './quests.helpers'
 
 // ===== Constants & simple helpers =====
 // (helpers moved to quests.helpers)
@@ -13,7 +13,18 @@ export const getAvailableQuests = query({
     userId: v.optional(v.string()),
   },
   handler: async ({ db }, { sourceType, sourceKey, deviceId, userId }) => {
-    return computeAvailableQuests(db, sourceType, sourceKey, deviceId, userId)
+    // Базовая выдача по требованиям
+    const base = await computeAvailableQuests(db, sourceType, sourceKey, deviceId, userId)
+    // Фильтрация по зависимостям квестов
+    const deps = await loadQuestDependencies(db)
+    const progress = await db
+      .query('quest_progress')
+      .withIndex(userId ? 'by_user' : 'by_device', (q: any) =>
+        userId ? q.eq('userId', userId) : q.eq('deviceId', deviceId),
+      )
+      .collect()
+    const done = new Set(progress.filter((p: any) => p.completedAt).map((p: any) => p.questId))
+    return base.filter((q) => dependenciesSatisfied(q.questId, done, deps))
   },
 })
 
@@ -27,7 +38,7 @@ export const getProgress = query({
     const identity = await auth.getUserIdentity()
     const resolvedUserId = userId ?? identity?.subject ?? undefined
     if (resolvedUserId) {
-      return db.query('quest_progress').withIndex('by_user', (q) => q.eq('userId', userId)).collect()
+      return db.query('quest_progress').withIndex('by_user', (q) => q.eq('userId', resolvedUserId)).collect()
     }
     if (deviceId) {
       return db.query('quest_progress').withIndex('by_device', (q) => q.eq('deviceId', deviceId)).collect()
@@ -43,7 +54,7 @@ export const getPlayerState = query({
     const identity = await auth.getUserIdentity()
     const resolvedUserId = userId ?? identity?.subject ?? undefined
     if (resolvedUserId) {
-      const row = await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', userId)).unique()
+      const row = await db.query('player_state').withIndex('by_user', (q) => q.eq('userId', resolvedUserId)).unique()
       return row ?? null
     }
     if (deviceId) {

@@ -107,8 +107,14 @@ npx convex dev --once
 
 ### Видимость точек (dev vs prod)
 
-- Prod: источник истины — серверная `convex/mapPoints.listVisible` (по умолчанию точки скрыты, явные матчинги по фазе/шагу/старту; завершённые квесты скрывают точки).
-- Dev: всегда накладывается клиентская `features/quest-progress/model/visibility.filterVisiblePoints` поверх ответа сервера (в `MapWidget`), чтобы избежать сценария «видно всё» при несинхронизации. Логика идентична серверной.
+- Prod: источник истины — серверная `convex/mapPoints.listVisible` (по умолчанию точки скрыты, явные матчинги по фазе/шагу/старту; завершённые квесты скрывают свои точки).
+- Dev: всегда накладывается клиентская `features/quest-progress/model/visibility.filterVisiblePoints` поверх ответа сервера (в `MapWidget`) для устойчивости.
+
+#### Стартовые маркеры и триггеры
+
+- В фазе 1 всегда видны стартовые триггеры (хабы): `settlement_center`, `synthesis_medbay`, `quiet_cove_bar`, `old_believers_square`, `fjr_office_start`, `fjr_board`.
+- Остальные маркеры появляются контекстно по шагам квестов (шаговые маркеры) и скрываются после завершения.
+- Клик по хабу открывает список доступных квестов (NPC/доска) — централизовано по серверу `quests.getAvailableQuests`.
 
 ## Mappoints
 
@@ -130,6 +136,12 @@ npx convex dev --once
   - `upsertManyDev(points, devToken)` — dev-сид на сервер
 - Auth: `convex/auth.ts: me()` — отдаёт `userId` при настроенном провайдере
 - Клиент: `shared/lib/convexClient.ts` + `ConvexProvider` + `QuestHydrator`
+
+### Выдача доступных квестов (NPC/доски)
+
+- Универсальный метод: `quests.getAvailableQuests({ sourceType, sourceKey })`. Совместимость: `getAvailableQuestsForNpc`, `getAvailableBoardQuests`.
+- Приоритезация: `story → personal → faction → procedural`, затем `priority`.
+- Соответствия `point.id → npcId/boardKey`: `widgets/MapWidget/model/questSources.ts`.
 
 ### Auth (Clerk + Convex JWT)
 
@@ -194,6 +206,7 @@ npx convex dev
 - `/settings`:
   - «Синхронизировать прогресс квестов с Convex» — разовая отправка локального состояния на сервер
   - «Миграция device → user (dev)» — перенос прогресса при появлении real `userId`
+  - «Фаза 1/2» — меняет фазу и на сервере (`quests.setPlayerPhase`), и в локальном сторе
 
 ### Ключевые точки на карте (демо)
 - `settlement_center` — Городской центр (старт доставки)

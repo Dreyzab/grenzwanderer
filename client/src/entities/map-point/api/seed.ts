@@ -6,7 +6,7 @@ export function getDemoMapPoints(): MapPoint[] {
   const demo: MapPoint[] = [
     {
       id: 'settlement_center',
-      title: 'Городской центр',
+      title: 'ЖД станция',
       description: 'Сердце выжившего города. Здесь можно встретить нужных людей.',
       coordinates: { lat: 47.9962, lng: 7.8425 },
       type: 'settlement',

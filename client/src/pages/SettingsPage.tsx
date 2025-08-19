@@ -35,7 +35,7 @@ export function Component() {
     }
     keys.forEach((k) => localStorage.removeItem(k))
     // сброс состояния VN к стартовой сцене
-    useVNStore.getState().actions.reset('intro')
+    useVNStore.getState().actions.reset('station_intro')
     setStatus('Прогресс квестов и визуальной новеллы сброшен')
   }, [])
 
@@ -67,7 +67,14 @@ export function Component() {
       if ((mapPointsApi as any).upsertManyDev) {
         await (mapPointsApi as any).upsertManyDev(points, token)
       }
-      setStatus('Демо-точки отправлены на сервер (Convex).')
+      // Для нового подхода необходимы биндинги (npcId/eventKey) и QR — выполним сразу
+      try {
+        await seedsApiConvex.seedMappointBindingsDev(token)
+        await seedsApiConvex.seedQrCodesDev(token)
+        setStatus('Демо-точки и биндинги/QR отправлены на сервер (Convex).')
+      } catch {
+        setStatus('Демо-точки отправлены. Ошибка авто-сидов биндингов/QR — выполните их вручную.')
+      }
     } catch (e) {
       setStatus('Ошибка отправки демо-точек на сервер.')
     }

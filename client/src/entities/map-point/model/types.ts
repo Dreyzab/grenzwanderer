@@ -1,4 +1,5 @@
 import type { BaseCoordinates, BaseMapBounds } from '@/shared/types/core/mapPoint'
+import type { FactionId } from '@/shared/config/factions'
 
 export type MapPointType =
   | 'quest_location'
@@ -36,6 +37,7 @@ export interface VisibleMapPoint extends MapPoint {
   distance?: number
   isDiscovered?: boolean
   associatedQrCode?: string
+  factionId?: FactionId
 }
 
 export interface MapPointFilter {

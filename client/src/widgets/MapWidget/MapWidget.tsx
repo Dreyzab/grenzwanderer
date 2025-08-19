@@ -1,5 +1,5 @@
  
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './ui/MapWidget.css'
 import DialogModal from '@/shared/ui/DialogModal'
 import RegistrationPrompt from '../../shared/ui/RegistrationPrompt'
@@ -34,27 +34,39 @@ export function MapWidget() {
   const quest = useQuest()
   const { openBoard, openNpc, refresh } = useAvailableQuests((val) => setAvailableModal(val))
 
-  // автофокус на первую видимую точку
+  // автофокус на первую видимую точку — задержка увеличена в 10 раз
   useEffect(() => {
-    if (mapRef.current && points.length > 0) {
-      try {
-        const p = points[0]
-        mapRef.current.easeTo({ center: [p.coordinates.lng, p.coordinates.lat], duration: 500 })
-      } catch {}
-    }
+    if (!mapRef.current || points.length === 0) return
+    let timer: any
+    try {
+      const p = points[0]
+      timer = setTimeout(() => {
+        try { mapRef.current?.easeTo({ center: [p.coordinates.lng, p.coordinates.lat], duration: 900 }) } catch {}
+      }, 1500)
+    } catch {}
+    return () => { if (timer) clearTimeout(timer) }
   }, [points, mapRef])
 
-  useMarkers(mapRef, points, {
-    onBoardOpen: async (boardKey, title) => { await openBoard(boardKey, title) },
-    onNpcOpen: async (npcId, title) => { await openNpc(npcId, title) },
-    onOpenDialog: (dialogKey) => {
-      const def = getDialogByKey(dialogKey)
-      if (def) {
-        setActiveDialog(def)
-        setIsDialogOpen(true)
-      }
-    },
-  })
+  const handleBoardOpen = useCallback(async (boardKey: string, title: string) => {
+    await openBoard(boardKey, title)
+  }, [openBoard])
+  const handleNpcOpen = useCallback(async (npcId: string, title: string) => {
+    await openNpc(npcId, title)
+  }, [openNpc])
+  const handleOpenDialog = useCallback((dialogKey: string) => {
+    const def = getDialogByKey(dialogKey)
+    if (def) {
+      setActiveDialog(def)
+      setIsDialogOpen(true)
+    }
+  }, [])
+  const interactions = useMemo(() => ({
+    onBoardOpen: handleBoardOpen,
+    onNpcOpen: handleNpcOpen,
+    onOpenDialog: handleOpenDialog,
+  }), [handleBoardOpen, handleNpcOpen, handleOpenDialog])
+
+  useMarkers(mapRef, points, interactions)
 
   return (
     <>

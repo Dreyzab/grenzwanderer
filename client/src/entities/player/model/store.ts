@@ -4,6 +4,7 @@ import logger from '@/shared/lib/logger'
 interface PlayerState {
   credits: number
   skills: Set<string>
+  inventory: string[]
   // Расширенные поля игрока (гидрация с сервера Convex)
   fame?: number
   reputations?: Record<string, number>
@@ -15,6 +16,9 @@ interface PlayerState {
   spendCredits: (amount: number) => boolean
   addSkill: (skill: string) => void
   removeSkill: (skill: string) => void
+  addItem: (itemId: string) => void
+  removeItem: (itemId: string) => void
+  hasItem: (itemId: string) => boolean
 
   hydrateFromServer: (p: {
     fame?: number | null
@@ -22,12 +26,14 @@ interface PlayerState {
     relationships?: Record<string, number> | null
     flags?: string[] | null
     status?: string | null
+    inventory?: string[] | null
   } | null) => void
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
   credits: 0,
   skills: new Set<string>(),
+  inventory: [],
   fame: 0,
   reputations: {},
   relationships: {},
@@ -60,6 +66,27 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       logger.info('STORE', 'removeSkill', skill)
       return { skills: next }
     }),
+  addItem: (itemId) =>
+    set((s) => {
+      if (!itemId) return s as any
+      if ((s.inventory ?? []).includes(itemId)) return s as any
+      const next = [...(s.inventory ?? []), itemId]
+      logger.info('STORE', 'addItem', itemId)
+      return { inventory: next }
+    }),
+  removeItem: (itemId) =>
+    set((s) => {
+      const next = (s.inventory ?? []).filter((i) => i !== itemId)
+      logger.info('STORE', 'removeItem', itemId)
+      return { inventory: next }
+    }),
+  hasItem: (itemId) => {
+    try {
+      return (get().inventory ?? []).includes(itemId)
+    } catch {
+      return false
+    }
+  },
   hydrateFromServer: (p) =>
     set((s) => {
       if (!p) return s
@@ -69,6 +96,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         relationships: p.relationships ?? s.relationships ?? {},
         flags: p.flags ?? s.flags ?? [],
         status: p.status ?? s.status ?? 'refugee',
+        inventory: p.inventory ?? s.inventory ?? [],
       }
       logger.info('STORE', 'hydratePlayer', next)
       return next as any

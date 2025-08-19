@@ -168,7 +168,7 @@ npx convex dev --once
   "aud": "convex",
   "sub": "{{user.id}}",
   "sid": "{{session.id}}",
-  "email": "{{user.primary_email_address}}",
+  "email": "{{user.primary_email_address.email_address}}",
   "username": "{{user.username}}",
   "created_at": "{{user.created_at}}"
 }

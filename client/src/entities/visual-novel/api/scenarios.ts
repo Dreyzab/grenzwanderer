@@ -1,8 +1,8 @@
 import type { Scene } from '@/entities/visual-novel/model/types'
 
 export const scenarios: Record<string, Scene> = {
-  intro: {
-    id: 'intro',
+  station_intro: {
+    id: 'station_intro',
     background: '/images/backgrounds/workshop.jpg',
     characters: [],
     dialogue: [

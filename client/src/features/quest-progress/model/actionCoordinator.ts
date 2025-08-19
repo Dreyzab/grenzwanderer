@@ -6,6 +6,7 @@ import { useRef } from 'react'
 import { createDeliveryQuestActor } from '@/entities/quest/model/fsm/deliveryMachine'
 import { createCombatQuestActor } from '@/entities/quest/model/fsm/combatMachine'
 import { resolveOutcome } from './outcomes'
+import { usePlayerStore } from '@/entities/player/model/store'
 import { dialogActionMap } from './actionMap'
 import type { QuestStep } from '@/entities/quest/model/types'
 import type { QuestId } from '@/entities/quest/model/ids'
@@ -15,6 +16,7 @@ export function useDialogActionCoordinator() {
   const { setPhase } = useProgressionStore()
   const deliveryActorRef = useRef<ReturnType<typeof createDeliveryQuestActor> | null>(null)
   const combatActorRef = useRef<ReturnType<typeof createCombatQuestActor> | null>(null)
+  const player = usePlayerStore()
 
   function ensureDeliveryActor() {
     if (!deliveryActorRef.current) {
@@ -58,6 +60,14 @@ export function useDialogActionCoordinator() {
           quest.startQuest('delivery_and_dilemma' as QuestId, 'need_pickup_from_trader' as QuestStep)
         if (mapped.event?.type === 'ADVANCE' && mapped.event.step) {
           quest.advanceQuest('delivery_and_dilemma' as QuestId, mapped.event.step as QuestStep)
+          // Выдача/проверка предметов для ветки с артефактом
+          if (mapped.event.step === ('go_to_anomaly' as QuestStep)) {
+            // Начинается поиск артефакта — предмет ещё не выдаём
+          }
+          if (mapped.event.step === ('return_to_craftsman' as QuestStep)) {
+            // После нахождения артефакта — добавляем его в инвентарь
+            player.addItem('artifact_crystal')
+          }
         }
         if (mapped.event?.type === 'COMPLETE')
           quest.completeQuest('delivery_and_dilemma' as QuestId)

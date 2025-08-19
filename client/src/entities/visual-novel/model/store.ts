@@ -17,7 +17,7 @@ export const createInitialGameState = (startScene: string): GameState => ({
 })
 
 export const useVNStore = create<VNState>((set, get) => ({
-  game: createInitialGameState('intro'),
+  game: createInitialGameState('station_intro'),
   scenes: {},
   actions: {
     setScene: (sceneId) =>

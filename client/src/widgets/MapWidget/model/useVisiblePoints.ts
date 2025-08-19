@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { VisibleMapPoint } from '@/entities/map-point/model/types'
 import { mapPointsApi } from '@/shared/api/mapPoints'
 import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
@@ -12,6 +12,37 @@ export function useVisiblePoints(mapRef?: React.RefObject<any>) {
   const [points, setPoints] = useState<VisibleMapPoint[]>([])
   const { userId } = useAuthStore()
   const [bbox, setBbox] = useState<{ minLat: number; minLng: number; maxLat: number; maxLng: number } | undefined>(undefined)
+  const hasSeededRef = useRef(false)
+
+  const arePointsEqual = (a: VisibleMapPoint[], b: VisibleMapPoint[]) => {
+    if (a === b) return true
+    if (a.length !== b.length) return false
+    // Быстрая проверка по id и основным полям
+    const byIdA = new Map(a.map((p) => [p.id, p]))
+    for (const bp of b) {
+      const ap = byIdA.get(bp.id)
+      if (!ap) return false
+      if (
+        ap.coordinates.lat !== bp.coordinates.lat ||
+        ap.coordinates.lng !== bp.coordinates.lng ||
+        ap.type !== bp.type ||
+        ap.isActive !== bp.isActive ||
+        ap.dialogKey !== bp.dialogKey ||
+        ap.eventKey !== bp.eventKey ||
+        ap.npcId !== bp.npcId ||
+        ap.questId !== bp.questId ||
+        // Доп. пользовательски заметные поля, чтобы гарантировать перерисовку при их изменении
+        ap.factionId !== bp.factionId ||
+        ap.title !== bp.title ||
+        ap.description !== bp.description ||
+        ap.icon !== bp.icon ||
+        ap.radius !== bp.radius
+      ) {
+        return false
+      }
+    }
+    return true
+  }
 
   // Подписка на изменения карты и дебаунс обновления bbox
   useEffect(() => {
@@ -62,6 +93,7 @@ export function useVisiblePoints(mapRef?: React.RefObject<any>) {
             questId: sp.questId,
             radius: sp.radius ?? 0,
             icon: sp.icon ?? '',
+            factionId: (sp as any).factionId ?? undefined,
             isDiscovered: true,
           })) as VisibleMapPoint[]
         }
@@ -70,7 +102,11 @@ export function useVisiblePoints(mapRef?: React.RefObject<any>) {
       }
 
       if (import.meta.env.DEV) {
-        await seedDemoMapPoints()
+        if (!hasSeededRef.current) {
+          // Ставим флаг до await, чтобы исключить гонки при быстрых повторных вызовах эффекта
+          hasSeededRef.current = true
+          await seedDemoMapPoints()
+        }
         const local = await mapPointApi.getPoints()
         const localVisible = local.map((p) => ({ ...p, isDiscovered: true })) as VisibleMapPoint[]
         if (stored.length === 0) {
@@ -82,8 +118,11 @@ export function useVisiblePoints(mapRef?: React.RefObject<any>) {
         }
       }
 
-      logger.info('MAP', 'Points total:', stored.length)
-      setPoints(stored)
+      setPoints((prev) => {
+        if (arePointsEqual(prev, stored)) return prev
+        logger.info('MAP', 'Points total:', stored.length)
+        return stored
+      })
     })()
   }, [userId, bbox])
 

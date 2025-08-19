@@ -36,9 +36,10 @@ export const useSceneEngine = () => {
   // const quest = useQuest()
   const { setPhase } = useProgressionStore()
 
-  const handleInlineActions = () => {
-    const line = currentScene?.dialogue?.[useVNStore.getState().game.lineIndex]
-    if (!line) return
+  const handleInlineActions = (): boolean => {
+    const state = useVNStore.getState()
+    const line = currentScene?.dialogue?.[state.game.lineIndex]
+    if (!line) return false
     if (line.action === 'go_to_map_with_dialog') {
       // После вводной сцены: выдаём КПК, запускаем стартовый квест, ставим фазу и переводим на карту
       ;(async () => {
@@ -50,9 +51,12 @@ export const useSceneEngine = () => {
           try { await questsApi.startQuest('delivery_and_dilemma' as any, meta.startStep as any) } catch {}
         }
         setPhase(1)
-        navigate(`/map?dialog=${encodeURIComponent('quest_start_dialog')}`)
+        const dlgKey = (line as any).dialogKey || 'quest_start_dialog'
+        navigate(`/map?dialog=${encodeURIComponent(dlgKey)}`)
       })()
+      return true
     }
+    return false
   }
 
   return { handleInlineActions, setScene: actions.setScene }

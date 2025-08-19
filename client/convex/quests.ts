@@ -274,14 +274,20 @@ export const setWorldPhase = mutation({
 // ===== Реестр квестов и выдача через хабы =====
 export const getAvailableQuestsForNpc = query({
   args: { npcId: v.string(), deviceId: v.optional(v.string()), userId: v.optional(v.string()) },
-  handler: async ({ db }, { npcId, deviceId, userId }) => {
+  handler: async ({ db, auth }, { npcId, deviceId }) => {
+    const identity = await auth.getUserIdentity()
+    const userId = identity?.subject
+    if (!userId) throw new Error('Unauthorized')
     return computeAvailableQuests(db, 'npc', npcId, deviceId, userId)
   },
 })
 
 export const getAvailableBoardQuests = query({
   args: { boardKey: v.string(), deviceId: v.optional(v.string()), userId: v.optional(v.string()) },
-  handler: async ({ db }, { boardKey, deviceId, userId }) => {
+  handler: async ({ db, auth }, { boardKey, deviceId }) => {
+    const identity = await auth.getUserIdentity()
+    const userId = identity?.subject
+    if (!userId) throw new Error('Unauthorized')
     return computeAvailableQuests(db, 'board', boardKey, deviceId, userId)
   },
 })

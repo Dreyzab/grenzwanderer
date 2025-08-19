@@ -13,9 +13,12 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as actions from "../actions.js";
 import type * as auth from "../auth.js";
 import type * as mapPoints from "../mapPoints.js";
+import type * as qr from "../qr.js";
 import type * as quests from "../quests.js";
+import type * as seed from "../seed.js";
 import type * as server from "../server.js";
 
 /**
@@ -27,9 +30,12 @@ import type * as server from "../server.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  actions: typeof actions;
   auth: typeof auth;
   mapPoints: typeof mapPoints;
+  qr: typeof qr;
   quests: typeof quests;
+  seed: typeof seed;
   server: typeof server;
 }>;
 export declare const api: FilterApi<

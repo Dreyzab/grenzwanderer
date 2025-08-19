@@ -63,10 +63,7 @@ export function MapPointTooltip({
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-medium text-white">{point.title}</h3>
-          {point.factionId && (
-            // @ts-ignore
-            <FactionBadge factionId={point.factionId as any} />
-          )}
+          {point.factionId && <FactionBadge factionId={point.factionId} />}
         </div>
         <div className="text-xs text-zinc-500">
           {getPointTypeText()} {point.isDiscovered ? '' : '(Не исследовано)'}

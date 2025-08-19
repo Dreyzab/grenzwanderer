@@ -1,5 +1,6 @@
 import type { VisibleMapPoint } from '@/entities/map-point/model/types'
 import type { DialogDefinition } from '@/shared/dialogs/types'
+import { usePlayerStore } from '@/entities/player/model/store'
 import { getDialogByKey } from '@/shared/storage/dialogs'
 
 export interface QuestStateSnapshot {
@@ -20,9 +21,10 @@ export function decideDialogKey(point: VisibleMapPoint, qs: QuestStateSnapshot):
     else dialogKey = null as any
   }
 
-  // Доставка: возврат к Дитеру с кристаллом — всегда приоритетен над прогресс-чеком
+  // Доставка: возврат к Дитеру — финал только при наличии кристалла в инвентаре
   if (point.dialogKey === 'craftsman_meeting_dialog' && qs.deliveryStep === 'return_to_craftsman') {
-    dialogKey = 'quest_complete_with_artifact_dialog'
+    const hasArtifact = typeof usePlayerStore.getState === 'function' && (usePlayerStore.getState() as any)?.hasItem?.('artifact_crystal')
+    dialogKey = hasArtifact ? 'quest_complete_with_artifact_dialog' : 'craftsman_progress_check'
   }
 
   // Повторные визиты/проверка прогресса вместо повторного старта

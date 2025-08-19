@@ -16,8 +16,8 @@ export function GameUI() {
       <button
         className="bg-emerald-700 hover:bg-emerald-600 text-white rounded px-3 py-1"
         onClick={() => {
-          handleInlineActions()
-          next()
+          const navigated = handleInlineActions()
+          if (!navigated) next()
         }}
       >
         Дальше

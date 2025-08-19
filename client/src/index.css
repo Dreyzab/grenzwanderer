@@ -24,6 +24,25 @@ body {
   @apply bg-neutral-950 text-neutral-100 antialiased;
 }
 
+.marker-tracked {
+  position: relative;
+}
+.marker-tracked::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  background: radial-gradient(closest-side, rgba(255,215,0,0.5), rgba(255,215,0,0.15) 60%, transparent 70%);
+  animation: trackedPulse 1.8s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes trackedPulse {
+  0% { transform: scale(0.9); opacity: 0.6; filter: drop-shadow(0 0 0px rgba(255,215,0,0.4)); }
+  40% { transform: scale(1.08); opacity: 0.9; filter: drop-shadow(0 0 8px rgba(255,215,0,0.7)); }
+  100% { transform: scale(1.0); opacity: 0.5; filter: drop-shadow(0 0 0px rgba(255,215,0,0.2)); }
+}
+
 .game-ui {
   background: var(--color-primary);
   padding: calc(var(--spacing-base) * 4);

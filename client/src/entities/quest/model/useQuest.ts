@@ -5,7 +5,7 @@ import type { QuestId } from './ids'
 import { questsApi } from '@/shared/api/quests'
 
 export function useQuest() {
-  const { activeQuests, completedQuests, startQuest, advanceQuest, completeQuest, hydrate } = useQuestStore()
+  const { activeQuests, completedQuests, startQuest, advanceQuest, completeQuest, hydrate, trackedQuestId, setTrackedQuest } = useQuestStore()
 
   const isActive = useCallback((id: QuestId) => Boolean(activeQuests[id]), [activeQuests])
   const getStep = useCallback(
@@ -19,8 +19,10 @@ export function useQuest() {
   return {
     activeQuests,
     completedQuests,
+    trackedQuestId,
     isActive,
     getStep,
+    setTrackedQuest,
     startQuest: async (id: QuestId, step: QuestStep) => {
       // Для квестов с серверными гейтами — сначала сервер, потом локально
       const serverFirst = new Set<QuestId>([

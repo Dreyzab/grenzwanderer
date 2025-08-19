@@ -26,7 +26,7 @@ export function useDialogAutoplay() {
           }
         } catch {}
         const cleanUrl = location.pathname
-        window.history.replaceState({}, '', cleanUrl)
+        navigate(cleanUrl, { replace: true })
       })()
       return
     }
@@ -37,7 +37,7 @@ export function useDialogAutoplay() {
       if (def) {
         setActiveDialog(def)
         const cleanUrl = location.pathname
-        window.history.replaceState({}, '', cleanUrl)
+        navigate(cleanUrl, { replace: true })
       }
     }
   }, [location.search, location.pathname, navigate])

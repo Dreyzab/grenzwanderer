@@ -215,28 +215,15 @@ useAvailableQuests(setModal) — openBoard/openNpc/refresh (центральны
 useDialogAutoplay() — автопоказ диалога по query/QR.
 useRegistrationPrompt() — показ приглашения к регистрации по прогрессу.
 
-## Дорожная карта реализации (пошагово)
+## Изменения (последний проход)
 
-1) Сервер: индексы, события и видимость
-- Добавить действие `actions.resolveEventKey` (обработка `quest:*`/`npc:*`/`board:*`, валидация, идемпотентность).
-- Расширить `mapPoints.listVisible({ bbox? })` и клиентскую передачу `bbox`.
-
-2) Социальная система
-- Таблицы/поля репутации фракций и отношений с NPC; пороги в `quest_registry.requirements`.
-- UI подсказки порогов + бейджи фракций.
-
-3) QR‑скан
-- Страница `QRScanPage` (zxing) → `qr.resolvePoint` → nextAction; E2E сценарий.
-
-4) UX
-- Фильтры карты (тип/фракция), журнал квестов, тосты.
-
-5) Админ/контент
-- Формы и импорт/экспорт для `quest_registry`/`mappoint_bindings`/`quest_dependencies`.
-- YAML/JSON формат + валидатор + импорт→сид.
-
-6) Тесты/CI
-- Юнит Convex, интеграция, E2E; CI pipeline.
-
-7) Наблюдаемость/безопасность
-- Rate limiting для QR/сидов, роли; метрики `listVisible`, Sentry.
+- README (Auth/Clerk): email claim в JWT — теперь `user.primary_email_address.email_address`.
+- Convex quests: `getAvailableQuestsForNpc` и `getAvailableBoardQuests` требуют auth и используют `userId` из `auth`.
+- Convex QR: `resolvePoint` больше не принимает доверенный `userId`; читает `identity.subject` (или fallback deviceId для гостя).
+- MapWidget:
+  - мемоизация interactions (useCallback/useMemo) → `useMarkers` не пересоздаёт маркеры;
+  - `useDialogAutoplay` использует `navigate(..., { replace: true })`.
+- useMarkers: именованные mouseenter/mouseleave, setPopup один раз, снятие слушателей в cleanup, безопасный async unmount, зависимости: `[points, mapRef, interactions]`.
+- useRegistrationPrompt: детерминированно `setShowRegistration(delivered && !userId)`.
+- QR API (client): экспортирован тип `QRResolvePointResult`, добавлен `eventKey?: string`.
+- Типы/Badge/Tooltip: `VisibleMapPoint.factionId?: FactionId`; `FactionBadge` с гардом; `MapPointTooltip` без `@ts-ignore/as any`.

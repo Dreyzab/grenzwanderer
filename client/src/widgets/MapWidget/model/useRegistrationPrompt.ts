@@ -9,8 +9,7 @@ export function useRegistrationPrompt() {
 
   useEffect(() => {
     const delivered = quest.getStep('delivery_and_dilemma') === 'completed'
-    if (delivered && !userId) setShowRegistration(true)
-    if (!delivered && !userId) setShowRegistration(false)
+    setShowRegistration(delivered && !userId)
   }, [quest.activeQuests, quest.completedQuests, userId])
 
   return { showRegistration, setShowRegistration }

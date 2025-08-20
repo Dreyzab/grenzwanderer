@@ -81,6 +81,8 @@ export const listVisible = query({
       // ФАЗЫ: после вступления (фаза 1) показываем стартовые точки квестов Фазы 1 (включая доску)
       const phase1Starts = ['settlement_center', 'synthesis_medbay', 'quiet_cove_bar', 'old_believers_square', 'fjr_office_start', 'fjr_board']
       const phase2Starts = ['rathaus', 'seepark', 'wasserschlossle', 'fjr_office_start']
+      // До вступления (фаза 0) — показываем ЖД-станцию для пролога
+      if (phase === 0 && p.key === 'settlement_center') return true
       if (phase === 1 && phase1Starts.includes(p.key)) return true
       if (phase === 2 && (phase2Starts.includes(p.key) || phase1Starts.includes(p.key))) return true
       // Для остальных точек: используем биндинги и метаданные

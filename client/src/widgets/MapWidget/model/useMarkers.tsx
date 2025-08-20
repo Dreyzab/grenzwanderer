@@ -96,6 +96,7 @@ export function useMarkers(
         geometry: { type: 'Point', coordinates: [p.coordinates.lng, p.coordinates.lat] },
       }))
       source.setData({ type: 'FeatureCollection', features } as any)
+      logger.info('MAP', 'setData features:', features.length)
 
       const visibleIds = Array.from(
         resolveVisibleIds(points, {
@@ -103,8 +104,14 @@ export function useMarkers(
           deliveryStep: quest.getStep('delivery_and_dilemma' as any),
         }),
       )
+      // Отобразим хотя бы settlement_center, если ничего не подходит (пролог/пустота)
+      if (visibleIds.length === 0) {
+        const hasStart = points.find((x) => x.id === 'settlement_center')
+        if (hasStart) visibleIds.push('settlement_center')
+      }
       if (map.getLayer('mappoints')) {
         map.setFilter('mappoints', ['in', ['get', 'id'], ['literal', visibleIds]] as any)
+        logger.info('MAP', 'filter mappoints visibleIds:', visibleIds)
       }
 
       const step = quest.getStep('delivery_and_dilemma' as any)
@@ -117,6 +124,7 @@ export function useMarkers(
       const isVisible = trackedTargetId && visibleIds.includes(trackedTargetId)
       if (map.getLayer('tracked-glow')) {
         map.setFilter('tracked-glow', isVisible ? (['==', ['get', 'id'], trackedTargetId] as any) : (['==', ['get', 'id'], '__none__'] as any))
+        logger.info('MAP', 'filter glow tracked:', trackedTargetId, 'isVisible:', isVisible)
       }
     }
 
@@ -199,10 +207,37 @@ export function useMarkers(
       rafRef.current = requestAnimationFrame(animate)
     }
 
-    initLayersIfNeeded()
-    updateDataAndFilters()
-    ensureLayerHandlers()
-    startAnimation()
+    const bootstrap = () => {
+      initLayersIfNeeded()
+      updateDataAndFilters()
+      ensureLayerHandlers()
+      startAnimation()
+    }
+
+    if (!map.isStyleLoaded()) {
+      const onLoad = () => {
+        try { bootstrap() } catch {}
+      }
+      map.once('load', onLoad)
+      return () => {
+        try { map.off('load', onLoad) } catch {}
+        if (rafRef.current) cancelAnimationFrame(rafRef.current)
+        try {
+          const h = handlersRef.current
+          if (h?.click) map.off('click', 'mappoints', h.click as any)
+          if (h?.mouseenter) map.off('mouseenter', 'mappoints', h.mouseenter as any)
+          if (h?.mouseleave) map.off('mouseleave', 'mappoints', h.mouseleave as any)
+        } catch {}
+        setTimeout(() => {
+          try { hoverPopupRef.current?.remove() } catch {}
+          try { hoverTooltipRootRef.current?.unmount() } catch {}
+          hoverPopupRef.current = null
+          hoverTooltipRootRef.current = null
+        }, 0)
+      }
+    }
+
+    bootstrap()
 
     // Этап 5: Очистка ресурсов
     return () => {

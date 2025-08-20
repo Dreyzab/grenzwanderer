@@ -1,229 +1,101 @@
-# Квестовая подсистема — обзор и связи
 
-```mermaid
-flowchart TD
-  subgraph Client
-    subgraph UI
-      MapWidget[widgets/MapWidget/MapWidget.tsx]
-      DialogModal[shared/ui/DialogModal.tsx]
-      AvailableQuestsModal[shared/ui/AvailableQuestsModal.tsx]
-      SettingsPage[pages/SettingsPage.tsx]
-      QuestsPage[pages/QuestsPage.tsx]
-    end
+## Архитектура: Карта и Квесты (v2)
 
-    subgraph MapWidget:model
-      useMapInstance[useMapInstance]
-      useVisiblePoints[useVisiblePoints]
-      useMarkers[useMarkers.tsx]
-      questSources[server npcId / eventKey]
-      useAvailableQuests[useAvailableQuests]
-      useDialogAutoplay[useDialogAutoplay]
-      useRegistrationPrompt[useRegistrationPrompt]
-    end
+### 1) Бэкенд (Convex): мозг и хранилище
+- Файлы: `client/convex/quests.ts`, `client/convex/quests.helpers.ts`, `client/convex/mapPoints.ts`, `client/convex/seed.ts`, `client/convex/schema.ts`.
+- Истина данных: таблицы `map_points`, `mappoint_bindings`, `quest_registry`, `quest_dependencies`, `quest_progress`, `player_state`, `world_state`, `users`.
+- Доступные функции:
+  - Квесты: `getAvailableQuests`, `getAvailableQuestsForNpc`, `getAvailableBoardQuests`, `getProgress`, `startQuest`, `advanceQuest`, `completeQuest`, `bootstrapNewPlayer`, `finalizeRegistration`, `getPlayerState`, `setPlayerPhase`, `getWorldState`, `setWorldPhase`, `applyOutcome`, `migrateDeviceProgressToUser`, `upsertQuestRegistry`.
+  - Карта: `mapPoints.listVisible` (гео‑окно + фильтр по фазам/требованиям/зависимостям), `mapPoints.listAll`, `mapPoints.upsertManyDev`.
+  - Seed (dev): `seed.seedQuestRegistryDev`, `seed.seedQuestDependenciesDev`, `seed.seedMappointBindingsDev`, `seed.seedQrCodesDev`.
+- Хелперы: `computeAvailableQuests`, `filterQuestsByRequirements`, `loadQuestDependencies`, `dependenciesSatisfied`, `isQuestAllowedByPhase`, `pickWinnerProgress`.
 
-    subgraph Feature:quest-progress
-      visibility[server-side in convex/mapPoints.ts]
-      decideDialogKey[features/quest-progress/model/decideDialogKey.ts]
-      actionCoordinator[features/quest-progress/model/actionCoordinator.ts]
-      conditions[features/quest-progress/model/conditions.ts]
-      outcomes[features/quest-progress/model/outcomes.ts]
-    end
+### 2) Слой данных фронтенда: мост карта↔сервер
+- Файл: `client/src/widgets/MapWidget/model/useVisiblePoints.ts`.
+- Поведение:
+  - Извлекает bbox из `mapbox.getBounds()` и запрашивает `mapPoints.listVisible({ deviceId })`.
+  - Обновляет точки при `moveend`/`zoomend`, выполняет минимальный дебаунс через `requestAnimationFrame`.
+  - Возвращает список `VisibleMapPoint`.
 
-    subgraph Entities:quest
-      questStore[entities/quest/model/questStore.ts]
-      progressionStore[entities/quest/model/progressionStore.ts]
-      useQuest[entities/quest/model/useQuest.ts]
-      catalog[entities/quest/model/catalog.ts]
-      ids[entities/quest/model/ids.ts]
-      types[entities/quest/model/types.ts]
-      fsmDelivery[entities/quest/model/fsm/deliveryMachine.ts]
-      fsmCombat[entities/quest/model/fsm/combatMachine.ts]
-    end
+### 3) Слой отображения: визуальный движок
+- Файл: `client/src/widgets/MapWidget/model/useMarkers.tsx`.
+- Поведение:
+  - Источники: `mappoints` (circle), слой подсветки `tracked-glow`.
+  - Синхронизация данных слоя с массивом точек.
+  - Обработчик клика: открытие досок/NPC/диалогов; подсветка пульсирует аниматором.
+  - Очистка ресурсов аниматора и обработчиков при unmount.
 
-    subgraph Shared
-      dialogs[shared/storage/dialogs.ts]
-      questDialogs[shared/storage/*QuestDialogs.ts]
-      sanitizeQuests[shared/lib/sanitizeQuests.ts]
-      convexClient[shared/lib/convexClient.ts]
-      questsApi[shared/api/quests/convex.ts]
-      mapPointsApi[shared/api/mapPoints/convex.ts]
-      mapTypes[shared/types/core/mapPoint.ts]
-    end
-  end
+### 4) Свод правил видимости
+- Файлы: `client/src/widgets/MapWidget/model/visibilityRules.ts`, тесты `visibilityRules.test.ts`.
+- Декларативные правила для id‑ов и состояний (`phase`, `deliveryStep`).
+- Фоллбэк на `settlement_center` только до старта доставки.
 
-  subgraph Server(Convex)
-    schema[convex/schema.ts]
-    mapPoints[convex/mapPoints.ts]
-    quests[convex/quests.ts]
-    questsHelpers[convex/quests.helpers.ts]
-    auth[convex/auth.ts]
-  end
+## Поток событий (Gameplay Loop)
 
-  %% Flows
-  MapWidget --> useMapInstance
-  MapWidget --> useVisiblePoints
-  MapWidget --> useMarkers
-  MapWidget --> useAvailableQuests
-  MapWidget --> useDialogAutoplay
-  MapWidget --> useRegistrationPrompt
+### Событие: Game_Start
+- Action: Play_Cutscene('cs_arrival') — прибытие на дрезине.
+- Action: Player.SetState('status','refugee'), Player.SetAttribute('fame',0), Player.Inventory.AddItem('item_canned_food',1) — выполняется через `quests.bootstrapNewPlayer({ deviceId })`.
 
-  useVisiblePoints --> mapPointsApi
-  useMarkers --> AvailableQuestsModal
-  useMarkers --> DialogModal
-  useAvailableQuests --> questsApi
+### Этап 1: Пролог — выдача PDA и старт диалога
+- Event: Cutscene_End → показываем карту, на ней виден `settlement_center`.
+- Action: Dialogue_Manager.Start('grant_pda_node') — запускается стартовый диалог (ключ можно сопоставить/заменить в `storage/dialogs`).
+- Event: Dialogue_End('prologue_check') → Action: Quest_Manager.StartQuest('delivery_and_dilemma') через `quests.startQuest`.
 
-  actionCoordinator --> questsApi
-  actionCoordinator --> questStore
-  actionCoordinator --> outcomes
+### Навигация по квесту доставки
+- После старта показывается `trader_camp` и слой `tracked-glow` указывает на активную цель.
+- Затем `workshop_center`, после получения артефакта — возврат и завершение `completeQuest`.
 
-  questsApi --> convexClient
-  mapPointsApi --> convexClient
-  convexClient --> quests
-  convexClient --> mapPoints
+### Регистрация и создание персонажа
+- Аутентификация через Clerk.
+- После успешного логина открыть модал создания персонажа (иконка, ник).
+- По подтверждению вызвать `quests.finalizeRegistration({ deviceId, nickname, avatarKey })`:
+  - Привязка прогресса к пользователю, установка `player_state.phase = 1`, `world_state.phase = 1`.
+  - После этого фронтенд видит точки фазы 1 по биндингам из `seed.ts`.
 
-  quests --> questsHelpers
-  quests --> schema
-  mapPoints --> schema
+## Checklist внедрения
+- [ ] seed: выполнить `seedQuestRegistryDev`, `seedQuestDependenciesDev`, `seedMappointBindingsDev`, `seedQrCodesDev`.
+- [ ] Вызов `bootstrapNewPlayer` на первом запуске.
+- [ ] Триггер кат‑сцены и старт диалога `grant_pda_node` после загрузки карты.
+- [ ] По завершению диалога — `startQuest('delivery_and_dilemma')`.
+- [ ] UI регистрации Clerk → модал создания персонажа → `finalizeRegistration`.
+- [ ] Визуальная подсветка `tracked-glow` активной цели квеста.
 
-  DialogModal --> dialogs
-  dialogs --> questDialogs
+## Логика карты и маркеров (Mapbox GL)
 
-  MapWidget --> questStore
-  MapWidget --> progressionStore
-  MapWidget --> catalog
-  MapWidget --> ids
+### Этап 1. Источник данных (Source)
+- Создаётся один источник `mappoints` типа `geojson` с пустым `FeatureCollection` и `promoteId: 'id'`.
+- Источник — единый буфер данных, который заполняется из полученного массива `points` при каждом обновлении.
 
-  auth --> schema
-```
+### Этап 2. Слои отображения (Layers)
+- Слой `mappoints` (type: `circle`) — базовые маркеры.
+  - `circle-radius`: 7
+  - `circle-color`: через выражение `['match', ['get','type'], ...]` для динамических цветов по типам (`settlement`, `npc`, `board`, `anomaly`, fallback).
+  - `circle-stroke-color`: `#111827`, `circle-stroke-width`: `1.5`, `circle-opacity`: `0.95`.
+- Слой `tracked-glow` (type: `circle`) — подсветка отслеживаемой цели.
+  - `circle-radius`: 10, `circle-blur`: 0.4, `circle-opacity`: 0.9, цвет полупрозрачный золотой.
+  - Изначально скрыт фильтром `['==',['get','id'],'__none__']`.
 
-Примечания:
-- Списки квестов на хабах: `quests.getAvailableQuests({ sourceType, sourceKey })` (источники npc/board приходят с сервера через `npcId`/`eventKey`).
-- FSM для квестов: `deliveryMachine.ts`, `combatMachine.ts` (остальные по мере добавления).
+### Этап 3. Обновление данных и фильтрация
+- Преобразование `points` → GeoJSON features: геометрия `Point`, свойства: `id`, `title`, `type`, `dialogKey`, `eventKey`, `npcId`, `description`, `isActive`, `isDiscovered`, `lat`, `lng`.
+- `source.setData` перезаписывает данные источника — быстрый и эффективный путь обновить карту.
+- Видимость слоя `mappoints` управляется через `map.setFilter('mappoints', ['in',['get','id'], ['literal', visibleIds]])`, где `visibleIds` возвращает `resolveVisibleIds(points, { phase, deliveryStep })`.
+- Подсветка цели `tracked-glow` управляется фильтром `['==',['get','id'], trackedTargetId]` (или скрыта, если цель отсутствует/невидима).
 
-Сервер (Convex)
-client/convex/schema.ts — таблицы: quest_progress, player_state(hasPda), world_state, quest_registry, map_points, mappoint_bindings(npcId/startKey/dialogKey), quest_dependencies, qr_codes.
-client/convex/quests.ts — публичные query/mutation: прогресс, выдача доступных квестов (учёт зависимостей), применение исходов, сид реестра.
-client/convex/quests.helpers.ts — фильтры по требованиям, приоритезация, загрузка состояния игрока/мира, унифицированная выдача, зависимости.
-client/convex/mapPoints.ts — серверная фильтрация видимых точек по `mappoint_bindings`/требованиям/зависимостям; обогащение `dialogKey/eventKey/npcId`.
-client/convex/auth.ts — me, вспомогательная миграция device→user.
-client/convex/auth.config.ts — конфиг провайдера JWT (Clerk) для Convex.
+### Этап 4. Интерактивность (Handlers)
+- События навешиваются на слой `mappoints`:
+  - `click`: открывает борды/NPC или диалог, используя свойства feature.
+  - `mouseenter`: меняет курсор, создаёт React‑tooltip (`MapPointTooltip`) и Popup (`mapboxgl.Popup`), привязывает его к координатам feature.
+  - `mouseleave`: безопасно убирает курсор и откладывает удаление Popup/Unmount Root через `setTimeout(..., 0)`.
+- Ссылки на обработчики сохраняются, на `cleanup` снимаются `map.off` по тем же ссылкам.
 
-Доменные сущности (клиент)
-client/src/entities/quest/model/ids.ts — реестр QuestId и типобезопасность.
-client/src/entities/quest/model/types.ts — типы шагов/квестов.
-client/src/entities/quest/model/catalog.ts — метаданные стартов квестов (фаза/точка/стартовый шаг).
-client/src/entities/quest/model/questStore.ts — локальный Zustand-стор квестов.
-client/src/entities/quest/model/progressionStore.ts — фаза/прогресс игрока.
-client/src/entities/quest/model/useQuest.ts — хуки доступа к сторам.
-client/src/entities/quest/model/fsm/deliveryMachine.ts — FSM «Доставка…».
-client/src/entities/quest/model/fsm/combatMachine.ts — FSM «Боёвое Крещение».
+### Этап 5. Анимация подсветки
+- Аниматор на `requestAnimationFrame`: периодически меняет `circle-radius` и `circle-opacity` у слоя `tracked-glow` через `map.setPaintProperty` для эффекта пульсации.
+- На `cleanup` аниматор останавливается через `cancelAnimationFrame`.
 
-Фича «Прогресс квестов»
-client/src/features/quest-progress/model/actionCoordinator.ts — диспетчер действий из диалогов → FSM/мутации.
-client/src/features/quest-progress/model/actionMap.ts — карта action→обработчик.
-client/src/features/quest-progress/model/conditions.ts — условия выбора в диалогах.
-client/src/features/quest-progress/model/decideDialogKey.ts — выбор нужного диалога по точке/состоянию квестов.
-client/src/features/quest-progress/model/outcomes.ts — применение игровых исходов.
+### Этап 6. Очистка и безопасность
+- В `cleanup` эффекта:
+  - Снятие всех обработчиков слоёв `map.off`.
+  - Остановка анимации.
+  - Защитное удаление Popup (`hoverPopupRef.remove()`) и размонтирование React Root (`hoverTooltipRootRef.unmount()`), затем `null` в рефах.
+- Очистка сделана идемпотентной и не зависит от того, были ли события `mouseenter/leave`.
 
-API-слой (клиент)
-client/src/shared/api/quests/convex.ts — обёртки над Convex: прогресс, выдача квестов (NPC/доски/универсальная), applyOutcome, сид реестра, фаза.
-client/src/shared/api/quests/index.ts — экспорт API.
-client/src/shared/api/mapPoints/convex.ts — запросы/сид карты (связь точек с квестами через questId).
-
-Контент диалогов (квесты)
-client/src/shared/storage/dialogs.ts — реестр всех диалогов.
-client/src/shared/storage/.ts — файлы диалогов квестов: deliveryQuestDialogs.ts, loyaltyQuestDialogs.ts, waterQuestDialogs.ts, freedomQuestDialogs.ts, combatBaptismQuestDialogs.ts, fieldMedicineQuestDialogs.ts, quietCoveQuestDialogs.ts, bellQuestDialogs.ts, citizenshipQuestDialogs.ts, eyesInDarkQuestDialogs.ts, voidShardsQuestDialogs.ts.
-client/src/shared/dialogs/types.ts — типы диалоговой системы.
-
-Виджет карты (интеграция квестов в карту)
-client/src/widgets/MapWidget/MapWidget.tsx — композиция: загрузка точек, диалоги, модалки квестов.
-client/src/widgets/MapWidget/model/useVisiblePoints.ts — загрузка точек (server/local fallback), автофокус.
-client/src/widgets/MapWidget/model/useMarkers.tsx — рендер маркеров/тултипов, обработка кликов (NPC/доски по server `npcId`/`board`, диалоги).
-client/src/widgets/MapWidget/model/useAvailableQuests.ts — универсальный хук открытия модалки со списком квестов.
-client/src/widgets/MapWidget/model/useDialogAutoplay.ts — автозапуск диалога по query / QR nextAction.
-client/src/widgets/MapWidget/model/useRegistrationPrompt.ts — приглашение к регистрации по прогрессу.
-client/src/widgets/MapWidget/model/useMapInstance.ts — инициализация карты.
-
-UI-модалки/экраны
-client/src/shared/ui/DialogModal.tsx — показ диалогов квестов.
-client/src/shared/ui/AvailableQuestsModal.tsx — список доступных квестов (NPC/доски).
-client/src/shared/ui/RegistrationPrompt.tsx — приглашение к регистрации (после доставки, гость).
-client/src/pages/QuestsPage.tsx — экран квестов (список/создание).
-client/src/pages/SettingsPage.tsx — сиды/синхронизация/фаза/отладка.
-
-Инициализация/гидрация
-client/src/app/ConvexProvider.tsx — QuestHydrator: подтягивает прогресс/мир/состояние игрока из Convex, миграции, установка фазы.
-
-Прочее полезное
-client/src/shared/lib/sanitizeQuests.ts — валидация и нормализация выдачи списков квестов (NPC/доски).
-client/src/entities/map-point/api/seed.ts — демо-точки (привязка questId/dialogKey к маркерам).
-client/src/shared/types/core/mapPoint.ts — базовые типы карты (вкл. questId в точках).
-
-Основные сущности (Entity/типовые структуры)
-QuestId, QuestStep, ActiveQuest — идентификаторы и шаги квестов.
-QuestMeta, QuestRequirementsMeta — метаданные квестов и требования (phase/fame/flags/reps/relations).
-PlayerStateRow, WorldStateRow — состояние игрока/мира на сервере.
-MapPoint/VisibleMapPoint — точка карты и её расширения (questId, dialogKey, type, npcId, eventKey).
-DialogDefinition — описание диалога (узлы, переходы, action/condition).
-
-Сторы/хранилища (Zustand)
-questStore — активные/завершённые квесты, методы: startQuest, advanceQuest, completeQuest, hydrate.
-progressionStore — текущая фаза/синхронизация фазы.
-player store (hydrateFromServer, credits/skills).
-
-Серверные функции (Convex)
-Прогресс/состояние: getProgress, getPlayerState, setPlayerPhase, migrateDeviceProgressToUser.
-completeQuest, startQuest, advanceQuest.
-getWorldState, setWorldPhase.
-
-Реестр/выдача квестов:
-getAvailableQuests({ sourceType, sourceKey }) — универсальная выдача (NPC/доски).
-getAvailableQuestsForNpc(npcId), getAvailableBoardQuests(boardKey).
-applyOutcome (fame/rep/relations/flags/phase/status).
-upsertQuestRegistry, seedQuestRegistryDev.
-
-Карта:
-mapPoints.listVisible({ deviceId?, userId?, bbox? }) — серверная видимость; возвращает `dialogKey/eventKey/npcId`.
-listAll(), upsertManyDev(points, devToken).
-
-Клиентские API-функции
-questsApi: getProgress, getPlayerState, setPlayerPhase, migrateDeviceToUser.
-startQuest, advanceQuest, completeQuest, applyOutcome.
-getAvailableQuests(sourceType, sourceKey), getAvailableQuestsForNpc(npcId), getAvailableBoardQuests(boardKey).
-seedQuestRegistryDev.
-mapPointsApi: listVisible, listAll, upsertManyDev(points, token).
-
-Фиче‑логика (модели/хелперы)
-- decideDialogKey(point, qs) — фолбэк выбора диалога по точке и состоянию квестов.
-- actionCoordinator.handle(actionKey, eventOutcomeKey) — диспетчер действий из диалогов.
-- conditions.* — проверка условий диалогов (по игроку/прогрессу).
-- outcomes.* — вычисление и применение исходов.
-
-Серверные хелперы (quests.helpers.ts)
-filterQuestsByRequirements(quests, player, world, completedSet).
-questTypeRank(type) — сортировка по типу: story > personal > faction > procedural.
-loadPlayerWorldProgress(db, deviceId?, userId?).
-listFromSource(db, sourceType, sourceKey) — выборка из quest_registry.
-computeAvailableQuests(db, sourceType, sourceKey, deviceId?, userId?).
-pickWinnerProgress(a, b) — слияние дублей прогресса (completed/updatedAt).
-
-Виджет карты — хуки
-useMapInstance(ref) — инициализация Mapbox GL.
-useVisiblePoints() — загрузка (server/local), автофокус.
-useMarkers(mapRef, points, interactions) — создание маркеров/попапов, обработчики кликов (NPC/доски/диалоги/старт по eventKey), безопасный unmount.
-useAvailableQuests(setModal) — openBoard/openNpc/refresh (центральный источник списков).
-useDialogAutoplay() — автопоказ диалога по query/QR.
-useRegistrationPrompt() — показ приглашения к регистрации по прогрессу.
-
-## Изменения (последний проход)
-
-- README (Auth/Clerk): email claim в JWT — теперь `user.primary_email_address.email_address`.
-- Convex quests: `getAvailableQuestsForNpc` и `getAvailableBoardQuests` требуют auth и используют `userId` из `auth`.
-- Convex QR: `resolvePoint` больше не принимает доверенный `userId`; читает `identity.subject` (или fallback deviceId для гостя).
-- MapWidget:
-  - мемоизация interactions (useCallback/useMemo) → `useMarkers` не пересоздаёт маркеры;
-  - `useDialogAutoplay` использует `navigate(..., { replace: true })`.
-- useMarkers: именованные mouseenter/mouseleave, setPopup один раз, снятие слушателей в cleanup, безопасный async unmount, зависимости: `[points, mapRef, interactions]`.
-- useRegistrationPrompt: детерминированно `setShowRegistration(delivered && !userId)`.
-- QR API (client): экспортирован тип `QRResolvePointResult`, добавлен `eventKey?: string`.
-- Типы/Badge/Tooltip: `VisibleMapPoint.factionId?: FactionId`; `FactionBadge` с гардом; `MapPointTooltip` без `@ts-ignore/as any`.

@@ -1,6 +1,6 @@
 import { mutation, query } from './_generated/server'
 import { v } from 'convex/values'
-import { filterQuestsByRequirements, loadQuestDependencies, dependenciesSatisfied } from './quests.helpers'
+import { filterQuestsByRequirements, loadQuestDependencies, dependenciesSatisfied } from './quests.helpers.ts'
 
 export const resolvePoint = query({
   args: { code: v.string(), deviceId: v.optional(v.string()), userId: v.optional(v.string()) },
@@ -43,7 +43,7 @@ export const resolvePoint = query({
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     const chosen = candidates.find((b) => dependenciesSatisfied(b.questId, done, deps))
 
-    const hasPda = Boolean(player?.hasPda)
+    const hasPda = Boolean((player as any)?.hasPda)
     const nextAction = hasPda ? 'open_point' : 'start_intro_vn'
 
     return {

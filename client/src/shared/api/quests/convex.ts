@@ -72,7 +72,7 @@ export const questsApiConvex = {
     return convexClient.mutation(api.quests.applyOutcome, { deviceId, ...args })
   },
   seedQuestRegistryDev: async (devToken: string) => {
-    return convexClient.mutation(api.quests.seedQuestRegistryDev, { devToken })
+    return convexClient.mutation(api.seed.seedQuestRegistryDev, { devToken })
   },
 }
 

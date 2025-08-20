@@ -2,7 +2,7 @@ import { internalMutation, mutation, query } from './_generated/server'
 import type { QueryCtx, MutationCtx } from './_generated/server'
 import type { Doc } from './_generated/dataModel'
 import { v, type Infer } from 'convex/values'
-import { filterQuestsByRequirements, loadQuestDependencies, dependenciesSatisfied } from './quests.helpers'
+import { filterQuestsByRequirements, loadQuestDependencies, dependenciesSatisfied } from './quests.helpers.ts'
 
 const pointInput = v.object({
   key: v.string(),
@@ -74,7 +74,7 @@ export const listVisible = query({
       byPoint.get(b.pointKey)!.push(b)
     }
     const questMetas = await db.query('quest_registry').collect()
-    const metaById = new Map<string, any>(questMetas.map((m: any) => [m.questId, m]))
+    const metaById = new Map<string, any>(questMetas.map((m: any) => [m.questId as string, m]))
     const deps = await loadQuestDependencies(db)
 
     const filtered = points.filter((p) => {
@@ -94,13 +94,13 @@ export const listVisible = query({
       })
       if (bForPhase.length === 0) return false
       // Получаем метаданные квестов и фильтруем по требованиям
-      const metas = bForPhase
-        .map((b) => metaById.get(b.questId))
-        .filter((m): m is any => Boolean(m))
+      const metas: any[] = bForPhase
+        .map((bind) => metaById.get(bind.questId))
+        .filter((meta): meta is any => Boolean(meta))
       const allowed = filterQuestsByRequirements(metas, player as any, (world as any) ?? { phase }, done)
       if (allowed.length === 0) return false
       // Фильтр по зависимостям
-      const allowedByDeps = allowed.filter((m) => dependenciesSatisfied(m.questId, done, deps))
+      const allowedByDeps = allowed.filter((meta: any) => dependenciesSatisfied(meta.questId, done, deps))
       return allowedByDeps.length > 0
     })
 
@@ -113,11 +113,11 @@ export const listVisible = query({
         return fromOk && toOk
       })
       // Выбираем первый по order биндинг, удовлетворяющий требованиям/зависимостям
-      const metas = bForPhase.map((b) => metaById.get(b.questId)).filter((m): m is any => Boolean(m))
+      const metas: any[] = bForPhase.map((bind) => metaById.get(bind.questId)).filter((meta): meta is any => Boolean(meta))
       const allowed = filterQuestsByRequirements(metas, player as any, (world as any) ?? { phase }, done)
-      const allowedIds = new Set(allowed.map((m) => m.questId))
-      const candidates = bForPhase.filter((b) => allowedIds.has(b.questId)).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      const chosen = candidates.find((b) => dependenciesSatisfied(b.questId, done, deps))
+      const allowedIds = new Set(allowed.map((meta: any) => meta.questId))
+      const candidates = bForPhase.filter((bind) => allowedIds.has(bind.questId)).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      const chosen = candidates.find((bind) => dependenciesSatisfied(bind.questId, done, deps))
       if (!chosen) return p
       return {
         ...p,

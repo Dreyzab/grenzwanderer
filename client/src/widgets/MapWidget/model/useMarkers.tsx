@@ -122,7 +122,11 @@ export function useMarkers(
       else if (step === 'deliver_parts_to_craftsman' || step === 'return_to_craftsman') trackedTargetId = 'workshop_center'
       else if (step === 'go_to_anomaly') trackedTargetId = 'northern_anomaly'
 
-      const isVisible = trackedTargetId && visibleIds.includes(trackedTargetId)
+      const isVisible = Boolean(trackedTargetId && visibleIds.includes(trackedTargetId))
+      if (trackedTargetId && !isVisible) {
+        const have = points.map((p) => p.id)
+        logger.info('MAP', 'tracked target missing in points', { trackedTargetId, have })
+      }
       if (map.getLayer('tracked-glow')) {
         map.setFilter('tracked-glow', isVisible ? (['==', ['get', 'id'], trackedTargetId] as any) : (['==', ['get', 'id'], '__none__'] as any))
         logger.info('MAP', 'filter glow tracked:', trackedTargetId, 'isVisible:', isVisible)

@@ -8,7 +8,7 @@ export function Component() {
   const defaultToken = ((import.meta as any).env?.VITE_DEV_SEED_TOKEN as string) ?? ''
   const [token, setToken] = useState<string>(defaultToken)
   const [busy, setBusy] = useState<string | null>(null)
-  const call = async (key: 'registry' | 'deps' | 'bindings' | 'qr' | 'map_points') => {
+  const call = async (key: 'registry' | 'deps' | 'bindings' | 'qr' | 'map_points' | 'all') => {
     if (!token) return alert('Введите dev token')
     try {
       setBusy(key)
@@ -31,6 +31,26 @@ export function Component() {
           icon: p.icon,
         }))
         await mapPointsApiConvex.upsertManyDev(points, token)
+      }
+      if (key === 'all') {
+        await convexClient.mutation(api.seed.seedQuestRegistryDev, { devToken: token })
+        await convexClient.mutation(api.seed.seedQuestDependenciesDev, { devToken: token })
+        const demo = getDemoMapPoints()
+        const points = demo.map((p) => ({
+          key: p.id,
+          title: p.title,
+          description: p.description,
+          coordinates: p.coordinates,
+          type: p.type,
+          dialogKey: p.dialogKey,
+          questId: p.questId,
+          active: p.isActive,
+          radius: p.radius,
+          icon: p.icon,
+        }))
+        await mapPointsApiConvex.upsertManyDev(points, token)
+        await convexClient.mutation(api.seed.seedMappointBindingsDev, { devToken: token })
+        await convexClient.mutation(api.seed.seedQrCodesDev, { devToken: token })
       }
       alert('Done')
     } catch (e) {
@@ -55,6 +75,7 @@ export function Component() {
         <button disabled={busy !== null} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50" onClick={() => call('bindings')}>Seed Mappoint Bindings</button>
         <button disabled={busy !== null} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50" onClick={() => call('qr')}>Seed QR Codes</button>
         <button disabled={busy !== null} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50" onClick={() => call('map_points')}>Seed Map Points (demo)</button>
+        <button disabled={busy !== null} className="px-3 py-1 rounded bg-indigo-200 hover:bg-indigo-300 disabled:opacity-50" onClick={() => call('all')}>Seed ALL</button>
       </div>
     </div>
   )

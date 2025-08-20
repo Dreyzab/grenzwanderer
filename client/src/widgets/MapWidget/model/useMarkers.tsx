@@ -104,6 +104,7 @@ export function useMarkers(
           deliveryStep: quest.getStep('delivery_and_dilemma' as any),
         }),
       )
+      logger.info('MAP', 'resolveVisibleIds ctx:', { phase, step: quest.getStep('delivery_and_dilemma' as any) })
       // Отобразим хотя бы settlement_center, если ничего не подходит (пролог/пустота)
       if (visibleIds.length === 0) {
         const hasStart = points.find((x) => x.id === 'settlement_center')

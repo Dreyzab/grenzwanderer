@@ -40,11 +40,18 @@ export const seedMappointBindingsDev = mutation({
     if (!expected || devToken !== expected) throw new Error('Forbidden: invalid dev token')
     const now = Date.now()
     const binds: Array<{ pointKey: string; questId: string; order?: number; phaseFrom?: number; phaseTo?: number; startKey?: string; dialogKey?: string; npcId?: string }> = [
+      // Пролог: запуск доставки на ЖД-станции
       { pointKey: 'settlement_center', questId: 'delivery_and_dilemma', order: 1, phaseFrom: 1, startKey: 'quest:delivery:start', dialogKey: 'quest_start_dialog', npcId: 'hans' },
+      // Этапы квеста доставки
+      { pointKey: 'trader_camp', questId: 'delivery_and_dilemma', order: 2, phaseFrom: 1, dialogKey: 'trader_meeting_dialog', npcId: 'trader' },
+      { pointKey: 'workshop_center', questId: 'delivery_and_dilemma', order: 3, phaseFrom: 1, dialogKey: 'craftsman_meeting_dialog', npcId: 'craftsman' },
+      { pointKey: 'northern_anomaly', questId: 'delivery_and_dilemma', order: 4, phaseFrom: 1, dialogKey: 'anomaly_exploration_dialog' },
+      // Прочие стартовые точки фазы 1
       { pointKey: 'synthesis_medbay', questId: 'field_medicine', order: 1, phaseFrom: 1 },
       { pointKey: 'quiet_cove_bar', questId: 'quiet_cove_whisper', order: 1, phaseFrom: 1, npcId: 'quiet_cove_bartender' },
       { pointKey: 'old_believers_square', questId: 'bell_for_lost', order: 1, phaseFrom: 1, npcId: 'cathedral_priest' },
       { pointKey: 'fjr_board', questId: 'combat_baptism', order: 1, phaseFrom: 1, startKey: 'board:fjr:open' },
+      // Фаза 2
       { pointKey: 'rathaus', questId: 'citizenship_invitation', order: 1, phaseFrom: 1, phaseTo: 2, startKey: 'quest:citizenship:start', dialogKey: 'mayor_briefing_dialog', npcId: 'rathaus_mayor' },
       { pointKey: 'seepark', questId: 'eyes_in_the_dark', order: 1, phaseFrom: 2, npcId: 'seepark_scientist' },
       { pointKey: 'wasserschlossle', questId: 'void_shards', order: 1, phaseFrom: 2, npcId: 'wasserschlossle_curator' },

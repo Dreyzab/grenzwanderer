@@ -51,6 +51,7 @@ export function useVisiblePoints(mapRef: React.RefObject<unknown>) {
         setPoints(mapped)
         lastLoadedAtRef.current = now
         logger.info('MAP', 'Visible bbox:', bbox, 'Points total:', mapped.length)
+        logger.info('MAP', 'Visible ids:', mapped.map((m) => m.id))
       } catch (e) {
         // eslint-disable-next-line no-console
         console.warn('Failed to load visible points', e)

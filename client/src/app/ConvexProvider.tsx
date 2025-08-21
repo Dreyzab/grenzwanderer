@@ -8,6 +8,7 @@ import { useQuest } from '@/entities/quest/model/useQuest'
 import { useAuthStore } from '@/entities/auth/model/store'
 import { useProgressionStore } from '@/entities/quest/model/progressionStore'
 import { usePlayerStore } from '@/entities/player/model/store'
+import { questsApi } from '@/shared/api/quests'
 
 type Props = { children: ReactNode }
 
@@ -19,6 +20,7 @@ export function QuestHydrator({ children }: Props) {
   const deviceId = getOrCreateDeviceId()
   const { userId, setUserId } = useAuthStore()
   const me = useQuery((api as any).auth?.me, {})
+  const meProfile = useQuery((api as any).auth?.meProfile, {})
   const serverProgress = useQuery(api.quests.getProgress, { deviceId, userId: (me?.userId ?? userId) || undefined })
   const world = useQuery((api as any).quests?.getWorldState, {})
   const quest = useQuest()
@@ -26,6 +28,10 @@ export function QuestHydrator({ children }: Props) {
   const player = usePlayerStore()
 
   useEffect(() => {
+    // Однократно: bootstrap нового игрока (фаза 0, статус refugee, предметы)
+    ;(async () => {
+      try { await questsApi.bootstrapNewPlayer() } catch {}
+    })()
     if (me?.userId && me.userId !== userId) setUserId(me.userId)
     if (!serverProgress) return
     const mapped = serverProgress.map((p: any) => ({
@@ -37,6 +43,17 @@ export function QuestHydrator({ children }: Props) {
     if (Object.keys(quest.activeQuests).length === 0 && (quest.completedQuests?.length ?? 0) === 0) {
       quest.hydrate(mapped as any)
     }
+    // Если на сервере квест завершён, но локально не отмечен — отметим для триггера UI (рег. промпт и т.п.)
+    try {
+      const completedIds = new Set(mapped.filter((m: any) => m.completedAt).map((m: any) => m.id))
+      for (const id of Array.from(completedIds)) {
+        if (!(quest.completedQuests ?? []).includes(id as any)) {
+          // локально выставим completed без побочных эффектов
+          quest.hydrate(mapped as any)
+          break
+        }
+      }
+    } catch {}
     void progression.hydrateFromServer()
     // Попробуем подтянуть и состояние игрока (fame/rep/rel/flags/status)
     ;(async () => {

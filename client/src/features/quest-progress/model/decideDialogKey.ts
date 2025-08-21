@@ -22,7 +22,7 @@ export function decideDialogKey(point: VisibleMapPoint, qs: QuestStateSnapshot):
   }
 
   // Доставка: возврат к Дитеру — финал только при наличии кристалла в инвентаре
-  if (point.dialogKey === 'craftsman_meeting_dialog' && qs.deliveryStep === 'return_to_craftsman') {
+  if ((point.id === 'workshop_center' || point.dialogKey === 'craftsman_meeting_dialog') && qs.deliveryStep === 'return_to_craftsman') {
     const hasArtifact = typeof usePlayerStore.getState === 'function' && (usePlayerStore.getState() as any)?.hasItem?.('artifact_crystal')
     dialogKey = hasArtifact ? 'quest_complete_with_artifact_dialog' : 'craftsman_progress_check'
   }

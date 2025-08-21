@@ -40,4 +40,12 @@ export const upsertFromClerk = internalMutation({
   },
 })
 
+// Публичный запрос: вернуть текущего пользователя из таблицы users (для отладки/проверки)
+export const meProfile = query(async ({ db, auth }) => {
+  const identity = await auth.getUserIdentity()
+  if (!identity?.subject) return null
+  const user = await db.query('users').withIndex('by_externalId', (q) => q.eq('externalId', identity.subject)).unique()
+  return user ?? null
+})
+
 

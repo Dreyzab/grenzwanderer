@@ -1,8 +1,7 @@
 import { useVNStore } from './store'
 import type { GameState } from './types'
 import { useNavigate } from 'react-router-dom'
-import { qrApi } from '@/shared/api/quests'
-import { questsApi } from '@/shared/api/quests'
+import { questsApi, qrApi } from '@/shared/api/quests'
 import { getQuestMeta } from '@/entities/quest/model/catalog'
 import { useProgressionStore } from '@/entities/quest/model/progressionStore'
 
@@ -46,10 +45,13 @@ export const useSceneEngine = () => {
         try {
           await qrApi.grantPda()
         } catch {}
+        // ВАЖНО: сначала поднимаем фазу на сервере (иначе старт квеста заблокирован на phase 0)
+        try { await questsApi.setPlayerPhase(1) } catch {}
         const meta = getQuestMeta('delivery_and_dilemma' as any)
         if (meta) {
           try { await questsApi.startQuest('delivery_and_dilemma' as any, meta.startStep as any) } catch {}
         }
+        // Синхронизируем локально для UI
         setPhase(1)
         const dlgKey = (line as any).dialogKey || 'quest_start_dialog'
         navigate(`/map?dialog=${encodeURIComponent(dlgKey)}`)

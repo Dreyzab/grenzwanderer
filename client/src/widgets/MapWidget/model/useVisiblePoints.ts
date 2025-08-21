@@ -1,82 +1,72 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import type { VisibleMapPoint } from '@/entities/map-point/model/types'
-import { mapPointsApiConvex } from '@/shared/api/mapPoints/convex'
+import { useEffect, useRef, useState } from 'react'
+import type { Map } from 'mapbox-gl'
+import { mapPointsApi } from '@/shared/api/mapPoints'
 import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
-import logger from '@/shared/lib/logger'
 
-export function useVisiblePoints(mapRef: React.RefObject<unknown>) {
+export interface VisibleMapPoint {
+  key: string
+  title: string
+  description?: string
+  coordinates: { lat: number; lng: number }
+  type?: string
+  dialogKey?: string
+  questId?: string
+  active: boolean
+  radius?: number
+  icon?: string
+}
+
+export function useVisiblePoints(mapRef: React.RefObject<Map | null>) {
   const [points, setPoints] = useState<VisibleMapPoint[]>([])
-  const isLoadingRef = useRef(false as boolean)
-  const lastLoadedAtRef = useRef(0 as number)
-
-  const bbox = useMemo(() => {
-    const m = mapRef.current as any
-    if (!m) return null
-    const bounds = m.getBounds()
-    return bounds
-      ? { minLat: bounds.getSouth(), minLng: bounds.getWest(), maxLat: bounds.getNorth(), maxLng: bounds.getEast() }
-      : null
-  }, [mapRef])
+  const isLoadingRef = useRef(false)
+  const lastLoadedAtRef = useRef(0)
+  const rafRef = useRef<number | null>(null)
+  const destroyedRef = useRef(false)
 
   useEffect(() => {
-    const m = mapRef.current as any
-    if (!m) return
-    const deviceId = getOrCreateDeviceId()
-    let raf: number | null = null
+    destroyedRef.current = false
+    const map = mapRef.current
+    if (!map) return
 
-    const load = async () => {
-      try {
-        const now = Date.now()
+    const scheduleLoad = () => {
+      if (rafRef.current) return
+      rafRef.current = requestAnimationFrame(async () => {
+        rafRef.current = null
         if (isLoadingRef.current) return
+        const now = Date.now()
         if (now - lastLoadedAtRef.current < 1500) return
         isLoadingRef.current = true
-        const args = bbox
-          ? { deviceId, userId: undefined as any, bbox }
-          : { deviceId }
-        const res = (await mapPointsApiConvex.listVisible(args as any)) as any[]
-        const mapped: VisibleMapPoint[] = res.map((r: any) => ({
-          id: r.key,
-          title: r.title,
-          description: r.description,
-          coordinates: r.coordinates,
-          type: (r.type ?? 'landmark') as any,
-          isActive: Boolean(r.active ?? true),
-          dialogKey: r.dialogKey ?? undefined,
-          eventKey: (r as any).eventKey ?? undefined,
-          npcId: r.npcId ?? undefined,
-          radius: r.radius ?? 0,
-          icon: r.icon ?? undefined,
-          isDiscovered: true,
-        }))
-        setPoints(mapped)
-        lastLoadedAtRef.current = now
-        logger.info('MAP', 'Visible bbox:', bbox, 'Points total:', mapped.length)
-        logger.info('MAP', 'Visible ids:', mapped.map((m) => m.id))
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to load visible points', e)
-      } finally {
-        isLoadingRef.current = false
-      }
+        try {
+          const deviceId = getOrCreateDeviceId()
+          const result = await mapPointsApi.listVisible({ deviceId })
+          if (!destroyedRef.current) setPoints(result as any)
+        } catch {
+          // ignore
+        } finally {
+          if (!destroyedRef.current) lastLoadedAtRef.current = Date.now()
+          isLoadingRef.current = false
+        }
+      })
     }
 
-    const schedule = () => {
-      if (raf) cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(() => void load())
-    }
+    const onMoveEnd = () => scheduleLoad()
+    const onZoomEnd = () => scheduleLoad()
+    map.on('moveend', onMoveEnd)
+    map.on('zoomend', onZoomEnd)
 
-    // Первичная загрузка не чаще чем раз в 1.5с, чтобы избежать бурста после монтирования
-    const first = setTimeout(schedule, 500)
-    const onMoveEnd = () => schedule()
-    m.on('moveend', onMoveEnd)
-    m.on('zoomend', onMoveEnd)
+    // начальная загрузка
+    scheduleLoad()
+
     return () => {
-      if (first) clearTimeout(first)
-      if (raf) cancelAnimationFrame(raf)
-      try { m.off('moveend', onMoveEnd) } catch {}
-      try { m.off('zoomend', onMoveEnd) } catch {}
+      destroyedRef.current = true
+      try {
+        map.off('moveend', onMoveEnd)
+        map.off('zoomend', onZoomEnd)
+      } catch {}
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
     }
-  }, [mapRef, bbox?.minLat, bbox?.minLng, bbox?.maxLat, bbox?.maxLng])
+  }, [mapRef])
 
   return points
 }

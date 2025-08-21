@@ -1,6 +1,61 @@
 import { mutation, query } from './_generated/server'
 import { v } from 'convex/values'
-import { filterQuestsByRequirements, loadQuestDependencies, dependenciesSatisfied } from './quests.helpers.ts'
+
+// Локальные хелперы вместо удалённого quests.helpers.ts
+function requirementsSatisfied(req: any | undefined, player: any): boolean {
+  if (!req) return true
+  if (typeof req.phaseMin === 'number' && (player?.phase ?? 0) < req.phaseMin) return false
+  if (typeof req.phaseMax === 'number' && (player?.phase ?? 0) > req.phaseMax) return false
+  if (typeof req.fameMin === 'number' && (player?.fame ?? 0) < req.fameMin) return false
+  if (Array.isArray(req.requiredFlags)) {
+    const flags = new Set(player?.flags ?? [])
+    for (const f of req.requiredFlags) if (!flags.has(f)) return false
+  }
+  if (Array.isArray(req.forbiddenFlags)) {
+    const flags = new Set(player?.flags ?? [])
+    for (const f of req.forbiddenFlags) if (flags.has(f)) return false
+  }
+  if (req.reputations) {
+    const rep = player?.reputations ?? {}
+    for (const k of Object.keys(req.reputations)) {
+      if ((rep?.[k] ?? 0) < (req.reputations[k] ?? 0)) return false
+    }
+  }
+  if (req.relationships) {
+    const rel = player?.relationships ?? {}
+    for (const k of Object.keys(req.relationships)) {
+      if ((rel?.[k] ?? 0) < (req.relationships[k] ?? 0)) return false
+    }
+  }
+  return true
+}
+
+async function loadQuestDependencies(db: any): Promise<Map<string, string[]>> {
+  const deps = await db.query('quest_dependencies').collect()
+  const map = new Map<string, string[]>()
+  for (const d of deps) {
+    const arr = map.get(d.questId) ?? []
+    arr.push(d.requiresQuestId)
+    map.set(d.questId, arr)
+  }
+  return map
+}
+
+function dependenciesSatisfied(questId: string, done: Set<string>, deps: Map<string, string[]>) {
+  const reqs = deps.get(questId) ?? []
+  for (const r of reqs) if (!done.has(r)) return false
+  return true
+}
+
+function filterQuestsByRequirements(metas: any[], player: any, phaseContext: { phase?: number } | null, done: Set<string>, deps?: Map<string, string[]>) {
+  const phase = phaseContext?.phase ?? player?.phase ?? 0
+  return metas.filter((m) => {
+    if (typeof m.phaseGate === 'number' && phase < m.phaseGate) return false
+    if (!requirementsSatisfied(m.requirements, player)) return false
+    if (deps && !dependenciesSatisfied(m.questId, done, deps)) return false
+    return true
+  })
+}
 
 export const resolvePoint = query({
   args: { code: v.string(), deviceId: v.optional(v.string()), userId: v.optional(v.string()) },
@@ -37,11 +92,11 @@ export const resolvePoint = query({
       phaseContext as any,
       done,
     )
-    const allowedIds = new Set(allowed.map((m) => m.questId))
+    const allowedIds = new Set(allowed.map((m: any) => m.questId))
     const candidates = bindings
       .filter((b) => allowedIds.has(b.questId))
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    const chosen = candidates.find((b) => dependenciesSatisfied(b.questId, done, deps))
+      .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+    const chosen = candidates.find((m: any) => dependenciesSatisfied(m.questId, done, deps))
 
     const hasPda = Boolean((player as any)?.hasPda)
     const nextAction = hasPda ? 'open_point' : 'start_intro_vn'

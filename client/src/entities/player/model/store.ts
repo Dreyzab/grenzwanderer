@@ -90,13 +90,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   hydrateFromServer: (p) =>
     set((s) => {
       if (!p) return s
+      // Инвентарь сливаем (server ∪ local), чтобы не терять локально выданные предметы до синка
+      const mergedInventory = Array.from(new Set([...(s.inventory ?? []), ...((p.inventory ?? []) as string[])]))
       const next = {
         fame: p.fame ?? s.fame ?? 0,
         reputations: p.reputations ?? s.reputations ?? {},
         relationships: p.relationships ?? s.relationships ?? {},
         flags: p.flags ?? s.flags ?? [],
         status: p.status ?? s.status ?? 'refugee',
-        inventory: p.inventory ?? s.inventory ?? [],
+        inventory: mergedInventory,
       }
       logger.info('STORE', 'hydratePlayer', next)
       return next as any

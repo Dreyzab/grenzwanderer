@@ -31,6 +31,8 @@ const deliveryMachine = createMachine({
     startDelivery: () => {
       const store = useQuestStore.getState()
       store.startQuest('delivery_and_dilemma', 'need_pickup_from_trader')
+      // Гарантируем серверную фазу >= 1 перед стартом квеста
+      void questsApi.setPlayerPhase(1)
       void questsApi.startQuest('delivery_and_dilemma', 'need_pickup_from_trader')
     },
     advanceDelivery: (_ctx: unknown, ev: { type: string; step?: DeliveryQuestStep } | unknown) => {

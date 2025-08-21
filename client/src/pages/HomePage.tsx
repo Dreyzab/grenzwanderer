@@ -1,10 +1,14 @@
 import { Link } from 'react-router-dom'
 import { useVNStore } from '@/entities/visual-novel/model/store'
 import { scenarios } from '@/entities/visual-novel/api/scenarios'
+import { useEffect } from 'react'
+import { questsApi } from '@/shared/api/quests'
 
 export function Component() {
   // Инициализируем демо-сценарии один раз для движка
   useVNStore.setState((s) => ({ ...s, scenes: scenarios }))
+  // На первом заходе пробуем создать состояние игрока (bootstrap)
+  useEffect(() => { void questsApi.bootstrapNewPlayer() }, [])
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-6">
       <h1 className="text-3xl font-bold">QR-Boost</h1>

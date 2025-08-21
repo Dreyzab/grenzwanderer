@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react'
+import { useAuth } from '@clerk/clerk-react'
 import { useQuest } from '@/entities/quest/model/useQuest'
-import { useAuthStore } from '@/entities/auth/model/store'
 
 export function useRegistrationPrompt() {
-  const quest = useQuest()
-  const { userId } = useAuthStore()
+  const { isSignedIn } = useAuth()
   const [showRegistration, setShowRegistration] = useState(false)
+  const quest = useQuest()
 
   useEffect(() => {
-    const delivered = quest.getStep('delivery_and_dilemma') === 'completed'
-    setShowRegistration(delivered && !userId)
-  }, [quest.activeQuests, quest.completedQuests, userId])
+    // Показываем промпт после завершения стартового квеста, даже если ранее был отклонён
+    const isCompleted = (quest.completedQuests ?? []).includes('delivery_and_dilemma' as any)
+    if (!isSignedIn && isCompleted) {
+      try { localStorage.removeItem('registration_prompt_dismissed') } catch {}
+      setShowRegistration(true)
+    }
+  }, [isSignedIn, quest.completedQuests])
+
+  // Позволяет внешнему коду скрыть модал до следующего «завершения» (без постоянного дисмиса)
 
   return { showRegistration, setShowRegistration }
 }

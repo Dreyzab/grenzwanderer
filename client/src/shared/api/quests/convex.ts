@@ -3,6 +3,16 @@ import { convexClient } from '@/shared/lib/convexClient'
 import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
 
 export const questsApiConvex = {
+  bootstrapNewPlayer: async () => {
+    const deviceId = getOrCreateDeviceId()
+    try {
+      return await convexClient.mutation(api.quests.bootstrapNewPlayer, { deviceId })
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('bootstrapNewPlayer not available yet, skipping', e)
+      return null
+    }
+  },
   getProgress: async () => {
     const deviceId = getOrCreateDeviceId()
     return convexClient.query(api.quests.getProgress, { deviceId })
@@ -37,6 +47,16 @@ export const questsApiConvex = {
   migrateDeviceToUser: async (userId: string) => {
     const deviceId = getOrCreateDeviceId()
     return convexClient.mutation(api.quests.migrateDeviceProgressToUser, { deviceId, userId })
+  },
+  finalizeRegistration: async (nickname: string, avatarKey?: string) => {
+    const deviceId = getOrCreateDeviceId()
+    try {
+      return await convexClient.mutation(api.quests.finalizeRegistration, { deviceId, nickname, avatarKey })
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('finalizeRegistration failed', e)
+      throw e
+    }
   },
   // Dev-only helper to set phase 1 after registration
   setPhaseAfterRegistration: async () => {

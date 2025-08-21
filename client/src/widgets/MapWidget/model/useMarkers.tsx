@@ -1,43 +1,39 @@
 import { useEffect, useRef } from 'react'
-import mapboxgl from 'mapbox-gl'
+import type { Map } from 'mapbox-gl'
+import { Popup } from 'mapbox-gl'
 import { createRoot, type Root } from 'react-dom/client'
-import type { VisibleMapPoint } from '@/entities/map-point/model/types'
-import { MapPointTooltip } from '@/entities/map-point/ui/MapPointTooltip'
-import { resolveVisibleIds } from './visibilityRules.ts'
-import { useQuest } from '@/entities/quest/model/useQuest'
+import MapPointTooltip from '@/entities/map-point/ui/MapPointTooltip'
+import type { VisibleMapPoint } from './useVisiblePoints'
+import { decideDialogKey } from '@/features/quest-progress/model/decideDialogKey'
+import { useQuestStore } from '@/entities/quest/model/questStore'
 import { useProgressionStore } from '@/entities/quest/model/progressionStore'
-import logger from '@/shared/lib/logger'
 
-export interface MarkerInteractions {
-  onBoardOpen: (boardKey: string, title: string) => Promise<void>
-  onNpcOpen: (npcId: string, title: string) => Promise<void>
+type Interactions = {
+  onBoardOpen: (boardKey: string, title: string) => void | Promise<void>
+  onNpcOpen: (npcId: string, title: string) => void | Promise<void>
   onOpenDialog: (dialogKey: string) => void
 }
 
 export function useMarkers(
-  mapRef: React.RefObject<mapboxgl.Map | null>,
+  mapRef: React.RefObject<Map | null>,
   points: VisibleMapPoint[],
-  interactions: MarkerInteractions,
+  interactions: Interactions,
+  trackedTargetId?: string | null,
 ) {
-  const quest = useQuest()
-  const phase = useProgressionStore((s) => s.phase)
-  const rafRef = useRef<number | null>(null)
-  const hoverPopupRef = useRef<mapboxgl.Popup | null>(null)
+  const animRef = useRef<number | null>(null)
+  const initializedRef = useRef(false)
+  const hoverPopupRef = useRef<Popup | null>(null)
   const hoverTooltipRootRef = useRef<Root | null>(null)
-  const handlersRef = useRef<{ click?: (e: any) => void; mouseenter?: (e: any) => void; mouseleave?: () => void } | null>(null)
 
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-
-    // Этап 1: Источник и слои
-    const initLayersIfNeeded = () => {
+    const initLayers = () => {
+      if (initializedRef.current) return
       if (!map.getSource('mappoints')) {
-        map.addSource('mappoints', {
-          type: 'geojson',
-          data: { type: 'FeatureCollection', features: [] },
-          promoteId: 'id',
-        } as any)
+        map.addSource('mappoints', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'id' })
+      }
+      if (!map.getLayer('mappoints')) {
         map.addLayer({
           id: 'mappoints',
           type: 'circle',
@@ -47,220 +43,208 @@ export function useMarkers(
             'circle-color': [
               'match',
               ['get', 'type'],
-              'settlement', '#7c3aed',
-              'npc', '#2563eb',
-              'board', '#16a34a',
-              'anomaly', '#ef4444',
-              '#52525b',
+              'settlement', '#60a5fa',
+              'npc', '#34d399',
+              'board', '#fbbf24',
+              'anomaly', '#f472b6',
+              '#93c5fd',
             ],
             'circle-stroke-color': '#111827',
             'circle-stroke-width': 1.5,
             'circle-opacity': 0.95,
           },
         })
+      }
+      if (!map.getLayer('tracked-glow')) {
         map.addLayer({
           id: 'tracked-glow',
           type: 'circle',
           source: 'mappoints',
           paint: {
             'circle-radius': 10,
-            'circle-color': 'rgba(255,215,0,0.55)',
+            // полупрозрачный золотой через rgba-строку (8-hex не поддерживается валидатором стиля)
+            'circle-color': 'rgba(251, 191, 36, 0.5)',
             'circle-blur': 0.4,
             'circle-opacity': 0.9,
           },
+          filter: ['==', ['get', 'id'], '__none__'],
         })
-        try { map.setFilter('tracked-glow', ['==', ['get', 'id'], '__none__'] as any) } catch {}
       }
+      initializedRef.current = true
     }
 
-    // Этап 2: Обновление данных и фильтры
-    const updateDataAndFilters = () => {
-      const source = map.getSource('mappoints') as mapboxgl.GeoJSONSource
-      if (!source) return
-      const features = points.map((p) => ({
-        type: 'Feature',
-        id: p.id,
-        properties: {
-          id: p.id,
-          title: p.title,
-          type: p.type,
-          dialogKey: p.dialogKey ?? null,
-          eventKey: (p as any).eventKey ?? null,
-          npcId: p.npcId ?? null,
-          description: p.description ?? '',
-          isActive: p.isActive,
-          isDiscovered: p.isDiscovered ?? true,
-          lat: p.coordinates.lat,
-          lng: p.coordinates.lng,
-        },
-        geometry: { type: 'Point', coordinates: [p.coordinates.lng, p.coordinates.lat] },
-      }))
-      source.setData({ type: 'FeatureCollection', features } as any)
-      logger.info('MAP', 'setData features:', features.length)
-
-      const visibleIds = Array.from(
-        resolveVisibleIds(points, {
-          phase,
-          deliveryStep: quest.getStep('delivery_and_dilemma' as any),
-        }),
-      )
-      logger.info('MAP', 'resolveVisibleIds ctx:', { phase, step: quest.getStep('delivery_and_dilemma' as any) })
-      // Отобразим хотя бы settlement_center, если ничего не подходит (пролог/пустота)
-      if (visibleIds.length === 0) {
-        const hasStart = points.find((x) => x.id === 'settlement_center')
-        if (hasStart) visibleIds.push('settlement_center')
-      }
-      if (map.getLayer('mappoints')) {
-        map.setFilter('mappoints', ['in', ['get', 'id'], ['literal', visibleIds]] as any)
-        logger.info('MAP', 'filter mappoints visibleIds:', visibleIds)
-      }
-
-      const step = quest.getStep('delivery_and_dilemma' as any)
-      let trackedTargetId: string | undefined
-      if (step === 'not_started') trackedTargetId = 'settlement_center'
-      else if (step === 'need_pickup_from_trader') trackedTargetId = 'trader_camp'
-      else if (step === 'deliver_parts_to_craftsman' || step === 'return_to_craftsman') trackedTargetId = 'workshop_center'
-      else if (step === 'go_to_anomaly') trackedTargetId = 'northern_anomaly'
-
-      const isVisible = Boolean(trackedTargetId && visibleIds.includes(trackedTargetId))
-      if (trackedTargetId && !isVisible) {
-        const have = points.map((p) => p.id)
-        logger.info('MAP', 'tracked target missing in points', { trackedTargetId, have })
-      }
-      if (map.getLayer('tracked-glow')) {
-        map.setFilter('tracked-glow', isVisible ? (['==', ['get', 'id'], trackedTargetId] as any) : (['==', ['get', 'id'], '__none__'] as any))
-        logger.info('MAP', 'filter glow tracked:', trackedTargetId, 'isVisible:', isVisible)
-      }
+    if (typeof (map as any).isStyleLoaded === 'function') {
+      if ((map as any).isStyleLoaded()) initLayers()
+      else map.once('load', initLayers)
+    } else {
+      // fallback
+      map.once('load', initLayers)
     }
-
-    // Этап 3: Интерактивность
-    const ensureLayerHandlers = () => {
-      const onClick = async (e: any) => {
-        const f = e.features?.[0]
-        if (!f) return
-        const p: any = f.properties || {}
-        logger.info('MAP', 'Point clicked', p.id, p.title, p.dialogKey)
-        if (p.type === 'board') return interactions.onBoardOpen(p.id, `${p.title} — доступные квесты`)
-        if ((p.type === 'npc' || p.type === 'npc_spawn') && p.npcId) return interactions.onNpcOpen(p.npcId, `${p.title} — доступные квесты`)
-        if (p.dialogKey) return interactions.onOpenDialog(p.dialogKey)
-      }
-
-      const onMouseEnter = (e: any) => {
-        const f = e.features?.[0]
-        if (!f) return
-        map.getCanvas().style.cursor = 'pointer'
-        try {
-          const p: any = f.properties || {}
-          const coords = f.geometry?.coordinates as [number, number]
-          const tooltipEl = document.createElement('div')
-          const root = createRoot(tooltipEl)
-          hoverTooltipRootRef.current = root
-          const pointForTooltip = {
-            id: String(p.id),
-            title: String(p.title ?? ''),
-            description: String(p.description ?? ''),
-            coordinates: { lat: Number(p.lat), lng: Number(p.lng) },
-            type: String(p.type ?? 'poi'),
-            isActive: Boolean(p.isActive),
-            dialogKey: p.dialogKey ?? undefined,
-            eventKey: p.eventKey ?? undefined,
-            npcId: p.npcId ?? undefined,
-            isDiscovered: Boolean(p.isDiscovered ?? true),
-          } as VisibleMapPoint
-          root.render(<MapPointTooltip point={pointForTooltip} />)
-          if (!hoverPopupRef.current) {
-            hoverPopupRef.current = new mapboxgl.Popup({ offset: 22, closeButton: false, closeOnClick: false, anchor: 'bottom', maxWidth: '320px' })
-          }
-          hoverPopupRef.current!
-            .setLngLat(coords)
-            .setDOMContent(tooltipEl)
-            .addTo(map)
-        } catch {}
-      }
-
-      const onMouseLeave = () => {
-        map.getCanvas().style.cursor = ''
-        setTimeout(() => {
-          try { hoverPopupRef.current?.remove() } catch {}
-          try { hoverTooltipRootRef.current?.unmount() } catch {}
-          hoverPopupRef.current = null
-          hoverTooltipRootRef.current = null
-        }, 0)
-      }
-
-      handlersRef.current = { click: onClick, mouseenter: onMouseEnter, mouseleave: onMouseLeave }
-      map.on('click', 'mappoints', onClick)
-      map.on('mouseenter', 'mappoints', onMouseEnter)
-      map.on('mouseleave', 'mappoints', onMouseLeave)
-    }
-
-    // Этап 4: Анимация glow
-    const startAnimation = () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-      const animate = () => {
-        try {
-          if (map.getLayer('tracked-glow')) {
-            const t = (performance.now() / 1800) % 1
-            const radius = 10 + Math.sin(t * Math.PI * 2) * 3
-            const opacity = 0.65 + Math.max(0, Math.sin(t * Math.PI * 2)) * 0.3
-            map.setPaintProperty('tracked-glow', 'circle-radius', radius)
-            map.setPaintProperty('tracked-glow', 'circle-opacity', opacity)
-          }
-        } catch {}
-        rafRef.current = requestAnimationFrame(animate)
-      }
-      rafRef.current = requestAnimationFrame(animate)
-    }
-
-    const bootstrap = () => {
-      initLayersIfNeeded()
-      updateDataAndFilters()
-      ensureLayerHandlers()
-      startAnimation()
-    }
-
-    if (!map.isStyleLoaded()) {
-      const onLoad = () => {
-        try { bootstrap() } catch {}
-      }
-      map.once('load', onLoad)
-      return () => {
-        try { map.off('load', onLoad) } catch {}
-        if (rafRef.current) cancelAnimationFrame(rafRef.current)
-        try {
-          const h = handlersRef.current
-          if (h?.click) map.off('click', 'mappoints', h.click as any)
-          if (h?.mouseenter) map.off('mouseenter', 'mappoints', h.mouseenter as any)
-          if (h?.mouseleave) map.off('mouseleave', 'mappoints', h.mouseleave as any)
-        } catch {}
-        setTimeout(() => {
-          try { hoverPopupRef.current?.remove() } catch {}
-          try { hoverTooltipRootRef.current?.unmount() } catch {}
-          hoverPopupRef.current = null
-          hoverTooltipRootRef.current = null
-        }, 0)
-      }
-    }
-
-    bootstrap()
-
-    // Этап 5: Очистка ресурсов
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      if (animRef.current) cancelAnimationFrame(animRef.current)
+      animRef.current = null
+      // Не удаляем слои/источник, чтобы избежать гонок при strict mode
+    }
+  }, [mapRef])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const features = points.map((p) => ({
+      type: 'Feature',
+      id: p.key,
+      geometry: { type: 'Point', coordinates: [p.coordinates.lng, p.coordinates.lat] },
+      properties: {
+        id: p.key,
+        title: p.title,
+        type: p.type ?? 'unknown',
+        description: p.description ?? '',
+        dialogKey: p.dialogKey ?? null,
+        questId: p.questId ?? null,
+      },
+    }))
+    try {
+      const src = map.getSource('mappoints') as any
+      src?.setData({ type: 'FeatureCollection', features })
+    } catch {}
+  }, [points, mapRef])
+
+  // Обновление подсветки цели квеста
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    try {
+      const hasGlow = !!map.getLayer('tracked-glow')
+      if (!hasGlow) return
+      const target = trackedTargetId && points.some((p) => p.key === trackedTargetId) ? trackedTargetId : '__none__'
+      map.setFilter('tracked-glow', ['==', ['get', 'id'], target])
+    } catch {}
+  }, [trackedTargetId, points, mapRef])
+
+  // Мягкая пульсация слоя подсветки цели
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    let stopped = false
+    const tick = (ts: number) => {
+      if (stopped) return
       try {
-        const h = handlersRef.current
-        if (h?.click) map.off('click', 'mappoints', h.click as any)
-        if (h?.mouseenter) map.off('mouseenter', 'mappoints', h.mouseenter as any)
-        if (h?.mouseleave) map.off('mouseleave', 'mappoints', h.mouseleave as any)
+        const hasLayer = !!map.getLayer('tracked-glow')
+        const hasTarget = Boolean(trackedTargetId && points.some((p) => p.key === trackedTargetId))
+        if (hasLayer && hasTarget) {
+          const t = ts * 0.005
+          const radius = 10 + Math.sin(t) * 3 // 10±3
+          const opacity = 0.6 + Math.max(0, Math.sin(t)) * 0.3 // 0.6..0.9
+          const blur = 0.3 + Math.max(0, Math.sin(t)) * 0.2 // 0.3..0.5
+          map.setPaintProperty('tracked-glow', 'circle-radius', radius)
+          map.setPaintProperty('tracked-glow', 'circle-opacity', opacity)
+          map.setPaintProperty('tracked-glow', 'circle-blur', blur)
+        }
       } catch {}
-      setTimeout(() => {
+      animRef.current = requestAnimationFrame(tick)
+    }
+    animRef.current = requestAnimationFrame(tick)
+    return () => {
+      stopped = true
+      if (animRef.current) cancelAnimationFrame(animRef.current)
+      animRef.current = null
+    }
+  }, [mapRef, trackedTargetId, points])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const onClick = (e: any) => {
+      const f = e?.features?.[0]
+      const props = f?.properties || {}
+      const title = props.title as string
+      // Сначала пытаемся резолвить диалог контекстно (по шагу квеста/инвентарю)
+      if (typeof props.id === 'string') {
+        const pointForDecision: any = {
+          id: props.id,
+          title: props.title,
+          description: props.description,
+          type: props.type,
+          dialogKey: props.dialogKey ?? undefined,
+        }
+        const deliveryStep = (useQuestStore.getState().activeQuests as any)?.['delivery_and_dilemma']?.currentStep ?? 'not_started'
+        const phase = useProgressionStore.getState().phase as any
+        const resolved = decideDialogKey(pointForDecision, { deliveryStep, phase })
+        if (resolved?.dialogKey) {
+          interactions.onOpenDialog(resolved.dialogKey)
+          return
+        }
+      }
+      // Фолбэк: используем явный ключ точки
+      if (props.dialogKey && typeof props.dialogKey === 'string') {
+        interactions.onOpenDialog(props.dialogKey)
+        return
+      }
+      if (props.type === 'board' && props.id) {
+        void interactions.onBoardOpen(props.id as string, title)
+        return
+      }
+      if (props.type === 'npc' && props.id) {
+        void interactions.onNpcOpen(props.id as string, title)
+        return
+      }
+    }
+    const onMouseEnter = (e: any) => {
+      try { map.getCanvas().style.cursor = 'pointer' } catch {}
+      const f = e?.features?.[0]
+      if (!f) return
+      const props = f.properties || {}
+      const point = {
+        id: props.id as string,
+        title: props.title as string,
+        description: props.description as string,
+        type: props.type as string,
+        isDiscovered: true,
+      } as any
+      const container = document.createElement('div')
+      try {
+        hoverTooltipRootRef.current?.unmount()
+      } catch {}
+      hoverTooltipRootRef.current = createRoot(container)
+      hoverTooltipRootRef.current.render(<MapPointTooltip point={point} />)
+      try { hoverPopupRef.current?.remove() } catch {}
+      hoverPopupRef.current = new Popup({ closeButton: false, closeOnClick: false, offset: 12 })
+        .setDOMContent(container)
+        .setLngLat(e.lngLat)
+        .addTo(map)
+    }
+    const onMouseMove = (e: any) => {
+      try { hoverPopupRef.current?.setLngLat(e.lngLat) } catch {}
+    }
+    const onMouseLeave = () => {
+      try { map.getCanvas().style.cursor = '' } catch {}
+      // откладываем снятие попапа на следующий кадр, чтобы избежать гонок с текущим рендером React
+      requestAnimationFrame(() => {
         try { hoverPopupRef.current?.remove() } catch {}
         try { hoverTooltipRootRef.current?.unmount() } catch {}
         hoverPopupRef.current = null
         hoverTooltipRootRef.current = null
-      }, 0)
+      })
     }
-  }, [points, mapRef, interactions, quest.trackedQuestId, quest.activeQuests, phase])
+    try {
+      map.on('click', 'mappoints', onClick)
+      map.on('mouseenter', 'mappoints', onMouseEnter)
+      map.on('mousemove', 'mappoints', onMouseMove)
+      map.on('mouseleave', 'mappoints', onMouseLeave)
+    } catch {}
+    return () => {
+      try {
+        map.off('click', 'mappoints', onClick)
+        map.off('mouseenter', 'mappoints', onMouseEnter)
+        map.off('mousemove', 'mappoints', onMouseMove)
+        map.off('mouseleave', 'mappoints', onMouseLeave)
+      } catch {}
+      try { hoverPopupRef.current?.remove() } catch {}
+      try { hoverTooltipRootRef.current?.unmount() } catch {}
+      hoverPopupRef.current = null
+      hoverTooltipRootRef.current = null
+    }
+  }, [mapRef, interactions])
 }
 
 

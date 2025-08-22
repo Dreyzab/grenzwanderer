@@ -15,7 +15,7 @@ export function ChoiceMenu({ choices }: Props) {
           <button
             key={c.id}
             className="w-full text-left bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-100 border border-zinc-700 rounded-md px-4 py-2"
-            onClick={() => choose(c.id)}
+            onClick={(e) => { e.stopPropagation(); choose(c.id) }}
           >
             {c.text}
           </button>

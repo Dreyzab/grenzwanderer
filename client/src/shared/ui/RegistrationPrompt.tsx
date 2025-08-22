@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { SignInButton, SignUpButton } from '@clerk/clerk-react'
+import { SignInButton, SignUpButton, useAuth } from '@clerk/clerk-react'
+import logger from '@/shared/lib/logger'
 
 type Props = {
   isOpen: boolean
@@ -8,6 +9,7 @@ type Props = {
 
 export default function RegistrationPrompt({ isOpen, onClose }: Props) {
   const [busy, setBusy] = useState(false)
+  const { isSignedIn } = useAuth()
 
   if (!isOpen) return null
 
@@ -20,20 +22,20 @@ export default function RegistrationPrompt({ isOpen, onClose }: Props) {
           После регистрации мы перенесём ваш гостевой прогресс в аккаунт.
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <SignInButton mode="modal" forceRedirectUrl="/map?createCharacter=1" signInFallbackRedirectUrl="/map?createCharacter=1">
+          <SignInButton mode="modal" forceRedirectUrl="/map?createCharacter=1">
             <button
               disabled={busy}
               className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 rounded px-4 py-2"
-              onClick={() => setBusy(true)}
+              onClick={() => { setBusy(true); logger.info('MAP', 'prompt: click sign-in', { isSignedIn }) }}
             >
               Войти
             </button>
           </SignInButton>
-          <SignUpButton mode="modal" forceRedirectUrl="/map?createCharacter=1" signUpFallbackRedirectUrl="/map?createCharacter=1">
+          <SignUpButton mode="modal" forceRedirectUrl="/map?createCharacter=1">
             <button
               disabled={busy}
               className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 rounded px-4 py-2"
-              onClick={() => setBusy(true)}
+              onClick={() => { setBusy(true); logger.info('MAP', 'prompt: click sign-up', { isSignedIn }) }}
             >
               Зарегистрироваться
             </button>
@@ -41,7 +43,8 @@ export default function RegistrationPrompt({ isOpen, onClose }: Props) {
           <button
             className="bg-neutral-800 hover:bg-neutral-700 rounded px-4 py-2"
             onClick={() => {
-              try { localStorage.setItem('registration_prompt_dismissed', '1') } catch {}
+              try { localStorage.setItem('registration_prompt_dismissed', '1') } catch (_e) {}
+              logger.info('MAP', 'prompt: later clicked')
               onClose()
             }}
           >

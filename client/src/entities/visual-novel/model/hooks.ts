@@ -44,12 +44,21 @@ export const useSceneEngine = () => {
       ;(async () => {
         try {
           await qrApi.grantPda()
-        } catch {}
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[VN] grant PDA failed', e)
+        }
         // ВАЖНО: сначала поднимаем фазу на сервере (иначе старт квеста заблокирован на phase 0)
-        try { await questsApi.setPlayerPhase(1) } catch {}
+        try { await questsApi.setPlayerPhase(1) } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[VN] setPlayerPhase failed', e)
+        }
         const meta = getQuestMeta('delivery_and_dilemma' as any)
         if (meta) {
-          try { await questsApi.startQuest('delivery_and_dilemma' as any, meta.startStep as any) } catch {}
+          try { await questsApi.startQuest('delivery_and_dilemma' as any, meta.startStep as any) } catch (e) {
+            // eslint-disable-next-line no-console
+            console.warn('[VN] startQuest failed', e)
+          }
         }
         // Синхронизируем локально для UI
         setPhase(1)

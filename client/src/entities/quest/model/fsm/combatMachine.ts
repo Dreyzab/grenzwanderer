@@ -1,6 +1,6 @@
 import { createActor, createMachine } from 'xstate'
 import { useQuestStore } from '../questStore'
-import { questsApi } from '@/shared/api/quests'
+// server-side commit is done via dialogs.applyDialogOutcome
 
 const combatMachine = createMachine({
   id: 'combat_baptism_fsm',
@@ -23,23 +23,19 @@ const combatMachine = createMachine({
     startAvailable: () => {
       const s = useQuestStore.getState()
       s.startQuest('combat_baptism', 'combat_available_on_board' as any)
-      void questsApi.startQuest('combat_baptism', 'combat_available_on_board' as any)
     },
     assignPatrol: () => {
       const s = useQuestStore.getState()
       s.startQuest('combat_baptism', 'assigned_to_patrol' as any)
-      void questsApi.startQuest('combat_baptism', 'assigned_to_patrol' as any)
     },
     advanceCombat: (_ctx: unknown, ev: any) => {
       if (ev?.type !== 'ADVANCE') return
       const s = useQuestStore.getState()
       s.advanceQuest('combat_baptism', ev.step as any)
-      void questsApi.advanceQuest('combat_baptism', ev.step as any)
     },
     completeCombat: () => {
       const s = useQuestStore.getState()
       s.completeQuest('combat_baptism')
-      void questsApi.completeQuest('combat_baptism')
     },
   },
 })

@@ -36,7 +36,7 @@ const clerkPublishableKey = (import.meta as any).env?.VITE_CLERK_PUBLISHABLE_KEY
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {clerkPublishableKey ? (
-      <ClerkProvider publishableKey={clerkPublishableKey} afterSignInUrl="/map?createCharacter=1" afterSignUpUrl="/map?createCharacter=1">
+      <ClerkProvider publishableKey={clerkPublishableKey}>
         <ConvexProviderWithClerk client={convexClient as any} useAuth={useAuth}>
           <QuestHydrator>
             <RouterProvider router={router as any} />

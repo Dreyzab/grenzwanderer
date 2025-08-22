@@ -42,9 +42,20 @@ export function useQuest() {
           console.warn('[QUEST] startQuest failed on server, skipping local update', id, step, e)
         }
       } else {
-        // Быстрый локальный апдейт для UX, сервер асинхронно
+        // Оптимистично: локально → сервер; при ошибке — откат снапшота
+        const snapshot = { activeQuests: { ...activeQuests }, completedQuests: [...completedQuests], trackedQuestId }
         startQuest(id, step)
-        void questsApi.startQuest(id, step)
+        try {
+          await questsApi.startQuest(id, step)
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[QUEST][rollback] startQuest failed, reverting', id, step, e)
+          useQuestStore.setState({
+            activeQuests: snapshot.activeQuests,
+            completedQuests: snapshot.completedQuests,
+            trackedQuestId: snapshot.trackedQuestId,
+          })
+        }
       }
     },
     advanceQuest: async (id: QuestId, step: QuestStep) => {
@@ -65,8 +76,19 @@ export function useQuest() {
           console.warn('[QUEST] advanceQuest failed on server, skipping local update', id, step, e)
         }
       } else {
+        const snapshot = { activeQuests: { ...activeQuests }, completedQuests: [...completedQuests], trackedQuestId }
         advanceQuest(id, step)
-        void questsApi.advanceQuest(id, step)
+        try {
+          await questsApi.advanceQuest(id, step)
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[QUEST][rollback] advanceQuest failed, reverting', id, step, e)
+          useQuestStore.setState({
+            activeQuests: snapshot.activeQuests,
+            completedQuests: snapshot.completedQuests,
+            trackedQuestId: snapshot.trackedQuestId,
+          })
+        }
       }
     },
     completeQuest: async (id: QuestId) => {
@@ -87,8 +109,19 @@ export function useQuest() {
           console.warn('[QUEST] completeQuest failed on server, skipping local update', id, e)
         }
       } else {
+        const snapshot = { activeQuests: { ...activeQuests }, completedQuests: [...completedQuests], trackedQuestId }
         completeQuest(id)
-        void questsApi.completeQuest(id)
+        try {
+          await questsApi.completeQuest(id)
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[QUEST][rollback] completeQuest failed, reverting', id, e)
+          useQuestStore.setState({
+            activeQuests: snapshot.activeQuests,
+            completedQuests: snapshot.completedQuests,
+            trackedQuestId: snapshot.trackedQuestId,
+          })
+        }
       }
     },
     hydrate,

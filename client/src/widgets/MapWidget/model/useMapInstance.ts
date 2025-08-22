@@ -24,7 +24,7 @@ export function useMapInstance(containerRef: React.RefObject<HTMLDivElement>) {
       // ignore
     }
     return () => {
-      try { mapRef.current?.remove() } catch {}
+      mapRef.current?.remove?.()
       mapRef.current = null
     }
   }, [containerRef])

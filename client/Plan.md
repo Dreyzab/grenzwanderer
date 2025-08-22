@@ -1,108 +1,134 @@
+## Обновлённый план (актуально)
 
-## Архитектура: Карта и Квесты (v2)
+### Gameplay: общий поток
+- Game_Start: кат‑сцена, bootstrap нового игрока (`status=refugee`, `fame=0`, базовые предметы).
+- На карте видны стартовые точки (серверная фильтрация); диалоги стартуют по `dialogKey`, решённому на сервере (`qr.resolvePoint`).
+- Старт квеста доставки → подсветка цели ведёт по шагам (`trader_camp` → `workshop_center` → `northern_anomaly` → возврат).
+- Регистрация: после входа через Clerk показывается модал создания персонажа, `finalizeRegistration` переносит прогресс и поднимает фазу.
 
-### 1) Бэкенд (Convex): мозг и хранилище
-- Файлы: `client/convex/quests.ts`, `client/convex/quests.helpers.ts`, `client/convex/mapPoints.ts`, `client/convex/seed.ts`, `client/convex/schema.ts`.
-- Истина данных: таблицы `map_points`, `mappoint_bindings`, `quest_registry`, `quest_dependencies`, `quest_progress`, `player_state`, `world_state`, `users`.
-- Доступные функции:
-  - Квесты: `getAvailableQuests`, `getAvailableQuestsForNpc`, `getAvailableBoardQuests`, `getProgress`, `startQuest`, `advanceQuest`, `completeQuest`, `bootstrapNewPlayer`, `finalizeRegistration`, `getPlayerState`, `setPlayerPhase`, `getWorldState`, `setWorldPhase`, `applyOutcome`, `migrateDeviceProgressToUser`, `upsertQuestRegistry`.
-  - Карта: `mapPoints.listVisible` (гео‑окно + фильтр по фазам/требованиям/зависимостям), `mapPoints.listAll`, `mapPoints.upsertManyDev`.
-  - Seed (dev): `seed.seedQuestRegistryDev`, `seed.seedQuestDependenciesDev`, `seed.seedMappointBindingsDev`, `seed.seedQrCodesDev`.
-- Хелперы: `computeAvailableQuests`, `filterQuestsByRequirements`, `loadQuestDependencies`, `dependenciesSatisfied`, `isQuestAllowedByPhase`, `pickWinnerProgress`.
+### Бэкенд (Convex)
+- Таблицы: `map_points`, `mappoint_bindings`, `quest_registry`, `quest_dependencies`, `qr_codes`, `quest_progress`, `player_state`, `world_state`, `users`, `dialog_outcomes`, `dialog_actions`.
+- Квесты: `getProgress`, `start/advance/complete` (для низкоуровневого контроля), `applyOutcome`, `bootstrapNewPlayer`, `finalizeRegistration`, `migrateDeviceProgressToUser`, `getAvailable*`, `upsertQuestRegistry`, `initializeSession`.
+- Диалоги:
+  - `qr.resolvePoint` — возвращает `dialogKey`, `playerState`, `nextAction`.
+  - `dialogs.applyDialogOutcome` — принимает `outcomeKey` и атомарно применяет эффекты (флаги/репутации/фаза/мир) + опциональный прогресс квеста (реестр из БД `dialog_outcomes`).
+  - `dialogs.resolveAction` — возвращает дескриптор действия по `actionKey` из БД (`dialog_actions`).
+- Хелперы: `helpers/quest`, `helpers/migration`, `helpers/player`, `helpers/mappoints`, `helpers/qr`.
+- Константы: `PLAYER_STATUS`, `WORLD_KEYS`, `QUEST_SOURCE`, `QR_RESOLVE_STATUS`, `NEXT_ACTION`.
+- Вебхук Clerk (`auth.upsertFromClerk`) — строгая схема, без `v.any()`.
 
-### 2) Слой данных фронтенда: мост карта↔сервер
-- Файл: `client/src/widgets/MapWidget/model/useVisiblePoints.ts`.
-- Поведение:
-  - Извлекает bbox из `mapbox.getBounds()` и запрашивает `mapPoints.listVisible({ deviceId })`.
-  - Обновляет точки при `moveend`/`zoomend`, выполняет минимальный дебаунс через `requestAnimationFrame`.
-  - Возвращает список `VisibleMapPoint`.
-  - Троттлинг запросов: окно 1.5с между загрузками. Таймстамп `lastLoadedAtRef` обновляется в блоке `finally`, поэтому задержка соблюдается и при успехе, и при ошибке (исключает бурст быстрых неудач).
-  - Блокировка параллельных загрузок: гейт `isLoadingRef` предотвращает одновременные запросы.
-  - Защита от утечек состояния: локальный флаг `destroyed` в cleanup эффекта; перед `setPoints` и обновлением таймстампа проверяется `!destroyed`, чтобы не обновлять состояние после размонтирования.
-  - Коалесцирование событий: `requestAnimationFrame` объединяет частые `moveend/zoomend` в один вызов загрузки.
-  - Логирование: выводится bbox и список id через `mapped.map(p => p.id)` (без затенения переменных внешней области).
+### Фронтенд (FSD)
+- Страница `MapPage`: оборачивает карту в `MapContainer` и `MapOverlaysProvider`.
+- Виджет `MapWidget`: отвечает только за карту (инициализацию из контекста, маркеры, tracked target).
+- Модалки: `MapOverlaysProvider` управляет `DialogModal`, `AvailableQuestsModal`, `RegistrationPrompt`, `CreateCharacterModal`.
+- Диалоги: клиент не выбирает `dialogKey` — всегда запрашивает `qr.resolvePoint` и запускает движок с полученным ключом; финал — `applyDialogOutcome`.
+- Типы/константы: `MapPointType` (`MAP_POINT_TYPE`) для точек, `NextActionType` для действий после QR.
 
-### 3) Слой отображения: визуальный движок
-- Файл: `client/src/widgets/MapWidget/model/useMarkers.tsx`.
-- Поведение:
-  - Источники: `mappoints` (circle), слой подсветки `tracked-glow`.
-  - Синхронизация данных слоя с массивом точек.
-  - Обработчик клика: открытие досок/NPC/диалогов; подсветка пульсирует аниматором.
-  - Очистка ресурсов аниматора и обработчиков при unmount.
+### Реактивная гидратация
+- `useServerProgressHydration` — подписка на `quests.getProgress` → гидратация стора квестов.
+- `useWorldPhaseSync` — подписка на `quests.getWorldState` → синхронизация фазы (для аутентифицированных).
+- `QuestHydrator` (тонкий): единый вызов `quests.initializeSession` возвращает снимок `player_state`/`quest_progress`/`world_state` и `userId`.
 
-### 4) Свод правил видимости
-- Файлы: `client/src/widgets/MapWidget/model/visibilityRules.ts`, тесты `visibilityRules.test.ts`.
-- Декларативные правила для id‑ов и состояний (`phase`, `deliveryStep`).
-- Фоллбэк на `settlement_center` только до старта доставки.
+### Серверная фильтрация видимых точек
+- `mapPoints.listVisible`: определяет стартовые точки из биндингов с учётом требований `quest_registry`, зависимостей `quest_dependencies`, фазовых окон и начатости/завершённости квеста.
+- Для диагностики: `mapPoints.listVisibleDebug` возвращает причины отбора/исключения.
 
-## Поток событий (Gameplay Loop)
+### Регистрация и профиль
+- Кнопки Clerk используют `forceRedirectUrl=/map?createCharacter=1`.
+- `finalizeRegistration` переносит прогресс device→user, обновляет профиль, устанавливает `player_state.phase=1` и `world_state.phase=1`.
 
-### Событие: Game_Start
-- Action: Play_Cutscene('cs_arrival') — прибытие на дрезине.
-- Action: Player.SetState('status','refugee'), Player.SetAttribute('fame',0), Player.Inventory.AddItem('item_canned_food',1) — выполняется через `quests.bootstrapNewPlayer({ deviceId })`.
+### Checklist
+- [ ] Прогнать dev‑сиды: `quest_registry`, `quest_dependencies`, `mappoint_bindings`, `map_points`, `qr_codes`, `dialog_outcomes`, `dialog_actions`.
+- [ ] Проверить поток: QR → `resolvePoint` → старт диалога → `applyDialogOutcome`.
+- [ ] Проверить миграцию device→user и показ CreateCharacterModal после логина.
+- [ ] Проверить подсветку цели и видимость стартовых точек (только сервер).
 
-### Этап 1: Пролог — выдача PDA и старт диалога
-- Event: Cutscene_End → показываем карту, на ней виден `settlement_center`.
-- Action: Dialogue_Manager.Start('grant_pda_node') — запускается стартовый диалог (ключ можно сопоставить/заменить в `storage/dialogs`).
-- Event: Dialogue_End('prologue_check') → Action: Quest_Manager.StartQuest('delivery_and_dilemma') через `quests.startQuest`.
+### Mapbox GL (коротко)
+- Источник `mappoints` (GeoJSON, `promoteId: 'id'`).
+- Слои: `mappoints` (circle), `tracked-glow` (circle, пульсирующий). Скрыт, если цели нет.
+- События: `click` (всегда через `qr.resolvePoint`), hover‑tooltip, безопасный cleanup.
 
-### Навигация по квесту доставки
-- После старта показывается `trader_camp` и слой `tracked-glow` указывает на активную цель.
-- Затем `workshop_center`, после получения артефакта — возврат и завершение `completeQuest`.
+### Логирование и диагностика
+- Сервер: `[MAPPOINTS][visible] args/metas/bindings/points` в `mapPoints.listVisible`.
+- Клиент: `MAP visible points loaded` (ключи точек), диагностика ошибок через `logger`.
 
-### Регистрация и создание персонажа
-- Аутентификация через Clerk.
-- После успешного логина открыть модал создания персонажа (иконка, ник).
-- По подтверждению вызвать `quests.finalizeRegistration({ deviceId, nickname, avatarKey })`:
-  - Привязка прогресса к пользователю, установка `player_state.phase = 1`, `world_state.phase = 1`.
-  - После этого фронтенд видит точки фазы 1 по биндингам из `seed.ts`.
+---
 
-## Checklist внедрения
-- [ ] seed: выполнить `seedQuestRegistryDev`, `seedQuestDependenciesDev`, `seedMappointBindingsDev`, `seedQrCodesDev`.
-- [ ] Вызов `bootstrapNewPlayer` на первом запуске.
-- [ ] Триггер кат‑сцены и старт диалога `grant_pda_node` после загрузки карты.
-- [ ] По завершению диалога — `startQuest('delivery_and_dilemma')`.
-- [ ] UI регистрации Clerk → модал создания персонажа → `finalizeRegistration`.
-- [ ] Визуальная подсветка `tracked-glow` активной цели квеста.
+## Развитие и масштабирование (Roadmap)
 
-## Логика карты и маркеров (Mapbox GL)
+### 1) Продуктовые вехи (0–3 месяца)
+- Фаза 2 контент: расширение квестов «citizenship_invitation», «eyes_in_the_dark», «void_shards» (диалоги + outcome‑ключи).
+- Система журналов квестов (UI): история шагов, активные цели, финалы.
+- Репутация и отношения (UI): карта фракций, виджет отношений NPC.
+- Улучшения карты: кластеры/тепловые слои, фильтры по типам точек, поиск точек.
+- Экономика: базовая валюта, магазины (торговцы), цены, бартер (интерфейс + outcome‑ключи).
 
-### Этап 1. Источник данных (Source)
-- Создаётся один источник `mappoints` типа `geojson` с пустым `FeatureCollection` и `promoteId: 'id'`.
-- Источник — единый буфер данных, который заполняется из полученного массива `points` при каждом обновлении.
+### 2) Технические основы масштаба
+- Контент‑инструменты:
+  - DSL/JSON‑схемы для диалогов и outcome‑регистров; валидация схемой (Zod/JSON Schema).
+  - Editor‑прослойка (internal tool): предпросмотр ветвления и outcome‑эффектов.
+- Тестирование:
+  - Unit: outcome‑мапперы, хелперы `helpers/quest`, зависимости/требования.
+  - Интеграция: потоки `resolvePoint → applyDialogOutcome` (Convex Test).
+  - E2E: критические квестовые ветки (Playwright/Cypress).
+- Наблюдаемость:
+  - Структурные логи на сервере (traceId, deviceId, userId).
+  - Метрики: время ответа `resolvePoint`, доля ошибок `applyDialogOutcome`, частота outcome‑ключей.
+- CI/CD:
+  - Lint/Typecheck/Test → Build → Preview Deploy.
+  - Линт на «магические строки» (eslint rules) и запрет `any`/пустых catch.
 
-### Этап 2. Слои отображения (Layers)
-- Слой `mappoints` (type: `circle`) — базовые маркеры.
-  - `circle-radius`: 7
-  - `circle-color`: через выражение `['match', ['get','type'], ...]` для динамических цветов по типам (`settlement`, `npc`, `board`, `anomaly`, fallback).
-  - `circle-stroke-color`: `#111827`, `circle-stroke-width`: `1.5`, `circle-opacity`: `0.95`.
-- Слой `tracked-glow` (type: `circle`) — подсветка отслеживаемой цели.
-  - `circle-radius`: 10, `circle-blur`: 0.4, `circle-opacity`: 0.9, цвет полупрозрачный золотой.
-  - Изначально скрыт фильтром `['==',['get','id'],'__none__']`.
+### 3) Производительность и данные
+- Индексы и кэш:
+  - Уточнить индексы `quest_progress` (частые выборки by_user/by_device).
+  - Кэш outcome‑реестра в памяти процесса (readonly snapshot).
+- Платёжеспособность фронта:
+  - Виртуализация списков квестов и точек.
+  - «Тихие» подписки Convex (группировка, минимизация ререндеров).
+- Масштабирование Convex:
+  - Разделение «горячих» функций (QR/диалоги) и «bulk» задач (сидеры/бэкфилы) на actions/crons.
 
-### Этап 3. Обновление данных и фильтрация
-- Преобразование `points` → GeoJSON features: геометрия `Point`, свойства: `id`, `title`, `type`, `dialogKey`, `eventKey`, `npcId`, `description`, `isActive`, `isDiscovered`, `lat`, `lng`.
-- `source.setData` перезаписывает данные источника — быстрый и эффективный путь обновить карту.
-- Видимость слоя `mappoints` управляется через `map.setFilter('mappoints', ['in',['get','id'], ['literal', visibleIds]])`, где `visibleIds` возвращает `resolveVisibleIds(points, { phase, deliveryStep })`.
-- Подсветка цели `tracked-glow` управляется фильтром `['==',['get','id'], trackedTargetId]` (или скрыта, если цель отсутствует/невидима).
+### 4) Безопасность и целостность
+- Идемпотентность outcome:
+  - Idempotency‑key (dialogInstanceId) для клиентских повторов.
+  - Проверки предусловий на сервере (баланс/инвентарь/флаги) перед применением.
+- Миграции данных:
+  - Версионирование структур `player_state`/`quest_progress`; миграторы на Convex Migrations.
+- Политики доступа:
+  - Разделить public/internal функции; минимизировать поверхность API.
 
-### Этап 4. Интерактивность (Handlers)
-- События навешиваются на слой `mappoints`:
-  - `click`: открывает борды/NPC или диалог, используя свойства feature.
-  - `mouseenter`: меняет курсор, создаёт React‑tooltip (`MapPointTooltip`) и Popup (`mapboxgl.Popup`), привязывает его к координатам feature.
-  - `mouseleave`: безопасно убирает курсор и откладывает удаление Popup/Unmount Root через `setTimeout(..., 0)`.
-- Ссылки на обработчики сохраняются, на `cleanup` снимаются `map.off` по тем же ссылкам.
+### 5) Оффлайн/сетевые сценарии
+- Очередь исходов на клиенте (retry c backoff, idempotency‑key).
+- «Soft‑read» для карты: кэш последнего успешного ответа `listVisible` в IndexedDB.
 
-### Этап 5. Анимация подсветки
-- Аниматор на `requestAnimationFrame`: периодически меняет `circle-radius` и `circle-opacity` у слоя `tracked-glow` через `map.setPaintProperty` для эффекта пульсации.
-- На `cleanup` аниматор останавливается через `cancelAnimationFrame`.
+### 6) Интернационализация/локализация
+- Ключи текста в диалогах → i18n каталоги (RU/EN);
+- Форматирование дат/чисел, системы измерений.
 
-### Этап 6. Очистка и безопасность
-- В `cleanup` эффекта:
-  - Снятие всех обработчиков слоёв `map.off`.
-  - Остановка анимации.
-  - Защитное удаление Popup (`hoverPopupRef.remove()`) и размонтирование React Root (`hoverTooltipRootRef.unmount()`), затем `null` в рефах.
-- Очистка сделана идемпотентной и не зависит от того, были ли события `mouseenter/leave`.
-  - Для источника точек: устанавливается флаг `destroyed = true`; асинхронные ответы от загрузки игнорируются после размонтирования.
-  - Троттлинг не обходится ошибками: `lastLoadedAtRef` фиксируется в `finally`, поэтому повторная загрузка возможна только после 1.5с даже при ошибке.
+### 7) Инструменты для дизайнеров
+- «Сухой прогон» диалога: симуляция входных флагов/репутаций, автообход веток.
+- Граф зависимостей квестов (Mermaid/Graphviz) из `quest_dependencies`.
+
+### 8) Контентные риски и регрессии
+- Линтер контента: валидировать ссылки `dialogKey`, `outcomeKey`, существование `questId`/`step`.
+- Снэпшот‑тесты outcome‑реестра (детерминированная проверка diff).
+
+### 9) Дорожная карта (этапы)
+- Месяц 1: outcome‑реестр → инструменты валидации → журнал квестов.
+- Месяц 2: экономика/магазины → репутация UI → кластеры карты.
+- Месяц 3: редактор контента (простая панель), E2E‑покрытие ключевых веток.
+
+### 10) Принципы разработки
+- Сервер — единственный источник бизнес‑логики; клиент — Thin UI.
+- Константы/схемы/хелперы централизованы; никаких `any` и «магических строк».
+- Реактивные подписки вместо «гидраторов»; откат кэшированных данных при ошибках сети.
+
+### Changelog (текущая сессия)
+- Унификация выборки доступных квестов в `convex/quests.ts` через общую утилиту и единый `getAvailableQuests`.
+- Оптимизация `mapPoints.listVisible`: выборка стартовых биндингов по индексам (`by_quest_start`), добавлено поле `isStart`.
+- Централизованная инициализация сессии: `quests.initializeSession`; `QuestHydrator` переведён на единый вызов.
+- Безопасные оптимистичные апдейты в `useQuest` с откатом снапшота при ошибке.
+- Вынесение реестров в БД: `dialog_outcomes`, `dialog_actions`; добавлены сиды и резолверы (`dialogs.applyDialogOutcome`, `dialogs.resolveAction`).
+- Выделена общая серверная реализация эффектов `applyOutcomeImpl` и переиспользована в диалогах.
+- Укреплены типы: замена `(api as any)` на сгенерированные типы API в клиентских слоях.
 

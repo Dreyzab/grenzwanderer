@@ -123,10 +123,12 @@ export default defineSchema({
     startKey: v.optional(v.string()),
     dialogKey: v.optional(v.string()),
     npcId: v.optional(v.string()),
+    isStart: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index('by_point', ['pointKey'])
-    .index('by_quest', ['questId']),
+    .index('by_quest', ['questId'])
+    .index('by_quest_start', ['questId', 'isStart']),
 
   // Зависимости квестов (пререквизиты)
   quest_dependencies: defineTable({
@@ -143,6 +145,41 @@ export default defineSchema({
     pointKey: v.string(), // map_points.key
     createdAt: v.number(),
   }).index('by_code', ['code']),
+
+  // Исходы диалогов (редактируемые данные вместо хардкода)
+  dialog_outcomes: defineTable({
+    outcomeKey: v.string(),
+    fameDelta: v.optional(v.number()),
+    reputationsDelta: v.optional(v.record(v.string(), v.number())),
+    relationshipsDelta: v.optional(v.record(v.string(), v.number())),
+    addFlags: v.optional(v.array(v.string())),
+    removeFlags: v.optional(v.array(v.string())),
+    addWorldFlags: v.optional(v.array(v.string())),
+    removeWorldFlags: v.optional(v.array(v.string())),
+    setPhase: v.optional(v.number()),
+    setStatus: v.optional(v.string()),
+    quest: v.optional(
+      v.object({ action: v.union(v.literal('start'), v.literal('advance'), v.literal('complete')), id: v.string(), step: v.optional(v.string()) }),
+    ),
+    updatedAt: v.number(),
+  }).index('by_key', ['outcomeKey']),
+
+  // Действия диалогов (замена локального dialogActionMap)
+  dialog_actions: defineTable({
+    actionKey: v.string(),
+    kind: v.union(v.literal('phase'), v.literal('fsm'), v.literal('quest')),
+    // phase
+    phase: v.optional(v.number()),
+    // fsm
+    machine: v.optional(v.union(v.literal('delivery'), v.literal('combat'))),
+    fsmEventType: v.optional(v.union(v.literal('START'), v.literal('ASSIGN'), v.literal('ADVANCE'), v.literal('COMPLETE'))),
+    fsmStep: v.optional(v.string()),
+    // quest
+    questOp: v.optional(v.union(v.literal('start'), v.literal('advance'), v.literal('complete'))),
+    questId: v.optional(v.string()),
+    questStep: v.optional(v.string()),
+    updatedAt: v.number(),
+  }).index('by_key', ['actionKey']),
 })
 
 

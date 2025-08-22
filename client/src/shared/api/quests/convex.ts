@@ -65,13 +65,14 @@ export const questsApiConvex = {
   getWorldState: async () => {
     return convexClient.query(api.quests.getWorldState, {})
   },
+  // Устаревшие методы: тонкие прокси на универсальный вызов
   getAvailableQuestsForNpc: async (npcId: string) => {
     const deviceId = getOrCreateDeviceId()
-    return convexClient.query(api.quests.getAvailableQuestsForNpc, { npcId, deviceId })
+    return convexClient.query(api.quests.getAvailableQuests, { sourceType: 'npc', sourceKey: npcId, deviceId })
   },
   getAvailableBoardQuests: async (boardKey: string) => {
     const deviceId = getOrCreateDeviceId()
-    return convexClient.query(api.quests.getAvailableBoardQuests, { boardKey, deviceId })
+    return convexClient.query(api.quests.getAvailableQuests, { sourceType: 'board', sourceKey: boardKey, deviceId })
   },
   getAvailableQuests: async (sourceType: 'npc' | 'board', sourceKey: string) => {
     const deviceId = getOrCreateDeviceId()
@@ -90,6 +91,19 @@ export const questsApiConvex = {
   }) => {
     const deviceId = getOrCreateDeviceId()
     return convexClient.mutation(api.quests.applyOutcome, { deviceId, ...args })
+  },
+  applyDialogOutcome: async (outcomeKey: string, payload?: { amount?: number }) => {
+    const deviceId = getOrCreateDeviceId()
+    // dialogs.applyDialogOutcome — новый серверный контракт
+    // Оборачиваем на случай, если функция ещё не задеплоена
+    try {
+      // @ts-ignore — генерик API может ещё не быть в типах
+      return await convexClient.mutation((api as any).dialogs.applyDialogOutcome, { deviceId, outcomeKey, payload })
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('applyDialogOutcome not available yet', e)
+      throw e
+    }
   },
   seedQuestRegistryDev: async (devToken: string) => {
     return convexClient.mutation(api.seed.seedQuestRegistryDev, { devToken })

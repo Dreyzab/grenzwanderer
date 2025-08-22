@@ -3,7 +3,6 @@ import { useState } from 'react'
 type Props = {
   isOpen: boolean
   onSubmit: (nickname: string, avatarKey?: string) => Promise<void> | void
-  onClose: () => void
 }
 
 const avatars = [
@@ -12,17 +11,25 @@ const avatars = [
   { key: 'craftsman', src: '/images/npcs/craftsman.jpg', title: 'Мастер' },
 ]
 
-export default function CreateCharacterModal({ isOpen, onSubmit, onClose }: Props) {
+export default function CreateCharacterModal({ isOpen, onSubmit }: Props) {
   const [nickname, setNickname] = useState('')
-  const [avatarKey, setAvatarKey] = useState<string | undefined>(avatars[0]?.key)
+  const [avatarKey, setAvatarKey] = useState<string | undefined>(undefined)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   if (!isOpen) return null
 
+  const isNicknameValid = nickname.trim().length >= 4
+  const isAvatarValid = Boolean(avatarKey)
+  const isFormValid = isNicknameValid && isAvatarValid
+
   const handleSubmit = async () => {
-    if (!nickname.trim()) {
-      setError('Введите никнейм')
+    if (!isAvatarValid) {
+      setError('Выберите иконку')
+      return
+    }
+    if (!isNicknameValid) {
+      setError('Никнейм должен быть не короче 4 символов')
       return
     }
     setBusy(true)
@@ -55,20 +62,19 @@ export default function CreateCharacterModal({ isOpen, onSubmit, onClose }: Prop
           ))}
         </div>
         <div className="space-y-2">
-          <label className="block text-sm">Никнейм</label>
+          <label className="block text-sm">Никнейм (мин. 4 символа)</label>
           <input
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            placeholder="Введите ник"
+            placeholder="Минимум 4 символа"
             className="w-full rounded bg-neutral-800 border border-neutral-700 px-3 py-2 outline-none focus:border-emerald-600"
           />
         </div>
         {error && <div className="text-sm text-red-400">{error}</div>}
         <div className="flex items-center gap-2 justify-end">
-          <button className="bg-neutral-800 hover:bg-neutral-700 rounded px-4 py-2" onClick={onClose} disabled={busy}>Отмена</button>
           <button
             className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 rounded px-4 py-2"
-            disabled={busy}
+            disabled={busy || !isFormValid}
             onClick={handleSubmit}
           >Создать</button>
         </div>

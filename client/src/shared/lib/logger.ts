@@ -1,4 +1,4 @@
-export type LogCategory = 'MAP' | 'QUEST' | 'DIALOG' | 'SEED' | 'STORE'
+export type LogCategory = 'MAP' | 'QUEST' | 'DIALOG' | 'SEED' | 'STORE' | 'AUTH'
 
 function time(): string {
   return new Date().toISOString()

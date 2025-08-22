@@ -2,13 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import type { Map } from 'mapbox-gl'
 import { mapPointsApi } from '@/shared/api/mapPoints'
 import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
+import logger from '@/shared/lib/logger'
+
+import type { MapPointType } from '@/shared/constants'
 
 export interface VisibleMapPoint {
   key: string
   title: string
   description?: string
   coordinates: { lat: number; lng: number }
-  type?: string
+  type?: MapPointType
   dialogKey?: string
   questId?: string
   active: boolean
@@ -39,9 +42,10 @@ export function useVisiblePoints(mapRef: React.RefObject<Map | null>) {
         try {
           const deviceId = getOrCreateDeviceId()
           const result = await mapPointsApi.listVisible({ deviceId })
+          try { logger.info('MAP', 'visible points loaded', { count: (result as any)?.length ?? 0, keys: (result as any)?.map((p: any) => p.key) }) } catch (_e) {}
           if (!destroyedRef.current) setPoints(result as any)
-        } catch {
-          // ignore
+        } catch (e) {
+          logger.warn?.('MAP', 'visible points load failed')
         } finally {
           if (!destroyedRef.current) lastLoadedAtRef.current = Date.now()
           isLoadingRef.current = false

@@ -5,9 +5,8 @@ import { questsApi } from '@/shared/api/quests'
 import { useRef } from 'react'
 import { createDeliveryQuestActor } from '@/entities/quest/model/fsm/deliveryMachine'
 import { createCombatQuestActor } from '@/entities/quest/model/fsm/combatMachine'
-import { resolveOutcome } from './outcomes'
 import { usePlayerStore } from '@/entities/player/model/store'
-import { dialogActionMap } from './actionMap'
+import { resolveDialogAction } from './actionMap'
 import type { QuestStep } from '@/entities/quest/model/types'
 import type { QuestId } from '@/entities/quest/model/ids'
 
@@ -34,16 +33,20 @@ export function useDialogActionCoordinator() {
     return combatActorRef.current
   }
 
-  function handle(actionKey: string, eventOutcomeKey?: string) {
+  async function handle(actionKey: string, eventOutcomeKey?: string) {
     // Debug-трейс действий диалога
     // eslint-disable-next-line no-console
     console.log('[COORDINATOR] action:', actionKey, 'outcome:', eventOutcomeKey)
     // Если есть outcome — применяем его на сервере
     if (eventOutcomeKey) {
-      const args = resolveOutcome(eventOutcomeKey)
-      if (args) void questsApi.applyOutcome(args)
+      // Переключение на отложенную фиксацию результата диалога
+      void questsApi.applyDialogOutcome(eventOutcomeKey).catch((e) => {
+        // eslint-disable-next-line no-console
+        console.error('[COORDINATOR] applyDialogOutcome failed', e)
+      })
     }
-    const mapped = dialogActionMap[actionKey]
+    // грузим действие по ключу из БД (фолбэк — отсутствие действия)
+    const mapped = await resolveDialogAction(actionKey)
     // eslint-disable-next-line no-console
     console.log('[COORDINATOR] mapped:', mapped)
     if (!mapped) return

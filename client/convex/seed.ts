@@ -33,15 +33,63 @@ export const seedQuestDependenciesDev = mutation({
   },
 })
 
+export const seedDialogOutcomesDev = mutation({
+  args: { devToken: v.string() },
+  handler: async ({ db }, { devToken }) => {
+    const expected = getDevToken()
+    if (!expected || devToken !== expected) throw new Error('Forbidden: invalid dev token')
+    const now = Date.now()
+    const outcomes: Array<any> = [
+      { outcomeKey: 'citizenship_granted', setPhase: 2, setStatus: 'citizen', fameDelta: 50, addFlags: ['citizenship_granted'] },
+      { outcomeKey: 'accept_bell_quest', addFlags: ['bell_quest_accepted'], fameDelta: 1 },
+      { outcomeKey: 'complete_bell_quest_perfect', fameDelta: 5, relationshipsDelta: { cathedral_priest: 10 }, addFlags: ['bell_restored'] },
+      { outcomeKey: 'complete_bell_quest_damaged', fameDelta: 2, relationshipsDelta: { cathedral_priest: 3 }, addFlags: ['bell_restored_damaged'] },
+      { outcomeKey: 'complete_bell_quest_violent', fameDelta: -5, addFlags: ['bell_restored_violent'] },
+    ]
+    for (const o of outcomes) {
+      const existing = await db.query('dialog_outcomes').withIndex('by_key', (q) => q.eq('outcomeKey', o.outcomeKey)).unique()
+      if (existing) await db.patch(existing._id, { ...o, updatedAt: now })
+      else await db.insert('dialog_outcomes', { ...o, updatedAt: now })
+    }
+    return { ok: true, count: outcomes.length }
+  },
+})
+
+export const seedDialogActionsDev = mutation({
+  args: { devToken: v.string() },
+  handler: async ({ db }, { devToken }) => {
+    const expected = getDevToken()
+    if (!expected || devToken !== expected) throw new Error('Forbidden: invalid dev token')
+    const now = Date.now()
+    const actions: Array<any> = [
+      { actionKey: 'set_phase_1', kind: 'phase', phase: 1 },
+      { actionKey: 'set_phase_2', kind: 'phase', phase: 2 },
+      { actionKey: 'start_delivery_quest', kind: 'fsm', machine: 'delivery', fsmEventType: 'START' },
+      { actionKey: 'take_parts', kind: 'fsm', machine: 'delivery', fsmEventType: 'ADVANCE', fsmStep: 'deliver_parts_to_craftsman' },
+      { actionKey: 'deliver_parts', kind: 'fsm', machine: 'delivery', fsmEventType: 'ADVANCE', fsmStep: 'artifact_offer' },
+      { actionKey: 'accept_artifact_quest', kind: 'fsm', machine: 'delivery', fsmEventType: 'ADVANCE', fsmStep: 'go_to_anomaly' },
+      { actionKey: 'return_to_craftsman', kind: 'fsm', machine: 'delivery', fsmEventType: 'ADVANCE', fsmStep: 'return_to_craftsman' },
+      { actionKey: 'complete_delivery_quest', kind: 'fsm', machine: 'delivery', fsmEventType: 'COMPLETE' },
+      { actionKey: 'start_quiet_cove_quest', kind: 'quest', questOp: 'start', questId: 'quiet_cove_whisper', questStep: 'courier_missing' },
+    ]
+    for (const a of actions) {
+      const existing = await db.query('dialog_actions').withIndex('by_key', (q) => q.eq('actionKey', a.actionKey)).unique()
+      if (existing) await db.patch(existing._id, { ...a, updatedAt: now })
+      else await db.insert('dialog_actions', { ...a, updatedAt: now })
+    }
+    return { ok: true, count: actions.length }
+  },
+})
+
 export const seedMappointBindingsDev = mutation({
   args: { devToken: v.string() },
   handler: async ({ db }, { devToken }) => {
     const expected = getDevToken()
     if (!expected || devToken !== expected) throw new Error('Forbidden: invalid dev token')
     const now = Date.now()
-    const binds: Array<{ pointKey: string; questId: string; order?: number; phaseFrom?: number; phaseTo?: number; startKey?: string; dialogKey?: string; npcId?: string }> = [
+    const binds: Array<{ pointKey: string; questId: string; order?: number; phaseFrom?: number; phaseTo?: number; startKey?: string; dialogKey?: string; npcId?: string; isStart?: boolean }> = [
       // Пролог: запуск доставки на ЖД-станции
-      { pointKey: 'settlement_center', questId: 'delivery_and_dilemma', order: 1, phaseFrom: 1, startKey: 'quest:delivery:start', dialogKey: 'quest_start_dialog', npcId: 'hans' },
+      { pointKey: 'settlement_center', questId: 'delivery_and_dilemma', order: 1, phaseFrom: 1, startKey: 'quest:delivery:start', dialogKey: 'quest_start_dialog', npcId: 'hans', isStart: true },
       // Этапы квеста доставки
       { pointKey: 'trader_camp', questId: 'delivery_and_dilemma', order: 2, phaseFrom: 1, dialogKey: 'trader_meeting_dialog', npcId: 'trader' },
       { pointKey: 'workshop_center', questId: 'delivery_and_dilemma', order: 3, phaseFrom: 1, dialogKey: 'craftsman_meeting_dialog', npcId: 'craftsman' },
@@ -50,9 +98,9 @@ export const seedMappointBindingsDev = mutation({
       { pointKey: 'synthesis_medbay', questId: 'field_medicine', order: 1, phaseFrom: 1 },
       { pointKey: 'quiet_cove_bar', questId: 'quiet_cove_whisper', order: 1, phaseFrom: 1, npcId: 'quiet_cove_bartender' },
       { pointKey: 'old_believers_square', questId: 'bell_for_lost', order: 1, phaseFrom: 1, npcId: 'cathedral_priest' },
-      { pointKey: 'fjr_board', questId: 'combat_baptism', order: 1, phaseFrom: 1, startKey: 'board:fjr:open' },
+      { pointKey: 'fjr_board', questId: 'combat_baptism', order: 1, phaseFrom: 1, startKey: 'board:fjr:open', isStart: true },
       // Фаза 2
-      { pointKey: 'rathaus', questId: 'citizenship_invitation', order: 1, phaseFrom: 1, phaseTo: 2, startKey: 'quest:citizenship:start', dialogKey: 'mayor_briefing_dialog', npcId: 'rathaus_mayor' },
+      { pointKey: 'rathaus', questId: 'citizenship_invitation', order: 1, phaseFrom: 1, phaseTo: 2, startKey: 'quest:citizenship:start', dialogKey: 'mayor_briefing_dialog', npcId: 'rathaus_mayor', isStart: true },
       { pointKey: 'seepark', questId: 'eyes_in_the_dark', order: 1, phaseFrom: 2, npcId: 'seepark_scientist' },
       { pointKey: 'wasserschlossle', questId: 'void_shards', order: 1, phaseFrom: 2, npcId: 'wasserschlossle_curator' },
     ]
@@ -298,7 +346,7 @@ export const seedQuestRegistryDev = mutation({
     }> = [
       { questId: 'delivery_and_dilemma',
          type: 'story', giverNpcId: 'hans', 
-         priority: 100, phaseGate: 1, requirements: { phaseMin: 1 } },
+         priority: 100, phaseGate: 0, requirements: { phaseMin: 0 } },
       { questId: 'field_medicine', 
         type: 'faction', giverNpcId: 'synthesis_medbay_npc',
          priority: 60, phaseGate: 1, requirements: { phaseMin: 1 } },     

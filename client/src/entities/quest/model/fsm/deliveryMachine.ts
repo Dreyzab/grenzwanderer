@@ -1,6 +1,6 @@
 import { createActor, createMachine } from 'xstate'
 import { useQuestStore } from '../questStore'
-import { questsApi } from '@/shared/api/quests'
+// server-side effects are committed via dialogs.applyDialogOutcome
 import type { DeliveryQuestStep } from '../types'
 import type { QuestId } from '../ids'
 
@@ -31,9 +31,7 @@ const deliveryMachine = createMachine({
     startDelivery: () => {
       const store = useQuestStore.getState()
       store.startQuest('delivery_and_dilemma', 'need_pickup_from_trader')
-      // Гарантируем серверную фазу >= 1 перед стартом квеста
-      void questsApi.setPlayerPhase(1)
-      void questsApi.startQuest('delivery_and_dilemma', 'need_pickup_from_trader')
+      // Отложенная фиксация пойдёт через applyDialogOutcome; фазу поднимем по исходу
     },
     advanceDelivery: (_ctx: unknown, ev: { type: string; step?: DeliveryQuestStep } | unknown) => {
       if (typeof ev !== 'object' || ev == null) return
@@ -41,12 +39,10 @@ const deliveryMachine = createMachine({
       if (e.type !== 'ADVANCE' || !e.step) return
       const store = useQuestStore.getState()
       store.advanceQuest('delivery_and_dilemma' as QuestId, e.step)
-      void questsApi.advanceQuest('delivery_and_dilemma' as QuestId, e.step)
     },
     completeDelivery: () => {
       const store = useQuestStore.getState()
       store.completeQuest('delivery_and_dilemma')
-      void questsApi.completeQuest('delivery_and_dilemma')
     },
   },
 })

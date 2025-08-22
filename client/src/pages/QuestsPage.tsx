@@ -16,8 +16,8 @@ export function Component() {
   const refreshServerAvailability = useCallback(async () => {
     try {
       const [npc, board] = await Promise.all([
-        questsApi.getAvailableQuestsForNpc('hans'),
-        questsApi.getAvailableBoardQuests('fjr_board'),
+        questsApi.getAvailableQuests('npc', 'hans'),
+        questsApi.getAvailableQuests('board', 'fjr_board'),
       ])
       setNpcHans((npc as any) ?? [])
       setFjrBoard((board as any) ?? [])
@@ -46,7 +46,11 @@ export function Component() {
               </div>
               <button
                 className="text-xs bg-emerald-700 hover:bg-emerald-600 rounded px-3 py-1"
-                onClick={() => quest.startQuest(q.id, q.startStep)}
+                onClick={() => {
+                  // Для демонстрации: если есть outcomeKey для старта — фиксируем через сервер
+                  const outcomeKey = 'accept_' + String(q.id) + '_quest'
+                  void questsApi.applyDialogOutcome(outcomeKey).catch(() => quest.startQuest(q.id, q.startStep))
+                }}
               >
                 Начать
               </button>
@@ -65,7 +69,10 @@ export function Component() {
               </div>
               <button
                 className="text-xs bg-neutral-800 hover:bg-neutral-700 rounded px-3 py-1"
-                onClick={() => quest.completeQuest(aq.id as any)}
+                onClick={() => {
+                  const outcomeKey = 'complete_' + String(aq.id) + '_quest'
+                  void questsApi.applyDialogOutcome(outcomeKey).catch(() => quest.completeQuest(aq.id as any))
+                }}
               >
                 Завершить (dev)
               </button>

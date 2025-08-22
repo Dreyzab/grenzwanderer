@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { questsApi, qrApi } from '@/shared/api/quests'
 import { getQuestMeta } from '@/entities/quest/model/catalog'
 import { useProgressionStore } from '@/entities/quest/model/progressionStore'
+import { useQuest } from '@/entities/quest/model/useQuest'
 
 export const useGameState = () => {
   const game = useVNStore((s) => s.game)
@@ -32,7 +33,7 @@ export const useSceneEngine = () => {
   const navigate = useNavigate()
   const { currentScene } = useGameState()
   const actions = useVNStore((s) => s.actions)
-  // const quest = useQuest()
+  const quest = useQuest()
   const { setPhase } = useProgressionStore()
 
   const handleInlineActions = (): boolean => {
@@ -55,7 +56,7 @@ export const useSceneEngine = () => {
         }
         const meta = getQuestMeta('delivery_and_dilemma' as any)
         if (meta) {
-          try { await questsApi.startQuest('delivery_and_dilemma' as any, meta.startStep as any) } catch (e) {
+          try { await quest.startQuest('delivery_and_dilemma' as any, meta.startStep as any) } catch (e) {
             // eslint-disable-next-line no-console
             console.warn('[VN] startQuest failed', e)
           }

@@ -6,6 +6,7 @@ import MapPointTooltip from '@/entities/map-point/ui/MapPointTooltip'
 import type { VisibleMapPoint } from './useVisiblePoints'
 import { qrApiConvex } from '@/shared/api/qr/convex'
 import { MAP_POINT_TYPE } from '@/shared/constants'
+import logger from '@/shared/lib/logger'
 
 type Interactions = {
   onBoardOpen: (boardKey: string, title: string) => void | Promise<void>
@@ -26,11 +27,12 @@ export function useMarkers(
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map) return
+    if (!map) { logger.warn('MAP', 'markers:init no map'); return }
     const initLayers = () => {
       if (initializedRef.current) return
       if (!map.getSource('mappoints')) {
         map.addSource('mappoints', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'id' })
+        logger.info('MAP', 'markers:source_added')
       }
       if (!map.getLayer('mappoints')) {
         map.addLayer({
@@ -53,6 +55,7 @@ export function useMarkers(
             'circle-opacity': 0.95,
           },
         })
+        logger.info('MAP', 'markers:layer_points_added')
       }
       if (!map.getLayer('tracked-glow')) {
         map.addLayer({
@@ -68,8 +71,10 @@ export function useMarkers(
           },
           filter: ['==', ['get', 'id'], '__none__'],
         })
+        logger.info('MAP', 'markers:layer_glow_added')
       }
       initializedRef.current = true
+      logger.info('MAP', 'markers:initialized')
     }
 
     if (typeof (map as any).isStyleLoaded === 'function') {
@@ -89,6 +94,7 @@ export function useMarkers(
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
+    try { logger.debug('MAP', 'markers:points_in', { count: points.length, keys: points.map((p) => p.key) }) } catch {}
     const features = points.map((p) => ({
       type: 'Feature',
       id: p.key,
@@ -98,12 +104,17 @@ export function useMarkers(
         title: p.title,
         type: p.type ?? MAP_POINT_TYPE.UNKNOWN,
         description: p.description ?? '',
-        dialogKey: p.dialogKey ?? null,
+        dialogKey: (p as any).dialogKey ?? null,
         questId: p.questId ?? null,
       },
     }))
     const src = map.getSource('mappoints') as any
-    if (src?.setData) src.setData({ type: 'FeatureCollection', features })
+    if (src?.setData) {
+      src.setData({ type: 'FeatureCollection', features })
+      logger.info('MAP', 'markers:setData', { count: features.length })
+    } else {
+      logger.warn('MAP', 'markers:no_source_for_setData')
+    }
   }, [points, mapRef])
 
   // Обновление подсветки цели квеста
@@ -114,6 +125,7 @@ export function useMarkers(
     if (!hasGlow) return
     const target = trackedTargetId && points.some((p) => p.key === trackedTargetId) ? trackedTargetId : '__none__'
     map.setFilter('tracked-glow', ['==', ['get', 'id'], target])
+    logger.debug('MAP', 'markers:glow_filter', { target })
   }, [trackedTargetId, points, mapRef])
 
   // Мягкая пульсация слоя подсветки цели
@@ -151,12 +163,24 @@ export function useMarkers(
       const f = e?.features?.[0]
       const props = f?.properties || {}
       const title = props.title as string
+      logger.debug('MAP', 'markers:click', { id: props.id, type: props.type, title, dialogKey: (props as any).dialogKey })
       // Всегда резолвим на сервере: получаем dialogKey и playerState
       if (props.id && typeof props.id === 'string') {
-        // QR-резолв: используем point.id как код, если требуется иной канал, заменим на маппинг id->code
-        void qrApiConvex.resolvePoint(props.id as string).then((res) => {
-          if (res?.status === 'ok' && res.point?.dialogKey) {
-            interactions.onOpenDialog(res.point.dialogKey)
+        // QR-резолв: коды в сидере имеют префикс 'QR::'
+        const code = props.id.startsWith('QR::') ? (props.id as string) : (`QR::${props.id}` as string)
+        void qrApiConvex.resolvePoint(code).then((res) => {
+          try { logger.debug('MAP', 'markers:resolve_result', { status: res?.status, serverDialogKey: (res as any)?.point?.dialogKey }) } catch {}
+          const dialogKey = (res as any)?.point?.dialogKey as string | undefined
+          if (res?.status === 'ok' && dialogKey) {
+            interactions.onOpenDialog(dialogKey)
+            logger.info('MAP', 'markers:open_dialog', { key: dialogKey })
+            return
+          }
+          // Фолбэк: если QR не найден/без диалога — пробуем локальный dialogKey из свойства точки
+          const localDialogKey = (props as any).dialogKey as string | null
+          if (localDialogKey) {
+            interactions.onOpenDialog(localDialogKey)
+            logger.info('MAP', 'markers:open_dialog_fallback', { key: localDialogKey })
           }
         })
         return

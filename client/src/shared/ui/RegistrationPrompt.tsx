@@ -22,15 +22,6 @@ export default function RegistrationPrompt({ isOpen, onClose }: Props) {
           После регистрации мы перенесём ваш гостевой прогресс в аккаунт.
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <SignInButton mode="modal" forceRedirectUrl="/map?createCharacter=1">
-            <button
-              disabled={busy}
-              className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 rounded px-4 py-2"
-              onClick={() => { setBusy(true); logger.info('MAP', 'prompt: click sign-in', { isSignedIn }) }}
-            >
-              Войти
-            </button>
-          </SignInButton>
           <SignUpButton mode="modal" forceRedirectUrl="/map?createCharacter=1">
             <button
               disabled={busy}

@@ -29,6 +29,7 @@ export function AvailableQuestsModal({ title, questIds, items: itemsProp, onClos
       .filter((x): x is QuestItemWithMeta => Boolean(x.meta))
   }, [itemsProp, questIds])
 
+  const isEmpty = items.length === 0
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="w-full max-w-md rounded-lg border border-neutral-800 bg-neutral-900 p-4 shadow-xl">
@@ -77,7 +78,11 @@ export function AvailableQuestsModal({ title, questIds, items: itemsProp, onClos
               </button>
             </li>
           ))}
-          {items.length === 0 && <li className="text-sm text-neutral-400">Нет доступных квестов</li>}
+          {isEmpty && (
+            <li className="text-sm text-neutral-400">
+              А сегодня ничего нового
+            </li>
+          )}
         </ul>
       </div>
     </div>

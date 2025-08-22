@@ -1,5 +1,36 @@
 import type { GenericQueryCtx } from "convex/server";
-import { requirementsSatisfied } from "./quest";
+
+// Local copy: требования к квесту (фаза, репутации, флаги и т.п.)
+export function requirementsSatisfied(requirements: any | undefined, player: any): boolean {
+	if (!requirements) return true;
+	const phase = player?.phase ?? 0;
+	if (typeof requirements.phaseMin === "number" && phase < requirements.phaseMin) return false;
+	if (typeof requirements.phaseMax === "number" && phase > requirements.phaseMax) return false;
+	if (typeof requirements.fameMin === "number" && (player?.fame ?? 0) < requirements.fameMin) return false;
+	if (Array.isArray(requirements.requiredFlags)) {
+		const flags = new Set<string>(player?.flags ?? []);
+		for (const f of requirements.requiredFlags) if (!flags.has(f)) return false;
+	}
+	if (Array.isArray(requirements.forbiddenFlags)) {
+		const flags = new Set<string>(player?.flags ?? []);
+		for (const f of requirements.forbiddenFlags) if (flags.has(f)) return false;
+	}
+	if (requirements.reputations) {
+		for (const k of Object.keys(requirements.reputations)) {
+			const need = (requirements.reputations as any)[k];
+			const has = (player?.reputations ?? {})[k] ?? 0;
+			if (has < need) return false;
+		}
+	}
+	if (requirements.relationships) {
+		for (const k of Object.keys(requirements.relationships)) {
+			const need = (requirements.relationships as any)[k];
+			const has = (player?.relationships ?? {})[k] ?? 0;
+			if (has < need) return false;
+		}
+	}
+	return true;
+}
 
 export async function computeAllowedQuestMetaIds(
   ctx: GenericQueryCtx<any>,
@@ -17,7 +48,7 @@ export async function computeAllowedQuestMetaIds(
 }
 
 export async function selectStartBindings(
-  ctx: GenericQueryCtx<any>,
+  _ctx: GenericQueryCtx<any>,
   bindings: any[],
   allowedMetaIds: Set<string>,
   phase: number,
@@ -38,8 +69,31 @@ export async function selectStartBindings(
   return startBindings;
 }
 
+export async function selectProgressBindings(
+  _ctx: GenericQueryCtx<any>,
+  bindings: any[],
+  phase: number,
+  active: Set<string>,
+  currentSteps?: Map<string, string>,
+) {
+  const progress: any[] = []
+  for (const b of bindings) {
+    if (!active.has(b.questId)) continue
+    if (typeof b.phaseFrom === 'number' && phase < b.phaseFrom) continue
+    if (typeof b.phaseTo === 'number' && phase > b.phaseTo) continue
+    // Фильтрация по текущему шагу (если задан stepKey)
+    const requiredStep = (b as any).stepKey as string | undefined
+    if (requiredStep && currentSteps) {
+      const step = currentSteps.get(b.questId)
+      if (step !== requiredStep) continue
+    }
+    progress.push(b)
+  }
+  return progress
+}
+
 export async function diagnoseStartBindings(
-  ctx: GenericQueryCtx<any>,
+  _ctx: GenericQueryCtx<any>,
   bindings: any[],
   allowedMetaIds: Set<string>,
   phase: number,

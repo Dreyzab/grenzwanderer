@@ -8,13 +8,9 @@ export const seedsApiConvex = {
   seedMappointBindingsDev: async (devToken: string) => {
     return convexClient.mutation((api as any).seed.seedMappointBindingsDev, { devToken })
   },
-  seedQrCodesDev: async (devToken: string) => {
-    return convexClient.mutation((api as any).seed.seedQrCodesDev, { devToken })
-  },
   seedAllDev: async (devToken: string) => {
     await seedsApiConvex.seedQuestDependenciesDev(devToken)
     await seedsApiConvex.seedMappointBindingsDev(devToken)
-    await seedsApiConvex.seedQrCodesDev(devToken)
     return { ok: true }
   },
 }

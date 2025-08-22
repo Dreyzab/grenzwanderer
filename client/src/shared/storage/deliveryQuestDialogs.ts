@@ -20,12 +20,7 @@ export const deliveryQuestDialogs = [
             action: 'start_delivery_quest',
             eventOutcomeKey: 'accept_delivery_quest',
           },
-          {
-            text: 'Мне нужно сперва осмотреться. Я не готов.',
-            nextNodeKey: 'quest_declined',
-            action: 'decline_delivery_quest',
-            eventOutcomeKey: 'decline_delivery_quest',
-          },
+
         ],
       },
       quest_accepted: {
@@ -33,7 +28,15 @@ export const deliveryQuestDialogs = [
           '«Вот и славно. Торговца зовут Элиас, найдёшь его по вывеске с ржавым якорем. Покажешь ему этот код — он поймёт, от кого ты. И да, будь осторожен на окраинах. Там патрули FJR ходят реже. Время пошло!»',
         speakerKey: 'Ганс, боец FJR',
         choices: [
-          { text: 'Понял. Выдвигаюсь.', nextNodeKey: null },
+          { text: 'Понял. Выдвигаюсь.', nextNodeKey: 'station_after_accept' },
+        ],
+      },
+      station_after_accept: {
+        text:
+          'Ганс кивает и исчезает в толпе. Гул станции напоминает, что время не ждёт. Можно перекинуться парой слов с местными или сразу отправляться к торговцу.',
+        speakerKey: 'Рассказчик',
+        choices: [
+          { text: 'Ещё раз свериться с меткой на станции', nextNodeKey: null, action: 'advance_delivery_pickup' },
         ],
       },
       quest_declined: {

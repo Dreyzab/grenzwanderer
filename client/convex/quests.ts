@@ -1,11 +1,6 @@
-import { query, mutation } from './_generated/server'
-import { v, ConvexError } from 'convex/values'
-import { requirementsSatisfied } from './helpers/quest'
-import { ensurePlayerState } from './helpers/player'
-import { migrateDeviceProgressToUserImpl } from './helpers/migration'
-import { PLAYER_STATUS, WORLD_KEYS, QUEST_SOURCE } from './constants'
+import { mutation } from './_generated/server'
+import { v } from 'convex/values'
 
-// Вспомогательные функции
 async function getIdentitySubject(ctx: any): Promise<string | null> {
   try {
     const id = await ctx.auth.getUserIdentity()
@@ -15,500 +10,165 @@ async function getIdentitySubject(ctx: any): Promise<string | null> {
   }
 }
 
-// getOrCreatePlayerState заменён на ensurePlayerState
-
-async function getCompletedQuestIds(ctx: any, source: { userId?: string | null; deviceId: string }): Promise<Set<string>> {
-  const result = new Set<string>()
-  if (source.userId) {
-    const userRows = await ctx.db.query('quest_progress').withIndex('by_user', (q: any) => q.eq('userId', source.userId)).collect()
-    for (const r of userRows) if (typeof r.completedAt === 'number') result.add(r.questId)
-  }
-  const devRows = await ctx.db.query('quest_progress').withIndex('by_device', (q: any) => q.eq('deviceId', source.deviceId)).collect()
-  for (const r of devRows) if (typeof r.completedAt === 'number') result.add(r.questId)
-  return result
-}
-
-// Утилиты для борьбы с дубликатами player_state
-async function dedupePlayerStateByUser(ctx: any, userId: string) {
-  const rows = await ctx.db.query('player_state').withIndex('by_user', (q: any) => q.eq('userId', userId)).collect()
-  if (rows.length <= 1) return rows[0] ?? null
-  rows.sort((a: any, b: any) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
-  const keep = rows[0]
-  for (let i = 1; i < rows.length; i++) {
-    try { await ctx.db.delete(rows[i]._id) } catch (e) {
-      // swallow dedupe errors
-    }
-  }
-  return keep
-}
-
-async function dedupePlayerStateByDevice(ctx: any, deviceId: string) {
-  const rows = await ctx.db.query('player_state').withIndex('by_device', (q: any) => q.eq('deviceId', deviceId)).collect()
-  if (rows.length <= 1) return rows[0] ?? null
-  rows.sort((a: any, b: any) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
-  const keep = rows[0]
-  for (let i = 1; i < rows.length; i++) {
-    try { await ctx.db.delete(rows[i]._id) } catch (e) {
-      // swallow dedupe errors
-    }
-  }
-  return keep
-}
-
-// requirementsSatisfied вынесен в helpers/quest
-
-async function dependenciesSatisfied(ctx: any, questId: string, completed: Set<string>): Promise<boolean> {
-  const deps = await ctx.db.query('quest_dependencies').withIndex('by_quest', (q: any) => q.eq('questId', questId)).collect()
-  for (const d of deps) {
-    if (!completed.has(d.requiresQuestId)) return false
-  }
-  return true
-}
-
-// Унифицированный отбор доступных квестов по индексу и ключу источника
-async function selectAvailableQuestsByIndex(
-  ctx: any,
-  args: { index: 'by_giver' | 'by_board'; key: string; deviceId: string },
-): Promise<Array<{ id: string; type: string; priority?: number; updatedAt: number }>> {
-  const { index, key, deviceId } = args
-  const subject = await getIdentitySubject(ctx)
-  const player = await ensurePlayerState(ctx, { deviceId })
-  const completed = await getCompletedQuestIds(ctx, { userId: subject, deviceId })
-  const now = Date.now()
-
-  const metas =
-    index === 'by_giver'
-      ? await ctx.db.query('quest_registry').withIndex('by_giver', (q: any) => q.eq('giverNpcId', key)).collect()
-      : await ctx.db.query('quest_registry').withIndex('by_board', (q: any) => q.eq('boardKey', key)).collect()
-
-  const filtered: Array<{ id: string; type: string; priority?: number; updatedAt: number }> = []
-  for (const m of metas) {
-    if (!requirementsSatisfied(m.requirements, player)) continue
-    if (typeof m.phaseGate === 'number' && (player?.phase ?? 0) < m.phaseGate) continue
-    if (!(await dependenciesSatisfied(ctx, m.questId, completed))) continue
-    filtered.push({ id: m.questId, type: m.type, priority: m.priority, updatedAt: now })
-  }
-  filtered.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
-  return filtered
-}
-
-export const bootstrapNewPlayer = mutation({
-  args: { deviceId: v.string() },
-  handler: async (ctx, { deviceId }) => {
-    await ensurePlayerState(ctx, { deviceId })
-    return { ok: true }
-  },
-})
-
-export const getProgress = query({
-  args: { deviceId: v.string(), userId: v.optional(v.string()) },
-  handler: async (ctx, { deviceId, userId }) => {
-    const list: any[] = []
-    if (userId) {
-      const rows = await ctx.db.query('quest_progress').withIndex('by_user', (q: any) => q.eq('userId', userId)).collect()
-      list.push(...rows)
-    }
-    const devRows = await ctx.db.query('quest_progress').withIndex('by_device', (q: any) => q.eq('deviceId', deviceId)).collect()
-    // Если есть userId — фильтруем дубликаты по questId, отдаём user приоритет
-    const seen = new Set((list as any[]).map((r) => r.questId))
-    for (const r of devRows) if (!seen.has(r.questId)) list.push(r)
-    return list
-  },
-})
-
-export const getPlayerState = query({
-  args: { deviceId: v.string() },
-  handler: async (ctx, { deviceId }) => {
-    const subject = await getIdentitySubject(ctx)
-    if (subject) {
-      const byUser = await dedupePlayerStateByUser(ctx, subject)
-      if (byUser) return byUser
-    }
-    return await ctx.db.query('player_state').withIndex('by_device', (q: any) => q.eq('deviceId', deviceId)).unique()
-  },
-})
-
-export const setPlayerPhase = mutation({
-  args: { deviceId: v.string(), phase: v.number() },
-  handler: async (ctx, { deviceId, phase }) => {
-    const now = Date.now()
-    const subject = await getIdentitySubject(ctx)
-    if (subject) {
-      const byUser = await ctx.db.query('player_state').withIndex('by_user', (q: any) => q.eq('userId', subject)).unique()
-      if (byUser) {
-        await ctx.db.patch(byUser._id, { phase, updatedAt: now })
-        return { ok: true, phase }
-      }
-      await ctx.db.insert('player_state', { userId: subject, deviceId, phase, status: PLAYER_STATUS.REFUGEE, inventory: [], updatedAt: now })
-      return { ok: true, phase }
-    }
-    const byDev = await dedupePlayerStateByDevice(ctx, deviceId)
-    if (byDev) {
-      await ctx.db.patch(byDev._id, { phase, updatedAt: now })
-      return { ok: true, phase }
-    }
-    await ctx.db.insert('player_state', { userId: undefined, deviceId, phase, status: PLAYER_STATUS.REFUGEE, inventory: [], updatedAt: now })
-    return { ok: true, phase }
-  },
-})
-
-async function setPlayerPhaseImpl(ctx: any, deviceId: string, phase: number) {
+async function getOrEnsurePlayerState(ctx: any, deviceId: string) {
   const now = Date.now()
   const subject = await getIdentitySubject(ctx)
   if (subject) {
-    const byUser = await dedupePlayerStateByUser(ctx, subject)
-    if (byUser) {
-      await ctx.db.patch(byUser._id, { phase, updatedAt: now })
-      return { ok: true, phase }
-    }
-    await ctx.db.insert('player_state', { userId: subject, deviceId, phase, status: PLAYER_STATUS.REFUGEE, inventory: [], updatedAt: now })
-    return { ok: true, phase }
-  }
-  const byDev = await dedupePlayerStateByDevice(ctx, deviceId)
-  if (byDev) {
-    await ctx.db.patch(byDev._id, { phase, updatedAt: now })
-    return { ok: true, phase }
-  }
-  await ctx.db.insert('player_state', { userId: undefined, deviceId, phase, status: PLAYER_STATUS.REFUGEE, inventory: [], updatedAt: now })
-  return { ok: true, phase }
-}
-
-export const getWorldState = query({
-  args: {},
-  handler: async (ctx) => {
-    const row = await ctx.db.query('world_state').withIndex('by_key', (q: any) => q.eq('key', WORLD_KEYS.GLOBAL)).unique()
-    return row ?? { key: WORLD_KEYS.GLOBAL, phase: 0, flags: [], updatedAt: 0 }
-  },
-})
-
-export const setWorldPhase = mutation({
-  args: { phase: v.number() },
-  handler: async (ctx, { phase }) => {
-    const now = Date.now()
-    const row = await ctx.db.query('world_state').withIndex('by_key', (q: any) => q.eq('key', WORLD_KEYS.GLOBAL)).unique()
-    if (row) {
-      await ctx.db.patch(row._id, { phase, updatedAt: now })
-      return { ok: true, phase }
-    }
-    await ctx.db.insert('world_state', { key: WORLD_KEYS.GLOBAL, phase, flags: [], updatedAt: now })
-    return { ok: true, phase }
-  },
-})
-
-export const startQuest = mutation({
-  args: { deviceId: v.string(), questId: v.string(), step: v.string() },
-  handler: async (ctx, { deviceId, questId, step }) => {
-    const now = Date.now()
-    const subject = await getIdentitySubject(ctx)
-    let existing = subject
-      ? await ctx.db.query('quest_progress').withIndex('by_user_quest', (q: any) => q.eq('userId', subject).eq('questId', questId)).unique()
-      : await ctx.db.query('quest_progress').withIndex('by_device_quest', (q: any) => q.eq('deviceId', deviceId).eq('questId', questId)).unique()
-    // Если вошли, но запись только на девайсе — привяжем её к пользователю и продолжим
-    if (!existing && subject) {
-      const devOnly = await ctx.db.query('quest_progress').withIndex('by_device_quest', (q: any) => q.eq('deviceId', deviceId).eq('questId', questId)).unique()
-      if (devOnly) {
-        await ctx.db.patch(devOnly._id, { userId: subject, updatedAt: now })
-        existing = devOnly
-      }
-    }
-    if (existing) {
-      // Не трогаем startedAt, только обновим текущий шаг, если это инициализация
-      if (!existing.currentStep || existing.currentStep === 'not_started') {
-        await ctx.db.patch(existing._id, { currentStep: step, updatedAt: now })
-      }
-      return { ok: true }
-    }
-    await ctx.db.insert('quest_progress', {
-      userId: subject ?? undefined,
+    const rows = await (ctx.db as any).query('player_state').withIndex('by_user', (q: any) => q.eq('userId', subject)).collect()
+    if (rows.length > 0) return rows.sort((a: any, b: any) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))[0]
+    const id = await (ctx.db as any).insert('player_state', {
+      userId: subject,
       deviceId,
-      questId,
-      currentStep: step,
-      startedAt: now,
-      updatedAt: now,
-      completedAt: undefined,
-    })
-    return { ok: true }
-  },
-})
-
-export const advanceQuest = mutation({
-  args: { deviceId: v.string(), questId: v.string(), step: v.string() },
-  handler: async (ctx, { deviceId, questId, step }) => {
-    const now = Date.now()
-    const subject = await getIdentitySubject(ctx)
-    let existing = subject
-      ? await ctx.db.query('quest_progress').withIndex('by_user_quest', (q: any) => q.eq('userId', subject).eq('questId', questId)).unique()
-      : await ctx.db.query('quest_progress').withIndex('by_device_quest', (q: any) => q.eq('deviceId', deviceId).eq('questId', questId)).unique()
-    if (!existing && subject) {
-      const devOnly = await ctx.db.query('quest_progress').withIndex('by_device_quest', (q: any) => q.eq('deviceId', deviceId).eq('questId', questId)).unique()
-      if (devOnly) {
-        await ctx.db.patch(devOnly._id, { userId: subject, updatedAt: now })
-        existing = devOnly
-      }
-    }
-    if (!existing) throw new ConvexError({ message: 'Quest not started' })
-    await ctx.db.patch(existing._id, { currentStep: step, updatedAt: now })
-    return { ok: true }
-  },
-})
-
-export const completeQuest = mutation({
-  args: { deviceId: v.string(), questId: v.string() },
-  handler: async (ctx, { deviceId, questId }) => {
-    const now = Date.now()
-    const subject = await getIdentitySubject(ctx)
-    let existing = subject
-      ? await ctx.db.query('quest_progress').withIndex('by_user_quest', (q: any) => q.eq('userId', subject).eq('questId', questId)).unique()
-      : await ctx.db.query('quest_progress').withIndex('by_device_quest', (q: any) => q.eq('deviceId', deviceId).eq('questId', questId)).unique()
-    if (!existing && subject) {
-      const devOnly = await ctx.db.query('quest_progress').withIndex('by_device_quest', (q: any) => q.eq('deviceId', deviceId).eq('questId', questId)).unique()
-      if (devOnly) {
-        await ctx.db.patch(devOnly._id, { userId: subject, updatedAt: now })
-        existing = devOnly
-      }
-    }
-    if (!existing) throw new ConvexError({ message: 'Quest not started' })
-    await ctx.db.patch(existing._id, { currentStep: 'completed', completedAt: now, updatedAt: now })
-    return { ok: true }
-  },
-})
-
-export const migrateDeviceProgressToUser = mutation({
-  args: { deviceId: v.string(), userId: v.string() },
-  handler: async (ctx, { deviceId, userId }) => {
-    await migrateDeviceProgressToUserImpl(ctx as any, deviceId, userId)
-    return { ok: true }
-  },
-})
-
-export const finalizeRegistration = mutation({
-  args: { deviceId: v.string(), nickname: v.string(), avatarKey: v.optional(v.string()) },
-  handler: async (ctx, { deviceId, nickname, avatarKey }) => {
-    const now = Date.now()
-    const subject = await getIdentitySubject(ctx)
-    if (!subject) throw new ConvexError({ message: 'Not authenticated' })
-
-    // Миграция device → user (единая реализация)
-    await migrateDeviceProgressToUserImpl(ctx as any, deviceId, subject)
-
-    // Создадим/обновим профиль пользователя
-    const identity = await ctx.auth.getUserIdentity()
-    const u = await ctx.db.query('users').withIndex('by_externalId', (q: any) => q.eq('externalId', subject)).unique()
-    const email = (identity?.email as string | undefined) ?? undefined
-    const imageUrl = (identity?.pictureUrl as string | undefined) ?? undefined
-    if (u) {
-      // Не перезаписываем имя, если уже было задано ранее (защита от повторного модала)
-      const nextName = u.name && u.name.length > 0 ? u.name : nickname
-      // Если передан avatarKey — сохраняем его как imageUrl (иконка профиля в игре)
-      const nextImage = avatarKey ? avatarKey : (u.imageUrl ?? imageUrl)
-      await ctx.db.patch(u._id, { name: nextName, email: u.email ?? email, imageUrl: nextImage, updatedAt: now })
-    } else {
-      await ctx.db.insert('users', { externalId: subject, name: nickname, email, imageUrl: avatarKey || imageUrl, createdAt: now, updatedAt: now })
-    }
-
-    // Установим фазу 1 и статус после регистрации
-    const p = await dedupePlayerStateByUser(ctx, subject)
-    if (p) await ctx.db.patch(p._id, { phase: 1, status: PLAYER_STATUS.REFUGEE, hasPda: true, updatedAt: now })
-    else await ctx.db.insert('player_state', { userId: subject, deviceId, phase: 1, status: PLAYER_STATUS.REFUGEE, hasPda: true, inventory: [], updatedAt: now })
-
-    // Глобальная фаза мира → 1
-    const w = await ctx.db.query('world_state').withIndex('by_key', (q: any) => q.eq('key', 'global')).unique()
-    if (w) await ctx.db.patch(w._id, { phase: 1, updatedAt: now })
-    else await ctx.db.insert('world_state', { key: WORLD_KEYS.GLOBAL, phase: 1, flags: [], updatedAt: now })
-
-    return { ok: true }
-  },
-})
-
-export const applyOutcome = mutation({
-  args: {
-    deviceId: v.string(),
-    fameDelta: v.optional(v.number()),
-    reputationsDelta: v.optional(v.record(v.string(), v.number())),
-    relationshipsDelta: v.optional(v.record(v.string(), v.number())),
-    addFlags: v.optional(v.array(v.string())),
-    removeFlags: v.optional(v.array(v.string())),
-    addWorldFlags: v.optional(v.array(v.string())),
-    removeWorldFlags: v.optional(v.array(v.string())),
-    setPhase: v.optional(v.number()),
-    setStatus: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    await applyOutcomeImpl(ctx, args)
-    return { ok: true }
-  },
-})
-
-// Переиспользуемая реализация applyOutcome для других модулей
-export type ApplyOutcomeArgs = {
-  deviceId: string
-  fameDelta?: number
-  reputationsDelta?: Record<string, number>
-  relationshipsDelta?: Record<string, number>
-  addFlags?: string[]
-  removeFlags?: string[]
-  addWorldFlags?: string[]
-  removeWorldFlags?: string[]
-  setPhase?: number
-  setStatus?: string
-}
-
-export async function applyOutcomeImpl(ctx: any, args: ApplyOutcomeArgs): Promise<void> {
-  const now = Date.now()
-  const subject = await getIdentitySubject(ctx)
-  const target = subject
-    ? await ctx.db.query('player_state').withIndex('by_user', (q: any) => q.eq('userId', subject)).unique()
-    : await ctx.db.query('player_state').withIndex('by_device', (q: any) => q.eq('deviceId', args.deviceId)).unique()
-  if (target) {
-    const nextFlags = new Set<string>(target.flags ?? [])
-    for (const f of args.addFlags ?? []) nextFlags.add(f)
-    for (const f of args.removeFlags ?? []) nextFlags.delete(f)
-    const nextRep: Record<string, number> = { ...(target.reputations ?? {}) }
-    for (const k of Object.keys(args.reputationsDelta ?? {})) nextRep[k] = (nextRep[k] ?? 0) + (args.reputationsDelta as any)[k]
-    const nextRel: Record<string, number> = { ...(target.relationships ?? {}) }
-    for (const k of Object.keys(args.relationshipsDelta ?? {})) nextRel[k] = (nextRel[k] ?? 0) + (args.relationshipsDelta as any)[k]
-    await ctx.db.patch(target._id, {
-      fame: (target.fame ?? 0) + (args.fameDelta ?? 0),
-      reputations: nextRep,
-      relationships: nextRel,
-      flags: Array.from(nextFlags),
-      status: args.setStatus ?? target.status,
-      phase: typeof args.setPhase === 'number' ? args.setPhase : target.phase,
+      phase: 0,
+      status: 'refugee',
+      inventory: [],
+      hasPda: false,
+      fame: 0,
+      reputations: {},
+      relationships: {},
+      flags: [],
       updatedAt: now,
     })
+    return await (ctx.db as any).get(id)
   }
-  if ((args.addWorldFlags && args.addWorldFlags.length) || (args.removeWorldFlags && args.removeWorldFlags.length)) {
-    const w = await ctx.db.query('world_state').withIndex('by_key', (q: any) => q.eq('key', 'global')).unique()
-    if (w) {
-      const wf = new Set<string>(w.flags ?? [])
-      for (const f of args.addWorldFlags ?? []) wf.add(f)
-      for (const f of args.removeWorldFlags ?? []) wf.delete(f)
-      await ctx.db.patch(w._id, { flags: Array.from(wf), updatedAt: now })
-    }
-  }
-  if (typeof args.setPhase === 'number') {
-    await setPlayerPhaseImpl(ctx, args.deviceId, args.setPhase)
-  }
+  const rows = await (ctx.db as any).query('player_state').withIndex('by_device', (q: any) => q.eq('deviceId', deviceId)).collect()
+  if (rows.length > 0) return rows.sort((a: any, b: any) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))[0]
+  const id = await (ctx.db as any).insert('player_state', {
+    userId: undefined,
+    deviceId,
+    phase: 0,
+    status: 'refugee',
+    inventory: [],
+    hasPda: false,
+    fame: 0,
+    reputations: {},
+    relationships: {},
+    flags: [],
+    updatedAt: now,
+  })
+  return await (ctx.db as any).get(id)
 }
 
-// Центральная инициализация сессии: ensure → миграция (если нужно) → снимок состояния
 export const initializeSession = mutation({
   args: { deviceId: v.string() },
   handler: async (ctx, { deviceId }) => {
-    const now = Date.now()
     const subject = await getIdentitySubject(ctx)
+    const playerState = await getOrEnsurePlayerState(ctx, deviceId)
+    const phase = playerState?.phase ?? 0
 
-    // Ensure базовое состояние игрока
-    await ensurePlayerState(ctx, { deviceId })
-
-    // Если пользователь аутентифицирован — обеспечим профиль и миграцию прогресса
-    if (subject) {
-      try {
-        // Лёгкий upsert users по identity (без имени)
-        const identity = await ctx.auth.getUserIdentity()
-        const u = await ctx.db.query('users').withIndex('by_externalId', (q: any) => q.eq('externalId', subject)).unique()
-        const email = (identity?.email as string | undefined) ?? undefined
-        const imageUrl = (identity?.pictureUrl as string | undefined) ?? undefined
-        if (u) {
-          await ctx.db.patch(u._id, { email: u.email ?? email, imageUrl: u.imageUrl ?? imageUrl, updatedAt: now })
-        } else {
-          await ctx.db.insert('users', { externalId: subject, name: undefined, email, imageUrl, createdAt: now, updatedAt: now })
-        }
-      } catch {}
-
-      // Миграция прогресса device → user
-      await migrateDeviceProgressToUserImpl(ctx as any, deviceId, subject)
-    }
-
-    // Собираем снимок состояния
-    const playerState = subject
-      ? await dedupePlayerStateByUser(ctx, subject)
-      : await dedupePlayerStateByDevice(ctx, deviceId)
-
-    // Прогресс с приоритетом user над device
+    // Merge progress: user has priority over device
     const progress: any[] = []
     if (subject) {
-      const rows = await ctx.db.query('quest_progress').withIndex('by_user', (q: any) => q.eq('userId', subject)).collect()
+      const rows = await (ctx.db as any).query('quest_progress').withIndex('by_user', (q: any) => q.eq('userId', subject)).collect()
       progress.push(...rows)
     }
-    const devRows = await ctx.db.query('quest_progress').withIndex('by_device', (q: any) => q.eq('deviceId', deviceId)).collect()
-    const seen = new Set((progress as any[]).map((r) => r.questId))
+    const devRows = await (ctx.db as any).query('quest_progress').withIndex('by_device', (q: any) => q.eq('deviceId', deviceId)).collect()
+    const seen = new Set(progress.map((r) => r.questId))
     for (const r of devRows) if (!seen.has(r.questId)) progress.push(r)
 
-    const world = await ctx.db.query('world_state').withIndex('by_key', (q: any) => q.eq('key', WORLD_KEYS.GLOBAL)).unique()
+    // Catalogs filtered by phase
+    const allRegistry = await (ctx.db as any).query('quest_registry').collect()
+    const questRegistry = allRegistry.filter((m: any) => (typeof m.phaseGate === 'number' ? phase >= m.phaseGate : true))
+    const allBindings = await (ctx.db as any).query('mappoint_bindings').collect()
+    const mappointBindings = allBindings.filter((b: any) => {
+      const fromOk = typeof b.phaseFrom === 'number' ? phase >= b.phaseFrom : true
+      const toOk = typeof b.phaseTo === 'number' ? phase <= b.phaseTo : true
+      return fromOk && toOk
+    })
+    const pointKeys = Array.from(new Set(mappointBindings.map((b: any) => b.pointKey)))
+    const mapPoints: any[] = []
+    for (const key of pointKeys) {
+      const p = await (ctx.db as any).query('map_points').withIndex('by_key', (q: any) => q.eq('key', key)).unique()
+      if (p) mapPoints.push(p)
+    }
+
+    const world = await (ctx.db as any).query('world_state').withIndex('by_key', (q: any) => q.eq('key', 'global')).unique()
 
     return {
       ok: true as const,
       playerState,
       progress,
-      worldState: world ?? { key: WORLD_KEYS.GLOBAL, phase: 0, flags: [], updatedAt: 0 },
+      questRegistry,
+      mappointBindings,
+      mapPoints,
+      worldState: world ?? { key: 'global', phase: 0, flags: [], updatedAt: 0 },
       userId: subject ?? null,
-      migrated: Boolean(subject),
     }
   },
 })
 
-export const getAvailableQuestsForNpc = query({
-  args: { npcId: v.string(), deviceId: v.string() },
-  handler: async (ctx, { npcId, deviceId }) => {
-    // Устаревший прокси: используйте getAvailableQuests
-    return await selectAvailableQuestsByIndex(ctx, { index: 'by_giver', key: npcId, deviceId })
-  },
-})
-
-export const getAvailableBoardQuests = query({
-  args: { boardKey: v.string(), deviceId: v.string() },
-  handler: async (ctx, { boardKey, deviceId }) => {
-    // Устаревший прокси: используйте getAvailableQuests
-    return await selectAvailableQuestsByIndex(ctx, { index: 'by_board', key: boardKey, deviceId })
-  },
-})
-
-export const getAvailableQuests = query({
-  args: { sourceType: v.union(v.literal(QUEST_SOURCE.NPC), v.literal(QUEST_SOURCE.BOARD)), sourceKey: v.string(), deviceId: v.string() },
-  handler: async (ctx, { sourceType, sourceKey, deviceId }) => {
-    return await selectAvailableQuestsByIndex(ctx, {
-      index: sourceType === QUEST_SOURCE.NPC ? 'by_giver' : 'by_board',
-      key: sourceKey,
-      deviceId,
-    })
-  },
-})
-
-// Опционально: массовое обновление реестра квестов (dev use)
-export const upsertQuestRegistry = mutation({
+export const syncProgress = mutation({
   args: {
-    metas: v.array(
-      v.object({
-        questId: v.string(),
-        type: v.union(v.literal('story'), v.literal('faction'), v.literal('personal'), v.literal('procedural')),
-        giverNpcId: v.optional(v.string()),
-        boardKey: v.optional(v.string()),
-        repeatable: v.optional(v.boolean()),
-        priority: v.number(),
-        phaseGate: v.optional(v.number()),
-        requirements: v.optional(
-          v.object({
-            fameMin: v.optional(v.number()),
-            phaseMin: v.optional(v.number()),
-            phaseMax: v.optional(v.number()),
-            requiredFlags: v.optional(v.array(v.string())),
-            forbiddenFlags: v.optional(v.array(v.string())),
-            reputations: v.optional(v.record(v.string(), v.number())),
-            relationships: v.optional(v.record(v.string(), v.number())),
-          }),
-        ),
-      }),
-    ),
+    deviceId: v.string(),
+    progress: v.object({
+      activeQuests: v.record(v.string(), v.object({ currentStep: v.string(), startedAt: v.optional(v.number()) })),
+      completedQuests: v.array(v.string()),
+    }),
   },
-  handler: async (ctx, { metas }) => {
+  handler: async (ctx, { deviceId, progress }) => {
     const now = Date.now()
-    for (const meta of metas) {
-      const existing = await ctx.db.query('quest_registry').withIndex('by_quest', (q: any) => q.eq('questId', meta.questId)).unique()
-      if (existing) await ctx.db.patch(existing._id, { ...meta, updatedAt: now })
-      else await ctx.db.insert('quest_registry', { ...meta, updatedAt: now })
+    const subject = await getIdentitySubject(ctx)
+
+    if (subject) {
+      const byUser = await (ctx.db as any).query('quest_progress').withIndex('by_user', (q: any) => q.eq('userId', subject)).collect()
+      for (const r of byUser) await (ctx.db as any).delete(r._id)
     }
-    return { ok: true, count: metas.length }
+    const byDevice = await (ctx.db as any).query('quest_progress').withIndex('by_device', (q: any) => q.eq('deviceId', deviceId)).collect()
+    for (const r of byDevice) await (ctx.db as any).delete(r._id)
+
+    const completedSet = new Set(progress.completedQuests)
+    for (const [questId, entry] of Object.entries(progress.activeQuests ?? {})) {
+      if (completedSet.has(questId)) continue
+      await (ctx.db as any).insert('quest_progress', {
+        userId: subject ?? undefined,
+        deviceId,
+        questId,
+        currentStep: (entry as any).currentStep,
+        startedAt: (entry as any).startedAt ?? now,
+        updatedAt: now,
+        completedAt: undefined,
+      })
+    }
+    for (const questId of progress.completedQuests ?? []) {
+      await (ctx.db as any).insert('quest_progress', {
+        userId: subject ?? undefined,
+        deviceId,
+        questId,
+        currentStep: 'completed',
+        startedAt: now,
+        updatedAt: now,
+        completedAt: now,
+      })
+    }
+    return { ok: true }
+  },
+})
+
+
+// Dev: сид реестра квестов (фаза 1)
+export const seedQuestRegistryDev = mutation({
+  args: { devToken: v.string() },
+  handler: async ({ db }, { devToken }) => {
+    const expected = (globalThis as any)?.process?.env?.VITE_DEV_SEED_TOKEN ?? (globalThis as any)?.VITE_DEV_SEED_TOKEN
+    if (expected && devToken !== expected) throw new Error('Forbidden: invalid dev token')
+    const now = Date.now()
+    const rows: Array<{ questId: string; type: 'story' | 'faction' | 'personal' | 'procedural'; priority: number; phaseGate: number }> = [
+      { questId: 'field_medicine', type: 'story', priority: 10, phaseGate: 1 },
+      { questId: 'combat_baptism', type: 'story', priority: 9, phaseGate: 1 },
+      { questId: 'quiet_cove_whisper', type: 'story', priority: 8, phaseGate: 1 },
+      { questId: 'bell_for_lost', type: 'story', priority: 7, phaseGate: 1 },
+    ]
+    let upserts = 0
+    for (const r of rows) {
+      const existing = await (db as any).query('quest_registry').withIndex('by_quest', (q: any) => q.eq('questId', r.questId)).unique()
+      if (existing) {
+        await (db as any).patch(existing._id, { ...existing, ...r, updatedAt: now })
+      } else {
+        await (db as any).insert('quest_registry', { ...r, updatedAt: now })
+      }
+      upserts++
+    }
+    return { ok: true, count: upserts }
   },
 })
 

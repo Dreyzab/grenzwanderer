@@ -1,112 +1,68 @@
+// Convex: используем только для initialize/syncProgress, остальное — no-op
 import { api } from '../../../../convex/_generated/api'
 import { convexClient } from '@/shared/lib/convexClient'
 import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
+import { useGameDataStore } from '@/app/ConvexProvider'
+import { usePlayerStore } from '@/entities/player/model/store'
+
+type SourceType = 'npc' | 'board'
 
 export const questsApiConvex = {
   bootstrapNewPlayer: async () => {
-    const deviceId = getOrCreateDeviceId()
-    try {
-      return await convexClient.mutation(api.quests.bootstrapNewPlayer, { deviceId })
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn('bootstrapNewPlayer not available yet, skipping', e)
-      return null
-    }
+    getOrCreateDeviceId()
+    return { ok: true }
   },
-  getProgress: async () => {
-    const deviceId = getOrCreateDeviceId()
-    return convexClient.query(api.quests.getProgress, { deviceId })
-  },
-  getPlayerState: async () => {
-    const deviceId = getOrCreateDeviceId()
-    return convexClient.query(api.quests.getPlayerState, { deviceId })
-  },
+
   setPlayerPhase: async (phase: number) => {
     const deviceId = getOrCreateDeviceId()
-    // Оборачиваем на случай, если функция ещё не задеплоена на Convex
-    try {
-      return await convexClient.mutation(api.quests.setPlayerPhase, { deviceId, phase })
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn('setPlayerPhase not available yet, skipping', e)
-      return null
-    }
+    console.info('[PHASE] setPlayerPhase (client-only)', { phase, deviceId })
+    try { localStorage.setItem('player-phase', String(phase)) } catch {}
+    return { ok: true, phase }
   },
-  startQuest: async (questId: string, step: string) => {
+
+  getPlayerState: async () => {
     const deviceId = getOrCreateDeviceId()
-    return convexClient.mutation(api.quests.startQuest, { deviceId, questId, step })
+    const phaseStr = (() => { try { return localStorage.getItem('player-phase') } catch { return null } })()
+    const phase = phaseStr ? Number(phaseStr) : 0
+    return { phase, status: 'refugee', inventory: [], updatedAt: Date.now(), deviceId } as any
   },
-  advanceQuest: async (questId: string, step: string) => {
+
+  getAvailableQuests: async (_sourceType: SourceType, _sourceKey: string) => {
+    // Источник: локальный каталог, загруженный снапшотом из initializeSession
+    const { questRegistry } = useGameDataStore.getState()
+    const storePhase = usePlayerStore.getState().phase
+    const localPhaseStr = (() => { try { return localStorage.getItem('player-phase') } catch { return null } })()
+    const phase = typeof storePhase === 'number' ? storePhase : localPhaseStr ? Number(localPhaseStr) : 0
+
+    const items = (questRegistry ?? [])
+      .filter((q: any) => (typeof q.phaseGate === 'number' ? phase >= q.phaseGate : true))
+      .map((q: any) => ({ id: q.id ?? q.questId ?? q.key, type: q.type ?? 'story', priority: q.priority ?? 0 }))
+      .filter((q: any) => Boolean(q.id))
+      .sort((a: any, b: any) => (b.priority ?? 0) - (a.priority ?? 0))
+
+    return items as any
+  },
+
+  // Новая фоновая синхронизация: отдаём снапшот прогресса
+  syncProgress: async (progress: { activeQuests: Record<string, { currentStep: string; startedAt?: number }>; completedQuests: string[] }) => {
     const deviceId = getOrCreateDeviceId()
-    return convexClient.mutation(api.quests.advanceQuest, { deviceId, questId, step })
+    return convexClient.mutation((api as any).quests.syncProgress, { deviceId, progress } as any)
   },
-  completeQuest: async (questId: string) => {
-    const deviceId = getOrCreateDeviceId()
-    return convexClient.mutation(api.quests.completeQuest, { deviceId, questId })
+
+  applyDialogOutcome: async (outcomeKey: string) => {
+    // No-op in client-authoritative mode
+    console.warn('[DIALOG] applyDialogOutcome skipped (client-only):', outcomeKey)
+    return { ok: true }
   },
+
   migrateDeviceToUser: async (userId: string) => {
-    const deviceId = getOrCreateDeviceId()
-    return convexClient.mutation(api.quests.migrateDeviceProgressToUser, { deviceId, userId })
+    getOrCreateDeviceId()
+    return { ok: true, userId }
   },
-  finalizeRegistration: async (nickname: string, avatarKey?: string) => {
-    const deviceId = getOrCreateDeviceId()
-    try {
-      return await convexClient.mutation(api.quests.finalizeRegistration, { deviceId, nickname, avatarKey })
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn('finalizeRegistration failed', e)
-      throw e
-    }
-  },
-  // Dev-only helper to set phase 1 after registration
-  setPhaseAfterRegistration: async () => {
-    return questsApiConvex.setPlayerPhase(1)
-  },
-  getWorldState: async () => {
-    return convexClient.query(api.quests.getWorldState, {})
-  },
-  // Устаревшие методы: тонкие прокси на универсальный вызов
-  getAvailableQuestsForNpc: async (npcId: string) => {
-    const deviceId = getOrCreateDeviceId()
-    return convexClient.query(api.quests.getAvailableQuests, { sourceType: 'npc', sourceKey: npcId, deviceId })
-  },
-  getAvailableBoardQuests: async (boardKey: string) => {
-    const deviceId = getOrCreateDeviceId()
-    return convexClient.query(api.quests.getAvailableQuests, { sourceType: 'board', sourceKey: boardKey, deviceId })
-  },
-  getAvailableQuests: async (sourceType: 'npc' | 'board', sourceKey: string) => {
-    const deviceId = getOrCreateDeviceId()
-    return convexClient.query(api.quests.getAvailableQuests, { sourceType, sourceKey, deviceId })
-  },
-  applyOutcome: async (args: {
-    fameDelta?: number
-    reputationsDelta?: Record<string, number>
-    relationshipsDelta?: Record<string, number>
-    addFlags?: string[]
-    removeFlags?: string[]
-    addWorldFlags?: string[]
-    removeWorldFlags?: string[]
-    setPhase?: number
-    setStatus?: string
-  }) => {
-    const deviceId = getOrCreateDeviceId()
-    return convexClient.mutation(api.quests.applyOutcome, { deviceId, ...args })
-  },
-  applyDialogOutcome: async (outcomeKey: string, payload?: { amount?: number }) => {
-    const deviceId = getOrCreateDeviceId()
-    // dialogs.applyDialogOutcome — новый серверный контракт
-    // Оборачиваем на случай, если функция ещё не задеплоена
-    try {
-      // @ts-ignore — генерик API может ещё не быть в типах
-      return await convexClient.mutation((api as any).dialogs.applyDialogOutcome, { deviceId, outcomeKey, payload })
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn('applyDialogOutcome not available yet', e)
-      throw e
-    }
-  },
-  seedQuestRegistryDev: async (devToken: string) => {
-    return convexClient.mutation(api.seed.seedQuestRegistryDev, { devToken })
+
+  finalizeRegistration: async (_nickname: string, _avatarKey?: string) => {
+    getOrCreateDeviceId()
+    return { ok: true }
   },
 }
 

@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { SignInButton, UserButton } from '@clerk/clerk-react'
-import { Authenticated, Unauthenticated } from 'convex/react'
+import { SignInButton, UserButton, useAuth } from '@clerk/clerk-react'
 
 const tabs = [
   { to: '/', label: 'Главная' },
@@ -11,6 +10,7 @@ const tabs = [
 
 export function Navbar() {
   const location = useLocation()
+  const { isSignedIn } = useAuth()
   return (
     <header className="sticky top-0 z-50 bg-neutral-950/80 backdrop-blur border-b border-neutral-800">
       <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-14">
@@ -32,14 +32,13 @@ export function Navbar() {
           })}
         </nav>
         <div className="flex items-center gap-2">
-          <Authenticated>
+          {isSignedIn ? (
             <UserButton />
-          </Authenticated>
-          <Unauthenticated>
+          ) : (
             <SignInButton mode="modal">
               <button className="bg-neutral-800 hover:bg-neutral-700 rounded px-3 py-1.5 text-sm">Войти</button>
             </SignInButton>
-          </Unauthenticated>
+          )}
         </div>
       </div>
     </header>

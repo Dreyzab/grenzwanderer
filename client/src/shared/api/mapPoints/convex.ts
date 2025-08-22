@@ -1,3 +1,4 @@
+// Convex removed: keep only dev seed call if available at build time
 import { api } from '../../../../convex/_generated/api'
 import { convexClient } from '@/shared/lib/convexClient'
 import type { MapPointType } from '@/shared/constants'
@@ -16,15 +17,12 @@ export interface MapPointDTO {
 }
 
 export const mapPointsApiConvex = {
-  listVisible: async (args: { deviceId?: string; userId?: string }) =>
-    convexClient.query(api.mapPoints.listVisible, args),
-  listVisibleDebug: async (args: { deviceId?: string; userId?: string }) =>
-    convexClient.query(api.mapPoints.listVisibleDebug as any, args),
-  upsertManyDev: async (points: MapPointDTO[], devToken?: string) =>
-    convexClient.mutation(api.mapPoints.upsertManyDev, {
-      devToken: (devToken ?? ((import.meta as any).env.VITE_DEV_SEED_TOKEN as string)) ?? '',
-      points,
-    }),
+  // no runtime fetching in client-authoritative mode
+  listVisible: async (_args: { deviceId?: string; userId?: string }) => [] as any[],
+  listVisibleDebug: async (_args: { deviceId?: string; userId?: string }) => ({ ok: true }),
+  upsertManyDev: async (_points: MapPointDTO[], _devToken?: string) => ({ ok: true }),
+  seedMapPointsDev: async (devToken: string) => convexClient.mutation((api as any).mapPoints.seedMapPointsDev, { devToken }),
+  seedMappointBindingsDev: async (devToken: string) => convexClient.mutation((api as any).mapPoints.seedMappointBindingsDev, { devToken }),
 }
 
 

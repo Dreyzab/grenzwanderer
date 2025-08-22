@@ -1,7 +1,8 @@
-import { api } from '../../../../convex/_generated/api'
-import { convexClient } from '@/shared/lib/convexClient'
-import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
+// Convex removed at runtime: provide client-side no-ops
+// import { api } from '../../../../convex/_generated/api'
+// import { convexClient } from '@/shared/lib/convexClient'
 import type { NextActionType } from '@/shared/constants'
+import { usePlayerStore } from '@/entities/player/model/store'
 
 export type QRResolvePointResult =
   | { status: 'not_found' }
@@ -25,12 +26,31 @@ export type QRResolvePointResult =
 
 export const qrApiConvex = {
   resolvePoint: async (code: string) => {
-    const deviceId = getOrCreateDeviceId()
-    return convexClient.query(api.qr.resolvePoint, { code, deviceId }) as Promise<QRResolvePointResult>
+    // Simple local QR: expect code = 'QR::<pointKey>' and return not_found by default
+    if (!code?.startsWith('QR::')) return { status: 'not_found' } as QRResolvePointResult
+    const pointKey = code.slice(4)
+    return { status: 'ok', point: { key: pointKey, title: pointKey, coordinates: { lat: 0, lng: 0 } }, hasPda: true, nextAction: 'none' as NextActionType, playerState: null }
   },
   grantPda: async () => {
-    const deviceId = getOrCreateDeviceId()
-    return convexClient.mutation(api.qr.grantPda, { deviceId })
+    try {
+      // Mark PDA locally: add flag and inventory item
+      usePlayerStore.setState((s) => {
+        const flags = new Set<string>(s.flags ?? [])
+        flags.add('has_pda')
+        const inv = new Set<string>(s.inventory ?? [])
+        inv.add('pda')
+        return { flags: Array.from(flags), inventory: Array.from(inv) } as any
+      })
+      // Persist lightweight snapshot
+      try {
+        const raw = localStorage.getItem('player-state')
+        const prev = raw ? JSON.parse(raw) : {}
+        prev.flags = Array.from(new Set([...(prev.flags ?? []), 'has_pda']))
+        prev.inventory = Array.from(new Set([...(prev.inventory ?? []), 'pda']))
+        localStorage.setItem('player-state', JSON.stringify(prev))
+      } catch {}
+    } catch {}
+    return { ok: true }
   },
 }
 

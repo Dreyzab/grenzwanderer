@@ -16,7 +16,7 @@ export const questCatalog: QuestMeta[] = [
     id: 'delivery_and_dilemma',
     phase: 1,
     startPointKey: 'settlement_center',
-    startStep: 'need_pickup_from_trader',
+    startStep: 'station_briefing',
   },
   { id: 'field_medicine', phase: 1, startPointKey: 'synthesis_medbay', startStep: 'medical_emergency' as QuestStep },
   { id: 'combat_baptism', phase: 1, startPointKey: 'fjr_office_start', startStep: 'combat_available_on_board' as QuestStep },

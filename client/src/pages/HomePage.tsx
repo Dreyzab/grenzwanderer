@@ -3,12 +3,16 @@ import { useVNStore } from '@/entities/visual-novel/model/store'
 import { scenarios } from '@/entities/visual-novel/api/scenarios'
 import { useEffect } from 'react'
 import { questsApi } from '@/shared/api/quests'
+import { useAuth } from '@clerk/clerk-react'
+import { usePlayerStore } from '@/entities/player/model/store'
 
 export function Component() {
   // Инициализируем демо-сценарии один раз для движка
   useVNStore.setState((s) => ({ ...s, scenes: scenarios }))
   // На первом заходе пробуем создать состояние игрока (bootstrap)
   useEffect(() => { void questsApi.bootstrapNewPlayer() }, [])
+  const { isSignedIn } = useAuth()
+  const phase = usePlayerStore((s) => s.phase)
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-6">
       <h1 className="text-3xl font-bold">QR-Boost</h1>
@@ -22,8 +26,17 @@ export function Component() {
       </div>
 
       <div className="flex gap-3">
-        <Link to="/novel" className="bg-emerald-700 hover:bg-emerald-600 rounded px-4 py-2">Начать</Link>
-        <Link to="/quests" className="bg-neutral-800 hover:bg-neutral-700 rounded px-4 py-2">Квесты</Link>
+        {isSignedIn ? (
+          <>
+            <Link to="/map" className="bg-emerald-700 hover:bg-emerald-600 rounded px-4 py-2">Открыть карту</Link>
+            <Link to="/quests" className="bg-neutral-800 hover:bg-neutral-700 rounded px-4 py-2">Квесты (фаза {phase})</Link>
+          </>
+        ) : (
+          <>
+            <Link to="/novel" className="bg-emerald-700 hover:bg-emerald-600 rounded px-4 py-2">Начать</Link>
+            <Link to="/quests" className="bg-neutral-800 hover:bg-neutral-700 rounded px-4 py-2">Квесты</Link>
+          </>
+        )}
       </div>
 
       <div className="text-sm text-neutral-500">Предпросмотр сцены доступен на отдельной странице «Начать».</div>

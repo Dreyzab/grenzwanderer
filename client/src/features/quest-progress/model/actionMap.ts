@@ -18,28 +18,21 @@ export type ActionDescriptor =
   | { kind: 'fsm'; machine: 'combat'; event: CombatFsmEvent }
   | { kind: 'quest'; op: 'start' | 'advance' | 'complete'; questId: QuestId; step?: QuestStep }
 
-// Временное API-обёртка: получение действия из БД по ключу
+// Временное API-обёртка: получение действия по ключу — локальный fallback
 export async function resolveDialogAction(actionKey: string): Promise<ActionDescriptor | undefined> {
-  try {
-    const { convexClient } = await import('@/shared/lib/convexClient')
-    const { api } = await import('../../../../convex/_generated/api')
-    const row = await convexClient.query(api.dialogs.resolveAction as any, { actionKey })
-    if (!row) return undefined
-    if (row.kind === 'phase') return { kind: 'phase', phase: row.phase as 1 | 2 }
-    if (row.kind === 'fsm') {
-      const machine = row.machine as 'delivery' | 'combat'
-      const type = row.fsmEventType as DeliveryFsmEvent['type'] | CombatFsmEvent['type']
-      const step = row.fsmStep as QuestStep | undefined
-      const event: any = step ? { type, step } : { type }
-      return { kind: 'fsm', machine, event } as any
-    }
-    if (row.kind === 'quest') {
-      return { kind: 'quest', op: row.questOp, questId: row.questId, step: row.questStep }
-    }
-  } catch (e) {
-    // no-op
+  const fallback: Record<string, ActionDescriptor> = {
+    set_phase_1: { kind: 'phase', phase: 1 },
+    set_phase_2: { kind: 'phase', phase: 2 },
+    start_delivery_quest: { kind: 'fsm', machine: 'delivery', event: { type: 'START' } },
+    advance_delivery_pickup: { kind: 'fsm', machine: 'delivery', event: { type: 'ADVANCE', step: 'need_pickup_from_trader' as any } },
+    take_parts: { kind: 'fsm', machine: 'delivery', event: { type: 'ADVANCE', step: 'deliver_parts_to_craftsman' as any } },
+    deliver_parts: { kind: 'fsm', machine: 'delivery', event: { type: 'ADVANCE', step: 'artifact_offer' as any } },
+    accept_artifact_quest: { kind: 'fsm', machine: 'delivery', event: { type: 'ADVANCE', step: 'go_to_anomaly' as any } },
+    return_to_craftsman: { kind: 'fsm', machine: 'delivery', event: { type: 'ADVANCE', step: 'return_to_craftsman' as any } },
+    complete_delivery_quest: { kind: 'fsm', machine: 'delivery', event: { type: 'COMPLETE' } },
+    complete_delivery_quest_with_artifact: { kind: 'fsm', machine: 'delivery', event: { type: 'COMPLETE' } },
   }
-  return undefined
+  return fallback[actionKey]
 }
 
 

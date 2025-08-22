@@ -1,19 +1,25 @@
  
 import { useEffect, useMemo, useRef } from 'react'
 import './ui/MapWidget.css'
-import { useVisiblePoints } from './model/useVisiblePoints.ts'
+import { useClientVisiblePoints } from './model/useClientVisiblePoints'
 import { useMarkers } from './model/useMarkers.tsx'
 import { useQuest } from '@/entities/quest/model/useQuest'
 import { useMap } from './model/MapContext'
 import { useOverlays } from './ui/MapOverlays'
+import logger from '@/shared/lib/logger'
 
 export function MapWidget() {
   const hasAutoCenteredRef = useRef(false)
   const { mapRef } = useMap()
-  const points = useVisiblePoints(mapRef)
+  const points = useClientVisiblePoints()
   const quest = useQuest()
   // Хуки должны вызываться на верхнем уровне, не внутри useMemo
   const { onBoardOpen, onNpcOpen, onOpenDialog } = useOverlays()
+  
+  // Трассировка для диагностики
+  try {
+    logger.info('MAP', 'points', { count: points.length, keys: points.map((p) => p.key) })
+  } catch {}
 
   // автофокус на первую видимую точку — задержка увеличена в 10 раз
   useEffect(() => {
@@ -41,6 +47,7 @@ export function MapWidget() {
   // Определяем целевую точку по активному квесту
   const trackedTargetId = useMemo(() => {
     const step = quest.getStep('delivery_and_dilemma' as any)
+    if (step === 'station_briefing') return 'settlement_center'
     if (step === 'need_pickup_from_trader') return 'trader_camp'
     if (step === 'deliver_parts_to_craftsman' || step === 'return_to_craftsman') return 'workshop_center'
     if (step === 'go_to_anomaly') return 'northern_anomaly'

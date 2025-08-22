@@ -5,6 +5,7 @@ interface PlayerState {
   credits: number
   skills: Set<string>
   inventory: string[]
+  phase?: number
   // Расширенные поля игрока (гидрация с сервера Convex)
   fame?: number
   reputations?: Record<string, number>
@@ -19,8 +20,10 @@ interface PlayerState {
   addItem: (itemId: string) => void
   removeItem: (itemId: string) => void
   hasItem: (itemId: string) => boolean
+  setPhase: (phase: number) => void
 
   hydrateFromServer: (p: {
+    phase?: number | null
     fame?: number | null
     reputations?: Record<string, number> | null
     relationships?: Record<string, number> | null
@@ -34,11 +37,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   credits: 0,
   skills: new Set<string>(),
   inventory: [],
+  phase: 0,
   fame: 0,
   reputations: {},
   relationships: {},
   flags: [],
   status: 'refugee',
+  setPhase: (phase: number) => set(() => { logger.info('STORE', 'setPhase', phase); return { phase } as any }),
   addCredits: (amount) =>
     set((s) => {
       const next = Math.max(0, (s.credits ?? 0) + amount)
@@ -93,6 +98,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       // Инвентарь сливаем (server ∪ local), чтобы не терять локально выданные предметы до синка
       const mergedInventory = Array.from(new Set([...(s.inventory ?? []), ...((p.inventory ?? []) as string[])]))
       const next = {
+        phase: p.phase ?? s.phase ?? 0,
         fame: p.fame ?? s.fame ?? 0,
         reputations: p.reputations ?? s.reputations ?? {},
         relationships: p.relationships ?? s.relationships ?? {},

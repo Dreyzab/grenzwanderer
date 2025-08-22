@@ -3,6 +3,7 @@ export type DeliveryQuestId = QuestId
 
 export type QuestStep =
   | 'not_started'
+  | 'station_briefing'
   | 'need_pickup_from_trader'
   | 'deliver_parts_to_craftsman'
   | 'artifact_offer'
@@ -31,7 +32,7 @@ export type QuestStep =
   | 'patrol_in_progress'
   | 'combat_completed'
   // Ветвление для field_medicine
-  | 'medical_emergency'
+  | 'medical_emergency'  
   | 'treatment_needed'
   | 'accepted_moss_mission'
   | 'collecting_moss'

@@ -1,5 +1,4 @@
 import { v } from 'convex/values'
-import type { Doc } from './_generated/dataModel'
 import { internalMutation, mutation, query } from './_generated/server'
 
 export const me = query(async ({ auth }) => {
@@ -42,11 +41,11 @@ export const upsertFromClerk = internalMutation({
       console.warn('upsertFromClerk: missing user id in payload', { data })
       return
     }
-    const existing = await db.query('users').withIndex('by_externalId', (q) => q.eq('externalId', externalId)).unique()
+    const existing = await (db as any).query('users').withIndex('by_externalId', (q: any) => q.eq('externalId', externalId)).unique()
 
     // Soft delete
     if (data?.deleted === true) {
-      if (existing) await db.patch(existing._id, { deletedAt: now, updatedAt: now } as Partial<Doc<'users'>>)
+      if (existing) await (db as any).patch(existing._id, { deletedAt: now, updatedAt: now } as any)
       return
     }
 
@@ -57,15 +56,15 @@ export const upsertFromClerk = internalMutation({
       emails.find((e) => e?.primary)?.email_address ??
       emails[0]?.email_address
 
-    const payload: Partial<Doc<'users'>> = {
+    const payload: any = {
       externalId,
       name: [ data?.first_name, data?.last_name ].filter(Boolean).join(' ') || undefined,
       email: (primaryEmail as string) || undefined,
       imageUrl: (data?.image_url as string) || undefined,
       updatedAt: now,
     }
-    if (existing) await db.patch(existing._id, payload)
-    else await db.insert('users', { ...payload, createdAt: now } as Doc<'users'>)
+    if (existing) await (db as any).patch(existing._id, payload)
+    else await (db as any).insert('users', { ...payload, createdAt: now } as any)
   },
 })
 
@@ -73,7 +72,7 @@ export const upsertFromClerk = internalMutation({
 export const meProfile = query(async ({ db, auth }) => {
   const identity = await auth.getUserIdentity()
   if (!identity?.subject) return null
-  const user = await db.query('users').withIndex('by_externalId', (q) => q.eq('externalId', identity.subject)).unique()
+  const user = await (db as any).query('users').withIndex('by_externalId', (q: any) => q.eq('externalId', identity.subject)).unique()
   return user ?? null
 })
 
@@ -85,7 +84,7 @@ export const ensureUserFromIdentity = mutation({
     const identity = await auth.getUserIdentity()
     if (!identity?.subject) return { ok: false }
     const externalId = identity.subject
-    const existing = await db.query('users').withIndex('by_externalId', (q) => q.eq('externalId', externalId)).unique()
+    const existing = await (db as any).query('users').withIndex('by_externalId', (q: any) => q.eq('externalId', externalId)).unique()
     const payload: { externalId: string; name?: string; email?: string; imageUrl?: string; updatedAt: number } = {
       externalId,
       name: (identity?.name as string | undefined) ?? undefined,
@@ -94,10 +93,10 @@ export const ensureUserFromIdentity = mutation({
       updatedAt: now,
     }
     if (existing) {
-      await db.patch(existing._id, payload)
+      await (db as any).patch(existing._id, payload)
       return { ok: true, userId: existing._id }
     }
-    const id = await db.insert('users', { ...payload, createdAt: now })
+    const id = await (db as any).insert('users', { ...payload, createdAt: now })
     return { ok: true, userId: id }
   },
 })

@@ -11,112 +11,75 @@ echo ""
 # Функция для проверки зависимостей
 check_dependencies() {
     echo "📋 Проверка зависимостей..."
-    
-    if ! command -v node &> /dev/null; then
-        echo "❌ Node.js не найден. Установите Node.js 18+ и попробуйте снова."
-        exit 1
-    fi
-    
-    if ! command -v npm &> /dev/null; then
-        echo "❌ npm не найден. Установите npm и попробуйте снова."
-        exit 1
-    fi
-    
+    command -v node >/dev/null 2>&1 || { echo "❌ Node.js не найден"; exit 1; }
+    command -v npm >/dev/null 2>&1 || { echo "❌ npm не найден"; exit 1; }
     echo "✅ Node.js и npm найдены"
 }
 
-# Функция для установки зависимостей
 install_dependencies() {
-    echo ""
-    echo "📦 Проверка и установка зависимостей..."
-    
-    cd client
-    
+    echo "\n📦 Проверка и установка зависимостей..."
+    pushd client >/dev/null
     if [ ! -d "node_modules" ]; then
         echo "📥 Установка зависимостей проекта..."
         npm install
     else
         echo "✅ Зависимости уже установлены"
     fi
-    
-    cd ..
+    popd >/dev/null
 }
 
-# Функция для проверки переменных окружения
 check_env() {
-    echo ""
-    echo "🔧 Проверка переменных окружения..."
-    
+    echo "\n🔧 Проверка переменных окружения..."
     if [ ! -f "client/.env.local" ]; then
-        echo "⚠️  Файл .env.local не найден. Создаю пример..."
         cat > client/.env.local << EOF
-# Mapbox token (получите на https://mapbox.com)
+# Mapbox token
 VITE_MAPBOX_TOKEN=your_mapbox_token_here
-
-# Convex URL (получите после настройки Convex)
-VITE_CONVEX_URL=https://your_convex_deployment.convex.cloud
-
-# Convex Deployment ID
-CONVEX_DEPLOYMENT=your_deployment_id
-
-# Dev-only токен для сида данных
+# Convex URL
+VITE_CONVEX_URL=http://localhost:3210
+# Dev seed token
 VITE_DEV_SEED_TOKEN=dev_secret_token_123
 EOF
-        echo "📝 Файл .env.local создан. Пожалуйста, заполните необходимые переменные окружения."
-        echo "   Особенно важно установить VITE_MAPBOX_TOKEN для работы карты."
-        echo ""
+        echo "📝 client/.env.local создан. Заполните значения при необходимости."
     else
-        echo "✅ Файл .env.local найден"
+        echo "✅ client/.env.local найден"
     fi
 }
 
-# Функция для остановки процессов при выходе
 cleanup() {
-    echo ""
-    echo "🛑 Остановка серверов..."
-    jobs -p | xargs -r kill
+    echo "\n🛑 Остановка серверов..."
+    if [ -n "$CONVEX_PID" ] && kill -0 $CONVEX_PID 2>/dev/null; then kill $CONVEX_PID || true; fi
+    if [ -n "$VITE_PID" ] && kill -0 $VITE_PID 2>/dev/null; then kill $VITE_PID || true; fi
     exit 0
 }
 
-# Функция запуска серверов
 start_servers() {
-    echo ""
-    echo "🚀 Запуск серверов..."
-    echo ""
-    
-    cd client
-    
-    # Запуск Convex в фоне
+    echo "\n🚀 Запуск серверов...\n"
+    pushd client >/dev/null
+
     echo "📡 Запуск Convex backend..."
     npx convex dev --until-success &
     CONVEX_PID=$!
-    
-    # Небольшая пауза для инициализации Convex
+    echo "   PID Convex: $CONVEX_PID"
+
     echo "⏳ Ожидание инициализации Convex (5 сек)..."
     sleep 5
-    
-    # Запуск Vite dev-сервера
+
     echo "⚡ Запуск Vite dev-сервера..."
     npm run dev &
     VITE_PID=$!
-    
-    echo ""
-    echo "🎉 Серверы запущены!"
-    echo ""
-    echo "📱 Фронтенд доступен по адресу: http://localhost:5173"
+    echo "   PID Vite: $VITE_PID"
+
+    echo "\n🎉 Серверы запущены!"
+    echo "📱 Фронтенд: http://localhost:5173"
     echo "📡 Convex dashboard: https://dashboard.convex.dev"
-    echo ""
-    echo "💡 Для остановки нажмите Ctrl+C"
-    echo ""
-    
-    # Ожидание завершения любого из процессов
+    echo "\n💡 Нажмите Ctrl+C для остановки."
+
     wait
+    popd >/dev/null
 }
 
-# Устанавливаем trap для корректной остановки
 trap cleanup SIGINT SIGTERM
 
-# Основная логика
 main() {
     check_dependencies
     install_dependencies
@@ -124,5 +87,4 @@ main() {
     start_servers
 }
 
-# Запуск
 main "$@"

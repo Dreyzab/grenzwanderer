@@ -47,7 +47,7 @@ export function MapWidget() {
   // Определяем целевую точку по активному квесту
   const trackedTargetId = useMemo(() => {
     const step = quest.getStep('delivery_and_dilemma' as any)
-    if (step === 'station_briefing') return 'settlement_center'
+    if (step === 'station_briefing') return 'train_station'
     if (step === 'need_pickup_from_trader') return 'trader_camp'
     if (step === 'deliver_parts_to_craftsman' || step === 'return_to_craftsman') return 'workshop_center'
     if (step === 'go_to_anomaly') return 'northern_anomaly'

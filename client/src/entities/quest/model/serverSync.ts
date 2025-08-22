@@ -17,7 +17,10 @@ export function useServerProgressHydration() {
       const data = JSON.parse(persisted) as any
       const mapped = Object.entries((data?.state?.activeQuests ?? {}) as Record<string, any>).map(([id, q]: any) => ({ id, currentStep: q.currentStep, completedAt: null }))
       quest.hydrate(mapped as any)
-    } catch {}
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[HYDRATE] Failed to hydrate quest progress from localStorage', error)
+    }
   }, [])
 }
 
@@ -46,9 +49,29 @@ export function useBackgroundQuestSync() {
         activeQuests: (prev as any)?.activeQuests as Record<string, { currentStep: string; startedAt?: number }>,
         completedQuests: (prev as any)?.completedQuests as string[],
       }
-      // Простейшая проверка изменений по ссылке/длине
-      const sameRefs = curr.activeQuests === prevProgress.activeQuests && curr.completedQuests === prevProgress.completedQuests
-      if (sameRefs) return
+      // Надёжная проверка изменений: сравнение содержимого
+      const shallowEqualRecords = (a?: Record<string, any>, b?: Record<string, any>) => {
+        if (a === b) return true
+        if (!a || !b) return false
+        const ak = Object.keys(a)
+        const bk = Object.keys(b)
+        if (ak.length !== bk.length) return false
+        for (const k of ak) {
+          const va = a[k]
+          const vb = b[k]
+          if (!vb) return false
+          if (va?.currentStep !== vb?.currentStep || va?.startedAt !== vb?.startedAt) return false
+        }
+        return true
+      }
+      const arraysEqual = (x?: string[], y?: string[]) => {
+        if (x === y) return true
+        if (!x || !y) return false
+        if (x.length !== y.length) return false
+        for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return false
+        return true
+      }
+      if (shallowEqualRecords(curr.activeQuests, prevProgress.activeQuests) && arraysEqual(curr.completedQuests, prevProgress.completedQuests)) return
       if (timeout) clearTimeout(timeout)
       timeout = setTimeout(async () => {
         try {
@@ -70,7 +93,10 @@ export function useBackgroundQuestSync() {
           try {
             const deviceId = (await import('@/shared/lib/deviceId')).getOrCreateDeviceId()
             await convexClient.mutation((api as any).quests.syncProgress, { deviceId, progress: payload as any })
-          } catch {}
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('[SYNC] Failed to sync progress to server', error)
+          }
         } catch (err) {
           // eslint-disable-next-line no-console
           console.warn('[SYNC] Background sync failed', err)

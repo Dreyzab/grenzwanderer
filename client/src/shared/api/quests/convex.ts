@@ -1,9 +1,9 @@
 // Convex: используем только для initialize/syncProgress, остальное — no-op
-import { api } from '../../../../convex/_generated/api'
 import { convexClient } from '@/shared/lib/convexClient'
 import { getOrCreateDeviceId } from '@/shared/lib/deviceId'
 import { useGameDataStore } from '@/app/ConvexProvider'
 import { usePlayerStore } from '@/entities/player/model/store'
+import { api } from '../../../../convex/_generated/api'
 
 type SourceType = 'npc' | 'board'
 
@@ -15,9 +15,16 @@ export const questsApiConvex = {
 
   setPlayerPhase: async (phase: number) => {
     const deviceId = getOrCreateDeviceId()
-    console.info('[PHASE] setPlayerPhase (client-only)', { phase, deviceId })
-    try { localStorage.setItem('player-phase', String(phase)) } catch {}
-    return { ok: true, phase }
+    // Try to update on server; fallback to client-only persist if unavailable
+    try {
+      const res = await convexClient.mutation((api as any).quests.setPlayerPhase, { deviceId, phase })
+      try { localStorage.setItem('player-phase', String(res?.phase ?? phase)) } catch {}
+      return { ok: true, phase: res?.phase ?? phase }
+    } catch (e) {
+      console.warn('[PHASE] setPlayerPhase server call failed; fallback to client-only', e)
+      try { localStorage.setItem('player-phase', String(phase)) } catch {}
+      return { ok: true, phase }
+    }
   },
 
   getPlayerState: async () => {
@@ -52,7 +59,7 @@ export const questsApiConvex = {
   applyDialogOutcome: async (outcomeKey: string) => {
     // No-op in client-authoritative mode
     console.warn('[DIALOG] applyDialogOutcome skipped (client-only):', outcomeKey)
-    return { ok: true }
+    return { ok: false, error: 'client-only mode: applyDialogOutcome skipped', outcomeKey }
   },
 
   migrateDeviceToUser: async (userId: string) => {

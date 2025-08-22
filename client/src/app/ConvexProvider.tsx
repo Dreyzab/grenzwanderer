@@ -19,6 +19,7 @@ import { create } from 'zustand'
 import { convexClient } from '@/shared/lib/convexClient'
 import { api } from '../../convex/_generated/api'
 import { useProgressionStore } from '@/entities/quest/model/progressionStore'
+import logger from '@/shared/lib/logger'
 
 type GameDataState = {
 	questRegistry: any[]
@@ -41,11 +42,11 @@ export const useGameDataStore = create<GameDataState>()((set) => ({
 
 type Props = { children: ReactNode }
 
-export function AppConvexProvider({ children }: Props) {
-	return children as any
+export function AppConvexProvider({ children }: Props): ReactNode {
+	return children
 }
 
-export function QuestHydrator({ children }: Props) {
+export function QuestHydrator({ children }: Props): ReactNode {
 	// const deviceId = getOrCreateDeviceId()
 	const { userId } = useAuthStore()
 	const player = usePlayerStore()
@@ -73,7 +74,9 @@ export function QuestHydrator({ children }: Props) {
 					player.hydrateFromServer({ ...(snapshot.playerState as any), phase: mergedPhase })
 					try { localStorage.setItem('player-phase', String(mergedPhase)) } catch {}
 				}
-			} catch {}
+			} catch (error) {
+				logger.error('QUEST', '[INIT] initializeSession failed', error)
+			}
 		})()
 	}, [userId])
 
@@ -84,11 +87,13 @@ export function QuestHydrator({ children }: Props) {
 				const deviceId = (await import('@/shared/lib/deviceId')).getOrCreateDeviceId()
 				const snapshot: any = await convexClient.mutation((api as any).quests.initializeSession, { deviceId, clientPhase: player.phase ?? 0 })
 				gameData.hydrate({ questRegistry: snapshot?.questRegistry ?? [], mappointBindings: snapshot?.mappointBindings ?? [], mapPoints: snapshot?.mapPoints ?? [] } as any)
-			} catch {}
+			} catch (error) {
+				logger.error('QUEST', '[INIT] rehydrate on phase change failed', error)
+			}
 		})()
 	}, [player.phase])
 
-	return children as any
+	return children
 }
 
 

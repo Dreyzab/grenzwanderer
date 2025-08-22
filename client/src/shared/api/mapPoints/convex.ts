@@ -18,11 +18,19 @@ export interface MapPointDTO {
 
 export const mapPointsApiConvex = {
   // no runtime fetching in client-authoritative mode
-  listVisible: async (_args: { deviceId?: string; userId?: string }) => [] as any[],
-  listVisibleDebug: async (_args: { deviceId?: string; userId?: string }) => ({ ok: true }),
-  upsertManyDev: async (_points: MapPointDTO[], _devToken?: string) => ({ ok: true }),
-  seedMapPointsDev: async (devToken: string) => convexClient.mutation((api as any).mapPoints.seedMapPointsDev, { devToken }),
-  seedMappointBindingsDev: async (devToken: string) => convexClient.mutation((api as any).mapPoints.seedMappointBindingsDev, { devToken }),
+  listVisible: async (_args: { deviceId?: string; userId?: string }): Promise<MapPointDTO[]> => [],
+  listVisibleDebug: async (_args: { deviceId?: string; userId?: string }): Promise<{ ok: true }> => ({ ok: true }),
+  upsertManyDev: async (_points: MapPointDTO[], _devToken?: string): Promise<{ ok: boolean }> => ({ ok: true }),
+  seedMapPointsDev: async (devToken: string): Promise<{ ok: boolean; count?: number }> => {
+    const mod = (api as any)?.mapPoints
+    if (!convexClient?.mutation || !mod?.seedMapPointsDev) throw new Error('seedMapPointsDev mutation not available in this build')
+    return convexClient.mutation(mod.seedMapPointsDev, { devToken }) as any
+  },
+  seedMappointBindingsDev: async (devToken: string): Promise<{ ok: boolean; count?: number }> => {
+    const mod = (api as any)?.mapPoints
+    if (!convexClient?.mutation || !mod?.seedMappointBindingsDev) throw new Error('seedMappointBindingsDev mutation not available in this build')
+    return convexClient.mutation(mod.seedMappointBindingsDev, { devToken }) as any
+  },
 }
 
 

@@ -3,13 +3,15 @@ import { v } from 'convex/values'
 
 const getDevToken = () => (globalThis as any)?.process?.env?.VITE_DEV_SEED_TOKEN ?? (globalThis as any)?.VITE_DEV_SEED_TOKEN
 
-// Dev: сиды точек карты (обновлённые ключи и привязка к диалогам из storage/*Dialogs.ts)
+// Dev: seed map points (updated keys and dialog bindings from storage/*Dialogs.ts)
 export const seedMapPointsDev = mutation({
   args: { devToken: v.string() },
   handler: async ({ db }, { devToken }) => {
     const expected = getDevToken()
-    // В дев-режиме разрешаем сид, если переменная не настроена. Если настроена — проверяем.
-    if (expected && devToken !== expected) throw new Error('Forbidden: invalid dev token')
+    // Strict dev seeding policy: require configured token and exact match.
+    // Seeding is forbidden if the expected token is missing or does not match.
+    if (!expected) throw new Error('Forbidden: seed token is not configured (VITE_DEV_SEED_TOKEN)')
+    if (devToken !== expected) throw new Error('Forbidden: invalid dev token (mismatch)')
     const now = Date.now()
     const points: Array<{
       key: string
@@ -153,12 +155,14 @@ export const seedMapPointsDev = mutation({
   },
 })
 
-// Dev: сид биндингов точек к квестам/шагам (минимально — стартовая точка)
+// Dev: seed mappoint bindings to quests/steps (minimal — start point)
 export const seedMappointBindingsDev = mutation({
   args: { devToken: v.string() },
   handler: async ({ db }, { devToken }) => {
     const expected = getDevToken()
-    if (expected && devToken !== expected) throw new Error('Forbidden: invalid dev token')
+    // Strict dev seeding policy: require configured token and exact match.
+    if (!expected) throw new Error('Forbidden: seed token is not configured (VITE_DEV_SEED_TOKEN)')
+    if (devToken !== expected) throw new Error('Forbidden: invalid dev token (mismatch)')
     const now = Date.now()
 
     const bindings: Array<{
@@ -220,6 +224,45 @@ export const seedMappointBindingsDev = mutation({
         phaseFrom: 0,
         phaseTo: 99,
         order: 5,
+      },
+      // Фаза 1: стартовые точки доступных квестов
+      {
+        pointKey: 'fjr_office_start',
+        questId: 'combat_baptism',
+        isStart: true,
+        startKey: 'combat_available_on_board',
+        dialogKey: 'fjr_bulletin_board_dialog',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 10,
+      },
+      {
+        pointKey: 'gunter_brewery',
+        questId: 'field_medicine',
+        isStart: true,
+        startKey: 'medical_emergency',
+        // возможен свой диалоговый ключ, пока опустим, возьмётся с точки
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 11,
+      },
+      {
+        pointKey: 'anarchist_bar',
+        questId: 'quiet_cove_whisper',
+        isStart: true,
+        startKey: 'courier_missing',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 12,
+      },
+      {
+        pointKey: 'old_believers_square',
+        questId: 'bell_for_lost',
+        isStart: true,
+        startKey: 'bell_mission_offered',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 13,
       },
     ]
 

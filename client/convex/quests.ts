@@ -50,11 +50,12 @@ async function getOrEnsurePlayerState(ctx: any, deviceId: string) {
 }
 
 export const initializeSession = mutation({
-  args: { deviceId: v.string() },
-  handler: async (ctx, { deviceId }) => {
+  args: { deviceId: v.string(), clientPhase: v.optional(v.number()) },
+  handler: async (ctx, { deviceId, clientPhase }) => {
     const subject = await getIdentitySubject(ctx)
     const playerState = await getOrEnsurePlayerState(ctx, deviceId)
-    const phase = playerState?.phase ?? 0
+    const safeClientPhase = Number.isFinite(clientPhase as number) && (clientPhase as number) >= 0 ? Math.floor(clientPhase as number) : 0
+    const phase = Math.max(playerState?.phase ?? 0, safeClientPhase)
 
     // Merge progress: user has priority over device
     const progress: any[] = []
@@ -86,7 +87,7 @@ export const initializeSession = mutation({
 
     return {
       ok: true as const,
-      playerState,
+      playerState: { ...playerState, phase },
       progress,
       questRegistry,
       mappointBindings,
@@ -141,6 +142,21 @@ export const syncProgress = mutation({
       })
     }
     return { ok: true }
+  },
+})
+
+
+// Explicitly set player phase (server authoritative write)
+export const setPlayerPhase = mutation({
+  args: { deviceId: v.string(), phase: v.number() },
+  handler: async (ctx, { deviceId, phase }) => {
+    const now = Date.now()
+    const safe = Number.isFinite(phase) && phase >= 0 ? Math.floor(phase) : 0
+    const state = await getOrEnsurePlayerState(ctx, deviceId)
+    if (state?._id && (state.phase ?? 0) < safe) {
+      await (ctx.db as any).patch(state._id, { phase: safe, updatedAt: now })
+    }
+    return { ok: true, phase: safe }
   },
 })
 

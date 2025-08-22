@@ -4,6 +4,7 @@ import { useGameDataStore } from '@/app/ConvexProvider'
 import { useQuestStore } from '@/entities/quest/model/questStore'
 import { usePlayerStore } from '@/entities/player/model/store'
 import logger from '@/shared/lib/logger'
+import { questCatalog } from '@/entities/quest/model/catalog'
 
 export interface VisibleMapPoint {
   key: string
@@ -23,6 +24,7 @@ export function useClientVisiblePoints() {
   const bindings = useGameDataStore((s) => s.mappointBindings)
   const mapPoints = useGameDataStore((s) => s.mapPoints)
   const activeQuests = useQuestStore((s) => s.activeQuests)
+  const completedQuests = useQuestStore((s) => s.completedQuests)
   const phase = usePlayerStore((s) => s.phase ?? 0)
 
   const visible = useMemo(() => {
@@ -44,7 +46,7 @@ export function useClientVisiblePoints() {
     // Если нет активного квеста — показываем только стартовые биндинги (включая фазу 0)
     // Если квест активен — показываем биндинги текущего шага И/ИЛИ стартовый биндинг, если activeStep === startKey.
     const filtered = !activeQuestId || !activeStep
-      ? byPhase.filter((b: any) => Boolean(b.isStart))
+      ? byPhase.filter((b: any) => Boolean(b.isStart) || typeof b.startKey === 'string')
       : byPhase.filter((b: any) => {
           if (b.questId !== activeQuestId) return false
           const isStep = typeof b.stepKey === 'string' && b.stepKey === activeStep
@@ -53,7 +55,7 @@ export function useClientVisiblePoints() {
         })
     try { logger.debug('MAP', 'visible:after_step_filter', { count: filtered.length }) } catch {}
 
-    const result = filtered
+    let result = filtered
       .map((b: any) => {
         const p = (mapPoints as any)?.find((x: any) => x.key === b.pointKey)
         if (!p) return null
@@ -62,9 +64,34 @@ export function useClientVisiblePoints() {
       })
       .filter(Boolean) as VisibleMapPoint[]
 
+    // Дополнительный фолбэк: если стартовые биндинги не размечены isStart/startKey, показываем все точки из byPhase
+    if ((result?.length ?? 0) === 0 && (!activeQuestId || !activeStep)) {
+      const byPhasePoints = byPhase
+        .map((b: any) => (mapPoints as any)?.find((x: any) => x.key === b.pointKey))
+        .filter(Boolean) as VisibleMapPoint[]
+      if (byPhasePoints.length > 0) {
+        try { logger.info('MAP', 'visible:fallback_byPhase', { count: byPhasePoints.length, keys: byPhasePoints.map((p) => p.key) }) } catch {}
+        result = byPhasePoints
+      }
+    }
+
+    // Фолбэк для фазы >=1: если нет биндингов на старте (не засеяны), строим точки из локального каталога
+    if ((result?.length ?? 0) === 0 && (!activeQuestId || !activeStep) && (phase ?? 0) >= 1) {
+      try {
+        const completed = new Set((completedQuests ?? []) as any[])
+        const phaseQuests = questCatalog.filter((q) => q.phase <= (phase ?? 0))
+        const startPoints = phaseQuests
+          .filter((q) => !completed.has(q.id as any))
+          .map((q) => (mapPoints as any)?.find((x: any) => x.key === q.startPointKey))
+          .filter(Boolean)
+        result = (startPoints as any[]).map((p: any) => ({ ...p }))
+        logger.info('MAP', 'visible:fallback_catalog', { count: result.length, keys: result.map((p: any) => p.key) })
+      } catch {}
+    }
+
     try { logger.info('MAP', 'visible:loaded', { count: result.length, keys: result.map((p) => p.key) }) } catch {}
     return result
-  }, [bindings, mapPoints, activeQuests, phase])
+  }, [bindings, mapPoints, activeQuests, completedQuests, phase])
 
   useEffect(() => setPoints(visible), [visible])
   return points

@@ -48,8 +48,14 @@ export const qrApiConvex = {
         prev.flags = Array.from(new Set([...(prev.flags ?? []), 'has_pda']))
         prev.inventory = Array.from(new Set([...(prev.inventory ?? []), 'pda']))
         localStorage.setItem('player-state', JSON.stringify(prev))
-      } catch {}
-    } catch {}
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('[QR] Failed to persist player-state to localStorage', error)
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[QR] grantPda failed', error)
+    }
     return { ok: true }
   },
 }

@@ -51,31 +51,34 @@ export function useVisiblePoints(mapRef: React.RefObject<Map | null>) {
           const activeStep = active?.currentStep as string | undefined
 
           // Клиент-авторитетный режим: используем локальные биндинги и точки
-          // Фильтруем биндинги: если квест не начат — показываем только стартовые
-          // если квест активен — показываем биндинги для текущего шага
-          const filteredBindings = (mappointBindings ?? []).filter((b: any) => {
+          // Фильтруем биндинги безопасно с проверками типов
+          type Binding = { pointKey: string; questId?: string; stepKey?: string; isStart?: boolean; dialogKey?: string }
+          const list = Array.isArray(mappointBindings) ? (mappointBindings as Binding[]) : []
+          const filteredBindings = list.filter((b) => {
+            if (!b || typeof b.pointKey !== 'string') return false
             if (!activeQuestId || !activeStep) return Boolean(b.isStart)
             if (b.questId !== activeQuestId) return false
-            if (b.stepKey) return b.stepKey === activeStep
-            return false
+            return typeof b.stepKey === 'string' && b.stepKey === activeStep
           })
 
+          type Point = VisibleMapPoint & { key: string; dialogKey?: string }
+          const pointsArr: Point[] = Array.isArray(mapPointsData) ? (mapPointsData as Point[]) : []
           const result = filteredBindings
-            .map((b: any) => {
-              const p = (mapPointsData as any)?.find((x: any) => x.key === b.pointKey)
+            .map((b) => {
+              const p = pointsArr.find((x) => x?.key === b.pointKey)
               if (!p) return null
-              // Приоритет dialogKey из биндинга, если указан
-              const dialogKey = (b as any).dialogKey ?? (p as any).dialogKey
-              return { ...p, dialogKey }
+              const dialogKey = (typeof b.dialogKey === 'string' ? b.dialogKey : undefined) ?? p.dialogKey
+              const merged: Point = typeof dialogKey === 'string' ? { ...p, dialogKey } : p
+              return merged
             })
-            .filter(Boolean)
+            .filter((x): x is Point => x !== null)
           try {
             logger.info('MAP', 'visible:loaded', {
               count: (result as any).length ?? 0,
               keys: (result as any).map((p: any) => (p as any).key),
             })
           } catch (_e) {}
-          if (!destroyedRef.current) setPoints(result as any)
+          if (!destroyedRef.current) setPoints(result as VisibleMapPoint[])
         } catch (e) {
           logger.warn?.('MAP', 'visible:load_failed', e)
         } finally {
@@ -109,21 +112,38 @@ export function useVisiblePoints(mapRef: React.RefObject<Map | null>) {
     }
   }, [mapRef, mappointBindings, mapPointsData, activeQuests])
 
-  // Немедленная реакция на изменение стора (без ожидания событий карты)
+  // Немедленная реакция на изменение стора (без ожидания событий карты) — используем тот же pipeline
   useEffect(() => {
-    const result = (mappointBindings ?? [])
-      .map((b: any) => {
-        const p = (mapPointsData as any)?.find((x: any) => x.key === b.pointKey)
+    type Binding = { pointKey: string; questId?: string; stepKey?: string; isStart?: boolean; dialogKey?: string }
+    type Point = VisibleMapPoint & { key: string; dialogKey?: string }
+    const list = Array.isArray(mappointBindings) ? (mappointBindings as Binding[]) : []
+    const pointsArr: Point[] = Array.isArray(mapPointsData) ? (mapPointsData as Point[]) : []
+
+    const active = Object.values(activeQuests ?? {})[0] as { id?: string; currentStep?: string } | undefined
+    const activeQuestId = active?.id
+    const activeStep = active?.currentStep
+
+    const filteredBindings = list.filter((b) => {
+      if (!b || typeof b.pointKey !== 'string') return false
+      if (!activeQuestId || !activeStep) return Boolean(b.isStart)
+      if (b.questId !== activeQuestId) return false
+      return typeof b.stepKey === 'string' && b.stepKey === activeStep
+    })
+
+    const result = filteredBindings
+      .map((b) => {
+        const p = pointsArr.find((x) => x?.key === b.pointKey)
         if (!p) return null
-        const dialogKey = (b as any).dialogKey ?? (p as any).dialogKey
-        return { ...p, dialogKey }
+        const dialogKey = (typeof b.dialogKey === 'string' ? b.dialogKey : undefined) ?? p.dialogKey
+        const merged: Point = typeof dialogKey === 'string' ? { ...p, dialogKey } : p
+        return merged
       })
-      .filter(Boolean) as VisibleMapPoint[]
+      .filter((x): x is Point => x !== null)
+
     try {
       logger.info('MAP', 'visible:loaded', { count: result.length, keys: result.map((p) => p.key) })
     } catch {}
-    setPoints(result)
-    // сбросим таймер для следующей ленивой загрузки по карте
+    setPoints(result as VisibleMapPoint[])
     lastLoadedAtRef.current = 0
   }, [mappointBindings, mapPointsData, activeQuests])
 

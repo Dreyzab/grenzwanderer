@@ -44,6 +44,8 @@ export function useDialogActionCoordinator() {
           // Поднимаем фазу до 1 локально (и в прогресс-сторе)
           player.setPhase(1)
           setPhase(1)
+          // Пытаемся записать фазу на сервере
+          void questsApi.setPlayerPhase(1)
           // Триггерим проверку фазы после завершения
           checkPhaseAdvance()
         }
@@ -55,8 +57,11 @@ export function useDialogActionCoordinator() {
           quest.startQuest('combat_baptism' as QuestId, 'assigned_to_patrol' as QuestStep)
         if (mapped.event?.type === 'ADVANCE' && mapped.event.step)
           quest.advanceQuest('combat_baptism' as QuestId, mapped.event.step as QuestStep)
-        if (mapped.event?.type === 'COMPLETE')
+        if (mapped.event?.type === 'COMPLETE') {
           quest.completeQuest('combat_baptism' as QuestId)
+          // Проверяем повышение фазы сразу после завершения боя
+          checkPhaseAdvance()
+        }
       }
       return
     }

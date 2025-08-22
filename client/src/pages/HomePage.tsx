@@ -10,7 +10,16 @@ export function Component() {
   // Инициализируем демо-сценарии один раз для движка
   useVNStore.setState((s) => ({ ...s, scenes: scenarios }))
   // На первом заходе пробуем создать состояние игрока (bootstrap)
-  useEffect(() => { void questsApi.bootstrapNewPlayer() }, [])
+  useEffect(() => {
+    ;(async () => {
+      try {
+        await questsApi.bootstrapNewPlayer()
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('[HOME] bootstrapNewPlayer failed', error)
+      }
+    })()
+  }, [])
   const { isSignedIn } = useAuth()
   const phase = usePlayerStore((s) => s.phase)
   return (

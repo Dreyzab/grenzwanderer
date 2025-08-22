@@ -76,7 +76,6 @@ export default defineSchema({
     inventory: v.optional(v.array(v.string())),
     hasPda: v.optional(v.boolean()),
     fame: v.optional(v.number()),
-    reputation: v.optional(v.record(v.string(), v.number())),
     reputations: v.optional(v.record(v.string(), v.number())),
     relationships: v.optional(v.record(v.string(), v.number())),
     flags: v.optional(v.array(v.string())),

@@ -43,7 +43,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   relationships: {},
   flags: [],
   status: 'refugee',
-  setPhase: (phase: number) => set(() => { logger.info('STORE', 'setPhase', phase); return { phase } as any }),
+  setPhase: (phase: number) => set(() => {
+    logger.info('STORE', 'setPhase', phase)
+    const next: Pick<PlayerState, 'phase'> = { phase }
+    return next
+  }),
   addCredits: (amount) =>
     set((s) => {
       const next = Math.max(0, (s.credits ?? 0) + amount)

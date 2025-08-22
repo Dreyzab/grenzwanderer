@@ -12,6 +12,8 @@ export function MapWidget() {
   const { mapRef } = useMap()
   const points = useVisiblePoints(mapRef)
   const quest = useQuest()
+  // Хуки должны вызываться на верхнем уровне, не внутри useMemo
+  const { onBoardOpen, onNpcOpen, onOpenDialog } = useOverlays()
 
   // автофокус на первую видимую точку — задержка увеличена в 10 раз
   useEffect(() => {
@@ -34,10 +36,7 @@ export function MapWidget() {
     return () => { if (timer) clearTimeout(timer) }
   }, [points, mapRef])
 
-  const interactions = useMemo(() => {
-    const { onBoardOpen, onNpcOpen, onOpenDialog } = useOverlays()
-    return { onBoardOpen, onNpcOpen, onOpenDialog }
-  }, [])
+  const interactions = useMemo(() => ({ onBoardOpen, onNpcOpen, onOpenDialog }), [onBoardOpen, onNpcOpen, onOpenDialog])
 
   // Определяем целевую точку по активному квесту
   const trackedTargetId = useMemo(() => {

@@ -6,6 +6,7 @@ interface PlayerState {
   skills: Set<string>
   inventory: string[]
   phase?: number
+  health?: number
   // Расширенные поля игрока (гидрация с сервера Convex)
   fame?: number
   reputations?: Record<string, number>
@@ -24,6 +25,7 @@ interface PlayerState {
 
   hydrateFromServer: (p: {
     phase?: number | null
+    health?: number | null
     fame?: number | null
     reputations?: Record<string, number> | null
     relationships?: Record<string, number> | null
@@ -38,6 +40,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   skills: new Set<string>(),
   inventory: [],
   phase: 0,
+  health: 1,
   fame: 0,
   reputations: {},
   relationships: {},
@@ -103,6 +106,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       const mergedInventory = Array.from(new Set([...(s.inventory ?? []), ...((p.inventory ?? []) as string[])]))
       const next = {
         phase: p.phase ?? s.phase ?? 0,
+        health: p.health ?? s.health ?? 1,
         fame: p.fame ?? s.fame ?? 0,
         reputations: p.reputations ?? s.reputations ?? {},
         relationships: p.relationships ?? s.relationships ?? {},

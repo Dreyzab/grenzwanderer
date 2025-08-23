@@ -61,6 +61,7 @@ export default defineSchema({
     npcId: v.optional(v.string()),
     stepKey: v.optional(v.string()),
     isStart: v.optional(v.boolean()),
+    requiresLowHealth: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index('by_point', ['pointKey'])
@@ -75,10 +76,12 @@ export default defineSchema({
     status: v.optional(v.string()),
     inventory: v.optional(v.array(v.string())),
     hasPda: v.optional(v.boolean()),
+    credits: v.optional(v.number()),
     fame: v.optional(v.number()),
     reputations: v.optional(v.record(v.string(), v.number())),
     relationships: v.optional(v.record(v.string(), v.number())),
     flags: v.optional(v.array(v.string())),
+    health: v.optional(v.number()),
     updatedAt: v.number(),
   })
     .index('by_user', ['userId'])

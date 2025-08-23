@@ -4,8 +4,8 @@
 export const combatBaptismQuestDialogs = [
   // ===================== ДИАЛОГИ КВЕСТА "БОЕВОЕ КРЕЩЕНИЕ" =====================
   {
-    _id: 'combat_baptism_quest',
-    dialogKey: 'combat_baptism_quest',
+    _id: 'Briefing',
+    dialogKey: 'Briefing',
     title: 'Боевое Крещение',
     startNodeKey: 'start',
     nodes: {
@@ -16,7 +16,8 @@ export const combatBaptismQuestDialogs = [
         choices: [
           {
             text: 'Так точно, сержант!',
-            nextNodeKey: 'patrol_start'
+            nextNodeKey: null,
+            action: 'combat_patrol_start'
           },
           {
             text: 'Есть какие-то особые указания?',
@@ -31,10 +32,22 @@ export const combatBaptismQuestDialogs = [
         choices: [
           {
             text: 'Есть!',
-            nextNodeKey: 'patrol_start'
+            nextNodeKey: null,
+            action: 'combat_patrol_start'
           }
         ]
       },
+    },
+    backgroundImage: '/images/backgrounds/fjr_headquarters.jpg',
+    updatedAt: Date.now(),
+  },
+  // ===================== ПАТРУЛЬ (быстрый вход на узел patrol_start) =====================
+  {
+    _id: 'combat_patrol_entry',
+    dialogKey: 'patrol_start',
+    title: 'Патруль Stadtgarten',
+    startNodeKey: 'patrol_start',
+    nodes: {
       patrol_start: {
         text:
           'Отряд входит в заросший парк. Тишину нарушает лишь хруст веток под ногами и треск рации. Вы идёте по маршруту, проверяя датчики. Напряжение нарастает.',
@@ -82,22 +95,33 @@ export const combatBaptismQuestDialogs = [
       },
       sergeant_feedback: {
         text:
-          '«А ты не так бесполезен, как я думал, новичок. Держался неплохо. Не запаниковал. — Он кивает на раненого. — Помоги доктору перевязать его. Миссия выполнена, возвращаемся на базу. Зайди ко мне за оплатой.»',
+          '«А ты не так бесполезен, как я думал, новичок. Держался неплохо. Не запаниковал. — Он кивает на прокусанное плечо. — Сходите к Лене Рихтер, она попробует вам помочь. Миссия выполнена, возвращаемся на базу. Зайди ко мне за оплатой.»',
         speakerKey: 'Сержант Крюгер',
         choices: [
           {
-            text: 'Есть, сержант. (Помочь раненому)',
-            nextNodeKey: 'quest_complete'
+            text: 'Есть, сержант.',
+            nextNodeKey: null
           }
         ]
       },
-      quest_complete: {
+    },
+    backgroundImage: '/images/backgrounds/stadtgarten_patrol.jpg',
+    updatedAt: Date.now()
+  },
+  // ===================== ДЕБРИФИНГ ПОСЛЕ БОЯ (завершение у FJR) =====================
+  {
+    _id: 'combat_debrief',
+    dialogKey: 'combat_debrief',
+    title: 'Дебрифинг в штабе FJR',
+    startNodeKey: 'start',
+    nodes: {
+      start: {
         text:
-          'Вернувшись на базу, вы получаете от Крюгера обещанную плату. «Если надумаешь и дальше служить порядку, а не только своему карману, подавай рапорт. Из таких, как ты, могут получиться неплохие солдаты.»',
+          'Вы докладываете о выполнении задания. Сержант Крюгер выслушивает краткий отчёт и кивает. «Неплохо отработал, доброволец. Получи плату. Приходи ещё, если не передумал.»',
         speakerKey: 'Сержант Крюгер',
         choices: [
           {
-            text: 'Спасибо, сержант. Я подумаю. (Завершить квест)',
+            text: 'Получить награду и завершить задание.',
             nextNodeKey: null,
             action: 'complete_combat_baptism_quest',
             eventOutcomeKey: 'complete_combat_baptism_quest'
@@ -105,10 +129,9 @@ export const combatBaptismQuestDialogs = [
         ]
       }
     },
-    backgroundImage: '/images/backgrounds/stadtgarten_patrol.jpg',
+    backgroundImage: '/images/backgrounds/fjr_headquarters.jpg',
     updatedAt: Date.now()
   },
-
   // ===================== ДОСКА ОБЪЯВЛЕНИЙ FJR =====================
   {
     _id: 'fjr_bulletin_board_dialog',

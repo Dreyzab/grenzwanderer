@@ -26,6 +26,7 @@ export function useClientVisiblePoints() {
   const activeQuests = useQuestStore((s) => s.activeQuests)
   const completedQuests = useQuestStore((s) => s.completedQuests)
   const phase = usePlayerStore((s) => s.phase ?? 0)
+  const health = usePlayerStore((s) => s.health ?? 1)
 
   const visible = useMemo(() => {
     try { logger.debug('MAP', 'visible:inputs', { bindings: (bindings ?? []).length, mapPoints: (mapPoints ?? []).length, phase: phase ?? 0, activeQuests: Object.keys(activeQuests ?? {}).length }) } catch {}
@@ -45,9 +46,19 @@ export function useClientVisiblePoints() {
 
     // Если нет активного квеста — показываем только стартовые биндинги (включая фазу 0)
     // Если квест активен — показываем биндинги текущего шага И/ИЛИ стартовый биндинг, если activeStep === startKey.
+    // Дополнительное условие на здоровье: биндинги с requiresLowHealth видим только при HP<0.5
+    const byHealth = byPhase.filter((b: any) => (b.requiresLowHealth ? (health ?? 1) < 0.5 : true))
+
+    const completedSet = new Set((completedQuests ?? []) as any[])
     const filtered = !activeQuestId || !activeStep
-      ? byPhase.filter((b: any) => Boolean(b.isStart) || typeof b.startKey === 'string')
-      : byPhase.filter((b: any) => {
+      ? byHealth.filter((b: any) => {
+          const isStart = Boolean(b.isStart) || typeof b.startKey === 'string'
+          if (!isStart) return false
+          // Не показывать старт квеста, если он уже завершён
+          if (b.questId && completedSet.has(b.questId)) return false
+          return true
+        })
+      : byHealth.filter((b: any) => {
           if (b.questId !== activeQuestId) return false
           const isStep = typeof b.stepKey === 'string' && b.stepKey === activeStep
           const isStartForStep = Boolean(b.isStart) && typeof b.startKey === 'string' && b.startKey === activeStep
@@ -91,7 +102,7 @@ export function useClientVisiblePoints() {
 
     try { logger.info('MAP', 'visible:loaded', { count: result.length, keys: result.map((p) => p.key) }) } catch {}
     return result
-  }, [bindings, mapPoints, activeQuests, completedQuests, phase])
+  }, [bindings, mapPoints, activeQuests, completedQuests, phase, health])
 
   useEffect(() => setPoints(visible), [visible])
   return points

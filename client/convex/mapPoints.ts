@@ -62,6 +62,33 @@ export const seedMapPointsDev = mutation({
         dialogKey: 'anomaly_exploration_dialog', // deliveryQuestDialogs
         active: true,
       },
+      // Брифинг FJR (точка перед выходом в парк)
+      {
+        key: 'fjr_briefing_point',
+        title: 'Брифинг FJR',
+        description: 'Сбор перед патрулём Stadtgarten.',
+        coordinates: { lat: 47.996967960860246, lng: 7.855025931272138 },
+        type: 'anomaly',
+        active: true,
+      },
+      // Stadtgarten anomaly (боевой патруль)
+      {
+        key: 'stadtgarten_anomaly',
+        title: 'Стадтгартен — аномалия',
+        description: 'Необычные явления в парке Статдгартен.',
+        coordinates: { lat: 47.99764091532063, lng: 7.856867590168406 },
+        type: 'anomaly',
+        active: true,
+      },
+      // Брифинг FJR (точка перед выходом в парк)
+      {
+        key: 'fjr_briefing_point',
+        title: 'Брифинг FJR',
+        description: 'Сбор перед патрулём Stadtgarten.',
+        coordinates: { lat: 47.996967960860246, lng: 7.855025931272138 },
+        type: 'anomaly',
+        active: true,
+      },
       {
         key: 'anarchist_hole',
         title: '«Дыра» (Анархисты)',
@@ -69,6 +96,50 @@ export const seedMapPointsDev = mutation({
         coordinates: { lat: 47.99385334623585, lng: 7.852047469737187 },
         type: 'settlement',
         active: true,
+      },
+      // Медицинский центр Synthesis (для квеста field_medicine)
+      {
+        key: 'synthesis_medical_center',
+        title: 'Медпункт "Синтеза"',
+        description: 'Медицинский центр для лечения и помощи нуждающимся.',
+        coordinates: { lat: 47.99350491104801, lng: 7.845726036754058 },
+        type: 'npc',
+        dialogKey: 'field_medicine_quest',
+        active: true,
+        icon: '/images/backgrounds/synthesis_medbay.jpg',
+      },
+      // Бар "Тихая Заводь" (для квеста quiet_cove_whisper)
+      {
+        key: 'quiet_cove_bar',
+        title: 'Бар "Тихая Заводь"',
+        description: 'Уютное место где можно встретить Люду и узнать новости.',
+        coordinates: { lat: 47.99286477134066, lng: 7.854099265544107 },
+        type: 'npc',
+        dialogKey: 'whisper_in_quiet_cove_quest',
+        active: true,
+        icon: '/images/backgrounds/quiet_cove_bar.jpg',
+      },
+      // Логово Шрама в "Дыре" (для квеста quiet_cove_whisper)
+      {
+        key: 'scar_hideout',
+        title: 'Мастерская Шрама',
+        description: 'Подвал бывшей прачечной, где работает Шрам - инженер "Дыры".',
+        coordinates: { lat: 47.99289999694173, lng: 7.845946461455242 },
+        type: 'npc',
+        dialogKey: 'scar_meeting_dialog',
+        active: true,
+        icon: '/images/backgrounds/anarchist_hideout.jpg',
+      },
+      // Руины Ботанического сада (для сбора пепельного мха)
+      {
+        key: 'botanical_garden_ruins',
+        title: 'Руины Ботанического сада',
+        description: 'Заражённая зона с ядовитыми спорами и мутировавшими растениями.',
+        coordinates: { lat: 47.99289999694173, lng: 7.845946461455242 },
+        type: 'anomaly',
+        dialogKey: 'ash_moss_collection_dialog',
+        active: true,
+        icon: '/images/backgrounds/botanical_ruins.jpg',
       },
       {
         key: 'fjr_board',
@@ -104,6 +175,15 @@ export const seedMapPointsDev = mutation({
         coordinates: { lat: 47.9903824558821, lng: 7.857654372334707 },
         type: 'npc',
         // waterQuestDialogs может содержать соответствующий ключ диалога при необходимости
+        active: true,
+      },
+      // Медпункт синтеза (для Field Medicine)
+      {
+        key: 'Med_point_Synthesis',
+        title: 'Медпункт «Синтез»',
+        description: 'Лечебный пункт, где можно получить помощь.',
+        coordinates: { lat: 47.99350491104801, lng: 7.845726036754058 },
+        type: 'npc',
         active: true,
       },
       {
@@ -176,6 +256,7 @@ export const seedMappointBindingsDev = mutation({
       npcId?: string
       stepKey?: string
       isStart?: boolean
+      requiresLowHealth?: boolean
     }> = [
       // Этап 0: только ЖД станция со стартовым диалогом
       {
@@ -227,6 +308,16 @@ export const seedMappointBindingsDev = mutation({
       },
       // Фаза 1: стартовые точки доступных квестов
       {
+        pointKey: 'city_gate_travers',
+        questId: 'quiet_cove_whisper',
+        isStart: true,
+        startKey: 'courier_missing',
+        dialogKey: 'travers_missing_courier_dialog',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 9,
+      },
+      {
         pointKey: 'fjr_office_start',
         questId: 'combat_baptism',
         isStart: true,
@@ -236,15 +327,73 @@ export const seedMappointBindingsDev = mutation({
         phaseTo: 99,
         order: 10,
       },
+      // Брифинг → затем в парк
       {
-        pointKey: 'gunter_brewery',
-        questId: 'field_medicine',
-        isStart: true,
-        startKey: 'medical_emergency',
-        // возможен свой диалоговый ключ, пока опустим, возьмётся с точки
+        pointKey: 'fjr_briefing_point',
+        questId: 'combat_baptism',
+        stepKey: 'assigned_to_patrol',
+        dialogKey: 'Briefing',
         phaseFrom: 1,
         phaseTo: 99,
         order: 11,
+      },
+      {
+        pointKey: 'stadtgarten_anomaly',
+        questId: 'combat_baptism',
+        stepKey: 'patrol_in_progress',
+        dialogKey: 'patrol_start',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 12,
+      },
+      // Медицинский квест: старт в медпункте Synthesis
+      {
+        pointKey: 'synthesis_medical_center',
+        questId: 'field_medicine',
+        isStart: true,
+        startKey: 'quest_accepted',
+        dialogKey: 'field_medicine_quest',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 12,
+      },
+      // Шаг сбора пепельного мха
+      {
+        pointKey: 'botanical_garden_ruins',
+        questId: 'field_medicine',
+        stepKey: 'quest_accepted',
+        dialogKey: 'ash_moss_collection_dialog',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 13,
+      },
+      // Возврат с мхом (любым результатом)
+      {
+        pointKey: 'synthesis_medical_center',
+        questId: 'field_medicine',
+        stepKey: 'moss_collected_injured',
+        dialogKey: 'return_with_moss',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 14,
+      },
+      {
+        pointKey: 'synthesis_medical_center',
+        questId: 'field_medicine',
+        stepKey: 'moss_collected_success',
+        dialogKey: 'return_with_moss',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 15,
+      },
+      {
+        pointKey: 'synthesis_medical_center',
+        questId: 'field_medicine',
+        stepKey: 'moss_collected_cautious',
+        dialogKey: 'return_with_moss',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 16,
       },
       {
         pointKey: 'anarchist_bar',
@@ -264,6 +413,80 @@ export const seedMappointBindingsDev = mutation({
         phaseTo: 99,
         order: 13,
       },
+      {
+        pointKey: 'fjr_office_start',
+        questId: 'combat_baptism',
+        stepKey: 'combat_completed',
+        dialogKey: 'combat_debrief',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 16,
+      },
+      // Quiet Cove quest progression
+      {
+        pointKey: 'quiet_cove_bar',
+        questId: 'quiet_cove_whisper',
+        stepKey: 'courier_missing',
+        dialogKey: 'whisper_in_quiet_cove_quest',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 17,
+      },
+      {
+        pointKey: 'scar_hideout',
+        questId: 'quiet_cove_whisper',
+        stepKey: 'find_scar',
+        dialogKey: 'whisper_in_quiet_cove_quest',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 18,
+      },
+      {
+        pointKey: 'anarchist_arena_basement',
+        questId: 'quiet_cove_whisper',
+        stepKey: 'stealth_mission',
+        dialogKey: 'stealth_mission_rivet_dialog',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 19,
+      },
+      // Return points for quest completion
+      {
+        pointKey: 'city_gate_travers',
+        questId: 'quiet_cove_whisper',
+        stepKey: 'mission_completed_peaceful',
+        dialogKey: 'travers_missing_courier_dialog',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 20,
+      },
+      {
+        pointKey: 'city_gate_travers',
+        questId: 'quiet_cove_whisper',
+        stepKey: 'mission_completed_violent',
+        dialogKey: 'travers_missing_courier_dialog',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 21,
+      },
+      {
+        pointKey: 'scar_hideout',
+        questId: 'quiet_cove_whisper',
+        stepKey: 'mission_completed_peaceful',
+        dialogKey: 'whisper_in_quiet_cove_quest',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 22,
+      },
+      {
+        pointKey: 'scar_hideout',
+        questId: 'quiet_cove_whisper',
+        stepKey: 'mission_completed_violent',
+        dialogKey: 'whisper_in_quiet_cove_quest',
+        phaseFrom: 1,
+        phaseTo: 99,
+        order: 23,
+      }
     ]
 
     let upserts = 0

@@ -13,10 +13,23 @@ export type CombatFsmEvent =
   | { type: 'ADVANCE'; step: CombatQuestStep }
   | { type: 'COMPLETE' }
 
+export type FieldMedicineFsmEvent =
+  | { type: 'START' }
+  | { type: 'ADVANCE'; step: QuestStep }
+  | { type: 'COMPLETE' }
+
+export type QuietCoveFsmEvent =
+  | { type: 'START' }
+  | { type: 'ADVANCE'; step: QuestStep }
+  | { type: 'COMPLETE' }
+
 export type ActionDescriptor =
   | { kind: 'phase'; phase: 1 | 2 }
   | { kind: 'fsm'; machine: 'delivery'; event: DeliveryFsmEvent }
   | { kind: 'fsm'; machine: 'combat'; event: CombatFsmEvent }
+  | { kind: 'fsm'; machine: 'field_medicine'; event: FieldMedicineFsmEvent }
+  | { kind: 'fsm'; machine: 'quiet_cove'; event: QuietCoveFsmEvent }
+  | { kind: 'player'; action: 'unlock_vendor' }
   | { kind: 'quest'; op: 'start' | 'advance' | 'complete'; questId: QuestId; step?: QuestStep }
 
 // Временное API-обёртка: получение действия по ключу — локальный fallback

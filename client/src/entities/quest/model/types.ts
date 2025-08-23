@@ -32,11 +32,12 @@ export type QuestStep =
   | 'patrol_in_progress'
   | 'combat_completed'
   // Ветвление для field_medicine
-  | 'medical_emergency'  
+  | 'medical_emergency'
   | 'treatment_needed'
-  | 'accepted_moss_mission'
-  | 'collecting_moss'
-  | 'moss_collected'
+  | 'quest_accepted'
+  | 'moss_collected_injured'
+  | 'moss_collected_success'
+  | 'moss_collected_cautious'
   | 'medicine_completed'
   // Ветвление для quiet_cove_whisper
   | 'courier_missing'
@@ -44,6 +45,8 @@ export type QuestStep =
   | 'find_scar'
   | 'stealth_mission'
   | 'processors_recovered'
+  | 'mission_completed_peaceful'
+  | 'mission_completed_violent'
   | 'quiet_cove_completed'
   // Ветвление для bell_for_lost
   | 'bell_mission_offered'

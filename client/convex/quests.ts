@@ -23,6 +23,7 @@ async function getOrEnsurePlayerState(ctx: any, deviceId: string) {
       status: 'refugee',
       inventory: [],
       hasPda: false,
+      credits: 0,
       fame: 0,
       reputations: {},
       relationships: {},
@@ -40,6 +41,7 @@ async function getOrEnsurePlayerState(ctx: any, deviceId: string) {
     status: 'refugee',
     inventory: [],
     hasPda: false,
+    credits: 0,
     fame: 0,
     reputations: {},
     relationships: {},
@@ -140,6 +142,30 @@ export const syncProgress = mutation({
         updatedAt: now,
         completedAt: now,
       })
+      // Наградим игрока за завершение ключевых квестов (минимальная логика)
+      try {
+        const state = await getOrEnsurePlayerState(ctx, deviceId)
+        if (state?._id) {
+          let addFame = 0
+          let addCredits = 0
+
+          // Награды за завершение квестов
+          if (questId === 'combat_baptism') {
+            addFame = 25
+            addCredits = 25
+          } else if (questId === 'field_medicine') {
+            addFame = 15
+            addCredits = 40
+          } else if (questId === 'quiet_cove_whisper') {
+            addFame = 20
+            addCredits = 50
+          }
+
+          const nextFame = Math.max(0, (state.fame ?? 0) + addFame)
+          const nextCredits = Math.max(0, (state.credits ?? 0) + addCredits)
+          await (ctx.db as any).patch(state._id, { fame: nextFame, credits: nextCredits, updatedAt: now })
+        }
+      } catch {}
     }
     return { ok: true }
   },
@@ -157,6 +183,19 @@ export const setPlayerPhase = mutation({
       await (ctx.db as any).patch(state._id, { phase: safe, updatedAt: now })
     }
     return { ok: true, phase: safe }
+  },
+})
+
+export const setPlayerHealth = mutation({
+  args: { deviceId: v.string(), health: v.number() },
+  handler: async (ctx, { deviceId, health }) => {
+    const now = Date.now()
+    const safe = Number.isFinite(health) ? Math.max(0, Math.min(1, health)) : 1
+    const state = await getOrEnsurePlayerState(ctx, deviceId)
+    if (state?._id) {
+      await (ctx.db as any).patch(state._id, { health: safe, updatedAt: now })
+    }
+    return { ok: true, health: safe }
   },
 })
 

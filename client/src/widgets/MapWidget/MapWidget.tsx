@@ -51,6 +51,26 @@ export function MapWidget() {
     if (step === 'need_pickup_from_trader') return 'trader_camp'
     if (step === 'deliver_parts_to_craftsman' || step === 'return_to_craftsman') return 'workshop_center'
     if (step === 'go_to_anomaly') return 'northern_anomaly'
+    // Combat quest highlighting
+    const combatStep = quest.getStep('combat_baptism' as any)
+    if (combatStep === 'assigned_to_patrol') return 'fjr_briefing_point'
+    if (combatStep === 'patrol_in_progress') return 'stadtgarten_anomaly'
+    if (combatStep === 'combat_completed') return 'fjr_office_start'
+
+    // Field Medicine quest highlighting
+    const fieldMedicineStep = quest.getStep('field_medicine' as any)
+    if (fieldMedicineStep === 'quest_accepted') return 'botanical_garden_ruins'
+    if (fieldMedicineStep === 'moss_collected_injured' || fieldMedicineStep === 'moss_collected_success' || fieldMedicineStep === 'moss_collected_cautious') return 'synthesis_medical_center'
+
+    // Quiet Cove quest highlighting
+    const quietCoveStep = quest.getStep('quiet_cove_whisper' as any)
+    if (quietCoveStep === 'courier_missing') return 'quiet_cove_bar'
+    if (quietCoveStep === 'find_scar') return 'scar_hideout'
+    if (quietCoveStep === 'stealth_mission') return 'anarchist_arena_basement'
+    if (quietCoveStep === 'mission_completed_peaceful' || quietCoveStep === 'mission_completed_violent') {
+      return 'city_gate_travers' // Return to Travers for trader completion
+    }
+
     return null
   }, [quest.activeQuests])
 

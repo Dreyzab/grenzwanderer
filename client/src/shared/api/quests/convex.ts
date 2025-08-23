@@ -31,7 +31,9 @@ export const questsApiConvex = {
     const deviceId = getOrCreateDeviceId()
     const phaseStr = (() => { try { return localStorage.getItem('player-phase') } catch { return null } })()
     const phase = phaseStr ? Number(phaseStr) : 0
-    return { phase, status: 'refugee', inventory: [], updatedAt: Date.now(), deviceId } as any
+    const healthStr = (() => { try { return localStorage.getItem('player-health') } catch { return null } })()
+    const health = healthStr ? Number(healthStr) : 1
+    return { phase, health, status: 'refugee', inventory: [], updatedAt: Date.now(), deviceId } as any
   },
 
   getAvailableQuests: async (_sourceType: SourceType, _sourceKey: string) => {
@@ -54,6 +56,19 @@ export const questsApiConvex = {
   syncProgress: async (progress: { activeQuests: Record<string, { currentStep: string; startedAt?: number }>; completedQuests: string[] }) => {
     const deviceId = getOrCreateDeviceId()
     return convexClient.mutation((api as any).quests.syncProgress, { deviceId, progress } as any)
+  },
+
+  setPlayerHealth: async (health: number) => {
+    const deviceId = getOrCreateDeviceId()
+    try {
+      const res = await convexClient.mutation((api as any).quests.setPlayerHealth, { deviceId, health })
+      try { localStorage.setItem('player-health', String(res?.health ?? health)) } catch {}
+      return { ok: true, health: res?.health ?? health }
+    } catch (e) {
+      console.warn('[HEALTH] setPlayerHealth server call failed; fallback to client-only', e)
+      try { localStorage.setItem('player-health', String(health)) } catch {}
+      return { ok: true, health }
+    }
   },
 
   applyDialogOutcome: async (outcomeKey: string) => {

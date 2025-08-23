@@ -72,17 +72,7 @@ export const fieldMedicineQuestDialogs = [
           }
         ]
       },
-      return_with_moss: {
-        text:
-          'Вы возвращаетесь к Лене, промокший и уставший, и передаёте ей собранный мох.',
-        speakerKey: 'Рассказчик',
-        choices: [
-          {
-            text: 'Вот ваш \'Пепельный мох\'.',
-            nextNodeKey: 'quest_complete'
-          }
-        ]
-      },
+
       quest_complete: {
         text:
           'Лена с благодарностью принимает образцы. «Превосходно! Этого хватит на целую партию антитоксина. Вы очень нам помогли. Считайте, ваш долг оплачен с лихвой. Вот, возьмите в награду. — Она протягивает вам набор качественных медикаментов. — И запомните, для вас мои услуги и товары теперь всегда со скидкой. Заходите, если что.»',
@@ -95,7 +85,7 @@ export const fieldMedicineQuestDialogs = [
             eventOutcomeKey: 'complete_field_medicine_quest'
           }
         ]
-      }
+    },
     },
     backgroundImage: '/images/backgrounds/synthesis_medbay.jpg',
     updatedAt: Date.now()
@@ -259,6 +249,30 @@ export const fieldMedicineQuestDialogs = [
       }
     },
     backgroundImage: '/images/backgrounds/botanical_ruins.jpg',
+    updatedAt: Date.now()
+  },
+
+  // ===================== ДИАЛОГ ВОЗВРАТА С МХОМ =====================
+  {
+    _id: 'return_with_moss_dialog',
+    dialogKey: 'return_with_moss',
+    title: 'Возвращение в медпункт',
+    startNodeKey: 'start',
+    nodes: {
+      start: {
+        text: 'Вы возвращаетесь в медпункт с мхом.',
+        speakerKey: 'Доктор Лена Рихтер',
+        choices: [
+          {
+            text: 'Получить награду',
+            nextNodeKey: null,
+            action: 'complete_field_medicine_quest',
+            eventOutcomeKey: 'complete_field_medicine_quest'
+          }
+        ]
+      }
+    },
+    backgroundImage: '/images/backgrounds/synthesis_medbay.jpg',
     updatedAt: Date.now()
   }
 ];

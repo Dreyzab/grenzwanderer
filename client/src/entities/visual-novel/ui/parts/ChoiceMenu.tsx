@@ -1,12 +1,12 @@
 import type { Choice } from '@/entities/visual-novel/model/types'
-import { useVNStore } from '@/entities/visual-novel/model/store'
+import { useSceneEngine } from '@/entities/visual-novel/model/hooks'
 
 interface Props {
   choices: Choice[]
 }
 
 export function ChoiceMenu({ choices }: Props) {
-  const choose = useVNStore((s) => s.actions.choose)
+  const { choose } = useSceneEngine()
   if (!choices.length) return null
   return (
     <div className="absolute bottom-28 left-0 right-0 flex flex-col gap-2 items-center">

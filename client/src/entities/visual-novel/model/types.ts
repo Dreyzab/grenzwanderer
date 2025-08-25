@@ -50,6 +50,26 @@ export interface Item {
   title: string
 }
 
+export type PendingAction =
+  | {
+      type: 'quest'
+      op: 'start' | 'advance' | 'complete'
+      questId: string
+      step?: string
+    }
+  | {
+      type: 'outcome'
+      fameDelta?: number
+      reputationsDelta?: Record<string, number>
+      relationshipsDelta?: Record<string, number>
+      addFlags?: string[]
+      removeFlags?: string[]
+      addWorldFlags?: string[]
+      removeWorldFlags?: string[]
+      setPhase?: number
+      setStatus?: string
+    }
+
 export interface GameState {
   currentSceneId: string
   lineIndex: number
@@ -66,6 +86,8 @@ export interface GameActions {
   setFlag: (key: string, value: boolean) => void
   reset: (sceneId: string) => void
   hydrate: (state: GameState) => void
+  addPendingAction: (action: PendingAction) => void
+  flushPendingActions: () => Promise<void>
 }
 
 

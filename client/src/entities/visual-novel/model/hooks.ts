@@ -1,7 +1,7 @@
 import { useVNStore } from './store'
 import type { GameState } from './types'
 import { useNavigate } from 'react-router-dom'
-import { questsApi, qrApi } from '@/shared/api/quests'
+import { qrApi } from '@/shared/api/quests'
 import { getQuestMeta } from '@/entities/quest/model/catalog'
 import { useProgressionStore } from '@/entities/quest/model/progressionStore'
 
@@ -48,17 +48,15 @@ export const useSceneEngine = () => {
           // eslint-disable-next-line no-console
           console.warn('[VN] grant PDA failed', e)
         }
-        // ВАЖНО: сначала поднимаем фазу на сервере (иначе старт квеста заблокирован на phase 0)
-        try { await questsApi.setPlayerPhase(1) } catch (e) {
-          // eslint-disable-next-line no-console
-          console.warn('[VN] setPlayerPhase failed', e)
-        }
         const meta = getQuestMeta('delivery_and_dilemma' as any)
+        actions.addPendingAction({ type: 'outcome', setPhase: 1 })
         if (meta) {
-          try { await questsApi.startQuest('delivery_and_dilemma' as any, meta.startStep as any) } catch (e) {
-            // eslint-disable-next-line no-console
-            console.warn('[VN] startQuest failed', e)
-          }
+          actions.addPendingAction({
+            type: 'quest',
+            op: 'start',
+            questId: 'delivery_and_dilemma',
+            step: meta.startStep as any,
+          })
         }
         // Синхронизируем локально для UI
         setPhase(1)
@@ -70,7 +68,33 @@ export const useSceneEngine = () => {
     return false
   }
 
-  return { handleInlineActions, setScene: actions.setScene }
+  const choose = (choiceId: string) => {
+    const state = useVNStore.getState()
+    const scene = state.scenes[state.game.currentSceneId]
+    const choice = scene?.choices?.find((c) => c.id === choiceId)
+    if (choice) {
+      const quest = (choice as any).quest as {
+        op: 'start' | 'advance' | 'complete'
+        id: string
+        step?: string
+      } | undefined
+      const outcome = (choice as any).outcome as Record<string, unknown> | undefined
+      if (quest) {
+        actions.addPendingAction({
+          type: 'quest',
+          op: quest.op,
+          questId: quest.id,
+          step: quest.step,
+        })
+      }
+      if (outcome) {
+        actions.addPendingAction({ type: 'outcome', ...outcome })
+      }
+    }
+    actions.choose(choiceId)
+  }
+
+  return { handleInlineActions, setScene: actions.setScene, choose }
 }
 
 

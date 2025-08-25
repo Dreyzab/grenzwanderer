@@ -1,9 +1,11 @@
 import { create } from 'zustand'
-import type { GameActions, GameState, Scene } from './types'
+import { questsApi } from '@/shared/api/quests'
+import type { GameActions, GameState, Scene, PendingAction } from './types'
 
 interface VNState {
   game: GameState
   scenes: Record<string, Scene>
+  pendingActions: PendingAction[]
   actions: GameActions
 }
 
@@ -19,6 +21,7 @@ export const createInitialGameState = (startScene: string): GameState => ({
 export const useVNStore = create<VNState>((set, get) => ({
   game: createInitialGameState('station_intro'),
   scenes: {},
+  pendingActions: [],
   actions: {
     setScene: (sceneId) =>
       set((s) => ({ game: { ...s.game, currentSceneId: sceneId, lineIndex: 0 } })),
@@ -58,6 +61,30 @@ export const useVNStore = create<VNState>((set, get) => ({
     setFlag: (key, value) => set((s) => ({ game: { ...s.game, flags: { ...s.game.flags, [key]: value } } })),
     reset: (sceneId) => set({ game: createInitialGameState(sceneId) }),
     hydrate: (state) => set({ game: state }),
+    addPendingAction: (action) =>
+      set((s) => ({ pendingActions: [...s.pendingActions, action] })),
+    flushPendingActions: async () => {
+      const { pendingActions } = get()
+      if (pendingActions.length === 0) return
+      try {
+        for (const act of pendingActions) {
+          if (act.type === 'quest') {
+            if (act.op === 'start' && act.step)
+              await questsApi.startQuest(act.questId, act.step)
+            if (act.op === 'advance' && act.step)
+              await questsApi.advanceQuest(act.questId, act.step)
+            if (act.op === 'complete') await questsApi.completeQuest(act.questId)
+          } else if (act.type === 'outcome') {
+            const { type: _t, ...payload } = act
+            await questsApi.applyOutcome(payload)
+          }
+        }
+        set({ pendingActions: [] })
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('[VN] flushPendingActions failed', e)
+      }
+    },
   },
 }))
 

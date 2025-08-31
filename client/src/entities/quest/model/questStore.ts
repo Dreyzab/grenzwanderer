@@ -11,6 +11,7 @@ interface QuestState {
   startQuest: (id: QuestId, step: QuestStep) => void
   advanceQuest: (id: QuestId, step: QuestStep) => void
   completeQuest: (id: QuestId) => void
+  applyBatch: (quests: { id: QuestId; step?: QuestStep; completedAt?: number | null }[]) => void
   hydrate: (data: { id: QuestId; currentStep: QuestStep; completedAt?: number | null }[]) => void
   setTrackedQuest: (id: QuestId) => void
 }
@@ -62,6 +63,35 @@ export const useQuestStore = create<QuestState>()(
         activeQuests: rest,
         completedQuests: Array.from(new Set([...(s.completedQuests ?? []), id])),
         trackedQuestId: nextTracked,
+      }
+    }),
+  applyBatch: (quests) =>
+    set((s) => {
+      const active = { ...s.activeQuests }
+      const completed = new Set(s.completedQuests ?? [])
+      let tracked = s.trackedQuestId
+      for (const q of quests) {
+        if (q.completedAt) {
+          delete active[q.id]
+          completed.add(q.id)
+          if (tracked === q.id) {
+            const next = Object.values(active)[0] as ActiveQuest | undefined
+            tracked = next?.id
+          }
+        } else if (q.step) {
+          active[q.id] = {
+            ...(active[q.id] ?? { id: q.id, startedAt: Date.now(), currentStep: q.step }),
+            currentStep: q.step,
+          }
+          completed.delete(q.id)
+          if (!tracked) tracked = q.id
+        }
+      }
+      logger.info('STORE', 'applyBatch', { quests })
+      return {
+        activeQuests: active,
+        completedQuests: Array.from(completed),
+        trackedQuestId: tracked,
       }
     }),
   hydrate: (data) =>

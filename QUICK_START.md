@@ -5,6 +5,8 @@
 ### 🐧 Linux / 🍎 macOS
 ```bash
 ./start.sh
+
+В папке client =  npm run test
 ```
 
 ### 🪟 Windows

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SignInButton, SignUpButton, useAuth } from '@clerk/clerk-react'
+import { SignUpButton } from '@clerk/clerk-react'
 import logger from '@/shared/lib/logger'
 
 type Props = {
@@ -9,8 +9,6 @@ type Props = {
 
 export default function RegistrationPrompt({ isOpen, onClose }: Props) {
   const [busy, setBusy] = useState(false)
-  const { isSignedIn } = useAuth()
-
   if (!isOpen) return null
 
   return (
@@ -26,7 +24,7 @@ export default function RegistrationPrompt({ isOpen, onClose }: Props) {
             <button
               disabled={busy}
               className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 rounded px-4 py-2"
-              onClick={() => { setBusy(true); logger.info('MAP', 'prompt: click sign-up', { isSignedIn }) }}
+              onClick={() => { setBusy(true); logger.info('MAP', 'prompt: click sign-up') }}
             >
               Зарегистрироваться
             </button>

@@ -1,86 +1,41 @@
-Общее описание проекта
-Проект представляет собой бэкенд и фронтенд для мобильной или веб-игры в жанре Location-Based RPG (ролевая игра, основанная на местоположении). Игровой процесс построен вокруг исследования реального мира, сканирования QR-кодов для взаимодействия с игровыми точками, прохождения квестов и развития персонажа.
-Основной игровой цикл:
-Исследование: Игрок видит на карте активные точки (Map Points).
-Взаимодействие: Прибыв на место, игрок сканирует QR-код, связанный с точкой.
-Разрешение QR-кода: Сервер определяет, какое событие или диалог должен быть запущен для игрока в этой точке, учитывая его текущий прогресс (фазу, флаги, завершенные квесты).
-Контент: Игроку показывается диалог в формате визуальной новеллы, NPC или доска объявлений, которые выдают квесты.
-Прогресс: Выполняя квесты и принимая решения в диалогах, игрок изменяет состояние своего персонажа (player_state) и мира (world_state), открывая доступ к новому контенту.
-2. Архитектура и технологии
-Бэкенд: Convex — это платформа "Backend-as-a-Service", которая предоставляет базу данных, серверные функции (мутации, запросы, действия) и аутентификацию в реальном времени.
-Аутентификация: Clerk — сервис для управления пользователями и аутентификацией, интегрированный с Convex. Поддерживается как гостевой доступ (по deviceId), так и вход через учетную запись.
-Фронтенд: React с использованием Vite в качестве сборщика.
-Роутинг: React Router используется для навигации между страницами (Карта, Квесты, Визуальная новелла и т.д.).
-Управление состоянием (клиент): Zustand — легковесная библиотека для управления глобальным состоянием на клиенте (usePlayerStore, useQuestStore). Данные синхронизируются с бэкендом Convex.
-Картография: Mapbox GL — для отображения интерактивной карты и маркеров.
-Архитектура кода: Проект частично следует принципам Feature-Sliced Design (FSD), с разделением на слои app, pages, widgets, features, entities, shared, что способствует хорошей организации и масштабируемости.
-3. Анализ Бэкенда (Convex)
-Бэкенд является "мозгом" всей игры, управляя состоянием, логикой и данными.
-Схема данных (convex/schema.ts)
-База данных хорошо структурирована для поддержки RPG-механик:
-users: Хранит информацию о зарегистрированных пользователях из Clerk.
-player_state: Ключевая таблица, описывающая состояние персонажа: фаза игры, слава (fame), репутации с фракциями, отношения с NPC, флаги (уникальные события), инвентарь и статус. Индексирована по userId и deviceId, что позволяет работать как с гостями, так и с зарегистрированными игроками.
-world_state: Глобальное состояние мира, в основном его текущая фаза и глобальные флаги.
-quest_registry: Реестр всех доступных квестов с их метаданными: условия доступности (минимальная слава, флаги, фаза), тип квеста, приоритет выдачи.
-dialog_outcomes: Конфигурируемые исходы диалогов (эффекты на игрока и мир). Используются `dialogs.applyDialogOutcome`.
-dialog_actions: Конфигурируемая маппа для actionKey → действие сценарием. Используются `dialogs.resolveAction`.
-quest_progress: Отслеживает прогресс каждого игрока по квестам (активные, завершенные, текущий шаг).
-quest_dependencies: Определяет зависимости между квестами (например, квест Б доступен только после завершения квеста А).
-map_points: Описывает все интерактивные точки на карте (координаты, название, иконка, статус активности).
-mappoint_bindings: Связующая таблица, которая определяет, какой квест или диалог привязан к какой точке на карте, и при каких условиях (например, только в фазе 2).
-qr_codes: Связывает физические QR-коды с точками на карте (map_points).
-Ключевая серверная логика
-Состояние игрока (convex/helpers/player.ts, quests.ts): Функции ensurePlayerState и getPlayerState — основа для получения данных игрока. Они корректно обрабатывают как гостевые сессии (по deviceId), так и сессии залогиненных пользователей, предотвращая дублирование данных.
-Миграция прогресса (convex/helpers/migration.ts): При первом входе пользователя его "гостевой" прогресс, привязанный к deviceId, объединяется с его новым профилем userId. Логика слияния данных (например, Math.max для фазы и славы, объединение множеств для флагов) реализована грамотно.
-Выбор квестов и точек (convex/helpers/mappoints.ts, qr.ts, mapPoints.ts): Это ядро игровой логики.
-listVisible: Определяет, какие точки на карте должны быть видны игроку. Она фильтрует все доступные квесты (quest_registry) и их привязки к точкам (mappoint_bindings), проверяя выполнение всех условий: требования к фазе, славе, флагам (requirementsSatisfied), а также зависимости от других квестов (dependenciesSatisfied).
-resolvePoint: Срабатывает при сканировании QR-кода. Она находит точку, выбирает для нее наиболее подходящий активный квест или событие (choosePointBinding) и возвращает клиенту, что именно нужно показать (например, какой диалог запустить).
-getAvailableQuests...: Функции для получения списков доступных квестов от конкретного NPC или с доски объявлений, также с учетом всех условий.
-Применение исходов (convex/dialogs.ts, quests.ts): Мутация applyDialogOutcome применяет результат по ключу `outcomeKey`, читая эффект из БД (`dialog_outcomes`) и обновляя `player_state`/`world_state` и прогресс квеста.
-Действия диалогов: `dialogs.resolveAction` возвращает дескриптор действия по `actionKey` из БД (`dialog_actions`), что позволяет управлять логикой без деплоя.
-4. Анализ Фронтенда (React)
-Фронтенд отвечает за визуализацию игрового мира и взаимодействие с пользователем.
-Структура и компоненты
-main.tsx: Точка входа. Настраивает провайдеры Clerk и Convex, а также роутер.
-app/ConvexProvider.tsx: Выполняет единый вызов `quests.initializeSession`, возвращающий снимок `player_state`/`quest_progress`/`world_state` и `userId`, затем гидрирует Zustand.
-pages/: Определяют основные экраны: MapPage (карта), QuestsPage (журнал заданий), NovelPage (визуальная новелла).
-widgets/MapWidget: Центральный виджет, отвечающий за отображение карты, загрузку видимых точек (useVisiblePoints), отрисовку маркеров (useMarkers) и обработку кликов по ним.
-entities/visual-novel: Полноценный движок для визуальных новелл.
-store.ts: Zustand-стор для управления состоянием текущей сцены, диалоговой строки.
-hooks.ts: Логика для управления сценами, сохранения/загрузки и выполнения действий (go_to_map_with_dialog).
-GameEngine.tsx: Главный компонент, который собирает фон, спрайты персонажей, диалоговое окно и кнопки управления.
-entities/quest и entities/player: Содержат Zustand-сторы (useQuestStore, usePlayerStore) и хуки (useQuest) для управления состоянием квестов и игрока на клиенте. Они предоставляют удобный API для остального приложения (например, quest.startQuest(...)).
-Управление состоянием (State Management)
-Комбинация Convex и Zustand выбрана очень удачно:
-Convex (useQuery) используется для подписки на данные с сервера в реальном времени. Например, useServerProgressHydration подписывается на api.quests.getProgress и автоматически обновляет локальное состояние при изменениях на бэкенде.
-Zustand предоставляет быстрый, синхронный доступ к состоянию внутри React-компонентов без необходимости "пробрасывать" пропсы. Он выступает в роли локального кэша и источника правды для UI. Логика в хуке useQuest обеспечивает "оптимистичные обновления": сначала изменяется локальное состояние в Zustand для мгновенного отклика интерфейса, а затем асинхронно отправляется запрос на сервер.
-5. Сиды и запуск в dev
+﻿Grenzwanderer Client — Overview
 
-Сиды (mutations в `convex/seed.ts`):
-- `seedQuestRegistryDev`, `seedQuestDependenciesDev`, `seedMapPointsDev`, `seedMappointBindingsDev`, `seedQrCodesDev`
-- Новые: `seedDialogOutcomesDev`, `seedDialogActionsDev`
+Summary
+- Location-based RPG client with VN-style scenes, quests, and a dynamic map powered by Mapbox GL. Backend by Convex.
 
-Как запустить (пример):
-1) Установите `VITE_DEV_SEED_TOKEN` в `.env` Convex.
-2) Вызовите из клиента/скрипта:
-```
-await convexClient.mutation(api.seed.seedDialogOutcomesDev, { devToken: import.meta.env.VITE_DEV_SEED_TOKEN })
-await convexClient.mutation(api.seed.seedDialogActionsDev, { devToken: import.meta.env.VITE_DEV_SEED_TOKEN })
-```
+Key Modules
+- Convex API: quest registry/progress, player/world state, map points, helpers.
+- VN Engine: simple scene/choice model with inline actions and map triggers.
+- State: Zustand stores for player, quests, progression; Convex for persistence.
 
-6. Выводы и рекомендации
+Recent Additions
+- Atomic scene commit (commitScene):
+  - Args: { deviceId (server), questOps[], outcome (whitelisted), rewardHint?, playerVersion?, progressVersion?, opSeq? }.
+  - Server-only rewards via rewardHint (no raw credits/fame from client).
+  - Returns: { playerState, progress, availableQuests, visiblePoints, version, ttlMs }.
+- Client commitScene helper:
+  - Hydrates quest store via applyBatch; hydrates player/progression; caches visiblePoints with TTL+version.
+  - Offline outbox: queues commits and replays with opSeq on reconnect.
+- Map visible points cache:
+  - useGameDataStore.serverVisiblePoints = { points, version, ttlMs, updatedAt }.
+  - useClientVisiblePoints prefers fresh server cache, falls back to local derivation otherwise.
+- VN content:
+  - Prologue + Arrival (sensory overload → control → bureau → PDA grant).
+  - Clean Phase 1 hand-off via go_to_map_with_dialog + dialogKey='phase_1_choice_dialog'.
+- Player skills/attributes:
+  - skillsLevels: logic, empathy, cynicism, authority, paranoia, intuition, technophile, encyclopedia, reflexes, endurance, dopamine, philosophy.
+  - attributes: strength, endurance, reflexes, perception, charisma.
+  - VN choices setFlags that increment skills and set meaningful flags.
 
-Changelog (текущая сессия):
-- Унифицирована выдача доступных квестов и заменены вызовы на `getAvailableQuests`.
-- Оптимизирована выдача видимых точек карты: индексы `by_quest_start`, поле `isStart`.
-- Добавлен единый `quests.initializeSession`; `QuestHydrator` переведён на него.
-- Добавлен откат оптимистичных апдейтов в `useQuest`.
-- Вынесены `dialog_outcomes`/`dialog_actions` в БД, добавлены сиды и резолверы.
-- Вынесена `applyOutcomeImpl` и подключена в `dialogs.applyDialogOutcome`.
-- Убраны `(api as any)`/raw handler-вызовы — использованы сгенерированные типы API.
-Сильные стороны:
-Четкая архитектура: Проект имеет ясную структуру как на бэкенде (разделение логики по файлам helpers, queries, mutations), так и на фронтенде (FSD-подобная структура).
-Надежная игровая логика: Логика выбора и доступности квестов на бэкенде является централизованной и учитывает множество параметров, что позволяет создавать сложные нелинейные сценарии.
-Гибкость контента: Система реестров (quest_registry, dialogOutcomeRegistry) позволяет легко добавлять и изменять квесты, диалоги и их исходы, не меняя основной код.
-Хорошее управление состоянием: Комбинация серверного стейта Convex и клиентского Zustand — мощное и современное решение для приложений реального времени.
-Масштабируемость: Архитектура позволяет легко добавлять новые фракции, квесты, типы точек на карте и игровые механики.
+Developer Notes
+- Convex dev: run `npx convex dev` from client/ for mutations and schema.
+- Client dev: `npm run dev` in client/.
+- Seeding: see convex helpers and seed mutations (dev-only tokens recommended).
+
+Phase 1 Transition
+- The final PDA grant scene triggers go_to_map_with_dialog with dialogKey='phase_1_choice_dialog'.
+- Client calls questsApi.commitScene({ outcome: { setPhase: 1 } }) and navigates to map.
+
+Security
+- commitScene outcome fields are whitelisted server-side (no client-supplied raw economy deltas).
+- rewardHint maps to server-side fame/credits updates.

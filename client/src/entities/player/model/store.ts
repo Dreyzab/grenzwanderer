@@ -4,6 +4,8 @@ import logger from '@/shared/lib/logger'
 interface PlayerState {
   credits: number
   skills: Set<string>
+  attributes?: Record<string, number>
+  skillsLevels?: Record<string, number>
   inventory: string[]
   phase?: number
   health?: number
@@ -22,6 +24,9 @@ interface PlayerState {
   removeItem: (itemId: string) => void
   hasItem: (itemId: string) => boolean
   setPhase: (phase: number) => void
+  incrementSkill: (key: string, delta?: number) => void
+  setSkill: (key: string, value: number) => void
+  getSkill: (key: string) => number
 
   hydrateFromServer: (p: {
     phase?: number | null
@@ -38,6 +43,21 @@ interface PlayerState {
 export const usePlayerStore = create<PlayerState>((set, get) => ({
   credits: 0,
   skills: new Set<string>(),
+  attributes: { strength: 0, endurance: 0, reflexes: 0, perception: 0, charisma: 0 },
+  skillsLevels: {
+    logic: 0,
+    empathy: 0,
+    cynicism: 0,
+    authority: 0,
+    paranoia: 0,
+    intuition: 0,
+    technophile: 0,
+    encyclopedia: 0,
+    reflexes: 0,
+    endurance: 0,
+    dopamine: 0,
+    philosophy: 0,
+  },
   inventory: [],
   phase: 0,
   health: 1,
@@ -51,6 +71,24 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const next: Pick<PlayerState, 'phase'> = { phase }
     return next
   }),
+  incrementSkill: (key, delta = 1) =>
+    set((s) => {
+      const curr = (s.skillsLevels ?? {})[key] ?? 0
+      const next = Math.max(0, curr + delta)
+      const skillsLevels = { ...(s.skillsLevels ?? {}), [key]: next }
+      logger.info('STORE', 'incrementSkill', { key, delta, level: next })
+      return { skillsLevels }
+    }),
+  setSkill: (key, value) =>
+    set((s) => {
+      const lvl = Math.max(0, Math.floor(value))
+      const skillsLevels = { ...(s.skillsLevels ?? {}), [key]: lvl }
+      logger.info('STORE', 'setSkill', { key, level: lvl })
+      return { skillsLevels }
+    }),
+  getSkill: (key) => {
+    try { return (get().skillsLevels ?? {})[key] ?? 0 } catch { return 0 }
+  },
   addCredits: (amount) =>
     set((s) => {
       const next = Math.max(0, (s.credits ?? 0) + amount)
@@ -118,5 +156,4 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       return next as any
     }),
 }))
-
 

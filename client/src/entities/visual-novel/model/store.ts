@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { usePlayerStore } from '@/entities/player/model/store'
 import type { GameActions, GameState, Scene } from './types'
 
 interface VNState {
@@ -17,7 +18,7 @@ export const createInitialGameState = (startScene: string): GameState => ({
 })
 
 export const useVNStore = create<VNState>((set, get) => ({
-  game: createInitialGameState('station_intro'),
+  game: createInitialGameState('prologue_start'),
   scenes: {},
   actions: {
     setScene: (sceneId) =>
@@ -45,6 +46,24 @@ export const useVNStore = create<VNState>((set, get) => ({
       const choice = scene?.choices?.find((c) => c.id === choiceId)
       if (!choice) return
       const next = choice.nextScene ?? scene?.nextScene ?? game.currentSceneId
+      // Apply side effects from setFlags to player skills/relations
+      const applyFlagEffects = (flags: Record<string, boolean> | undefined) => {
+        if (!flags) return
+        try {
+          const player = usePlayerStore.getState()
+          if (flags.insight_logic_plus1) player.incrementSkill('logic', 1)
+          if (flags.insight_empathy_plus1) player.incrementSkill('empathy', 1)
+          if (flags.insight_cynicism_plus1) player.incrementSkill('cynicism', 1)
+          if (flags.map_hints_upgraded) {
+            // Could set a player flag for upgraded hints
+            player.hydrateFromServer({ flags: Array.from(new Set([...(player as any).flags ?? [], 'map_hints_upgraded'])) })
+          }
+          if (flags.registrar_friendly) {
+            player.hydrateFromServer({ flags: Array.from(new Set([...(player as any).flags ?? [], 'registrar_friendly'])) })
+          }
+        } catch {}
+      }
+      applyFlagEffects(choice.setFlags)
       set({
         game: {
           ...game,

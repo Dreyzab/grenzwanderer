@@ -25,19 +25,30 @@ type GameDataState = {
 	questRegistry: any[]
 	mappointBindings: any[]
 	mapPoints: any[]
+	serverVisiblePoints: { points: any[]; version: number; ttlMs: number; updatedAt: number } | null
 	hydrate: (data: { questRegistry?: any[]; mappointBindings?: any[] }) => void
+  setServerVisiblePoints: (payload: { points: any[]; version?: number; ttlMs?: number }) => void
 }
 
 export const useGameDataStore = create<GameDataState>()((set) => ({
 	questRegistry: [],
 	mappointBindings: [],
 	mapPoints: [],
+	serverVisiblePoints: null,
 	hydrate: (data) =>
 		set((s) => ({
 			questRegistry: data.questRegistry ?? s.questRegistry,
 			mappointBindings: data.mappointBindings ?? s.mappointBindings,
 			mapPoints: (data as any).mapPoints ?? s.mapPoints,
 		})),
+  setServerVisiblePoints: (payload) => set(() => ({
+    serverVisiblePoints: {
+      points: Array.isArray(payload?.points) ? payload.points : [],
+      version: typeof payload?.version === 'number' ? payload.version! : Date.now(),
+      ttlMs: typeof payload?.ttlMs === 'number' ? payload.ttlMs! : 60000,
+      updatedAt: Date.now(),
+    },
+  })),
 }))
 
 type Props = { children: ReactNode }
@@ -95,5 +106,3 @@ export function QuestHydrator({ children }: Props): ReactNode {
 
 	return children
 }
-
-

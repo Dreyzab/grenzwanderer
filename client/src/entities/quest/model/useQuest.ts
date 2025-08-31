@@ -4,7 +4,17 @@ import type { QuestStep } from './types'
 import type { QuestId } from './ids'
 
 export function useQuest() {
-  const { activeQuests, completedQuests, startQuest, advanceQuest, completeQuest, hydrate, trackedQuestId, setTrackedQuest } = useQuestStore()
+  const {
+    activeQuests,
+    completedQuests,
+    startQuest,
+    advanceQuest,
+    completeQuest,
+    applyBatch: applyBatchStore,
+    hydrate,
+    trackedQuestId,
+    setTrackedQuest,
+  } = useQuestStore()
 
   const isActive = useCallback((id: QuestId) => Boolean(activeQuests[id]), [activeQuests])
   const getStep = useCallback(
@@ -31,6 +41,8 @@ export function useQuest() {
     completeQuest: async (id: QuestId) => {
       completeQuest(id)
     },
+    applyBatch: (qs: { id: QuestId; step?: QuestStep; completedAt?: number | null }[]) =>
+      applyBatchStore(qs as any),
     hydrate,
   }
 }

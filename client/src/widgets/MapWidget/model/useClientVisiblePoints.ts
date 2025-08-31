@@ -23,12 +23,29 @@ export function useClientVisiblePoints() {
   const [points, setPoints] = useState<VisibleMapPoint[]>([])
   const bindings = useGameDataStore((s) => s.mappointBindings)
   const mapPoints = useGameDataStore((s) => s.mapPoints)
+  const serverVisible = useGameDataStore((s) => s.serverVisiblePoints)
   const activeQuests = useQuestStore((s) => s.activeQuests)
   const completedQuests = useQuestStore((s) => s.completedQuests)
   const phase = usePlayerStore((s) => s.phase ?? 0)
   const health = usePlayerStore((s) => s.health ?? 1)
 
   const visible = useMemo(() => {
+    // If server provided an authoritative visible list and cache is fresh, use it
+    if (serverVisible && Array.isArray(serverVisible.points)) {
+      const age = Date.now() - (serverVisible.updatedAt ?? 0)
+      const fresh = age >= 0 && age <= (serverVisible.ttlMs ?? 60000)
+      if (fresh && serverVisible.points.length > 0) {
+        try {
+          logger.info('MAP', 'visible:server', {
+            count: serverVisible.points.length,
+            keys: serverVisible.points.map((p: any) => p.key),
+            age,
+          })
+        } catch {}
+        return serverVisible.points as VisibleMapPoint[]
+      }
+    }
+
     try { logger.debug('MAP', 'visible:inputs', { bindings: (bindings ?? []).length, mapPoints: (mapPoints ?? []).length, phase: phase ?? 0, activeQuests: Object.keys(activeQuests ?? {}).length }) } catch {}
     // Фильтр по фазе
     const byPhase = (bindings ?? []).filter((b: any) => {
@@ -102,10 +119,8 @@ export function useClientVisiblePoints() {
 
     try { logger.info('MAP', 'visible:loaded', { count: result.length, keys: result.map((p) => p.key) }) } catch {}
     return result
-  }, [bindings, mapPoints, activeQuests, completedQuests, phase, health])
+  }, [bindings, mapPoints, activeQuests, completedQuests, phase, health, serverVisible])
 
   useEffect(() => setPoints(visible), [visible])
   return points
 }
-
-

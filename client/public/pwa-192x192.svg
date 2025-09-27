@@ -1,0 +1,6 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" rx="24" fill="#18181b"/>
+  <path d="M96 24L120 72H72L96 24Z" fill="#10b981"/>
+  <circle cx="96" cy="120" r="24" fill="#10b981"/>
+  <text x="96" y="180" text-anchor="middle" fill="#10b981" font-family="Arial" font-size="16" font-weight="bold">G</text>
+</svg>

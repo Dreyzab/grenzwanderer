@@ -1,0 +1,65 @@
+{
+  "name": "Grenzwanderer",
+  "short_name": "Grenzwanderer",
+  "description": "Постапокалиптическая location-based RPG с элементами визуальной новеллы и карточных боёв",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#18181b",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "categories": ["games", "entertainment", "lifestyle"],
+  "lang": "ru",
+  "dir": "ltr",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "screenshot-narrow.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "QR Scanner",
+      "short_name": "Scan",
+      "description": "Быстрое сканирование QR кодов",
+      "url": "/qr-scanner",
+      "icons": [{ "src": "pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Карта",
+      "short_name": "Map",
+      "description": "Исследование игрового мира",
+      "url": "/map",
+      "icons": [{ "src": "pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Квесты",
+      "short_name": "Quests",
+      "description": "Управление активными заданиями",
+      "url": "/quests",
+      "icons": [{ "src": "pwa-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

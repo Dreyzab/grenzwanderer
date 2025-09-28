@@ -1,16 +1,11 @@
-// Минимальный API для bootstrap игрока
+import { api } from '@/../convex/_generated/api'
+import convexClient from '@/shared/lib/convexClient/convexClient'
+
 export const questsApi = {
   async bootstrapNewPlayer(): Promise<void> {
-    try {
-      // Если естьConvex код, можно вызвать мутацию bootstrap; иначе — no-op
-      // await convexClient.mutation('player:bootstrap', {})
-      return
-    } catch (err) {
-      throw err
-    }
+    await convexClient.mutation(api.player.bootstrap, {})
   }
 }
 
 export default questsApi
-
 

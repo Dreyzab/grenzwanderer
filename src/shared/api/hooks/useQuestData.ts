@@ -64,32 +64,62 @@ export function useCompleteQuest() {
       await queryClient.cancelQueries({ queryKey: questQueryKeys.all })
 
       const questStore = useQuestStore.getState()
+      const previousActiveExists = questId in questStore.activeQuests
       const previousActiveState = questStore.activeQuests[questId]
+      const previousQuestExists = questId in questStore.quests
       const previousQuestState = questStore.quests[questId]
+      const previousCompletedQuests = [...(questStore.completedQuests ?? [])]
+      const previousTrackedQuestId = questStore.trackedQuestId
 
       questStore.completeQuest(questId)
 
       const previousQuests = queryClient.getQueryData(questQueryKeys.all)
 
-      return { previousQuestState, previousActiveState, previousQuests }
+      return {
+        previousQuestState,
+        previousQuestExists,
+        previousActiveState,
+        previousActiveExists,
+        previousCompletedQuests,
+        previousTrackedQuestId,
+        previousQuests,
+      }
     },
     onError: (_error, { questId }, context) => {
-      if (context?.previousQuestState || context?.previousActiveState) {
+      if (context) {
         useQuestStore.setState((state) => {
           const nextActiveQuests = { ...state.activeQuests }
 
-          if (context.previousActiveState) {
-            nextActiveQuests[questId] = context.previousActiveState
+          if (context.previousActiveExists) {
+            if (context.previousActiveState) {
+              nextActiveQuests[questId] = context.previousActiveState
+            } else {
+              delete nextActiveQuests[questId]
+            }
           } else {
             delete nextActiveQuests[questId]
           }
 
+          const nextQuests = { ...state.quests }
+
+          if (context.previousQuestExists) {
+            if (context.previousQuestState) {
+              nextQuests[questId] = context.previousQuestState
+            }
+          } else {
+            delete nextQuests[questId]
+          }
+
+          const nextCompletedQuests = context.previousCompletedQuests
+            ? [...context.previousCompletedQuests]
+            : state.completedQuests
+                .filter((id) => id !== questId)
+
           return {
-            quests: {
-              ...state.quests,
-              [questId]: context.previousQuestState,
-            },
+            quests: nextQuests,
             activeQuests: nextActiveQuests,
+            completedQuests: nextCompletedQuests,
+            trackedQuestId: context.previousTrackedQuestId,
           }
         })
       }

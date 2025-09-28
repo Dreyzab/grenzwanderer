@@ -34,7 +34,7 @@ export function useQRScanner({
   
   const readerRef = useRef<BrowserMultiFormatReader | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
-  const scanTimeoutRef = useRef<number | null>(null)
+  const scanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const scanningRef = useRef(false)
 
   const mediaDevicesSupported =
@@ -52,7 +52,9 @@ export function useQRScanner({
   // Get available video devices
   const getVideoDevices = useCallback(async () => {
     if (!mediaDevicesSupported) {
-      setError('Media devices are not supported')
+      const unsupportedError = new Error('Media devices are not supported')
+      setError(unsupportedError.message)
+      onError?.(unsupportedError)
       return []
     }
 

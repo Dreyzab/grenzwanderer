@@ -138,7 +138,7 @@ export const scenarios: Record<string, Scene> = {
   prologue_companions: {
     id: 'prologue_companions',
     background: '/images/backgrounds/train.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Пустой тамбур, только вы и ритм колёс. Попутчики — за закрытой дверью.' },
     ],
@@ -149,7 +149,7 @@ export const scenarios: Record<string, Scene> = {
   arrival_sensory_overload: {
     id: 'arrival_sensory_overload',
     background: '/images/backgrounds/station.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'И вот, наконец, гул. Живой, человеческий, машинный. Вы делаете шаг на скользкую платформу, и мир взрывается.' },
       { speaker: 'ВОСПРИЯТИЕ', text: 'Жареный лук. Невозможно! Запах настоящей, горячей еды! Сколько лет прошло?' },
@@ -166,7 +166,7 @@ export const scenarios: Record<string, Scene> = {
   arrival_overwhelmed: {
     id: 'arrival_overwhelmed',
     background: '/images/backgrounds/station.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Вы замираете на месте. Слишком много. Слишком громко.' },
       { speaker: 'ЭМПАТИЯ', text: 'Каждое лицо — отдельная история. Трагедия, втиснутая в один вокзал.' },
@@ -178,7 +178,7 @@ export const scenarios: Record<string, Scene> = {
   arrival_push_forward: {
     id: 'arrival_push_forward',
     background: '/images/backgrounds/station.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Стоять здесь нельзя — сомнут. Нужно двигаться.' },
       { speaker: 'АВТОРИТЕТ', text: 'Расступились! Ты здесь по делу.' },
@@ -190,7 +190,7 @@ export const scenarios: Record<string, Scene> = {
   arrival_observe: {
     id: 'arrival_observe',
     background: '/images/backgrounds/station.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Нужно понять правила этого места, прежде чем делать ход. Вы отступаете к стене, становясь наблюдателем.' },
       { speaker: 'ЛОГИКА', text: 'Хаос только кажется хаосом. Смотри. Есть потоки. Прибывшие — к центру. Грузчики — вдоль путей. Патрули — по периметру. Это не муравейник, это работающий механизм.' },

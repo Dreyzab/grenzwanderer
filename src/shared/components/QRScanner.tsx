@@ -30,7 +30,7 @@ export function QRScanner({
 }: QRScannerProps) {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>()
   const [lastResult, setLastResult] = useState<QRScanResult | null>(null)
-  const resultTimeoutRef = useRef<number | null>(null)
+  const resultTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   
   const handleResult = useCallback((result: QRScanResult) => {
     setLastResult(result)
@@ -41,7 +41,7 @@ export function QRScanner({
       resultTimeoutRef.current = null
     }
 
-    const timeout = window.setTimeout(() => {
+    const timeout = setTimeout(() => {
       setLastResult(null)
     }, 3000)
     resultTimeoutRef.current = timeout

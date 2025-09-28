@@ -1,0 +1,62 @@
+@import "mapbox-gl/dist/mapbox-gl.css";
+@import "tailwindcss";
+@theme {
+  --color-primary: oklch(0.627 0.265 303.9);
+  --color-secondary: oklch(0.715 0.143 215.221);
+  --spacing-base: 0.25rem;
+  --font-display: "Satoshi", system-ui, sans-serif;
+  /* Фракционные палитры */
+  --color-faction-fjr: #D32F2F; /* красный */
+  --color-faction-an: #111111; /* чёрный */
+  --color-faction-syn: #FFFFFF; /* белый */
+  --color-faction-pol: #001F3F; /* navy blue */
+  --color-faction-art: #7C4A21; /* медно-коричневый */
+  --color-faction-tr: #FFD700; /* золотисто-жёлтый */
+  --color-faction-ob: #6A0DAD; /* пурпурный */
+  --color-faction-farm: #795548; /* коричневый */
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  @apply bg-neutral-950 text-neutral-100 antialiased;
+}
+
+/* Mobile-friendly interactions */
+html, body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure viewport safe areas are respected on iOS */
+.supports-safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.marker-tracked {
+  position: relative;
+}
+.marker-tracked::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  background: radial-gradient(closest-side, rgba(255,215,0,0.5), rgba(255,215,0,0.15) 60%, transparent 70%);
+  animation: trackedPulse 1.8s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes trackedPulse {
+  0% { transform: scale(0.9); opacity: 0.6; filter: drop-shadow(0 0 0px rgba(255,215,0,0.4)); }
+  40% { transform: scale(1.08); opacity: 0.9; filter: drop-shadow(0 0 8px rgba(255,215,0,0.7)); }
+  100% { transform: scale(1.0); opacity: 0.5; filter: drop-shadow(0 0 0px rgba(255,215,0,0.2)); }
+}
+
+.game-ui {
+  background: var(--color-primary);
+  padding: calc(var(--spacing-base) * 4);
+  font-family: var(--font-display);
+}
+

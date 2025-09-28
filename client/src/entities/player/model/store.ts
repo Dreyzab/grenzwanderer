@@ -47,5 +47,5 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
       ...(player.reputation ?? {}),
     },
   })),
-  reset: () => set(initialState),
+  reset: () => set(() => initialState),
 }))

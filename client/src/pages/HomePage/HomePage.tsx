@@ -96,7 +96,7 @@ export function Component() {
       icon: QrCode,
       label: 'QR Сканер',
       description: 'Сканировать код локации',
-      path: '/qr',
+      path: '/qr-scanner',
       color: 'text-emerald-400',
       bgColor: 'bg-emerald-900/30',
       borderColor: 'border-emerald-700/50'
@@ -105,7 +105,7 @@ export function Component() {
       icon: Map,
       label: 'Карта',
       description: 'Открыть игровую карту',
-      path: '/enhanced-map',
+      path: '/map',
       color: 'text-blue-400',
       bgColor: 'bg-blue-900/30',
       borderColor: 'border-blue-700/50'
@@ -123,7 +123,7 @@ export function Component() {
       icon: Sword,
       label: 'Бой',
       description: 'Карточная боевая система',
-      path: '/enhanced-combat',
+      path: '/combat',
       color: 'text-red-400',
       bgColor: 'bg-red-900/30',
       borderColor: 'border-red-700/50'

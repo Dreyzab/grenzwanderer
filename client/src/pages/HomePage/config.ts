@@ -107,7 +107,7 @@ export const quickActions: QuickAction[] = [
     color: 'text-blue-400',
     bgColor: 'bg-blue-900/30',
     borderColor: 'border-blue-700/50',
-    href: '/world-events'
+    href: '/events'
   }
 ]
 

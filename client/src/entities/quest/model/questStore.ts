@@ -144,7 +144,11 @@ export const useQuestStore = create<QuestState>()(
               }
             }
           }
-          const tracked = state.trackedQuestId ?? findNextTrackableQuest(next)
+          // Only keep trackedQuestId if it exists in the new snapshot and refers to a non-completed quest
+          let tracked = state.trackedQuestId
+          if (tracked && (!next[tracked] || next[tracked].step === 'completed')) {
+            tracked = findNextTrackableQuest(next)
+          }
           return {
             quests: next,
             trackedQuestId: tracked,

@@ -1,1 +1,17 @@
-
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "outDir": "dist",
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "vite.config.ts",
+    "postcss.config.js",
+    "tailwind.config.js"
+  ]
+}

@@ -11,6 +11,9 @@ build/
 .convex/**/*
 .cache/
 
+# TypeScript артефакты сборки
+*.tsbuildinfo
+
 # Окружение и конфигурации
 .env
 .env.*

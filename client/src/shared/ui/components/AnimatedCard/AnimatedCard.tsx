@@ -44,7 +44,8 @@ export function AnimatedCard({
   className = '', 
   ...props 
 }: AnimatedCardProps) {
-  const variants = cardVariants[variant]
+  // Безопасная проверка существования варианта с fallback на default
+  const variants = cardVariants[variant] || cardVariants.default
   
   return (
     <motion.div

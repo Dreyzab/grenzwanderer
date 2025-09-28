@@ -169,83 +169,103 @@ export function Component() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div 
-          className="text-center mb-8"
+          className="text-center mb-12"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-4xl font-bold text-zinc-100 mb-2">QR-Boost</h1>
-          <p className="text-zinc-400">
-            {getGreeting()}, {isSignedIn && playerName ? playerName : 'странник'}!
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 animate-float">
+            <span className="bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-400 bg-clip-text text-transparent text-glow">
+              QR-Boost
+            </span>
+          </h1>
+          <p className="text-lg text-zinc-300 font-medium">
+            {getGreeting()}, <span className="text-emerald-400 font-semibold">
+              {isSignedIn && playerName ? playerName : 'странник'}
+            </span>!
           </p>
+          <p className="text-sm text-zinc-500 mt-2">Добро пожаловать в мир безграничных возможностей</p>
         </motion.div>
 
         {/* Player Status Card */}
         <AnimatedCard 
           variant="glow" 
-          className="mb-8 homepage-stats-card homepage-card-glow"
+          className="mb-10 homepage-stats-card homepage-card-glow relative overflow-hidden"
         >
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="p-8 relative z-10">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-semibold text-zinc-100">Статус игрока</h2>
-                <p className="text-emerald-300">{getPhaseDescription(phase)}</p>
+                <h2 className="text-2xl font-bold text-zinc-100 mb-2">
+                  <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                    Статус игрока
+                  </span>
+                </h2>
+                <p className="text-emerald-300 text-lg font-semibold flex items-center gap-2">
+                  <Award className="text-emerald-400" size={20} />
+                  {getPhaseDescription(phase)}
+                </p>
               </div>
               <motion.div
-                className="text-right"
+                className="text-right bg-emerald-900/30 rounded-xl p-4 border border-emerald-700/50"
                 whileHover={{ scale: 1.05 }}
               >
-                <div className="text-2xl font-bold text-emerald-400">{fame}</div>
-                <div className="text-sm text-zinc-400">репутации</div>
+                <div className="text-3xl font-bold text-emerald-400 text-glow">{fame}</div>
+                <div className="text-sm text-emerald-200 font-medium">репутации</div>
               </motion.div>
             </div>
 
             {/* Progress Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <motion.div 
-                className="text-center"
-                whileHover={{ y: -2 }}
+                className="text-center bg-purple-900/30 rounded-xl p-4 border border-purple-700/50 group cursor-pointer"
+                whileHover={{ y: -4, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <div className="flex items-center justify-center mb-2">
-                  <Target className="text-purple-400 mr-2" size={20} />
-                  <span className="text-lg font-semibold text-zinc-100">
+                <div className="flex items-center justify-center mb-3">
+                  <Target className="text-purple-400 mr-2 group-hover:text-purple-300 transition-colors" size={24} />
+                  <span className="text-xl font-bold text-zinc-100 group-hover:text-white transition-colors">
                     {stats.questsCompleted}/{stats.totalQuests}
                   </span>
                 </div>
-                <div className="text-xs text-zinc-400">Квестов завершено</div>
+                <div className="text-xs text-zinc-400 group-hover:text-zinc-300 transition-colors font-medium">
+                  Квестов завершено
+                </div>
               </motion.div>
 
               <motion.div 
-                className="text-center"
-                whileHover={{ y: -2 }}
+                className="text-center bg-emerald-900/30 rounded-xl p-4 border border-emerald-700/50 group cursor-pointer"
+                whileHover={{ y: -4, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <div className="flex items-center justify-center mb-2">
-                  <TrendingUp className="text-emerald-400 mr-2" size={20} />
-                  <span className="text-lg font-semibold text-zinc-100">{stats.experienceGained}</span>
+                <div className="flex items-center justify-center mb-3">
+                  <TrendingUp className="text-emerald-400 mr-2 group-hover:text-emerald-300 transition-colors" size={24} />
+                  <span className="text-xl font-bold text-zinc-100 group-hover:text-white transition-colors">{stats.experienceGained}</span>
                 </div>
-                <div className="text-xs text-zinc-400">Опыта получено</div>
+                <div className="text-xs text-zinc-400 group-hover:text-zinc-300 transition-colors font-medium">Опыта получено</div>
               </motion.div>
 
               <motion.div 
-                className="text-center"
-                whileHover={{ y: -2 }}
+                className="text-center bg-blue-900/30 rounded-xl p-4 border border-blue-700/50 group cursor-pointer"
+                whileHover={{ y: -4, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <div className="flex items-center justify-center mb-2">
-                  <Calendar className="text-blue-400 mr-2" size={20} />
-                  <span className="text-lg font-semibold text-zinc-100">{stats.daysSinceStart}</span>
+                <div className="flex items-center justify-center mb-3">
+                  <Calendar className="text-blue-400 mr-2 group-hover:text-blue-300 transition-colors" size={24} />
+                  <span className="text-xl font-bold text-zinc-100 group-hover:text-white transition-colors">{stats.daysSinceStart}</span>
                 </div>
-                <div className="text-xs text-zinc-400">Дней в игре</div>
+                <div className="text-xs text-zinc-400 group-hover:text-zinc-300 transition-colors font-medium">Дней в игре</div>
               </motion.div>
 
               <motion.div 
-                className="text-center"
-                whileHover={{ y: -2 }}
+                className="text-center bg-yellow-900/30 rounded-xl p-4 border border-yellow-700/50 group cursor-pointer"
+                whileHover={{ y: -4, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <div className="flex items-center justify-center mb-2">
-                  <Award className="text-yellow-400 mr-2" size={20} />
-                  <span className="text-lg font-semibold text-zinc-100">{phase}</span>
+                <div className="flex items-center justify-center mb-3">
+                  <Award className="text-yellow-400 mr-2 group-hover:text-yellow-300 transition-colors" size={24} />
+                  <span className="text-xl font-bold text-zinc-100 group-hover:text-white transition-colors">{phase}</span>
                 </div>
-                <div className="text-xs text-zinc-400">Фаза развития</div>
+                <div className="text-xs text-zinc-400 group-hover:text-zinc-300 transition-colors font-medium">Фаза развития</div>
               </motion.div>
             </div>
           </div>
@@ -253,29 +273,47 @@ export function Component() {
 
         {/* Quick Actions */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-zinc-100 mb-4">Быстрые действия</h2>
+          <h2 className="text-2xl font-bold text-zinc-100 mb-6 text-center">
+            <span className="bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Быстрые действия
+            </span>
+          </h2>
           <MotionContainer stagger={0.1}>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {quickActions.map((action, _index) => (
+              {quickActions.map((action, index) => (
                 <Link key={action.path} to={action.path}>
                   <motion.div
                     className={`
-                      p-4 rounded-lg border backdrop-blur-sm transition-all duration-200 cursor-pointer
+                      game-card p-4 cursor-pointer group relative overflow-hidden
                       ${action.bgColor} ${action.borderColor}
-                      hover:scale-105 hover:shadow-lg
                     `}
                     whileHover={{ 
-                      y: -4,
+                      y: -6,
+                      scale: 1.02,
                       transition: { duration: 0.2 }
                     }}
-                    whileTap={{ scale: 0.95 }}
+                    whileTap={{ scale: 0.98 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ 
+                      opacity: 1, 
+                      y: 0,
+                      transition: { delay: index * 0.1 }
+                    }}
                   >
-                    <div className="text-center">
-                      <action.icon size={32} className={`mx-auto mb-2 ${action.color}`} />
-                      <div className="font-medium text-zinc-100 text-sm mb-1">
+                    {/* Hover glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+                    
+                    <div className="text-center relative z-10">
+                      <div className="mb-3 relative">
+                        <action.icon 
+                          size={32} 
+                          className={`mx-auto ${action.color} group-hover:text-glow transition-all duration-300`} 
+                        />
+                      </div>
+                      <div className="font-semibold text-zinc-100 text-sm mb-1 group-hover:text-white transition-colors">
                         {action.label}
                       </div>
-                      <div className="text-xs text-zinc-400">
+                      <div className="text-xs text-zinc-400 group-hover:text-zinc-300 transition-colors">
                         {action.description}
                       </div>
                     </div>
@@ -289,9 +327,14 @@ export function Component() {
         {/* Recent Activity & News */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Recent Quests */}
-          <AnimatedCard className="bg-zinc-900/50 border-zinc-700">
+          <AnimatedCard className="game-card glass-effect styled-scrollbar">
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-zinc-100 mb-4">Активные квесты</h3>
+              <h3 className="text-lg font-semibold text-zinc-100 mb-4 flex items-center gap-2">
+                <BookOpen className="text-emerald-400" size={20} />
+                <span className="bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
+                  Активные квесты
+                </span>
+              </h3>
               
               <div className="space-y-3">
                 <AnimatePresence>
@@ -306,7 +349,7 @@ export function Component() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
                       >
-                        <div className="w-3 h-3 rounded-full bg-emerald-400" />
+                        <div className="status-dot bg-emerald-400" />
                         <div className="flex-1">
                           <div className="text-sm font-medium text-zinc-100">
                             {questId.replace(/_/g, ' ')}
@@ -337,9 +380,14 @@ export function Component() {
           </AnimatedCard>
 
           {/* System Status & News */}
-          <AnimatedCard className="bg-zinc-900/50 border-zinc-700">
+          <AnimatedCard className="game-card glass-effect">
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-zinc-100 mb-4">Новости и статус</h3>
+              <h3 className="text-lg font-semibold text-zinc-100 mb-4 flex items-center gap-2">
+                <Zap className="text-blue-400" size={20} />
+                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  Новости и статус
+                </span>
+              </h3>
               
               <div className="space-y-4">
                 <motion.div

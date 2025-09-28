@@ -8,7 +8,7 @@ export default defineSchema({
     name: v.string(),
     fame: v.number(),
     phase: v.number()
-  })
+  }).index('by_userId', ['userId'])
 })
 
 

@@ -1,56 +1,42 @@
 import { motion } from 'framer-motion'
 import type { HTMLMotionProps } from 'framer-motion'
 import { ReactNode } from 'react'
+import { useMotionContext } from '@/shared/ui/animations'
 
-interface AnimatedCardProps extends Omit<HTMLMotionProps<"div">, 'children'> {
+interface AnimatedCardProps extends Omit<HTMLMotionProps<'div'>, 'children'> {
   children: ReactNode
   variant?: 'default' | 'hover-lift' | 'press-scale' | 'glow'
   className?: string
+  motionContext?: Parameters<typeof useMotionContext>[0]
+  intensity?: 'low' | 'medium' | 'high'
 }
 
-const cardVariants = {
-  default: {
-    initial: { opacity: 0, y: 18 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -18 }
-  },
-  'hover-lift': {
-    initial: { opacity: 0, y: 20, scale: 0.98 },
-    animate: { opacity: 1, y: 0, scale: 1 },
-    whileHover: { y: -10, scale: 1.03, boxShadow: 'var(--shadow-card-hover)' },
-    whileTap: { scale: 0.97 }
-  },
-  'press-scale': {
-    initial: { opacity: 0, scale: 0.9 },
-    animate: { opacity: 1, scale: 1 },
-    whileTap: { scale: 0.94 },
-    whileHover: { scale: 1.05 }
-  },
-  glow: {
-    initial: { opacity: 0, boxShadow: '0 0 0 rgba(99, 102, 241, 0)' },
-    animate: { 
-      opacity: 1, 
-      boxShadow: '0 0 28px rgba(99, 102, 241, 0.35)' 
-    },
-    whileHover: { 
-      boxShadow: '0 0 42px rgba(99, 102, 241, 0.5)' 
-    }
-  }
-} satisfies Record<NonNullable<AnimatedCardProps['variant']>, Partial<HTMLMotionProps<'div'>>>
+const intensityMap = {
+  low: 'var(--shadow-card)',
+  medium: 'var(--shadow-card-hover)',
+  high: '0 0 64px rgba(99, 102, 241, 0.6)',
+} as const
 
-export function AnimatedCard({ 
-  children, 
-  variant = 'default', 
-  className = '', 
-  ...props 
+export function AnimatedCard({
+  children,
+  variant = 'default',
+  className = '',
+  motionContext = 'ui',
+  intensity = 'medium',
+  ...props
 }: AnimatedCardProps) {
-  const variants = cardVariants[variant]
-  
+  const { variants, transition } = useMotionContext(motionContext, variant)
+  const glowShadow = intensityMap[intensity]
+
   return (
     <motion.div
       className={`group glass-panel relative overflow-hidden rounded-2xl border border-white/5 ${className}`}
-      {...variants}
-      transition={{ duration: 0.32, ease: 'easeOut' }}
+      variants={variants.card(glowShadow)}
+      initial="initial"
+      animate="animate"
+      whileHover="hover"
+      whileTap="tap"
+      transition={transition}
       {...props}
     >
       <span className="pointer-events-none absolute inset-[1px] rounded-[1.05rem] border border-white/30" />

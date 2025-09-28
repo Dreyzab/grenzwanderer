@@ -1,80 +1,56 @@
 import { motion } from 'framer-motion'
-import type { HTMLMotionProps, Variants } from 'framer-motion'
+import type { HTMLMotionProps } from 'framer-motion'
 import { ReactNode } from 'react'
+import { useMotionContext } from '@/shared/ui/animations'
 
-interface MotionContainerProps extends Omit<HTMLMotionProps<"div">, 'children'> {
+interface MotionContainerProps extends Omit<HTMLMotionProps<'div'>, 'children'> {
   children: ReactNode
   stagger?: number
   direction?: 'up' | 'down' | 'left' | 'right'
   className?: string
+  context?: Parameters<typeof useMotionContext>[0]
 }
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
-}
+export function MotionContainer({
+  children,
+  stagger = 0.1,
+  direction = 'up',
+  className = '',
+  context = 'ui',
+  ...props
+}: MotionContainerProps) {
+  const { variants, transition } = useMotionContext(context)
 
-const getItemVariants = (direction: string): Variants => {
   const offset = 30
   const directions = {
     up: { y: offset },
     down: { y: -offset },
     left: { x: offset },
-    right: { x: -offset }
-  }
-  
-  return {
+    right: { x: -offset },
+  } as const
+
+  const itemVariants = {
     hidden: {
       opacity: 0,
-      ...directions[direction as keyof typeof directions]
+      ...directions[direction],
     },
     visible: {
       opacity: 1,
       x: 0,
       y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    }
+      transition,
+    },
   }
-}
 
-export function MotionContainer({ 
-  children, 
-  stagger = 0.1, 
-  direction = 'up',
-  className = '',
-  ...props 
-}: MotionContainerProps) {
-  const itemVariants = getItemVariants(direction)
-  
-  const containerVars = {
-    ...containerVariants,
-    visible: {
-      ...containerVariants.visible,
-      transition: {
-        staggerChildren: stagger,
-        delayChildren: 0.1
-      }
-    }
-  }
-  
   return (
     <motion.div
       className={className}
-      variants={containerVars}
+      variants={variants.container(stagger)}
       initial="hidden"
       animate="visible"
       {...props}
     >
-      {Array.isArray(children) 
+      {Array.isArray(children)
         ? children.map((child, index) => (
             <motion.div key={index} variants={itemVariants}>
               {child}

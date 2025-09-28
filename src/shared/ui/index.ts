@@ -7,3 +7,6 @@ export { DragDropZone, DropZone, useDragDrop } from './DragDropZone'
 // Existing Components
 export { Tooltip } from './Tooltip'
 
+// Motion utilities
+export { useMotionContext } from './animations'
+

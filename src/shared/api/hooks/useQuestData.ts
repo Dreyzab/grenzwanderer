@@ -1,4 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import convexClient from '@/shared/lib/convexClient/convexClient'
+import { api } from '@/../convex/_generated/api'
 import { useQuestStore } from '@/entities/quest/model/questStore'
 
 // Query Keys для квестов
@@ -14,10 +16,8 @@ export function useActiveQuests() {
   return useQuery({
     queryKey: questQueryKeys.active(),
     queryFn: async () => {
-      // TODO: Реализовать получение активных квестов с сервера
-      // const result = await convexClient.query(api.quests.getActive, {})
-      // return result
-      return []
+      const result = await convexClient.query(api.quests.getActive, {})
+      return Array.isArray(result) ? result : []
     },
     // Synchronize with local Zustand store
     select: (data) => {
@@ -59,6 +59,11 @@ export function useQuestStats() {
   return useQuery({
     queryKey: [...questQueryKeys.all, 'stats'],
     queryFn: async () => {
+      const stats = await convexClient.query(api.quests.getStats, {})
+      if (stats) {
+        return stats
+      }
+
       const localQuests = useQuestStore.getState().quests ?? {}
       const completed = Object.values(localQuests).filter(q => q && q.currentStep === 'completed').length
       const total = Object.keys(localQuests).length

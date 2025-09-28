@@ -15,10 +15,8 @@ export function usePlayerProfile() {
   return useQuery({
     queryKey: playerQueryKeys.profile(),
     queryFn: async (): Promise<Doc<'players'> | null> => {
-      // TODO: Реализовать query для получения профиля игрока
-      // const result = await convexClient.query(api.player.getProfile, {})
-      // return result
-      return null
+      const result = await convexClient.query(api.player.getProfile, {})
+      return result ?? null
     },
     enabled: true, // Включаем только если пользователь авторизован
   })
@@ -29,14 +27,18 @@ export function usePlayerStats() {
   return useQuery({
     queryKey: playerQueryKeys.stats(),
     queryFn: async () => {
-      // TODO: Реализовать query для статистики
-      return {
-        completedQuests: 0,
-        totalQuests: 0,
-        currentPhase: 1,
-        experienceGained: 0,
-        daysSinceStart: 1
+      const stats = await convexClient.query(api.player.getStats, {})
+      if (!stats) {
+        return {
+          completedQuests: 0,
+          totalQuests: 0,
+          currentPhase: 1,
+          experienceGained: 0,
+          daysSinceStart: 1,
+        }
       }
+
+      return stats
     },
   })
 }

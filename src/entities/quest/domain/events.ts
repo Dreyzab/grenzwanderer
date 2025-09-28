@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { QuestEvent, QuestId, QuestStep } from '../model/types'
 
 // Event bus для квестовых событий
@@ -36,7 +37,8 @@ export function publishQuestEvent(event: Omit<QuestEvent, 'timestamp'>): void {
 
 // Хук для подписки на события квестов
 export function useQuestEventListener(handler: QuestEventHandler): void {
-  // В React окружении это будет React хук
-  // Пока просто подписываемся
-  return questEventBus.subscribe(handler) as any
+  useEffect(() => {
+    const unsubscribe = questEventBus.subscribe(handler)
+    return () => unsubscribe()
+  }, [handler])
 }

@@ -5,7 +5,7 @@ export const scenarios: Record<string, Scene> = {
   prologue_start: {
     id: 'prologue_start',
     background: '/images/backgrounds/train.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { text: 'Тамбур. Ржавчина. Скрежет колёс. Вы стоите у мутного окна, докуривая последнюю сигарету.' },
       { speaker: 'Рассказчик', text: 'Неумолчная жалоба поезда. За окном — жёлтые, больные деревья. Конец пути. Или начало того же самого. Мысли путаются. Нужно чем-то занять руки, голову...' },
@@ -19,7 +19,7 @@ export const scenarios: Record<string, Scene> = {
   prologue_check_pockets: {
     id: 'prologue_check_pockets',
       background: '/images/backgrounds/train.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Вы машинально хлопаете себя по карманам старого плаща. Привычка выжившего — проверять, всё ли на месте.' },
       { speaker: 'Рассказчик', text: 'Дешёвая зажигалка. Работает через раз, но работает. Несколько мятых энергокредитов.' },
@@ -36,7 +36,7 @@ export const scenarios: Record<string, Scene> = {
   prologue_examine_package: {
     id: 'prologue_examine_package',
     background: '/images/backgrounds/train.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Вы вертите в руках портсигар. Празднично обёрнут чёрной шёлковой лентой. Место узла залито тёмно-синим воском. Печать.' },
       { speaker: 'ВОСПРИЯТИЕ', text: 'Вес... не сходится. Слишком тяжёлый для простого портсигара.' },
@@ -53,7 +53,7 @@ export const scenarios: Record<string, Scene> = {
   prologue_read_seal: {
     id: 'prologue_read_seal',
     background: '/images/backgrounds/train.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Вы подносите печать ближе к тусклому свету из окна. "Acta, non verba".' },
       { speaker: 'ЭНЦИКЛОПЕДИЯ', text: 'Древняя латынь. "Дела, а не слова".' },
@@ -70,7 +70,7 @@ export const scenarios: Record<string, Scene> = {
   prologue_deduce: {
     id: 'prologue_deduce',
     background: '/images/backgrounds/train.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Вы прикидываете вес и размер.' },
       { speaker: 'ЛОГИКА', text: 'Плотный металл. Осмий? Вольфрам? Или... это вес не содержимого, а самого контейнера. Свинцовая оплётка. Экранирование.' },
@@ -87,7 +87,7 @@ export const scenarios: Record<string, Scene> = {
   prologue_open_package: {
     id: 'prologue_open_package',
     background: '/images/backgrounds/train.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Вы достаёте мультитул. Холодное лезвие касается края восковой печати...' },
     ],
@@ -96,7 +96,7 @@ export const scenarios: Record<string, Scene> = {
   prologue_leave_package: {
     id: 'prologue_leave_package',
     background: '/images/backgrounds/train.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Вы сжимаете кулак. Нет. Профессионалы выполняют работу. Вы убираете портсигар обратно в потайной карман...' },
     ],
@@ -105,7 +105,7 @@ export const scenarios: Record<string, Scene> = {
   prologue_train_stop: {
     id: 'prologue_train_stop',
     background: '/images/backgrounds/train.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Поезд дёрнулся.' },
       { speaker: 'SFX', text: '(Оглушительный скрежет тормозов. Вас бросает вперёд, вы упираетесь в стену. Сигарета падает и гаснет, рассыпая искры.)' },
@@ -120,7 +120,7 @@ export const scenarios: Record<string, Scene> = {
   prologue_memory_window: {
     id: 'prologue_memory_window',
     background: '/images/backgrounds/train.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Мутное стекло и размазанные ленты света. В старом мире поезда тоже приходили к концу пути.' },
     ],
@@ -129,7 +129,7 @@ export const scenarios: Record<string, Scene> = {
   prologue_memory_order: {
     id: 'prologue_memory_order',
     background: '/images/backgrounds/train.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Заказчик был немногословен. И щедр. Лицо в тени, слова — как печать: «Дела, а не слова».' },
     ],
@@ -204,7 +204,7 @@ export const scenarios: Record<string, Scene> = {
   arrival_control: {
     id: 'arrival_control',
     background: '/images/backgrounds/station_check.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Контролёр Густав', text: 'Прибывшие! Предъявить вещи к досмотру! Живо!' },
       { speaker: 'Рассказчик', text: 'Обыск унизительный и деловитый. Один из бойцов бесцеремонно роется в вашем рюкзаке. Густав смотрит на вас. Его взгляд останавливается на потайном кармане вашего плаща.' },
@@ -227,7 +227,7 @@ export const scenarios: Record<string, Scene> = {
   arrival_post_inspection: {
     id: 'arrival_post_inspection',
     background: '/images/backgrounds/station_check.png',
-    characters: [],
+    characters: {},
     dialogue: [
       { speaker: 'Рассказчик', text: 'Густав уже тянется к печати, но останавливается, прищурившись: взгляд цепляется за имя на ярлыке адресата.' },
       { speaker: 'Густав', text: 'Хм... Профессору? Так что же вы не сказали сразу.' },
@@ -239,11 +239,11 @@ export const scenarios: Record<string, Scene> = {
       nextScene: 'arrival_bureau_instaff',
   },
   // Сцена 4: Учётное бюро  
-  arrival_bureau_instaff: {   
-  id: 'arrival_bureau_instaff',
-  background: '/images/backgrounds/station_check.png',
-  characters: [],
-  dialogue: [
+  arrival_bureau_instaff: {
+    id: 'arrival_bureau_instaff',
+    background: '/images/backgrounds/station_check.png',
+    characters: {},
+    dialogue: [
     { text: 'Я подошёл к окошку бюро. За мутным стеклом сидела старуха, иссохшая настолько, что казалась сделанной из пергамента и тонких веточек. Её глаза, однако, были живыми и невероятно проницательными.' },
     { speaker: 'Старуха', text: '— Голубчик, новенький в нашем городе? — проговорила она неожиданно бодрым, дребезжащим голосом, даже не взглянув на мои бумаги. — Вижу, FJR уже успели обнюхать. Ну, не тушуйся. Слушай сюда, раз уж доехал.' },
     { text: 'Она наклонилась ближе, и её шёпот стал заговорщическим.' },

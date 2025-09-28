@@ -1,5 +1,42 @@
 import type { QuestId, QuestStep, QuestEvent } from '../model/types'
 
+function hashQuestEvent(event: QuestEvent): number {
+  const parts = [
+    event.type,
+    event.questId,
+    event.step ?? '',
+    event.from ?? '',
+    event.to ?? '',
+    JSON.stringify(event.context ?? {}),
+  ]
+
+  let hash = 0
+  for (const part of parts) {
+    for (let i = 0; i < part.length; i += 1) {
+      hash = (hash * 31 + part.charCodeAt(i)) >>> 0
+    }
+  }
+
+  return hash
+}
+
+function resolveStartedAt(event: QuestEvent): number {
+  if (typeof event.timestamp === 'number') {
+    return event.timestamp
+  }
+
+  const contextCreatedAt =
+    event.context && typeof event.context.createdAt === 'number'
+      ? event.context.createdAt
+      : null
+
+  if (contextCreatedAt !== null) {
+    return contextCreatedAt
+  }
+
+  return hashQuestEvent(event)
+}
+
 // Состояние квеста для проекции
 interface QuestSnapshot {
   id: QuestId
@@ -28,12 +65,16 @@ export function snapshotToQuestEvents(
       })
     } else if (currentStep !== 'not_started') {
       // Если квест активен
-      events.push({
+      const syntheticEvent: QuestEvent = {
         type: 'quest.started',
         questId: id,
         step: currentStep,
         context: { source },
-        timestamp: Date.now(), // Для активных квестов используем текущее время
+      }
+
+      events.push({
+        ...syntheticEvent,
+        timestamp: resolveStartedAt(syntheticEvent),
       })
     }
   }
@@ -50,7 +91,12 @@ export function projectQuestState(events: QuestEvent[]): {
   const completedQuests: QuestId[] = []
 
   // Сортируем события по времени
-  const sortedEvents = [...events].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
+  const sortedEvents = [...events].sort((a, b) => {
+    const aTimestamp = typeof a.timestamp === 'number' ? a.timestamp : hashQuestEvent(a)
+    const bTimestamp = typeof b.timestamp === 'number' ? b.timestamp : hashQuestEvent(b)
+
+    return aTimestamp - bTimestamp
+  })
 
   for (const event of sortedEvents) {
     const { questId, type } = event
@@ -58,9 +104,11 @@ export function projectQuestState(events: QuestEvent[]): {
     switch (type) {
       case 'quest.started':
         if (!completedQuests.includes(questId)) {
+          const startedAt = resolveStartedAt(event)
+
           activeQuests[questId] = {
             currentStep: event.step || 'started',
-            startedAt: event.timestamp || Date.now(),
+            startedAt,
           }
         }
         break

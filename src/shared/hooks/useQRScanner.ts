@@ -35,6 +35,10 @@ export function useQRScanner({
   const readerRef = useRef<BrowserMultiFormatReader | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const scanTimeoutRef = useRef<number | null>(null)
+  const scanningRef = useRef(false)
+
+  const mediaDevicesSupported =
+    typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
   
   // Initialize ZXing reader
   useEffect(() => {
@@ -47,10 +51,16 @@ export function useQRScanner({
   
   // Get available video devices
   const getVideoDevices = useCallback(async () => {
+    if (!mediaDevicesSupported) {
+      setError('Media devices are not supported')
+      return []
+    }
+
+    let tempStream: MediaStream | null = null
     try {
-      await navigator.mediaDevices.getUserMedia({ video: true })
+      tempStream = await navigator.mediaDevices.getUserMedia({ video: true })
       const allDevices = await navigator.mediaDevices.enumerateDevices()
-      const videoDevices = allDevices.filter(device => device.kind === 'videoinput')
+      const videoDevices = allDevices.filter((device) => device.kind === 'videoinput')
       setDevices(videoDevices)
       return videoDevices
     } catch (err) {
@@ -58,11 +68,19 @@ export function useQRScanner({
       setError(error.message)
       onError?.(error)
       return []
+    } finally {
+      tempStream?.getTracks().forEach((track) => track.stop())
     }
-  }, [onError])
+  }, [mediaDevicesSupported, onError])
   
   // Start camera stream
   const startCamera = useCallback(async (selectedDeviceId?: string) => {
+    if (!mediaDevicesSupported) {
+      const unsupportedError = new Error('Media devices are not supported')
+      setError(unsupportedError.message)
+      onError?.(unsupportedError)
+      throw unsupportedError
+    }
     try {
       setError(null)
       
@@ -90,7 +108,7 @@ export function useQRScanner({
       onError?.(error)
       throw error
     }
-  }, [constraints, onError])
+  }, [constraints, onError, mediaDevicesSupported])
   
   // Stop camera stream
   const stopCamera = useCallback(() => {
@@ -107,9 +125,17 @@ export function useQRScanner({
   // Start QR scanning
   const startScanning = useCallback(async (selectedDeviceId?: string) => {
     if (!readerRef.current) return
+
+    if (!mediaDevicesSupported) {
+      const unsupportedError = new Error('Media devices are not supported')
+      setError(unsupportedError.message)
+      onError?.(unsupportedError)
+      return
+    }
     
     try {
       setIsScanning(true)
+      scanningRef.current = true
       setError(null)
       
       // Start camera if not already started
@@ -119,7 +145,7 @@ export function useQRScanner({
       
       // Start continuous scanning
       const scan = () => {
-        if (!readerRef.current || !videoRef.current || !isScanning) return
+        if (!readerRef.current || !videoRef.current || !scanningRef.current) return
         
         const targetDeviceId = selectedDeviceId || deviceId
         readerRef.current.decodeFromVideoDevice(
@@ -151,13 +177,15 @@ export function useQRScanner({
       const error = err instanceof Error ? err : new Error('Failed to start scanning')
       setError(error.message)
       setIsScanning(false)
+      scanningRef.current = false
       onError?.(error)
     }
-  }, [stream, startCamera, deviceId, delay, onResult, onError, isScanning])
+  }, [stream, startCamera, deviceId, delay, onResult, onError, mediaDevicesSupported])
   
   // Stop QR scanning
   const stopScanning = useCallback(() => {
     setIsScanning(false)
+    scanningRef.current = false
     
     if (scanTimeoutRef.current) {
       clearTimeout(scanTimeoutRef.current)
@@ -179,15 +207,19 @@ export function useQRScanner({
       setError(null)
       
       const imageUrl = URL.createObjectURL(imageFile)
-      const result = await readerRef.current.decodeFromImageElement(imageUrl)
-      URL.revokeObjectURL(imageUrl) // Clean up object URL
-      
-      return {
-        text: result.getText(),
-        format: result.getBarcodeFormat().toString(),
-        timestamp: new Date(),
-        rawResult: result,
+      try {
+        const result = await readerRef.current.decodeFromImageUrl(imageUrl)
+
+        return {
+          text: result.getText(),
+          format: result.getBarcodeFormat().toString(),
+          timestamp: new Date(),
+          rawResult: result,
+        }
+      } finally {
+        URL.revokeObjectURL(imageUrl)
       }
+      
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to scan image')
       setError(error.message)
@@ -215,7 +247,7 @@ export function useQRScanner({
     devices,
     stream,
     hasCamera: devices.length > 0,
-    isSupported: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+    isSupported: mediaDevicesSupported,
     
     // Actions
     startScanning,

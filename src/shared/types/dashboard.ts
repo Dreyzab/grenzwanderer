@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react'
 import type { Doc } from '@/../convex/_generated/dataModel'
 
 // Enhanced Dashboard Statistics с типизацией
@@ -26,7 +27,7 @@ export interface PlayerStatus {
 // Quick Action с типизированными состояниями
 export interface QuickAction {
   id: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: ComponentType<{ size?: number; className?: string }>
   label: string
   description: string
   path: string

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Camera, 
@@ -30,23 +30,31 @@ export function QRScanner({
 }: QRScannerProps) {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>()
   const [lastResult, setLastResult] = useState<QRScanResult | null>(null)
-  const [resultTimeout, setResultTimeout] = useState<number | null>(null)
+  const resultTimeoutRef = useRef<number | null>(null)
   
   const handleResult = useCallback((result: QRScanResult) => {
     setLastResult(result)
     onResult?.(result)
-    
-    // Clear previous timeout
-    if (resultTimeout) {
-      clearTimeout(resultTimeout)
+
+    if (resultTimeoutRef.current) {
+      clearTimeout(resultTimeoutRef.current)
+      resultTimeoutRef.current = null
     }
-    
-    // Hide result after 3 seconds
-    const timeout = setTimeout(() => {
+
+    const timeout = window.setTimeout(() => {
       setLastResult(null)
     }, 3000)
-    setResultTimeout(timeout)
-  }, [onResult, resultTimeout])
+    resultTimeoutRef.current = timeout
+  }, [onResult])
+
+  useEffect(() => {
+    return () => {
+      if (resultTimeoutRef.current) {
+        clearTimeout(resultTimeoutRef.current)
+        resultTimeoutRef.current = null
+      }
+    }
+  }, [])
   
   const {
     isScanning,

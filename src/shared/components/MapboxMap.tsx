@@ -27,6 +27,7 @@ export function MapboxMap({
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  const clickHandlerRef = useRef<((e: mapboxgl.MapMouseEvent) => void) | null>(null)
   
   useEffect(() => {
     // Check if mapbox token is available
@@ -66,18 +67,43 @@ export function MapboxMap({
       onMapLoad?.(map.current!)
     })
     
-    if (onMapClick) {
-      map.current.on('click', onMapClick)
-    }
-    
     return () => {
       if (map.current) {
+        if (clickHandlerRef.current) {
+          map.current.off('click', clickHandlerRef.current)
+          clickHandlerRef.current = null
+        }
         map.current.remove()
         map.current = null
         setIsLoaded(false)
       }
     }
   }, [center, zoom, style, onMapLoad, onMapClick])
+  
+  useEffect(() => {
+    if (!map.current || !isLoaded) {
+      return
+    }
+
+    if (clickHandlerRef.current) {
+      map.current.off('click', clickHandlerRef.current)
+      clickHandlerRef.current = null
+    }
+
+    if (!onMapClick) {
+      return
+    }
+
+    clickHandlerRef.current = onMapClick
+    map.current.on('click', onMapClick)
+
+    return () => {
+      if (map.current && clickHandlerRef.current) {
+        map.current.off('click', clickHandlerRef.current)
+        clickHandlerRef.current = null
+      }
+    }
+  }, [isLoaded, onMapClick])
   
   // Update center and zoom when props change
   useEffect(() => {

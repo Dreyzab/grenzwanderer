@@ -281,7 +281,17 @@ export const useDashboardStore = create<DashboardStore>()(
     }),
     {
       name: 'dashboard-storage',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          return window.localStorage
+        }
+
+        return {
+          getItem: () => null,
+          setItem: () => undefined,
+          removeItem: () => undefined,
+        }
+      }),
       // Persist только preferences и некоторые UI настройки
       partialize: (state) => ({
         ui: {

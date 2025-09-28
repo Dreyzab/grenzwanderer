@@ -2,9 +2,9 @@ export interface Scene {
   id: string
   title?: string
   background?: string
-  characters: Record<string, Character> | any[]
-  dialogue: any[]
-  choices?: any[]
+  characters: Record<string, Character>
+  dialogue: DialogueNode[]
+  choices?: DialogueChoice[]
   nextScene?: string
 }
 

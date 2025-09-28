@@ -58,12 +58,45 @@ export function useCompleteQuest() {
     mutationFn: async ({ questId, outcome }: { questId: string; outcome?: any }) => {
       // TODO: Server-side quest completion
       // return await convexClient.mutation(api.quests.complete, { questId, outcome })
-      
-      // Пока используем локальный store
-      const questStore = useQuestStore.getState()
-      questStore.completeQuest(questId)
-      
       return { questId, outcome }
+    },
+    onMutate: async ({ questId }) => {
+      await queryClient.cancelQueries({ queryKey: questQueryKeys.all })
+
+      const questStore = useQuestStore.getState()
+      const previousActiveState = questStore.activeQuests[questId]
+      const previousQuestState = questStore.quests[questId]
+
+      questStore.completeQuest(questId)
+
+      const previousQuests = queryClient.getQueryData(questQueryKeys.all)
+
+      return { previousQuestState, previousActiveState, previousQuests }
+    },
+    onError: (_error, { questId }, context) => {
+      if (context?.previousQuestState || context?.previousActiveState) {
+        useQuestStore.setState((state) => {
+          const nextActiveQuests = { ...state.activeQuests }
+
+          if (context.previousActiveState) {
+            nextActiveQuests[questId] = context.previousActiveState
+          } else {
+            delete nextActiveQuests[questId]
+          }
+
+          return {
+            quests: {
+              ...state.quests,
+              [questId]: context.previousQuestState,
+            },
+            activeQuests: nextActiveQuests,
+          }
+        })
+      }
+
+      if (context?.previousQuests) {
+        queryClient.setQueryData(questQueryKeys.all, context.previousQuests)
+      }
     },
     onSuccess: () => {
       // Инвалидируем все quest queries
@@ -82,10 +115,6 @@ export function useUpdateQuestProgress() {
       step: string; 
       data?: any 
     }) => {
-      // Optimistic update в local store
-      const questStore = useQuestStore.getState()
-      questStore.advanceQuest(questId, step as any)
-      
       // TODO: Background sync с сервером
       // await convexClient.mutation(api.quests.updateProgress, { questId, step, data })
       
@@ -93,28 +122,54 @@ export function useUpdateQuestProgress() {
     },
     // Optimistic update
     onMutate: async ({ questId, step }) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: questQueryKeys.active() })
-      
-      // Snapshot the previous value
+
+      const questStoreState = useQuestStore.getState()
+      const previousStoreState = {
+        quests: { ...questStoreState.quests },
+        activeQuests: { ...questStoreState.activeQuests },
+      }
+
+      useQuestStore.setState((state) => {
+        const activeQuest = state.activeQuests[questId]
+        if (!activeQuest) {
+          return state
+        }
+
+        const updatedQuest = { ...activeQuest, currentStep: step as any }
+
+        return {
+          activeQuests: {
+            ...state.activeQuests,
+            [questId]: updatedQuest,
+          },
+          quests: {
+            ...state.quests,
+            [questId]: updatedQuest,
+          },
+        }
+      })
+
       const previousQuests = queryClient.getQueryData(questQueryKeys.active())
-      
-      // Optimistically update
+
       queryClient.setQueryData(questQueryKeys.active(), (old: any) => {
         if (!old) return old
-        return old.map((quest: any) => 
-          quest.questId === questId 
+        return old.map((quest: any) =>
+          quest.questId === questId
             ? { ...quest, currentStep: step }
             : quest
         )
       })
-      
-      return { previousQuests }
+
+      return { previousQuests, previousStoreState }
     },
-    onError: (err, variables, context) => {
-      // Rollback optimistic update
+    onError: (_err, _variables, context) => {
       if (context?.previousQuests) {
         queryClient.setQueryData(questQueryKeys.active(), context.previousQuests)
+      }
+
+      if (context?.previousStoreState) {
+        useQuestStore.setState(() => context.previousStoreState)
       }
     },
     onSettled: () => {

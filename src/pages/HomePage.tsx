@@ -338,7 +338,19 @@ function QuickActionsGrid() {
 
 export function Component() {
   // Инициализируем демо-сценарии один раз для движка (backwards compatibility)
-  useVNStore.setState((s) => ({ ...s, scenes: scenarios }))
+  useEffect(() => {
+    const currentScenes = useVNStore.getState().scenes
+
+    const scenesEqual = Object.keys(currentScenes).length === Object.keys(scenarios).length &&
+      Object.entries(scenarios).every(([key, value]) => currentScenes[key] === value)
+
+    if (!scenesEqual) {
+      useVNStore.setState((state) => ({
+        ...state,
+        scenes: scenarios,
+      }))
+    }
+  }, [])
   
   const { isSignedIn } = useAuth()
   const { mutate: bootstrapPlayer } = useBootstrapPlayer()

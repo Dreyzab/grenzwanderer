@@ -184,7 +184,17 @@ export const useQuestStore = create<QuestState>()(
     {
       name: 'quest-progress',
       version: 1,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          return window.localStorage
+        }
+
+        return {
+          getItem: () => null,
+          setItem: () => undefined,
+          removeItem: () => undefined,
+        }
+      }),
       partialize: (s) => ({ activeQuests: s.activeQuests, completedQuests: s.completedQuests, trackedQuestId: s.trackedQuestId }),
       migrate: (persisted, _version) => persisted as any,
     },

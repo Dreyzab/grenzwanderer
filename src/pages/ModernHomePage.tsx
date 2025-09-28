@@ -480,7 +480,6 @@ export function ModernHomePage() {
                     <div>• Local State: Zustand stores</div>
                     <div>• Типизация: Convex Doc types</div>
                     <div>• Кэширование: Optimistic updates</div>
-                    </div>
                   </div>
                 </div>
               </div>

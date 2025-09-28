@@ -42,7 +42,17 @@ export const useQuestEventLog = create<QuestEventLogState>()(
     {
       name: 'quest-event-log',
       version: 1,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          return window.localStorage
+        }
+
+        return {
+          getItem: () => null,
+          setItem: () => undefined,
+          removeItem: () => undefined,
+        }
+      }),
       partialize: (state) => ({ events: state.events }),
     }
   )

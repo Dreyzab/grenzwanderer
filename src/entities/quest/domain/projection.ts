@@ -90,13 +90,51 @@ export function projectQuestState(events: QuestEvent[]): {
   const activeQuests: Record<QuestId, { currentStep: QuestStep; startedAt: number }> = {}
   const completedQuests: QuestId[] = []
 
-  // Сортируем события по времени
-  const sortedEvents = [...events].sort((a, b) => {
-    const aTimestamp = typeof a.timestamp === 'number' ? a.timestamp : hashQuestEvent(a)
-    const bTimestamp = typeof b.timestamp === 'number' ? b.timestamp : hashQuestEvent(b)
+  const eventPriorities: Record<QuestEvent['type'], number> = {
+    'quest.started': 0,
+    'quest.advanced': 1,
+    'quest.completed': 2,
+  }
 
-    return aTimestamp - bTimestamp
-  })
+  const getSortableKeys = (event: QuestEvent, index: number) => {
+    let sortableTimestamp = Number.MAX_SAFE_INTEGER - 1
+
+    if (typeof event.timestamp === 'number') {
+      sortableTimestamp = event.timestamp
+    } else if (event.context) {
+      const raw = event.context.createdAt
+      if (typeof raw === 'number') {
+        sortableTimestamp = raw
+      } else if (typeof raw === 'string') {
+        const parsed = Date.parse(raw)
+        if (!Number.isNaN(parsed)) {
+          sortableTimestamp = parsed
+        }
+      }
+    }
+
+    return {
+      sortableTimestamp,
+      priority: eventPriorities[event.type],
+      index,
+    }
+  }
+
+  // Сортируем события по вычисленным ключам
+  const sortedEvents = [...events]
+    .map((event, index) => ({ event, keys: getSortableKeys(event, index) }))
+    .sort((a, b) => {
+      if (a.keys.sortableTimestamp !== b.keys.sortableTimestamp) {
+        return a.keys.sortableTimestamp - b.keys.sortableTimestamp
+      }
+
+      if (a.keys.priority !== b.keys.priority) {
+        return a.keys.priority - b.keys.priority
+      }
+
+      return a.keys.index - b.keys.index
+    })
+    .map(({ event }) => event)
 
   for (const event of sortedEvents) {
     const { questId, type } = event

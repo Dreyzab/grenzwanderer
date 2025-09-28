@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
@@ -26,92 +26,113 @@ export function MapboxMap({
 }: MapboxMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
+  const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const clickHandlerRef = useRef<((e: mapboxgl.MapMouseEvent) => void) | null>(null)
+  const loadHandlerRef = useRef<typeof onMapLoad | null>(null)
+  const clickPropRef = useRef<typeof onMapClick | null>(null)
   
   useEffect(() => {
-    // Check if mapbox token is available
     const token = import.meta.env.VITE_MAPBOX_TOKEN
     if (!token) {
       console.warn('Mapbox token not found. Add VITE_MAPBOX_TOKEN to .env')
       return
     }
-    
+
     if (map.current || !mapContainer.current) return
-    
+
     mapboxgl.accessToken = token
-    
-    // Initialize map
-    map.current = new mapboxgl.Map({
+
+    const instance = new mapboxgl.Map({
       container: mapContainer.current,
       style,
       center,
       zoom,
-      attributionControl: false, // Remove for cleaner look
+      attributionControl: false,
       logoPosition: 'bottom-right',
     })
-    
-    // Add controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
-    map.current.addControl(new mapboxgl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true
-      },
-      trackUserLocation: true,
-      showUserHeading: true
-    }), 'top-right')
-    
-    // Event handlers
-    map.current.on('load', () => {
+
+    map.current = instance
+    setMapInstance(instance)
+
+    instance.addControl(new mapboxgl.NavigationControl(), 'top-right')
+    instance.addControl(
+      new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true,
+      }),
+      'top-right'
+    )
+
+    const handleLoad = () => {
       setIsLoaded(true)
-      onMapLoad?.(map.current!)
-    })
-    
-    return () => {
-      if (map.current) {
-        if (clickHandlerRef.current) {
-          map.current.off('click', clickHandlerRef.current)
-          clickHandlerRef.current = null
-        }
-        map.current.remove()
-        map.current = null
-        setIsLoaded(false)
-      }
+      loadHandlerRef.current?.(instance)
     }
-  }, [center, zoom, style, onMapLoad, onMapClick])
-  
+
+    instance.on('load', handleLoad)
+
+    return () => {
+      instance.off('load', handleLoad)
+      if (clickHandlerRef.current) {
+        instance.off('click', clickHandlerRef.current)
+        clickHandlerRef.current = null
+      }
+      instance.remove()
+      map.current = null
+      setMapInstance(null)
+      setIsLoaded(false)
+    }
+  }, [style])
+
+  // Keep latest callbacks in refs
   useEffect(() => {
-    if (!map.current || !isLoaded) {
-      return
+    loadHandlerRef.current = onMapLoad ?? null
+  }, [onMapLoad])
+
+  useEffect(() => {
+    clickPropRef.current = onMapClick ?? null
+  }, [onMapClick])
+
+  // Attach click handler once map loaded
+  useEffect(() => {
+    const instance = map.current
+    if (!instance || !isLoaded) return
+
+    const handler = (event: mapboxgl.MapMouseEvent) => {
+      clickPropRef.current?.(event)
     }
 
     if (clickHandlerRef.current) {
-      map.current.off('click', clickHandlerRef.current)
+      instance.off('click', clickHandlerRef.current)
       clickHandlerRef.current = null
     }
 
-    if (!onMapClick) {
-      return
+    if (clickPropRef.current) {
+      clickHandlerRef.current = handler
+      instance.on('click', handler)
     }
 
-    clickHandlerRef.current = onMapClick
-    map.current.on('click', onMapClick)
-
     return () => {
-      if (map.current && clickHandlerRef.current) {
-        map.current.off('click', clickHandlerRef.current)
+      if (clickHandlerRef.current) {
+        instance.off('click', clickHandlerRef.current)
         clickHandlerRef.current = null
       }
     }
-  }, [isLoaded, onMapClick])
+  }, [isLoaded])
   
   // Update center and zoom when props change
   useEffect(() => {
-    if (map.current && isLoaded) {
-      map.current.setCenter(center)
-      map.current.setZoom(zoom)
-    }
-  }, [center, zoom, isLoaded])
+    if (!map.current || !isLoaded) return
+
+    map.current.jumpTo({ center })
+  }, [center, isLoaded])
+
+  useEffect(() => {
+    if (!map.current || !isLoaded) return
+
+    map.current.setZoom(zoom)
+  }, [zoom, isLoaded])
   
   return (
     <div className={`relative ${className}`}>
@@ -154,10 +175,6 @@ export function MapboxMap({
 export function useMapboxMap() {
   const mapRef = useRef<mapboxgl.Map | null>(null)
   
-  const setMap = (map: mapboxgl.Map) => {
-    mapRef.current = map
-  }
-  
   const addMarker = (
     coordinates: [number, number], 
     options?: mapboxgl.MarkerOptions
@@ -196,8 +213,22 @@ export function useMapboxMap() {
     })
   }
   
+  const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null)
+
+  const setMap = useCallback((map: mapboxgl.Map | null) => {
+    mapRef.current = map
+    setMapInstance(map)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      mapRef.current = null
+      setMapInstance(null)
+    }
+  }, [])
+
   return {
-    map: mapRef.current,
+    map: mapInstance,
     setMap,
     addMarker,
     addPopup,

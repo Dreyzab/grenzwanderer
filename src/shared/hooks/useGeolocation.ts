@@ -57,6 +57,8 @@ export function useGeolocation({
       lng: longitude,
       accuracy,
     })
+
+    setGeolocationLoading(false)
     
     onSuccess?.(position)
   }
@@ -78,6 +80,7 @@ export function useGeolocation({
     }
     
     setGeolocationError(errorMessage)
+    setGeolocationLoading(false)
     onError?.(error)
   }
   

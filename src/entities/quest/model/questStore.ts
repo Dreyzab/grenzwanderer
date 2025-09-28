@@ -195,8 +195,28 @@ export const useQuestStore = create<QuestState>()(
           removeItem: () => undefined,
         }
       }),
-      partialize: (s) => ({ activeQuests: s.activeQuests, completedQuests: s.completedQuests, trackedQuestId: s.trackedQuestId }),
-      migrate: (persisted, _version) => persisted as any,
+      partialize: (s) => ({
+        activeQuests: s.activeQuests,
+        completedQuests: s.completedQuests,
+        trackedQuestId: s.trackedQuestId,
+        quests: s.quests,
+      }),
+      migrate: (persisted, _version) => {
+        if (!persisted || typeof persisted !== 'object') {
+          return persisted
+        }
+
+        const state = persisted as Partial<QuestState>
+
+        if (!state.quests) {
+          return {
+            ...state,
+            quests: state.activeQuests ?? {},
+          }
+        }
+
+        return state
+      },
     },
   ),
 )

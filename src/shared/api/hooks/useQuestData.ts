@@ -21,11 +21,35 @@ export function useActiveQuests() {
     },
     // Synchronize with local Zustand store
     select: (data) => {
-      const localQuests = useQuestStore.getState().quests
-      // Объединяем server state с local state
-      return Object.entries(localQuests ?? {})
-        .filter(([_, quest]) => quest && quest.currentStep !== 'completed' && quest.currentStep !== 'unavailable')
-        .map(([questId, quest]) => ({ questId, ...quest }))
+      const storeState = useQuestStore.getState()
+      const localQuests = storeState.quests ?? {}
+
+      const serverMap = Array.isArray(data)
+        ? data.reduce<Record<string, any>>((acc, item: any) => {
+            if (!item) return acc
+            const questId = item.questId ?? item.id
+            if (!questId) return acc
+            acc[questId] = item
+            return acc
+          }, {})
+        : {}
+
+      const combinedIds = new Set([...
+        Object.keys(serverMap),
+        ...Object.keys(localQuests ?? {}),
+      ])
+
+      const merged = Array.from(combinedIds).map((questId) => {
+        const serverQuest = serverMap[questId]
+        const localQuest = localQuests[questId]
+        return {
+          questId,
+          ...(serverQuest ?? {}),
+          ...(localQuest ?? {}),
+        }
+      })
+
+      return merged.filter((quest) => quest.currentStep !== 'completed' && quest.currentStep !== 'unavailable')
     },
   })
 }
@@ -73,7 +97,32 @@ export function useCompleteQuest() {
 
       questStore.completeQuest(questId)
 
-      const previousQuests = queryClient.getQueryData(questQueryKeys.all)
+      const previousAllQuests = queryClient.getQueryData(questQueryKeys.all)
+      const previousActiveQuests = queryClient.getQueryData(questQueryKeys.active())
+      const previousCompletedQuestsCache = queryClient.getQueryData(questQueryKeys.completed())
+
+      queryClient.setQueryData(questQueryKeys.active(), (old: any) => {
+        if (!Array.isArray(old)) return old
+        return old.filter((quest: any) => quest.questId !== questId)
+      })
+
+      queryClient.setQueryData(questQueryKeys.completed(), (old: any) => {
+        const completedEntry = {
+          questId,
+          ...(questStore.quests[questId] ?? {}),
+          currentStep: 'completed',
+        }
+
+        if (!Array.isArray(old)) {
+          return [completedEntry]
+        }
+
+        if (old.some((quest: any) => quest.questId === questId)) {
+          return old
+        }
+
+        return [...old, completedEntry]
+      })
 
       return {
         previousQuestState,
@@ -82,7 +131,9 @@ export function useCompleteQuest() {
         previousActiveExists,
         previousCompletedQuests,
         previousTrackedQuestId,
-        previousQuests,
+        previousAllQuests,
+        previousActiveQuests,
+        previousCompletedQuestsCache,
       }
     },
     onError: (_error, { questId }, context) => {
@@ -124,8 +175,16 @@ export function useCompleteQuest() {
         })
       }
 
-      if (context?.previousQuests) {
-        queryClient.setQueryData(questQueryKeys.all, context.previousQuests)
+      if (context?.previousAllQuests) {
+        queryClient.setQueryData(questQueryKeys.all, context.previousAllQuests)
+      }
+
+      if (context?.previousActiveQuests) {
+        queryClient.setQueryData(questQueryKeys.active(), context.previousActiveQuests)
+      }
+
+      if (context?.previousCompletedQuestsCache) {
+        queryClient.setQueryData(questQueryKeys.completed(), context.previousCompletedQuestsCache)
       }
     },
     onSuccess: () => {

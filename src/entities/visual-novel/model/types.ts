@@ -25,6 +25,8 @@ export interface DialogueNode {
   choices?: DialogueChoice[]
   next?: string
   conditions?: string[]
+  action?: string
+  dialogKey?: string
 }
 
 export interface DialogueChoice {

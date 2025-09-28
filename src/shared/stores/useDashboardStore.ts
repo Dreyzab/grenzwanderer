@@ -295,6 +295,9 @@ export const useDashboardStore = create<DashboardStore>()(
       // Persist только preferences и некоторые UI настройки
       partialize: (state) => ({
         ui: {
+          ...state.ui,
+          sidebarCollapsed: state.ui.sidebarCollapsed,
+          activeSection: state.ui.activeSection,
           theme: state.ui.theme,
           animations: state.ui.animations,
           notifications: state.ui.notifications,

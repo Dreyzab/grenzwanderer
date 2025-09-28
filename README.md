@@ -15,26 +15,26 @@
 1. **Клонировать репозиторий**
    ```bash
    git clone https://github.com/username/grenzwanderer.git
-   cd grenzwanderer/client
+   cd grenzwanderer
    ```
 
 2. **Установить зависимости**
    ```bash
-   npm install
+   npm run bootstrap
    ```
+   Скрипт создаст `client/package.json`, установит зависимости и подготовит локальные конфиги.
 
 3. **Настроить переменные окружения**
 
-   Скопируйте файл `.env.example` в `.env.local` и заполните необходимые токены:
-
    ```bash
+   cd client
    cp env.example .env.local
    ```
 
    Необходимые переменные:
-   - `VITE_CONVEX_URL` - URL Convex backend
-   - `VITE_CLERK_PUBLISHABLE_KEY` - Clerk publishable key для аутентификации
-   - `VITE_MAPBOX_TOKEN` - токен Mapbox для карт
+   - `VITE_CONVEX_URL` — URL Convex backend
+   - `VITE_CLERK_PUBLISHABLE_KEY` — публичный ключ Clerk
+   - `VITE_MAPBOX_TOKEN` — токен Mapbox для карт
 
 4. **Запуск разработки**
 

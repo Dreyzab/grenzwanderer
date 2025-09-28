@@ -4,7 +4,9 @@ import { cn } from '../../../lib/utils/cn'
 interface MotionContainerProps extends HTMLMotionProps<'div'> {
   children: React.ReactNode
   staggerDelay?: number
+  stagger?: number // backward compatibility
   className?: string
+  layoutClassName?: string
 }
 
 const containerVariants = {
@@ -30,19 +32,23 @@ const itemVariants = {
 export function MotionContainer({
   children,
   staggerDelay = 0.1,
+  stagger,
   className,
+  layoutClassName = "grid grid-cols-1 gap-4",
   ...props
 }: MotionContainerProps) {
+  // Use stagger if provided, otherwise use staggerDelay for backward compatibility
+  const delay = stagger ?? staggerDelay
   return (
     <motion.div
-      className={cn('grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4', className)}
+      className={cn(layoutClassName, className)}
       variants={{
         ...containerVariants,
         visible: {
           ...containerVariants.visible,
           transition: {
-            staggerChildren: staggerDelay,
-            delayChildren: staggerDelay
+            staggerChildren: delay,
+            delayChildren: delay
           }
         }
       }}

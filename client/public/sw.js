@@ -23,18 +23,24 @@ self.addEventListener('install', (event) => {
 // Очищаем старый кеш при активации
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating')
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName)
-            return caches.delete(cacheName)
-          }
-        })
-      )
-    })
-  )
+  event.waitUntil((async () => {
+    const cacheNames = await caches.keys()
+
+    await Promise.all(
+      cacheNames.map((cacheName) => {
+        if (cacheName !== CACHE_NAME) {
+          console.log('Deleting old cache:', cacheName)
+          return caches.delete(cacheName)
+        }
+        return null
+      })
+    )
+
+    // Ensure location sync is registered (also called after saving location data)
+    await ensureLocationSyncRegistered()
+
+    await self.clients.claim()
+  })())
 })
 
 // Обработка fetch запросов
@@ -124,6 +130,9 @@ async function saveLocationToIndexedDB(locationData) {
       createdAt: Date.now(),
     })
 
+    // Ensure location sync is registered for this new location data
+    await ensureLocationSyncRegistered()
+
   } catch (error) {
     console.error('Failed to save location to IndexedDB:', error)
   }
@@ -208,6 +217,22 @@ function openIndexedDB() {
 }
 
 /**
+ * Обеспечивает регистрацию background sync для оффлайн синхронизации
+ */
+async function ensureLocationSyncRegistered() {
+  if ('sync' in self.registration) {
+    try {
+      await self.registration.sync.register('location-sync')
+      console.log('Location sync registered successfully')
+    } catch (error) {
+      console.warn('Background sync registration failed:', error)
+    }
+  } else {
+    console.warn('Background Sync API is not supported in this browser')
+  }
+}
+
+/**
  * Background Sync для оффлайн синхронизации
  */
 self.addEventListener('sync', (event) => {
@@ -219,8 +244,3 @@ self.addEventListener('sync', (event) => {
 })
 
 // Регистрируем background sync при установке
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    self.registration.sync.register('location-sync')
-  )
-})

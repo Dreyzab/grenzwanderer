@@ -1,0 +1,16 @@
+{
+  "name": "grenzwanderer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bootstrap": "npm --prefix client install",
+    "dev": "npm --prefix client run dev:full",
+    "client:dev": "npm --prefix client run dev",
+    "convex": "npm --prefix client run convex:dev",
+    "build": "npm --prefix client run build",
+    "preview": "npm --prefix client run preview",
+    "lint": "npm --prefix client run lint",
+    "test": "npm --prefix client run test"
+  }
+}
+

@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
-import { HomePage } from '../../pages/HomePage/HomePage'
+import { HomePage } from '../../pages/HomePage'
 import { InventoryPage } from '../../pages/InventoryPage/InventoryPage'
 import { QRScannerPage } from '../../pages/QRScannerPage/QRScannerPage'
 import { OfflinePage } from '../../pages/OfflinePage/OfflinePage'

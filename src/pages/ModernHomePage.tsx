@@ -1,21 +1,7 @@
 import React, { useEffect, Suspense } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Map, 
-  BookOpen, 
-  Sword, 
-  Package, 
-  Settings, 
-  QrCode,
-  TrendingUp,
-  Calendar,
-  Zap,
-  Heart,
-  Target,
-  Award,
-  Loader2
-} from 'lucide-react'
+import { Map, BookOpen, Sword, Package, Settings, QrCode, TrendingUp, Calendar, Zap, Heart, Target, Award, Loader2 } from 'lucide-react'
 
 // Modern imports using new architecture
 import { usePlayerProfile, usePlayerStats, useBootstrapPlayer } from '@/shared/api/hooks/usePlayerData'
@@ -34,6 +20,56 @@ function LoadingSpinner() {
       <Loader2 className="mr-3 h-5 w-5 animate-spin text-[color:var(--color-cyan)]" />
       <span className="font-mono text-xs uppercase tracking-[0.32em]">Загрузка данных</span>
     </div>
+  )
+}
+
+function SystemStatusPanel({ className = '' }: { className?: string }) {
+  return (
+    <AnimatedCard className={`panel-secondary px-7 py-6 h-full ${className}`}>
+      <div className="flex flex-col gap-5">
+        <span className="panel-section-title">Новости & Статус</span>
+
+        <div className="space-y-4">
+          <motion.div
+            className="glass-panel rounded-xl border border-[color:var(--color-border-strong)]/40 px-4 py-3"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex items-center gap-3">
+              <Zap className="h-4 w-4 text-[color:var(--color-cyan)]" />
+              <span className="text-sm font-medium text-[color:var(--color-text-primary)]">Система активна</span>
+            </div>
+            <div className="mt-2 text-xs text-[color:var(--color-text-muted)]">
+              ТанStack Query + Convex синхронно поддерживают данные игрока.
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="glass-panel rounded-xl border border-[color:var(--color-border-strong)]/40 px-4 py-3"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="flex items-center gap-3">
+              <Heart className="h-4 w-4 text-[color:var(--color-magenta)]" />
+              <span className="text-sm font-medium text-[color:var(--color-text-primary)]">Модернизация UI</span>
+            </div>
+            <div className="mt-2 text-xs text-[color:var(--color-text-muted)]">
+              Интерфейс построен на стеклянных панелях и неоновых акцентах.
+            </div>
+          </motion.div>
+
+          <div className="neon-divider" />
+
+          <div className="grid gap-2 text-xs text-[color:var(--color-text-muted)]">
+            <div>• Server State: TanStack Query</div>
+            <div>• Local State: Zustand stores</div>
+            <div>• Типизация: Convex Doc types</div>
+            <div>• Кэширование: Optimistic updates</div>
+          </div>
+        </div>
+      </div>
+    </AnimatedCard>
   )
 }
 
@@ -58,7 +94,7 @@ function ErrorFallback({ error, retry }: { error: Error; retry: () => void }) {
 }
 
 // Player Status Card with server state
-function PlayerStatusCard() {
+function PlayerStatusCard({ className = '' }: { className?: string }) {
   const { data: playerProfile, isLoading, error } = usePlayerProfile()
   const { data: playerStats } = usePlayerStats()
   
@@ -80,11 +116,8 @@ function PlayerStatusCard() {
   return (
     <AnimatedCard 
       variant="glow" 
-      className="relative mb-10 bg-[color:var(--color-surface)] px-8 py-6"
+      className={`panel-hero px-8 py-6 h-full ${className}`}
     >
-      <div className="absolute -left-4 top-8 hidden h-20 w-20 rounded-full bg-[radial-gradient(circle,rgba(79,70,229,0.3),transparent_70%)] sm:block" />
-      <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(14,165,233,0.22),transparent_70%)]" />
-
       <div className="relative z-10 flex flex-col gap-6">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
           <div>
@@ -178,7 +211,7 @@ function PlayerStatusCard() {
 }
 
 // Active Quests List with TanStack Query
-function ActiveQuestsList() {
+function ActiveQuestsList({ className = '' }: { className?: string }) {
   const { data: activeQuests, isLoading, error } = useActiveQuests()
   const { data: questStats } = useQuestStats()
   
@@ -186,7 +219,7 @@ function ActiveQuestsList() {
   if (error) return <ErrorFallback error={error as Error} retry={() => window.location.reload()} />
   
   return (
-    <AnimatedCard className="bg-[color:var(--color-surface)] px-7 py-6">
+    <AnimatedCard className={`panel-secondary px-7 py-6 h-full ${className}`}>
       <div className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
@@ -247,7 +280,7 @@ function ActiveQuestsList() {
 }
 
 // Quick Actions with enhanced state
-function QuickActionsGrid() {
+function QuickActionsPanel({ className = '' }: { className?: string }) {
   const { recordInteraction } = useDashboardStore()
   
   const quickActions: QuickAction[] = [
@@ -320,58 +353,56 @@ function QuickActionsGrid() {
   ]
   
   return (
-    <div className="mb-10">
+    <AnimatedCard className={`panel-secondary px-6 py-6 h-full ${className}`}>
       <div className="mb-5 flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-[color:var(--color-text-primary)]">Быстрые действия</h2>
+        <span className="panel-section-title">Быстрые действия</span>
         <span className="hidden text-xs uppercase tracking-[0.28em] text-[color:var(--color-text-muted)] sm:block">
           {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>
-      <MotionContainer stagger={0.1}>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-          {quickActions.map((action) => (
-            <Link 
-              key={action.id} 
-              to={action.path}
-              onClick={() => recordInteraction()}
-            >
-              <motion.div
-                className={`
-                  glass-panel relative cursor-pointer overflow-hidden rounded-xl border
-                  px-4 py-5 text-center transition-[transform,box-shadow,border-color]
-                  ${action.bgColor} ${action.borderColor}
-                  ${action.isEnabled 
-                    ? 'hover:scale-105 hover:shadow-lg' 
-                    : 'opacity-50 cursor-not-allowed'
-                  }
-                `}
-                whileHover={action.isEnabled ? { 
-                  y: -4,
-                  transition: { duration: 0.2 }
-                } : {}}
-                whileTap={action.isEnabled ? { scale: 0.95 } : {}}
-              >
-                <div className="relative z-10 text-center">
-                  <span className="pointer-events-none absolute inset-x-6 top-2 mx-auto h-[1px] bg-[linear-gradient(90deg,transparent,rgba(99,102,241,0.6),transparent)]" />
-                  <action.icon size={30} className={`mx-auto mb-3 ${action.color}`} />
-                  <div className="font-heading text-sm uppercase tracking-[0.18em] text-[color:var(--color-text-primary)]">
-                    {action.label}
-                  </div>
-                  <div className="mt-1 text-xs text-[color:var(--color-text-muted)]">
-                    {action.description}
-                  </div>
-                  {action.badge && (
-                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {action.badge}
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            </Link>
-          ))}
-        </div>
+      <MotionContainer stagger={0.08} className="grid grid-cols-2 gap-3">
+        {quickActions.map((action) => (
+          <QuickActionCard key={action.id} action={action} onAction={recordInteraction} />
+        ))}
       </MotionContainer>
-    </div>
+    </AnimatedCard>
+  )
+}
+
+function QuickActionCard({ action, onAction }: { action: QuickAction; onAction: () => void }) {
+  const content = (
+    <motion.div
+      className={`quick-action ${action.bgColor}`}
+      whileHover={action.isEnabled ? { y: -6, scale: 1.02 } : {}}
+      whileTap={action.isEnabled ? { scale: 0.97 } : {}}
+    >
+      <div className="relative z-10 text-center">
+        <span className="pointer-events-none absolute inset-x-6 top-2 mx-auto h-[1px] bg-[linear-gradient(90deg,transparent,rgba(99,102,241,0.6),transparent)]" />
+        <action.icon size={30} className={`mx-auto mb-3 ${action.color}`} />
+        <div className="font-heading text-sm uppercase tracking-[0.18em] text-[color:var(--color-text-primary)]">
+          {action.label}
+        </div>
+        <div className="mt-1 text-xs text-[color:var(--color-text-muted)]">
+          {action.description}
+        </div>
+      </div>
+    </motion.div>
+  )
+
+  if (!action.isEnabled) {
+    return (
+      <div className="opacity-50 cursor-not-allowed">{content}</div>
+    )
+  }
+
+  return (
+    <Link
+      to={action.path}
+      onClick={() => onAction()}
+      className="block"
+    >
+      {content}
+    </Link>
   )
 }
 
@@ -427,63 +458,22 @@ export function ModernHomePage() {
 
         {/* Suspense wrapper for all server state components */}
         <Suspense fallback={<LoadingSpinner />}>
-          {/* Player Status Card */}
-          <PlayerStatusCard />
+          <div className="panel-grid mb-10">
+            <div className="panel-span-7">
+              <PlayerStatusCard />
+            </div>
+            <div className="panel-span-5">
+              <QuickActionsPanel />
+            </div>
+          </div>
 
-          {/* Quick Actions */}
-          <QuickActionsGrid />
-
-          {/* Content Grid */}
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Active Quests */}
-            <ActiveQuestsList />
-
-            {/* System Status & News */}
-            <AnimatedCard className="bg-[color:var(--color-surface)] px-7 py-6">
-              <div className="flex flex-col gap-5">
-                <h3 className="text-lg font-semibold text-[color:var(--color-text-primary)]">Новости и статус</h3>
-                
-                <div className="space-y-4">
-                  <motion.div
-                    className="glass-panel rounded-xl border border-[color:var(--color-border-strong)]/40 px-4 py-3"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Zap className="h-4 w-4 text-[color:var(--color-cyan)]" />
-                      <span className="text-sm font-medium text-[color:var(--color-text-primary)]">Система активна</span>
-                    </div>
-                    <div className="mt-2 text-xs text-[color:var(--color-text-muted)]">
-                      TanStack Query + Convex успешно интегрированы
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    className="glass-panel rounded-xl border border-[color:var(--color-border-strong)]/40 px-4 py-3"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Heart className="h-4 w-4 text-[color:var(--color-magenta)]" />
-                      <span className="text-sm font-medium text-[color:var(--color-text-primary)]">Модернизация UI</span>
-                    </div>
-                    <div className="mt-2 text-xs text-[color:var(--color-text-muted)]">
-                      Современная архитектура с разделением состояний
-                    </div>
-                  </motion.div>
-
-                  <div className="neon-divider" />
-
-                  <div className="grid gap-2 text-xs text-[color:var(--color-text-muted)]">
-                    <div>• Server State: TanStack Query</div>
-                    <div>• Local State: Zustand stores</div>
-                    <div>• Типизация: Convex Doc types</div>
-                    <div>• Кэширование: Optimistic updates</div>
-                  </div>
-                </div>
-              </div>
-            </AnimatedCard>
+          <div className="panel-grid">
+            <div className="panel-span-7">
+              <ActiveQuestsList />
+            </div>
+            <div className="panel-span-5">
+              <SystemStatusPanel />
+            </div>
           </div>
         </Suspense>
 

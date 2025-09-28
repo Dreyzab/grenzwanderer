@@ -34,8 +34,8 @@ export function useActiveQuests() {
           }, {})
         : {}
 
-      const combinedIds = new Set([...
-        Object.keys(serverMap),
+      const combinedIds = new Set([
+        ...Object.keys(serverMap),
         ...Object.keys(localQuests ?? {}),
       ])
 

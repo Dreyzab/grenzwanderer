@@ -24,10 +24,6 @@ import { useDashboardStore } from '@/shared/stores/useDashboardStore'
 import { useAuth } from '@clerk/clerk-react'
 import { AnimatedCard, MotionContainer } from '@/shared/ui'
 
-// Legacy imports for backwards compatibility
-import { useVNStore } from '@/entities/visual-novel/model/store'
-import { scenarios } from '@/entities/visual-novel/api/scenarios'
-
 // Types
 import type { QuickAction, DashboardStats } from '@/shared/types/dashboard'
 
@@ -336,13 +332,11 @@ function QuickActionsGrid() {
   )
 }
 
-export function Component() {
-  // Инициализируем демо-сценарии один раз для движка (backwards compatibility)
-  useVNStore.setState((s) => ({ ...s, scenes: scenarios }))
-  
+// Main HomePage component
+export function ModernHomePage() {
   const { isSignedIn } = useAuth()
   const { mutate: bootstrapPlayer } = useBootstrapPlayer()
-  const { recordPageView } = useDashboardStore()
+  const { recordPageView, preferences } = useDashboardStore()
   
   // Record page view on mount
   useEffect(() => {
@@ -355,7 +349,7 @@ export function Component() {
       bootstrapPlayer()
     }
   }, [isSignedIn, bootstrapPlayer])
-
+  
   const getGreeting = () => {
     const hour = new Date().getHours()
     if (hour < 12) return 'Доброе утро'
@@ -462,5 +456,4 @@ export function Component() {
   )
 }
 
-export default Component
-
+export default ModernHomePage

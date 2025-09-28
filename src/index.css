@@ -1,4 +1,3 @@
-@import "mapbox-gl/dist/mapbox-gl.css";
 @import "tailwindcss";
 @theme {
   --color-primary: oklch(0.627 0.265 303.9);

@@ -11,6 +11,7 @@ interface QuestState {
   activeQuests: Partial<Record<QuestId, ActiveQuest>>
   completedQuests: QuestId[]
   trackedQuestId?: QuestId
+  quests: Partial<Record<QuestId, ActiveQuest>>
   startQuest: (id: QuestId, step: QuestStep) => void
   advanceQuest: (id: QuestId, step: QuestStep) => void
   completeQuest: (id: QuestId) => void
@@ -25,10 +26,11 @@ function createStartedQuest(id: QuestId, step: QuestStep): ActiveQuest {
 
 export const useQuestStore = create<QuestState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       activeQuests: {},
       completedQuests: [],
       trackedQuestId: undefined,
+      quests: {},
       startQuest: (id, step) =>
         set((s) => {
           logger.info('STORE', 'startQuest', id, step)
@@ -40,13 +42,15 @@ export const useQuestStore = create<QuestState>()(
           })
           const nextCompleted = (s.completedQuests ?? []).filter((q) => q !== id)
           const tracked = s.trackedQuestId ?? id
+          const activeQuests = {
+            ...s.activeQuests,
+            [id]: createStartedQuest(id, step),
+          }
           return {
-            activeQuests: {
-              ...s.activeQuests,
-              [id]: createStartedQuest(id, step),
-            },
+            activeQuests,
             completedQuests: nextCompleted,
             trackedQuestId: tracked,
+            quests: activeQuests,
           }
         }),
       advanceQuest: (id, step) =>
@@ -61,14 +65,16 @@ export const useQuestStore = create<QuestState>()(
             to: step,
             context: { origin: 'questStore.advanceQuest' },
           })
-          return {
-            activeQuests: {
-              ...s.activeQuests,
-              [id]: {
-                ...(s.activeQuests[id] ?? createStartedQuest(id, step)),
-                currentStep: step,
-              },
+          const activeQuests = {
+            ...s.activeQuests,
+            [id]: {
+              ...(s.activeQuests[id] ?? createStartedQuest(id, step)),
+              currentStep: step,
             },
+          }
+          return {
+            activeQuests,
+            quests: activeQuests,
           }
         }),
       completeQuest: (id) =>
@@ -91,6 +97,7 @@ export const useQuestStore = create<QuestState>()(
             activeQuests: rest,
             completedQuests: Array.from(new Set([...(s.completedQuests ?? []), id])),
             trackedQuestId: nextTracked,
+            quests: rest,
           }
         }),
       applyBatch: (quests) =>
@@ -146,6 +153,7 @@ export const useQuestStore = create<QuestState>()(
             activeQuests: active,
             completedQuests: Array.from(completed),
             trackedQuestId: tracked,
+            quests: active,
           }
         }),
       hydrate: (data) => {
@@ -168,7 +176,7 @@ export const useQuestStore = create<QuestState>()(
           logger.info('STORE', 'hydrate', { activeKeys: Object.keys(active), completed })
           const firstActive = Object.values(active)[0] as ActiveQuest | undefined
           const tracked = s.trackedQuestId ?? firstActive?.id
-          return { activeQuests: active, completedQuests: completed, trackedQuestId: tracked }
+          return { activeQuests: active, completedQuests: completed, trackedQuestId: tracked, quests: active }
         })
       },
       setTrackedQuest: (id) => set(() => ({ trackedQuestId: id })),

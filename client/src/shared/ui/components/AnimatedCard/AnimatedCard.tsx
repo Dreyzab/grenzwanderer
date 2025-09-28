@@ -1,70 +1,56 @@
-import { motion, HTMLMotionProps } from 'framer-motion'
-import { cn } from '../../../lib/utils/cn'
+import { motion } from 'framer-motion'
+import type { HTMLMotionProps } from 'framer-motion'
+import { ReactNode } from 'react'
 
-interface AnimatedCardProps extends HTMLMotionProps<'div'> {
-  variant?: 'default' | 'glow' | 'status' | 'interactive'
-  children: React.ReactNode
+interface AnimatedCardProps extends Omit<HTMLMotionProps<"div">, 'children'> {
+  children: ReactNode
+  variant?: 'default' | 'hover-lift' | 'press-scale' | 'glow'
+  className?: string
 }
 
-const variants = {
+const cardVariants = {
   default: {
-    rest: { scale: 1, y: 0 },
-    hover: {
-      scale: 1.05,
-      y: -2,
-      transition: { duration: 0.2 }
-    }
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 }
+  },
+  'hover-lift': {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    whileHover: { y: -8, scale: 1.02 },
+    whileTap: { scale: 0.98 }
+  },
+  'press-scale': {
+    initial: { opacity: 0, scale: 0.9 },
+    animate: { opacity: 1, scale: 1 },
+    whileTap: { scale: 0.95 },
+    whileHover: { scale: 1.05 }
   },
   glow: {
-    rest: {
-      scale: 1,
-      y: 0,
-      boxShadow: '0 0 20px rgba(52, 211, 153, 0.3)'
+    initial: { opacity: 0, boxShadow: '0 0 0 rgba(34, 197, 94, 0)' },
+    animate: { 
+      opacity: 1, 
+      boxShadow: '0 0 20px rgba(34, 197, 94, 0.3)' 
     },
-    hover: {
-      scale: 1.05,
-      y: -2,
-      boxShadow: '0 0 40px rgba(52, 211, 153, 0.6)',
-      transition: { duration: 0.2 }
+    whileHover: { 
+      boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)' 
     }
-  },
-  status: {
-    rest: { scale: 1, y: 0 },
-    hover: {
-      y: -2,
-      transition: { duration: 0.2 }
-    }
-  },
-  interactive: {
-    rest: { scale: 1, y: 0 },
-    hover: {
-      scale: 1.08,
-      y: -4,
-      transition: { duration: 0.2 }
-    },
-    tap: { scale: 0.95 }
   }
 }
 
-export function AnimatedCard({
-  variant = 'default',
-  className,
-  children,
-  ...props
+export function AnimatedCard({ 
+  children, 
+  variant = 'default', 
+  className = '', 
+  ...props 
 }: AnimatedCardProps) {
-  const animationVariant = variants[variant]
-
+  const variants = cardVariants[variant]
+  
   return (
     <motion.div
-      className={cn(
-        'bg-zinc-900/50 border border-zinc-700 rounded-lg p-4',
-        'backdrop-blur-sm transition-all duration-200',
-        className
-      )}
-      initial="rest"
-      whileHover="hover"
-      whileTap="tap"
-      variants={animationVariant}
+      className={`rounded-lg p-4 ${className}`}
+      {...variants}
+      transition={{ duration: 0.3, ease: "easeOut" }}
       {...props}
     >
       {children}

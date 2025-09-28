@@ -165,7 +165,7 @@ export function Component() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-4">
+    <div className="min-h-screen homepage-background p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div 
@@ -183,7 +183,7 @@ export function Component() {
         {/* Player Status Card */}
         <AnimatedCard 
           variant="glow" 
-          className="mb-8 bg-gradient-to-r from-emerald-900/40 to-blue-900/40 border-emerald-700/50"
+          className="mb-8 homepage-stats-card homepage-card-glow"
         >
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">

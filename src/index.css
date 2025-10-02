@@ -133,6 +133,10 @@
   );
 }
 
+.scanline {
+  position: relative;
+}
+
 .scanline::before {
   content: "";
   position: absolute;
@@ -305,6 +309,28 @@
   transform: translateY(-6px) scale(1.02);
   border-color: rgba(0, 176, 255, 0.35);
   box-shadow: 0 28px 58px rgba(10, 20, 35, 0.65);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-action {
+    transition: border-color 120ms ease;
+  }
+  .quick-action:hover {
+    transform: none;
+    /* Keep a subtle, non-animated shadow */
+    box-shadow: 0 20px 48px rgba(12, 15, 25, 0.45);
+    border-color: rgba(0, 176, 255, 0.35);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .quick-action {
+    transition: transform 180ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  }
+  .quick-action:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 28px 58px rgba(10, 20, 35, 0.65);
+  }
 }
 
 .grid-accent {

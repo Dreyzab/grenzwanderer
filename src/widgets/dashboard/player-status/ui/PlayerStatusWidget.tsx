@@ -11,7 +11,12 @@ interface PlayerStatusWidgetProps {
 
 export function PlayerStatusWidget({ className = '' }: PlayerStatusWidgetProps) {
   const { data: playerProfile, isLoading, error, refetch } = usePlayerProfile()
-  const { data: playerStats, isLoading: statsLoading } = usePlayerStats()
+  const {
+    data: playerStats,
+    isLoading: statsLoading,
+    error: statsError,
+    refetch: refetchStats,
+  } = usePlayerStats()
 
   if (isLoading || statsLoading) {
     return (
@@ -25,6 +30,14 @@ export function PlayerStatusWidget({ className = '' }: PlayerStatusWidgetProps) 
     return (
       <AnimatedCard variant="glow" motionContext="ui" className={`panel-hero px-8 py-6 ${className}`}>
         <WidgetErrorFallback error={error as Error} onRetry={() => refetch()} />
+      </AnimatedCard>
+    )
+  }
+
+  if (statsError) {
+    return (
+      <AnimatedCard variant="glow" motionContext="ui" className={`panel-hero px-8 py-6 ${className}`}>
+        <WidgetErrorFallback error={statsError as Error} onRetry={() => refetchStats()} />
       </AnimatedCard>
     )
   }

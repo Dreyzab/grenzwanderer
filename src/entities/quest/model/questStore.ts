@@ -183,7 +183,7 @@ export const useQuestStore = create<QuestState>()(
     }),
     {
       name: 'quest-progress',
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => {
         if (typeof window !== 'undefined' && window.localStorage) {
           return window.localStorage

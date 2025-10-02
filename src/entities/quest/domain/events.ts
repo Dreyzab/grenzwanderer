@@ -12,11 +12,10 @@ class QuestEventBus {
     return () => this.listeners.delete(handler)
   }
 
-  publish(event: QuestEvent): void {
-    const enrichedEvent = {
-      ...event,
-      timestamp: Date.now(),
-    }
+  publish(event: QuestEvent | Omit<QuestEvent, 'timestamp'>): void {
+    const enrichedEvent: QuestEvent = 'timestamp' in event
+      ? (event as QuestEvent)
+      : { ...(event as Omit<QuestEvent, 'timestamp'>), timestamp: Date.now() }
 
     this.listeners.forEach(handler => {
       try {
@@ -31,8 +30,8 @@ class QuestEventBus {
 export const questEventBus = new QuestEventBus()
 
 // Функция для публикации событий квестов
-export function publishQuestEvent(event: Omit<QuestEvent, 'timestamp'>): void {
-  questEventBus.publish(event as QuestEvent)
+export function publishQuestEvent(event: Omit<QuestEvent, 'timestamp'> | QuestEvent): void {
+  questEventBus.publish(event)
 }
 
 // Хук для подписки на события квестов

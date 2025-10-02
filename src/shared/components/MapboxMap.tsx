@@ -14,9 +14,11 @@ interface MapboxMapProps {
 
 // Default Mapbox style (requires token)
 const DEFAULT_STYLE = 'mapbox://styles/mapbox/dark-v10'
+const FALLBACK_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+const DEFAULT_CENTER: [number, number] = [7.8421, 47.9990]
 
 export function MapboxMap({
-  center = [7.8421, 47.9990], // Freiburg coordinates
+  center = DEFAULT_CENTER, // Freiburg coordinates
   zoom = 13,
   style = DEFAULT_STYLE,
   className = 'w-full h-96 rounded-lg',
@@ -28,24 +30,28 @@ export function MapboxMap({
   const map = useRef<mapboxgl.Map | null>(null)
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [errorText, setErrorText] = useState<string | null>(null)
   const clickHandlerRef = useRef<((e: mapboxgl.MapMouseEvent) => void) | null>(null)
   const loadHandlerRef = useRef<typeof onMapLoad | null>(null)
   const clickPropRef = useRef<typeof onMapClick | null>(null)
+  const prevCenterRef = useRef<[number, number] | null>(null)
+  const usedFallbackRef = useRef(false)
   
   useEffect(() => {
     const token = import.meta.env.VITE_MAPBOX_TOKEN
-    if (!token) {
-      console.warn('Mapbox token not found. Add VITE_MAPBOX_TOKEN to .env')
-      return
+    const requiresToken = (style ?? DEFAULT_STYLE).startsWith('mapbox://')
+    if (requiresToken && !token) {
+      console.warn('Mapbox token not found. Add VITE_MAPBOX_TOKEN to .env or use non-Mapbox style')
+      setErrorText('Нет токена Mapbox. Включён резервный стиль.')
     }
 
     if (map.current || !mapContainer.current) return
 
-    mapboxgl.accessToken = token
+    mapboxgl.accessToken = token || ''
 
     const instance = new mapboxgl.Map({
       container: mapContainer.current,
-      style,
+      style: requiresToken && !token ? FALLBACK_STYLE : style,
       center,
       zoom,
       attributionControl: false,
@@ -72,8 +78,23 @@ export function MapboxMap({
 
     instance.on('load', handleLoad)
 
+    const handleError = (_e: any) => {
+      if (!usedFallbackRef.current) {
+        usedFallbackRef.current = true
+        try {
+          instance.setStyle(FALLBACK_STYLE)
+          setErrorText('Проблема со стилем/токеном Mapbox. Включён резервный стиль.')
+          return
+        } catch {}
+      }
+      setErrorText('Ошибка загрузки карты. Проверьте токен или соединение.')
+    }
+
+    instance.on('error', handleError)
+
     return () => {
       instance.off('load', handleLoad)
+      instance.off('error', handleError)
       if (clickHandlerRef.current) {
         instance.off('click', clickHandlerRef.current)
         clickHandlerRef.current = null
@@ -121,12 +142,17 @@ export function MapboxMap({
     }
   }, [isLoaded])
   
-  // Update center and zoom when props change
+  // Update center when coordinates actually change
   useEffect(() => {
     if (!map.current || !isLoaded) return
-
-    map.current.jumpTo({ center })
-  }, [center, isLoaded])
+    const prev = prevCenterRef.current
+    const nextCenter: [number, number] = [center[0], center[1]]
+    if (prev && prev[0] === nextCenter[0] && prev[1] === nextCenter[1]) {
+      return
+    }
+    map.current.jumpTo({ center: nextCenter })
+    prevCenterRef.current = nextCenter
+  }, [center[0], center[1], isLoaded])
 
   useEffect(() => {
     if (!map.current || !isLoaded) return

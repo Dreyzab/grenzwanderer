@@ -59,11 +59,41 @@ export const useQuestEventLog = create<QuestEventLogState>()(
 )
 
 // Функция для подписки на события и добавления их в лог
-export function setupQuestEventLogging(): void {
+function legacySetupQuestEventLogging(): void {
   // Импортируем динамически, чтобы избежать циклических зависимостей
   import('./events').then(({ questEventBus }) => {
     questEventBus.subscribe((event) => {
       useQuestEventLog.getState().addEvent(event)
     })
   })
+}
+
+let questEventUnsubscribe: (() => void) | null = null
+
+export function setupQuestEventLogging(): () => void {
+  if (questEventUnsubscribe) {
+    return questEventUnsubscribe
+  }
+  import('./events').then(({ questEventBus }) => {
+    if (questEventUnsubscribe) {
+      questEventUnsubscribe()
+      questEventUnsubscribe = null
+    }
+    questEventUnsubscribe = questEventBus.subscribe((event) => {
+      useQuestEventLog.getState().addEvent(event)
+    })
+  })
+  return () => {
+    if (questEventUnsubscribe) {
+      questEventUnsubscribe()
+      questEventUnsubscribe = null
+    }
+  }
+}
+
+export function teardownQuestEventLogging(): void {
+  if (questEventUnsubscribe) {
+    questEventUnsubscribe()
+    questEventUnsubscribe = null
+  }
 }

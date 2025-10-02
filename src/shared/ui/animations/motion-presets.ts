@@ -1,4 +1,4 @@
-import type { Variants } from 'framer-motion'
+import type { Variants, Easing } from 'framer-motion'
 
 type MotionContext = 'ui' | 'button' | 'gameplay' | 'system'
 type CardVariant = 'default' | 'hover-lift' | 'press-scale' | 'glow'
@@ -11,9 +11,9 @@ type MotionVariants = {
 }
 
 type MotionTransitions = {
-  enter: { duration: number; ease: string | number[] }
-  hover: { duration: number; ease: string | number[] }
-  tap: { duration: number; ease: string | number[] }
+  enter: { duration: number; ease: Easing | Easing[] }
+  hover: { duration: number; ease: Easing | Easing[] }
+  tap: { duration: number; ease: Easing | Easing[] }
 }
 
 type MotionPreset = {
@@ -143,6 +143,6 @@ export function resolveMotionPreset(context: MotionContext, variant: CardVariant
   return {
     card,
     container: preset.container,
-    transition: preset.transitions,
+    transition: preset.transitions.enter,
   }
 }

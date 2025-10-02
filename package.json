@@ -1,42 +1,44 @@
 {
-    "name": "client",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-        "dev": "vite",
-        "build": "tsc -b && vite build",
-        "preview": "vite preview",
-        "start": "vite",
-        "convex:dev": "convex dev",
-        "convex:deploy": "convex deploy",
-        "convex:codegen": "convex codegen"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "type": "commonjs",
-    "dependencies": {
-        "@clerk/clerk-react": "^5.49.0",
-        "@tanstack/react-query": "^5.90.2",
-        "@tanstack/react-query-devtools": "^5.90.2",
-        "@zxing/library": "^0.21.3",
-        "convex": "^1.27.3",
-        "framer-motion": "^12.23.22",
-        "lucide-react": "^0.544.0",
-        "mapbox-gl": "^3.15.0",
-        "react": "^19.1.1",
-        "react-dom": "^19.1.1",
-        "react-router-dom": "^7.9.3",
-        "zustand": "^5.0.8"
-    },
-    "devDependencies": {
-        "@types/mapbox-gl": "^3.4.1",
-        "@types/react": "^19.1.15",
-        "@types/react-dom": "^19.1.9",
-        "@vitejs/plugin-react": "^5.0.4",
-        "tailwindcss": "^4.0.0",
-        "typescript": "^5.9.2",
-        "vite": "^7.1.7"
-    }
+    "name":  "client",
+    "version":  "1.0.0",
+    "description":  "",
+    "main":  "index.js",
+    "scripts":  {
+                    "dev":  "vite",
+                    "build":  "tsc -b \u0026\u0026 vite build",
+                    "preview":  "vite preview",
+                    "start":  "vite",
+                    "convex:dev":  "convex dev",
+                    "convex:deploy":  "convex deploy",
+                    "convex:codegen":  "convex codegen"
+                },
+    "keywords":  [
+
+                 ],
+    "author":  "",
+    "license":  "ISC",
+    "type":  "commonjs",
+    "dependencies":  {
+                         "@tanstack/react-query":  "^5.90.2",
+                         "@tanstack/react-query-devtools":  "^5.90.2",
+                         "@zxing/library":  "^0.21.3",
+                         "convex":  "^1.27.3",
+                         "framer-motion":  "^12.23.22",
+                         "lucide-react":  "^0.544.0",
+                         "mapbox-gl":  "^3.15.0",
+                         "react":  "^19.1.1",
+                         "react-dom":  "^19.1.1",
+                         "react-router-dom":  "^7.9.3",
+                         "zustand":  "^5.0.8"
+                     },
+    "devDependencies":  {
+                            "@types/mapbox-gl":  "^3.4.1",
+                            "@types/node": "^22.10.2",
+                            "@types/react":  "^19.1.15",
+                            "@types/react-dom":  "^19.1.9",
+                            "@vitejs/plugin-react":  "^5.0.4",
+                            "tailwindcss":  "^4.0.0",
+                            "typescript":  "^5.9.2",
+                            "vite":  "^7.1.7"
+                        }
 }

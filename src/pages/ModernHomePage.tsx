@@ -1,36 +1,52 @@
-import React, { Suspense, useEffect } from 'react'
+import React, { Suspense, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@/app/auth'
 
 import { useBootstrapPlayer } from '@/shared/api/hooks/usePlayerData'
 import { useDashboardStore } from '@/shared/stores/useDashboardStore'
 import { PlayerStatusWidget, QuickActionsWidget, ActiveQuestsWidget, SystemStatusWidget } from '@/widgets'
+import { useLogger } from '@/shared/hooks'
 
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center p-10 text-[color:var(--color-text-muted)]">
       <Loader2 className="mr-3 h-5 w-5 animate-spin text-[color:var(--color-cyan)]" />
-      <span className="font-mono text-xs uppercase tracking-[0.32em]">Загрузка данных</span>
+      <span className="font-mono text-xs uppercase tracking-[0.32em]">Загрузка…</span>
     </div>
   )
 }
 
 export function ModernHomePage() {
-  const { isSignedIn } = useAuth()
+  const logger = useLogger('ModernHomePage')
+  const { isSignedIn, registerAdmin } = useAuth()
   const { mutate: bootstrapPlayer } = useBootstrapPlayer()
   const { recordPageView } = useDashboardStore()
 
+  // Run only once on mount; avoid logger as dependency to prevent loops
+  const didInitRef = useRef(false)
   useEffect(() => {
+    if (didInitRef.current) return
+    didInitRef.current = true
+    logger.info('Инициализация дашборда')
     recordPageView()
-  }, [recordPageView])
+    logger.state('Dashboard Store', { pageViews: 'tracked' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (isSignedIn) {
+      logger.info('Пользователь подписан, bootstrap player')
+      const startTime = Date.now()
       bootstrapPlayer()
+      setTimeout(() => {
+        logger.perf('Bootstrap player data', startTime)
+      }, 0)
+    } else {
+      logger.warn('Пользователь не авторизован')
     }
-  }, [isSignedIn, bootstrapPlayer])
+  }, [isSignedIn, bootstrapPlayer, logger])
 
   const getGreeting = () => {
     const hour = new Date().getHours()
@@ -55,10 +71,10 @@ export function ModernHomePage() {
           transition={{ duration: 0.6 }}
         >
           <div className="badge-glow mx-auto mb-3 bg-[linear-gradient(135deg,rgba(79,70,229,0.85),rgba(14,165,233,0.85))] text-[color:var(--color-bg)]">
-            Город Фрайбург — режим онлайн
+            Интерактивный дашборд QR-Boost
           </div>
           <h1 className="text-5xl font-bold text-[color:var(--color-text-primary)]">QR-Boost</h1>
-          <p className="mt-4 text-sm uppercase tracking-[0.35em] text-[color:var(--color-text-muted)]">{getGreeting()}, странник!</p>
+          <p className="mt-4 text-sm uppercase tracking-[0.35em] text-[color:var(--color-text-muted)]">{getGreeting()}, игрок!</p>
         </motion.div>
 
         <Suspense fallback={<LoadingSpinner />}>
@@ -93,8 +109,18 @@ export function ModernHomePage() {
               className="inline-flex items-center gap-3 rounded-full border border-[color:var(--color-border-strong)]/60 bg-[color:var(--color-surface-elevated)] px-6 py-3 text-xs uppercase tracking-[0.32em] text-[color:var(--color-text-primary)] transition hover:border-[color:var(--color-cyan)]/70 hover:text-[color:var(--color-cyan)]"
             >
               <span className="h-2 w-2 rounded-full bg-[color:var(--color-cyan)]" />
-              Начать новую игру
+              Перейти к новелле
             </Link>
+
+            <div className="mt-4" />
+            <button
+              type="button"
+              onClick={() => registerAdmin('Admin')}
+              className="inline-flex items-center gap-3 rounded-full border border-[color:var(--color-border-strong)]/60 bg-[color:var(--color-surface-elevated)] px-6 py-3 text-xs uppercase tracking-[0.32em] text-[color:var(--color-text-primary)] transition hover:border-[color:var(--color-cyan)]/70 hover:text-[color:var(--color-cyan)]"
+            >
+              <span className="h-2 w-2 rounded-full bg-[color:var(--color-cyan)]" />
+              Быстрая регистрация администратора
+            </button>
           </motion.div>
         )}
       </div>
@@ -103,4 +129,3 @@ export function ModernHomePage() {
 }
 
 export default ModernHomePage
-

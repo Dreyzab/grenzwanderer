@@ -9,6 +9,7 @@ export function useMotionContext(context: MotionContext = 'ui', variant: CardVar
       card: preset.card,
       container: preset.container,
     },
-    transition: preset.transition,
+    transition: preset.transition as any,
   }
 }
+

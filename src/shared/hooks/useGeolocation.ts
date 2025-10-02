@@ -42,6 +42,8 @@ export function useGeolocation({
   
   const watchIdRef = useRef<number | null>(null)
   const optionsRef = useRef(GEOLOCATION_OPTIONS[accuracy])
+  const hasNavigator = typeof navigator !== 'undefined'
+  const hasGeolocation = hasNavigator && !!navigator.geolocation
   
   // Update options when accuracy changes
   useEffect(() => {
@@ -86,7 +88,7 @@ export function useGeolocation({
   
   // Get current position (one-time)
   const getCurrentPosition = () => {
-    if (!navigator.geolocation) {
+    if (!hasGeolocation) {
       setGeolocationError('Геолокация не поддерживается браузером')
       return
     }
@@ -103,7 +105,7 @@ export function useGeolocation({
   
   // Start watching position
   const startWatching = () => {
-    if (!navigator.geolocation) {
+    if (!hasGeolocation) {
       setGeolocationError('Геолокация не поддерживается браузером')
       return
     }
@@ -125,7 +127,7 @@ export function useGeolocation({
   // Stop watching position
   const stopWatching = () => {
     if (watchIdRef.current !== null) {
-      navigator.geolocation.clearWatch(watchIdRef.current)
+      if (hasGeolocation) { navigator.geolocation.clearWatch(watchIdRef.current) }
       watchIdRef.current = null
       setGeolocationLoading(false)
     }
@@ -133,6 +135,7 @@ export function useGeolocation({
   
   // Auto-start watching if enabled
   useEffect(() => {
+    if (!hasNavigator) return
     if (watch) {
       startWatching()
     } else {
@@ -146,6 +149,7 @@ export function useGeolocation({
   
   // Cleanup on unmount
   useEffect(() => {
+    if (!hasNavigator) return
     return () => {
       stopWatching()
     }
@@ -165,8 +169,10 @@ export function useGeolocation({
     stopWatching,
     
     // Utilities
-    isSupported: !!navigator.geolocation,
+    isSupported: hasGeolocation,
     hasPosition: !!geolocation.position,
     isAccurate: geolocation.position ? geolocation.position.accuracy < 100 : false,
   }
 }
+
+

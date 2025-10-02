@@ -85,6 +85,15 @@ export function useQRScanner({
     }
     try {
       setError(null)
+      // Tear down any existing stream before starting a new one
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop())
+        setStream(null)
+      }
+      if (videoRef.current) {
+        try { videoRef.current.pause && videoRef.current.pause() } catch {}
+        videoRef.current.srcObject = null
+      }
       
       const videoConstraints: MediaTrackConstraints = {
         ...constraints,
@@ -110,7 +119,7 @@ export function useQRScanner({
       onError?.(error)
       throw error
     }
-  }, [constraints, onError, mediaDevicesSupported])
+  }, [constraints, onError, mediaDevicesSupported, stream])
   
   // Stop camera stream
   const stopCamera = useCallback(() => {
@@ -149,7 +158,7 @@ export function useQRScanner({
       const scan = () => {
         if (!readerRef.current || !videoRef.current || !scanningRef.current) return
         
-        const targetDeviceId = selectedDeviceId || deviceId
+        const targetDeviceId = selectedDeviceId || deviceId || null
         readerRef.current.decodeFromVideoDevice(
           targetDeviceId,
           videoRef.current,

@@ -14,9 +14,13 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["node"]
   },
   "include": ["src"],
+  "exclude": [
+    "src/shared/lib/logger-examples.ts"
+  ],
   "references": []
 }
 

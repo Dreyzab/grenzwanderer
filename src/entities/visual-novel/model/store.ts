@@ -24,6 +24,11 @@ export const useVNStore = create<VNState>((set, get) => {
           const scene = scenes[game.currentSceneId]
           const lastIndex = Math.max(0, (scene?.dialogue?.length ?? 1) - 1)
           const atEnd = game.lineIndex >= lastIndex
+          const currentNode = scene?.dialogue?.[game.lineIndex]
+          // Pause if current node has choices (node-level branching)
+          if (currentNode?.choices && currentNode.choices.length > 0) {
+            return { game: { ...game, lineIndex: game.lineIndex } }
+          }
           // Если есть выборы на конце — остаёмся на последней реплике, ждём выбора
           if (atEnd && (scene?.choices?.length ?? 0) > 0) {
             return { game: { ...game, lineIndex: lastIndex } }
@@ -46,14 +51,25 @@ export const useVNStore = create<VNState>((set, get) => {
             }
           }
           // Иначе просто двигаем строку
+          // Follow node-level next linkage if present
+          if (!atEnd && currentNode?.next && scene?.dialogue) {
+            const targetIndex = scene.dialogue.findIndex((n) => n.id === currentNode.next)
+            if (targetIndex >= 0) {
+              return { game: { ...game, lineIndex: targetIndex } }
+            }
+          }
           return { game: { ...game, lineIndex: Math.min(game.lineIndex + 1, lastIndex) } }
         }),
       choose: (choiceId: string) => {
         const { game, scenes } = get()
         const scene = scenes[game.currentSceneId]
-        const choice = scene?.choices?.find((c) => c.id === choiceId)
+        const node = scene?.dialogue?.[game.lineIndex]
+        const choice = node?.choices?.find((c) => c.id === choiceId) ?? scene?.choices?.find((c) => c.id === choiceId)
         if (!choice) return
-        const next = choice.nextScene ?? scene?.nextScene ?? game.currentSceneId
+        const nextNodeId = choice.next
+        const nextSceneId = choice.nextScene ?? scene?.nextScene
+        const hasNodeJump = !!nextNodeId
+        const next = hasNodeJump ? game.currentSceneId : (nextSceneId ?? game.currentSceneId)
         // Apply side effects from setFlags to player skills/relations
         const applyFlagEffects = (flags: Record<string, boolean> | undefined) => {
           if (!flags) return
@@ -76,6 +92,24 @@ export const useVNStore = create<VNState>((set, get) => {
           } catch {}
         }
         applyFlagEffects(choice.setFlags)
+        if (hasNodeJump && scene?.dialogue) {
+          const targetIndex = scene.dialogue.findIndex((n) => n.id === nextNodeId)
+          if (targetIndex >= 0) {
+            set({
+              game: {
+                ...game,
+                currentSceneId: next,
+                lineIndex: targetIndex,
+                flags: { ...game.flags, ...(choice.setFlags ?? {}) },
+                history: [
+                  ...game.history,
+                  { sceneId: game.currentSceneId, lineIndex: game.lineIndex, text: '', speaker: '' },
+                ],
+              },
+            })
+            return
+          }
+        }
         set({
           game: {
             ...game,
@@ -96,6 +130,3 @@ export const useVNStore = create<VNState>((set, get) => {
   }
   return store
 })
-
-
-

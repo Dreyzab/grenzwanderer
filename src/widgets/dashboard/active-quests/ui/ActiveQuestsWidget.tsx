@@ -85,14 +85,14 @@ export function ActiveQuestsWidget({ className = '' }: ActiveQuestsWidgetProps) 
               transition={{ duration: 0.3, ease: 'easeOut' }}
             >
               <BookOpen size={32} className="opacity-60" />
-              <div className="font-mono text-xs uppercase tracking-[0.28ем]">Нет активных квестов</div>
+              <div className="font-mono text-xs uppercase tracking-[0.28em]">Нет активных квестов</div>
             </motion.div>
           )}
         </MotionContainer>
 
         <Link
           to="/quests"
-          className="mt-2 block text-center text-xs uppercase tracking-[0.32ем] text-[color:var(--color-text-muted)] transition hover:text-[color:var(--color-cyan)]"
+          className="mt-2 block text-center text-xs uppercase tracking-[0.32em] text-[color:var(--color-text-muted)] transition hover:text-[color:var(--color-cyan)]"
         >
           Посмотреть все квесты →
         </Link>

@@ -16,7 +16,7 @@ export const getProfile = query({
     if (args.userId) {
       const player = await db
         .query('players')
-        .withIndex('by_userId', (q) => q.eq('userId', args.userId))
+        .withIndex('by_userId', (q) => q.eq('userId', args.userId!))
         .unique()
       return player ?? null
     }
@@ -35,7 +35,7 @@ export const getStats = query({
     if (args.userId) {
       player = await db
         .query('players')
-        .withIndex('by_userId', (q) => q.eq('userId', args.userId))
+        .withIndex('by_userId', (q) => q.eq('userId', args.userId!))
         .unique()
     } else {
       player = await db.query('players').first()

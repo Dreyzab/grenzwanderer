@@ -271,12 +271,37 @@ export const useDashboardStore = create<DashboardStore>()(
         })),
       
       // Utility Actions
-      reset: () => set(initialState),
+      reset: () =>
+        set(() => ({
+          ...initialState,
+          session: {
+            startTime: new Date(),
+            pageViews: 0,
+            interactionCount: 0,
+            lastActivity: new Date(),
+          },
+          temp: {
+            pendingNotifications: [],
+            draggedItem: null,
+            modalStack: [],
+            loadingStates: {},
+          },
+        })),
       
       clearSession: () =>
-        set((state) => ({
-          session: { ...initialState.session, startTime: new Date() },
-          temp: initialState.temp,
+        set(() => ({
+          session: {
+            startTime: new Date(),
+            pageViews: 0,
+            interactionCount: 0,
+            lastActivity: new Date(),
+          },
+          temp: {
+            pendingNotifications: [],
+            draggedItem: null,
+            modalStack: [],
+            loadingStates: {},
+          },
         })),
     }),
     {

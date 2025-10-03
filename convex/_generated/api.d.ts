@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as mapPoints from "../mapPoints.js";
+import type * as mapPointsSeed from "../mapPointsSeed.js";
 import type * as player from "../player.js";
 import type * as quests from "../quests.js";
 
@@ -27,6 +28,7 @@ import type * as quests from "../quests.js";
  */
 declare const fullApi: ApiFromModules<{
   mapPoints: typeof mapPoints;
+  mapPointsSeed: typeof mapPointsSeed;
   player: typeof player;
   quests: typeof quests;
 }>;

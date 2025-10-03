@@ -277,3 +277,4 @@ const handleResearch = async (pointKey: string) => {
 **Версия**: 1.0.0
 **Дата**: October 2025
 
+

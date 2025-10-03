@@ -164,3 +164,4 @@ export function getCardinalDirection(bearing: number): string {
   return directions[index]
 }
 
+

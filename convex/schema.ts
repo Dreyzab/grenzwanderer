@@ -73,13 +73,17 @@ export default defineSchema({
       v.literal('poi'),
       v.literal('quest'),
       v.literal('npc'),
-      v.literal('location')
+      v.literal('location'),
+      v.literal('board'),      // Доски объявлений
+      v.literal('settlement'), // Поселения
+      v.literal('anomaly')     // Аномальные зоны
     ),
     phase: v.optional(v.number()),
     isActive: v.boolean(),
     metadata: v.optional(v.any()),
     createdAt: v.number()
   })
+    .index('by_id', ['id'])
     .index('by_coordinates', ['coordinates.lat', 'coordinates.lng'])
     .index('by_type', ['type'])
     .index('by_phase', ['phase'])

@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from 'convex/react'
-import { api } from '@/convex/_generated/api'
+import { api } from '@/../convex/_generated/api'
 import { useDeviceId } from '@/shared/hooks/useDeviceId'
 
 // Hook to get visible map points
@@ -14,7 +14,7 @@ export function useVisibleMapPoints(options: {
   limit?: number
   enabled?: boolean
 } = {}) {
-  const deviceId = useDeviceId()
+  const { deviceId } = useDeviceId()
   const { bbox, phase, limit = 100, enabled = true } = options
 
   return useQuery(
@@ -30,7 +30,7 @@ export function useVisibleMapPoints(options: {
 
 // Hook to mark point as researched
 export function useMarkResearched() {
-  const deviceId = useDeviceId()
+  const { deviceId } = useDeviceId()
   const mutation = useMutation(api.mapPoints.markResearched)
 
   return async (pointKey: string) => {
@@ -65,7 +65,7 @@ export function usePointsInRadius(options: {
 
 // Hook to get discovery statistics
 export function useDiscoveryStats() {
-  const deviceId = useDeviceId()
+  const { deviceId } = useDeviceId()
 
   return useQuery(api.mapPoints.getDiscoveryStats, {
     deviceId,

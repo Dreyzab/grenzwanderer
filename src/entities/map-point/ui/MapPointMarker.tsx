@@ -1,4 +1,14 @@
-import { MapPin, MapPinCheck, MapPinX, Users, Package, MapPinned } from 'lucide-react'
+import { 
+  MapPin, 
+  MapPinCheck, 
+  MapPinX, 
+  Users, 
+  Package, 
+  MapPinned,
+  MessageSquare,
+  Home,
+  Zap
+} from 'lucide-react'
 import type { MapPointType, MapPointStatus } from '../model/types'
 
 interface MapPointMarkerProps {
@@ -6,9 +16,10 @@ interface MapPointMarkerProps {
   status: MapPointStatus
   isSelected?: boolean
   onClick?: () => void
+  dangerLevel?: 'low' | 'medium' | 'high' | 'extreme'
 }
 
-export function MapPointMarker({ type, status, isSelected, onClick }: MapPointMarkerProps) {
+export function MapPointMarker({ type, status, isSelected, onClick, dangerLevel }: MapPointMarkerProps) {
   // Получаем иконку по типу точки
   const getIconByType = () => {
     switch (type) {
@@ -20,13 +31,34 @@ export function MapPointMarker({ type, status, isSelected, onClick }: MapPointMa
         return Users
       case 'location':
         return Package
+      case 'board':
+        return MessageSquare
+      case 'settlement':
+        return Home
+      case 'anomaly':
+        return Zap
       default:
         return MapPin
     }
   }
 
-  // Получаем цвет по статусу
+  // Получаем цвет по статусу с учетом опасности
   const getColorByStatus = () => {
+    // Для аномалий и опасных зон - специальная цветовая схема
+    if (dangerLevel) {
+      switch (dangerLevel) {
+        case 'low':
+          return 'text-yellow-400 bg-yellow-900/80'
+        case 'medium':
+          return 'text-orange-400 bg-orange-900/80'
+        case 'high':
+          return 'text-red-400 bg-red-900/80'
+        case 'extreme':
+          return 'text-purple-400 bg-purple-900/80'
+      }
+    }
+
+    // Стандартные цвета по статусу
     switch (status) {
       case 'not_found':
         return 'text-zinc-500 bg-zinc-900/80'
@@ -88,6 +120,13 @@ export function MapPointMarker({ type, status, isSelected, onClick }: MapPointMa
       {/* Пульсирующий эффект для выбранной точки */}
       {isSelected && (
         <div className="absolute inset-0 rounded-full border-2 border-emerald-400 animate-ping opacity-75" />
+      )}
+
+      {/* Пульсирующий эффект для опасных зон */}
+      {dangerLevel && (dangerLevel === 'high' || dangerLevel === 'extreme') && (
+        <div className={`absolute inset-0 rounded-full border-2 animate-pulse opacity-50 ${
+          dangerLevel === 'extreme' ? 'border-purple-400' : 'border-red-400'
+        }`} />
       )}
     </div>
   )

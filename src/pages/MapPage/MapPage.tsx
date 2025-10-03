@@ -12,7 +12,25 @@ import { MapPointMarker } from '@/entities/map-point/ui/MapPointMarker'
 import { createRoot } from 'react-dom/client'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
-const FALLBACK_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+// Simple inline style for fallback
+const FALLBACK_STYLE = {
+  version: 8,
+  sources: {
+    'raster-tiles': {
+      type: 'raster',
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }
+  },
+  layers: [{
+    id: 'simple-tiles',
+    type: 'raster',
+    source: 'raster-tiles',
+    minzoom: 0,
+    maxzoom: 22
+  }]
+}
 const FREIBURG_CENTER: [number, number] = [7.8421, 47.9990]
 
 export function MapPage() {
@@ -62,19 +80,34 @@ export function MapPage() {
   useEffect(() => {
     if (!mapContainer.current || map.current) return
 
-    const mapStyle = MAPBOX_TOKEN ? 'mapbox://styles/mapbox/dark-v11' : FALLBACK_STYLE
-
-    if (MAPBOX_TOKEN) {
+    // Check if token is actually valid (not empty string)
+    const hasValidToken = MAPBOX_TOKEN && MAPBOX_TOKEN.trim().length > 0
+    
+    if (hasValidToken) {
       mapboxgl.accessToken = MAPBOX_TOKEN
     }
+    
+    const mapStyle = hasValidToken
+      ? 'mapbox://styles/mapbox/dark-v11'
+      : FALLBACK_STYLE as any
 
-    const mapInstance = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: mapStyle,
-      center: FREIBURG_CENTER,
-      zoom: 13,
-      attributionControl: false,
-    })
+    console.log(hasValidToken
+      ? '✅ Using Mapbox style' 
+      : '⚠️ Mapbox token not found, using OpenStreetMap fallback'
+    )
+    console.log('📍 Map style:', hasValidToken ? mapStyle : 'OpenStreetMap')
+    console.log('📍 Map container:', mapContainer.current)
+
+    try {
+      const mapInstance = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: mapStyle,
+        center: FREIBURG_CENTER,
+        zoom: 13,
+        attributionControl: true,
+      })
+      
+      console.log('📍 Map instance created:', mapInstance)
 
     // Add controls
     mapInstance.addControl(new mapboxgl.NavigationControl(), 'top-right')
@@ -106,6 +139,13 @@ export function MapPage() {
     })
 
     mapInstance.on('load', () => {
+      console.log('✅ Map loaded successfully')
+      // Force resize to fix container size issues
+      setTimeout(() => {
+        mapInstance.resize()
+        console.log('🔄 Map resized')
+      }, 100)
+      
       setIsMapLoaded(true)
       // Initial bounds update
       const bounds = mapInstance.getBounds()
@@ -119,11 +159,36 @@ export function MapPage() {
       }
     })
 
-    map.current = mapInstance
+      // Handle errors
+      mapInstance.on('error', (e) => {
+        console.error('❌ Map error:', e)
+        console.error('❌ Error details:', e.error)
+      })
+      
+      // Log style loading
+      mapInstance.on('styledata', () => {
+        console.log('🎨 Style data loaded')
+      })
+      
+      mapInstance.on('sourcedataloading', () => {
+        console.log('📦 Source data loading...')
+      })
+      
+      mapInstance.on('sourcedata', () => {
+        console.log('📦 Source data loaded')
+      })
+
+      map.current = mapInstance
+    } catch (error) {
+      console.error('❌ Failed to initialize map:', error)
+      setIsMapLoaded(false)
+    }
 
     return () => {
-      mapInstance.remove()
-      map.current = null
+      if (map.current) {
+        map.current.remove()
+        map.current = null
+      }
     }
   }, [])
 
@@ -228,9 +293,13 @@ export function MapPage() {
   const filteredPoints = getFilteredPoints()
 
   return (
-    <div className="relative w-full h-screen bg-zinc-900">
+    <div className="relative w-full h-screen bg-zinc-900" style={{ minHeight: '100vh' }}>
       {/* Map container */}
-      <div ref={mapContainer} className="w-full h-full" />
+      <div 
+        ref={mapContainer} 
+        className="w-full h-full" 
+        style={{ position: 'absolute', inset: 0, minHeight: '100%' }}
+      />
 
       {/* Loading overlay */}
       {!isMapLoaded && (

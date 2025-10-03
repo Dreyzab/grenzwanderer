@@ -7,3 +7,4 @@ export { SEED_MAP_POINTS, getMapPointById, getMapPointsByType, getMapPointsByPha
 export { initMapPointsFromSeed, clearMapPoints, getMapPointsStats, discoverPointsInRadius } from './initMapPoints'
 
 
+

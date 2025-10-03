@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as gameProgress from "../gameProgress.js";
 import type * as mapPoints from "../mapPoints.js";
 import type * as mapPointsSeed from "../mapPointsSeed.js";
 import type * as player from "../player.js";
@@ -27,6 +28,7 @@ import type * as quests from "../quests.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  gameProgress: typeof gameProgress;
   mapPoints: typeof mapPoints;
   mapPointsSeed: typeof mapPointsSeed;
   player: typeof player;

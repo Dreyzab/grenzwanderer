@@ -18,10 +18,11 @@ import {
 } from 'lucide-react'
 import { 
   initMapPointsFromSeed, 
-  clearMapPoints, 
+  clearMapPoints as clearLocalMapPoints, 
   getMapPointsStats,
   discoverPointsInRadius 
 } from '@/shared/api/mapPoints'
+import { useSeedMapPoints, useClearMapPoints } from '@/shared/api/mapPoints/convex'
 import { useMapPointStore } from '@/entities/map-point/model/store'
 import { AnimatedCard, MotionContainer } from '@/shared/ui'
 
@@ -36,6 +37,10 @@ export function SettingsPage() {
   // Подписываемся на Map напрямую, не создавая новый массив каждый раз
   const pointsMap = useMapPointStore(state => state.points)
   
+  // Convex mutations
+  const seedMapPoints = useSeedMapPoints()
+  const clearMapPointsMutation = useClearMapPoints()
+  
   // Создаём массив только когда Map действительно изменился
   const points = useMemo(() => Array.from(pointsMap.values()), [pointsMap])
 
@@ -43,6 +48,7 @@ export function SettingsPage() {
   const handleInitPoints = async () => {
     setIsLoading(true)
     try {
+      const result: any = await seedMapPoints()
       const initialized = initMapPointsFromSeed()
       setMessage(`⚡ Система инициализирована: ${initialized.length} локаций загружено`)
       updateStats()
@@ -58,7 +64,8 @@ export function SettingsPage() {
     
     setIsLoading(true)
     try {
-      clearMapPoints()
+      await clearMapPointsMutation()
+      clearLocalMapPoints()
       setMessage(`🗑️ Данные стёрты из памяти`)
       setStats(null)
     } catch (error) {

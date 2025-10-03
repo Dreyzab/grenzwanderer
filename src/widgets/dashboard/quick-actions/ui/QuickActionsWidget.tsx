@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Map, BookOpen, Sword, Package, Settings, QrCode } from 'lucide-react'
+import { Map, BookOpen, Sword, Package, Settings, QrCode, FileText } from 'lucide-react'
 import { AnimatedCard, MotionContainer } from '@/shared/ui'
 import { useDashboardStore } from '@/shared/stores/useDashboardStore'
 import type { QuickAction } from '@/shared/types/dashboard'
@@ -10,6 +10,17 @@ interface QuickActionsWidgetProps {
 }
 
 const quickActions: QuickAction[] = [
+  {
+    id: 'prologue',
+    icon: FileText,
+    label: 'Пролог',
+    description: 'Начать историю',
+    path: '/prologue',
+    color: 'text-[color:var(--color-magenta)]',
+    bgColor: 'bg-[linear-gradient(135deg,rgba(168,85,247,0.22),rgba(236,72,153,0.12))]',
+    borderColor: 'border-purple-500/20',
+    isEnabled: true,
+  },
   {
     id: 'qr',
     icon: QrCode,

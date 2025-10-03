@@ -285,7 +285,7 @@ export const getDiscoveryStats = query({
       byPhase: {} as Record<number, number>,
       recentDiscoveries: discoveries
         .filter(d => d.discoveredAt)
-        .sort((a, b) => b.discoveredAt - a.discoveredAt)
+        .sort((a, b) => (b.discoveredAt ?? 0) - (a.discoveredAt ?? 0))
         .slice(0, 10)
         .map(d => {
           const point = pointsMap.get(d.pointKey)

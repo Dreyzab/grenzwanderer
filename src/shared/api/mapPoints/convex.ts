@@ -72,3 +72,12 @@ export function useDiscoveryStats() {
   })
 }
 
+// Hook to seed map points
+export function useSeedMapPoints() {
+  return useMutation(api.mapPointsSeed.seedMapPoints)
+}
+
+// Hook to clear map points
+export function useClearMapPoints() {
+  return useMutation(api.mapPointsSeed.clearMapPoints)
+}

@@ -269,3 +269,4 @@ import { MapPointDetails } from '@/entities/map-point/ui/MapPointDetails'
 **Статус**: ✅ Базовая реализация завершена, требуется интеграция и тестирование
 
 
+

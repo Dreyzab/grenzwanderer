@@ -11,7 +11,7 @@ export const createInitialGameState = (startScene: string): GameState => ({
   history: [],
 })
 
-export const useVNStore = create<VNState>((set, get) => {
+const useVNStore = create<VNState>((set, get) => {
   const store = {
     game: createInitialGameState('prologue_start'),
     scenes: {},
@@ -130,3 +130,7 @@ export const useVNStore = create<VNState>((set, get) => {
   }
   return store
 })
+
+// Export with both names for compatibility
+export { useVNStore }
+export { useVNStore as useVisualNovelStore }

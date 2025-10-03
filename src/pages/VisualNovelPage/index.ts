@@ -1,0 +1,2 @@
+export { VisualNovelPage } from './VisualNovelPage'
+

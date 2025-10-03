@@ -278,3 +278,4 @@ const handleResearch = async (pointKey: string) => {
 **Дата**: October 2025
 
 
+

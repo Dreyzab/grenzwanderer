@@ -11,17 +11,30 @@
  * Base emotions for character expressions
  * @see Plan.md lines 1132-1143
  */
-export enum BaseEmotion {
-  NEUTRAL = 'neutral',
-  HAPPY = 'happy',
-  SAD = 'sad',
-  ANGRY = 'angry',
-  SURPRISED = 'surprised',
-  CONFUSED = 'confused',
-  EMBARRASSED = 'embarrassed',
-  DETERMINED = 'determined',
-  WORRIED = 'worried',
-  EXCITED = 'excited'
+export type BaseEmotion = 
+  | 'neutral'
+  | 'happy'
+  | 'sad'
+  | 'angry'
+  | 'surprised'
+  | 'confused'
+  | 'embarrassed'
+  | 'determined'
+  | 'worried'
+  | 'excited'
+
+// Export as const for backward compatibility
+export const BaseEmotion = {
+  NEUTRAL: 'neutral' as const,
+  HAPPY: 'happy' as const,
+  SAD: 'sad' as const,
+  ANGRY: 'angry' as const,
+  SURPRISED: 'surprised' as const,
+  CONFUSED: 'confused' as const,
+  EMBARRASSED: 'embarrassed' as const,
+  DETERMINED: 'determined' as const,
+  WORRIED: 'worried' as const,
+  EXCITED: 'excited' as const,
 }
 
 /**
@@ -51,9 +64,9 @@ export interface EmotionTransition {
  * @see Plan.md lines 1110-1130
  */
 export interface EmotionState {
-  primary: BaseEmotion
+  primary: BaseEmotion | string
   intensity: number // 0-100
-  secondary?: BaseEmotion
+  secondary?: BaseEmotion | string
   microExpressions?: MicroExpressions
   transition?: EmotionTransition
 }
@@ -86,7 +99,7 @@ export interface Character {
   name: string
   sprite?: string
   position: CharacterPosition
-  emotion: EmotionState | string // Enhanced with EmotionState
+  emotion?: EmotionState | string // Enhanced with EmotionState, optional
   outfit?: string
 }
 
@@ -177,8 +190,21 @@ export interface PresentationConfig {
 
 /**
  * Skill types for checks
+ * Extended with all Disco Elysium-style skills
  */
-export type SkillType = 'logic' | 'empathy' | 'cynicism' | 'combat' | 'technical'
+export type SkillType = 
+  | 'logic' 
+  | 'empathy' 
+  | 'cynicism' 
+  | 'combat' 
+  | 'technical'
+  | 'technophile'
+  | 'encyclopedia'
+  | 'perception'
+  | 'reflexes'
+  | 'intuition'
+  | 'authority'
+  | 'strength'
 
 /**
  * Skill check configuration
@@ -187,8 +213,8 @@ export type SkillType = 'logic' | 'empathy' | 'cynicism' | 'combat' | 'technical
 export interface SkillCheck {
   skill: SkillType
   difficulty: number // 0-100
-  successText: string
-  failureText: string
+  successText?: string
+  failureText?: string
   criticalSuccess?: string
   criticalFailure?: string
 
@@ -271,15 +297,14 @@ export interface ConditionalDestination {
  * Color coding for choices
  * @see Plan.md lines 1183-1191
  */
-export enum ChoiceColor {
-  NEUTRAL = 'text-zinc-300',
-  POSITIVE = 'text-emerald-400',
-  NEGATIVE = 'text-red-400',
-  CAUTIOUS = 'text-blue-400',
-  BOLD = 'text-amber-400',
-  MYSTERIOUS = 'text-purple-400',
-  SKILL = 'text-teal-400'
-}
+export type ChoiceColor = 
+  | 'neutral'
+  | 'positive'
+  | 'negative'
+  | 'cautious'
+  | 'bold'
+  | 'mysterious'
+  | 'skill'
 
 /**
  * Choice style
@@ -287,11 +312,22 @@ export enum ChoiceColor {
 export type ChoiceStyle = 'default' | 'important' | 'timed' | 'hidden'
 
 /**
+ * Condition for choice availability
+ */
+export interface ChoiceCondition {
+  type: 'skill' | 'flag' | 'item' | 'reputation'
+  skill?: SkillType
+  minLevel?: number
+  flag?: string
+  value?: any
+}
+
+/**
  * Choice availability configuration
  * @see Plan.md lines 1154-1159
  */
 export interface ChoiceAvailability {
-  conditions?: string[]
+  conditions?: ChoiceCondition[]
   cost?: ResourceCost[]
   oneTime?: boolean
   skillCheck?: SkillCheck
@@ -313,11 +349,16 @@ export interface ChoicePresentation {
  * @see Plan.md lines 1170-1176
  */
 export interface ChoiceEffects {
-  immediate: Outcome[]
-  delayed: DelayedEffect[]
-  reputation: ReputationVector
-  relationships: RelationshipChange[]
-  worldState: WorldStateChange[]
+  immediate?: Outcome[]
+  delayed?: DelayedEffect[]
+  reputation?: ReputationVector
+  relationships?: RelationshipChange[]
+  worldState?: WorldStateChange[]
+  
+  // Game-specific extensions
+  flags?: Array<{ key: string; value: any }>
+  onSuccess?: { nextScene?: string }
+  onFailure?: { nextScene?: string }
 }
 
 /**
@@ -417,11 +458,14 @@ export interface DialogueNode {
   id?: string
   type?: 'dialogue' | 'narration' | 'choice' | 'action' | 'conditional'
 
+  // Simple text format (backward compatibility)
+  text?: string
+  speaker?: Speaker | string
+  characterId?: string
+  emotion?: EmotionState | string
+
   // Content
   content?: DialogueContent
-  text?: string // Backward compatibility
-  speaker?: Speaker | string // Enhanced with Speaker
-  characterId?: string // Backward compatibility
 
   // Presentation
   presentation?: PresentationConfig
@@ -451,8 +495,8 @@ export interface Scene {
   id: string
   title?: string
   background?: string
-  characters: Record<string, Character>
-  dialogue: DialogueNode[]
+  characters?: Character[] | Record<string, Character>
+  dialogue?: DialogueNode[]
   choices?: DialogueChoice[]
   nextScene?: string
   presentation?: PresentationConfig

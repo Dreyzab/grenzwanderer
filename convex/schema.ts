@@ -83,7 +83,7 @@ export default defineSchema({
     metadata: v.optional(v.any()),
     createdAt: v.number()
   })
-    .index('by_id', ['id'])
+    .index('by_point_id', ['id'])
     .index('by_coordinates', ['coordinates.lat', 'coordinates.lng'])
     .index('by_type', ['type'])
     .index('by_phase', ['phase'])
@@ -116,21 +116,37 @@ export default defineSchema({
   })
     .index('by_key', ['key'])
     .index('by_phase', ['phase'])
-    .index('by_expires', ['expiresAt']),
+    .index('by_expires', ['expiresAt'])
 
-  // Отслеживание исследований точек карты игроками
+  ,
+
+  // Per-player discovery state for map points
   point_discoveries: defineTable({
+    deviceId: v.optional(v.string()),
+    userId: v.optional(v.string()),
+    pointKey: v.string(),
+    discoveredAt: v.optional(v.number()),
+    researchedAt: v.optional(v.number()),
+    updatedAt: v.number(),
+  })
+    .index('by_deviceId', ['deviceId'])
+    .index('by_userId', ['userId'])
+    .index('by_pointKey', ['pointKey'])
+    .index('by_device_point', ['deviceId', 'pointKey'])
+    .index('by_user_point', ['userId', 'pointKey']),
+
+  // Прогресс визуальной новеллы и игровые флаги
+  game_progress: defineTable({
     deviceId: v.optional(v.string()), // Устройство игрока (для оффлайн)
     userId: v.optional(v.string()),   // Пользователь (если авторизован)
-    pointKey: v.string(),             // ID точки карты (map_points.id)
-    discoveredAt: v.number(),         // Когда обнаружена
-    researchedAt: v.optional(v.number()), // Когда исследована (через QR/клик)
+    currentScene: v.string(),          // Текущая сцена визуальной новеллы
+    visitedScenes: v.array(v.string()), // Посещённые сцены
+    flags: v.any(),                    // Игровые флаги (Record<string, any>)
+    createdAt: v.number(),
     updatedAt: v.number()
   })
-    .index('by_deviceId_pointKey', ['deviceId', 'pointKey'])
-    .index('by_userId_pointKey', ['userId', 'pointKey'])
-    .index('by_pointKey', ['pointKey'])
-    .index('by_discoveredAt', ['discoveredAt']),
+    .index('by_deviceId', ['deviceId'])
+    .index('by_userId', ['userId'])
+    .index('by_updatedAt', ['updatedAt'])
 })
-
 

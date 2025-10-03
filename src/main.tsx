@@ -6,6 +6,7 @@ import AppConvexProvider from '@/app/ConvexProvider'
 import ModernHomePage from '@/pages/ModernHomePage'
 import { MapPage } from '@/pages/MapPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { VisualNovelPage } from '@/pages/VisualNovelPage'
 import GoogleParamsLogger from '@/app/GoogleParamsLogger'
 import logger from '@/shared/lib/logger'
 import './index.css'
@@ -25,6 +26,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="/enhanced-map" element={<MapPage />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/prologue" element={<VisualNovelPage />} />
+            <Route path="/visual-novel" element={<VisualNovelPage />} />
           </Routes>
         </BrowserRouter>
       </AppConvexProvider>

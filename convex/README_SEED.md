@@ -147,3 +147,4 @@ npx convex run mapPoints:getPointsInRadius '{"lat": 48.0015, "lng": 7.855, "radi
 ```
 
 
+

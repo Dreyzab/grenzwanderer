@@ -4,21 +4,30 @@
  * @see Plan.md lines 1147-1208
  */
 
-import { motion } from 'framer-motion'
-import { Lock, Zap, Target, Heart, Brain, Shield } from 'lucide-react'
-import type { DialogueChoice, SkillCheck, ChoiceColor } from '../model/types'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Lock, Zap, Target, Heart, Brain, Shield, Eye as EyeIcon } from 'lucide-react'
+import type { DialogueChoice, SkillCheck, ChoiceColor, SkillType } from '../model/types'
 
 // ============================================
 // SKILL ICONS
 // ============================================
 
-const SKILL_ICONS = {
+const SKILL_ICONS: Record<SkillType, any> = {
   logic: Brain,
   empathy: Heart,
   cynicism: Shield,
   combat: Target,
   technical: Zap,
-}
+  technophile: Zap,
+  encyclopedia: Brain,
+  perception: EyeIcon,
+  reflexes: Zap,
+  intuition: Brain,
+  authority: Shield,
+  strength: Target,
+} as any
+
+// Fallback icon for perception (Eye)
 
 // ============================================
 // CHOICE BUTTON COMPONENT
@@ -44,7 +53,7 @@ export function ChoiceButton({
   const isDisabled = disabled || !isAvailable
 
   // Get choice color
-  const choiceColor = choice.presentation?.color || ChoiceColor.NEUTRAL
+  const choiceColor: ChoiceColor = choice.presentation?.color ?? 'neutral'
 
   // Get skill check info
   const skillCheck = choice.availability?.skillCheck
@@ -102,7 +111,7 @@ export function ChoiceButton({
 
         {/* Text content */}
         <div className="flex-1">
-          <p className={`text-base ${choiceColor} leading-snug`}>
+          <p className={`text-base ${getColorClass(choiceColor)} leading-snug`}>
             {choice.text}
           </p>
 
@@ -131,7 +140,7 @@ export function ChoiceButton({
         </div>
       </div>
 
-      {/* Hover glow effect */}
+          {/* Hover glow effect */}
       {!isDisabled && (
         <motion.div
           className="absolute inset-0 rounded-lg opacity-0 pointer-events-none"
@@ -241,7 +250,7 @@ export function ChoiceList({
 }: ChoiceListProps) {
   return (
     <div className={`space-y-3 ${className}`}>
-      <AnimatedPresence>
+      <AnimatePresence>
         {choices.map((choice, index) => (
           <motion.div
             key={choice.id}
@@ -257,7 +266,7 @@ export function ChoiceList({
             />
           </motion.div>
         ))}
-      </AnimatedPresence>
+      </AnimatePresence>
     </div>
   )
 }
@@ -314,7 +323,7 @@ function evaluateSkillCheck(
   const difficulty = skillCheck.difficulty
 
   // Calculate success chance (0-100%)
-  const basehance = Math.max(0, Math.min(100, ((playerSkill / difficulty) * 100)))
+  const baseChance = Math.max(0, Math.min(100, ((playerSkill / difficulty) * 100)))
   
   // Apply modifiers
   let successChance = baseChance
@@ -341,20 +350,30 @@ function evaluateSkillCheck(
  * Get color hex from ChoiceColor
  */
 function getColorHex(color: ChoiceColor): string {
-  const colorMap: Record<string, string> = {
-    'text-zinc-300': '#d4d4d8',
-    'text-emerald-400': '#34d399',
-    'text-red-400': '#f87171',
-    'text-blue-400': '#60a5fa',
-    'text-amber-400': '#fbbf24',
-    'text-purple-400': '#c084fc',
-    'text-teal-400': '#2dd4bf',
+  const map: Record<ChoiceColor, string> = {
+    neutral: '#d4d4d8',
+    positive: '#34d399',
+    negative: '#f87171',
+    cautious: '#fbbf24',
+    bold: '#60a5fa',
+    mysterious: '#c084fc',
+    skill: '#2dd4bf',
   }
-
-  return colorMap[color] || '#d4d4d8'
+  return map[color]
 }
 
-// Import AnimatePresence for transitions
-import { AnimatePresence } from 'framer-motion'
+function getColorClass(color: ChoiceColor): string {
+  const map: Record<ChoiceColor, string> = {
+    neutral: 'text-zinc-300',
+    positive: 'text-emerald-400',
+    negative: 'text-red-400',
+    cautious: 'text-amber-400',
+    bold: 'text-blue-400',
+    mysterious: 'text-purple-400',
+    skill: 'text-teal-400',
+  }
+  return map[color]
+}
+
 
 

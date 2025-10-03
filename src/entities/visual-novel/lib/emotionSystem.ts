@@ -236,8 +236,8 @@ export function getEmotionDescription(emotion: EmotionState): string {
 /**
  * Get emotion label in Russian
  */
-export function getEmotionLabel(emotion: BaseEmotion): string {
-  const labels: Record<BaseEmotion, string> = {
+export function getEmotionLabel(emotion: BaseEmotion | string): string {
+  const labels: Record<string, string> = {
     neutral: 'нейтрален',
     happy: 'счастлив',
     sad: 'грустен',
@@ -250,7 +250,7 @@ export function getEmotionLabel(emotion: BaseEmotion): string {
     excited: 'взволнован',
   }
   
-  return labels[emotion] || emotion
+  return labels[emotion as string] || (emotion as string)
 }
 
 // ============================================

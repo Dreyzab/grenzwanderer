@@ -1,0 +1,27 @@
+---
+tags:
+  - mechanic
+  - voice
+attribute: Body
+color: "#27ae60"
+aliases:
+  - Forensics
+  - Criminalistics
+---
+# Voice: Forensics
+
+> **"The body is testimony. Read it correctly."**
+
+## Description
+Applied crime-scene analysis: traces, wound logic, residue, and physical reconstruction.
+
+## Passive Effects
+- Spot biological and material traces in the environment.
+- Detect mismatch between narrative claim and physical evidence.
+
+## Active Checks
+- **Scene Reconstruction**: rebuild sequence of events from traces.
+- **Evidence Validation**: challenge false conclusions with material proof.
+
+## Personality
+Clinical, methodical, unsentimental. Trusts measurable facts over speculation.

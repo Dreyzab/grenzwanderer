@@ -1,0 +1,22 @@
+{
+	"nodes":[
+		{"id":"bank_1","type":"file","file":"40_GameViewer/Case01/Plot/03_Bank/scene_bank_arrival.md","x":400,"y":0,"width":300,"height":500},
+		{"id":"bank_hub","type":"file","file":"40_GameViewer/Case01/Plot/03_Bank/action_investigate_bank.md","x":800,"y":0,"width":400,"height":500},
+		{"id":"1","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_start_game.md","x":-1280,"y":50,"width":400,"height":400},
+		{"id":"note_start","type":"text","text":"# Start Point","x":-1280,"y":-200,"width":400,"height":100},
+		{"id":"2","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md","x":-480,"y":50,"width":400,"height":400},
+		{"id":"bank_mgr","type":"file","file":"40_GameViewer/Case01/Plot/03_Bank/scene_manager_dialogue.md","x":1920,"y":-550,"width":400,"height":400},
+		{"id":"bank_end","type":"file","file":"40_GameViewer/Case01/Plot/03_Bank/scene_bank_conclusion.md","x":3360,"y":50,"width":400,"height":400},
+		{"id":"bank_clerk","type":"file","file":"40_GameViewer/Case01/Plot/03_Bank/scene_clerk_dialogue.md","x":2160,"y":450,"width":400,"height":400},
+		{"id":"bank_vault","type":"file","file":"40_GameViewer/Case01/Plot/03_Bank/scene_vault_inspection.md","x":2320,"y":1040,"width":400,"height":600}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"1","fromSide":"right","toNode":"2","toSide":"left"},
+		{"id":"e2","fromNode":"2","fromSide":"right","toNode":"bank_1","toSide":"left","label":"To Bank"},
+		{"id":"e3","fromNode":"bank_1","fromSide":"right","toNode":"bank_hub","toSide":"left"},
+		{"id":"e4","fromNode":"bank_hub","fromSide":"right","toNode":"bank_mgr","toSide":"left"},
+		{"id":"e5","fromNode":"bank_hub","fromSide":"right","toNode":"bank_clerk","toSide":"left"},
+		{"id":"e6","fromNode":"bank_hub","fromSide":"right","toNode":"bank_vault","toSide":"left"},
+		{"id":"e7","fromNode":"bank_hub","fromSide":"right","toNode":"bank_end","toSide":"left","label":"Complete"}
+	]
+}

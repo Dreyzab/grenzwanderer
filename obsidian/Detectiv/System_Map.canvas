@@ -1,0 +1,16 @@
+{
+	"nodes":[
+		{"id":"1","type":"text","text":"# Game Core\nThe heart of Grezwanderer. Manages state, loops, and initialization.","x":-400,"y":-200,"width":250,"height":140},
+		{"id":"3","type":"file","file":"20_Game_Design/Systems/Combat.md","x":0,"y":-100,"width":250,"height":60},
+		{"id":"4","type":"file","file":"99_System/Semantic_Schema.md","x":0,"y":0,"width":250,"height":60},
+		{"id":"5","type":"text","text":"# Narrative Engine\nHandles dialogue, visual novel scenes, and clue discovery.","x":400,"y":-200,"width":250,"height":140},
+		{"id":"2","type":"file","file":"20_Game_Design/Systems/Inventory_Merchant.md","x":0,"y":-340,"width":250,"height":60},
+		{"id":"a65bcf1c3b5dc4ea","x":0,"y":-200,"width":250,"height":60,"type":"text","text":""}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"1","fromSide":"right","toNode":"2","toSide":"left"},
+		{"id":"e2","fromNode":"1","fromSide":"right","toNode":"3","toSide":"left"},
+		{"id":"e3","fromNode":"1","fromSide":"right","toNode":"4","toSide":"left"},
+		{"id":"6652ca156d1b7200","fromNode":"a65bcf1c3b5dc4ea","fromSide":"left","toNode":"1","toSide":"right"}
+	]
+}

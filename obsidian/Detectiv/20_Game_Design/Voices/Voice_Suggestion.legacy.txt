@@ -1,0 +1,26 @@
+---
+tags:
+  - mechanic
+  - voice
+attribute: Social
+color: "#e74c3c"
+aliases:
+  - Suggestion
+---
+# Voice: Suggestion
+
+> **"It wasn't a command. It was... a friendly idea."**
+
+## Description
+The power of soft influence. Charming, insinuating, and guiding others to do what you want without them realizing it.
+
+## Passive Effects
+- Sense **desire** and susceptibility.
+- Smooth over social blunders.
+
+## Active Checks
+- **Charm**: Win someone over.
+- **Implant Idea**: Make someone think an idea was theirs.
+
+## Personality
+Seductive, manipulative, slippery. Preferred method is honey rather than vinegar.

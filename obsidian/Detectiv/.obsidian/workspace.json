@@ -1,0 +1,221 @@
+{
+  "main": {
+    "id": "159751f586cb9e39",
+    "type": "split",
+    "children": [
+      {
+        "id": "0b44ce0fc37d78b6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4f1df42deea2bebf",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "cfbd6159bce5993a",
+    "type": "split",
+    "children": [
+      {
+        "id": "559f51c1f63f77ce",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "6b77b19e2dfc63b6",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "ffe44bde2960faec",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "54afdd672888c0ce",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "0dbd0c86c9507339",
+    "type": "split",
+    "children": [
+      {
+        "id": "0d77e2f6d4d9d204",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "82f0026aecc3a0c8",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "6bee5aaa993d5665",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Welcome.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Welcome"
+            }
+          },
+          {
+            "id": "8737ce667f0cd9c3",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "f21f92049ecb2df8",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "7a943cb7acaabad2",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Welcome.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Welcome"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "obsidian-excalidraw-plugin:New drawing": false
+    }
+  },
+  "active": "4f1df42deea2bebf",
+  "lastOpenFiles": [
+    "40_GameViewer/Case01/05_Convergence/scene_workers_backchannel.md",
+    "40_GameViewer/Case01/05_Convergence/MOC_Convergence.md",
+    "40_GameViewer/Case01/05_Convergence/scene_rathaus_hearing.md",
+    "40_GameViewer/Case01/05_Convergence/map_convergence.md",
+    "40_GameViewer/Case01/06_Resolution/scene_warehouse_finale.md",
+    "40_GameViewer/Case01/06_Resolution/scene_rail_yard_shadow_tail.md",
+    "40_GameViewer/Case01/06_Resolution/scene_archive_warrant_run.md",
+    "40_GameViewer/Case01/06_Resolution/MOC_Resolution.md",
+    "40_GameViewer/Case01/04_LeadSelection/scene_lotte_interlude.md",
+    "40_GameViewer/Case01/06_Resolution/map_entry_plan.md",
+    "40_GameViewer/Case01/04_LeadSelection/scene_lead_tailor.md",
+    "40_GameViewer/Case01/04_LeadSelection/scene_lead_pub.md",
+    "40_GameViewer/Case01/04_LeadSelection/scene_lead_apothecary.md",
+    "40_GameViewer/Case01/04_LeadSelection/MOC_LeadSelection.md",
+    "40_GameViewer/Case01/04_LeadSelection/map_lead_selection.md",
+    "40_GameViewer/Case01/03_BankInvestigation/scene_qr_gate.md",
+    "40_GameViewer/Case01/03_BankInvestigation/scene_bank_crime_scene.md",
+    "40_GameViewer/Case01/03_BankInvestigation/MOC_BankInvestigation.md",
+    "40_GameViewer/Case01/01_Onboarding/scene_telegram_gate.md",
+    "40_GameViewer/Case01/01_Onboarding/scene_start_game.md",
+    "40_GameViewer/Case01/01_Onboarding/scene_hbf_arrival.md",
+    "40_GameViewer/Case01/01_Onboarding/scene_character_creation.md",
+    "40_GameViewer/Case01/01_Onboarding/MOC_Onboarding.md",
+    "40_GameViewer/Case01/02_Briefing/scene_mayor_briefing.md",
+    "40_GameViewer/Case01/02_Briefing/scene_alt_briefing.md",
+    "40_GameViewer/Case01/02_Briefing/MOC_Briefing.md",
+    "40_GameViewer/Case01/05_Convergence",
+    "40_GameViewer/Case01/06_Resolution",
+    "40_GameViewer/Case01/04_LeadSelection",
+    "40_GameViewer/Case01/03_BankInvestigation",
+    "40_GameViewer/Case01/01_Onboarding",
+    "40_GameViewer/Case01/02_Briefing",
+    "40_GameViewer/Case01",
+    "40_GameViewer",
+    "40_GameViewer/Case01/Maps",
+    "40_GameViewer/Case01/Scenes",
+    "System_Map.canvas"
+  ]
+}

@@ -1,0 +1,164 @@
+/* 
+ * VN Node Color Scheme for Obsidian Graph
+ * Place in: .obsidian/snippets/vn-graph-colors.css
+ * Enable in: Settings → Appearance → CSS Snippets
+ */
+
+/* ═══════════════════════════════════════════════════════════════
+   COLOR PALETTE
+   Based on semantic meaning of node types
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Scene Family (Blue gradient) */
+  --vn-scene: #3498db;
+  /* Main scene - bright blue */
+  --vn-beat: #5dade2;
+  /* Beat - lighter blue */
+  --vn-background: #85c1e9;
+  /* Background - pale blue */
+  --vn-checks: #2980b9;
+  /* Checks - darker blue */
+
+  /* Decision Family (Warm gradient) */
+  --vn-choice: #f39c12;
+  /* Choice - gold */
+  --vn-action: #e67e22;
+  /* Action - orange */
+
+  /* Navigation Family (Red/Pink) */
+  --vn-map: #e74c3c;
+  /* Map hub - red */
+  --vn-location: #58d68d;
+  /* Location - green */
+
+  /* Evidence Family (Purple gradient - одна гамма) */
+  --ev-fact: #9b59b6;
+  /* Fact - purple */
+  --ev-observation: #bb8fce;
+  /* Observation - light purple */
+  --ev-item: #7d3c98;
+  /* Item - dark purple */
+
+  /* Character */
+  --vn-character: #1abc9c;
+  /* Character - teal */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GRAPH VIEW - Node Colors by Tag
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Scene nodes */
+.graph-view.color-fill-tag[data-tag="type/vn_scene"] {
+  color: var(--vn-scene) !important;
+}
+
+.graph-view.color-fill-tag[data-tag="type/vn_beat"] {
+  color: var(--vn-beat) !important;
+}
+
+.graph-view.color-fill-tag[data-tag="type/vn_background"] {
+  color: var(--vn-background) !important;
+}
+
+.graph-view.color-fill-tag[data-tag="type/vn_checks"] {
+  color: var(--vn-checks) !important;
+}
+
+/* Decision nodes */
+.graph-view.color-fill-tag[data-tag="type/vn_choice"] {
+  color: var(--vn-choice) !important;
+}
+
+.graph-view.color-fill-tag[data-tag="type/vn_action"] {
+  color: var(--vn-action) !important;
+}
+
+/* Navigation nodes */
+.graph-view.color-fill-tag[data-tag="type/map_hub"] {
+  color: var(--vn-map) !important;
+}
+
+.graph-view.color-fill-tag[data-tag="type/location"] {
+  color: var(--vn-location) !important;
+}
+
+/* Evidence nodes - Purple gradient */
+.graph-view.color-fill-tag[data-tag="evidence/fact"] {
+  color: var(--ev-fact) !important;
+}
+
+.graph-view.color-fill-tag[data-tag="evidence/observation"] {
+  color: var(--ev-observation) !important;
+}
+
+.graph-view.color-fill-tag[data-tag="evidence/item"] {
+  color: var(--ev-item) !important;
+}
+
+/* Fallback for generic evidence */
+.graph-view.color-fill-tag[data-tag="type/evidence"] {
+  color: var(--ev-observation) !important;
+}
+
+/* Character nodes */
+.graph-view.color-fill-tag[data-tag="type/character"] {
+  color: var(--vn-character) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GRAPH VIEW - Alternative: Color by filename pattern
+   Use this if tags don't work (requires Obsidian 1.4+)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Scene files */
+.graph-view
+  .node[data-name^="scene_"]:not([data-name*="_beat"]):not(
+    [data-name*="_bg"]
+  ):not([data-name*="_ch"]):not([data-name*="_checks"])
+  circle {
+  fill: var(--vn-scene) !important;
+}
+
+.graph-view .node[data-name*="_beat"] circle {
+  fill: var(--vn-beat) !important;
+}
+
+.graph-view .node[data-name*="_bg"] circle {
+  fill: var(--vn-background) !important;
+}
+
+.graph-view .node[data-name*="_checks"] circle {
+  fill: var(--vn-checks) !important;
+}
+
+.graph-view .node[data-name*="_ch"] circle,
+.graph-view .node[data-name^="choice_"] circle {
+  fill: var(--vn-choice) !important;
+}
+
+/* Action files */
+.graph-view .node[data-name^="action_"] circle {
+  fill: var(--vn-action) !important;
+}
+
+/* Map files */
+.graph-view .node[data-name^="map_"] circle {
+  fill: var(--vn-map) !important;
+}
+
+/* Location files */
+.graph-view .node[data-name^="loc_"] circle {
+  fill: var(--vn-location) !important;
+}
+
+/* Evidence files */
+.graph-view .node[data-name^="ev_"] circle {
+  fill: var(--ev-observation) !important;
+}
+
+/* Character files */
+.graph-view .node[data-name^="char_"] circle {
+  fill: var(--vn-character) !important;
+}

@@ -1,0 +1,55 @@
+{
+	"edges":[
+		{"id":"fd7103df-b34a-4c","fromNode":"5788fcda-9efa-4e","fromSide":"right","toNode":"4be63cd1-98dc-4b","toSide":"left"},
+		{"id":"678c1bc3-985d-4d","fromNode":"5788fcda-9efa-4e","fromSide":"right","toNode":"e8b71876-a138-45","toSide":"left"},
+		{"id":"9e048d0d-84b6-44","fromNode":"889c8343-d868-48","fromSide":"right","toNode":"b5bc7549-3812-4b","toSide":"left"},
+		{"id":"ce402c62-a95e-44","fromNode":"889c8343-d868-48","fromSide":"right","toNode":"6a69cf72-1164-48","toSide":"left"},
+		{"id":"3acb3ec1-1c99-4d","fromNode":"5788fcda-9efa-4e","fromSide":"right","toNode":"6ec3b7f6-562a-4a","toSide":"left"},
+		{"id":"84ffd2ff-9f44-4b","fromNode":"f3f28af6-ee87-4c","fromSide":"right","toNode":"bd0ab0c6-5087-46","toSide":"left"},
+		{"id":"886ff7c1-a959-46","fromNode":"f3f28af6-ee87-4c","fromSide":"right","toNode":"c0b88a7b-b441-42","toSide":"left"},
+		{"id":"e4ce6210-41a7-45","fromNode":"f3f28af6-ee87-4c","fromSide":"right","toNode":"7b5a24cb-e92c-42","toSide":"left"},
+		{"id":"a4dbe04c-4e77-4b","fromNode":"f3f28af6-ee87-4c","fromSide":"right","toNode":"da01fb5d-f4a0-4f","toSide":"left"},
+		{"id":"baac181a-e3ac-4a","fromNode":"f3f28af6-ee87-4c","fromSide":"right","toNode":"d7a916f7-f13a-49","toSide":"left"},
+		{"id":"6e0ba5b7-b2c5-43","fromNode":"f3f28af6-ee87-4c","fromSide":"right","toNode":"c58e2679-91b8-4d","toSide":"left"},
+		{"id":"1e1045bbe2249900","fromNode":"9dc664cc-3e27-49","fromSide":"right","toNode":"f3f28af6-ee87-4c","toSide":"left"},
+		{"id":"3c4c9fb4590023ad","fromNode":"353163e4-8b6e-45","fromSide":"right","toNode":"9dc664cc-3e27-49","toSide":"left"},
+		{"id":"d666d18533ba6bf6","fromNode":"8b0a828c-dde3-46","fromSide":"right","toNode":"353163e4-8b6e-45","toSide":"left"},
+		
+        {"id":"edge_ch1_to_direct","fromNode":"d7a916f7-f13a-49","fromSide":"right","toNode":"node_meet_direct","toSide":"left"},
+        {"id":"edge_ch2_to_action","fromNode":"c58e2679-91b8-4d","fromSide":"right","toNode":"f74fa3aa-8eb0-4c","toSide":"left"},
+        {"id":"edge_action_to_indirect","fromNode":"f74fa3aa-8eb0-4c","fromSide":"right","toNode":"node_meet_indirect","toSide":"left"},
+        {"id":"edge_direct_to_priority","fromNode":"node_meet_direct","fromSide":"right","toNode":"8b0a828c-dde3-46","toSide":"left"},
+        {"id":"edge_indirect_to_priority","fromNode":"node_meet_indirect","fromSide":"right","toNode":"8b0a828c-dde3-46","toSide":"left"},
+
+        {"id":"edge_action_to_theft","fromNode":"f74fa3aa-8eb0-4c","fromSide":"bottom","toNode":"node_paperboy_theft","toSide":"top"},
+        {"id":"edge_theft_to_fate","fromNode":"node_paperboy_theft","fromSide":"bottom","toNode":"node_paperboy_fate","toSide":"top"},
+        {"id":"edge_fate_to_priority","fromNode":"node_paperboy_fate","fromSide":"right","toNode":"8b0a828c-dde3-46","toSide":"bottom"}
+	],
+	"nodes":[
+		{"id":"f74fa3aa-8eb0-4c","file":"40_GameViewer/Case01/Plot/01_Onboarding/action_investigate_station.md","type":"file","x":2100,"y":750,"width":300,"height":100,"color":"0"},
+		{"id":"8b0a828c-dde3-46","file":"40_GameViewer/Case01/Plot/01_Onboarding/choice_set_priority.md","type":"file","x":2800,"y":675,"width":300,"height":100,"color":"0"},
+		{"id":"353163e4-8b6e-45","file":"40_GameViewer/Case01/Plot/01_Onboarding/map_transit.md","type":"file","x":3150,"y":675,"width":300,"height":100,"color":"1"},
+		{"id":"9dc664cc-3e27-49","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_character_creation.md","type":"file","x":1050,"y":0,"width":300,"height":100,"color":"0"},
+		{"id":"f3f28af6-ee87-4c","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md","type":"file","x":1400,"y":0,"width":300,"height":100,"color":"1"},
+		{"id":"da01fb5d-f4a0-4f","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival_beat1.md","type":"file","x":1750,"y":150,"width":300,"height":100,"color":"4"},
+		{"id":"c0b88a7b-b441-42","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival_beat2.md","type":"file","x":1750,"y":300,"width":300,"height":100,"color":"4"},
+		{"id":"7b5a24cb-e92c-42","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival_bg.md","type":"file","x":1750,"y":450,"width":300,"height":100,"color":"6"},
+		{"id":"d7a916f7-f13a-49","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival_ch1.md","type":"file","x":1750,"y":600,"width":300,"height":100,"color":"3"},
+		{"id":"c58e2679-91b8-4d","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival_ch2.md","type":"file","x":1750,"y":750,"width":300,"height":100,"color":"3"},
+		{"id":"bd0ab0c6-5087-46","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival_checks.md","type":"file","x":1750,"y":900,"width":300,"height":100,"color":"5"},
+		{"id":"5788fcda-9efa-4e","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md","type":"file","x":1750,"y":0,"width":300,"height":100,"color":"1"},
+		{"id":"6ec3b7f6-562a-4a","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey_beat1.md","type":"file","x":2100,"y":150,"width":300,"height":100,"color":"4"},
+		{"id":"e8b71876-a138-45","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey_beat2.md","type":"file","x":2100,"y":300,"width":300,"height":100,"color":"4"},
+		{"id":"4be63cd1-98dc-4b","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey_bg.md","type":"file","x":2100,"y":450,"width":300,"height":100,"color":"6"},
+		{"id":"33fcf149-a64d-40","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_start_game.md","type":"file","x":2100,"y":0,"width":300,"height":100,"color":"0"},
+		{"id":"889c8343-d868-48","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_telegram_gate.md","type":"file","x":2450,"y":0,"width":300,"height":100,"color":"1"},
+		{"id":"6a69cf72-1164-48","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_telegram_gate_beat1.md","type":"file","x":2800,"y":150,"width":300,"height":100,"color":"4"},
+		{"id":"b5bc7549-3812-4b","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_telegram_gate_bg.md","type":"file","x":2800,"y":300,"width":300,"height":100,"color":"6"},
+        
+        {"id":"node_meet_direct","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_meet_fritz_direct.md","type":"file","x":2100,"y":600,"width":300,"height":100,"color":"2"},
+        {"id":"node_meet_indirect","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_meet_fritz_indirect.md","type":"file","x":2450,"y":750,"width":300,"height":100,"color":"2"},
+
+        {"id":"node_paperboy_theft","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_paperboy_theft.md","type":"file","x":2100,"y":900,"width":300,"height":100,"color":"5"},
+        {"id":"node_paperboy_fate","file":"40_GameViewer/Case01/Plot/01_Onboarding/choice_paperboy_fate.md","type":"file","x":2450,"y":900,"width":300,"height":100,"color":"3"}
+	]
+}

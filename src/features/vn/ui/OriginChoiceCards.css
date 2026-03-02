@@ -1,0 +1,51 @@
+.origin-cards {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.origin-card {
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(18, 22, 34, 0.72);
+  color: inherit;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.origin-card h4 {
+  margin: 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.origin-card p {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.origin-card__meta {
+  color: rgba(238, 229, 209, 0.78);
+}
+
+.origin-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.origin-card__stats span {
+  font-size: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.origin-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.66;
+}

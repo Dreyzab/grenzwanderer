@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# build artifacts
+dist/
+spacetimedb/dist/
+
+# local env
+.env
+.env.local
+.env.*.local
+
+# logs and temp artifacts
+.logs/
+*.log
+temp-log.txt
+output*.log
+publish*.log
+error.log
+
+# editor/system
+.DS_Store
+Thumbs.db
+
+# keep narrative/content tracked, ignore local Obsidian metadata only
+obsidian/.obsidian/

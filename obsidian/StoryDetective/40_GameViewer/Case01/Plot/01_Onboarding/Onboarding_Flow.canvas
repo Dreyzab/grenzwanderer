@@ -1,0 +1,24 @@
+{
+	"nodes":[
+		{"id":"telegram","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_telegram_gate.md","x":800,"y":0,"width":480,"height":840},
+		{"id":"note_branch","type":"text","text":"🔀 **Branch**\nApproach Fritz\n*or*\nInvestigate Station","x":1600,"y":-180,"width":200,"height":140},
+		{"id":"journey","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md","x":1400,"y":0,"width":680,"height":1040},
+		{"id":"note_title","type":"text","text":"# 🎬 Onboarding Flow\nCase01 — Player Introduction","x":-1720,"y":-430,"width":400,"height":120},
+		{"id":"char_create","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_character_creation.md","x":-400,"y":-40,"width":560,"height":720},
+		{"id":"start","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_start_game.md","x":-1240,"y":55,"width":800,"height":785},
+		{"id":"hbf","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md","x":2200,"y":360,"width":400,"height":400},
+		{"id":"note_exit","type":"text","text":"➡️ **Exit to Phase 2**\n[[40_GameViewer/Case01/Plot/02_Briefing/map_first_choice|Map: First Choice]]","x":4720,"y":-880,"width":280,"height":120},
+		{"id":"priority","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/choice_set_priority.md","x":3120,"y":-1120,"width":1200,"height":1200},
+		{"id":"investigate","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/action_investigate_station.md","x":2840,"y":680,"width":960,"height":1200}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"start","fromSide":"right","toNode":"char_create","toSide":"left"},
+		{"id":"e2","fromNode":"char_create","fromSide":"right","toNode":"telegram","toSide":"left"},
+		{"id":"e3","fromNode":"telegram","fromSide":"right","toNode":"journey","toSide":"left"},
+		{"id":"e4","fromNode":"journey","fromSide":"right","toNode":"hbf","toSide":"left"},
+		{"id":"e5","fromNode":"hbf","fromSide":"right","toNode":"priority","toSide":"left","label":"Approach Fritz"},
+		{"id":"e6","fromNode":"hbf","fromSide":"right","toNode":"investigate","toSide":"left","label":"Investigate"},
+		{"id":"e7","fromNode":"investigate","fromSide":"top","toNode":"priority","toSide":"bottom"},
+		{"id":"e8","fromNode":"priority","fromSide":"right","toNode":"note_exit","toSide":"left"}
+	]
+}

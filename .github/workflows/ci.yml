@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      VITE_ENABLE_AI: "false"
+      VITE_ENABLE_DEBUG_CONTENT_SEED: "false"
+      VITE_SPACETIMEDB_HOST: "ws://127.0.0.1:3000"
+      VITE_SPACETIMEDB_DB_NAME: "grezwandererdata"
+      SMOKE_STDB_HOST: "ws://127.0.0.1:3000"
+      SMOKE_STDB_DB: "grezwandererdata"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install SpacetimeDB CLI
+        run: |
+          curl -sSf https://install.spacetimedb.com | sh
+          echo "$HOME/.spacetime/bin" >> $GITHUB_PATH
+          "$HOME/.spacetime/bin/spacetime" version
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Format check
+        run: bun run format:check
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Unit and integration tests
+        run: bun run test
+
+      - name: Build frontend
+        run: bun run build
+
+      - name: Build SpacetimeDB module
+        run: spacetime build --module-path spacetimedb
+
+      - name: Start local SpacetimeDB
+        run: |
+          nohup spacetime start > spacetime-start.log 2>&1 &
+          for attempt in {1..60}; do
+            if bash -lc ">/dev/tcp/127.0.0.1/3000" >/dev/null 2>&1; then
+              echo "SpacetimeDB is ready."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "SpacetimeDB did not start in time."
+          tail -n 200 spacetime-start.log || true
+          exit 1
+
+      - name: Publish local module for smoke tests
+        run: bun run spacetime:publish:local:clear
+
+      - name: Smoke suite
+        run: bun run smoke:all

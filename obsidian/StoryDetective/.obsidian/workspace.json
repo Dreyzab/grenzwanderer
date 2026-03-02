@@ -1,0 +1,226 @@
+{
+  "main": {
+    "id": "306d1cef8edb9d95",
+    "type": "split",
+    "children": [
+      {
+        "id": "e245e923135a6418",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a6ab03dffe9bb777",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "65bfe442dd02d0b1",
+    "type": "split",
+    "children": [
+      {
+        "id": "cdeb0462cb251f1c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "dafe1433d157483f",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "017684ed629f193a",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "969e7e1f792dc1cd",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "10d6b43284df50b8",
+    "type": "split",
+    "children": [
+      {
+        "id": "b1d41b2b6a18db7b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d35429eefe2ce9dc",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Welcome.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for Welcome"
+            }
+          },
+          {
+            "id": "236fa28791d73dc8",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Welcome.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Welcome"
+            }
+          },
+          {
+            "id": "13e68adc31d434e4",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "53b55be9eb94efc0",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "744262fede56e828",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Welcome.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Welcome"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "a6ab03dffe9bb777",
+  "lastOpenFiles": [
+    "40_GameViewer/Case01/Plot/01_Onboarding/scene_fritz_mission.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival_structure.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/choice_paperboy_fate.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/scene_paperboy_theft.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival_beat2.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/Auto_Flow.canvas",
+    "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival_ch2.md",
+    "ev_waiting_passengers.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/scene_telegram_gate.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/scene_character_creation.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/scene_telegram_gate_beat1.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/map_transit.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/choice_set_priority.md",
+    "40_GameViewer/Case01/Plot/01_Onboarding/action_investigate_station.md",
+    "40_GameViewer/Sandbox_KA/Sandbox_KA_Flow.canvas",
+    "40_GameViewer/Sandbox_KA/Sandbox_KA_Flow.md",
+    "40_GameViewer/Sandbox_KA/03_Map_Return/scene_banker_exit_to_map.md",
+    "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_casino_duel_ch2.md",
+    "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_casino_duel_ch1.md",
+    "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_casino_duel_beat2.md",
+    "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_casino_duel_checks.md",
+    "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_casino_duel_bg.md",
+    "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_tavern_ch2.md",
+    "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_tavern_ch1.md",
+    "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_tavern_checks.md",
+    "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_tavern_bg.md",
+    "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_son_house_ch2.md",
+    "40_GameViewer/Sandbox_KA.zip",
+    "40_GameViewer/Sandbox_KA/03_Map_Return",
+    "40_GameViewer/Sandbox_KA/02_Quest_Entries",
+    "40_GameViewer/Sandbox_KA/01_Hubs",
+    "40_GameViewer/Sandbox_KA/00_Global",
+    "40_GameViewer/Sandbox_KA/00_Entry",
+    "40_GameViewer/Case01/Plot/01_Onboarding/Onboarding_Flow.canvas",
+    "40_GameViewer/Case01/Case01_Flow.canvas",
+    "30_World_Intel/Locations",
+    "40_GameViewer/Case01/New_Flow.canvas",
+    "30_World_Intel/Characters",
+    "30_World_Intel",
+    "10_Narrative/Scenes"
+  ]
+}

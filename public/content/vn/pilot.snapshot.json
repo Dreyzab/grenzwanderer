@@ -1,0 +1,2284 @@
+{
+  "schemaVersion": 2,
+  "scenarios": [
+    {
+      "id": "sandbox_intro_pilot",
+      "title": "Sandbox Intro Pilot",
+      "startNodeId": "scene_start",
+      "nodeIds": [
+        "scene_start",
+        "scene_language_select",
+        "scene_backstory_select",
+        "scene_map_intro"
+      ],
+      "mode": "fullscreen",
+      "completionRoute": {
+        "nextScenarioId": "intro_journalist",
+        "requiredFlagsAll": ["origin_journalist"],
+        "blockedIfFlagsAny": [
+          "met_anna_intro",
+          "origin_journalist_handoff_done"
+        ]
+      },
+      "packId": "freiburg_intro"
+    },
+    {
+      "id": "sandbox_banker_pilot",
+      "title": "Banker Intro Pilot",
+      "startNodeId": "scene_bank_intro",
+      "nodeIds": [
+        "scene_bank_intro",
+        "scene_bank_intro_ch1",
+        "scene_bank_intro_ch2",
+        "scene_bank_leads",
+        "scene_bank_resolution"
+      ],
+      "mode": "fullscreen",
+      "packId": "freiburg_banker",
+      "defaultBackgroundUrl": "/assets/vn/bg/bank_exterior.webp"
+    },
+    {
+      "id": "sandbox_ghost_pilot",
+      "title": "Ghost Intro Pilot",
+      "startNodeId": "scene_estate_intro",
+      "nodeIds": [
+        "scene_estate_intro",
+        "scene_evidence_collection",
+        "scene_conclusion_true"
+      ],
+      "mode": "fullscreen",
+      "packId": "freiburg_ghost",
+      "musicUrl": "/assets/vn/music/ghost_ambient.ogg",
+      "defaultBackgroundUrl": "/assets/vn/bg/estate_night.webp"
+    },
+    {
+      "id": "origin_journalist_bootstrap",
+      "title": "Origin Bootstrap - Journalist",
+      "startNodeId": "scene_origin_journalist_bootstrap",
+      "nodeIds": ["scene_origin_journalist_bootstrap"],
+      "mode": "fullscreen",
+      "completionRoute": {
+        "nextScenarioId": "intro_journalist",
+        "requiredFlagsAll": ["origin_journalist"],
+        "blockedIfFlagsAny": [
+          "origin_journalist_handoff_done",
+          "met_anna_intro"
+        ]
+      },
+      "packId": "system_origin_bootstrap"
+    },
+    {
+      "id": "intro_journalist",
+      "title": "Cafe Riegler – News & Nerves",
+      "startNodeId": "scene_journalist_intro",
+      "nodeIds": [
+        "scene_journalist_intro",
+        "scene_journalist_shivers",
+        "scene_journalist_key_secret",
+        "scene_journalist_messenger",
+        "scene_journalist_show_telegram",
+        "scene_journalist_anna_tip",
+        "scene_journalist_exit"
+      ],
+      "mode": "fullscreen",
+      "packId": "journalist_origin",
+      "defaultBackgroundUrl": "/assets/vn/bg/cafe_riegler.webp"
+    },
+    {
+      "id": "intro_aristocrat",
+      "title": "Salon of Debts and Favors",
+      "startNodeId": "scene_aristocrat_intro",
+      "nodeIds": [
+        "scene_aristocrat_intro",
+        "scene_aristocrat_ballroom",
+        "scene_aristocrat_debt",
+        "scene_aristocrat_blackmail",
+        "scene_aristocrat_favor",
+        "scene_aristocrat_exit"
+      ],
+      "mode": "fullscreen",
+      "packId": "aristocrat_origin",
+      "defaultBackgroundUrl": "/assets/vn/bg/salon_night.webp"
+    },
+    {
+      "id": "intro_veteran",
+      "title": "Barracks Echo",
+      "startNodeId": "scene_veteran_intro",
+      "nodeIds": [
+        "scene_veteran_intro",
+        "scene_veteran_flashback",
+        "scene_veteran_dispatch",
+        "scene_veteran_checkpoint",
+        "scene_veteran_oath",
+        "scene_veteran_exit"
+      ],
+      "mode": "fullscreen",
+      "packId": "veteran_origin",
+      "defaultBackgroundUrl": "/assets/vn/bg/barracks_dusk.webp"
+    },
+    {
+      "id": "intro_archivist",
+      "title": "Stacks of Omitted Pages",
+      "startNodeId": "scene_archivist_intro",
+      "nodeIds": [
+        "scene_archivist_intro",
+        "scene_archivist_catalog",
+        "scene_archivist_discrepancy",
+        "scene_archivist_restriction",
+        "scene_archivist_unlock",
+        "scene_archivist_exit"
+      ],
+      "mode": "fullscreen",
+      "packId": "archivist_origin",
+      "defaultBackgroundUrl": "/assets/vn/bg/archive_stacks.webp"
+    },
+    {
+      "id": "sandbox_case01_pilot",
+      "title": "Case 01: Onboarding Pilot",
+      "startNodeId": "scene_intro_journey",
+      "nodeIds": [
+        "scene_intro_journey",
+        "scene_hbf_arrival",
+        "scene_hbf_arrival_ch1",
+        "scene_hbf_arrival_ch2",
+        "scene_meet_fritz_direct",
+        "action_investigate_station",
+        "choice_set_priority",
+        "scene_meet_fritz_indirect",
+        "scene_paperboy_theft",
+        "map_transit",
+        "choice_paperboy_fate",
+        "scene_case01_onboarding_handoff"
+      ],
+      "mode": "fullscreen",
+      "packId": "case01_onboarding"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "scene_start",
+      "scenarioId": "sandbox_intro_pilot",
+      "title": "Entry: scene_start",
+      "body": "- Campaign starts in Karlsruhe sandbox onboarding. - No prior sandbox flags required. - Cold open with travel and office arrival tone.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_START",
+          "text": "Continue to language setup",
+          "nextNodeId": "scene_language_select"
+        }
+      ]
+    },
+    {
+      "id": "scene_language_select",
+      "scenarioId": "sandbox_intro_pilot",
+      "title": "Entry: scene_language_select",
+      "body": "- Entered from [[40_GameViewer/Sandbox_KA/00_Entry/scene_start|scene_start]]. - Start scene completed. - Player chooses interface language and readability settings.",
+      "choices": [
+        {
+          "id": "LANG_DE",
+          "text": "Select Deutsch",
+          "nextNodeId": "scene_backstory_select",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "lang_de",
+              "value": true
+            },
+            {
+              "type": "track_event",
+              "eventName": "language_selected",
+              "tags": {
+                "lang": "de"
+              }
+            }
+          ]
+        },
+        {
+          "id": "LANG_EN",
+          "text": "Select English",
+          "nextNodeId": "scene_backstory_select",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "lang_en",
+              "value": true
+            },
+            {
+              "type": "track_event",
+              "eventName": "language_selected",
+              "tags": {
+                "lang": "en"
+              }
+            }
+          ]
+        },
+        {
+          "id": "LANG_RU",
+          "text": "Select Russian",
+          "nextNodeId": "scene_backstory_select",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "lang_ru",
+              "value": true
+            },
+            {
+              "type": "track_event",
+              "eventName": "language_selected",
+              "tags": {
+                "lang": "ru"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_backstory_select",
+      "scenarioId": "sandbox_intro_pilot",
+      "title": "Entry: scene_backstory_select",
+      "body": "- Entered from [[40_GameViewer/Sandbox_KA/00_Entry/scene_language_select|scene_language_select]]. - Language/config setup completed. - Select starting background flavor for roleplay framing.",
+      "choices": [
+        {
+          "id": "BACKSTORY_JOURNALIST",
+          "text": "Journalist Origin",
+          "nextNodeId": "scene_map_intro",
+          "effects": [
+            {
+              "type": "set_var",
+              "key": "attr_encyclopedia",
+              "value": 4
+            },
+            {
+              "type": "set_var",
+              "key": "attr_perception",
+              "value": 3
+            },
+            {
+              "type": "set_var",
+              "key": "attr_deception",
+              "value": 2
+            },
+            {
+              "type": "set_flag",
+              "key": "origin_journalist",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "flaw_gambling_addiction",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "ability_nose_for_story",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "char_creation_complete",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "track_whistleblower_xp",
+              "value": 0
+            },
+            {
+              "type": "set_var",
+              "key": "track_mythologist_xp",
+              "value": 0
+            },
+            {
+              "type": "track_event",
+              "eventName": "origin_selected",
+              "tags": {
+                "origin": "journalist"
+              }
+            }
+          ]
+        },
+        {
+          "id": "BACKSTORY_ARISTOCRAT",
+          "text": "Aristocrat Origin",
+          "nextNodeId": "scene_map_intro",
+          "effects": [
+            {
+              "type": "set_var",
+              "key": "attr_social",
+              "value": 4
+            },
+            {
+              "type": "set_var",
+              "key": "attr_deception",
+              "value": 2
+            },
+            {
+              "type": "set_var",
+              "key": "attr_encyclopedia",
+              "value": 2
+            },
+            {
+              "type": "set_flag",
+              "key": "origin_aristocrat",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "flaw_prideful_etiquette",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "ability_blue_blood_network",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "char_creation_complete",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "track_whistleblower_xp",
+              "value": 0
+            },
+            {
+              "type": "set_var",
+              "key": "track_mythologist_xp",
+              "value": 0
+            },
+            {
+              "type": "track_event",
+              "eventName": "origin_selected",
+              "tags": {
+                "origin": "aristocrat"
+              }
+            }
+          ]
+        },
+        {
+          "id": "BACKSTORY_VETERAN",
+          "text": "Veteran Origin",
+          "nextNodeId": "scene_map_intro",
+          "effects": [
+            {
+              "type": "set_var",
+              "key": "attr_physical",
+              "value": 4
+            },
+            {
+              "type": "set_var",
+              "key": "attr_perception",
+              "value": 2
+            },
+            {
+              "type": "set_var",
+              "key": "attr_spirit",
+              "value": 2
+            },
+            {
+              "type": "set_flag",
+              "key": "origin_veteran",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "flaw_battle_scar_trigger",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "ability_battlefield_memory",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "char_creation_complete",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "track_whistleblower_xp",
+              "value": 0
+            },
+            {
+              "type": "set_var",
+              "key": "track_mythologist_xp",
+              "value": 0
+            },
+            {
+              "type": "track_event",
+              "eventName": "origin_selected",
+              "tags": {
+                "origin": "veteran"
+              }
+            }
+          ]
+        },
+        {
+          "id": "BACKSTORY_ARCHIVIST",
+          "text": "Archivist Origin",
+          "nextNodeId": "scene_map_intro",
+          "effects": [
+            {
+              "type": "set_var",
+              "key": "attr_intellect",
+              "value": 4
+            },
+            {
+              "type": "set_var",
+              "key": "attr_encyclopedia",
+              "value": 3
+            },
+            {
+              "type": "set_var",
+              "key": "attr_social",
+              "value": 1
+            },
+            {
+              "type": "set_flag",
+              "key": "origin_archivist",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "flaw_obsessive_archivist",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "ability_index_of_everything",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "char_creation_complete",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "track_whistleblower_xp",
+              "value": 0
+            },
+            {
+              "type": "set_var",
+              "key": "track_mythologist_xp",
+              "value": 0
+            },
+            {
+              "type": "track_event",
+              "eventName": "origin_selected",
+              "tags": {
+                "origin": "archivist"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_map_intro",
+      "scenarioId": "sandbox_intro_pilot",
+      "title": "Entry: scene_map_intro",
+      "body": "- Entered from [[40_GameViewer/Sandbox_KA/00_Entry/scene_backstory_select|scene_backstory_select]]. - Entry chain is complete. - Introduces free-order sandbox structure and map-centric play.",
+      "terminal": true,
+      "choices": []
+    },
+    {
+      "id": "scene_bank_intro",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Сцена: Разговор с банкиром",
+      "body": "- Вход из [[40_GameViewer/Sandbox_KA/02_Quest_Entries/scene_banker_entry|scene_banker_entry]]. - `sandbox_banker` в статусе `started`. - Визуал: кабинет с закрытым сейфом, ведомости на столе.",
+      "choices": [
+        {
+          "id": "BANK_INTRO_ACCEPT",
+          "text": "Accept the case without pressure",
+          "choiceType": "action",
+          "nextNodeId": "scene_bank_intro_ch1"
+        },
+        {
+          "id": "BANK_INTRO_PRESS_MOTIVE",
+          "text": "Press on hidden motives",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_bank_intro_ch2",
+          "conditions": [
+            {
+              "type": "var_gte",
+              "key": "attr_intellect",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "stress_index",
+              "value": 0.1
+            },
+            {
+              "type": "add_heat",
+              "amount": 1
+            }
+          ]
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "banker_intro_seen",
+          "value": true
+        },
+        {
+          "type": "add_tension",
+          "amount": 1
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_bank_first_impression",
+          "voiceId": "attr_social",
+          "difficulty": 10,
+          "isPassive": true,
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "banker_nervous_noticed",
+                "value": true
+              },
+              {
+                "type": "discover_fact",
+                "caseId": "case_banker_theft",
+                "factId": "fact_banker_nervous"
+              }
+            ]
+          }
+        }
+      ],
+      "characterId": "npc_banker_kessler"
+    },
+    {
+      "id": "scene_bank_intro_ch1",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Choice: Принять дело без конфронтации",
+      "body": "- `choice_id`: `BANK_INTRO_ACCEPT` - `gating_check`: none - `success_effect`: открывает хаб следов",
+      "choices": [
+        {
+          "id": "BANK_CH1_CONTINUE",
+          "text": "Move to lead hub",
+          "nextNodeId": "scene_bank_leads",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "banker_client_cooperative",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "rep_finance",
+              "value": 0.4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_bank_intro_ch2",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Choice: Надавить на мотивы клиента",
+      "body": "- `choice_id`: `BANK_INTRO_PRESS_MOTIVE` - `gating_check`: `logic >= 2` or `empathy >= 2` - `success_effect`: `clue_CLUE_B05_WAX_ON_GLOVE = true`",
+      "choices": [
+        {
+          "id": "BANK_CH2_CONTINUE",
+          "text": "Move to lead hub",
+          "nextNodeId": "scene_bank_leads",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "clue_ledger_gap",
+              "value": true
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_banker_theft",
+              "factId": "fact_ledger_gap"
+            },
+            {
+              "type": "set_flag",
+              "key": "banker_client_hostile",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "rep_civic",
+              "value": 0.2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_bank_leads",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Сцена-хаб: Следы по делу Вагнера",
+      "body": "- Вход из `scene_bank_intro_ch1` или `scene_bank_intro_ch2`. - Повторный вход из `scene_son_house` и `scene_tavern`. - `sandbox_banker = started`",
+      "choices": [
+        {
+          "id": "BANK_LEAD_HOUSE",
+          "text": "Follow house lead",
+          "nextNodeId": "scene_bank_leads",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "banker_lead_house_checked",
+              "value": false
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "banker_lead_house_checked",
+              "value": true
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_banker_theft",
+              "factId": "fact_house_contact"
+            },
+            {
+              "type": "add_var",
+              "key": "case_progress",
+              "value": 0.2
+            }
+          ]
+        },
+        {
+          "id": "BANK_LEAD_TAVERN",
+          "text": "Follow tavern lead",
+          "nextNodeId": "scene_bank_leads",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "banker_lead_tavern_checked",
+              "value": false
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "banker_lead_tavern_checked",
+              "value": true
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_banker_theft",
+              "factId": "fact_tavern_alibi"
+            },
+            {
+              "type": "add_var",
+              "key": "case_progress",
+              "value": 0.2
+            }
+          ]
+        },
+        {
+          "id": "BANK_LEAD_CASINO",
+          "text": "Proceed to casino confrontation",
+          "nextNodeId": "scene_bank_resolution",
+          "conditions": [
+            {
+              "type": "var_gte",
+              "key": "case_progress",
+              "value": 0.2
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "banker_finale_started",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "checks_passed",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_bank_resolution",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Сцена: Казино и очная ставка",
+      "body": "- Вход из [[40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_bank_leads|scene_bank_leads]]. - `sandbox_banker = started` - Рекомендуется хотя бы одна собранная улика (`CLUE_B01` или `CLUE_B03`), но вход не блокируется.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_quest_stage",
+          "questId": "quest_banker",
+          "stage": 3
+        },
+        {
+          "type": "grant_xp",
+          "amount": 50
+        }
+      ],
+      "backgroundUrl": "/assets/vn/bg/casino_interior.webp"
+    },
+    {
+      "id": "scene_estate_intro",
+      "scenarioId": "sandbox_ghost_pilot",
+      "title": "👻 Estate Intro",
+      "body": "| Element | Node | | ----------------- | ----------------------------- | | 🎨 Background | [[scene_estate_intro_bg]] |",
+      "choices": [
+        {
+          "id": "GHOST_INVESTIGATE",
+          "text": "Begin estate investigation",
+          "choiceType": "action",
+          "nextNodeId": "scene_evidence_collection"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "add_tension",
+          "amount": 2
+        },
+        {
+          "type": "set_quest_stage",
+          "questId": "quest_ghost",
+          "stage": 1
+        }
+      ],
+      "backgroundUrl": "/assets/vn/bg/estate_entrance.webp"
+    },
+    {
+      "id": "scene_evidence_collection",
+      "scenarioId": "sandbox_ghost_pilot",
+      "title": "🔎 Evidence Collection",
+      "body": "| Element | Node | | ----------------- | ----------------------------------- | | 🎨 Background | [[scene_library_bg]] |",
+      "choices": [
+        {
+          "id": "GHOST_EVIDENCE_BOOKSHELF",
+          "text": "Inspect bookshelf",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_conclusion_true",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "ghost_bookshelf_switch_found",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "attr_shadow",
+              "value": 1
+            },
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_bookshelf_switch"
+            }
+          ]
+        },
+        {
+          "id": "GHOST_EVIDENCE_THERMOMETER",
+          "text": "Check the temperature anomaly",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_conclusion_true",
+          "skillCheck": {
+            "id": "check_ghost_thermometer",
+            "voiceId": "attr_intellect",
+            "difficulty": 8,
+            "onSuccess": {
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "ghost_cold_spot_confirmed",
+                  "value": true
+                },
+                {
+                  "type": "add_var",
+                  "key": "attr_spirit",
+                  "value": 1
+                },
+                {
+                  "type": "grant_evidence",
+                  "evidenceId": "ev_cold_spot"
+                }
+              ]
+            },
+            "onFail": {
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "ghost_cold_spot_unclear",
+                  "value": true
+                }
+              ]
+            }
+          },
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "ghost_cold_spot_confirmed",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "attr_spirit",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "GHOST_EVIDENCE_FLOOR",
+          "text": "Inspect floor traces",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_conclusion_true",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "ghost_ectoplasm_found",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "checks_passed",
+              "value": 1
+            },
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_ectoplasm"
+            }
+          ]
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_ghost_cold_draft",
+          "voiceId": "attr_spirit",
+          "difficulty": 12,
+          "isPassive": true,
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "ghost_draft_sensed",
+                "value": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene_conclusion_true",
+      "scenarioId": "sandbox_ghost_pilot",
+      "title": "ðŸ‘» Conclusion: The Supernatural Truth",
+      "body": "**[Narrator]**: \"You confront the Baroness with your findings. The cold spots, the ectoplasm... This is no trick. The estate is truly haunted.\"",
+      "terminal": true,
+      "choices": []
+    },
+    {
+      "id": "scene_origin_journalist_bootstrap",
+      "scenarioId": "origin_journalist_bootstrap",
+      "title": "Entry: scene_backstory_select",
+      "body": "Preparing case file...",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_var",
+          "key": "attr_encyclopedia",
+          "value": 4
+        },
+        {
+          "type": "set_var",
+          "key": "attr_perception",
+          "value": 3
+        },
+        {
+          "type": "set_var",
+          "key": "attr_deception",
+          "value": 2
+        },
+        {
+          "type": "set_flag",
+          "key": "origin_journalist",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "flaw_gambling_addiction",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "ability_nose_for_story",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "char_creation_complete",
+          "value": true
+        },
+        {
+          "type": "set_var",
+          "key": "track_whistleblower_xp",
+          "value": 0
+        },
+        {
+          "type": "set_var",
+          "key": "track_mythologist_xp",
+          "value": 0
+        },
+        {
+          "type": "track_event",
+          "eventName": "origin_selected",
+          "tags": {
+            "origin": "journalist"
+          }
+        },
+        {
+          "type": "track_event",
+          "eventName": "origin_bootstrap_applied",
+          "tags": {
+            "origin": "journalist",
+            "system_flow": "origin_bootstrap"
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "type": "flag_equals",
+          "key": "origin_journalist",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "scene_journalist_intro",
+      "scenarioId": "intro_journalist",
+      "title": "Сцена: Cafe Riegler",
+      "body": "A silver teaspoon clinks sparsely against fine porcelain. Cafe Riegler smells faintly of almond cake and old, damp wool. Through the window, the Schwabentor looms, indifferent to the gray afternoon. Anna Mahler sits opposite you. She looks tired, though her posture remains imp...",
+      "choices": [
+        {
+          "id": "JOURNALIST_SHIVERS_CHECK",
+          "text": "[Shivers] Close your eyes and feel the vibration of the floor.",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_journalist_shivers",
+          "skillCheck": {
+            "id": "check_journalist_shivers",
+            "voiceId": "attr_spirit",
+            "difficulty": 11,
+            "onSuccess": {
+              "nextNodeId": "scene_journalist_shivers",
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "used_shivers_intro",
+                  "value": true
+                },
+                {
+                  "type": "add_var",
+                  "key": "checks_passed",
+                  "value": 1
+                },
+                {
+                  "type": "add_var",
+                  "key": "track_mythologist_xp",
+                  "value": 1
+                },
+                {
+                  "type": "track_event",
+                  "eventName": "journalist_shivers_success",
+                  "tags": {
+                    "route": "journalist_origin"
+                  }
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_journalist_key_secret",
+              "effects": [
+                {
+                  "type": "add_var",
+                  "key": "checks_failed",
+                  "value": 1
+                },
+                {
+                  "type": "add_tension",
+                  "amount": 1
+                },
+                {
+                  "type": "track_event",
+                  "eventName": "journalist_shivers_fail",
+                  "tags": {
+                    "route": "journalist_origin"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "JOURNALIST_SELECTIVE_EXCAVATION",
+          "text": "\"A detective only digs when the client pays for the shovel, Anna.\"",
+          "choiceType": "action",
+          "nextNodeId": "scene_journalist_key_secret",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "track_whistleblower_xp",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "characterId": "npc_anna_mahler"
+    },
+    {
+      "id": "scene_journalist_shivers",
+      "scenarioId": "intro_journalist",
+      "title": "Сцена: Shivers",
+      "body": "SHIVERS [Medium: Success] - It begins as a faint thrumming against the soles of your shoes. The ancient cobblestones of Freiburg are murmuring. An odd, melancholy vibration—like the distant tolling of the Münster bells, but coming from deep within the earth. A secret is gestat...",
+      "choices": [
+        {
+          "id": "JOURNALIST_SHIVERS_CONTINUE",
+          "text": "She looks at you like you've grown a second head.",
+          "nextNodeId": "scene_journalist_key_secret",
+          "effects": [
+            {
+              "type": "grant_influence",
+              "amount": 1
+            }
+          ]
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "used_shivers_intro",
+          "value": true
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_journalist_key_secret",
+      "scenarioId": "intro_journalist",
+      "title": "Сцена: Anna's Secret",
+      "body": "Anna’s eyes dart toward the door before returning to her cooling tea. \"There is a ledger at the Provincial Bank. It is heavy, bound in black leather,\" she murmurs, her voice barely carrying over the scrape of chairs. \"But it is what is absent that matters. Blank pages where th...",
+      "choices": [
+        {
+          "id": "JOURNALIST_KEY_SECRET_CONTINUE",
+          "text": "A messenger boy in a tattered blue cap skids to a halt by your table.",
+          "nextNodeId": "scene_journalist_messenger"
+        },
+        {
+          "id": "JOURNALIST_FLAW_PLACE_WAGER",
+          "text": "[Flaw] Bet your last coin on the messenger's destination.",
+          "choiceType": "flavor",
+          "nextNodeId": "scene_journalist_messenger",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "flaw_gambling_addiction",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "var_addiction_pressure",
+              "value": 1
+            },
+            {
+              "type": "add_heat",
+              "amount": 1
+            },
+            {
+              "type": "track_event",
+              "eventName": "journalist_flaw_wager",
+              "tags": {
+                "flaw": "gambling_addiction"
+              }
+            }
+          ]
+        }
+      ],
+      "characterId": "npc_anna_mahler"
+    },
+    {
+      "id": "scene_journalist_messenger",
+      "scenarioId": "intro_journalist",
+      "title": "Сцена: The Messenger",
+      "body": "PERCEPTION [Easy: Success] - The brass bell above the cafe door shivers. A boy in a damp coat stands dripping in the entryway. He deposits an envelope on the table. It bears no name, only a crimson wax seal pressed with the heavy, unblinking crest of the Provincial Bank. The s...",
+      "choices": [
+        {
+          "id": "JOURNALIST_SHOW_SEAL",
+          "text": "\"It seems an exclusive awaits us. But keep your mouth shut.\"",
+          "choiceType": "action",
+          "nextNodeId": "scene_journalist_show_telegram",
+          "skillCheck": {
+            "id": "check_journalist_show_seal",
+            "voiceId": "attr_deception",
+            "difficulty": 12,
+            "onSuccess": {
+              "nextNodeId": "scene_journalist_show_telegram",
+              "effects": [
+                {
+                  "type": "change_relationship",
+                  "characterId": "npc_anna_mahler",
+                  "delta": 15
+                },
+                {
+                  "type": "set_flag",
+                  "key": "anna_knows_secret",
+                  "value": true
+                },
+                {
+                  "type": "add_var",
+                  "key": "checks_passed",
+                  "value": 1
+                },
+                {
+                  "type": "add_var",
+                  "key": "track_whistleblower_xp",
+                  "value": 1
+                },
+                {
+                  "type": "set_flag",
+                  "key": "track_whistleblower_tier1",
+                  "value": true
+                },
+                {
+                  "type": "track_event",
+                  "eventName": "journalist_show_seal_success",
+                  "tags": {
+                    "route": "whistleblower"
+                  }
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_journalist_exit",
+              "effects": [
+                {
+                  "type": "change_relationship",
+                  "characterId": "npc_anna_mahler",
+                  "delta": -5
+                },
+                {
+                  "type": "add_var",
+                  "key": "checks_failed",
+                  "value": 1
+                },
+                {
+                  "type": "add_heat",
+                  "amount": 1
+                },
+                {
+                  "type": "track_event",
+                  "eventName": "journalist_show_seal_fail",
+                  "tags": {
+                    "route": "whistleblower"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "JOURNALIST_HIDE_SEAL",
+          "text": "Pocket the telegram without a word.",
+          "choiceType": "action",
+          "nextNodeId": "scene_journalist_exit",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "track_mythologist_xp",
+              "value": 1
+            },
+            {
+              "type": "set_flag",
+              "key": "track_mythologist_tier1",
+              "value": true
+            },
+            {
+              "type": "add_tension",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "JOURNALIST_FLAW_DOUBLE_OR_NOTHING",
+          "text": "[Flaw] Offer the boy double if he tells who paid him.",
+          "choiceType": "action",
+          "nextNodeId": "scene_journalist_exit",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "flaw_gambling_addiction",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "var_addiction_pressure",
+              "value": 2
+            },
+            {
+              "type": "add_heat",
+              "amount": 2
+            },
+            {
+              "type": "grant_influence",
+              "amount": 1
+            },
+            {
+              "type": "track_event",
+              "eventName": "journalist_double_or_nothing",
+              "tags": {
+                "flaw": "gambling_addiction"
+              }
+            }
+          ]
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_journalist_show_telegram",
+      "scenarioId": "intro_journalist",
+      "title": "Сцена: Show Telegram",
+      "body": "DRAMA [Medium: Success] - The red wax sits between you like a drop of spilled blood. Anna traces the rim of her cup. \"A summons from the crypt,\" she says, a flicker of genuine apprehension crossing her otherwise placid face. \"I had hoped it was merely a rumor. It seems the gho...",
+      "choices": [
+        {
+          "id": "JOURNALIST_TELEGRAM_CONTINUE",
+          "text": "Anna's smirk softens into a look of genuine intrigue.",
+          "nextNodeId": "scene_journalist_anna_tip"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "discover_fact",
+          "caseId": "case_banker_theft",
+          "factId": "fact_journalist_bank_seal"
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_journalist_anna_tip",
+      "scenarioId": "intro_journalist",
+      "title": "Сцена: Anna's Tip",
+      "body": "\"If the dead are waking, you will need more than a press pass.\" She slides a heavy brass key across the table, hiding it beneath the financial section of a discarded newspaper. It is cold, jagged, and smells faintly of ozone and old iron. \"A cast of the archive door. Do not li...",
+      "choices": [
+        {
+          "id": "JOURNALIST_TIP_CONTINUE",
+          "text": "You drain the last of your cold coffee and stand up.",
+          "nextNodeId": "scene_journalist_exit"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "grant_evidence",
+          "evidenceId": "ev_bank_master_key"
+        },
+        {
+          "type": "discover_fact",
+          "caseId": "case_banker_theft",
+          "factId": "fact_journalist_master_key"
+        },
+        {
+          "type": "grant_influence",
+          "amount": 1
+        }
+      ],
+      "characterId": "npc_anna_mahler"
+    },
+    {
+      "id": "scene_journalist_exit",
+      "scenarioId": "intro_journalist",
+      "title": "Сцена: Exit",
+      "body": "The tea has grown entirely cold. INLAND EMPIRE [Formidable: Success] - The brass key rests heavily in your coat pocket. Outside, the rain begins to fall with a rhythmic, mournful persistence. The narrow streets of Freiburg stretch out like veins leading back to the heart of a ...",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "met_anna_intro",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "origin_journalist_handoff_done",
+          "value": true
+        },
+        {
+          "type": "unlock_group",
+          "groupId": "loc_ka_rathaus"
+        },
+        {
+          "type": "unlock_group",
+          "groupId": "loc_rathaus"
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_nose_for_story",
+          "voiceId": "attr_perception",
+          "difficulty": 12,
+          "isPassive": true,
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "nose_for_story_triggered",
+                "value": true
+              },
+              {
+                "type": "grant_influence",
+                "amount": 1
+              },
+              {
+                "type": "track_event",
+                "eventName": "nose_for_story_triggered",
+                "tags": {
+                  "origin": "journalist"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_aristocrat_intro",
+      "scenarioId": "intro_aristocrat",
+      "title": "Scene: Baroness in the Winter Salon",
+      "body": "The salon is warm with coal heat and colder with protocol. Baroness Elise waits by the marble fireplace with a ledger tied in blue ribbon. \"If you are here to investigate, inspector, you must first decide whether you still understand manners.\"",
+      "choices": [
+        {
+          "id": "ARISTOCRAT_COURTESY_CHECK",
+          "text": "[Social] Mirror her etiquette before speaking.",
+          "nextNodeId": "scene_aristocrat_ballroom",
+          "skillCheck": {
+            "id": "check_aristocrat_courtesy",
+            "voiceId": "attr_social",
+            "difficulty": 10,
+            "onSuccess": {
+              "nextNodeId": "scene_aristocrat_ballroom",
+              "effects": [
+                {
+                  "type": "add_var",
+                  "key": "checks_passed",
+                  "value": 1
+                },
+                {
+                  "type": "grant_influence",
+                  "amount": 1
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_aristocrat_debt",
+              "effects": [
+                {
+                  "type": "add_var",
+                  "key": "checks_failed",
+                  "value": 1
+                },
+                {
+                  "type": "add_heat",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "ARISTOCRAT_SKIP_RITUAL",
+          "text": "Skip formalities and ask about the debt register.",
+          "nextNodeId": "scene_aristocrat_debt"
+        }
+      ],
+      "characterId": "npc_baroness_elise"
+    },
+    {
+      "id": "scene_aristocrat_ballroom",
+      "scenarioId": "intro_aristocrat",
+      "title": "Scene: Ballroom Ledger",
+      "body": "A quartet plays somewhere behind closed doors while Elise opens the ledger to a page of carefully erased names. Every blank line is expensive. Every correction looks intentional.",
+      "choices": [
+        {
+          "id": "ARISTOCRAT_BALLROOM_CONTINUE",
+          "text": "Accept a private lead ledger from the Baroness.",
+          "nextNodeId": "scene_aristocrat_blackmail",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "track_whistleblower_xp",
+              "value": 1
+            },
+            {
+              "type": "set_flag",
+              "key": "track_whistleblower_tier1",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "characterId": "npc_baroness_elise"
+    },
+    {
+      "id": "scene_aristocrat_debt",
+      "scenarioId": "intro_aristocrat",
+      "title": "Scene: Debt Registry",
+      "body": "The debt registry is a machine of social blackmail. Initials, dates, signatures, and one column marked \"informal obligation\" in red ink. The Baroness watches your eyes more than your hands.",
+      "choices": [
+        {
+          "id": "ARISTOCRAT_DEBT_CONTINUE",
+          "text": "Trace signatures from the unpaid pages.",
+          "nextNodeId": "scene_aristocrat_blackmail"
+        },
+        {
+          "id": "ARISTOCRAT_FLAW_INSULT",
+          "text": "[Flaw] Publicly humiliate a minor lord to force compliance.",
+          "nextNodeId": "scene_aristocrat_blackmail",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "flaw_prideful_etiquette",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "add_heat",
+              "amount": 1
+            },
+            {
+              "type": "add_var",
+              "key": "var_addiction_pressure",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_aristocrat_blackmail",
+      "scenarioId": "intro_aristocrat",
+      "title": "Scene: Letter of Compromise",
+      "body": "A folded letter sealed with a noble crest slides across the table. \"A banker signed this before he denied everything,\" Elise says. \"Use it carefully. Or use it brutally.\"",
+      "choices": [
+        {
+          "id": "ARISTOCRAT_BLACKMAIL_CONTINUE",
+          "text": "Lock the compromise letter in your coat.",
+          "nextNodeId": "scene_aristocrat_favor",
+          "effects": [
+            {
+              "type": "set_quest_stage",
+              "questId": "quest_aristocrat",
+              "stage": 1
+            }
+          ]
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "grant_evidence",
+          "evidenceId": "ev_aristocrat_seal"
+        }
+      ],
+      "characterId": "npc_baroness_elise"
+    },
+    {
+      "id": "scene_aristocrat_favor",
+      "scenarioId": "intro_aristocrat",
+      "title": "Scene: Favor Contract",
+      "body": "You negotiate without writing anything down. The terms are obvious anyway: she gets timing control, you get access, and both of you pretend this is temporary.",
+      "choices": [
+        {
+          "id": "ARISTOCRAT_FAVOR_CONTINUE",
+          "text": "Promise one favor in exchange for silence.",
+          "nextNodeId": "scene_aristocrat_exit",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "track_mythologist_xp",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "characterId": "npc_baroness_elise"
+    },
+    {
+      "id": "scene_aristocrat_exit",
+      "scenarioId": "intro_aristocrat",
+      "title": "Scene: Exit from the Salon",
+      "body": "Outside, carriage wheels hiss across wet stone. You leave with a seal, a favor, and the certainty that etiquette is just another weapon when used correctly.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "met_baroness_intro",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "origin_aristocrat_handoff_done",
+          "value": true
+        },
+        {
+          "type": "unlock_group",
+          "groupId": "loc_ka_bank"
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_veteran_intro",
+      "scenarioId": "intro_veteran",
+      "title": "Scene: Muster Yard",
+      "body": "Rain drums on the corrugated roof above the muster yard. Major Falk stands beside a rusted field map. \"Old wars never end,\" he says, \"they just rent rooms in your head.\"",
+      "choices": [
+        {
+          "id": "VETERAN_FLASHBACK_CHECK",
+          "text": "[Spirit] Hold your stance while artillery memories return.",
+          "nextNodeId": "scene_veteran_flashback",
+          "skillCheck": {
+            "id": "check_veteran_flashback",
+            "voiceId": "attr_spirit",
+            "difficulty": 10,
+            "onSuccess": {
+              "nextNodeId": "scene_veteran_flashback",
+              "effects": [
+                {
+                  "type": "add_var",
+                  "key": "checks_passed",
+                  "value": 1
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_veteran_dispatch",
+              "effects": [
+                {
+                  "type": "add_var",
+                  "key": "checks_failed",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "VETERAN_KEEP_MOVING",
+          "text": "Push the memories down and request immediate briefing.",
+          "nextNodeId": "scene_veteran_dispatch"
+        }
+      ],
+      "characterId": "npc_major_falk"
+    },
+    {
+      "id": "scene_veteran_flashback",
+      "scenarioId": "intro_veteran",
+      "title": "Scene: Artillery Echo",
+      "body": "For a second the rain is artillery and the yard is a trench. Then it passes. Your pulse settles enough to keep listening.",
+      "choices": [
+        {
+          "id": "VETERAN_FLASHBACK_CONTINUE",
+          "text": "Count breathing cadence until your hands stop shaking.",
+          "nextNodeId": "scene_veteran_dispatch",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "veteran_flashback_controlled",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_veteran_dispatch",
+      "scenarioId": "intro_veteran",
+      "title": "Scene: Dispatch Envelope",
+      "body": "Falk hands you a dispatch stamped with military inventory codes. The route intersects civilian banking traffic three times in one night. That is not an accident.",
+      "choices": [
+        {
+          "id": "VETERAN_DISPATCH_CONTINUE",
+          "text": "Memorize the courier route and unit aliases.",
+          "nextNodeId": "scene_veteran_checkpoint",
+          "effects": [
+            {
+              "type": "set_quest_stage",
+              "questId": "quest_veteran",
+              "stage": 1
+            }
+          ]
+        },
+        {
+          "id": "VETERAN_FLAW_TRIGGER",
+          "text": "[Flaw] Lash out at a trainee who dropped his rifle.",
+          "nextNodeId": "scene_veteran_checkpoint",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "flaw_battle_scar_trigger",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "add_heat",
+              "amount": 1
+            }
+          ]
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "grant_evidence",
+          "evidenceId": "ev_veteran_dispatch"
+        }
+      ],
+      "characterId": "npc_major_falk"
+    },
+    {
+      "id": "scene_veteran_checkpoint",
+      "scenarioId": "intro_veteran",
+      "title": "Scene: Checkpoint Memories",
+      "body": "A temporary checkpoint sits where no official map shows one. You can still read the old routines: who salutes, who hesitates, who lies by overexplaining.",
+      "choices": [
+        {
+          "id": "VETERAN_CHECKPOINT_CONTINUE",
+          "text": "Call in old favors to pass an inspection line.",
+          "nextNodeId": "scene_veteran_oath",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "track_whistleblower_xp",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "characterId": "npc_major_falk"
+    },
+    {
+      "id": "scene_veteran_oath",
+      "scenarioId": "intro_veteran",
+      "title": "Scene: Quiet Oath",
+      "body": "You and Falk speak under the awning while recruits pretend not to listen. No speeches. Just one promise that this case will not become another buried report.",
+      "choices": [
+        {
+          "id": "VETERAN_OATH_CONTINUE",
+          "text": "Swear to finish what your unit never could.",
+          "nextNodeId": "scene_veteran_exit",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "track_mythologist_xp",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "characterId": "npc_major_falk"
+    },
+    {
+      "id": "scene_veteran_exit",
+      "scenarioId": "intro_veteran",
+      "title": "Scene: Exit from Barracks",
+      "body": "The rain thins out as you step into the street. Your coat smells of oil and wet canvas, and your pocket is heavier with official paper than it should be.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "met_major_falk_intro",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "origin_veteran_handoff_done",
+          "value": true
+        },
+        {
+          "type": "unlock_group",
+          "groupId": "loc_ka_estate"
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_archivist_intro",
+      "scenarioId": "intro_archivist",
+      "title": "Scene: Municipal Archive",
+      "body": "Dust hangs in thin vertical shafts of light. Archivist Otto taps a stack of index cards and says, \"Missing pages are louder than complete ones, if you know where to listen.\"",
+      "choices": [
+        {
+          "id": "ARCHIVIST_INDEX_CHECK",
+          "text": "[Intellect] Rebuild the missing index from memory.",
+          "nextNodeId": "scene_archivist_catalog",
+          "skillCheck": {
+            "id": "check_archivist_index",
+            "voiceId": "attr_intellect",
+            "difficulty": 11,
+            "onSuccess": {
+              "nextNodeId": "scene_archivist_catalog",
+              "effects": [
+                {
+                  "type": "add_var",
+                  "key": "checks_passed",
+                  "value": 1
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_archivist_discrepancy",
+              "effects": [
+                {
+                  "type": "add_var",
+                  "key": "checks_failed",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "ARCHIVIST_SKIP_TO_LEDGER",
+          "text": "Ignore catalog policy and jump to restricted ledgers.",
+          "nextNodeId": "scene_archivist_discrepancy"
+        }
+      ],
+      "characterId": "npc_archivist_otto"
+    },
+    {
+      "id": "scene_archivist_catalog",
+      "scenarioId": "intro_archivist",
+      "title": "Scene: Catalog Drift",
+      "body": "The catalog numbers jump by two, then by nine, then by one again. Administrative chaos would be random; this pattern is curated.",
+      "choices": [
+        {
+          "id": "ARCHIVIST_CATALOG_CONTINUE",
+          "text": "Flag irregular signatures for later comparison.",
+          "nextNodeId": "scene_archivist_discrepancy"
+        }
+      ],
+      "characterId": "npc_archivist_otto"
+    },
+    {
+      "id": "scene_archivist_discrepancy",
+      "scenarioId": "intro_archivist",
+      "title": "Scene: Ledger Discrepancy",
+      "body": "A municipal tax ledger references a bank annex that does not exist on any public map. Otto does not seem surprised. He seems annoyed that you noticed.",
+      "choices": [
+        {
+          "id": "ARCHIVIST_DISCREPANCY_CONTINUE",
+          "text": "Cross-link the missing folios to municipal tax seals.",
+          "nextNodeId": "scene_archivist_restriction"
+        },
+        {
+          "id": "ARCHIVIST_FLAW_OVERSCRIBE",
+          "text": "[Flaw] Rewrite the archive index in your own notation.",
+          "nextNodeId": "scene_archivist_restriction",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "flaw_obsessive_archivist",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "add_tension",
+              "amount": 1
+            }
+          ]
+        }
+      ],
+      "characterId": "npc_archivist_otto"
+    },
+    {
+      "id": "scene_archivist_restriction",
+      "scenarioId": "intro_archivist",
+      "title": "Scene: Restricted Drawer",
+      "body": "A restricted drawer opens with a reluctant click. Inside: one index card, one date, and one routing code that points directly at the bank's sealed archive wing.",
+      "choices": [
+        {
+          "id": "ARCHIVIST_RESTRICTION_CONTINUE",
+          "text": "Keep the card hidden and request one final key.",
+          "nextNodeId": "scene_archivist_unlock"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "grant_evidence",
+          "evidenceId": "ev_archivist_index_card"
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_archivist_unlock",
+      "scenarioId": "intro_archivist",
+      "title": "Scene: Indexed Key",
+      "body": "Otto signs the release registry with visible irritation and leaves the key in your line of sight. \"Catalog it before you use it,\" he says. \"Order first, panic later.\"",
+      "choices": [
+        {
+          "id": "ARCHIVIST_UNLOCK_CONTINUE",
+          "text": "Catalog the key and leave before dawn.",
+          "nextNodeId": "scene_archivist_exit",
+          "effects": [
+            {
+              "type": "set_quest_stage",
+              "questId": "quest_archivist",
+              "stage": 1
+            }
+          ]
+        }
+      ],
+      "characterId": "npc_archivist_otto"
+    },
+    {
+      "id": "scene_archivist_exit",
+      "scenarioId": "intro_archivist",
+      "title": "Scene: Exit from Archives",
+      "body": "You leave with card edges still biting your fingertips. The city above ground feels less stable now that its records no longer agree with themselves.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "met_archivist_intro",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "origin_archivist_handoff_done",
+          "value": true
+        },
+        {
+          "type": "unlock_group",
+          "groupId": "loc_ka_bank"
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_intro_journey",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\n\"Поезд отходит от Карлсруэ в предрассветных сумерках.\nТы один в купе — [clue:пустота:ev_empty_compartment] вокруг располагает к размышлениям.\n\n[clue:Телеграмма:ev_telegram_paper] лежит в кармане. Её слова ты помнишь наизусть:\n_«Ограбление Имперского Банка»_.\"\n\n\n**[Internal Monologue]**:\n\"Фрайбург. Университетский город. Граница с Швейцарией.\nЕсли деньги уже за границей — дело закрыто, не начавшись.\n\nНо если вор ещё здесь...\"\n\n**[Narrator]**:\n\"За окном проносятся [clue:тёмные силуэты Шварцвальда:ev_schwarzwald_silhouette].\nТуман [clue:стелется над полями:ev_morning_mist], скрывая очертания деревень.\n\nПроводник объявляет: _«Nächster Halt — Freiburg im Breisgau!»_\"\n\n\n**[Internal Monologue]**:\n\"Каждое дело начинается с вопроса.\nЭтот раз вопрос простой: _кто забрал деньги?_\n\nОтвет — где-то в этом городе. Осталось его найти.\"\n\n\n**[Narrator]**:\n\"Поезд замедляется. Вокзал Фрайбурга появляется из тумана —\n[clue:величественное здание:ev_station_architecture] в неоренессансном стиле.\"",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_INTRO_JOURNEY",
+          "text": "Continue to Freiburg Hauptbahnhof.",
+          "nextNodeId": "scene_hbf_arrival",
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "scene_hbf_arrival",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "HBF Arrival",
+      "body": "**[Narrator]**:\n\"Поезд останавливается с пронзительным скрежетом тормозов. [clue:Пар:ev_station_steam] заполняет платформу,\nскрывая очертания вокзала. Воздух пахнет [clue:угольным дымом:ev_coal_smell] и сырым камнем.\n\nТы выходишь из вагона, чувствуя [clue:утренний холод:ev_morning_chill] сквозь пальто. Толпа пассажиров\nустремляется к выходу — [clue:шляпы, чемоданы, зонты:ev_rushing_crowd]. Никто не обращает на тебя внимания.\n\nГде-то впереди — Фрайбург. И дело, ради которого ты здесь.\"\n\n**Passive Perception (DC 7)**\n\n- Success: You identify Fritz early in the moving crowd.\n- Failure: You only see crowd noise and must locate him through action.\n\nAfter the check, the station pressure remains high and the player must decide how to proceed.",
+      "choices": [
+        {
+          "id": "CASE01_SCENE_HBF_ARRIVAL_01",
+          "text": "Approach Fritz directly.",
+          "nextNodeId": "scene_hbf_arrival_ch1",
+          "choiceType": "action"
+        },
+        {
+          "id": "CASE01_SCENE_HBF_ARRIVAL_02",
+          "text": "Investigate the station before contact.",
+          "nextNodeId": "scene_hbf_arrival_ch2",
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "scene_hbf_arrival_ch1",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Choice: Approach the Uniform",
+      "body": "You move straight through the foot traffic toward the uniformed officer before\nthe station can swallow the moment.",
+      "choices": [
+        {
+          "id": "CASE01_SCENE_HBF_ARRIVAL_CH1_01",
+          "text": "Continue to direct introduction.",
+          "nextNodeId": "scene_meet_fritz_direct",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_skipped_station_investigation",
+              "value": true
+            }
+          ],
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "scene_hbf_arrival_ch2",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Choice: Investigate Station",
+      "body": "Instead of closing distance, you let the platform speak first and map the flow\nof people, voices, and nervous movement.",
+      "choices": [
+        {
+          "id": "CASE01_SCENE_HBF_ARRIVAL_CH2_01",
+          "text": "Begin station investigation.",
+          "nextNodeId": "action_investigate_station",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_investigated_station",
+              "value": true
+            }
+          ],
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "scene_meet_fritz_direct",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Meeting Fritz (Direct)",
+      "body": "You intercept Fritz before he finishes shouting to the constables. He takes one\nlook at your badge and switches to mission mode.",
+      "choices": [
+        {
+          "id": "CASE01_SCENE_MEET_FRITZ_DIRECT_01",
+          "text": "Ask for the formal mission briefing.",
+          "nextNodeId": "choice_set_priority",
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "action_investigate_station",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Action: Investigate Station",
+      "body": "You delay contact with Fritz and test the platform for weak points. A paperboy\npasses too close, and the station reveals three immediate options.",
+      "choices": [
+        {
+          "id": "CASE01_ACTION_INVESTIGATE_STATION_01",
+          "text": "Buy the newspaper.",
+          "nextNodeId": "scene_meet_fritz_indirect",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_bought_newspaper",
+              "value": true
+            }
+          ],
+          "choiceType": "inquiry"
+        },
+        {
+          "id": "CASE01_ACTION_INVESTIGATE_STATION_02",
+          "text": "Glance at the headline without paying.",
+          "nextNodeId": "scene_paperboy_theft",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_paperboy_encounter",
+              "value": true
+            }
+          ],
+          "choiceType": "inquiry"
+        },
+        {
+          "id": "CASE01_ACTION_INVESTIGATE_STATION_03",
+          "text": "Move on and skip the kiosk.",
+          "nextNodeId": "scene_meet_fritz_indirect",
+          "choiceType": "inquiry"
+        }
+      ]
+    },
+    {
+      "id": "choice_set_priority",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Decision: Set Priority",
+      "body": "Fritz lays out two urgent fronts: the bank robbery and the political pressure\nfrom Rathaus. You choose what burns first.",
+      "choices": [
+        {
+          "id": "CASE01_CHOICE_SET_PRIORITY_01",
+          "text": "Bank first.",
+          "nextNodeId": "map_transit",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "priority_bank_first",
+              "value": true
+            },
+            {
+              "type": "unlock_group",
+              "groupId": "loc_freiburg_bank"
+            }
+          ],
+          "choiceType": "action"
+        },
+        {
+          "id": "CASE01_CHOICE_SET_PRIORITY_02",
+          "text": "Mayor first.",
+          "nextNodeId": "map_transit",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "priority_mayor_first",
+              "value": true
+            },
+            {
+              "type": "unlock_group",
+              "groupId": "loc_rathaus"
+            }
+          ],
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "scene_meet_fritz_indirect",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Meeting Fritz (Indirect)",
+      "body": "Fritz notices that you took the long way around and reads it instantly. He does\nnot approve of delays, but he respects useful observation.",
+      "choices": [
+        {
+          "id": "CASE01_SCENE_MEET_FRITZ_INDIRECT_01",
+          "text": "Move into the mission briefing.",
+          "nextNodeId": "choice_set_priority",
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "scene_paperboy_theft",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Scene: Paperboy Theft Attempt",
+      "body": "The boy bumps your shoulder and reaches for your watch in one smooth motion.\nYou catch the wrist, and Fritz arrives before the crowd can react.",
+      "choices": [
+        {
+          "id": "CASE01_SCENE_PAPERBOY_THEFT_01",
+          "text": "Decide what happens to the paperboy.",
+          "nextNodeId": "choice_paperboy_fate",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_caught_paperboy",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_paperboy_theft_seen",
+              "value": true
+            }
+          ],
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "map_transit",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Map: Freiburg Transit",
+      "body": "The city map opens with two immediate routes. The next phase starts once you\npick your first destination.",
+      "choices": [
+        {
+          "id": "CASE01_MAP_TRANSIT_01",
+          "text": "Head to the bank route.",
+          "nextNodeId": "scene_case01_onboarding_handoff",
+          "choiceType": "action"
+        },
+        {
+          "id": "CASE01_MAP_TRANSIT_02",
+          "text": "Head to the Rathaus route.",
+          "nextNodeId": "scene_case01_onboarding_handoff",
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "choice_paperboy_fate",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Choice: Paperboy Fate",
+      "body": "Fritz waits for your ruling while the boy twists in your grip.",
+      "choices": [
+        {
+          "id": "CASE01_CHOICE_PAPERBOY_FATE_01",
+          "text": "Show mercy and let him run.",
+          "nextNodeId": "choice_set_priority",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_paperboy_mercy",
+              "value": true
+            }
+          ],
+          "choiceType": "action"
+        },
+        {
+          "id": "CASE01_CHOICE_PAPERBOY_FATE_02",
+          "text": "Hand him over to Fritz.",
+          "nextNodeId": "choice_set_priority",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_paperboy_reported",
+              "value": true
+            }
+          ],
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "scene_case01_onboarding_handoff",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Case01 Onboarding Handoff",
+      "body": "Onboarding pilot is complete. Continue into the next Case01 phase.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "case01_onboarding_complete",
+          "value": true
+        }
+      ]
+    }
+  ],
+  "vnRuntime": {
+    "skillCheckDice": "d20",
+    "defaultEntryScenarioId": "sandbox_case01_pilot"
+  },
+  "mindPalace": {
+    "cases": [
+      {
+        "id": "case_banker_theft",
+        "title": "Banker Ledger Theft"
+      }
+    ],
+    "facts": [
+      {
+        "id": "fact_ledger_gap",
+        "caseId": "case_banker_theft",
+        "sourceType": "vn_choice",
+        "sourceId": "sandbox_banker_pilot::scene_bank_intro_ch2::BANK_CH2_CONTINUE",
+        "text": "Client ledger has a deliberate accounting gap for one night.",
+        "tags": {
+          "theme": "finance",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_banker_nervous",
+        "caseId": "case_banker_theft",
+        "sourceType": "vn_passive_check",
+        "sourceId": "sandbox_banker_pilot::scene_bank_intro::check_bank_first_impression",
+        "text": "The banker's hands trembled when discussing the ledger dates.",
+        "tags": {
+          "theme": "behavior",
+          "reliability": "medium"
+        }
+      },
+      {
+        "id": "fact_house_contact",
+        "caseId": "case_banker_theft",
+        "sourceType": "vn_choice",
+        "sourceId": "sandbox_banker_pilot::scene_bank_leads::BANK_LEAD_HOUSE",
+        "text": "House steward confirms the banker met an unknown courier.",
+        "tags": {
+          "theme": "witness",
+          "reliability": "medium"
+        }
+      },
+      {
+        "id": "fact_tavern_alibi",
+        "caseId": "case_banker_theft",
+        "sourceType": "vn_choice",
+        "sourceId": "sandbox_banker_pilot::scene_bank_leads::BANK_LEAD_TAVERN",
+        "text": "Tavern records break the client's alibi timeline.",
+        "tags": {
+          "theme": "timeline",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_journalist_bank_seal",
+        "caseId": "case_banker_theft",
+        "sourceType": "vn_on_enter",
+        "sourceId": "intro_journalist::scene_journalist_show_telegram",
+        "text": "Telegram seal matches Provincial Bank emergency dispatch wax.",
+        "tags": {
+          "theme": "documents",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_journalist_master_key",
+        "caseId": "case_banker_theft",
+        "sourceType": "vn_on_enter",
+        "sourceId": "intro_journalist::scene_journalist_anna_tip",
+        "text": "Anna hands over a cast of the archive master key.",
+        "tags": {
+          "theme": "evidence",
+          "reliability": "high"
+        }
+      }
+    ],
+    "hypotheses": [
+      {
+        "id": "hyp_banker_inside_job",
+        "caseId": "case_banker_theft",
+        "key": "banker_inside_job",
+        "text": "The banker staged an inside theft and used a courier cover.",
+        "requiredFactIds": [
+          "fact_ledger_gap",
+          "fact_house_contact",
+          "fact_tavern_alibi"
+        ],
+        "requiredVars": [
+          {
+            "key": "case_progress",
+            "op": "gte",
+            "value": 0.4
+          }
+        ],
+        "rewardEffects": [
+          {
+            "type": "set_flag",
+            "key": "case_banker_theft_solved",
+            "value": true
+          },
+          {
+            "type": "add_var",
+            "key": "rep_civic",
+            "value": 0.5
+          },
+          {
+            "type": "track_event",
+            "eventName": "mind_case_banker_solved",
+            "tags": {
+              "caseId": "case_banker_theft"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "checksum": "ccd5c5b4541d4008f70b4d6c4cef3d8632893a12df155c3fa0a1eca94ff0a534",
+  "generatedAt": "2026-03-01T14:58:51.150Z"
+}

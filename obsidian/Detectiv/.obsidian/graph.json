@@ -1,0 +1,79 @@
+{
+  "collapse-filter": true,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "path:00_Map_Room",
+      "color": {
+        "a": 1,
+        "rgb": 1096065
+      }
+    },
+    {
+      "query": "path:10_Narrative",
+      "color": {
+        "a": 1,
+        "rgb": 3891958
+      }
+    },
+    {
+      "query": "path:20_Game_Design",
+      "color": {
+        "a": 1,
+        "rgb": 16347926
+      }
+    },
+    {
+      "query": "path:30_World_Intel",
+      "color": {
+        "a": 1,
+        "rgb": 11032055
+      }
+    },
+    {
+      "query": "tag:#clue",
+      "color": {
+        "a": 1,
+        "rgb": 16766720
+      }
+    },
+    {
+      "query": "tag:#npc",
+      "color": {
+        "a": 1,
+        "rgb": 15680580
+      }
+    },
+    {
+      "query": "tag:#mechanic",
+      "color": {
+        "a": 1,
+        "rgb": 5868254
+      }
+    },
+    {
+      "query": "tag:#draft",
+      "color": {
+        "a": 1,
+        "rgb": 6842472
+      }
+    }
+  ],
+  "collapse-display": false,
+  "showArrow": true,
+  "textFadeMultiplier": -0.8,
+  "nodeSizeMultiplier": 1.1,
+  "lineSizeMultiplier": 1.2,
+  "collapse-forces": false,
+  "centerStrength": 0.3,
+  "repelStrength": 15,
+  "linkStrength": 0.8,
+  "linkDistance": 300,
+  "scale": 0.1166089157945732,
+  "close": true
+}

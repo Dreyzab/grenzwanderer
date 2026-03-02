@@ -1,0 +1,39 @@
+---
+id: moc_parliament
+tags:
+  - type/moc
+  - domain/narrative
+---
+# Parliament of Voices
+
+Source of truth: `packages/shared/data/parliament.ts`
+
+## Intellect
+- [[Voice_Logic]]
+- [[Voice_Encyclopedia]]
+- [[Voice_Perception]]
+
+## Psyche
+- [[Voice_Empathy]]
+- [[Voice_Imagination]]
+- [[Voice_Intuition]]
+
+## Social
+- [[Voice_Authority]]
+- [[Voice_Charisma]]
+- [[Voice_Composure]]
+
+## Physical
+- [[Voice_Endurance]]
+- [[Voice_Agility]]
+- [[Voice_Forensics]]
+
+## Shadow
+- [[Voice_Stealth]]
+- [[Voice_Deception]]
+- [[Voice_Intrusion]]
+
+## Spirit
+- [[Voice_Occultism]]
+- [[Voice_Tradition]]
+- [[Voice_Poetics]]

@@ -1,0 +1,26 @@
+---
+tags:
+  - mechanic
+  - voice
+attribute: Shadow
+color: "#2c3e50"
+aliases:
+  - Schauer
+---
+# Voice: Shivers
+
+> **"The city is breathing. Can you hear the rattle in its lungs?"**
+
+## Description
+Your connection to the spirit of the city itself. It allows you to "hear" the streets, sense danger in the architecture, and know things you shouldn't.
+
+## Passive Effects
+- Sense **distant events** happening in the city.
+- Feel the "mood" of a neighborhood.
+
+## Active Checks
+- **Listen**: Tune into the city's supernatural frequency.
+- **Navigate**: Find your way through the unknown.
+
+## Personality
+Poetic, fearful, mystical. Speaks for the inanimate world.

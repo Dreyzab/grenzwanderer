@@ -1,0 +1,21 @@
+---
+tags:
+  - mechanic
+  - voice
+attribute: Spirit
+color: "#16a085"
+aliases:
+  - Поэтика
+  - Poetics
+---
+# Voice: Poetics
+
+> **"The world is pain, but it is also beautiful."**
+
+## Description
+An appreciation for art, literature, and the sublime. It allows you to understand metaphors, decode artistic symbolism, and connect with artists or madmen.
+
+## Functions
+- Analyzing paintings or statues.
+- Understanding cryptic riddles.
+- Quoting literature to impress intellectuals.

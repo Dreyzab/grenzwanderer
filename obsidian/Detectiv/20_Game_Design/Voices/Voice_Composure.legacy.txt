@@ -1,0 +1,26 @@
+---
+tags:
+  - mechanic
+  - voice
+attribute: Character
+color: "#f39c12"
+aliases:
+  - Beherrschung
+---
+# Voice: Composure
+
+> **"Keep the mask on. Never let them see you sweat."**
+
+## Description
+Your ability to suppress emotion and maintain a poker face. It governs your body language and your ability to hide your true feelings.
+
+## Passive Effects
+- Hide **fear** or nervousness.
+- Maintain professional distance.
+
+## Active Checks
+- **Poker Face**: Lie without giving tells.
+- **Steady Hands**: Perform delicate tasks under pressure.
+
+## Personality
+Detached, stylish, repressed. Obsessed with appearances and "cool."

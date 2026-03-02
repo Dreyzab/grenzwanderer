@@ -1,0 +1,26 @@
+---
+tags:
+  - mechanic
+  - voice
+attribute: Intellect
+color: "#3498db"
+aliases:
+  - Rhetorik
+---
+# Voice: Rhetoric
+
+> **"Words are weapons. Sharpen them."**
+
+## Description
+The art of persuasion, debate, and dissecting arguments. It allows you to spot logical fallacies and turn an opponent's words against them.
+
+## Passive Effects
+- Identify **lying** through inconsistencies.
+- Unlock complex dialogue options.
+
+## Active Checks
+- **Debate**: Win a verbal argument.
+- **Persuade**: Convince someone to change their mind.
+
+## Personality
+Sharp-tongued, overly critical, political. Loves the sound of its own voice.

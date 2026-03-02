@@ -1,0 +1,43 @@
+﻿@import "tailwindcss";
+
+@theme {
+  --color-primary: #f59f0a;
+  --color-background-dark: #181511;
+
+  --font-display: "Work Sans", "IBM Plex Sans", sans-serif;
+  --font-serif: "Playfair Display", "Crimson Pro", serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-background-dark);
+  color: white;
+  font-family: var(--font-display);
+}
+
+code {
+  font-family: var(--font-mono);
+}

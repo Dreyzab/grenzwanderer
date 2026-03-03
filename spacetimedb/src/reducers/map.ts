@@ -227,16 +227,19 @@ export const map_interact = spacetimedb.reducer(
     const map = snapshot.map;
     if (!map) {
       rejectMapInteraction(ctx, telemetryBase, "map_not_available");
+      return;
     }
 
     const point = map.points.find((entry) => entry.id === pointId);
     if (!point) {
       rejectMapInteraction(ctx, telemetryBase, "binding_not_found");
+      return;
     }
 
     const binding = point.bindings.find((entry) => entry.id === bindingId);
     if (!binding || binding.trigger !== trigger) {
       rejectMapInteraction(ctx, telemetryBase, "binding_not_found");
+      return;
     }
 
     const conditionsMet = (binding.conditions ?? []).every((condition) =>
@@ -244,6 +247,7 @@ export const map_interact = spacetimedb.reducer(
     );
     if (!conditionsMet) {
       rejectMapInteraction(ctx, telemetryBase, "conditions_failed");
+      return;
     }
 
     let startedScenarioId: string | null = null;

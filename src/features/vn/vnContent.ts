@@ -11,6 +11,8 @@ import type {
   MindFactContent,
   MindHypothesisContent,
   MindRequiredVar,
+  QuestCatalogEntry,
+  QuestStageContent,
   VnChoice,
   VnCondition,
   VnDiceMode,
@@ -306,6 +308,70 @@ const parseVnRuntime = (value: unknown): VnSnapshot["vnRuntime"] | null => {
   };
 };
 
+const isQuestStage = (value: unknown): value is QuestStageContent =>
+  isObject(value) &&
+  typeof value.stage === "number" &&
+  Number.isFinite(value.stage) &&
+  Number.isInteger(value.stage) &&
+  value.stage >= 1 &&
+  typeof value.title === "string" &&
+  value.title.trim().length > 0 &&
+  typeof value.objectiveHint === "string" &&
+  value.objectiveHint.trim().length > 0 &&
+  (value.objectivePointIds === undefined ||
+    (Array.isArray(value.objectivePointIds) &&
+      value.objectivePointIds.every((entry) => typeof entry === "string")));
+
+const isQuestCatalogEntry = (value: unknown): value is QuestCatalogEntry =>
+  isObject(value) &&
+  typeof value.id === "string" &&
+  value.id.trim().length > 0 &&
+  typeof value.title === "string" &&
+  value.title.trim().length > 0 &&
+  Array.isArray(value.stages) &&
+  value.stages.length > 0 &&
+  value.stages.every((entry) => isQuestStage(entry));
+
+const parseQuestCatalog = (
+  value: unknown,
+  schemaVersion: number,
+): VnSnapshot["questCatalog"] | undefined | null => {
+  if (value === undefined) {
+    return schemaVersion >= 4 ? null : undefined;
+  }
+  if (
+    !Array.isArray(value) ||
+    !value.every((entry) => isQuestCatalogEntry(entry))
+  ) {
+    return null;
+  }
+
+  const questIds = new Set<string>();
+  const parsedCatalog: QuestCatalogEntry[] = [];
+  for (const quest of value) {
+    if (questIds.has(quest.id)) {
+      return null;
+    }
+    questIds.add(quest.id);
+
+    const stageNumbers = new Set<number>();
+    for (const stage of quest.stages) {
+      if (stageNumbers.has(stage.stage)) {
+        return null;
+      }
+      stageNumbers.add(stage.stage);
+    }
+
+    parsedCatalog.push({
+      id: quest.id,
+      title: quest.title,
+      stages: quest.stages,
+    });
+  }
+
+  return parsedCatalog;
+};
+
 const isMapPointState = (value: unknown): value is MapPointState =>
   value === "locked" ||
   value === "discovered" ||
@@ -445,40 +511,32 @@ const parseMap = (
     return null;
   }
 
-  if (!Array.isArray(value.regions)) {
-    return null;
-  }
-  if (!Array.isArray(value.points)) {
+  if (!Array.isArray(value.regions) || !Array.isArray(value.points)) {
     return null;
   }
 
-  const regions = value.regions.filter((entry) => isObject(entry));
-  const points = value.points.filter((entry) => isObject(entry));
-  if (
-    regions.length !== value.regions.length ||
-    points.length !== value.points.length
-  ) {
-    return null;
-  }
+  const parsedRegions: MapSnapshot["regions"] = [];
+  for (const region of value.regions) {
+    if (
+      !isObject(region) ||
+      typeof region.id !== "string" ||
+      typeof region.name !== "string" ||
+      typeof region.geoCenterLat !== "number" ||
+      typeof region.geoCenterLng !== "number" ||
+      typeof region.zoom !== "number"
+    ) {
+      return null;
+    }
 
-  const parsedRegions = regions.map((entry) => ({
-    id: entry.id,
-    name: entry.name,
-    geoCenterLat: entry.geoCenterLat,
-    geoCenterLng: entry.geoCenterLng,
-    zoom: entry.zoom,
-  }));
-  if (
-    parsedRegions.length === 0 ||
-    parsedRegions.some(
-      (entry) =>
-        typeof entry.id !== "string" ||
-        typeof entry.name !== "string" ||
-        typeof entry.geoCenterLat !== "number" ||
-        typeof entry.geoCenterLng !== "number" ||
-        typeof entry.zoom !== "number",
-    )
-  ) {
+    parsedRegions.push({
+      id: region.id,
+      name: region.name,
+      geoCenterLat: region.geoCenterLat,
+      geoCenterLng: region.geoCenterLng,
+      zoom: region.zoom,
+    });
+  }
+  if (parsedRegions.length === 0) {
     return null;
   }
 
@@ -493,26 +551,13 @@ const parseMap = (
     return null;
   }
 
-  const parsedPoints = points.map((entry) => ({
-    id: entry.id,
-    title: entry.title,
-    regionId: entry.regionId,
-    lat: entry.lat,
-    lng: entry.lng,
-    description: entry.description,
-    image: entry.image,
-    locationId: entry.locationId,
-    defaultState: entry.defaultState,
-    unlockGroup: entry.unlockGroup,
-    isHiddenInitially: entry.isHiddenInitially,
-    bindings: entry.bindings,
-  }));
-
+  const parsedPoints: MapSnapshot["points"] = [];
   const pointIds = new Set<string>();
   const bindingIds = new Set<string>();
 
-  for (const point of parsedPoints) {
+  for (const point of value.points) {
     if (
+      !isObject(point) ||
       typeof point.id !== "string" ||
       typeof point.title !== "string" ||
       typeof point.regionId !== "string" ||
@@ -556,6 +601,21 @@ const parseMap = (
         }
       }
     }
+
+    parsedPoints.push({
+      id: point.id,
+      title: point.title,
+      regionId: point.regionId,
+      lat: point.lat,
+      lng: point.lng,
+      description: point.description,
+      image: point.image,
+      locationId: point.locationId,
+      defaultState: point.defaultState,
+      unlockGroup: point.unlockGroup,
+      isHiddenInitially: point.isHiddenInitially,
+      bindings: point.bindings,
+    });
   }
 
   return {
@@ -601,6 +661,13 @@ export const parseSnapshot = (payloadJson: string): VnSnapshot | null => {
   if (map === null) {
     return null;
   }
+  const questCatalog = parseQuestCatalog(
+    parsed.questCatalog,
+    parsed.schemaVersion,
+  );
+  if (questCatalog === null) {
+    return null;
+  }
   if (parsed.schemaVersion >= 2 && parsed.mindPalace === undefined) {
     return null;
   }
@@ -612,6 +679,7 @@ export const parseSnapshot = (payloadJson: string): VnSnapshot | null => {
     vnRuntime,
     mindPalace,
     map,
+    questCatalog,
   };
 };
 

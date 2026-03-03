@@ -25,6 +25,7 @@ export const CONTENT_IDS = {
   ]),
   questIds: new Set<string>([
     "quest_banker",
+    "quest_dog",
     "quest_ghost",
     "quest_aristocrat",
     "quest_veteran",

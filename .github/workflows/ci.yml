@@ -49,6 +49,21 @@ jobs:
       - name: Build frontend
         run: bun run build
 
+      - name: Content manifest check
+        run: bun run content:manifest:check
+
+      - name: Regenerate content snapshot
+        run: bun run content:extract
+
+      - name: Obsidian coverage check
+        run: bun run content:obsidian:coverage:check
+
+      - name: Map metrics snapshot check
+        run: bun run content:map:metrics:check
+
+      - name: Content drift check
+        run: bun run scripts/content-drift-check.ts
+
       - name: Build SpacetimeDB module
         run: spacetime build --module-path spacetimedb
 

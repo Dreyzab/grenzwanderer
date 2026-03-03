@@ -42,6 +42,7 @@ import DiscoverFactReducer from "./discover_fact_reducer";
 import EnqueueAiRequestReducer from "./enqueue_ai_request_reducer";
 import GrantEvidenceReducer from "./grant_evidence_reducer";
 import GrantXpReducer from "./grant_xp_reducer";
+import MapInteractReducer from "./map_interact_reducer";
 import PerformSkillCheckReducer from "./perform_skill_check_reducer";
 import PublishContentReducer from "./publish_content_reducer";
 import RecordChoiceReducer from "./record_choice_reducer";
@@ -511,6 +512,7 @@ const reducersSchema = __reducers(
   __reducerSchema("enqueue_ai_request", EnqueueAiRequestReducer),
   __reducerSchema("grant_evidence", GrantEvidenceReducer),
   __reducerSchema("grant_xp", GrantXpReducer),
+  __reducerSchema("map_interact", MapInteractReducer),
   __reducerSchema("perform_skill_check", PerformSkillCheckReducer),
   __reducerSchema("publish_content", PublishContentReducer),
   __reducerSchema("record_choice", RecordChoiceReducer),

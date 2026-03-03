@@ -62,4 +62,16 @@ describe("derivePointState", () => {
 
     expect(state).toBe("visited");
   });
+
+  it("returns completed when COMPLETED_* flag is set", () => {
+    const state = derivePointState(
+      point,
+      "loc_freiburg_bank",
+      new Set(["VISITED_loc_freiburg_bank"]),
+      new Set(["loc_freiburg_bank"]),
+      new Set(["COMPLETED_loc_freiburg_bank"]),
+    );
+
+    expect(state).toBe("completed");
+  });
 });

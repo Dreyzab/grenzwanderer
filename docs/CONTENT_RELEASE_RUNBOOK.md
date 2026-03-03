@@ -31,6 +31,11 @@ Optional overrides:
 - `--host <uri>`
 - `--db <name>`
 
+Release payload contract:
+
+- CLI publishes the full snapshot payload (`schemaVersion`, `scenarios`, `nodes`, `vnRuntime`, `mindPalace`, `map`, `questCatalog` when present).
+- Snapshot metadata fields (`checksum`, `generatedAt`) are excluded from reducer payload before publish.
+
 3. Verify post-conditions:
 
 - `content_version` has one active version.

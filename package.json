@@ -21,7 +21,9 @@
     "smoke:vn-authority": "bun run scripts/smoke-vn-authority.ts",
     "smoke:origin-entry": "bun run scripts/smoke-origin-entry.ts",
     "smoke:origin-handoff": "bun run scripts/smoke-origin-handoff.ts",
+    "smoke:mvp-routes": "bun run scripts/smoke-mvp-routes.ts",
     "smoke:mindpalace": "bun run scripts/smoke-mindpalace.ts",
+    "smoke:map-authority": "bun run scripts/smoke-map-authority.ts",
     "smoke:all": "bun run scripts/smoke-all.ts",
     "generate": "cargo run -p gen-bindings -- --out-dir src/module_bindings --module-path spacetimedb && bun run scripts/postgenerate.ts && prettier --write src/module_bindings",
     "spacetime:generate": "spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetimedb && bun run scripts/postgenerate.ts",
@@ -30,7 +32,11 @@
     "spacetime:publish": "spacetime publish grezwandererdata --module-path spacetimedb --server maincloud",
     "content:release": "bun run scripts/content-release.ts",
     "content:rollback": "bun run scripts/content-rollback.ts",
-    "content:manifest:check": "bun run scripts/content-manifest-check.ts"
+    "content:manifest:check": "bun run scripts/content-manifest-check.ts",
+    "content:obsidian:coverage:check": "bun run scripts/content-obsidian-coverage-check.ts",
+    "content:map:metrics:check": "bun run scripts/content-map-metrics-check.ts",
+    "content:map:metrics:update": "bun run scripts/content-map-metrics-update.ts",
+    "content:drift:check": "bun run content:extract && bun run content:obsidian:coverage:check && bun run content:map:metrics:check && bun run scripts/content-drift-check.ts"
   },
   "dependencies": {
     "lucide-react": "^0.575.0",

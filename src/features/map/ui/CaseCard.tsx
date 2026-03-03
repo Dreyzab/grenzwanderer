@@ -1,54 +1,64 @@
 import { useState } from "react";
-import type { RuntimeMapPoint } from "../types";
+import type { RuntimeMapBinding, RuntimeMapPoint } from "../types";
 
 interface CaseCardProps {
   point: RuntimeMapPoint;
   currentLocationId: string | null;
-  onTravel: (point: RuntimeMapPoint) => Promise<void>;
-  onStartScenario: (point: RuntimeMapPoint) => Promise<void>;
+  onRunBinding: (
+    point: RuntimeMapPoint,
+    binding: RuntimeMapBinding,
+  ) => Promise<void>;
   onClose: () => void;
 }
+
+const toErrorMessage = (error: unknown): string => {
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.includes("conditions_failed")) {
+    return "Action is currently locked by conditions.";
+  }
+  if (message.includes("binding_not_found")) {
+    return "Action is no longer available.";
+  }
+  if (message.includes("scenario_missing")) {
+    return "Scenario is missing in the active snapshot.";
+  }
+  if (message.includes("start_blocked_by_route")) {
+    return "Scenario start is blocked by route rules.";
+  }
+  if (message.includes("map_not_available")) {
+    return "Map data is unavailable in this snapshot.";
+  }
+  return "Action failed. Please retry.";
+};
 
 export const CaseCard = ({
   point,
   currentLocationId,
-  onTravel,
-  onStartScenario,
+  onRunBinding,
   onClose,
 }: CaseCardProps) => {
-  const [pendingAction, setPendingAction] = useState<"travel" | "start" | null>(
-    null,
-  );
+  const [pendingBindingId, setPendingBindingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleTravel = async () => {
-    setPendingAction("travel");
-    setError(null);
-    try {
-      await onTravel(point);
-    } catch (_error) {
-      setError("Failed to travel. Please retry.");
-    } finally {
-      setPendingAction(null);
-    }
-  };
-
-  const handleStartScenario = async () => {
-    setPendingAction("start");
-    setError(null);
-    try {
-      await onStartScenario(point);
-    } catch (_error) {
-      setError("Failed to start scenario. Please retry.");
-    } finally {
-      setPendingAction(null);
-    }
-  };
-
-  const isTraveling = pendingAction === "travel";
-  const isStartingScenario = pendingAction === "start";
-  const isBusy = pendingAction !== null;
+  const primaryBinding = point.primaryBinding;
+  const travelBinding =
+    point.travelBinding && point.travelBinding.id !== primaryBinding?.id
+      ? point.travelBinding
+      : null;
+  const isBusy = pendingBindingId !== null;
   const isCurrentLocation = currentLocationId === point.locationId;
+
+  const runBinding = async (binding: RuntimeMapBinding) => {
+    setPendingBindingId(binding.id);
+    setError(null);
+    try {
+      await onRunBinding(point, binding);
+    } catch (caughtError) {
+      setError(toErrorMessage(caughtError));
+    } finally {
+      setPendingBindingId(null);
+    }
+  };
 
   return (
     <aside className="card">
@@ -57,7 +67,7 @@ export const CaseCard = ({
           <h3>{point.title}</h3>
           <p>{point.id}</p>
         </div>
-        <button type="button" onClick={onClose}>
+        <button type="button" onClick={onClose} disabled={isBusy}>
           Close
         </button>
       </div>
@@ -93,23 +103,43 @@ export const CaseCard = ({
       <div className="button-row" style={{ marginTop: "0.8rem" }}>
         <button
           type="button"
-          onClick={() => void handleTravel()}
-          disabled={isBusy || !point.canTravel || isCurrentLocation}
+          disabled={!primaryBinding || isBusy}
+          onClick={() => {
+            if (!primaryBinding) {
+              return;
+            }
+            void runBinding(primaryBinding);
+          }}
         >
-          {isTraveling ? "Traveling..." : isCurrentLocation ? "Here" : "Travel"}
+          {primaryBinding
+            ? pendingBindingId === primaryBinding.id
+              ? `${primaryBinding.label}...`
+              : primaryBinding.label
+            : "No actions"}
         </button>
-        <button
-          type="button"
-          onClick={() => void handleStartScenario()}
-          disabled={isBusy || !point.canStartScenario}
-        >
-          {isStartingScenario ? "Starting..." : "Start Scenario"}
-        </button>
+
+        {travelBinding ? (
+          <button
+            type="button"
+            disabled={
+              isBusy ||
+              !point.canTravel ||
+              (travelBinding.hasTravelAction && isCurrentLocation)
+            }
+            onClick={() => void runBinding(travelBinding)}
+          >
+            {pendingBindingId === travelBinding.id
+              ? `${travelBinding.label}...`
+              : travelBinding.hasTravelAction && isCurrentLocation
+                ? "Here"
+                : travelBinding.label}
+          </button>
+        ) : null}
       </div>
 
       {!point.canStartScenario ? (
         <p className="muted" style={{ marginTop: "0.65rem" }}>
-          Scenario is not available in the active content snapshot yet.
+          Scenario action is not available for this point.
         </p>
       ) : null}
 

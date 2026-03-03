@@ -13,56 +13,98 @@ const basePoint: RuntimeMapPoint = {
   locationId: "loc_freiburg_bank",
   description: "Crime scene",
   state: "discovered",
+  availableBindings: [
+    {
+      id: "bind_start",
+      trigger: "card_primary",
+      label: "Investigate",
+      priority: 100,
+      intent: "objective",
+      actions: [{ type: "start_scenario", scenarioId: "sandbox_case01_pilot" }],
+      hasStartScenario: true,
+      hasTravelAction: false,
+    },
+    {
+      id: "sys_travel_loc_freiburg_bank",
+      trigger: "card_secondary",
+      label: "Travel",
+      priority: 10,
+      intent: "travel",
+      actions: [{ type: "travel_to", locationId: "loc_freiburg_bank" }],
+      hasStartScenario: false,
+      hasTravelAction: true,
+    },
+  ],
+  primaryBinding: {
+    id: "bind_start",
+    trigger: "card_primary",
+    label: "Investigate",
+    priority: 100,
+    intent: "objective",
+    actions: [{ type: "start_scenario", scenarioId: "sandbox_case01_pilot" }],
+    hasStartScenario: true,
+    hasTravelAction: false,
+  },
+  travelBinding: {
+    id: "sys_travel_loc_freiburg_bank",
+    trigger: "card_secondary",
+    label: "Travel",
+    priority: 10,
+    intent: "travel",
+    actions: [{ type: "travel_to", locationId: "loc_freiburg_bank" }],
+    hasStartScenario: false,
+    hasTravelAction: true,
+  },
+  isObjectiveActive: true,
   canTravel: true,
   resolvedScenarioId: "sandbox_case01_pilot",
   canStartScenario: true,
+  isVisible: true,
 };
 
 describe("CaseCard", () => {
-  it("hides scenario entry when scenario is unavailable", () => {
+  it("shows unavailable scenario hint when point cannot start scenario", () => {
     render(
       <CaseCard
         point={{
           ...basePoint,
-          resolvedScenarioId: null,
           canStartScenario: false,
+          resolvedScenarioId: null,
         }}
         currentLocationId={null}
-        onTravel={vi.fn().mockResolvedValue(undefined)}
-        onStartScenario={vi.fn().mockResolvedValue(undefined)}
+        onRunBinding={vi.fn().mockResolvedValue(undefined)}
         onClose={vi.fn()}
       />,
     );
 
     expect(
-      screen.getByText(/not available in the active content snapshot/i),
+      screen.getByText(/scenario action is not available/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Start Scenario" }),
-    ).toBeDisabled();
+      screen.getByRole("button", { name: "Investigate" }),
+    ).toBeInTheDocument();
   });
 
-  it("shows reducer error when scenario start fails", async () => {
+  it("shows reducer-derived error on failed action", async () => {
     const user = userEvent.setup();
-    const onStartScenario = vi
+    const onRunBinding = vi
       .fn()
-      .mockRejectedValue(new Error("scenario start failed"));
+      .mockRejectedValue(new Error("conditions_failed"));
 
     render(
       <CaseCard
         point={basePoint}
         currentLocationId={null}
-        onTravel={vi.fn().mockResolvedValue(undefined)}
-        onStartScenario={onStartScenario}
+        onRunBinding={onRunBinding}
         onClose={vi.fn()}
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Start Scenario" }));
+    await user.click(screen.getByRole("button", { name: "Investigate" }));
 
     await waitFor(() => {
       expect(
-        screen.getByText("Failed to start scenario. Please retry."),
+        screen.getByText("Action is currently locked by conditions."),
       ).toBeInTheDocument();
     });
   });
@@ -72,8 +114,7 @@ describe("CaseCard", () => {
       <CaseCard
         point={basePoint}
         currentLocationId="loc_freiburg_bank"
-        onTravel={vi.fn().mockResolvedValue(undefined)}
-        onStartScenario={vi.fn().mockResolvedValue(undefined)}
+        onRunBinding={vi.fn().mockResolvedValue(undefined)}
         onClose={vi.fn()}
       />,
     );

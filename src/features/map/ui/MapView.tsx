@@ -5,7 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { MAPBOX_STYLE, MAPBOX_TOKEN } from "../../../config";
 import { reducers } from "../../../shared/spacetime/bindings";
 import { useMapRuntimeState } from "../hooks/useMapRuntimeState";
-import type { RuntimeMapPoint } from "../types";
+import type { RuntimeMapBinding, RuntimeMapPoint } from "../types";
 import { CaseCard } from "./CaseCard";
 import { DetectiveMapPin } from "./DetectiveMapPin";
 
@@ -13,10 +13,24 @@ interface MapViewProps {
   onOpenVnScenario: (scenarioId: string) => void;
 }
 
+const createRequestId = (prefix: string, pointId: string): string =>
+  `${prefix}_${pointId}_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`;
+
+const getStartScenarioId = (binding: RuntimeMapBinding): string | null => {
+  for (const action of binding.actions) {
+    if (action.type === "start_scenario") {
+      return action.scenarioId;
+    }
+  }
+  return null;
+};
+
 export const MapView = ({ onOpenVnScenario }: MapViewProps) => {
-  const { region, points, currentLocationId, isReady } = useMapRuntimeState();
+  const { source, region, points, currentLocationId, isReady } =
+    useMapRuntimeState();
   const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
 
+  const mapInteract = useReducer(reducers.mapInteract);
   const travelTo = useReducer(reducers.travelTo);
   const setFlag = useReducer(reducers.setFlag);
   const startScenario = useReducer(reducers.startScenario);
@@ -36,40 +50,58 @@ export const MapView = ({ onOpenVnScenario }: MapViewProps) => {
     setSelectedPointId(null);
   }, [points, selectedPointId]);
 
-  const markVisited = useCallback(
-    async (point: RuntimeMapPoint) => {
-      await setFlag({
-        key: `VISITED_${point.id}`,
-        value: true,
-      });
+  const runLegacyBinding = useCallback(
+    async (point: RuntimeMapPoint, binding: RuntimeMapBinding) => {
+      let scenarioToOpen: string | null = null;
+
+      for (const action of binding.actions) {
+        if (action.type === "travel_to") {
+          await travelTo({ locationId: action.locationId });
+          await setFlag({ key: `VISITED_${point.id}`, value: true });
+          continue;
+        }
+        if (action.type === "start_scenario") {
+          await startScenario({
+            requestId: createRequestId("map_start", point.id),
+            scenarioId: action.scenarioId,
+          });
+          await setFlag({ key: `VISITED_${point.id}`, value: true });
+          scenarioToOpen = action.scenarioId;
+          continue;
+        }
+        if (action.type === "set_flag") {
+          await setFlag({ key: action.key, value: action.value });
+          continue;
+        }
+      }
+
+      if (scenarioToOpen) {
+        onOpenVnScenario(scenarioToOpen);
+      }
     },
-    [setFlag],
+    [onOpenVnScenario, setFlag, startScenario, travelTo],
   );
 
-  const handleTravel = useCallback(
-    async (point: RuntimeMapPoint) => {
-      await travelTo({
-        locationId: point.locationId,
-      });
-      await markVisited(point);
-    },
-    [markVisited, travelTo],
-  );
+  const runBinding = useCallback(
+    async (point: RuntimeMapPoint, binding: RuntimeMapBinding) => {
+      if (source === "snapshot_v3") {
+        await mapInteract({
+          requestId: createRequestId("map_interact", point.id),
+          pointId: point.id,
+          bindingId: binding.id,
+          trigger: binding.trigger,
+        });
 
-  const handleStartScenario = useCallback(
-    async (point: RuntimeMapPoint) => {
-      if (!point.resolvedScenarioId) {
+        const scenarioId = getStartScenarioId(binding);
+        if (scenarioId) {
+          onOpenVnScenario(scenarioId);
+        }
         return;
       }
 
-      await startScenario({
-        requestId: `map_start_${Date.now()}_${point.id}`,
-        scenarioId: point.resolvedScenarioId,
-      });
-      await markVisited(point);
-      onOpenVnScenario(point.resolvedScenarioId);
+      await runLegacyBinding(point, binding);
     },
-    [markVisited, onOpenVnScenario, startScenario],
+    [mapInteract, onOpenVnScenario, runLegacyBinding, source],
   );
 
   if (!MAPBOX_TOKEN) {
@@ -92,8 +124,16 @@ export const MapView = ({ onOpenVnScenario }: MapViewProps) => {
         <div>
           <h2>{region.name}</h2>
           <p>
-            SpacetimeDB-backed map state. Current location:{" "}
+            Source:{" "}
+            <strong>
+              {source === "snapshot_v3" ? "snapshot v3" : "legacy v2 fallback"}
+            </strong>{" "}
+            | Current location:{" "}
             <strong>{currentLocationId ?? "unknown"}</strong>
+          </p>
+          <p className="muted">
+            Pin legend: gray=locked, amber=discovered, green=visited,
+            blue=completed, ring=active objective.
           </p>
         </div>
       </header>
@@ -146,8 +186,7 @@ export const MapView = ({ onOpenVnScenario }: MapViewProps) => {
         <CaseCard
           point={selectedPoint}
           currentLocationId={currentLocationId}
-          onTravel={handleTravel}
-          onStartScenario={handleStartScenario}
+          onRunBinding={runBinding}
           onClose={() => setSelectedPointId(null)}
         />
       ) : null}

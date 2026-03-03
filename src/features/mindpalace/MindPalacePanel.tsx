@@ -90,7 +90,6 @@ export const MindPalacePanel = () => {
   const [playerMindHypotheses] = useTable(tables.playerMindHypothesis);
 
   const startMindCase = useReducer(reducers.startMindCase);
-  const discoverFact = useReducer(reducers.discoverFact);
   const validateHypothesis = useReducer(reducers.validateHypothesis);
   const setHypothesisFocus = useReducer(reducers.setHypothesisFocus);
 
@@ -166,6 +165,14 @@ export const MindPalacePanel = () => {
     [mindHypotheses, selectedCaseId],
   );
 
+  const factTextById = useMemo(() => {
+    const byId = new Map<string, string>();
+    for (const fact of factsForCase) {
+      byId.set(fact.factId, fact.text);
+    }
+    return byId;
+  }, [factsForCase]);
+
   const playerHypothesisMap = useMemo(() => {
     const map = new Map<string, { status: string; validatedAt?: unknown }>();
 
@@ -213,8 +220,14 @@ export const MindPalacePanel = () => {
         return {
           ...hypothesis,
           requiredFactIds,
+          requiredFactLabels: requiredFactIds.map(
+            (factId) => factTextById.get(factId) ?? "Unknown fact",
+          ),
           requiredVars,
           missingFacts,
+          missingFactLabels: missingFacts.map(
+            (factId) => factTextById.get(factId) ?? "Unknown fact",
+          ),
           failedVars,
           validated,
           focused,
@@ -228,6 +241,7 @@ export const MindPalacePanel = () => {
       playerHypothesisMap,
       selectedCaseId,
       varsByKey,
+      factTextById,
     ],
   );
 
@@ -271,26 +285,12 @@ export const MindPalacePanel = () => {
     });
   };
 
-  const handleDiscoverFact = async (factId: string) => {
-    if (!selectedCaseId) {
-      return;
-    }
-
-    await runAction(`Fact discovered: ${factId}`, async () => {
-      await discoverFact({
-        requestId: createRequestId(),
-        caseId: selectedCaseId,
-        factId,
-      });
-    });
-  };
-
   const handleValidateHypothesis = async (hypothesisId: string) => {
     if (!selectedCaseId) {
       return;
     }
 
-    await runAction(`Hypothesis validated: ${hypothesisId}`, async () => {
+    await runAction("Hypothesis validated.", async () => {
       await validateHypothesis({
         requestId: createRequestId(),
         caseId: selectedCaseId,
@@ -304,7 +304,7 @@ export const MindPalacePanel = () => {
       return;
     }
 
-    await runAction(`Hypothesis focus updated: ${hypothesisId}`, async () => {
+    await runAction("Hypothesis focus updated.", async () => {
       await setHypothesisFocus({
         caseId: selectedCaseId,
         hypothesisId,
@@ -353,7 +353,8 @@ export const MindPalacePanel = () => {
         <article className="card warning">
           <p>
             No active mind cases were found in the published content. Publish
-            `schemaVersion=2` snapshot with `mindPalace` payload.
+            <code>schemaVersion &gt;= 2</code> snapshot with{" "}
+            <code>mindPalace</code> payload.
           </p>
         </article>
       )}
@@ -384,8 +385,22 @@ export const MindPalacePanel = () => {
           </article>
 
           <article className="card">
-            <h3>Vars Snapshot</h3>
-            <pre className="code-box">{JSON.stringify(varsByKey, null, 2)}</pre>
+            <h3>Readiness Signals</h3>
+            <ul className="unstyled-list">
+              <li className="list-row">
+                <span>Ready hypotheses</span>
+                <strong>
+                  {derivedHypotheses.filter((entry) => entry.ready).length}/
+                  {derivedHypotheses.length}
+                </strong>
+              </li>
+              <li className="list-row">
+                <span>Blocked hypotheses</span>
+                <strong>
+                  {derivedHypotheses.filter((entry) => !entry.ready).length}
+                </strong>
+              </li>
+            </ul>
           </article>
         </div>
       )}
@@ -396,25 +411,25 @@ export const MindPalacePanel = () => {
           <div className="mind-list">
             {factsForCase.map((fact) => {
               const discovered = discoveredFactIds.has(fact.factId);
+              const factIndex =
+                factsForCase.findIndex(
+                  (entry) => entry.factId === fact.factId,
+                ) + 1;
 
               return (
                 <div key={fact.factId} className="mind-item">
                   <div className="mind-item-header">
-                    <strong>{fact.factId}</strong>
+                    <strong>{`Fact ${factIndex}`}</strong>
                     <span className={discovered ? "success" : "muted"}>
                       {discovered ? "discovered" : "not discovered"}
                     </span>
                   </div>
                   <p>{fact.text}</p>
-                  <div className="button-row">
-                    <button
-                      type="button"
-                      disabled={discovered || isBusy}
-                      onClick={() => handleDiscoverFact(fact.factId)}
-                    >
-                      Discover (debug)
-                    </button>
-                  </div>
+                  {!discovered ? (
+                    <p className="muted">
+                      Discover this fact through VN choices or map interactions.
+                    </p>
+                  ) : null}
                 </div>
               );
             })}
@@ -432,7 +447,7 @@ export const MindPalacePanel = () => {
             {derivedHypotheses.map((hypothesis) => (
               <div key={hypothesis.hypothesisId} className="mind-item">
                 <div className="mind-item-header">
-                  <strong>{hypothesis.key}</strong>
+                  <strong>Hypothesis</strong>
                   <span className={hypothesis.validated ? "success" : "muted"}>
                     {hypothesis.validated ? "validated" : "pending"}
                   </span>
@@ -440,7 +455,7 @@ export const MindPalacePanel = () => {
                 <p>{hypothesis.text}</p>
                 <p className="muted">
                   Required facts:{" "}
-                  {hypothesis.requiredFactIds.join(", ") || "none"}
+                  {hypothesis.requiredFactLabels.join(" | ") || "none"}
                 </p>
                 <p className="muted">
                   Required vars:{" "}
@@ -449,7 +464,7 @@ export const MindPalacePanel = () => {
                 </p>
                 {hypothesis.missingFacts.length > 0 && (
                   <p className="error">
-                    Missing facts: {hypothesis.missingFacts.join(", ")}
+                    Missing facts: {hypothesis.missingFactLabels.join(" | ")}
                   </p>
                 )}
                 {hypothesis.failedVars.length > 0 && (
@@ -492,12 +507,14 @@ export const MindPalacePanel = () => {
         </article>
       )}
 
-      {statusLine && <p className="status-line success">{statusLine}</p>}
-      {error && <p className="status-line error">{error}</p>}
-      <p className="status-line muted">
-        Facts can be discovered from VN choices via `discover_fact` effect;
-        debug button is available for reducer smoke only.
-      </p>
+      <div aria-live="polite" aria-atomic="true" className="status-stack">
+        {statusLine && <p className="status-line success">{statusLine}</p>}
+        {error && <p className="status-line error">{error}</p>}
+        <p className="status-line muted">
+          Facts are unlocked via narrative actions (`discover_fact`) in VN/map
+          flow.
+        </p>
+      </div>
     </section>
   );
 };

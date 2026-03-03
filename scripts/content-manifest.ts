@@ -185,6 +185,26 @@ const parseRollbackEntry = (
 export const computeSnapshotChecksum = (payloadJson: string): string =>
   createHash("sha256").update(payloadJson, "utf8").digest("hex");
 
+export const normalizeSnapshotForPublish = (
+  rawSnapshot: Record<string, unknown>,
+): {
+  payload: Record<string, unknown>;
+  payloadJson: string;
+  checksum: string;
+} => {
+  const {
+    checksum: _checksum,
+    generatedAt: _generatedAt,
+    ...payload
+  } = rawSnapshot;
+  const payloadJson = JSON.stringify(payload);
+  return {
+    payload,
+    payloadJson,
+    checksum: computeSnapshotChecksum(payloadJson),
+  };
+};
+
 export const readSnapshot = (): {
   checksum: string;
   schemaVersion: number;
@@ -209,36 +229,24 @@ export const readSnapshot = (): {
     "pilot.snapshot.json generatedAt",
   );
   assertIsoDate(generatedAt, "pilot.snapshot.json generatedAt");
+  const declaredChecksum = asString(
+    raw.checksum,
+    "pilot.snapshot.json checksum",
+  );
+  assertSha256(declaredChecksum, "pilot.snapshot.json checksum");
 
-  const payload: Record<string, unknown> = {
-    schemaVersion,
-    scenarios: raw.scenarios,
-    nodes: raw.nodes,
-  };
-  if (raw.vnRuntime !== undefined) {
-    payload.vnRuntime = raw.vnRuntime;
-  }
-  if (raw.mindPalace !== undefined) {
-    payload.mindPalace = raw.mindPalace;
-  }
-
-  const payloadJson = JSON.stringify(payload);
-  const computedChecksum = computeSnapshotChecksum(payloadJson);
-
-  if (typeof raw.checksum === "string") {
-    assertSha256(raw.checksum, "pilot.snapshot.json checksum");
-    assert(
-      raw.checksum === computedChecksum,
-      "pilot.snapshot.json checksum does not match payload content. Re-run 'bun run content:extract'.",
-    );
-  }
+  const normalized = normalizeSnapshotForPublish(raw);
+  assert(
+    declaredChecksum === normalized.checksum,
+    "pilot.snapshot.json checksum does not match payload content. Re-run 'bun run content:extract'.",
+  );
 
   return {
-    checksum: computedChecksum,
+    checksum: normalized.checksum,
     schemaVersion,
     generatedAt,
-    payload,
-    payloadJson,
+    payload: normalized.payload,
+    payloadJson: normalized.payloadJson,
   };
 };
 

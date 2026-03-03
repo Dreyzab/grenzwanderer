@@ -2,8 +2,10 @@ import { spawn } from "node:child_process";
 
 const pipeline = [
   { label: "VN authority", script: "smoke:vn-authority" },
+  { label: "Map authority", script: "smoke:map-authority" },
   { label: "Origin entry", script: "smoke:origin-entry" },
   { label: "Origin handoff", script: "smoke:origin-handoff" },
+  { label: "MVP routes", script: "smoke:mvp-routes" },
   { label: "MindPalace", script: "smoke:mindpalace" },
 ];
 

@@ -134,6 +134,19 @@ export interface VnRuntimeSettings {
   defaultEntryScenarioId?: string;
 }
 
+export interface QuestStageContent {
+  stage: number;
+  title: string;
+  objectiveHint: string;
+  objectivePointIds?: string[];
+}
+
+export interface QuestCatalogEntry {
+  id: string;
+  title: string;
+  stages: QuestStageContent[];
+}
+
 export type MapPointState = "locked" | "discovered" | "visited" | "completed";
 export type MapPointDefaultState = "locked" | "discovered";
 export type MapBindingTrigger =
@@ -219,6 +232,7 @@ export interface VnSnapshot {
   vnRuntime?: VnRuntimeSettings;
   mindPalace?: MindPalaceSnapshot;
   map?: MapSnapshot;
+  questCatalog?: QuestCatalogEntry[];
 }
 
 export interface HypothesisReadiness {
@@ -567,6 +581,46 @@ const isVnRuntimeSettings = (value: unknown): value is VnRuntimeSettings => {
   );
 };
 
+const isQuestStageContent = (value: unknown): value is QuestStageContent => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const stage = value as Record<string, unknown>;
+  return (
+    typeof stage.stage === "number" &&
+    Number.isFinite(stage.stage) &&
+    Number.isInteger(stage.stage) &&
+    stage.stage >= 1 &&
+    typeof stage.title === "string" &&
+    stage.title.trim().length > 0 &&
+    typeof stage.objectiveHint === "string" &&
+    stage.objectiveHint.trim().length > 0 &&
+    (stage.objectivePointIds === undefined ||
+      (Array.isArray(stage.objectivePointIds) &&
+        stage.objectivePointIds.every(
+          (pointId) => typeof pointId === "string",
+        )))
+  );
+};
+
+const isQuestCatalogEntry = (value: unknown): value is QuestCatalogEntry => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const entry = value as Record<string, unknown>;
+  return (
+    typeof entry.id === "string" &&
+    entry.id.trim().length > 0 &&
+    typeof entry.title === "string" &&
+    entry.title.trim().length > 0 &&
+    Array.isArray(entry.stages) &&
+    entry.stages.length > 0 &&
+    entry.stages.every((stage) => isQuestStageContent(stage))
+  );
+};
+
 const isMapPointState = (value: unknown): value is MapPointState =>
   value === "locked" ||
   value === "discovered" ||
@@ -860,6 +914,49 @@ const parseMapSnapshot = (
   };
 };
 
+const parseQuestCatalog = (
+  payloadQuestCatalog: unknown,
+  schemaVersion: number,
+): QuestCatalogEntry[] | undefined => {
+  if (payloadQuestCatalog === undefined) {
+    if (schemaVersion >= 4) {
+      throw new SenderError(
+        "payloadJson.questCatalog is required for schemaVersion >= 4",
+      );
+    }
+    return undefined;
+  }
+
+  if (!Array.isArray(payloadQuestCatalog)) {
+    throw new SenderError("payloadJson.questCatalog has invalid shape");
+  }
+  if (!payloadQuestCatalog.every((entry) => isQuestCatalogEntry(entry))) {
+    throw new SenderError("payloadJson.questCatalog has invalid shape");
+  }
+
+  const questIds = new Set<string>();
+  for (const quest of payloadQuestCatalog) {
+    if (questIds.has(quest.id)) {
+      throw new SenderError(
+        `payloadJson.questCatalog contains duplicate id ${quest.id}`,
+      );
+    }
+    questIds.add(quest.id);
+
+    const stageNumbers = new Set<number>();
+    for (const stage of quest.stages) {
+      if (stageNumbers.has(stage.stage)) {
+        throw new SenderError(
+          `payloadJson.questCatalog quest ${quest.id} contains duplicate stage ${stage.stage}`,
+        );
+      }
+      stageNumbers.add(stage.stage);
+    }
+  }
+
+  return payloadQuestCatalog as QuestCatalogEntry[];
+};
+
 export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
   let parsed: unknown;
   try {
@@ -897,6 +994,7 @@ export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
   const vnRuntime =
     payload.vnRuntime === undefined ? undefined : payload.vnRuntime;
   const map = parseMapSnapshot(payload.map, schemaVersion, payload.scenarios);
+  const questCatalog = parseQuestCatalog(payload.questCatalog, schemaVersion);
 
   if (payload.mindPalace === undefined) {
     if (schemaVersion >= 2) {
@@ -911,6 +1009,7 @@ export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
       nodes: payload.nodes,
       vnRuntime,
       map,
+      questCatalog,
       mindPalace: {
         cases: [],
         facts: [],
@@ -947,6 +1046,7 @@ export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
     nodes: payload.nodes,
     vnRuntime,
     map,
+    questCatalog,
     mindPalace: {
       cases,
       facts,

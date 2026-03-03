@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 4,
   "scenarios": [
     {
       "id": "sandbox_intro_pilot",
@@ -14,7 +14,9 @@
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "intro_journalist",
-        "requiredFlagsAll": ["origin_journalist"],
+        "requiredFlagsAll": [
+          "origin_journalist"
+        ],
         "blockedIfFlagsAny": [
           "met_anna_intro",
           "origin_journalist_handoff_done"
@@ -38,12 +40,36 @@
       "defaultBackgroundUrl": "/assets/vn/bg/bank_exterior.webp"
     },
     {
+      "id": "sandbox_dog_pilot",
+      "title": "Dog Intro Pilot",
+      "startNodeId": "scene_dog_briefing",
+      "nodeIds": [
+        "scene_dog_briefing",
+        "scene_dog_leads",
+        "scene_dog_market_encounter",
+        "scene_dog_station_encounter",
+        "scene_dog_tailor_encounter",
+        "scene_dog_uni_encounter",
+        "scene_dog_pub_encounter",
+        "scene_park_reunion_beat1",
+        "scene_park_reunion"
+      ],
+      "mode": "fullscreen",
+      "packId": "freiburg_dog",
+      "defaultBackgroundUrl": "/assets/vn/bg/rathaus_hall.webp"
+    },
+    {
       "id": "sandbox_ghost_pilot",
       "title": "Ghost Intro Pilot",
       "startNodeId": "scene_estate_intro",
       "nodeIds": [
         "scene_estate_intro",
+        "scene_estate_intro_beat1",
+        "scene_guild_tutorial",
+        "scene_guild_tutorial_beat1",
         "scene_evidence_collection",
+        "scene_evidence_collection_beat1",
+        "scene_conclusion_false",
         "scene_conclusion_true"
       ],
       "mode": "fullscreen",
@@ -55,11 +81,15 @@
       "id": "origin_journalist_bootstrap",
       "title": "Origin Bootstrap - Journalist",
       "startNodeId": "scene_origin_journalist_bootstrap",
-      "nodeIds": ["scene_origin_journalist_bootstrap"],
+      "nodeIds": [
+        "scene_origin_journalist_bootstrap"
+      ],
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "intro_journalist",
-        "requiredFlagsAll": ["origin_journalist"],
+        "requiredFlagsAll": [
+          "origin_journalist"
+        ],
         "blockedIfFlagsAny": [
           "origin_journalist_handoff_done",
           "met_anna_intro"
@@ -728,6 +758,504 @@
       "backgroundUrl": "/assets/vn/bg/casino_interior.webp"
     },
     {
+      "id": "scene_dog_briefing",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "📜 The Mayor's Distress",
+      "body": "| Element | Node | | ------------- | ---------------------------- | | 🎨 Background | [[scene_office_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_BRIEFING_CONTINUE",
+          "text": "Open lead board",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_quest_stage",
+          "questId": "quest_dog",
+          "stage": 1
+        },
+        {
+          "type": "set_flag",
+          "key": "dog_case_started",
+          "value": true
+        }
+      ],
+      "characterId": "npc_anna_mahler"
+    },
+    {
+      "id": "scene_dog_leads",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🔍 Where is Bruno?",
+      "body": "| Element | Node | | ------------- | ---------------------------- | | 🎨 Background | [[scene_map_city_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_LEAD_MARKET",
+          "text": "Check the market route",
+          "nextNodeId": "scene_dog_market_encounter",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "dog_lead_market_done",
+              "value": false
+            }
+          ]
+        },
+        {
+          "id": "DOG_LEAD_STATION",
+          "text": "Check station witnesses",
+          "nextNodeId": "scene_dog_station_encounter",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "dog_lead_station_done",
+              "value": false
+            }
+          ]
+        },
+        {
+          "id": "DOG_LEAD_TAILOR",
+          "text": "Question tailor network",
+          "nextNodeId": "scene_dog_tailor_encounter",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "dog_lead_tailor_done",
+              "value": false
+            }
+          ]
+        },
+        {
+          "id": "DOG_LEAD_UNI",
+          "text": "Inspect university records",
+          "nextNodeId": "scene_dog_uni_encounter",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "dog_lead_uni_done",
+              "value": false
+            }
+          ]
+        },
+        {
+          "id": "DOG_LEAD_PUB",
+          "text": "Reconstruct pub timeline",
+          "nextNodeId": "scene_dog_pub_encounter",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "dog_lead_pub_done",
+              "value": false
+            }
+          ]
+        },
+        {
+          "id": "DOG_LEAD_REUNION",
+          "text": "Convene at the park",
+          "nextNodeId": "scene_park_reunion_beat1",
+          "conditions": [
+            {
+              "type": "var_gte",
+              "key": "dog_leads_progress",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_quest_stage",
+              "questId": "quest_dog",
+              "stage": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_market_encounter",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🐟 False Lead: The Market",
+      "body": "| Element | Node | | ------------- | -------------------------- | | 🎨 Background | [[scene_market_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_MARKET_VENDOR_PRESS",
+          "text": "Pressure the vendor for route details",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_leads",
+          "skillCheck": {
+            "id": "check_dog_market_pressure",
+            "voiceId": "attr_social",
+            "difficulty": 11,
+            "onSuccess": {
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "dog_market_route_confirmed",
+                  "value": true
+                },
+                {
+                  "type": "add_var",
+                  "key": "checks_passed",
+                  "value": 1
+                }
+              ]
+            },
+            "onFail": {
+              "effects": [
+                {
+                  "type": "add_heat",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "DOG_MARKET_QUIET_NOTE",
+          "text": "Log observations and move on",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_dog_leads",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "dog_case_confidence",
+              "value": 0.2
+            }
+          ]
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "dog_lead_market_done",
+          "value": true
+        },
+        {
+          "type": "add_var",
+          "key": "dog_leads_progress",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_station_encounter",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🚂 False Lead: The Station",
+      "body": "| Element | Node | | ------------- | --------------------------- | | 🎨 Background | [[scene_station_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_STATION_BRIBE_PORTER",
+          "text": "Bribe the porter for schedule logs",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_leads",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "dog_station_log_obtained",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "rep_civic",
+              "value": -0.1
+            }
+          ]
+        },
+        {
+          "id": "DOG_STATION_INTERVIEW",
+          "text": "Conduct a formal witness interview",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_dog_leads",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "dog_case_confidence",
+              "value": 0.3
+            }
+          ]
+        },
+        {
+          "id": "DOG_STATION_RECHECK",
+          "text": "Re-check rail manifests",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_dog_leads",
+          "conditions": [
+            {
+              "type": "var_gte",
+              "key": "attr_intellect",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "dog_case_confidence",
+              "value": 0.4
+            }
+          ]
+        },
+        {
+          "id": "DOG_STATION_WRAP",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "dog_lead_station_done",
+          "value": true
+        },
+        {
+          "type": "add_var",
+          "key": "dog_leads_progress",
+          "value": 1
+        },
+        {
+          "type": "change_relationship",
+          "characterId": "npc_anna_mahler",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_tailor_encounter",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🧵 False Lead: The Tailor",
+      "body": "| Element | Node | | ------------- | -------------------------- | | 🎨 Background | [[scene_tailor_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_TAILOR_AUDIT_BOOKS",
+          "text": "Audit tailor invoices",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_dog_leads",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "dog_case_confidence",
+              "value": 0.3
+            }
+          ]
+        },
+        {
+          "id": "DOG_TAILOR_INTIMIDATE",
+          "text": "Intimidate workshop apprentice",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_leads",
+          "effects": [
+            {
+              "type": "add_tension",
+              "amount": 1
+            },
+            {
+              "type": "set_flag",
+              "key": "dog_tailor_intimidation",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "DOG_TAILOR_RETURN",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "dog_lead_tailor_done",
+          "value": true
+        },
+        {
+          "type": "add_var",
+          "key": "dog_leads_progress",
+          "value": 1
+        },
+        {
+          "type": "grant_evidence",
+          "evidenceId": "ev_bank_master_key"
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_uni_encounter",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🎓 False Lead: The University",
+      "body": "| Element | Node | | ------------- | ----------------------- | | 🎨 Background | [[scene_uni_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_UNI_ARCHIVE_REQUEST",
+          "text": "Request registry with legal notice",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_leads",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "dog_uni_registry_official",
+              "value": true
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "npc_anna_mahler",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "DOG_UNI_STEALTH_COPY",
+          "text": "Copy registry quietly after hours",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_leads",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "dog_uni_registry_unofficial",
+              "value": true
+            },
+            {
+              "type": "add_heat",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "DOG_UNI_RETURN",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "dog_lead_uni_done",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "dog_registry_found",
+          "value": true
+        },
+        {
+          "type": "add_var",
+          "key": "dog_leads_progress",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_pub_encounter",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🍺 False Lead: The Red Cog",
+      "body": "| Element | Node | | ------------- | ----------------------- | | 🎨 Background | [[scene_pub_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_PUB_TRUST_BARTENDER",
+          "text": "Trust bartender testimony",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_dog_leads",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "dog_case_confidence",
+              "value": 0.2
+            }
+          ]
+        },
+        {
+          "id": "DOG_PUB_TAIL_SUSPECT",
+          "text": "Tail the suspect immediately",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_leads",
+          "skillCheck": {
+            "id": "check_dog_pub_tail",
+            "voiceId": "attr_perception",
+            "difficulty": 10,
+            "onSuccess": {
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "dog_pub_tail_success",
+                  "value": true
+                },
+                {
+                  "type": "add_var",
+                  "key": "checks_passed",
+                  "value": 1
+                }
+              ]
+            },
+            "onFail": {
+              "effects": [
+                {
+                  "type": "add_tension",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "DOG_PUB_RETURN",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "dog_lead_pub_done",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "ghost_route_unlocked",
+          "value": true
+        },
+        {
+          "type": "add_var",
+          "key": "dog_leads_progress",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "scene_park_reunion_beat1",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "📖 Beat 1: A Good Boy?",
+      "body": "**[Narrator]**: \"Under an old oak tree, you find the fugitive. Bruno lies on his back, paws in the air, sleeping off a food coma.",
+      "choices": [
+        {
+          "id": "DOG_REUNION_CONTINUE",
+          "text": "Finalize findings",
+          "nextNodeId": "scene_park_reunion"
+        }
+      ]
+    },
+    {
+      "id": "scene_park_reunion",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "ðŸŒ³ Park Reunion",
+      "body": "| Element | Node | | ------------------ | ----------------------------- | | ðŸŽ¨ Background | [[scene_park_reunion_bg]] |",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_quest_stage",
+          "questId": "quest_dog",
+          "stage": 3
+        },
+        {
+          "type": "set_flag",
+          "key": "dog_case_closed",
+          "value": true
+        },
+        {
+          "type": "grant_xp",
+          "amount": 40
+        }
+      ]
+    },
+    {
       "id": "scene_estate_intro",
       "scenarioId": "sandbox_ghost_pilot",
       "title": "👻 Estate Intro",
@@ -737,7 +1265,13 @@
           "id": "GHOST_INVESTIGATE",
           "text": "Begin estate investigation",
           "choiceType": "action",
-          "nextNodeId": "scene_evidence_collection"
+          "nextNodeId": "scene_estate_intro_beat1"
+        },
+        {
+          "id": "GHOST_ABORT",
+          "text": "File a superficial report",
+          "choiceType": "flavor",
+          "nextNodeId": "scene_conclusion_false"
         }
       ],
       "onEnter": [
@@ -754,6 +1288,45 @@
       "backgroundUrl": "/assets/vn/bg/estate_entrance.webp"
     },
     {
+      "id": "scene_estate_intro_beat1",
+      "scenarioId": "sandbox_ghost_pilot",
+      "title": "📖 Beat 1: The Von Hagen Mystery",
+      "body": "**[Narrator]**: \"The von Hagen estate looms at the edge of Durlach, its windows dark like empty eye sockets. A cold wind blows through the overgrown garden, carrying the scent of dead leaves.\"",
+      "choices": [
+        {
+          "id": "GHOST_BEAT1_CONTINUE",
+          "text": "Proceed to guild orientation",
+          "nextNodeId": "scene_guild_tutorial"
+        }
+      ]
+    },
+    {
+      "id": "scene_guild_tutorial",
+      "scenarioId": "sandbox_ghost_pilot",
+      "title": "🎓 Guild Tutorial",
+      "body": "| Element | Node | | ----------------- | ------------------------------ | | 🎨 Background | [[scene_guild_bg]] |",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_GUILD_TUTORIAL",
+          "text": "Continue briefing",
+          "nextNodeId": "scene_guild_tutorial_beat1"
+        }
+      ]
+    },
+    {
+      "id": "scene_guild_tutorial_beat1",
+      "scenarioId": "sandbox_ghost_pilot",
+      "title": "📖 Beat 1: The Art of Deduction",
+      "body": "**[Guildmaster Klaus]**: \"Ah, you have gathered quite a collection of facts. But facts alone are just bricks. You must build a house with them.\"",
+      "choices": [
+        {
+          "id": "GHOST_TUTORIAL_INVESTIGATE",
+          "text": "Start evidence sweep",
+          "nextNodeId": "scene_evidence_collection"
+        }
+      ]
+    },
+    {
       "id": "scene_evidence_collection",
       "scenarioId": "sandbox_ghost_pilot",
       "title": "🔎 Evidence Collection",
@@ -763,7 +1336,7 @@
           "id": "GHOST_EVIDENCE_BOOKSHELF",
           "text": "Inspect bookshelf",
           "choiceType": "inquiry",
-          "nextNodeId": "scene_conclusion_true",
+          "nextNodeId": "scene_evidence_collection_beat1",
           "effects": [
             {
               "type": "set_flag",
@@ -785,7 +1358,7 @@
           "id": "GHOST_EVIDENCE_THERMOMETER",
           "text": "Check the temperature anomaly",
           "choiceType": "inquiry",
-          "nextNodeId": "scene_conclusion_true",
+          "nextNodeId": "scene_evidence_collection_beat1",
           "skillCheck": {
             "id": "check_ghost_thermometer",
             "voiceId": "attr_intellect",
@@ -820,14 +1393,8 @@
           },
           "effects": [
             {
-              "type": "set_flag",
-              "key": "ghost_cold_spot_confirmed",
-              "value": true
-            },
-            {
-              "type": "add_var",
-              "key": "attr_spirit",
-              "value": 1
+              "type": "track_event",
+              "eventName": "ghost_thermometer_check"
             }
           ]
         },
@@ -835,7 +1402,7 @@
           "id": "GHOST_EVIDENCE_FLOOR",
           "text": "Inspect floor traces",
           "choiceType": "inquiry",
-          "nextNodeId": "scene_conclusion_true",
+          "nextNodeId": "scene_evidence_collection_beat1",
           "effects": [
             {
               "type": "set_flag",
@@ -873,12 +1440,97 @@
       ]
     },
     {
+      "id": "scene_evidence_collection_beat1",
+      "scenarioId": "sandbox_ghost_pilot",
+      "title": "📖 Beat 1: The Library",
+      "body": "**[Narrator]**: \"The library is freezing, despite the fireplace being lit. Your breath forms clouds in the air.",
+      "choices": [
+        {
+          "id": "GHOST_COLLECT_MORE",
+          "text": "Collect more traces before conclusion",
+          "nextNodeId": "scene_evidence_collection"
+        },
+        {
+          "id": "GHOST_CONCLUSION_TRUE",
+          "text": "Build a full accusation",
+          "nextNodeId": "scene_conclusion_true",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "ghost_bookshelf_switch_found",
+              "value": true
+            },
+            {
+              "type": "flag_equals",
+              "key": "ghost_ectoplasm_found",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_quest_stage",
+              "questId": "quest_ghost",
+              "stage": 2
+            },
+            {
+              "type": "set_flag",
+              "key": "ghost_truth_proven",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "GHOST_CONCLUSION_FALSE",
+          "text": "File it as folklore",
+          "nextNodeId": "scene_conclusion_false",
+          "effects": [
+            {
+              "type": "set_quest_stage",
+              "questId": "quest_ghost",
+              "stage": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_conclusion_false",
+      "scenarioId": "sandbox_ghost_pilot",
+      "title": "ðŸ•µï¸ Conclusion: The Smuggler's Trick",
+      "body": "**[Narrator]**: \"You reveal the hidden mechanism behind the bookshelf. A draft of cold air rushes out from the tunnels below. Inside, crates of smuggled brandy.\"",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "ghost_truth_proven",
+          "value": false
+        }
+      ]
+    },
+    {
       "id": "scene_conclusion_true",
       "scenarioId": "sandbox_ghost_pilot",
       "title": "ðŸ‘» Conclusion: The Supernatural Truth",
       "body": "**[Narrator]**: \"You confront the Baroness with your findings. The cold spots, the ectoplasm... This is no trick. The estate is truly haunted.\"",
       "terminal": true,
-      "choices": []
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_quest_stage",
+          "questId": "quest_ghost",
+          "stage": 3
+        },
+        {
+          "type": "set_flag",
+          "key": "ghost_case_closed",
+          "value": true
+        },
+        {
+          "type": "grant_xp",
+          "amount": 45
+        }
+      ]
     },
     {
       "id": "scene_origin_journalist_bootstrap",
@@ -2279,6 +2931,1156 @@
       }
     ]
   },
-  "checksum": "ccd5c5b4541d4008f70b4d6c4cef3d8632893a12df155c3fa0a1eca94ff0a534",
-  "generatedAt": "2026-03-01T14:58:51.150Z"
+  "map": {
+    "defaultRegionId": "FREIBURG_1905",
+    "regions": [
+      {
+        "id": "FREIBURG_1905",
+        "name": "Freiburg im Breisgau (1905)",
+        "geoCenterLat": 47.9959,
+        "geoCenterLng": 7.8522,
+        "zoom": 14.2
+      }
+    ],
+    "points": [
+      {
+        "id": "loc_hbf",
+        "title": "Hauptbahnhof",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.997791,
+        "lng": 7.842609,
+        "description": "Steam-era gateway to Freiburg. Arrivals from Basel and Strasbourg.",
+        "image": "/images/locations/loc_hauptbahnhof.webp",
+        "locationId": "loc_hbf",
+        "defaultState": "discovered",
+        "bindings": [
+          {
+            "id": "bind_hbf_intro_start",
+            "trigger": "card_primary",
+            "label": "Review Arrival Brief",
+            "priority": 130,
+            "intent": "objective",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "intro_freiburg_done",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_intro_pilot"
+              },
+              {
+                "type": "track_event",
+                "eventName": "map_hbf_intro_start",
+                "tags": {
+                  "location": "hbf"
+                }
+              }
+            ]
+          },
+          {
+            "id": "bind_hbf_case_bridge",
+            "trigger": "card_primary",
+            "label": "Open Case Bridge",
+            "priority": 95,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "intro_freiburg_done",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "case01_bridge_started",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_case01_pilot"
+              },
+              {
+                "type": "set_flag",
+                "key": "case01_bridge_started",
+                "value": true
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_hbf",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_hbf"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_freiburg_bank",
+        "title": "Bankhaus J.A. Krebs",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.995574,
+        "lng": 7.852296,
+        "description": "Prestigious bank at Munsterplatz, currently under renovation.",
+        "image": "/images/locations/loc_bankhaus.webp",
+        "locationId": "loc_freiburg_bank",
+        "defaultState": "discovered",
+        "unlockGroup": "loc_freiburg_bank",
+        "bindings": [
+          {
+            "id": "bind_bank_start",
+            "trigger": "card_primary",
+            "label": "Interview Kessler",
+            "priority": 130,
+            "intent": "objective",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "banker_intro_seen",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_banker_pilot"
+              },
+              {
+                "type": "set_quest_stage",
+                "questId": "quest_banker",
+                "stage": 1
+              }
+            ]
+          },
+          {
+            "id": "bind_bank_followup",
+            "trigger": "card_primary",
+            "label": "Follow Banker Leads",
+            "priority": 110,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "quest_stage_gte",
+                "questId": "quest_banker",
+                "stage": 2
+              },
+              {
+                "type": "flag_is",
+                "key": "banker_case_closed",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_banker_pilot"
+              }
+            ]
+          },
+          {
+            "id": "bind_bank_close",
+            "trigger": "card_primary",
+            "label": "Close Banker Case",
+            "priority": 90,
+            "intent": "objective",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "case_banker_theft_solved",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "banker_case_closed",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "set_quest_stage",
+                "questId": "quest_banker",
+                "stage": 3
+              },
+              {
+                "type": "set_flag",
+                "key": "banker_case_closed",
+                "value": true
+              },
+              {
+                "type": "grant_xp",
+                "amount": 35
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_freiburg_bank",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_freiburg_bank"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_rathaus",
+        "title": "Rathaus",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.99629692434917,
+        "lng": 7.8492596695028,
+        "description": "City Hall and records authority for central Freiburg.",
+        "image": "/images/locations/loc_rathaus_archiv.webp",
+        "locationId": "loc_rathaus",
+        "defaultState": "discovered",
+        "unlockGroup": "loc_rathaus",
+        "bindings": [
+          {
+            "id": "bind_rathaus_dog_start",
+            "trigger": "card_primary",
+            "label": "Open Dog Briefing",
+            "priority": 125,
+            "intent": "objective",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "dog_case_closed",
+                "value": false
+              },
+              {
+                "type": "flag_is",
+                "key": "banker_intro_seen",
+                "value": true
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_dog_pilot"
+              },
+              {
+                "type": "set_quest_stage",
+                "questId": "quest_dog",
+                "stage": 1
+              }
+            ]
+          },
+          {
+            "id": "bind_rathaus_dog_followup",
+            "trigger": "card_primary",
+            "label": "Review Registry Leads",
+            "priority": 110,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "quest_stage_gte",
+                "questId": "quest_dog",
+                "stage": 2
+              },
+              {
+                "type": "flag_is",
+                "key": "dog_case_closed",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_dog_pilot"
+              }
+            ]
+          },
+          {
+            "id": "bind_rathaus_registry_unlock",
+            "trigger": "card_primary",
+            "label": "Archive Clearance",
+            "priority": 80,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "dog_registry_found",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "loc_rathaus_unlocked",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "unlock_group",
+                "groupId": "loc_rathaus"
+              },
+              {
+                "type": "set_flag",
+                "key": "loc_rathaus_unlocked",
+                "value": true
+              },
+              {
+                "type": "grant_evidence",
+                "evidenceId": "ev_bank_master_key"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_rathaus",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_rathaus"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_munster",
+        "title": "Freiburg Munster",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.9955,
+        "lng": 7.8529,
+        "description": "Gothic cathedral dominating the city center.",
+        "image": "/images/locations/loc_munster.webp",
+        "locationId": "loc_munster",
+        "defaultState": "discovered",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_munster",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_intro_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_munster",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_munster"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_uni_chem",
+        "title": "Kiliani Laboratory",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.994,
+        "lng": 7.846,
+        "description": "University chemistry lab for forensic analysis.",
+        "image": "/images/locations/loc_uni.webp",
+        "locationId": "loc_uni_chem",
+        "defaultState": "discovered",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_uni_chem",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_ghost_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_uni_chem",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_uni_chem"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_uni_med",
+        "title": "Institute of Hygiene",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.9935,
+        "lng": 7.847,
+        "description": "Medical institute focused on serology and lab diagnostics.",
+        "image": "/images/locations/loc_uni.webp",
+        "locationId": "loc_uni_med",
+        "defaultState": "discovered",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_uni_med",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_ghost_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_uni_med",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_uni_med"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_student_house",
+        "title": "Corps Suevia House",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.99,
+        "lng": 7.848,
+        "description": "Fraternity house in the university quarter.",
+        "image": "/images/locations/loc_student_house.webp",
+        "locationId": "loc_student_house",
+        "defaultState": "discovered",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_student_house",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_intro_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_student_house",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_student_house"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_pub_deutsche",
+        "title": "Zum Deutschen Haus",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.992,
+        "lng": 7.854,
+        "description": "Busy inn popular with locals and travelers.",
+        "image": "/images/locations/loc_ganter_brauerei.webp",
+        "locationId": "loc_pub_deutsche",
+        "defaultState": "discovered",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_pub_deutsche",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_intro_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_pub_deutsche",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_pub_deutsche"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_red_light",
+        "title": "Gerberau Canal",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.993,
+        "lng": 7.851,
+        "description": "Tanners quarter where movement is best watched at night.",
+        "image": "/images/locations/loc_suburbs.webp",
+        "locationId": "loc_red_light",
+        "defaultState": "discovered",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_red_light",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_intro_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_red_light",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_red_light"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_freiburg_warehouse",
+        "title": "Old Warehouse",
+        "regionId": "FREIBURG_1905",
+        "lat": 48.001,
+        "lng": 7.838,
+        "description": "Rail yard storage facility used for late-stage investigation.",
+        "image": "/images/locations/loc_stuhlinger_warehouse.webp",
+        "locationId": "loc_freiburg_warehouse",
+        "defaultState": "locked",
+        "bindings": [
+          {
+            "id": "bind_warehouse_finale",
+            "trigger": "card_primary",
+            "label": "Enter Finale",
+            "priority": 140,
+            "intent": "objective",
+            "conditions": [
+              {
+                "type": "logic_and",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "banker_case_closed",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "dog_case_closed",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "ghost_case_closed",
+                    "value": true
+                  }
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_case01_pilot"
+              },
+              {
+                "type": "set_flag",
+                "key": "freiburg_finale_open",
+                "value": true
+              }
+            ]
+          },
+          {
+            "id": "bind_warehouse_locked_hint",
+            "trigger": "card_primary",
+            "label": "Inspect Locked Gate",
+            "priority": 20,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "logic_not",
+                "condition": {
+                  "type": "logic_and",
+                  "conditions": [
+                    {
+                      "type": "flag_is",
+                      "key": "banker_case_closed",
+                      "value": true
+                    },
+                    {
+                      "type": "flag_is",
+                      "key": "dog_case_closed",
+                      "value": true
+                    },
+                    {
+                      "type": "flag_is",
+                      "key": "ghost_case_closed",
+                      "value": true
+                    }
+                  ]
+                }
+              }
+            ],
+            "actions": [
+              {
+                "type": "track_event",
+                "eventName": "warehouse_finale_locked",
+                "tags": {
+                  "pointId": "loc_freiburg_warehouse"
+                }
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_freiburg_warehouse",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_freiburg_warehouse"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_workers_pub",
+        "title": "The Red Cog Tavern",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.999,
+        "lng": 7.839,
+        "description": "Workers tavern and hub for social leads.",
+        "image": "/images/locations/loc_ganter_brauerei.webp",
+        "locationId": "loc_workers_pub",
+        "defaultState": "discovered",
+        "bindings": [
+          {
+            "id": "bind_pub_ghost_start",
+            "trigger": "card_primary",
+            "label": "Start Ghost File",
+            "priority": 120,
+            "intent": "objective",
+            "conditions": [
+              {
+                "type": "quest_stage_gte",
+                "questId": "quest_dog",
+                "stage": 2
+              },
+              {
+                "type": "flag_is",
+                "key": "ghost_case_closed",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_ghost_pilot"
+              },
+              {
+                "type": "set_quest_stage",
+                "questId": "quest_ghost",
+                "stage": 1
+              }
+            ]
+          },
+          {
+            "id": "bind_pub_ghost_followup",
+            "trigger": "card_primary",
+            "label": "Follow Ghost Leads",
+            "priority": 105,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "quest_stage_gte",
+                "questId": "quest_ghost",
+                "stage": 2
+              },
+              {
+                "type": "flag_is",
+                "key": "ghost_case_closed",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_ghost_pilot"
+              }
+            ]
+          },
+          {
+            "id": "bind_pub_ghost_close",
+            "trigger": "card_primary",
+            "label": "Close Ghost Case",
+            "priority": 85,
+            "intent": "objective",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "ghost_truth_proven",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "ghost_case_closed",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "set_quest_stage",
+                "questId": "quest_ghost",
+                "stage": 3
+              },
+              {
+                "type": "set_flag",
+                "key": "ghost_case_closed",
+                "value": true
+              },
+              {
+                "type": "grant_evidence",
+                "evidenceId": "ev_ectoplasm"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_workers_pub",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_workers_pub"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_martinstor",
+        "title": "Martinstor",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.9936,
+        "lng": 7.849,
+        "description": "Historic city gate with strong foot traffic.",
+        "image": "/images/locations/loc_munster.webp",
+        "locationId": "loc_martinstor",
+        "defaultState": "discovered",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_martinstor",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_intro_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_martinstor",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_martinstor"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_schwabentor",
+        "title": "Schwabentor",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.9928,
+        "lng": 7.8545,
+        "description": "Eastern city gate and surveillance vantage point.",
+        "image": "/images/locations/loc_munster.webp",
+        "locationId": "loc_schwabentor",
+        "defaultState": "discovered",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_schwabentor",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_intro_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_schwabentor",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_schwabentor"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_tailor",
+        "title": "Tailor Workshop",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.9935,
+        "lng": 7.8525,
+        "description": "Disguise and costume workshop tied to lead progression.",
+        "image": "/images/locations/loc_student_house.webp",
+        "locationId": "loc_tailor",
+        "defaultState": "locked",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_tailor",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_dog_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_tailor",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_tailor"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_apothecary",
+        "title": "Lowen Apotheke",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.9952,
+        "lng": 7.8535,
+        "description": "Pharmacy near the cathedral with chemical evidence links.",
+        "image": "/images/locations/loc_uni.webp",
+        "locationId": "loc_apothecary",
+        "defaultState": "locked",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_apothecary",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_ghost_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_apothecary",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_apothecary"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_pub",
+        "title": "Zum Schlappen",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.9938,
+        "lng": 7.8495,
+        "description": "Tavern near Martinstor with working-class witnesses.",
+        "image": "/images/locations/loc_ganter_brauerei.webp",
+        "locationId": "loc_pub",
+        "defaultState": "locked",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_pub",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_ghost_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_pub",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_pub"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_street_event",
+        "title": "Street Encounter",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.9945,
+        "lng": 7.8505,
+        "description": "Temporary event location for interlude beats.",
+        "image": "/images/locations/loc_suburbs.webp",
+        "locationId": "loc_street_event",
+        "defaultState": "locked",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_street_event",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_case01_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_street_event",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_street_event"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_telephone",
+        "title": "Telegraph Office",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.9965,
+        "lng": 7.8485,
+        "description": "Message relay and switchboard narrative checkpoint.",
+        "image": "/images/locations/loc_rathaus_archiv.webp",
+        "locationId": "loc_telephone",
+        "defaultState": "locked",
+        "bindings": [
+          {
+            "id": "legacy_start_loc_telephone",
+            "trigger": "card_primary",
+            "label": "Start Scenario",
+            "priority": 100,
+            "intent": "interaction",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_case01_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_telephone",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_telephone"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "questCatalog": [
+    {
+      "id": "quest_banker",
+      "title": "Banker File",
+      "stages": [
+        {
+          "stage": 1,
+          "title": "Initial Briefing",
+          "objectiveHint": "Meet Kessler at the bank and open the ledger trail.",
+          "objectivePointIds": [
+            "loc_freiburg_bank"
+          ]
+        },
+        {
+          "stage": 2,
+          "title": "Cross-Check Leads",
+          "objectiveHint": "Revisit the bank after checking external testimonies.",
+          "objectivePointIds": [
+            "loc_freiburg_bank",
+            "loc_hbf"
+          ]
+        },
+        {
+          "stage": 3,
+          "title": "Case Closed",
+          "objectiveHint": "Banker case archived.",
+          "objectivePointIds": [
+            "loc_freiburg_warehouse"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quest_dog",
+      "title": "Dog Trail",
+      "stages": [
+        {
+          "stage": 1,
+          "title": "Open Dog Lead Board",
+          "objectiveHint": "Collect initial route intel from Rathaus.",
+          "objectivePointIds": [
+            "loc_rathaus"
+          ]
+        },
+        {
+          "stage": 2,
+          "title": "Converge Leads",
+          "objectiveHint": "Convene in the park after enough witness routes.",
+          "objectivePointIds": [
+            "loc_rathaus",
+            "loc_workers_pub"
+          ]
+        },
+        {
+          "stage": 3,
+          "title": "Case Closed",
+          "objectiveHint": "Dog trail logged and sealed.",
+          "objectivePointIds": [
+            "loc_workers_pub"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quest_ghost",
+      "title": "Ghost Dossier",
+      "stages": [
+        {
+          "stage": 1,
+          "title": "Estate Survey",
+          "objectiveHint": "Open the ghost investigation from the workers' tavern.",
+          "objectivePointIds": [
+            "loc_workers_pub"
+          ]
+        },
+        {
+          "stage": 2,
+          "title": "Assemble Proof",
+          "objectiveHint": "Correlate bookshelf and floor evidence before accusation.",
+          "objectivePointIds": [
+            "loc_workers_pub",
+            "loc_freiburg_bank"
+          ]
+        },
+        {
+          "stage": 3,
+          "title": "Case Closed",
+          "objectiveHint": "Ghost case finalized and written into records.",
+          "objectivePointIds": [
+            "loc_freiburg_warehouse"
+          ]
+        }
+      ]
+    }
+  ],
+  "checksum": "472ee039e885ff6de60c77914d7a216c9902f4074e199cf781305c77559454ca",
+  "generatedAt": "2026-03-03T19:36:05.421Z"
 }

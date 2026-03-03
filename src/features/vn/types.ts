@@ -129,6 +129,19 @@ export interface VnRuntimeSettings {
   defaultEntryScenarioId?: string;
 }
 
+export interface QuestStageContent {
+  stage: number;
+  title: string;
+  objectiveHint: string;
+  objectivePointIds?: string[];
+}
+
+export interface QuestCatalogEntry {
+  id: string;
+  title: string;
+  stages: QuestStageContent[];
+}
+
 export type MapPointState = "locked" | "discovered" | "visited" | "completed";
 export type MapPointDefaultState = "locked" | "discovered";
 export type MapBindingTrigger =
@@ -214,4 +227,5 @@ export interface VnSnapshot {
   vnRuntime?: VnRuntimeSettings;
   mindPalace?: MindPalaceSnapshot;
   map?: MapSnapshot;
+  questCatalog?: QuestCatalogEntry[];
 }

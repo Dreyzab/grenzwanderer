@@ -25,6 +25,11 @@ const stateStyles: Record<
     ringColor: "rgba(34, 197, 94, 0.55)",
     labelColor: "#bbf7d0",
   },
+  completed: {
+    dotColor: "#0ea5e9",
+    ringColor: "rgba(14, 165, 233, 0.5)",
+    labelColor: "#bae6fd",
+  },
 };
 
 export const DetectiveMapPin = ({
@@ -56,8 +61,25 @@ export const DetectiveMapPin = ({
           backgroundColor: style.dotColor,
           boxShadow: `0 0 0 7px ${style.ringColor}`,
           transition: "all 120ms ease-out",
+          position: "relative",
         }}
-      />
+      >
+        {point.isObjectiveActive ? (
+          <span
+            style={{
+              position: "absolute",
+              top: "-7px",
+              right: "-7px",
+              width: "9px",
+              height: "9px",
+              borderRadius: "9999px",
+              border: "1px solid #082f49",
+              backgroundColor: "#38bdf8",
+              boxShadow: "0 0 0 2px rgba(14,165,233,0.25)",
+            }}
+          />
+        ) : null}
+      </div>
       <div
         style={{
           marginTop: "8px",

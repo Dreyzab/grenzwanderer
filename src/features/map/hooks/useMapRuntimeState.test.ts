@@ -11,6 +11,11 @@ const mocks = vi.hoisted(() => ({
     playerLocation: Symbol("playerLocation"),
     playerFlag: Symbol("playerFlag"),
     playerUnlockGroup: Symbol("playerUnlockGroup"),
+    playerVar: Symbol("playerVar"),
+    playerInventory: Symbol("playerInventory"),
+    playerEvidence: Symbol("playerEvidence"),
+    playerQuest: Symbol("playerQuest"),
+    playerRelationship: Symbol("playerRelationship"),
     contentVersion: Symbol("contentVersion"),
     contentSnapshot: Symbol("contentSnapshot"),
   },
@@ -113,6 +118,33 @@ describe("useMapRuntimeState", () => {
           true,
         ];
       }
+      if (table === mocks.tablesMock.playerVar) {
+        return [
+          [{ playerId: makeIdentity("me"), key: "progress", floatValue: 2 }],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerInventory) {
+        return [
+          [{ playerId: makeIdentity("me"), itemId: "item_a", quantity: 1 }],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerEvidence) {
+        return [[{ playerId: makeIdentity("me"), evidenceId: "ev_a" }], true];
+      }
+      if (table === mocks.tablesMock.playerQuest) {
+        return [
+          [{ playerId: makeIdentity("me"), questId: "quest_banker", stage: 1 }],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerRelationship) {
+        return [
+          [{ playerId: makeIdentity("me"), characterId: "npc", value: 1 }],
+          true,
+        ];
+      }
       if (table === mocks.tablesMock.contentVersion) {
         return [[{ checksum: "abc", isActive: true }], true];
       }
@@ -124,30 +156,106 @@ describe("useMapRuntimeState", () => {
     });
   });
 
-  it("derives state for current player and resolves mapped scenario", () => {
+  it("uses legacy v2 fallback and resolves mapped scenario", () => {
     const { result } = renderHook(() => useMapRuntimeState(testDataSource));
     const point = result.current.points[0];
 
+    expect(result.current.source).toBe("legacy_v2");
     expect(result.current.currentLocationId).toBe("loc_freiburg_bank");
-    expect(point.state).toBe("visited");
-    expect(point.resolvedScenarioId).toBe("sandbox_case01_pilot");
-    expect(point.canStartScenario).toBe(true);
+    expect(point?.state).toBe("visited");
+    expect(point?.resolvedScenarioId).toBe("sandbox_case01_pilot");
+    expect(point?.canStartScenario).toBe(true);
+    expect(point?.primaryBinding?.id).toBe("legacy_start_loc_freiburg_bank");
     expect(result.current.isReady).toBe(true);
   });
 
-  it("falls back to travel-only when mapped scenario is absent in snapshot", () => {
+  it("uses snapshot v3 map bindings and marks objective state", () => {
     mocks.parseSnapshotMock.mockReturnValue({
-      schemaVersion: 2,
-      scenarios: [{ id: "intro_journalist" }],
+      schemaVersion: 3,
+      scenarios: [{ id: "sandbox_case01_pilot" }],
       nodes: [],
       mindPalace: { cases: [], facts: [], hypotheses: [] },
+      questCatalog: [
+        {
+          id: "quest_banker",
+          title: "Bank Case",
+          stages: [
+            {
+              stage: 1,
+              title: "Visit bank",
+              objectiveHint: "Meet the banker",
+              objectivePointIds: ["loc_freiburg_bank"],
+            },
+          ],
+        },
+      ],
+      map: {
+        defaultRegionId: "FREIBURG_1905",
+        regions: [
+          {
+            id: "FREIBURG_1905",
+            name: "Freiburg",
+            geoCenterLat: 47.99,
+            geoCenterLng: 7.85,
+            zoom: 14,
+          },
+        ],
+        points: [
+          {
+            id: "loc_freiburg_bank",
+            regionId: "FREIBURG_1905",
+            title: "Bank",
+            lat: 47.99,
+            lng: 7.85,
+            locationId: "loc_freiburg_bank",
+            bindings: [
+              {
+                id: "bind_start",
+                trigger: "card_primary",
+                label: "Investigate",
+                priority: 100,
+                intent: "interaction",
+                conditions: [
+                  {
+                    type: "flag_is",
+                    key: "VISITED_loc_freiburg_bank",
+                    value: true,
+                  },
+                ],
+                actions: [
+                  {
+                    type: "start_scenario",
+                    scenarioId: "sandbox_case01_pilot",
+                  },
+                ],
+              },
+              {
+                id: "sys_travel_loc_freiburg_bank",
+                trigger: "card_secondary",
+                label: "Travel",
+                priority: 10,
+                intent: "travel",
+                actions: [
+                  { type: "travel_to", locationId: "loc_freiburg_bank" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const { result } = renderHook(() => useMapRuntimeState(testDataSource));
     const point = result.current.points[0];
 
-    expect(point.resolvedScenarioId).toBeNull();
-    expect(point.canStartScenario).toBe(false);
-    expect(point.canTravel).toBe(true);
+    expect(result.current.source).toBe("snapshot_v3");
+    expect(point?.availableBindings.map((entry) => entry.id)).toEqual([
+      "bind_start",
+      "sys_travel_loc_freiburg_bank",
+    ]);
+    expect(point?.isObjectiveActive).toBe(true);
+    expect(point?.primaryBinding?.label).toBe("Investigate");
+    expect(point?.travelBinding?.id).toBe("sys_travel_loc_freiburg_bank");
+    expect(point?.resolvedScenarioId).toBe("sandbox_case01_pilot");
   });
 });

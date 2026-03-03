@@ -7,18 +7,22 @@ import type {
   MindCaseContent,
   MindFactContent,
   MindHypothesisContent,
+  MapAction,
+  MapCondition,
   VnDiceMode,
   VnScenarioCompletionRoute,
   VnChoice,
   VnCondition,
   VnEffect,
   VnNode,
+  QuestCatalogEntry,
   VnScenario,
   VnSkillCheck,
   VnSnapshot,
 } from "../src/features/vn/types";
 import { buildOriginChoiceEffects, originProfiles } from "./origins.manifest";
 import { CONTENT_IDS } from "./content-ids";
+import { buildCase01MapSnapshot } from "./data/case_01_points";
 import { parseCase01Onboarding } from "./vn-case01-onboarding";
 
 type ChoiceBlueprint = VnChoice;
@@ -105,6 +109,25 @@ const scenarios: ScenarioBlueprint[] = [
     ],
   },
   {
+    id: "sandbox_dog_pilot",
+    title: "Dog Intro Pilot",
+    startNodeId: "scene_dog_briefing",
+    mode: "fullscreen",
+    packId: "freiburg_dog",
+    defaultBackgroundUrl: "/assets/vn/bg/rathaus_hall.webp",
+    nodeIds: [
+      "scene_dog_briefing",
+      "scene_dog_leads",
+      "scene_dog_market_encounter",
+      "scene_dog_station_encounter",
+      "scene_dog_tailor_encounter",
+      "scene_dog_uni_encounter",
+      "scene_dog_pub_encounter",
+      "scene_park_reunion_beat1",
+      "scene_park_reunion",
+    ],
+  },
+  {
     id: "sandbox_ghost_pilot",
     title: "Ghost Intro Pilot",
     startNodeId: "scene_estate_intro",
@@ -114,7 +137,12 @@ const scenarios: ScenarioBlueprint[] = [
     musicUrl: "/assets/vn/music/ghost_ambient.ogg",
     nodeIds: [
       "scene_estate_intro",
+      "scene_estate_intro_beat1",
+      "scene_guild_tutorial",
+      "scene_guild_tutorial_beat1",
       "scene_evidence_collection",
+      "scene_evidence_collection_beat1",
+      "scene_conclusion_false",
       "scene_conclusion_true",
     ],
   },
@@ -446,6 +474,311 @@ const nodes: NodeBlueprint[] = [
     fallbackBody: "Pilot resolution node for the banker scenario.",
   },
   {
+    id: "scene_dog_briefing",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath: "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_briefing.md",
+    characterId: "npc_anna_mahler",
+    onEnter: [
+      { type: "set_quest_stage", questId: "quest_dog", stage: 1 },
+      { type: "set_flag", key: "dog_case_started", value: true },
+    ],
+    choices: [
+      {
+        id: "DOG_BRIEFING_CONTINUE",
+        text: "Open lead board",
+        choiceType: "action",
+        nextNodeId: "scene_dog_leads",
+      },
+    ],
+  },
+  {
+    id: "scene_dog_leads",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath: "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_leads.md",
+    choices: [
+      {
+        id: "DOG_LEAD_MARKET",
+        text: "Check the market route",
+        nextNodeId: "scene_dog_market_encounter",
+        conditions: [
+          { type: "flag_equals", key: "dog_lead_market_done", value: false },
+        ],
+      },
+      {
+        id: "DOG_LEAD_STATION",
+        text: "Check station witnesses",
+        nextNodeId: "scene_dog_station_encounter",
+        conditions: [
+          { type: "flag_equals", key: "dog_lead_station_done", value: false },
+        ],
+      },
+      {
+        id: "DOG_LEAD_TAILOR",
+        text: "Question tailor network",
+        nextNodeId: "scene_dog_tailor_encounter",
+        conditions: [
+          { type: "flag_equals", key: "dog_lead_tailor_done", value: false },
+        ],
+      },
+      {
+        id: "DOG_LEAD_UNI",
+        text: "Inspect university records",
+        nextNodeId: "scene_dog_uni_encounter",
+        conditions: [
+          { type: "flag_equals", key: "dog_lead_uni_done", value: false },
+        ],
+      },
+      {
+        id: "DOG_LEAD_PUB",
+        text: "Reconstruct pub timeline",
+        nextNodeId: "scene_dog_pub_encounter",
+        conditions: [
+          { type: "flag_equals", key: "dog_lead_pub_done", value: false },
+        ],
+      },
+      {
+        id: "DOG_LEAD_REUNION",
+        text: "Convene at the park",
+        nextNodeId: "scene_park_reunion_beat1",
+        conditions: [{ type: "var_gte", key: "dog_leads_progress", value: 3 }],
+        effects: [{ type: "set_quest_stage", questId: "quest_dog", stage: 2 }],
+      },
+    ],
+  },
+  {
+    id: "scene_dog_market_encounter",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_market_encounter.md",
+    onEnter: [
+      { type: "set_flag", key: "dog_lead_market_done", value: true },
+      { type: "add_var", key: "dog_leads_progress", value: 1 },
+    ],
+    choices: [
+      {
+        id: "DOG_MARKET_VENDOR_PRESS",
+        text: "Pressure the vendor for route details",
+        choiceType: "action",
+        nextNodeId: "scene_dog_leads",
+        skillCheck: {
+          id: "check_dog_market_pressure",
+          voiceId: "attr_social",
+          difficulty: 11,
+          onSuccess: {
+            effects: [
+              {
+                type: "set_flag",
+                key: "dog_market_route_confirmed",
+                value: true,
+              },
+              { type: "add_var", key: "checks_passed", value: 1 },
+            ],
+          },
+          onFail: {
+            effects: [{ type: "add_heat", amount: 1 }],
+          },
+        },
+      },
+      {
+        id: "DOG_MARKET_QUIET_NOTE",
+        text: "Log observations and move on",
+        choiceType: "inquiry",
+        nextNodeId: "scene_dog_leads",
+        effects: [{ type: "add_var", key: "dog_case_confidence", value: 0.2 }],
+      },
+    ],
+  },
+  {
+    id: "scene_dog_station_encounter",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_station_encounter.md",
+    onEnter: [
+      { type: "set_flag", key: "dog_lead_station_done", value: true },
+      { type: "add_var", key: "dog_leads_progress", value: 1 },
+      { type: "change_relationship", characterId: "npc_anna_mahler", delta: 1 },
+    ],
+    choices: [
+      {
+        id: "DOG_STATION_BRIBE_PORTER",
+        text: "Bribe the porter for schedule logs",
+        choiceType: "action",
+        nextNodeId: "scene_dog_leads",
+        effects: [
+          { type: "set_flag", key: "dog_station_log_obtained", value: true },
+          { type: "add_var", key: "rep_civic", value: -0.1 },
+        ],
+      },
+      {
+        id: "DOG_STATION_INTERVIEW",
+        text: "Conduct a formal witness interview",
+        choiceType: "inquiry",
+        nextNodeId: "scene_dog_leads",
+        effects: [{ type: "add_var", key: "dog_case_confidence", value: 0.3 }],
+      },
+      {
+        id: "DOG_STATION_RECHECK",
+        text: "Re-check rail manifests",
+        choiceType: "inquiry",
+        nextNodeId: "scene_dog_leads",
+        conditions: [{ type: "var_gte", key: "attr_intellect", value: 2 }],
+        effects: [{ type: "add_var", key: "dog_case_confidence", value: 0.4 }],
+      },
+      {
+        id: "DOG_STATION_WRAP",
+        text: "Return to lead board",
+        nextNodeId: "scene_dog_leads",
+      },
+    ],
+  },
+  {
+    id: "scene_dog_tailor_encounter",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_tailor_encounter.md",
+    onEnter: [
+      { type: "set_flag", key: "dog_lead_tailor_done", value: true },
+      { type: "add_var", key: "dog_leads_progress", value: 1 },
+      { type: "grant_evidence", evidenceId: "ev_bank_master_key" },
+    ],
+    choices: [
+      {
+        id: "DOG_TAILOR_AUDIT_BOOKS",
+        text: "Audit tailor invoices",
+        choiceType: "inquiry",
+        nextNodeId: "scene_dog_leads",
+        effects: [{ type: "add_var", key: "dog_case_confidence", value: 0.3 }],
+      },
+      {
+        id: "DOG_TAILOR_INTIMIDATE",
+        text: "Intimidate workshop apprentice",
+        choiceType: "action",
+        nextNodeId: "scene_dog_leads",
+        effects: [
+          { type: "add_tension", amount: 1 },
+          { type: "set_flag", key: "dog_tailor_intimidation", value: true },
+        ],
+      },
+      {
+        id: "DOG_TAILOR_RETURN",
+        text: "Return to lead board",
+        nextNodeId: "scene_dog_leads",
+      },
+    ],
+  },
+  {
+    id: "scene_dog_uni_encounter",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_uni_encounter.md",
+    onEnter: [
+      { type: "set_flag", key: "dog_lead_uni_done", value: true },
+      { type: "set_flag", key: "dog_registry_found", value: true },
+      { type: "add_var", key: "dog_leads_progress", value: 1 },
+    ],
+    choices: [
+      {
+        id: "DOG_UNI_ARCHIVE_REQUEST",
+        text: "Request registry with legal notice",
+        choiceType: "action",
+        nextNodeId: "scene_dog_leads",
+        effects: [
+          { type: "set_flag", key: "dog_uni_registry_official", value: true },
+          {
+            type: "change_relationship",
+            characterId: "npc_anna_mahler",
+            delta: 1,
+          },
+        ],
+      },
+      {
+        id: "DOG_UNI_STEALTH_COPY",
+        text: "Copy registry quietly after hours",
+        choiceType: "action",
+        nextNodeId: "scene_dog_leads",
+        effects: [
+          { type: "set_flag", key: "dog_uni_registry_unofficial", value: true },
+          { type: "add_heat", amount: 1 },
+        ],
+      },
+      {
+        id: "DOG_UNI_RETURN",
+        text: "Return to lead board",
+        nextNodeId: "scene_dog_leads",
+      },
+    ],
+  },
+  {
+    id: "scene_dog_pub_encounter",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_pub_encounter.md",
+    onEnter: [
+      { type: "set_flag", key: "dog_lead_pub_done", value: true },
+      { type: "set_flag", key: "ghost_route_unlocked", value: true },
+      { type: "add_var", key: "dog_leads_progress", value: 1 },
+    ],
+    choices: [
+      {
+        id: "DOG_PUB_TRUST_BARTENDER",
+        text: "Trust bartender testimony",
+        choiceType: "inquiry",
+        nextNodeId: "scene_dog_leads",
+        effects: [{ type: "add_var", key: "dog_case_confidence", value: 0.2 }],
+      },
+      {
+        id: "DOG_PUB_TAIL_SUSPECT",
+        text: "Tail the suspect immediately",
+        choiceType: "action",
+        nextNodeId: "scene_dog_leads",
+        skillCheck: {
+          id: "check_dog_pub_tail",
+          voiceId: "attr_perception",
+          difficulty: 10,
+          onSuccess: {
+            effects: [
+              { type: "set_flag", key: "dog_pub_tail_success", value: true },
+              { type: "add_var", key: "checks_passed", value: 1 },
+            ],
+          },
+          onFail: {
+            effects: [{ type: "add_tension", amount: 1 }],
+          },
+        },
+      },
+      {
+        id: "DOG_PUB_RETURN",
+        text: "Return to lead board",
+        nextNodeId: "scene_dog_leads",
+      },
+    ],
+  },
+  {
+    id: "scene_park_reunion_beat1",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_park_reunion_beat1.md",
+    choices: [
+      {
+        id: "DOG_REUNION_CONTINUE",
+        text: "Finalize findings",
+        nextNodeId: "scene_park_reunion",
+      },
+    ],
+  },
+  {
+    id: "scene_park_reunion",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath: "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_park_reunion.md",
+    terminal: true,
+    choices: [],
+    onEnter: [
+      { type: "set_quest_stage", questId: "quest_dog", stage: 3 },
+      { type: "set_flag", key: "dog_case_closed", value: true },
+      { type: "grant_xp", amount: 40 },
+    ],
+  },
+  {
     id: "scene_estate_intro",
     scenarioId: "sandbox_ghost_pilot",
     sourcePath: "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_estate_intro.md",
@@ -459,6 +792,51 @@ const nodes: NodeBlueprint[] = [
         id: "GHOST_INVESTIGATE",
         text: "Begin estate investigation",
         choiceType: "action",
+        nextNodeId: "scene_estate_intro_beat1",
+      },
+      {
+        id: "GHOST_ABORT",
+        text: "File a superficial report",
+        choiceType: "flavor",
+        nextNodeId: "scene_conclusion_false",
+      },
+    ],
+  },
+  {
+    id: "scene_estate_intro_beat1",
+    scenarioId: "sandbox_ghost_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_estate_intro_beat1.md",
+    choices: [
+      {
+        id: "GHOST_BEAT1_CONTINUE",
+        text: "Proceed to guild orientation",
+        nextNodeId: "scene_guild_tutorial",
+      },
+    ],
+  },
+  {
+    id: "scene_guild_tutorial",
+    scenarioId: "sandbox_ghost_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_guild_tutorial.md",
+    choices: [
+      {
+        id: "GHOST_TUTORIAL_CONTINUE",
+        text: "Continue briefing",
+        nextNodeId: "scene_guild_tutorial_beat1",
+      },
+    ],
+  },
+  {
+    id: "scene_guild_tutorial_beat1",
+    scenarioId: "sandbox_ghost_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_guild_tutorial_beat1.md",
+    choices: [
+      {
+        id: "GHOST_TUTORIAL_INVESTIGATE",
+        text: "Start evidence sweep",
         nextNodeId: "scene_evidence_collection",
       },
     ],
@@ -486,7 +864,7 @@ const nodes: NodeBlueprint[] = [
         id: "GHOST_EVIDENCE_BOOKSHELF",
         text: "Inspect bookshelf",
         choiceType: "inquiry",
-        nextNodeId: "scene_conclusion_true",
+        nextNodeId: "scene_evidence_collection_beat1",
         effects: [
           {
             type: "set_flag",
@@ -501,7 +879,7 @@ const nodes: NodeBlueprint[] = [
         id: "GHOST_EVIDENCE_THERMOMETER",
         text: "Check the temperature anomaly",
         choiceType: "inquiry",
-        nextNodeId: "scene_conclusion_true",
+        nextNodeId: "scene_evidence_collection_beat1",
         skillCheck: {
           id: "check_ghost_thermometer",
           voiceId: "attr_intellect",
@@ -524,15 +902,14 @@ const nodes: NodeBlueprint[] = [
           },
         },
         effects: [
-          { type: "set_flag", key: "ghost_cold_spot_confirmed", value: true },
-          { type: "add_var", key: "attr_spirit", value: 1 },
+          { type: "track_event", eventName: "ghost_thermometer_check" },
         ],
       },
       {
         id: "GHOST_EVIDENCE_FLOOR",
         text: "Inspect floor traces",
         choiceType: "inquiry",
-        nextNodeId: "scene_conclusion_true",
+        nextNodeId: "scene_evidence_collection_beat1",
         effects: [
           { type: "set_flag", key: "ghost_ectoplasm_found", value: true },
           { type: "add_var", key: "checks_passed", value: 1 },
@@ -542,12 +919,68 @@ const nodes: NodeBlueprint[] = [
     ],
   },
   {
+    id: "scene_evidence_collection_beat1",
+    scenarioId: "sandbox_ghost_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_evidence_collection_beat1.md",
+    choices: [
+      {
+        id: "GHOST_COLLECT_MORE",
+        text: "Collect more traces before conclusion",
+        nextNodeId: "scene_evidence_collection",
+      },
+      {
+        id: "GHOST_CONCLUSION_TRUE",
+        text: "Build a full accusation",
+        nextNodeId: "scene_conclusion_true",
+        conditions: [
+          {
+            type: "flag_equals",
+            key: "ghost_bookshelf_switch_found",
+            value: true,
+          },
+          {
+            type: "flag_equals",
+            key: "ghost_ectoplasm_found",
+            value: true,
+          },
+        ],
+        effects: [
+          { type: "set_quest_stage", questId: "quest_ghost", stage: 2 },
+          { type: "set_flag", key: "ghost_truth_proven", value: true },
+        ],
+      },
+      {
+        id: "GHOST_CONCLUSION_FALSE",
+        text: "File it as folklore",
+        nextNodeId: "scene_conclusion_false",
+        effects: [
+          { type: "set_quest_stage", questId: "quest_ghost", stage: 2 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_conclusion_false",
+    scenarioId: "sandbox_ghost_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_conclusion_false.md",
+    terminal: true,
+    choices: [],
+    onEnter: [{ type: "set_flag", key: "ghost_truth_proven", value: false }],
+  },
+  {
     id: "scene_conclusion_true",
     scenarioId: "sandbox_ghost_pilot",
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_conclusion_true.md",
     terminal: true,
     choices: [],
+    onEnter: [
+      { type: "set_quest_stage", questId: "quest_ghost", stage: 3 },
+      { type: "set_flag", key: "ghost_case_closed", value: true },
+      { type: "grant_xp", amount: 45 },
+    ],
   },
   {
     id: "scene_origin_journalist_bootstrap",
@@ -1351,6 +1784,82 @@ const mindHypotheses: MindHypothesisContent[] = [
   },
 ];
 
+const questCatalog: QuestCatalogEntry[] = [
+  {
+    id: "quest_banker",
+    title: "Banker File",
+    stages: [
+      {
+        stage: 1,
+        title: "Initial Briefing",
+        objectiveHint: "Meet Kessler at the bank and open the ledger trail.",
+        objectivePointIds: ["loc_freiburg_bank"],
+      },
+      {
+        stage: 2,
+        title: "Cross-Check Leads",
+        objectiveHint: "Revisit the bank after checking external testimonies.",
+        objectivePointIds: ["loc_freiburg_bank", "loc_hbf"],
+      },
+      {
+        stage: 3,
+        title: "Case Closed",
+        objectiveHint: "Banker case archived.",
+        objectivePointIds: ["loc_freiburg_warehouse"],
+      },
+    ],
+  },
+  {
+    id: "quest_dog",
+    title: "Dog Trail",
+    stages: [
+      {
+        stage: 1,
+        title: "Open Dog Lead Board",
+        objectiveHint: "Collect initial route intel from Rathaus.",
+        objectivePointIds: ["loc_rathaus"],
+      },
+      {
+        stage: 2,
+        title: "Converge Leads",
+        objectiveHint: "Convene in the park after enough witness routes.",
+        objectivePointIds: ["loc_rathaus", "loc_workers_pub"],
+      },
+      {
+        stage: 3,
+        title: "Case Closed",
+        objectiveHint: "Dog trail logged and sealed.",
+        objectivePointIds: ["loc_workers_pub"],
+      },
+    ],
+  },
+  {
+    id: "quest_ghost",
+    title: "Ghost Dossier",
+    stages: [
+      {
+        stage: 1,
+        title: "Estate Survey",
+        objectiveHint: "Open the ghost investigation from the workers' tavern.",
+        objectivePointIds: ["loc_workers_pub"],
+      },
+      {
+        stage: 2,
+        title: "Assemble Proof",
+        objectiveHint:
+          "Correlate bookshelf and floor evidence before accusation.",
+        objectivePointIds: ["loc_workers_pub", "loc_freiburg_bank"],
+      },
+      {
+        stage: 3,
+        title: "Case Closed",
+        objectiveHint: "Ghost case finalized and written into records.",
+        objectivePointIds: ["loc_freiburg_warehouse"],
+      },
+    ],
+  },
+];
+
 const readMarkdown = (relativePath: string): string => {
   const absolutePath = path.join(storyRoot, relativePath);
   return readFileSync(absolutePath, "utf8")
@@ -1659,6 +2168,97 @@ const validateMindHypothesis = (
   }
 };
 
+const validateQuestCatalogEntry = (quest: QuestCatalogEntry): void => {
+  assertAscii(quest.id, "questCatalog.id");
+  assertKnownId(CONTENT_IDS.questIds, quest.id, "questCatalog.id");
+
+  const seenStages = new Set<number>();
+  for (const stage of quest.stages) {
+    if (!Number.isInteger(stage.stage) || stage.stage < 1) {
+      throw new Error(
+        `questCatalog(${quest.id}) has invalid stage ${stage.stage}`,
+      );
+    }
+    if (seenStages.has(stage.stage)) {
+      throw new Error(
+        `questCatalog(${quest.id}) duplicates stage ${stage.stage}`,
+      );
+    }
+    seenStages.add(stage.stage);
+
+    if (stage.title.trim().length === 0) {
+      throw new Error(
+        `questCatalog(${quest.id}) stage ${stage.stage} has empty title`,
+      );
+    }
+    if (stage.objectiveHint.trim().length === 0) {
+      throw new Error(
+        `questCatalog(${quest.id}) stage ${stage.stage} has empty objectiveHint`,
+      );
+    }
+
+    for (const pointId of stage.objectivePointIds ?? []) {
+      assertAscii(pointId, `questCatalog(${quest.id}).objectivePointId`);
+    }
+  }
+};
+
+const validateMapCondition = (
+  condition: MapCondition,
+  context: string,
+): void => {
+  if ("key" in condition) {
+    assertAscii(condition.key, `${context}.key`);
+  }
+  if ("evidenceId" in condition) {
+    assertKnownId(CONTENT_IDS.evidenceIds, condition.evidenceId, context);
+  }
+  if ("questId" in condition) {
+    assertKnownId(CONTENT_IDS.questIds, condition.questId, context);
+  }
+  if ("characterId" in condition) {
+    assertKnownId(CONTENT_IDS.characterIds, condition.characterId, context);
+  }
+  if ("groupId" in condition) {
+    assertKnownId(CONTENT_IDS.unlockGroups, condition.groupId, context);
+  }
+  if ("conditions" in condition) {
+    for (const nested of condition.conditions) {
+      validateMapCondition(nested, `${context}.nested`);
+    }
+  }
+  if ("condition" in condition) {
+    validateMapCondition(condition.condition, `${context}.nested`);
+  }
+};
+
+const validateMapAction = (action: MapAction, context: string): void => {
+  if ("locationId" in action) {
+    assertAscii(action.locationId, `${context}.locationId`);
+  }
+  if ("key" in action) {
+    assertAscii(action.key, `${context}.key`);
+  }
+  if ("scenarioId" in action) {
+    assertAscii(action.scenarioId, `${context}.scenarioId`);
+  }
+  if ("groupId" in action) {
+    assertKnownId(CONTENT_IDS.unlockGroups, action.groupId, context);
+  }
+  if ("questId" in action) {
+    assertKnownId(CONTENT_IDS.questIds, action.questId, context);
+  }
+  if ("evidenceId" in action) {
+    assertKnownId(CONTENT_IDS.evidenceIds, action.evidenceId, context);
+  }
+  if ("characterId" in action) {
+    assertKnownId(CONTENT_IDS.characterIds, action.characterId, context);
+  }
+  if ("eventName" in action) {
+    assertAscii(action.eventName, `${context}.eventName`);
+  }
+};
+
 const validateScenarioGraph = (
   scenarioBlueprints: ScenarioBlueprint[],
   nodeBlueprints: NodeBlueprint[],
@@ -1784,6 +2384,105 @@ const validateScenarioGraph = (
   }
 };
 
+const collectReachableNodeIds = (
+  startNodeId: string,
+  nodeById: ReadonlyMap<string, NodeBlueprint>,
+): Set<string> => {
+  const visited = new Set<string>();
+  const queue: string[] = [startNodeId];
+
+  while (queue.length > 0) {
+    const currentNodeId = queue.shift();
+    if (!currentNodeId || visited.has(currentNodeId)) {
+      continue;
+    }
+    visited.add(currentNodeId);
+
+    const node = nodeById.get(currentNodeId);
+    if (!node) {
+      continue;
+    }
+
+    for (const choice of node.choices) {
+      queue.push(choice.nextNodeId);
+      if (choice.skillCheck?.onSuccess?.nextNodeId) {
+        queue.push(choice.skillCheck.onSuccess.nextNodeId);
+      }
+      if (choice.skillCheck?.onFail?.nextNodeId) {
+        queue.push(choice.skillCheck.onFail.nextNodeId);
+      }
+    }
+
+    for (const check of node.passiveChecks ?? []) {
+      if (check.onSuccess?.nextNodeId) {
+        queue.push(check.onSuccess.nextNodeId);
+      }
+      if (check.onFail?.nextNodeId) {
+        queue.push(check.onFail.nextNodeId);
+      }
+    }
+  }
+
+  return visited;
+};
+
+const collectContentContractWarnings = (
+  scenarioBlueprints: ScenarioBlueprint[],
+  nodeBlueprints: NodeBlueprint[],
+): string[] => {
+  const warnings: string[] = [];
+  const nodeById = new Map(nodeBlueprints.map((node) => [node.id, node]));
+  const nodesByScenario = new Map<string, NodeBlueprint[]>();
+  for (const scenario of scenarioBlueprints) {
+    nodesByScenario.set(
+      scenario.id,
+      nodeBlueprints.filter((node) => node.scenarioId === scenario.id),
+    );
+  }
+
+  const minNodeRules = new Map<string, number>([
+    ["sandbox_banker_pilot", 5],
+    ["sandbox_dog_pilot", 8],
+    ["sandbox_ghost_pilot", 8],
+  ]);
+
+  for (const [scenarioId, minNodes] of minNodeRules) {
+    const nodesForScenario = nodesByScenario.get(scenarioId) ?? [];
+    if (nodesForScenario.length < minNodes) {
+      warnings.push(
+        `Scenario ${scenarioId} has ${nodesForScenario.length} nodes (required >= ${minNodes})`,
+      );
+    }
+  }
+
+  for (const scenario of scenarioBlueprints) {
+    const nodesForScenario = nodesByScenario.get(scenario.id) ?? [];
+    const reachableIds = collectReachableNodeIds(
+      scenario.startNodeId,
+      nodeById,
+    );
+    const unreachable = nodesForScenario.filter(
+      (node) => !reachableIds.has(node.id),
+    );
+    if (unreachable.length > 0) {
+      warnings.push(
+        `Scenario ${scenario.id} contains unreachable nodes: ${unreachable
+          .map((node) => node.id)
+          .join(", ")}`,
+      );
+    }
+
+    const terminalCount = nodesForScenario.filter(
+      (node) => node.terminal,
+    ).length;
+    if (terminalCount === 0) {
+      warnings.push(`Scenario ${scenario.id} has no terminal nodes`);
+    }
+  }
+
+  return warnings;
+};
+
 const extractTitle = (markdown: string, fallback: string): string => {
   const match = markdown.match(/^#\s+(.+)$/m);
   if (!match) {
@@ -1891,6 +2590,10 @@ for (const node of nodesWithCase01) {
 }
 
 validateScenarioGraph(scenariosWithCase01, nodesWithCase01);
+const contentContractWarnings = collectContentContractWarnings(
+  scenariosWithCase01,
+  nodesWithCase01,
+);
 
 for (const mindCase of mindCases) {
   validateMindCase(mindCase);
@@ -1905,6 +2608,10 @@ for (const fact of mindFacts) {
 
 for (const hypothesis of mindHypotheses) {
   validateMindHypothesis(hypothesis, knownCaseIds, knownFactIds);
+}
+
+for (const quest of questCatalog) {
+  validateQuestCatalogEntry(quest);
 }
 
 const builtNodes: VnNode[] = nodesWithCase01.map((node) => {
@@ -1973,8 +2680,86 @@ const builtScenarios: VnScenario[] = scenariosWithCase01.map((scenario) => {
   return vnScenario;
 });
 
+const availableScenarioIds = new Set(
+  builtScenarios.map((scenario) => scenario.id),
+);
+const mapSnapshot = buildCase01MapSnapshot(availableScenarioIds);
+
+const seenPointIds = new Set<string>();
+const seenBindingIds = new Set<string>();
+const knownRegionIds = new Set(mapSnapshot.regions.map((region) => region.id));
+let conditionDrivenBindingCount = 0;
+let pointsWithRichBindings = 0;
+for (const point of mapSnapshot.points) {
+  if (seenPointIds.has(point.id)) {
+    throw new Error(`Map point id is duplicated: ${point.id}`);
+  }
+  seenPointIds.add(point.id);
+  if (!knownRegionIds.has(point.regionId)) {
+    throw new Error(
+      `Map point ${point.id} references unknown regionId ${point.regionId}`,
+    );
+  }
+  if (point.bindings.length === 0) {
+    throw new Error(`Map point ${point.id} has no bindings`);
+  }
+
+  if (point.bindings.length > 2) {
+    pointsWithRichBindings += 1;
+  }
+
+  for (const binding of point.bindings) {
+    if (seenBindingIds.has(binding.id)) {
+      throw new Error(`Map binding id is duplicated: ${binding.id}`);
+    }
+    seenBindingIds.add(binding.id);
+    if ((binding.conditions ?? []).length > 0) {
+      conditionDrivenBindingCount += 1;
+    }
+
+    for (const condition of binding.conditions ?? []) {
+      validateMapCondition(condition, `map binding ${binding.id}`);
+    }
+
+    for (const action of binding.actions) {
+      validateMapAction(action, `map binding ${binding.id}`);
+      if (
+        action.type === "start_scenario" &&
+        !availableScenarioIds.has(action.scenarioId)
+      ) {
+        throw new Error(
+          `Map binding ${binding.id} references unknown scenarioId ${action.scenarioId}`,
+        );
+      }
+    }
+  }
+}
+
+for (const quest of questCatalog) {
+  for (const stage of quest.stages) {
+    for (const pointId of stage.objectivePointIds ?? []) {
+      if (!seenPointIds.has(pointId)) {
+        throw new Error(
+          `questCatalog(${quest.id}) stage ${stage.stage} references unknown pointId ${pointId}`,
+        );
+      }
+    }
+  }
+}
+
+if (conditionDrivenBindingCount < 12) {
+  contentContractWarnings.push(
+    `Map contract warning: expected >=12 condition-driven bindings, got ${conditionDrivenBindingCount}`,
+  );
+}
+if (pointsWithRichBindings < 5) {
+  contentContractWarnings.push(
+    `Map contract warning: expected >=5 points with >2 bindings, got ${pointsWithRichBindings}`,
+  );
+}
+
 const snapshotPayload: VnSnapshot = {
-  schemaVersion: 2,
+  schemaVersion: 4,
   scenarios: builtScenarios,
   nodes: builtNodes,
   vnRuntime: {
@@ -1986,6 +2771,8 @@ const snapshotPayload: VnSnapshot = {
     facts: mindFacts,
     hypotheses: mindHypotheses,
   },
+  map: mapSnapshot,
+  questCatalog,
 };
 
 const payloadJson = JSON.stringify(snapshotPayload);
@@ -2011,3 +2798,13 @@ console.log(`Scenarios: ${builtScenarios.length}, Nodes: ${builtNodes.length}`);
 console.log(
   `MindPalace -> Cases: ${mindCases.length}, Facts: ${mindFacts.length}, Hypotheses: ${mindHypotheses.length}`,
 );
+console.log(
+  `Map -> Points: ${mapSnapshot.points.length}, Bindings: ${mapSnapshot.points.reduce((total, point) => total + point.bindings.length, 0)}, Condition-driven: ${conditionDrivenBindingCount}`,
+);
+
+if (contentContractWarnings.length > 0) {
+  console.warn("Content contract warnings:");
+  for (const warning of contentContractWarnings) {
+    console.warn(`  - ${warning}`);
+  }
+}

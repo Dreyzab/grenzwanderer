@@ -573,6 +573,11 @@ const COMMAND_SCENARIOS: readonly CommandScenarioTemplate[] = [
           "Anna puts her quiet channels to work and sends back a tighter rumor net before first light.",
         effects: [
           { type: "set_flag", key: "command_anna_network_ready", value: true },
+          { type: "register_rumor", rumorId: "rumor_bank_rail_yard" },
+          {
+            type: "record_service_criterion",
+            criterionId: "preserved_source_network",
+          },
           {
             type: "change_relationship",
             characterId: "npc_anna_mahler",
@@ -2973,9 +2978,6 @@ export const changeFactionSignalInternal = (
   if (mirrorVarKey) {
     upsertVar(ctx, mirrorVarKey, nextValue);
   }
-  if (reason) {
-    emitTelemetry(ctx, "faction_signal_changed", { factionId, reason }, nextValue);
-  }
 
   return nextValue;
 };
@@ -3088,9 +3090,6 @@ export const changeAgencyStandingInternal = (
     updatedAt: ctx.timestamp,
   };
   ctx.db.playerAgencyCareer.playerId.update(nextRow);
-  if (reason) {
-    emitTelemetry(ctx, "agency_standing_changed", { reason }, nextValue);
-  }
   promoteAgencyCareerIfEligible(ctx);
   return nextValue;
 };
@@ -5017,6 +5016,7 @@ export const applyEffects = (
     if (effect.type === "set_quest_stage") {
       const questKey = createQuestKey(ctx.sender, effect.questId);
       const existing = ctx.db.playerQuest.questKey.find(questKey);
+      let appliedStage = existing?.stage ?? 0;
       if (existing) {
         if (effect.stage > existing.stage) {
           ctx.db.playerQuest.questKey.update({
@@ -5024,6 +5024,7 @@ export const applyEffects = (
             stage: effect.stage,
             updatedAt: ctx.timestamp,
           });
+          appliedStage = effect.stage;
         }
       } else {
         ctx.db.playerQuest.insert({
@@ -5033,28 +5034,49 @@ export const applyEffects = (
           stage: effect.stage,
           updatedAt: ctx.timestamp,
         });
+        appliedStage = effect.stage;
       }
+      syncAgencyCareerQualifyingCase(ctx, effect.questId, appliedStage);
       continue;
     }
 
     if (effect.type === "change_relationship") {
-      const relKey = createRelationshipKey(ctx.sender, effect.characterId);
-      const existing = ctx.db.playerRelationship.relationshipKey.find(relKey);
-      if (existing) {
-        ctx.db.playerRelationship.relationshipKey.update({
-          ...existing,
-          value: existing.value + effect.delta,
-          updatedAt: ctx.timestamp,
-        });
-      } else {
-        ctx.db.playerRelationship.insert({
-          relationshipKey: relKey,
-          playerId: ctx.sender,
-          characterId: effect.characterId,
-          value: effect.delta,
-          updatedAt: ctx.timestamp,
-        });
-      }
+      changeRelationshipTrust(ctx, effect.characterId, effect.delta);
+      continue;
+    }
+
+    if (effect.type === "change_favor_balance") {
+      changeFavorBalanceInternal(ctx, effect.npcId, effect.delta, effect.reason);
+      continue;
+    }
+
+    if (effect.type === "change_agency_standing") {
+      changeAgencyStandingInternal(ctx, effect.delta, effect.reason);
+      continue;
+    }
+
+    if (effect.type === "change_faction_signal") {
+      changeFactionSignalInternal(
+        ctx,
+        effect.factionId,
+        effect.delta,
+        effect.reason,
+      );
+      continue;
+    }
+
+    if (effect.type === "register_rumor") {
+      registerRumorInternal(ctx, effect.rumorId);
+      continue;
+    }
+
+    if (effect.type === "verify_rumor") {
+      verifyRumorInternal(ctx, effect.rumorId, effect.verificationKind);
+      continue;
+    }
+
+    if (effect.type === "record_service_criterion") {
+      recordServiceCriterionInternal(ctx, effect.criterionId);
       continue;
     }
 

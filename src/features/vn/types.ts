@@ -5,7 +5,11 @@ export type VnCondition =
   | { type: "has_evidence"; evidenceId: string }
   | { type: "quest_stage_gte"; questId: string; stage: number }
   | { type: "relationship_gte"; characterId: string; value: number }
-  | { type: "has_item"; itemId: string };
+  | { type: "has_item"; itemId: string }
+  | { type: "favor_balance_gte"; npcId: string; value: number }
+  | { type: "agency_standing_gte"; value: number }
+  | { type: "rumor_state_is"; rumorId: string; status: RumorStateStatus }
+  | { type: "career_rank_gte"; rankId: string };
 
 export type VnEffect =
   | { type: "set_flag"; key: string; value: boolean }
@@ -38,6 +42,29 @@ export type VnEffect =
   | { type: "unlock_group"; groupId: string }
   | { type: "set_quest_stage"; questId: string; stage: number }
   | { type: "change_relationship"; characterId: string; delta: number }
+  | {
+      type: "change_favor_balance";
+      npcId: string;
+      delta: number;
+      reason?: string;
+    }
+  | { type: "change_agency_standing"; delta: number; reason?: string }
+  | {
+      type: "change_faction_signal";
+      factionId: string;
+      delta: number;
+      reason?: string;
+    }
+  | { type: "register_rumor"; rumorId: string }
+  | {
+      type: "verify_rumor";
+      rumorId: string;
+      verificationKind: RumorVerificationKind;
+    }
+  | {
+      type: "record_service_criterion";
+      criterionId: AgencyServiceCriterionId;
+    }
   | { type: "grant_evidence"; evidenceId: string }
   | { type: "grant_item"; itemId: string; quantity: number }
   | { type: "add_heat"; amount: number }
@@ -160,6 +187,32 @@ export type MysticAwakeningBand =
   | "pierced";
 
 export type SightMode = "rational" | "sensitive" | "ether";
+export type NpcAvailabilityState =
+  | "available"
+  | "hidden"
+  | "wounded"
+  | "arrested"
+  | "drunk"
+  | "watching"
+  | "on_the_run";
+export type FactionSignalTrend = "rising" | "stable" | "falling";
+export type RumorStateStatus = "registered" | "verified";
+export type RumorVerificationKind =
+  | "evidence"
+  | "fact"
+  | "service_unlock"
+  | "map_unlock";
+export type AgencyServiceCriterionId =
+  | "verified_rumor_chain"
+  | "preserved_source_network"
+  | "clean_closure";
+export type NpcRosterTier = "archetype" | "functional" | "major";
+export type NpcServiceRole =
+  | "information"
+  | "archives"
+  | "social_introduction"
+  | "political_cover"
+  | "transport";
 
 export type MysticObservationKind =
   | "sighting"
@@ -214,6 +267,58 @@ export interface QuestCatalogEntry {
   stages: QuestStageContent[];
 }
 
+export interface NpcRuntimeIdentity {
+  id: string;
+  displayName: string;
+  factionId: string;
+  publicRole: string;
+  rosterTier: NpcRosterTier;
+  portraitUrl?: string;
+  introFlag?: string;
+  homePointId?: string;
+  workPointId?: string;
+  serviceIds?: string[];
+}
+
+export interface NpcServiceDefinition {
+  id: string;
+  npcId: string;
+  role: NpcServiceRole;
+  label: string;
+  baseAccess: string;
+  unlockFlag?: string;
+  costNote?: string;
+  qualityNote?: string;
+  consequenceNote?: string;
+}
+
+export interface RumorTemplate {
+  id: string;
+  title: string;
+  caseId: string;
+  leadPointId?: string;
+  sourceNpcId?: string;
+  verifiesOn: RumorVerificationKind[];
+  careerCriterionOnVerify?: AgencyServiceCriterionId;
+}
+
+export interface CareerRankDefinition {
+  id: string;
+  label: string;
+  order: number;
+  standingRequired: number;
+  qualifyingCaseId?: string;
+  serviceCriteriaNeeded: number;
+  privileges: string[];
+}
+
+export interface SocialCatalogSnapshot {
+  npcIdentities: NpcRuntimeIdentity[];
+  services: NpcServiceDefinition[];
+  rumors: RumorTemplate[];
+  careerRanks: CareerRankDefinition[];
+}
+
 export type MapPointState = "locked" | "discovered" | "visited" | "completed";
 export type MapPointDefaultState = "locked" | "discovered";
 export type MapPointCategory = "HUB" | "PUBLIC" | "SHADOW" | "EPHEMERAL";
@@ -233,6 +338,10 @@ export type MapCondition =
   | { type: "has_evidence"; evidenceId: string }
   | { type: "quest_stage_gte"; questId: string; stage: number }
   | { type: "relationship_gte"; characterId: string; value: number }
+  | { type: "favor_balance_gte"; npcId: string; value: number }
+  | { type: "agency_standing_gte"; value: number }
+  | { type: "rumor_state_is"; rumorId: string; status: RumorStateStatus }
+  | { type: "career_rank_gte"; rankId: string }
   | { type: "unlock_group_has"; groupId: string }
   | { type: "point_state_is"; state: MapPointState }
   | { type: "logic_and"; conditions: MapCondition[] }
@@ -259,6 +368,29 @@ export type MapAction =
   | { type: "grant_evidence"; evidenceId: string }
   | { type: "grant_xp"; amount: number }
   | { type: "change_relationship"; characterId: string; delta: number }
+  | {
+      type: "change_favor_balance";
+      npcId: string;
+      delta: number;
+      reason?: string;
+    }
+  | { type: "change_agency_standing"; delta: number; reason?: string }
+  | {
+      type: "change_faction_signal";
+      factionId: string;
+      delta: number;
+      reason?: string;
+    }
+  | { type: "register_rumor"; rumorId: string }
+  | {
+      type: "verify_rumor";
+      rumorId: string;
+      verificationKind: RumorVerificationKind;
+    }
+  | {
+      type: "record_service_criterion";
+      criterionId: AgencyServiceCriterionId;
+    }
   | {
       type: "track_event";
       eventName: string;
@@ -365,4 +497,5 @@ export interface VnSnapshot {
   mysticism?: MysticSnapshot;
   map?: MapSnapshot;
   questCatalog?: QuestCatalogEntry[];
+  socialCatalog?: SocialCatalogSnapshot;
 }

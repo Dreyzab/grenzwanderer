@@ -3,10 +3,13 @@ import spacetimedb from "../schema";
 import {
   applyEffects,
   cleanupExpiredMapEvents,
+  changeAgencyStandingInternal,
+  changeFactionSignalInternal,
+  changeFavorBalanceInternal,
+  changeRelationshipTrust,
   createEvidenceKey,
   createInventoryKey,
   createQuestKey,
-  createRelationshipKey,
   createUnlockGroupKey,
   emitTelemetry,
   ensureIdempotent,
@@ -14,12 +17,16 @@ import {
   getActiveSnapshot,
   getScenario,
   hasPlayerGameplayProgress,
+  recordServiceCriterionInternal,
+  registerRumorInternal,
   resetPlayerGameplayState,
   setNickname,
+  syncAgencyCareerQualifyingCase,
   type VnEffect,
   upsertFlag,
   upsertLocation,
   upsertVar,
+  verifyRumorInternal,
 } from "./helpers";
 import { startScenarioInternal } from "./vn";
 
@@ -232,6 +239,7 @@ export const set_quest_stage = spacetimedb.reducer(
           stage,
           updatedAt: ctx.timestamp,
         });
+        syncAgencyCareerQualifyingCase(ctx, questId, stage);
         emitTelemetry(ctx, "quest_stage_set", { questId }, stage);
       }
     } else {
@@ -242,6 +250,7 @@ export const set_quest_stage = spacetimedb.reducer(
         stage,
         updatedAt: ctx.timestamp,
       });
+      syncAgencyCareerQualifyingCase(ctx, questId, stage);
       emitTelemetry(ctx, "quest_stage_set", { questId }, stage);
     }
   },
@@ -329,28 +338,141 @@ export const change_relationship = spacetimedb.reducer(
     ensureIdempotent(ctx, requestId, "change_relationship");
     ensurePlayerProfile(ctx);
 
-    const relKey = createRelationshipKey(ctx.sender, characterId);
-    const existing = ctx.db.playerRelationship.relationshipKey.find(relKey);
-
-    const newValue = existing ? existing.value + delta : delta;
-
-    if (existing) {
-      ctx.db.playerRelationship.relationshipKey.update({
-        ...existing,
-        value: newValue,
-        updatedAt: ctx.timestamp,
-      });
-    } else {
-      ctx.db.playerRelationship.insert({
-        relationshipKey: relKey,
-        playerId: ctx.sender,
-        characterId,
-        value: newValue,
-        updatedAt: ctx.timestamp,
-      });
-    }
+    const newValue = changeRelationshipTrust(ctx, characterId, delta);
 
     emitTelemetry(ctx, "relationship_changed", { characterId }, newValue);
+  },
+);
+
+export const change_favor_balance = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    npcId: t.string(),
+    delta: t.i32(),
+    reason: t.string().optional(),
+  },
+  (ctx, { requestId, npcId, delta, reason }) => {
+    if (!npcId || npcId.trim().length === 0) {
+      throw new SenderError("npcId must not be empty");
+    }
+
+    ensureIdempotent(ctx, requestId, "change_favor_balance");
+    ensurePlayerProfile(ctx);
+
+    const nextValue = changeFavorBalanceInternal(ctx, npcId, delta, reason);
+    emitTelemetry(ctx, "favor_balance_changed", { npcId, reason }, nextValue);
+  },
+);
+
+export const change_agency_standing = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    delta: t.f64(),
+    reason: t.string().optional(),
+  },
+  (ctx, { requestId, delta, reason }) => {
+    ensureIdempotent(ctx, requestId, "change_agency_standing");
+    ensurePlayerProfile(ctx);
+
+    const nextValue = changeAgencyStandingInternal(ctx, delta, reason);
+    emitTelemetry(ctx, "agency_standing_changed", { reason }, nextValue);
+  },
+);
+
+export const change_faction_signal = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    factionId: t.string(),
+    delta: t.f64(),
+    reason: t.string().optional(),
+  },
+  (ctx, { requestId, factionId, delta, reason }) => {
+    if (!factionId || factionId.trim().length === 0) {
+      throw new SenderError("factionId must not be empty");
+    }
+
+    ensureIdempotent(ctx, requestId, "change_faction_signal");
+    ensurePlayerProfile(ctx);
+
+    const nextValue = changeFactionSignalInternal(ctx, factionId, delta, reason);
+    emitTelemetry(ctx, "faction_signal_changed", { factionId, reason }, nextValue);
+  },
+);
+
+export const register_rumor = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    rumorId: t.string(),
+  },
+  (ctx, { requestId, rumorId }) => {
+    if (!rumorId || rumorId.trim().length === 0) {
+      throw new SenderError("rumorId must not be empty");
+    }
+
+    ensureIdempotent(ctx, requestId, "register_rumor");
+    ensurePlayerProfile(ctx);
+
+    registerRumorInternal(ctx, rumorId);
+    emitTelemetry(ctx, "rumor_registered", { rumorId });
+  },
+);
+
+export const verify_rumor = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    rumorId: t.string(),
+    verificationKind: t.string(),
+  },
+  (ctx, { requestId, rumorId, verificationKind }) => {
+    if (!rumorId || rumorId.trim().length === 0) {
+      throw new SenderError("rumorId must not be empty");
+    }
+    if (
+      verificationKind !== "evidence" &&
+      verificationKind !== "fact" &&
+      verificationKind !== "service_unlock" &&
+      verificationKind !== "map_unlock"
+    ) {
+      throw new SenderError("verificationKind is invalid");
+    }
+
+    ensureIdempotent(ctx, requestId, "verify_rumor");
+    ensurePlayerProfile(ctx);
+
+    verifyRumorInternal(
+      ctx,
+      rumorId,
+      verificationKind as "evidence" | "fact" | "service_unlock" | "map_unlock",
+    );
+    emitTelemetry(ctx, "rumor_verified", { rumorId, verificationKind });
+  },
+);
+
+export const record_service_criterion = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    criterionId: t.string(),
+  },
+  (ctx, { requestId, criterionId }) => {
+    if (
+      criterionId !== "verified_rumor_chain" &&
+      criterionId !== "preserved_source_network" &&
+      criterionId !== "clean_closure"
+    ) {
+      throw new SenderError("criterionId is invalid");
+    }
+
+    ensureIdempotent(ctx, requestId, "record_service_criterion");
+    ensurePlayerProfile(ctx);
+
+    recordServiceCriterionInternal(
+      ctx,
+      criterionId as
+        | "verified_rumor_chain"
+        | "preserved_source_network"
+        | "clean_closure",
+    );
+    emitTelemetry(ctx, "career_criterion_recorded", { criterionId });
   },
 );
 

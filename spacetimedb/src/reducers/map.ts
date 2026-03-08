@@ -6,15 +6,20 @@ import {
   createEvidenceKey,
   createInventoryKey,
   createQuestKey,
-  createRelationshipKey,
   createUnlockGroupKey,
   createRedeemedCodeKey,
   emitTelemetry,
   ensureIdempotent,
+  ensureAgencyCareerRow,
   ensurePlayerProfile,
   getActiveSnapshot,
+  getAgencyStandingScore,
   getFlag,
+  getFavorBalance,
+  getCareerRankOrder,
   getPlayerActiveMapEventByEventId,
+  getRelationshipValue,
+  getRumorStatus,
   getVar,
   type MapAction,
   type MapBinding,
@@ -113,9 +118,22 @@ const evaluateMapCondition = (
     return row ? row.stage >= condition.stage : false;
   }
   if (condition.type === "relationship_gte") {
-    const relKey = createRelationshipKey(ctx.sender, condition.characterId);
-    const row = ctx.db.playerRelationship.relationshipKey.find(relKey);
-    return row ? row.value >= condition.value : false;
+    return getRelationshipValue(ctx, condition.characterId) >= condition.value;
+  }
+  if (condition.type === "favor_balance_gte") {
+    return getFavorBalance(ctx, condition.npcId) >= condition.value;
+  }
+  if (condition.type === "agency_standing_gte") {
+    return getAgencyStandingScore(ctx) >= condition.value;
+  }
+  if (condition.type === "rumor_state_is") {
+    return getRumorStatus(ctx, condition.rumorId) === condition.status;
+  }
+  if (condition.type === "career_rank_gte") {
+    return (
+      getCareerRankOrder(ctx, ensureAgencyCareerRow(ctx).rankId) >=
+      getCareerRankOrder(ctx, condition.rankId)
+    );
   }
   if (condition.type === "unlock_group_has") {
     const unlockKey = createUnlockGroupKey(ctx.sender, condition.groupId);

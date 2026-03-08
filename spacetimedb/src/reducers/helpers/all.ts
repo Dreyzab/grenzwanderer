@@ -2463,6 +2463,21 @@ export const hasPlayerGameplayProgress = (ctx: any): boolean => {
   if (hasAnyRowsForSender(ctx.db.playerRelationship.iter(), senderHex)) {
     return true;
   }
+  if (hasAnyRowsForSender(ctx.db.playerNpcState.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerNpcFavor.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerFactionSignal.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerAgencyCareer.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerRumorState.iter(), senderHex)) {
+    return true;
+  }
   if (hasAnyRowsForSender(ctx.db.playerUnlockGroup.iter(), senderHex)) {
     return true;
   }
@@ -2534,6 +2549,36 @@ export const resetPlayerGameplayState = (ctx: any): void => {
   for (const row of [...ctx.db.playerRelationship.iter()]) {
     if (isRowOwnedBySender(row, senderHex)) {
       ctx.db.playerRelationship.relationshipKey.delete(row.relationshipKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerNpcState.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerNpcState.npcStateKey.delete(row.npcStateKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerNpcFavor.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerNpcFavor.favorKey.delete(row.favorKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerFactionSignal.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerFactionSignal.signalKey.delete(row.signalKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerAgencyCareer.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerAgencyCareer.playerId.delete(row.playerId);
+    }
+  }
+
+  for (const row of [...ctx.db.playerRumorState.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerRumorState.rumorStateKey.delete(row.rumorStateKey);
     }
   }
 
@@ -2663,6 +2708,491 @@ export const upsertVar = (ctx: any, key: string, floatValue: number): void => {
 export const addToVar = (ctx: any, key: string, delta: number): void => {
   const current = getVar(ctx, key);
   upsertVar(ctx, key, current + delta);
+};
+
+const DEFAULT_NPC_AVAILABILITY: NpcAvailabilityState = "available";
+const DEFAULT_CAREER_RANKS: CareerRankDefinition[] = [
+  {
+    id: "trainee",
+    label: "Стажёр",
+    order: 0,
+    standingRequired: -100,
+    serviceCriteriaNeeded: 0,
+    privileges: ["agency_briefing_access"],
+  },
+  {
+    id: "junior_detective",
+    label: "Младший детектив",
+    order: 1,
+    standingRequired: 15,
+    qualifyingCaseId: "quest_banker",
+    serviceCriteriaNeeded: 2,
+    privileges: ["agency_caseboard_access", "field_warrant_support"],
+  },
+  {
+    id: "agency_detective",
+    label: "Детектив агентства",
+    order: 2,
+    standingRequired: 35,
+    serviceCriteriaNeeded: 2,
+    privileges: ["briefing_priority", "wider_archive_access"],
+  },
+  {
+    id: "senior_detective",
+    label: "Старший детектив",
+    order: 3,
+    standingRequired: 55,
+    serviceCriteriaNeeded: 2,
+    privileges: ["agency_cover", "contact_network_priority"],
+  },
+  {
+    id: "lead_investigator",
+    label: "Ведущий следователь",
+    order: 4,
+    standingRequired: 75,
+    serviceCriteriaNeeded: 2,
+    privileges: ["citywide_priority_access", "special_assignment_lead"],
+  },
+];
+
+const FACTION_SIGNAL_VAR_BY_ID: Record<string, string> = {
+  civic_order: "rep_civic",
+  underworld: "rep_underworld",
+  financial_bloc: "rep_finance",
+};
+
+const resolveTrend = (delta: number): FactionSignalTrend => {
+  if (delta > 0) {
+    return "rising";
+  }
+  if (delta < 0) {
+    return "falling";
+  }
+  return "stable";
+};
+
+const clampTrustScore = (value: number): number =>
+  clampNumber(value, -100, 100);
+
+const clampStandingScore = (value: number): number =>
+  clampNumber(value, -100, 100);
+
+const getLegacyRelationshipValue = (ctx: any, characterId: string): number => {
+  const row = ctx.db.playerRelationship.relationshipKey.find(
+    createRelationshipKey(ctx.sender, characterId),
+  );
+  return row ? row.value : 0;
+};
+
+const upsertLegacyRelationshipProjection = (
+  ctx: any,
+  characterId: string,
+  value: number,
+): void => {
+  const relationshipKey = createRelationshipKey(ctx.sender, characterId);
+  const existing = ctx.db.playerRelationship.relationshipKey.find(
+    relationshipKey,
+  );
+  if (existing) {
+    ctx.db.playerRelationship.relationshipKey.update({
+      ...existing,
+      value,
+      updatedAt: ctx.timestamp,
+    });
+    return;
+  }
+
+  ctx.db.playerRelationship.insert({
+    relationshipKey,
+    playerId: ctx.sender,
+    characterId,
+    value,
+    updatedAt: ctx.timestamp,
+  });
+};
+
+const tryGetActiveSocialCatalog = (ctx: any): SocialCatalogSnapshot | undefined => {
+  try {
+    return getActiveSnapshot(ctx).snapshot.socialCatalog;
+  } catch (_error) {
+    return undefined;
+  }
+};
+
+const getCareerRankDefinitions = (ctx: any): CareerRankDefinition[] => {
+  const catalogRanks = tryGetActiveSocialCatalog(ctx)?.careerRanks;
+  const ranks =
+    catalogRanks && catalogRanks.length > 0
+      ? catalogRanks
+      : DEFAULT_CAREER_RANKS;
+  return [...ranks].sort((left, right) => left.order - right.order);
+};
+
+const getRumorTemplate = (
+  ctx: any,
+  rumorId: string,
+): RumorTemplate | undefined =>
+  tryGetActiveSocialCatalog(ctx)?.rumors.find((entry) => entry.id === rumorId);
+
+export const getRelationshipValue = (ctx: any, characterId: string): number => {
+  const row = ctx.db.playerNpcState.npcStateKey.find(
+    createNpcStateKey(ctx.sender, characterId),
+  );
+  return row ? row.trustScore : getLegacyRelationshipValue(ctx, characterId);
+};
+
+export const changeRelationshipTrust = (
+  ctx: any,
+  characterId: string,
+  delta: number,
+): number => {
+  assertNonEmpty(characterId, "characterId");
+  ensurePlayerProfile(ctx);
+
+  const npcStateKey = createNpcStateKey(ctx.sender, characterId);
+  const existing = ctx.db.playerNpcState.npcStateKey.find(npcStateKey);
+  const currentValue = existing
+    ? existing.trustScore
+    : getLegacyRelationshipValue(ctx, characterId);
+  const nextValue = clampTrustScore(currentValue + delta);
+
+  if (existing) {
+    ctx.db.playerNpcState.npcStateKey.update({
+      ...existing,
+      trustScore: nextValue,
+      availabilityState: existing.availabilityState || DEFAULT_NPC_AVAILABILITY,
+      lastMeaningfulContactAt: ctx.timestamp,
+      updatedAt: ctx.timestamp,
+    });
+  } else {
+    ctx.db.playerNpcState.insert({
+      npcStateKey,
+      playerId: ctx.sender,
+      npcId: characterId,
+      trustScore: nextValue,
+      availabilityState: DEFAULT_NPC_AVAILABILITY,
+      lastMeaningfulContactAt: ctx.timestamp,
+      updatedAt: ctx.timestamp,
+    });
+  }
+
+  upsertLegacyRelationshipProjection(ctx, characterId, nextValue);
+  return nextValue;
+};
+
+export const getFavorBalance = (ctx: any, npcId: string): number => {
+  const row = ctx.db.playerNpcFavor.favorKey.find(
+    createNpcFavorKey(ctx.sender, npcId),
+  );
+  return row ? row.balance : 0;
+};
+
+export const changeFavorBalanceInternal = (
+  ctx: any,
+  npcId: string,
+  delta: number,
+  reason?: string,
+): number => {
+  assertNonEmpty(npcId, "npcId");
+  ensurePlayerProfile(ctx);
+
+  const favorKey = createNpcFavorKey(ctx.sender, npcId);
+  const existing = ctx.db.playerNpcFavor.favorKey.find(favorKey);
+  const nextValue = (existing ? existing.balance : 0) + Math.trunc(delta);
+
+  if (existing) {
+    ctx.db.playerNpcFavor.favorKey.update({
+      ...existing,
+      balance: nextValue,
+      lastReason: reason ?? existing.lastReason,
+      updatedAt: ctx.timestamp,
+    });
+  } else {
+    ctx.db.playerNpcFavor.insert({
+      favorKey,
+      playerId: ctx.sender,
+      npcId,
+      balance: nextValue,
+      lastReason: reason,
+      updatedAt: ctx.timestamp,
+    });
+  }
+
+  return nextValue;
+};
+
+export const getFactionSignalValue = (ctx: any, factionId: string): number => {
+  const row = ctx.db.playerFactionSignal.signalKey.find(
+    createFactionSignalKey(ctx.sender, factionId),
+  );
+  if (row) {
+    return row.value;
+  }
+
+  const mirrorVarKey = FACTION_SIGNAL_VAR_BY_ID[factionId];
+  return mirrorVarKey ? getVar(ctx, mirrorVarKey) : 0;
+};
+
+export const changeFactionSignalInternal = (
+  ctx: any,
+  factionId: string,
+  delta: number,
+  reason?: string,
+): number => {
+  assertNonEmpty(factionId, "factionId");
+  ensurePlayerProfile(ctx);
+
+  const signalKey = createFactionSignalKey(ctx.sender, factionId);
+  const existing = ctx.db.playerFactionSignal.signalKey.find(signalKey);
+  const nextValue = clampNumber(
+    getFactionSignalValue(ctx, factionId) + delta,
+    -100,
+    100,
+  );
+  const trend = resolveTrend(delta);
+
+  if (existing) {
+    ctx.db.playerFactionSignal.signalKey.update({
+      ...existing,
+      value: nextValue,
+      trend,
+      updatedAt: ctx.timestamp,
+    });
+  } else {
+    ctx.db.playerFactionSignal.insert({
+      signalKey,
+      playerId: ctx.sender,
+      factionId,
+      value: nextValue,
+      trend,
+      updatedAt: ctx.timestamp,
+    });
+  }
+
+  const mirrorVarKey = FACTION_SIGNAL_VAR_BY_ID[factionId];
+  if (mirrorVarKey) {
+    upsertVar(ctx, mirrorVarKey, nextValue);
+  }
+  if (reason) {
+    emitTelemetry(ctx, "faction_signal_changed", { factionId, reason }, nextValue);
+  }
+
+  return nextValue;
+};
+
+const countCompletedServiceCriteria = (
+  row: ReturnType<typeof ensureAgencyCareerRow>,
+): number =>
+  Number(row.rumorCriterionComplete) +
+  Number(row.sourceCriterionComplete) +
+  Number(row.cleanClosureCriterionComplete);
+
+export const ensureAgencyCareerRow = (ctx: any) => {
+  ensurePlayerProfile(ctx);
+
+  const existing = ctx.db.playerAgencyCareer.playerId.find(ctx.sender);
+  if (existing) {
+    return existing;
+  }
+
+  const initialRank = getCareerRankDefinitions(ctx)[0]?.id ?? "trainee";
+  const row = {
+    playerId: ctx.sender,
+    standingScore: 0,
+    standingTrend: "stable",
+    rankId: initialRank,
+    qualifyingCaseId: undefined,
+    rumorCriterionComplete: false,
+    sourceCriterionComplete: false,
+    cleanClosureCriterionComplete: false,
+    updatedAt: ctx.timestamp,
+    promotedAt: undefined,
+  };
+  ctx.db.playerAgencyCareer.insert(row);
+  return row;
+};
+
+export const getAgencyStandingScore = (ctx: any): number =>
+  ensureAgencyCareerRow(ctx).standingScore;
+
+export const getCareerRankOrder = (ctx: any, rankId: string): number => {
+  const definition = getCareerRankDefinitions(ctx).find(
+    (entry) => entry.id === rankId,
+  );
+  return definition?.order ?? -1;
+};
+
+const promoteAgencyCareerIfEligible = (ctx: any): void => {
+  let current = ensureAgencyCareerRow(ctx);
+  const ranks = getCareerRankDefinitions(ctx);
+
+  while (true) {
+    const currentRank = ranks.find((entry) => entry.id === current.rankId);
+    const nextRank = ranks.find(
+      (entry) => entry.order === (currentRank?.order ?? -1) + 1,
+    );
+    if (!nextRank) {
+      return;
+    }
+
+    const hasStanding = current.standingScore >= nextRank.standingRequired;
+    const hasQualifyingCase =
+      !nextRank.qualifyingCaseId ||
+      current.qualifyingCaseId === nextRank.qualifyingCaseId;
+    const hasCriteria =
+      countCompletedServiceCriteria(current) >= nextRank.serviceCriteriaNeeded;
+
+    if (!hasStanding || !hasQualifyingCase || !hasCriteria) {
+      return;
+    }
+
+    current = {
+      ...current,
+      rankId: nextRank.id,
+      promotedAt: ctx.timestamp,
+      updatedAt: ctx.timestamp,
+    };
+    ctx.db.playerAgencyCareer.playerId.update(current);
+  }
+};
+
+export const syncAgencyCareerQualifyingCase = (
+  ctx: any,
+  questId: string,
+  stage: number,
+): void => {
+  if (questId !== "quest_banker" || stage < 3) {
+    return;
+  }
+
+  const current = ensureAgencyCareerRow(ctx);
+  ctx.db.playerAgencyCareer.playerId.update({
+    ...current,
+    qualifyingCaseId: questId,
+    updatedAt: ctx.timestamp,
+  });
+  promoteAgencyCareerIfEligible(ctx);
+};
+
+export const changeAgencyStandingInternal = (
+  ctx: any,
+  delta: number,
+  reason?: string,
+): number => {
+  const current = ensureAgencyCareerRow(ctx);
+  const nextValue = clampStandingScore(current.standingScore + delta);
+  const nextRow = {
+    ...current,
+    standingScore: nextValue,
+    standingTrend: resolveTrend(delta),
+    updatedAt: ctx.timestamp,
+  };
+  ctx.db.playerAgencyCareer.playerId.update(nextRow);
+  if (reason) {
+    emitTelemetry(ctx, "agency_standing_changed", { reason }, nextValue);
+  }
+  promoteAgencyCareerIfEligible(ctx);
+  return nextValue;
+};
+
+export const recordServiceCriterionInternal = (
+  ctx: any,
+  criterionId: AgencyServiceCriterionId,
+): void => {
+  const current = ensureAgencyCareerRow(ctx);
+  const nextRow = {
+    ...current,
+    rumorCriterionComplete:
+      criterionId === "verified_rumor_chain"
+        ? true
+        : current.rumorCriterionComplete,
+    sourceCriterionComplete:
+      criterionId === "preserved_source_network"
+        ? true
+        : current.sourceCriterionComplete,
+    cleanClosureCriterionComplete:
+      criterionId === "clean_closure"
+        ? true
+        : current.cleanClosureCriterionComplete,
+    updatedAt: ctx.timestamp,
+  };
+  ctx.db.playerAgencyCareer.playerId.update(nextRow);
+  promoteAgencyCareerIfEligible(ctx);
+};
+
+export const getRumorStatus = (
+  ctx: any,
+  rumorId: string,
+): RumorStateStatus | null => {
+  const row = ctx.db.playerRumorState.rumorStateKey.find(
+    createRumorStateKey(ctx.sender, rumorId),
+  );
+  return row ? (row.status as RumorStateStatus) : null;
+};
+
+export const registerRumorInternal = (ctx: any, rumorId: string): void => {
+  assertNonEmpty(rumorId, "rumorId");
+  ensurePlayerProfile(ctx);
+
+  const rumorKey = createRumorStateKey(ctx.sender, rumorId);
+  const existing = ctx.db.playerRumorState.rumorStateKey.find(rumorKey);
+  const template = getRumorTemplate(ctx, rumorId);
+  const nextRow = {
+    rumorStateKey: rumorKey,
+    playerId: ctx.sender,
+    rumorId,
+    status: existing?.status ?? "registered",
+    leadPointId: existing?.leadPointId ?? template?.leadPointId,
+    sourceNpcId: existing?.sourceNpcId ?? template?.sourceNpcId,
+    caseId: existing?.caseId ?? template?.caseId ?? "case_banker_theft",
+    verificationKind: existing?.verificationKind,
+    verifiedAt: existing?.verifiedAt,
+    updatedAt: ctx.timestamp,
+  };
+
+  if (existing) {
+    ctx.db.playerRumorState.rumorStateKey.update({
+      ...existing,
+      ...nextRow,
+    });
+  } else {
+    ctx.db.playerRumorState.insert(nextRow);
+  }
+};
+
+export const verifyRumorInternal = (
+  ctx: any,
+  rumorId: string,
+  verificationKind: RumorVerificationKind,
+): void => {
+  assertNonEmpty(rumorId, "rumorId");
+  ensurePlayerProfile(ctx);
+
+  const template = getRumorTemplate(ctx, rumorId);
+  if (template && !template.verifiesOn.includes(verificationKind)) {
+    throw new SenderError(
+      `Rumor ${rumorId} cannot be verified via ${verificationKind}`,
+    );
+  }
+
+  registerRumorInternal(ctx, rumorId);
+  const rumorKey = createRumorStateKey(ctx.sender, rumorId);
+  const existing = ctx.db.playerRumorState.rumorStateKey.find(rumorKey);
+  if (!existing) {
+    throw new SenderError(`Rumor ${rumorId} could not be registered`);
+  }
+
+  ctx.db.playerRumorState.rumorStateKey.update({
+    ...existing,
+    status: "verified",
+    verificationKind,
+    verifiedAt: ctx.timestamp,
+    updatedAt: ctx.timestamp,
+  });
+
+  if (template?.careerCriterionOnVerify) {
+    recordServiceCriterionInternal(ctx, template.careerCriterionOnVerify);
+  }
 };
 
 const MYSTIC_AWAKENING_VAR = "mystic_awakening";
@@ -2833,14 +3363,28 @@ export const areConditionsSatisfied = (
       return row ? row.stage >= condition.stage : false;
     }
     if (condition.type === "relationship_gte") {
-      const relKey = createRelationshipKey(ctx.sender, condition.characterId);
-      const row = ctx.db.playerRelationship.relationshipKey.find(relKey);
-      return row ? row.value >= condition.value : false;
+      return getRelationshipValue(ctx, condition.characterId) >= condition.value;
     }
     if (condition.type === "has_item") {
       const inventoryKey = createInventoryKey(ctx.sender, condition.itemId);
       const row = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
       return row ? row.quantity > 0 : false;
+    }
+    if (condition.type === "favor_balance_gte") {
+      return getFavorBalance(ctx, condition.npcId) >= condition.value;
+    }
+    if (condition.type === "agency_standing_gte") {
+      return getAgencyStandingScore(ctx) >= condition.value;
+    }
+    if (condition.type === "rumor_state_is") {
+      return getRumorStatus(ctx, condition.rumorId) === condition.status;
+    }
+    if (condition.type === "career_rank_gte") {
+      const currentRankOrder = getCareerRankOrder(
+        ctx,
+        ensureAgencyCareerRow(ctx).rankId,
+      );
+      return currentRankOrder >= getCareerRankOrder(ctx, condition.rankId);
     }
     return false;
   });
@@ -3233,13 +3777,6 @@ const getCommandScenario = (scenarioId: string): CommandScenarioTemplate => {
     throw new SenderError(`Unknown command scenario ${scenarioId}`);
   }
   return scenario;
-};
-
-const getRelationshipValue = (ctx: any, characterId: string): number => {
-  const row = ctx.db.playerRelationship.relationshipKey.find(
-    createRelationshipKey(ctx.sender, characterId),
-  );
-  return row ? row.value : 0;
 };
 
 const isCommandActorUnlocked = (

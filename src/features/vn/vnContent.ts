@@ -651,6 +651,21 @@ const isMapCondition = (value: unknown): value is MapCondition => {
       typeof value.characterId === "string" && typeof value.value === "number"
     );
   }
+  if (value.type === "favor_balance_gte") {
+    return typeof value.npcId === "string" && typeof value.value === "number";
+  }
+  if (value.type === "agency_standing_gte") {
+    return typeof value.value === "number";
+  }
+  if (value.type === "rumor_state_is") {
+    return (
+      typeof value.rumorId === "string" &&
+      (value.status === "registered" || value.status === "verified")
+    );
+  }
+  if (value.type === "career_rank_gte") {
+    return typeof value.rankId === "string";
+  }
   if (value.type === "unlock_group_has") {
     return typeof value.groupId === "string";
   }
@@ -721,6 +736,45 @@ const isMapAction = (value: unknown): value is MapAction => {
   if (value.type === "change_relationship") {
     return (
       typeof value.characterId === "string" && typeof value.delta === "number"
+    );
+  }
+  if (value.type === "change_favor_balance") {
+    return (
+      typeof value.npcId === "string" &&
+      typeof value.delta === "number" &&
+      (value.reason === undefined || typeof value.reason === "string")
+    );
+  }
+  if (value.type === "change_agency_standing") {
+    return (
+      typeof value.delta === "number" &&
+      (value.reason === undefined || typeof value.reason === "string")
+    );
+  }
+  if (value.type === "change_faction_signal") {
+    return (
+      typeof value.factionId === "string" &&
+      typeof value.delta === "number" &&
+      (value.reason === undefined || typeof value.reason === "string")
+    );
+  }
+  if (value.type === "register_rumor") {
+    return typeof value.rumorId === "string";
+  }
+  if (value.type === "verify_rumor") {
+    return (
+      typeof value.rumorId === "string" &&
+      (value.verificationKind === "evidence" ||
+        value.verificationKind === "fact" ||
+        value.verificationKind === "service_unlock" ||
+        value.verificationKind === "map_unlock")
+    );
+  }
+  if (value.type === "record_service_criterion") {
+    return (
+      value.criterionId === "verified_rumor_chain" ||
+      value.criterionId === "preserved_source_network" ||
+      value.criterionId === "clean_closure"
     );
   }
   if (value.type === "track_event") {

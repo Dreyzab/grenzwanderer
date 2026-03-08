@@ -1202,6 +1202,184 @@ const parseMap = (
   };
 };
 
+const parseSocialCatalog = (
+  value: unknown,
+): VnSnapshot["socialCatalog"] | undefined | null => {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isObject(value)) {
+    return null;
+  }
+  if (
+    !Array.isArray(value.npcIdentities) ||
+    !Array.isArray(value.services) ||
+    !Array.isArray(value.rumors) ||
+    !Array.isArray(value.careerRanks)
+  ) {
+    return null;
+  }
+
+  const parsedNpcIdentities = value.npcIdentities.map((entry) => {
+    if (
+      !isObject(entry) ||
+      typeof entry.id !== "string" ||
+      typeof entry.displayName !== "string" ||
+      typeof entry.factionId !== "string" ||
+      typeof entry.publicRole !== "string" ||
+      (entry.rosterTier !== "archetype" &&
+        entry.rosterTier !== "functional" &&
+        entry.rosterTier !== "major") ||
+      (entry.portraitUrl !== undefined && typeof entry.portraitUrl !== "string") ||
+      (entry.introFlag !== undefined && typeof entry.introFlag !== "string") ||
+      (entry.homePointId !== undefined && typeof entry.homePointId !== "string") ||
+      (entry.workPointId !== undefined && typeof entry.workPointId !== "string") ||
+      (entry.serviceIds !== undefined &&
+        (!Array.isArray(entry.serviceIds) ||
+          !entry.serviceIds.every((serviceId) => typeof serviceId === "string")))
+    ) {
+      return null;
+    }
+
+    return {
+      id: entry.id,
+      displayName: entry.displayName,
+      factionId: entry.factionId,
+      publicRole: entry.publicRole,
+      rosterTier: entry.rosterTier,
+      portraitUrl: entry.portraitUrl,
+      introFlag: entry.introFlag,
+      homePointId: entry.homePointId,
+      workPointId: entry.workPointId,
+      serviceIds: entry.serviceIds,
+    };
+  });
+
+  const parsedServices = value.services.map((entry) => {
+    if (
+      !isObject(entry) ||
+      typeof entry.id !== "string" ||
+      typeof entry.npcId !== "string" ||
+      (entry.role !== "information" &&
+        entry.role !== "archives" &&
+        entry.role !== "social_introduction" &&
+        entry.role !== "political_cover" &&
+        entry.role !== "transport") ||
+      typeof entry.label !== "string" ||
+      typeof entry.baseAccess !== "string" ||
+      (entry.unlockFlag !== undefined && typeof entry.unlockFlag !== "string") ||
+      (entry.costNote !== undefined && typeof entry.costNote !== "string") ||
+      (entry.qualityNote !== undefined && typeof entry.qualityNote !== "string") ||
+      (entry.consequenceNote !== undefined &&
+        typeof entry.consequenceNote !== "string")
+    ) {
+      return null;
+    }
+
+    return {
+      id: entry.id,
+      npcId: entry.npcId,
+      role: entry.role,
+      label: entry.label,
+      baseAccess: entry.baseAccess,
+      unlockFlag: entry.unlockFlag,
+      costNote: entry.costNote,
+      qualityNote: entry.qualityNote,
+      consequenceNote: entry.consequenceNote,
+    };
+  });
+
+  const parsedRumors = value.rumors.map((entry) => {
+    if (
+      !isObject(entry) ||
+      typeof entry.id !== "string" ||
+      typeof entry.title !== "string" ||
+      typeof entry.caseId !== "string" ||
+      (entry.leadPointId !== undefined && typeof entry.leadPointId !== "string") ||
+      (entry.sourceNpcId !== undefined && typeof entry.sourceNpcId !== "string") ||
+      !Array.isArray(entry.verifiesOn) ||
+      !entry.verifiesOn.every(
+        (verificationKind) =>
+          verificationKind === "evidence" ||
+          verificationKind === "fact" ||
+          verificationKind === "service_unlock" ||
+          verificationKind === "map_unlock",
+      ) ||
+      (entry.careerCriterionOnVerify !== undefined &&
+        entry.careerCriterionOnVerify !== "verified_rumor_chain" &&
+        entry.careerCriterionOnVerify !== "preserved_source_network" &&
+        entry.careerCriterionOnVerify !== "clean_closure")
+    ) {
+      return null;
+    }
+
+    return {
+      id: entry.id,
+      title: entry.title,
+      caseId: entry.caseId,
+      leadPointId: entry.leadPointId,
+      sourceNpcId: entry.sourceNpcId,
+      verifiesOn: entry.verifiesOn,
+      careerCriterionOnVerify: entry.careerCriterionOnVerify,
+    };
+  });
+
+  const parsedCareerRanks = value.careerRanks.map((entry) => {
+    if (
+      !isObject(entry) ||
+      typeof entry.id !== "string" ||
+      typeof entry.label !== "string" ||
+      typeof entry.order !== "number" ||
+      typeof entry.standingRequired !== "number" ||
+      (entry.qualifyingCaseId !== undefined &&
+        typeof entry.qualifyingCaseId !== "string") ||
+      typeof entry.serviceCriteriaNeeded !== "number" ||
+      !Array.isArray(entry.privileges) ||
+      !entry.privileges.every((privilege) => typeof privilege === "string")
+    ) {
+      return null;
+    }
+
+    return {
+      id: entry.id,
+      label: entry.label,
+      order: entry.order,
+      standingRequired: entry.standingRequired,
+      qualifyingCaseId: entry.qualifyingCaseId,
+      serviceCriteriaNeeded: entry.serviceCriteriaNeeded,
+      privileges: entry.privileges,
+    };
+  });
+
+  if (
+    parsedNpcIdentities.includes(null) ||
+    parsedServices.includes(null) ||
+    parsedRumors.includes(null) ||
+    parsedCareerRanks.includes(null)
+  ) {
+    return null;
+  }
+
+  const ensureUniqueIds = (entries: ReadonlyArray<{ id: string }>): boolean =>
+    new Set(entries.map((entry) => entry.id)).size === entries.length;
+
+  if (
+    !ensureUniqueIds(parsedNpcIdentities) ||
+    !ensureUniqueIds(parsedServices) ||
+    !ensureUniqueIds(parsedRumors) ||
+    !ensureUniqueIds(parsedCareerRanks)
+  ) {
+    return null;
+  }
+
+  return {
+    npcIdentities: parsedNpcIdentities,
+    services: parsedServices,
+    rumors: parsedRumors,
+    careerRanks: parsedCareerRanks,
+  };
+};
+
 export const parseSnapshot = (payloadJson: string): VnSnapshot | null => {
   let parsed: unknown;
   try {
@@ -1249,6 +1427,10 @@ export const parseSnapshot = (payloadJson: string): VnSnapshot | null => {
   if (questCatalog === null) {
     return null;
   }
+  const socialCatalog = parseSocialCatalog(parsed.socialCatalog);
+  if (socialCatalog === null) {
+    return null;
+  }
   if (
     parsed.schemaVersion >= MIN_VN_SCHEMA_WITH_MIND_PALACE &&
     parsed.mindPalace === undefined
@@ -1265,6 +1447,7 @@ export const parseSnapshot = (payloadJson: string): VnSnapshot | null => {
     mysticism,
     map,
     questCatalog,
+    socialCatalog,
   };
 };
 

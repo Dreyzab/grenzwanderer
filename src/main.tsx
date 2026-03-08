@@ -9,7 +9,7 @@ import "./index.css";
 
 const TOKEN_KEY = `${SPACETIMEDB_HOST}/${SPACETIMEDB_DB_NAME}/auth_token`;
 
-const onConnect = (_conn: DbConnection, identity: Identity, token: string) => {
+const onConnect = (conn: DbConnection, identity: Identity, token: string) => {
   localStorage.setItem(TOKEN_KEY, token);
   console.info("Connected as", identity.toHexString());
 };

@@ -1,6 +1,9 @@
 export {
   areConditionsSatisfied,
+  arePassiveChecksResolved,
+  isChoiceEnabled,
   isChoiceAllowed,
+  isChoiceVisible,
   isNodeEntryAllowed,
   resolveDiceMode,
   rollD20,

@@ -79,6 +79,17 @@
   gap: 1rem;
 }
 
+.app-shell--map {
+  min-height: 100dvh;
+  padding: 0;
+  background: #07090c;
+}
+
+.app-main--map {
+  min-height: calc(100dvh - env(safe-area-inset-bottom));
+  gap: 0;
+}
+
 .panel-section {
   display: grid;
   gap: 0.9rem;

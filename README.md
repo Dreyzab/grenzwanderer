@@ -1,23 +1,11 @@
 # Grenzwanderer
 
-Grenzwanderer is a SpacetimeDB + React project focused on VN runtime, map gameplay, and content-driven progression.
+Grenzwanderer is a private SpacetimeDB + React project focused on VN runtime, map gameplay, and content-driven progression.
 
-## Prerequisites
+## Toolchain
 
-- Bun
-- SpacetimeDB CLI
-
-## One-command startup (Windows/PowerShell)
-
-```bash
-bun run dev:all
-```
-
-Keep existing local data (do not clear DB):
-
-```bash
-bun run dev:all:keepdb
-```
+- Bun `1.3.3`
+- SpacetimeDB CLI `2.0.1`
 
 ## Local Development
 
@@ -27,134 +15,234 @@ bun run dev:all:keepdb
 bun install
 ```
 
-2. Start local SpacetimeDB:
+2. Create `.env.local` from `.env.example`.
+
+3. Start local SpacetimeDB:
 
 ```bash
 spacetime start
 ```
 
-3. Publish module to local server:
+4. Publish the module to the local database:
 
 ```bash
 bun run spacetime:publish:local:clear
 ```
 
-4. Regenerate client bindings:
+5. Regenerate client bindings when backend contracts change:
 
 ```bash
 bun run spacetime:generate
 ```
 
-5. Start frontend:
+6. Start the frontend:
 
 ```bash
 bun run dev
 ```
 
+Windows shortcut:
+
+```bash
+bun run dev:all
+```
+
+Keep existing local DB data:
+
+```bash
+bun run dev:all:keepdb
+```
+
 ## Environment Variables
 
-Create `.env.local` from `.env.example` and set:
+Set only the variables used by this repo:
 
 - `VITE_SPACETIMEDB_HOST`
 - `VITE_SPACETIMEDB_DB_NAME`
 - `VITE_MAPBOX_TOKEN`
 - `VITE_MAPBOX_STYLE`
-- `VITE_ENABLE_AI` (`false` by default)
-- `VITE_ENABLE_DEBUG_CONTENT_SEED` (`false` by default; debug-only local seed UI)
+- `VITE_ENABLE_AI`
+- `VITE_ENABLE_DEBUG_CONTENT_SEED`
 
 ## Versioning Model
 
-- App runtime versioning follows semantic tags: `app-vX.Y.Z`.
-- Content versioning follows `content-vX.Y.Z+<checksum8>`.
-- Content data model stays on existing SpacetimeDB tables/reducers:
-  - `content_version`
-  - `content_snapshot`
-  - `publish_content`
-  - `rollback_content`
+- App release source of truth: `package.json`
+- App git tags: `app-vX.Y.Z`
+- Content git tags: `content-vX.Y.Z+checksum8`
+- Runtime build metadata is injected at build time:
+  - `__APP_VERSION__`
+  - `__APP_COMMIT_SHA__`
+  - `__APP_BUILD_TIMESTAMP__`
 
-RU note: основная версия контента теперь всегда semver + checksum suffix, чтобы rollback и коммуникация релизов были однозначными.
+## Quality Gates
 
-## Content Pipeline
-
-1. Extract snapshot from Obsidian source:
+Local baseline:
 
 ```bash
-bun run content:extract
-```
-
-2. Outputs:
-
-- `content/vn/pilot.snapshot.json`
-- `public/content/vn/pilot.snapshot.json`
-
-3. Validate release manifest:
-
-```bash
-bun run content:manifest:check
-```
-
-## Content Release Runbook
-
-Use CLI only for release/rollback:
-
-```bash
-bun run content:release -- --version X.Y.Z --server local --db grezwandererdata
-bun run content:rollback -- --checksum <sha256> --server local --db grezwandererdata
-```
-
-Manifest path:
-
-- `content/vn/releases.manifest.json`
-
-See detailed operational guide:
-
-- `docs/CONTENT_RELEASE_RUNBOOK.md`
-
-RU note: в production-процессе ручной publish из UI не используется.
-
-## CI Quality Gates
-
-Required checks:
-
-```bash
-bun run format:check
 bun run lint
 bun run test
 bun run build
 spacetime build --module-path spacetimedb
-bun run smoke:all
 ```
 
-Single release-focused gate:
+Release-focused gate:
 
 ```bash
 bun run quality:release
 ```
 
-## CI Contract
+Content-heavy gate:
 
-- Workflow: `.github/workflows/ci.yml`
-- `main` must be protected so merges require green `ci`.
-- Smoke checks run against local SpacetimeDB in CI after module publish.
-- Deploy workflow (`.github/workflows/deploy-pages.yml`) remains separate and should run only after branch protection allows merge.
+```bash
+bun run quality:loop-poc
+```
 
-RU note: branch protection на `main` обязателен, иначе CI-политика не работает как governance-контракт.
+## Acceptance Matrix
 
-## GitHub Pages Deployment
+Supported flow source of truth:
 
-The repo includes `.github/workflows/deploy-pages.yml`.
+- `scripts/acceptance-matrix.ts`
 
-1. Push repository to GitHub.
-2. In **Settings -> Pages**, set **Source** to **GitHub Actions**.
-3. Optional variables in **Settings -> Secrets and variables -> Actions -> Variables**:
-   - `VITE_BASE_PATH`
-   - `VITE_SPACETIMEDB_HOST`
-   - `VITE_SPACETIMEDB_DB_NAME`
-   - `VITE_ENABLE_AI`
+Inspect the current matrix:
+
+```bash
+bun run acceptance:matrix
+```
+
+Snapshot-backed supported flows must pass these content gates before smoke execution:
+
+```bash
+bun run content:extract
+bun run content:manifest:check
+bun run content:drift:check
+```
+
+With local SpacetimeDB running and the module published, execute the supported smoke pipeline:
+
+```bash
+bun run smoke:all
+```
+
+`smoke:all` is derived from the acceptance matrix. Synthetic contract flows in the matrix explicitly mark extract/manifest/drift gates as `n/a`.
+
+## Git And PR Flow
+
+- Default branch: `main`
+- Branching model: trunk-based
+- Branch naming:
+  - `feat/<slug>`
+  - `fix/<slug>`
+  - `chore/<slug>`
+  - `docs/<slug>`
+  - `refactor/<slug>`
+  - `test/<slug>`
+  - `ci/<slug>`
+- Merge policy: squash only
+- PR titles must follow Conventional Commits:
+  - `feat(scope): summary`
+  - `fix(scope): summary`
+  - `chore(scope): summary`
+  - `docs(scope): summary`
+  - `refactor(scope): summary`
+  - `test(scope): summary`
+  - `ci(scope): summary`
+  - `build(scope): summary`
+
+## GitHub Workflows
+
+- `CI`: required quality workflow on `main` and PRs
+- `Semantic PR`: validates PR titles
+- `PR Preview Artifact`: builds `dist` and uploads a PR artifact
+- `Release Please`: manages automated app release PRs and tags
+
+This phase intentionally does not deploy to production hosting. Preview artifacts are review artifacts, not live preview URLs.
+
+## App Release Flow
+
+1. Merge regular work into `main` through green PRs only.
+2. `Release Please` opens or updates the release PR.
+3. Merge the release PR to:
+   - bump `package.json` version;
+   - update `CHANGELOG.md`;
+   - create a GitHub Release;
+   - create the git tag `app-vX.Y.Z`.
+
+Bootstrap note for a fresh GitHub remote:
+
+```bash
+git tag -a app-v0.2.0 -m "Governed release baseline 0.2.0"
+git push origin app-v0.2.0
+```
+
+Create that baseline tag immediately after pushing the governance setup to GitHub for the first time.
+
+## Content Release Flow
+
+1. Extract content:
+
+```bash
+bun run content:extract
+```
+
+2. Validate content integrity:
+
+```bash
+bun run content:manifest:check
+bun run content:drift:check
+```
+
+3. Publish content:
+
+```bash
+bun run content:release -- --version X.Y.Z --server local --db grezwandererdata
+```
+
+4. Create the corresponding git tag:
+
+```bash
+bun run content:tag -- --version X.Y.Z
+git push origin content-vX.Y.Z+checksum8
+```
+
+5. Roll back when needed:
+
+```bash
+bun run content:rollback -- --checksum <sha256> --server local --db grezwandererdata
+```
+
+Detailed operational procedure:
+
+- `docs/CONTENT_RELEASE_RUNBOOK.md`
+- `docs/GIT_RELEASE_GOVERNANCE.md`
+
+## Manual GitHub Setup
+
+These steps cannot be completed locally without the target GitHub repo URL and permissions:
+
+1. Add the private GitHub remote:
+
+```bash
+git remote add origin <github-private-repo-url>
+git push -u origin main
+```
+
+2. Enable Actions.
+3. Enable squash merges and auto-delete merged branches.
+4. Protect `main` with:
+   - pull request required;
+   - 1 approval minimum;
+   - stale approval dismissal;
+   - up-to-date branches required;
+   - conversation resolution required;
+   - force-push disabled;
+   - branch deletion disabled;
+   - required checks `quality` and `validate-title`.
 
 ## Additional Docs
 
 - `ARCHITECTURE.md`
 - `DOCS_POLICY.md`
-- `docs/MIGRATION_BRIDGE_DETECTIV0.md`
+- `docs/ACCEPTANCE_MATRIX.md`
+- `docs/GIT_RELEASE_GOVERNANCE.md`
 - `docs/CONTENT_RELEASE_RUNBOOK.md`
+- `docs/MIGRATION_BRIDGE_DETECTIV0.md`

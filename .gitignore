@@ -13,6 +13,7 @@ spacetimedb/dist/
 # logs and temp artifacts
 .logs/
 *.log
+error*.txt
 temp-log.txt
 output*.log
 publish*.log

@@ -614,6 +614,297 @@ export const playerRelationship = table(
   },
 );
 
+export const battleSession = table(
+  {
+    name: "battle_session",
+    public: true,
+    indexes: [
+      {
+        accessor: "battle_session_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "battle_session_scenario_id",
+        algorithm: "btree",
+        columns: ["scenarioId"],
+      },
+      {
+        accessor: "battle_session_status",
+        algorithm: "btree",
+        columns: ["status"],
+      },
+    ],
+  },
+  {
+    sessionKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    scenarioId: t.string(),
+    sourceTab: t.string(),
+    returnTab: t.string(),
+    sourceContextId: t.string().optional(),
+    sourceScenarioId: t.string().optional(),
+    phase: t.string(),
+    status: t.string(),
+    turnCount: t.u32(),
+    drawPerTurn: t.u32(),
+    enemyIntentCursor: t.u32(),
+    title: t.string(),
+    briefing: t.string(),
+    resolveLabel: t.string(),
+    apLabel: t.string(),
+    blockLabel: t.string(),
+    backgroundUrl: t.string().optional(),
+    resultType: t.string().optional(),
+    resultTitle: t.string().optional(),
+    resultSummary: t.string().optional(),
+    createdAt: t.timestamp(),
+    updatedAt: t.timestamp(),
+    resolvedAt: t.timestamp().optional(),
+    closedAt: t.timestamp().optional(),
+  },
+);
+
+export const battleCombatant = table(
+  {
+    name: "battle_combatant",
+    public: true,
+    indexes: [
+      {
+        accessor: "battle_combatant_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "battle_combatant_session_key",
+        algorithm: "btree",
+        columns: ["sessionKey"],
+      },
+      {
+        accessor: "battle_combatant_side",
+        algorithm: "btree",
+        columns: ["side"],
+      },
+    ],
+  },
+  {
+    combatantKey: t.string().primaryKey(),
+    sessionKey: t.string(),
+    playerId: t.identity(),
+    combatantId: t.string(),
+    side: t.string(),
+    slotIndex: t.u32(),
+    label: t.string(),
+    subtitle: t.string().optional(),
+    portraitUrl: t.string().optional(),
+    resolve: t.f64(),
+    maxResolve: t.f64(),
+    ap: t.f64(),
+    maxAp: t.f64(),
+    block: t.f64(),
+    nextIntentCardId: t.string().optional(),
+    nextIntentLabel: t.string().optional(),
+    nextIntentSummary: t.string().optional(),
+    initiative: t.f64().optional(),
+    statusesJson: t.string(),
+    targetRulesJson: t.string().optional(),
+    resourceExtrasJson: t.string().optional(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+export const battleCardInstance = table(
+  {
+    name: "battle_card_instance",
+    public: true,
+    indexes: [
+      {
+        accessor: "battle_card_instance_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "battle_card_instance_session_key",
+        algorithm: "btree",
+        columns: ["sessionKey"],
+      },
+      {
+        accessor: "battle_card_instance_zone",
+        algorithm: "btree",
+        columns: ["zone"],
+      },
+    ],
+  },
+  {
+    cardInstanceKey: t.string().primaryKey(),
+    sessionKey: t.string(),
+    playerId: t.identity(),
+    instanceId: t.string(),
+    ownerCombatantId: t.string(),
+    cardId: t.string(),
+    label: t.string(),
+    description: t.string(),
+    effectPreview: t.string(),
+    artUrl: t.string().optional(),
+    tagsJson: t.string().optional(),
+    costAp: t.f64(),
+    zone: t.string(),
+    zoneOrder: t.u32(),
+    isPlayable: t.bool(),
+    playableReason: t.string().optional(),
+    targetRule: t.string().optional(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+export const battleHistory = table(
+  {
+    name: "battle_history",
+    public: true,
+    indexes: [
+      {
+        accessor: "battle_history_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "battle_history_session_key",
+        algorithm: "btree",
+        columns: ["sessionKey"],
+      },
+      {
+        accessor: "battle_history_turn_count",
+        algorithm: "btree",
+        columns: ["turnCount"],
+      },
+    ],
+  },
+  {
+    historyKey: t.string().primaryKey(),
+    sessionKey: t.string(),
+    playerId: t.identity(),
+    turnCount: t.u32(),
+    entryType: t.string(),
+    message: t.string(),
+    createdAt: t.timestamp(),
+  },
+);
+
+export const commandSession = table(
+  {
+    name: "command_session",
+    public: true,
+    indexes: [
+      {
+        accessor: "command_session_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "command_session_scenario_id",
+        algorithm: "btree",
+        columns: ["scenarioId"],
+      },
+      {
+        accessor: "command_session_status",
+        algorithm: "btree",
+        columns: ["status"],
+      },
+    ],
+  },
+  {
+    sessionKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    scenarioId: t.string(),
+    sourceTab: t.string(),
+    returnTab: t.string(),
+    phase: t.string(),
+    status: t.string(),
+    title: t.string(),
+    briefing: t.string(),
+    ordersJson: t.string(),
+    selectedOrderId: t.string().optional(),
+    resultTitle: t.string().optional(),
+    resultSummary: t.string().optional(),
+    createdAt: t.timestamp(),
+    updatedAt: t.timestamp(),
+    resolvedAt: t.timestamp().optional(),
+    closedAt: t.timestamp().optional(),
+  },
+);
+
+export const commandPartyMember = table(
+  {
+    name: "command_party_member",
+    public: true,
+    indexes: [
+      {
+        accessor: "command_party_member_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "command_party_member_session_key",
+        algorithm: "btree",
+        columns: ["sessionKey"],
+      },
+      {
+        accessor: "command_party_member_actor_id",
+        algorithm: "btree",
+        columns: ["actorId"],
+      },
+    ],
+  },
+  {
+    memberKey: t.string().primaryKey(),
+    sessionKey: t.string(),
+    playerId: t.identity(),
+    actorId: t.string(),
+    label: t.string(),
+    role: t.string(),
+    availability: t.string(),
+    trust: t.f64(),
+    notes: t.string().optional(),
+    sortOrder: t.u32(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+export const commandOrderHistory = table(
+  {
+    name: "command_order_history",
+    public: true,
+    indexes: [
+      {
+        accessor: "command_order_history_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "command_order_history_session_key",
+        algorithm: "btree",
+        columns: ["sessionKey"],
+      },
+      {
+        accessor: "command_order_history_scenario_id",
+        algorithm: "btree",
+        columns: ["scenarioId"],
+      },
+    ],
+  },
+  {
+    historyKey: t.string().primaryKey(),
+    sessionKey: t.string(),
+    playerId: t.identity(),
+    scenarioId: t.string(),
+    orderId: t.string(),
+    actorId: t.string(),
+    title: t.string(),
+    summary: t.string(),
+    createdAt: t.timestamp(),
+  },
+);
+
 export const playerUnlockGroup = table(
   {
     name: "player_unlock_group",
@@ -636,6 +927,79 @@ export const playerUnlockGroup = table(
     playerId: t.identity(),
     groupId: t.string(),
     unlockedAt: t.timestamp(),
+  },
+);
+
+export const playerMapEvent = table(
+  {
+    name: "player_map_event",
+    public: true,
+    indexes: [
+      {
+        accessor: "player_map_event_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "player_map_event_template_id",
+        algorithm: "btree",
+        columns: ["templateId"],
+      },
+      {
+        accessor: "player_map_event_status",
+        algorithm: "btree",
+        columns: ["status"],
+      },
+      {
+        accessor: "player_map_event_expires_at",
+        algorithm: "btree",
+        columns: ["expiresAt"],
+      },
+    ],
+  },
+  {
+    eventId: t.string().primaryKey(),
+    playerId: t.identity(),
+    templateId: t.string(),
+    snapshotChecksum: t.string(),
+    payloadJson: t.string(),
+    sourceLocationId: t.string(),
+    status: t.string(),
+    spawnedAt: t.timestamp(),
+    expiresAt: t.timestamp(),
+    resolvedAt: t.timestamp().optional(),
+  },
+);
+
+export const playerRedeemedCode = table(
+  {
+    name: "player_redeemed_code",
+    public: true,
+    indexes: [
+      {
+        accessor: "player_redeemed_code_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "player_redeemed_code_code_id",
+        algorithm: "btree",
+        columns: ["codeId"],
+      },
+      {
+        accessor: "player_redeemed_code_request_id",
+        algorithm: "btree",
+        columns: ["requestId"],
+      },
+    ],
+  },
+  {
+    redemptionId: t.string().primaryKey(),
+    playerId: t.identity(),
+    codeId: t.string(),
+    requestId: t.string(),
+    redeemedAt: t.timestamp(),
+    result: t.string(),
   },
 );
 
@@ -666,7 +1030,16 @@ const spacetimedb = schema({
   playerQuest,
   playerEvidence,
   playerRelationship,
+  battleSession,
+  battleCombatant,
+  battleCardInstance,
+  battleHistory,
+  commandSession,
+  commandPartyMember,
+  commandOrderHistory,
   playerUnlockGroup,
+  playerMapEvent,
+  playerRedeemedCode,
 });
 
 export default spacetimedb;

@@ -1,6 +1,9 @@
 import { reducers, tables } from "../../module_bindings";
 import type {
   AiRequest,
+  CommandOrderHistory,
+  CommandPartyMember,
+  CommandSession,
   PlayerFlag,
   PlayerLocation,
   PlayerVar,
@@ -11,6 +14,9 @@ import type {
 export { reducers, tables };
 export type {
   AiRequest,
+  CommandOrderHistory,
+  CommandPartyMember,
+  CommandSession,
   PlayerFlag,
   PlayerLocation,
   PlayerVar,

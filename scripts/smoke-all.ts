@@ -1,13 +1,7 @@
 import { spawn } from "node:child_process";
+import { getSmokeAllPipeline } from "./acceptance-matrix";
 
-const pipeline = [
-  { label: "VN authority", script: "smoke:vn-authority" },
-  { label: "Map authority", script: "smoke:map-authority" },
-  { label: "Origin entry", script: "smoke:origin-entry" },
-  { label: "Origin handoff", script: "smoke:origin-handoff" },
-  { label: "MVP routes", script: "smoke:mvp-routes" },
-  { label: "MindPalace", script: "smoke:mindpalace" },
-];
+const pipeline = getSmokeAllPipeline();
 
 const runScript = (script: string): Promise<void> =>
   new Promise((resolve, reject) => {

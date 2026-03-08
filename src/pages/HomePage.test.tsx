@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HomePage } from "./HomePage";
 
 const mocks = vi.hoisted(() => {
@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => {
   return {
     tables,
     reducers: {
-      startScenario: Symbol("startScenario"),
+      beginFreiburgOrigin: Symbol("beginFreiburgOrigin"),
     },
     useIdentityMock: vi.fn(),
     useTableMock: vi.fn(),
@@ -35,25 +35,49 @@ vi.mock("../shared/spacetime/bindings", () => ({
   reducers: mocks.reducers,
 }));
 
-vi.mock("../features/origin/ui/JournalistDossierScreen", () => ({
-  OriginDossierScreen: ({
+vi.mock("../shared/ui/ConfirmationModal", () => ({
+  ConfirmationModal: ({
+    confirmLabel,
+    cancelLabel,
     onConfirm,
     onCancel,
-    status,
-    disabled,
   }: {
+    confirmLabel: string;
+    cancelLabel?: string;
     onConfirm: () => void;
     onCancel: () => void;
-    status?: string;
-    disabled?: boolean;
   }) => (
-    <div data-testid="origin-dossier">
-      <p>{status ?? ""}</p>
-      <button type="button" onClick={onConfirm} disabled={disabled}>
-        dossier-confirm
+    <div data-testid="confirmation-modal">
+      <button type="button" onClick={onConfirm}>
+        {confirmLabel}
       </button>
       <button type="button" onClick={onCancel}>
-        dossier-cancel
+        {cancelLabel ?? "Cancel"}
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("../features/origin/ui/OriginSelectionScreen", () => ({
+  OriginSelectionScreen: ({
+    onConfirmOrigin,
+    onCancel,
+    status,
+  }: {
+    onConfirmOrigin: (profileId: string) => void;
+    onCancel: () => void;
+    status?: string | null;
+  }) => (
+    <div data-testid="origin-selection">
+      <p>{status ?? ""}</p>
+      <button type="button" onClick={() => onConfirmOrigin("journalist")}>
+        confirm-journalist
+      </button>
+      <button type="button" onClick={() => onConfirmOrigin("aristocrat")}>
+        confirm-aristocrat
+      </button>
+      <button type="button" onClick={onCancel}>
+        selection-cancel
       </button>
     </div>
   ),
@@ -86,9 +110,24 @@ const snapshotPayload = JSON.stringify({
       title: "Journalist Intro",
       startNodeId: "scene_journalist_intro",
       nodeIds: ["scene_journalist_intro"],
-      completionRoute: {
-        nextScenarioId: "sandbox_case01_pilot",
-      },
+    },
+    {
+      id: "intro_aristocrat",
+      title: "Aristocrat Intro",
+      startNodeId: "scene_aristocrat_intro",
+      nodeIds: ["scene_aristocrat_intro"],
+    },
+    {
+      id: "intro_veteran",
+      title: "Veteran Intro",
+      startNodeId: "scene_veteran_intro",
+      nodeIds: ["scene_veteran_intro"],
+    },
+    {
+      id: "intro_archivist",
+      title: "Archivist Intro",
+      startNodeId: "scene_archivist_intro",
+      nodeIds: ["scene_archivist_intro"],
     },
     {
       id: "sandbox_case01_pilot",
@@ -121,15 +160,10 @@ type TestState = {
 
 describe("HomePage Freiburg flow", () => {
   let state: TestState;
-  let startScenarioReducerMock: ReturnType<typeof vi.fn>;
-  let confirmMock: {
-    mockRestore: () => void;
-    mockReturnValue: (value: boolean) => unknown;
-  };
+  let beginFreiburgOriginReducerMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
 
     state = {
       contentVersionRows: [
@@ -161,8 +195,13 @@ describe("HomePage Freiburg flow", () => {
       isConnected: true,
       connectionError: undefined,
     });
-    startScenarioReducerMock = vi.fn().mockResolvedValue(undefined);
-    mocks.useReducerMock.mockImplementation(() => startScenarioReducerMock);
+    beginFreiburgOriginReducerMock = vi.fn().mockResolvedValue(undefined);
+    mocks.useReducerMock.mockImplementation((reducer: symbol) => {
+      if (reducer === mocks.reducers.beginFreiburgOrigin) {
+        return beginFreiburgOriginReducerMock;
+      }
+      return vi.fn();
+    });
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
       if (table === mocks.tables.contentVersion) {
@@ -181,129 +220,156 @@ describe("HomePage Freiburg flow", () => {
     });
   });
 
-  afterEach(() => {
-    confirmMock.mockRestore();
-  });
-
-  it("opens dossier first and confirms bootstrap scenario", async () => {
-    const onOpenVnScenario = vi.fn();
-
-    render(
-      <HomePage onNavigate={vi.fn()} onOpenVnScenario={onOpenVnScenario} />,
-    );
+  it("opens origin selection on Continue when no origin is selected", () => {
+    render(<HomePage onNavigate={vi.fn()} onOpenVnScenario={vi.fn()} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
-    expect(screen.getByTestId("origin-dossier")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "dossier-confirm" }));
-
-    await waitFor(() => {
-      expect(startScenarioReducerMock).toHaveBeenCalledWith(
-        expect.objectContaining({ scenarioId: "origin_journalist_bootstrap" }),
-      );
-      expect(onOpenVnScenario).toHaveBeenCalledWith(
-        "origin_journalist_bootstrap",
-      );
-    });
-    expect(onOpenVnScenario).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("origin-selection")).toBeInTheDocument();
   });
 
-  it("continues active session without forcing restart", async () => {
-    const onOpenVnScenario = vi.fn();
+  it("treats active snapshot rows as hydrated content even when ready flags lag", () => {
+    state.contentVersionReady = false;
+    state.contentSnapshotReady = false;
 
-    state.sessionRows = [
-      {
-        sessionKey: "me::intro_journalist",
-        playerId: identity("me"),
-        scenarioId: "intro_journalist",
-        nodeId: "scene_journalist_intro",
-        updatedAt: timestamp(10n),
-        completedAt: { tag: "none" },
-      },
-    ];
-
-    render(
-      <HomePage onNavigate={vi.fn()} onOpenVnScenario={onOpenVnScenario} />,
-    );
+    render(<HomePage onNavigate={vi.fn()} onOpenVnScenario={vi.fn()} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
-    await waitFor(() => {
-      expect(startScenarioReducerMock).not.toHaveBeenCalled();
-      expect(onOpenVnScenario).toHaveBeenCalledWith("intro_journalist");
-    });
-    expect(screen.queryByTestId("origin-dossier")).not.toBeInTheDocument();
+    expect(screen.getByTestId("origin-selection")).toBeInTheDocument();
+    expect(screen.queryByText(/Syncing content snapshot/i)).not.toBeInTheDocument();
   });
 
-  it("starts fresh for active session on New Game", async () => {
-    const onOpenVnScenario = vi.fn();
-
-    state.sessionRows = [
-      {
-        sessionKey: "me::intro_journalist",
-        playerId: identity("me"),
-        scenarioId: "intro_journalist",
-        nodeId: "scene_journalist_intro",
-        updatedAt: timestamp(10n),
-        completedAt: { tag: "none" },
-      },
-    ];
-
-    render(
-      <HomePage onNavigate={vi.fn()} onOpenVnScenario={onOpenVnScenario} />,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "New Game" }));
-
-    await waitFor(() => {
-      expect(window.confirm).toHaveBeenCalledTimes(1);
-      expect(startScenarioReducerMock).toHaveBeenCalledWith(
-        expect.objectContaining({ scenarioId: "intro_journalist" }),
-      );
-      expect(onOpenVnScenario).toHaveBeenCalledWith("intro_journalist");
-    });
-    expect(screen.queryByTestId("origin-dossier")).not.toBeInTheDocument();
-  });
-
-  it("does not restart when reset confirmation is cancelled", async () => {
-    const onOpenVnScenario = vi.fn();
-    confirmMock.mockReturnValue(false);
-
-    state.sessionRows = [
-      {
-        sessionKey: "me::intro_journalist",
-        playerId: identity("me"),
-        scenarioId: "intro_journalist",
-        nodeId: "scene_journalist_intro",
-        updatedAt: timestamp(10n),
-        completedAt: { tag: "none" },
-      },
-    ];
-
-    render(
-      <HomePage onNavigate={vi.fn()} onOpenVnScenario={onOpenVnScenario} />,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "New Game" }));
-
-    await waitFor(() => {
-      expect(window.confirm).toHaveBeenCalledTimes(1);
-    });
-    expect(startScenarioReducerMock).not.toHaveBeenCalled();
-    expect(onOpenVnScenario).not.toHaveBeenCalled();
-  });
-
-  it("keeps actions clickable while sync is incomplete", () => {
-    const onOpenVnScenario = vi.fn();
+  it("does not block Freiburg entry when player-state ready flags lag", () => {
     state.sessionReady = false;
+    state.flagsReady = false;
+
+    render(<HomePage onNavigate={vi.fn()} onOpenVnScenario={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(screen.getByTestId("origin-selection")).toBeInTheDocument();
+    expect(screen.queryByText(/Syncing player state/i)).not.toBeInTheDocument();
+  });
+
+  it("runs confirm reset, unified origin flow, and begin reducer flow", async () => {
+    const onOpenVnScenario = vi.fn();
+
+    state.sessionRows = [
+      {
+        sessionKey: "me::intro_journalist",
+        playerId: identity("me"),
+        scenarioId: "intro_journalist",
+        nodeId: "scene_journalist_intro",
+        updatedAt: timestamp(10n),
+        completedAt: { tag: "none" },
+      },
+    ];
 
     render(
       <HomePage onNavigate={vi.fn()} onOpenVnScenario={onOpenVnScenario} />,
     );
+
+    fireEvent.click(screen.getByRole("button", { name: "New Game" }));
+    expect(screen.getByTestId("confirmation-modal")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirm Reset" }));
+    expect(screen.getByTestId("origin-selection")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "confirm-aristocrat" }));
+
+    await waitFor(() => {
+      expect(beginFreiburgOriginReducerMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          profileId: "aristocrat",
+          resetProgress: true,
+        }),
+      );
+      expect(onOpenVnScenario).toHaveBeenCalledWith("intro_aristocrat");
+    });
+  });
+
+  it("cancels reset confirmation without starting a new game", () => {
+    state.sessionRows = [
+      {
+        sessionKey: "me::intro_journalist",
+        playerId: identity("me"),
+        scenarioId: "intro_journalist",
+        nodeId: "scene_journalist_intro",
+        updatedAt: timestamp(10n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    render(<HomePage onNavigate={vi.fn()} onOpenVnScenario={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "New Game" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(beginFreiburgOriginReducerMock).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("confirmation-modal")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("origin-selection")).not.toBeInTheDocument();
+  });
+
+  it("closes unified origin flow without launching when cancelled from selection", () => {
+    render(<HomePage onNavigate={vi.fn()} onOpenVnScenario={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByTestId("origin-selection")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "selection-cancel" }));
+
+    expect(beginFreiburgOriginReducerMock).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("origin-selection")).not.toBeInTheDocument();
+  });
+
+  it("continues active session without starting a new origin", async () => {
+    const onOpenVnScenario = vi.fn();
+
+    state.sessionRows = [
+      {
+        sessionKey: "me::intro_aristocrat",
+        playerId: identity("me"),
+        scenarioId: "intro_aristocrat",
+        nodeId: "scene_aristocrat_intro",
+        updatedAt: timestamp(10n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    render(
+      <HomePage onNavigate={vi.fn()} onOpenVnScenario={onOpenVnScenario} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+
+    await waitFor(() => {
+      expect(beginFreiburgOriginReducerMock).not.toHaveBeenCalled();
+      expect(onOpenVnScenario).toHaveBeenCalledWith("intro_aristocrat");
+    });
+    expect(screen.queryByTestId("origin-selection")).not.toBeInTheDocument();
+  });
+
+  it("keeps actions clickable while content sync is incomplete", () => {
+    state.contentVersionRows = [];
+    state.contentSnapshotRows = [];
+    state.contentVersionReady = false;
+    state.contentSnapshotReady = false;
+
+    render(<HomePage onNavigate={vi.fn()} onOpenVnScenario={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "Continue" })).not.toBeDisabled();
     expect(screen.getByRole("button", { name: "New Game" })).not.toBeDisabled();
-    expect(screen.getByText(/Syncing player state/i)).toBeInTheDocument();
+    expect(screen.getByText(/Syncing content snapshot/i)).toBeInTheDocument();
+  });
+
+  it("routes the QR CTA into the map code drawer flow", () => {
+    const onNavigate = vi.fn();
+
+    render(<HomePage onNavigate={onNavigate} onOpenVnScenario={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Scan Start Code" }));
+
+    expect(onNavigate).toHaveBeenCalledWith("map", { mapPanel: "qr" });
   });
 });

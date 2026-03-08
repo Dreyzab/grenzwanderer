@@ -76,6 +76,10 @@ const runSmoke = async () =>
           const runId = Date.now();
           const request = (suffix: string) =>
             `smoke_origin_entry_${suffix}_${runId}`;
+          const playerHex = conn.identity?.toHexString();
+          if (!playerHex) {
+            throw new Error("Smoke connection did not expose a player identity");
+          }
 
           await conn.reducers.publishContent({
             requestId: request("publish"),
@@ -83,21 +87,6 @@ const runSmoke = async () =>
             checksum: snapshot.checksum,
             schemaVersion: snapshot.schemaVersion,
             payloadJson: snapshot.payloadJson,
-          });
-
-          // Keep the run deterministic on local shared DB.
-          await conn.reducers.setFlag({
-            key: "origin_journalist",
-            value: false,
-          });
-          await conn.reducers.setFlag({
-            key: "char_creation_complete",
-            value: false,
-          });
-          await conn.reducers.setFlag({ key: "met_anna_intro", value: false });
-          await conn.reducers.setFlag({
-            key: "origin_journalist_handoff_done",
-            value: false,
           });
 
           await new Promise<void>((resolveSync) => {
@@ -108,61 +97,104 @@ const runSmoke = async () =>
                 "SELECT * FROM content_version",
                 "SELECT * FROM content_snapshot",
                 "SELECT * FROM vn_session",
+                "SELECT * FROM player_flag",
                 "SELECT * FROM telemetry_event",
               ]);
           });
 
           const beforeTelemetryEventId = getMaxTelemetryEventId(conn);
 
-          await conn.reducers.startScenario({
-            requestId: request("start_bootstrap"),
-            scenarioId: "origin_journalist_bootstrap",
+          await conn.reducers.beginFreiburgOrigin({
+            requestId: request("journalist"),
+            profileId: "journalist",
+            resetProgress: false,
           });
+
+          const journalistSessions = [...conn.db.vnSession.iter()].filter(
+            (row) => row.playerId.toHexString() === playerHex,
+          );
+          if (
+            journalistSessions.length !== 1 ||
+            journalistSessions[0].scenarioId !== "intro_journalist"
+          ) {
+            throw new Error(
+              `Expected single intro_journalist session, got ${JSON.stringify(
+                journalistSessions.map((row) => ({
+                  scenarioId: row.scenarioId,
+                  nodeId: row.nodeId,
+                })),
+              )}`,
+            );
+          }
+
+          const journalistFlags = [...conn.db.playerFlag.iter()].filter(
+            (row) => row.playerId.toHexString() === playerHex,
+          );
+          if (
+            !journalistFlags.some(
+              (row) => row.key === "origin_journalist" && row.value,
+            )
+          ) {
+            throw new Error("Expected journalist origin flag after begin reducer");
+          }
+
+          const journalistEvents = [...conn.db.telemetryEvent.iter()].filter(
+            (row) => row.eventId > beforeTelemetryEventId,
+          );
+          const unexpectedBootstrapEvent = journalistEvents.find((row) =>
+            row.tagsJson.includes('"scenarioId":"origin_journalist_bootstrap"'),
+          );
+          if (unexpectedBootstrapEvent) {
+            throw new Error(
+              "Journalist origin begin should not depend on legacy bootstrap scenario",
+            );
+          }
 
           await expectRejected(
             () =>
-              conn.reducers.startScenario({
-                requestId: request("start_bootstrap_again"),
-                scenarioId: "origin_journalist_bootstrap",
+              conn.reducers.beginFreiburgOrigin({
+                requestId: request("aristocrat_without_reset"),
+                profileId: "aristocrat",
+                resetProgress: false,
               }),
-            "Scenario start node preconditions are not satisfied",
+            "Existing Freiburg progress requires resetProgress=true",
           );
 
-          await conn.reducers.startScenario({
-            requestId: request("start_intro"),
-            scenarioId: "intro_journalist",
+          await conn.reducers.beginFreiburgOrigin({
+            requestId: request("aristocrat_with_reset"),
+            profileId: "aristocrat",
+            resetProgress: true,
           });
 
-          const nextEvents = [...conn.db.telemetryEvent.iter()].filter(
-            (row) => row.eventId > beforeTelemetryEventId,
+          const finalSessions = [...conn.db.vnSession.iter()].filter(
+            (row) => row.playerId.toHexString() === playerHex,
           );
-          const taggedBootstrapStart = nextEvents.find(
-            (row) =>
-              row.eventName === "scenario_started" &&
-              row.tagsJson.includes(
-                '"scenarioId":"origin_journalist_bootstrap"',
-              ) &&
-              row.tagsJson.includes('"systemFlow":"origin_bootstrap"'),
-          );
-
-          if (!taggedBootstrapStart) {
-            console.log(
-              "All vn sessions:",
-              [...conn.db.vnSession.iter()].map((r) => ({
-                scenarioId: r.scenarioId,
-                nodeId: r.nodeId,
-              })),
-            );
-            console.log(
-              "All telemetry events:",
-              [...conn.db.telemetryEvent.iter()].map((r) => ({
-                eventId: String(r.eventId),
-                eventName: r.eventName,
-                tagsJson: r.tagsJson,
-              })),
-            );
+          if (
+            finalSessions.length !== 1 ||
+            finalSessions[0].scenarioId !== "intro_aristocrat"
+          ) {
             throw new Error(
-              "Expected bootstrap scenario_started telemetry with systemFlow=origin_bootstrap",
+              `Expected single intro_aristocrat session after reset, got ${JSON.stringify(
+                finalSessions.map((row) => ({
+                  scenarioId: row.scenarioId,
+                  nodeId: row.nodeId,
+                })),
+              )}`,
+            );
+          }
+
+          const finalFlags = [...conn.db.playerFlag.iter()].filter(
+            (row) => row.playerId.toHexString() === playerHex,
+          );
+          const hasAristocratFlag = finalFlags.some(
+            (row) => row.key === "origin_aristocrat" && row.value,
+          );
+          const hasJournalistFlag = finalFlags.some(
+            (row) => row.key === "origin_journalist" && row.value,
+          );
+          if (!hasAristocratFlag || hasJournalistFlag) {
+            throw new Error(
+              "Expected reset path to clear journalist state and apply aristocrat state",
             );
           }
 

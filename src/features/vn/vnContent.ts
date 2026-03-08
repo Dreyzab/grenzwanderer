@@ -4,15 +4,25 @@ import type {
   MapBindingIntent,
   MapBindingTrigger,
   MapCondition,
+  MapEventTemplate,
+  MapPointCategory,
   MapPointDefaultState,
   MapPointState,
+  MapQrCodeRegistryEntry,
+  MapShadowRoute,
   MapSnapshot,
+  MapTestDefaults,
+  MysticEntityArchetype,
+  MysticObservationDefinition,
+  MysticObservationKind,
   MindCaseContent,
   MindFactContent,
   MindHypothesisContent,
   MindRequiredVar,
   QuestCatalogEntry,
   QuestStageContent,
+  QrRedeemPolicy,
+  SightMode,
   VnChoice,
   VnCondition,
   VnDiceMode,
@@ -22,6 +32,12 @@ import type {
   VnScenario,
   VnSnapshot,
 } from "./types";
+import {
+  MIN_VN_SCHEMA_WITH_MAP,
+  MIN_VN_SCHEMA_WITH_MAP_EXPANSIONS,
+  MIN_VN_SCHEMA_WITH_MIND_PALACE,
+  MIN_VN_SCHEMA_WITH_QUEST_CATALOG,
+} from "./snapshotSchema";
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -72,6 +88,28 @@ const isEffect = (value: unknown): value is VnEffect => {
   if (value.type === "travel_to") {
     return typeof value.locationId === "string";
   }
+  if (value.type === "open_command_mode") {
+    return (
+      typeof value.scenarioId === "string" &&
+      (value.returnTab === undefined ||
+        value.returnTab === "map" ||
+        value.returnTab === "vn")
+    );
+  }
+  if (value.type === "open_battle_mode") {
+    return (
+      typeof value.scenarioId === "string" &&
+      (value.returnTab === undefined ||
+        value.returnTab === "map" ||
+        value.returnTab === "vn")
+    );
+  }
+  if (value.type === "spawn_map_event") {
+    return (
+      typeof value.templateId === "string" &&
+      (value.ttlMinutes === undefined || typeof value.ttlMinutes === "number")
+    );
+  }
   if (value.type === "track_event") {
     const tagsValid =
       value.tags === undefined ||
@@ -103,12 +141,46 @@ const isEffect = (value: unknown): value is VnEffect => {
   if (value.type === "grant_evidence") {
     return typeof value.evidenceId === "string";
   }
+  if (value.type === "grant_item") {
+    return (
+      typeof value.itemId === "string" && typeof value.quantity === "number"
+    );
+  }
   if (
     value.type === "add_heat" ||
     value.type === "add_tension" ||
     value.type === "grant_influence"
   ) {
     return typeof value.amount === "number";
+  }
+  if (value.type === "shift_awakening") {
+    return (
+      typeof value.amount === "number" &&
+      (value.exposureDelta === undefined ||
+        typeof value.exposureDelta === "number")
+    );
+  }
+  if (value.type === "record_entity_observation") {
+    return (
+      typeof value.observationId === "string" &&
+      (value.entityArchetypeId === undefined ||
+        typeof value.entityArchetypeId === "string") &&
+      (value.signatureIds === undefined ||
+        (Array.isArray(value.signatureIds) &&
+          value.signatureIds.every((entry) => typeof entry === "string")))
+    );
+  }
+  if (value.type === "unlock_distortion_point") {
+    return typeof value.pointId === "string";
+  }
+  if (value.type === "set_sight_mode") {
+    return isSightMode(value.mode);
+  }
+  if (value.type === "apply_rationalist_buffer") {
+    return typeof value.amount === "number";
+  }
+  if (value.type === "tag_entity_signature") {
+    return typeof value.signatureId === "string";
   }
 
   return false;
@@ -121,7 +193,10 @@ const isSkillCheck = (value: unknown): boolean => {
   return (
     typeof value.id === "string" &&
     typeof value.voiceId === "string" &&
-    typeof value.difficulty === "number"
+    typeof value.difficulty === "number" &&
+    (value.isPassive === undefined || typeof value.isPassive === "boolean") &&
+    (value.showChancePercent === undefined ||
+      typeof value.showChancePercent === "boolean")
   );
 };
 
@@ -130,9 +205,23 @@ const isChoice = (value: unknown): value is VnChoice => {
     return false;
   }
 
-  const hasConditions =
+  const hasLegacyConditions =
     value.conditions === undefined ||
     (Array.isArray(value.conditions) && value.conditions.every(isCondition));
+  const hasVisibleIfAll =
+    value.visibleIfAll === undefined ||
+    (Array.isArray(value.visibleIfAll) &&
+      value.visibleIfAll.every(isCondition));
+  const hasVisibleIfAny =
+    value.visibleIfAny === undefined ||
+    (Array.isArray(value.visibleIfAny) &&
+      value.visibleIfAny.every(isCondition));
+  const hasRequireAll =
+    value.requireAll === undefined ||
+    (Array.isArray(value.requireAll) && value.requireAll.every(isCondition));
+  const hasRequireAny =
+    value.requireAny === undefined ||
+    (Array.isArray(value.requireAny) && value.requireAny.every(isCondition));
   const hasEffects =
     value.effects === undefined ||
     (Array.isArray(value.effects) && value.effects.every(isEffect));
@@ -143,7 +232,11 @@ const isChoice = (value: unknown): value is VnChoice => {
     typeof value.id === "string" &&
     typeof value.text === "string" &&
     typeof value.nextNodeId === "string" &&
-    hasConditions &&
+    hasLegacyConditions &&
+    hasVisibleIfAll &&
+    hasVisibleIfAny &&
+    hasRequireAll &&
+    hasRequireAny &&
     hasEffects &&
     hasSkillCheck
   );
@@ -283,6 +376,84 @@ const parseMindPalace = (value: unknown): VnSnapshot["mindPalace"] | null => {
   };
 };
 
+const isSightMode = (value: unknown): value is SightMode =>
+  value === "rational" || value === "sensitive" || value === "ether";
+
+const isMysticObservationKind = (
+  value: unknown,
+): value is MysticObservationKind =>
+  value === "sighting" ||
+  value === "trace" ||
+  value === "echo" ||
+  value === "sample" ||
+  value === "theory";
+
+const isMysticEntityArchetype = (
+  value: unknown,
+): value is MysticEntityArchetype =>
+  isObject(value) &&
+  typeof value.id === "string" &&
+  typeof value.label === "string" &&
+  typeof value.veilLevel === "number" &&
+  Array.isArray(value.signatures) &&
+  value.signatures.every((entry) => typeof entry === "string") &&
+  Array.isArray(value.habitats) &&
+  value.habitats.every((entry) => typeof entry === "string") &&
+  typeof value.temperament === "string" &&
+  typeof value.witnessValue === "number" &&
+  Array.isArray(value.rationalCoverStories) &&
+  value.rationalCoverStories.every((entry) => typeof entry === "string") &&
+  Array.isArray(value.allowedManifestations) &&
+  value.allowedManifestations.every((entry) => typeof entry === "string");
+
+const isMysticObservationDefinition = (
+  value: unknown,
+): value is MysticObservationDefinition =>
+  isObject(value) &&
+  typeof value.id === "string" &&
+  isMysticObservationKind(value.kind) &&
+  typeof value.title === "string" &&
+  typeof value.text === "string" &&
+  (value.entityArchetypeId === undefined ||
+    typeof value.entityArchetypeId === "string") &&
+  (value.signatureIds === undefined ||
+    (Array.isArray(value.signatureIds) &&
+      value.signatureIds.every((entry) => typeof entry === "string"))) &&
+  (value.rationalInterpretation === undefined ||
+    typeof value.rationalInterpretation === "string") &&
+  (value.unlockedByDefault === undefined ||
+    typeof value.unlockedByDefault === "boolean");
+
+const parseMysticism = (
+  value: unknown,
+): VnSnapshot["mysticism"] | undefined | null => {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isObject(value)) {
+    return null;
+  }
+
+  if (
+    !Array.isArray(value.entityArchetypes) ||
+    !value.entityArchetypes.every((entry) => isMysticEntityArchetype(entry))
+  ) {
+    return null;
+  }
+  if (
+    value.observations !== undefined &&
+    (!Array.isArray(value.observations) ||
+      !value.observations.every((entry) => isMysticObservationDefinition(entry)))
+  ) {
+    return null;
+  }
+
+  return {
+    entityArchetypes: value.entityArchetypes,
+    observations: value.observations ?? [],
+  };
+};
+
 const parseVnRuntime = (value: unknown): VnSnapshot["vnRuntime"] | null => {
   if (value === undefined) {
     return undefined;
@@ -337,7 +508,7 @@ const parseQuestCatalog = (
   schemaVersion: number,
 ): VnSnapshot["questCatalog"] | undefined | null => {
   if (value === undefined) {
-    return schemaVersion >= 4 ? null : undefined;
+    return schemaVersion >= MIN_VN_SCHEMA_WITH_QUEST_CATALOG ? null : undefined;
   }
   if (
     !Array.isArray(value) ||
@@ -383,6 +554,12 @@ const isMapPointDefaultState = (
 ): value is MapPointDefaultState =>
   value === "locked" || value === "discovered";
 
+const isMapPointCategory = (value: unknown): value is MapPointCategory =>
+  value === "HUB" ||
+  value === "PUBLIC" ||
+  value === "SHADOW" ||
+  value === "EPHEMERAL";
+
 const isMapBindingTrigger = (value: unknown): value is MapBindingTrigger =>
   value === "card_primary" ||
   value === "card_secondary" ||
@@ -391,6 +568,9 @@ const isMapBindingTrigger = (value: unknown): value is MapBindingTrigger =>
 
 const isMapBindingIntent = (value: unknown): value is MapBindingIntent =>
   value === "objective" || value === "interaction" || value === "travel";
+
+const isQrRedeemPolicy = (value: unknown): value is QrRedeemPolicy =>
+  value === "once_per_player" || value === "repeatable";
 
 const isMapCondition = (value: unknown): value is MapCondition => {
   if (!isObject(value) || typeof value.type !== "string") {
@@ -447,6 +627,28 @@ const isMapAction = (value: unknown): value is MapAction => {
   if (value.type === "travel_to") {
     return typeof value.locationId === "string";
   }
+  if (value.type === "open_command_mode") {
+    return (
+      typeof value.scenarioId === "string" &&
+      (value.returnTab === undefined ||
+        value.returnTab === "map" ||
+        value.returnTab === "vn")
+    );
+  }
+  if (value.type === "open_battle_mode") {
+    return (
+      typeof value.scenarioId === "string" &&
+      (value.returnTab === undefined ||
+        value.returnTab === "map" ||
+        value.returnTab === "vn")
+    );
+  }
+  if (value.type === "spawn_map_event") {
+    return (
+      typeof value.templateId === "string" &&
+      (value.ttlMinutes === undefined || typeof value.ttlMinutes === "number")
+    );
+  }
   if (value.type === "set_flag") {
     return typeof value.key === "string" && typeof value.value === "boolean";
   }
@@ -469,6 +671,35 @@ const isMapAction = (value: unknown): value is MapAction => {
   }
   if (value.type === "track_event") {
     return typeof value.eventName === "string";
+  }
+  if (value.type === "shift_awakening") {
+    return (
+      typeof value.amount === "number" &&
+      (value.exposureDelta === undefined ||
+        typeof value.exposureDelta === "number")
+    );
+  }
+  if (value.type === "record_entity_observation") {
+    return (
+      typeof value.observationId === "string" &&
+      (value.entityArchetypeId === undefined ||
+        typeof value.entityArchetypeId === "string") &&
+      (value.signatureIds === undefined ||
+        (Array.isArray(value.signatureIds) &&
+          value.signatureIds.every((entry) => typeof entry === "string")))
+    );
+  }
+  if (value.type === "unlock_distortion_point") {
+    return typeof value.pointId === "string";
+  }
+  if (value.type === "set_sight_mode") {
+    return isSightMode(value.mode);
+  }
+  if (value.type === "apply_rationalist_buffer") {
+    return typeof value.amount === "number";
+  }
+  if (value.type === "tag_entity_signature") {
+    return typeof value.signatureId === "string";
   }
 
   return false;
@@ -495,13 +726,113 @@ const isMapBinding = (value: unknown): value is MapBinding => {
   );
 };
 
+const isMapPointSnapshotLike = (
+  value: unknown,
+): value is MapEventTemplate["point"] => {
+  if (!isObject(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    typeof value.title === "string" &&
+    typeof value.regionId === "string" &&
+    typeof value.lat === "number" &&
+    typeof value.lng === "number" &&
+    isMapPointCategory(value.category) &&
+    (value.description === undefined ||
+      typeof value.description === "string") &&
+    (value.image === undefined || typeof value.image === "string") &&
+    typeof value.locationId === "string" &&
+    (value.defaultState === undefined ||
+      isMapPointDefaultState(value.defaultState)) &&
+    (value.unlockGroup === undefined ||
+      typeof value.unlockGroup === "string") &&
+    (value.isHiddenInitially === undefined ||
+      typeof value.isHiddenInitially === "boolean") &&
+    (value.visibilityModes === undefined ||
+      (Array.isArray(value.visibilityModes) &&
+        value.visibilityModes.every((entry) => isSightMode(entry)))) &&
+    (value.distortionWindow === undefined ||
+      (isObject(value.distortionWindow) &&
+        (value.distortionWindow.minAwakening === undefined ||
+          typeof value.distortionWindow.minAwakening === "number") &&
+        (value.distortionWindow.maxAwakening === undefined ||
+          typeof value.distortionWindow.maxAwakening === "number"))) &&
+    (value.revealConditions === undefined ||
+      (Array.isArray(value.revealConditions) &&
+        value.revealConditions.every((entry) => isMapCondition(entry)))) &&
+    (value.entitySignature === undefined ||
+      typeof value.entitySignature === "string") &&
+    (value.rumorHookId === undefined ||
+      typeof value.rumorHookId === "string") &&
+    Array.isArray(value.bindings) &&
+    value.bindings.every((entry) => isMapBinding(entry))
+  );
+};
+
+const isMapShadowRoute = (value: unknown): value is MapShadowRoute =>
+  isObject(value) &&
+  typeof value.id === "string" &&
+  typeof value.regionId === "string" &&
+  Array.isArray(value.pointIds) &&
+  value.pointIds.every((entry) => typeof entry === "string") &&
+  (value.color === undefined || typeof value.color === "string") &&
+  (value.revealFlagsAll === undefined ||
+    (Array.isArray(value.revealFlagsAll) &&
+      value.revealFlagsAll.every((entry) => typeof entry === "string")));
+
+const isMapEventTemplate = (value: unknown): value is MapEventTemplate =>
+  isObject(value) &&
+  typeof value.id === "string" &&
+  isMapPointSnapshotLike(value.point) &&
+  (value.ttlMinutes === undefined || typeof value.ttlMinutes === "number");
+
+const isMapQrCodeRegistryEntry = (
+  value: unknown,
+): value is MapQrCodeRegistryEntry =>
+  isObject(value) &&
+  typeof value.codeId === "string" &&
+  typeof value.codeHash === "string" &&
+  /^[a-f0-9]{64}$/.test(value.codeHash) &&
+  isQrRedeemPolicy(value.redeemPolicy) &&
+  Array.isArray(value.effects) &&
+  value.effects.every((entry) => isEffect(entry)) &&
+  (value.requiresFlagsAll === undefined ||
+    (Array.isArray(value.requiresFlagsAll) &&
+      value.requiresFlagsAll.every((entry) => typeof entry === "string"))) &&
+  (value.requiresBriefingBypass === undefined ||
+    typeof value.requiresBriefingBypass === "boolean");
+
+const parseMapTestDefaults = (
+  value: unknown,
+): MapTestDefaults | undefined | null => {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isObject(value)) {
+    return null;
+  }
+
+  if (
+    value.defaultEventTtlMinutes !== undefined &&
+    typeof value.defaultEventTtlMinutes !== "number"
+  ) {
+    return null;
+  }
+
+  return {
+    defaultEventTtlMinutes: value.defaultEventTtlMinutes,
+  };
+};
+
 const parseMap = (
   value: unknown,
   schemaVersion: number,
   scenarioIds: ReadonlySet<string>,
 ): MapSnapshot | undefined | null => {
   if (value === undefined) {
-    return schemaVersion >= 3 ? null : undefined;
+    return schemaVersion >= MIN_VN_SCHEMA_WITH_MAP ? null : undefined;
   }
 
   if (!isObject(value)) {
@@ -556,6 +887,13 @@ const parseMap = (
   const bindingIds = new Set<string>();
 
   for (const point of value.points) {
+    const category =
+      point && isObject(point) && typeof point.category === "string"
+        ? point.category
+        : schemaVersion >= MIN_VN_SCHEMA_WITH_MAP_EXPANSIONS
+          ? undefined
+          : "PUBLIC";
+
     if (
       !isObject(point) ||
       typeof point.id !== "string" ||
@@ -563,6 +901,7 @@ const parseMap = (
       typeof point.regionId !== "string" ||
       typeof point.lat !== "number" ||
       typeof point.lng !== "number" ||
+      !isMapPointCategory(category) ||
       (point.description !== undefined &&
         typeof point.description !== "string") ||
       (point.image !== undefined && typeof point.image !== "string") ||
@@ -573,6 +912,22 @@ const parseMap = (
         typeof point.unlockGroup !== "string") ||
       (point.isHiddenInitially !== undefined &&
         typeof point.isHiddenInitially !== "boolean") ||
+      (point.visibilityModes !== undefined &&
+        (!Array.isArray(point.visibilityModes) ||
+          !point.visibilityModes.every((entry) => isSightMode(entry)))) ||
+      (point.distortionWindow !== undefined &&
+        (!isObject(point.distortionWindow) ||
+          (point.distortionWindow.minAwakening !== undefined &&
+            typeof point.distortionWindow.minAwakening !== "number") ||
+          (point.distortionWindow.maxAwakening !== undefined &&
+            typeof point.distortionWindow.maxAwakening !== "number"))) ||
+      (point.revealConditions !== undefined &&
+        (!Array.isArray(point.revealConditions) ||
+          !point.revealConditions.every((entry) => isMapCondition(entry)))) ||
+      (point.entitySignature !== undefined &&
+        typeof point.entitySignature !== "string") ||
+      (point.rumorHookId !== undefined &&
+        typeof point.rumorHookId !== "string") ||
       !Array.isArray(point.bindings) ||
       !point.bindings.every((entry) => isMapBinding(entry))
     ) {
@@ -611,17 +966,131 @@ const parseMap = (
       description: point.description,
       image: point.image,
       locationId: point.locationId,
+      category,
       defaultState: point.defaultState,
       unlockGroup: point.unlockGroup,
       isHiddenInitially: point.isHiddenInitially,
+      visibilityModes: point.visibilityModes,
+      distortionWindow: point.distortionWindow,
+      revealConditions: point.revealConditions,
+      entitySignature: point.entitySignature,
+      rumorHookId: point.rumorHookId,
       bindings: point.bindings,
     });
+  }
+
+  let shadowRoutes: MapSnapshot["shadowRoutes"];
+  if (value.shadowRoutes !== undefined) {
+    if (
+      !Array.isArray(value.shadowRoutes) ||
+      !value.shadowRoutes.every((entry) => isMapShadowRoute(entry))
+    ) {
+      return null;
+    }
+
+    const routeIds = new Set<string>();
+    shadowRoutes = [];
+    for (const route of value.shadowRoutes) {
+      if (
+        routeIds.has(route.id) ||
+        !regionIds.has(route.regionId) ||
+        route.pointIds.length < 2 ||
+        route.pointIds.some((pointId) => !pointIds.has(pointId))
+      ) {
+        return null;
+      }
+      routeIds.add(route.id);
+      shadowRoutes.push({
+        id: route.id,
+        regionId: route.regionId,
+        pointIds: [...route.pointIds],
+        color: route.color,
+        revealFlagsAll: route.revealFlagsAll
+          ? [...route.revealFlagsAll]
+          : undefined,
+      });
+    }
+  }
+
+  let qrCodeRegistry: MapSnapshot["qrCodeRegistry"];
+  if (value.qrCodeRegistry !== undefined) {
+    if (
+      !Array.isArray(value.qrCodeRegistry) ||
+      !value.qrCodeRegistry.every((entry) => isMapQrCodeRegistryEntry(entry))
+    ) {
+      return null;
+    }
+
+    const codeIds = new Set<string>();
+    qrCodeRegistry = [];
+    for (const entry of value.qrCodeRegistry) {
+      if (codeIds.has(entry.codeId)) {
+        return null;
+      }
+      codeIds.add(entry.codeId);
+
+      qrCodeRegistry.push({
+        codeId: entry.codeId,
+        codeHash: entry.codeHash,
+        redeemPolicy: entry.redeemPolicy,
+        effects: entry.effects,
+        requiresFlagsAll: entry.requiresFlagsAll
+          ? [...entry.requiresFlagsAll]
+          : undefined,
+        requiresBriefingBypass: entry.requiresBriefingBypass,
+      });
+    }
+  }
+
+  let mapEventTemplates: MapSnapshot["mapEventTemplates"];
+  if (value.mapEventTemplates !== undefined) {
+    if (
+      !Array.isArray(value.mapEventTemplates) ||
+      !value.mapEventTemplates.every((entry) => isMapEventTemplate(entry))
+    ) {
+      return null;
+    }
+
+    const templateIds = new Set<string>();
+    const templatePointIds = new Set<string>();
+    mapEventTemplates = [];
+    for (const template of value.mapEventTemplates) {
+      if (
+        templateIds.has(template.id) ||
+        templatePointIds.has(template.point.id) ||
+        pointIds.has(template.point.id) ||
+        !regionIds.has(template.point.regionId) ||
+        template.point.category !== "EPHEMERAL"
+      ) {
+        return null;
+      }
+      templateIds.add(template.id);
+      templatePointIds.add(template.point.id);
+
+      mapEventTemplates.push({
+        id: template.id,
+        point: {
+          ...template.point,
+          bindings: [...template.point.bindings],
+        },
+        ttlMinutes: template.ttlMinutes,
+      });
+    }
+  }
+
+  const testDefaults = parseMapTestDefaults(value.testDefaults);
+  if (testDefaults === null) {
+    return null;
   }
 
   return {
     defaultRegionId: value.defaultRegionId,
     regions: parsedRegions,
     points: parsedPoints,
+    shadowRoutes,
+    qrCodeRegistry,
+    mapEventTemplates,
+    testDefaults,
   };
 };
 
@@ -651,6 +1120,10 @@ export const parseSnapshot = (payloadJson: string): VnSnapshot | null => {
   if (!mindPalace) {
     return null;
   }
+  const mysticism = parseMysticism(parsed.mysticism);
+  if (mysticism === null) {
+    return null;
+  }
   const vnRuntime = parseVnRuntime(parsed.vnRuntime);
   if (vnRuntime === null) {
     return null;
@@ -668,7 +1141,10 @@ export const parseSnapshot = (payloadJson: string): VnSnapshot | null => {
   if (questCatalog === null) {
     return null;
   }
-  if (parsed.schemaVersion >= 2 && parsed.mindPalace === undefined) {
+  if (
+    parsed.schemaVersion >= MIN_VN_SCHEMA_WITH_MIND_PALACE &&
+    parsed.mindPalace === undefined
+  ) {
     return null;
   }
 
@@ -678,6 +1154,7 @@ export const parseSnapshot = (payloadJson: string): VnSnapshot | null => {
     nodes: parsed.nodes,
     vnRuntime,
     mindPalace,
+    mysticism,
     map,
     questCatalog,
   };
@@ -694,25 +1171,75 @@ export const getNodeById = (
   nodeId: string,
 ): VnNode | null => snapshot.nodes.find((entry) => entry.id === nodeId) ?? null;
 
+const evaluateChoiceCondition = (
+  condition: VnCondition,
+  flags: Record<string, boolean>,
+  vars: Record<string, number>,
+): boolean => {
+  if (condition.type === "flag_equals") {
+    return (flags[condition.key] ?? false) === condition.value;
+  }
+  if (condition.type === "var_gte") {
+    return (vars[condition.key] ?? 0) >= condition.value;
+  }
+  if (condition.type === "var_lte") {
+    return (vars[condition.key] ?? 0) <= condition.value;
+  }
+
+  // Client pre-check is advisory; leave server as authority for unsupported
+  // local data sources (inventory/evidence/quest/relationship).
+  return true;
+};
+
+const groupAll = (
+  conditions: VnCondition[] | undefined,
+  flags: Record<string, boolean>,
+  vars: Record<string, number>,
+): boolean => {
+  if (!conditions || conditions.length === 0) {
+    return true;
+  }
+  return conditions.every((condition) =>
+    evaluateChoiceCondition(condition, flags, vars),
+  );
+};
+
+const groupAny = (
+  conditions: VnCondition[] | undefined,
+  flags: Record<string, boolean>,
+  vars: Record<string, number>,
+): boolean => {
+  if (!conditions || conditions.length === 0) {
+    return true;
+  }
+  return conditions.some((condition) =>
+    evaluateChoiceCondition(condition, flags, vars),
+  );
+};
+
+const resolveRequireAll = (choice: VnChoice): VnCondition[] | undefined =>
+  choice.requireAll ?? choice.conditions;
+
+export const isChoiceVisible = (
+  choice: VnChoice,
+  flags: Record<string, boolean>,
+  vars: Record<string, number>,
+): boolean =>
+  groupAll(choice.visibleIfAll, flags, vars) &&
+  groupAny(choice.visibleIfAny, flags, vars);
+
+export const isChoiceEnabled = (
+  choice: VnChoice,
+  flags: Record<string, boolean>,
+  vars: Record<string, number>,
+): boolean =>
+  groupAll(resolveRequireAll(choice), flags, vars) &&
+  groupAny(choice.requireAny, flags, vars);
+
 export const isChoiceAvailable = (
   choice: VnChoice,
   flags: Record<string, boolean>,
   vars: Record<string, number>,
 ): boolean => {
-  if (!choice.conditions || choice.conditions.length === 0) {
-    return true;
-  }
-
-  return choice.conditions.every((condition) => {
-    if (condition.type === "flag_equals") {
-      return (flags[condition.key] ?? false) === condition.value;
-    }
-    if (condition.type === "var_gte") {
-      return (vars[condition.key] ?? 0) >= condition.value;
-    }
-    if (condition.type === "var_lte") {
-      return (vars[condition.key] ?? 0) <= condition.value;
-    }
-    return false;
-  });
+  return isChoiceEnabled(choice, flags, vars);
 };

@@ -10,6 +10,7 @@ const basePoint: RuntimeMapPoint = {
   title: "Bankhaus J.A. Krebs",
   lat: 47.99,
   lng: 7.85,
+  category: "PUBLIC",
   locationId: "loc_freiburg_bank",
   description: "Crime scene",
   state: "discovered",
@@ -120,5 +121,37 @@ describe("CaseCard", () => {
     );
 
     expect(screen.getByRole("button", { name: "Here" })).toBeDisabled();
+  });
+
+  it("shows pending label while action is running", async () => {
+    const user = userEvent.setup();
+    let resolveAction = () => {};
+    const onRunBinding = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveAction = resolve;
+        }),
+    );
+
+    render(
+      <CaseCard
+        point={basePoint}
+        currentLocationId={null}
+        onRunBinding={onRunBinding}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Investigate" }));
+
+    expect(
+      screen.getByRole("button", { name: "Investigate..." }),
+    ).toBeDisabled();
+
+    resolveAction();
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Investigate" })).toBeEnabled();
+    });
   });
 });

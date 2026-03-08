@@ -61,6 +61,7 @@ const payload = {
         regionId: "FREIBURG_1905",
         lat: 47.99,
         lng: 7.84,
+        category: "HUB",
         locationId: "loc_map_travel",
         defaultState: "discovered",
         bindings: [
@@ -80,6 +81,7 @@ const payload = {
         regionId: "FREIBURG_1905",
         lat: 47.991,
         lng: 7.845,
+        category: "HUB",
         locationId: "loc_map_case",
         defaultState: "discovered",
         bindings: [
@@ -107,6 +109,7 @@ const payload = {
         regionId: "FREIBURG_1905",
         lat: 47.992,
         lng: 7.846,
+        category: "HUB",
         locationId: "loc_locked_case",
         defaultState: "locked",
         bindings: [

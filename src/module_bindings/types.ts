@@ -24,6 +24,143 @@ export const AiRequest = __t.object("AiRequest", {
 });
 export type AiRequest = __Infer<typeof AiRequest>;
 
+export const BattleCardInstance = __t.object("BattleCardInstance", {
+  cardInstanceKey: __t.string(),
+  sessionKey: __t.string(),
+  playerId: __t.identity(),
+  instanceId: __t.string(),
+  ownerCombatantId: __t.string(),
+  cardId: __t.string(),
+  label: __t.string(),
+  description: __t.string(),
+  effectPreview: __t.string(),
+  artUrl: __t.option(__t.string()),
+  tagsJson: __t.option(__t.string()),
+  costAp: __t.f64(),
+  zone: __t.string(),
+  zoneOrder: __t.u32(),
+  isPlayable: __t.bool(),
+  playableReason: __t.option(__t.string()),
+  targetRule: __t.option(__t.string()),
+  updatedAt: __t.timestamp(),
+});
+export type BattleCardInstance = __Infer<typeof BattleCardInstance>;
+
+export const BattleCombatant = __t.object("BattleCombatant", {
+  combatantKey: __t.string(),
+  sessionKey: __t.string(),
+  playerId: __t.identity(),
+  combatantId: __t.string(),
+  side: __t.string(),
+  slotIndex: __t.u32(),
+  label: __t.string(),
+  subtitle: __t.option(__t.string()),
+  portraitUrl: __t.option(__t.string()),
+  resolve: __t.f64(),
+  maxResolve: __t.f64(),
+  ap: __t.f64(),
+  maxAp: __t.f64(),
+  block: __t.f64(),
+  nextIntentCardId: __t.option(__t.string()),
+  nextIntentLabel: __t.option(__t.string()),
+  nextIntentSummary: __t.option(__t.string()),
+  initiative: __t.option(__t.f64()),
+  statusesJson: __t.string(),
+  targetRulesJson: __t.option(__t.string()),
+  resourceExtrasJson: __t.option(__t.string()),
+  updatedAt: __t.timestamp(),
+});
+export type BattleCombatant = __Infer<typeof BattleCombatant>;
+
+export const BattleHistory = __t.object("BattleHistory", {
+  historyKey: __t.string(),
+  sessionKey: __t.string(),
+  playerId: __t.identity(),
+  turnCount: __t.u32(),
+  entryType: __t.string(),
+  message: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type BattleHistory = __Infer<typeof BattleHistory>;
+
+export const BattleSession = __t.object("BattleSession", {
+  sessionKey: __t.string(),
+  playerId: __t.identity(),
+  scenarioId: __t.string(),
+  sourceTab: __t.string(),
+  returnTab: __t.string(),
+  sourceContextId: __t.option(__t.string()),
+  sourceScenarioId: __t.option(__t.string()),
+  phase: __t.string(),
+  status: __t.string(),
+  turnCount: __t.u32(),
+  drawPerTurn: __t.u32(),
+  enemyIntentCursor: __t.u32(),
+  title: __t.string(),
+  briefing: __t.string(),
+  resolveLabel: __t.string(),
+  apLabel: __t.string(),
+  blockLabel: __t.string(),
+  backgroundUrl: __t.option(__t.string()),
+  resultType: __t.option(__t.string()),
+  resultTitle: __t.option(__t.string()),
+  resultSummary: __t.option(__t.string()),
+  createdAt: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+  resolvedAt: __t.option(__t.timestamp()),
+  closedAt: __t.option(__t.timestamp()),
+});
+export type BattleSession = __Infer<typeof BattleSession>;
+
+export const CommandOrderHistory = __t.object("CommandOrderHistory", {
+  historyKey: __t.string(),
+  sessionKey: __t.string(),
+  playerId: __t.identity(),
+  scenarioId: __t.string(),
+  orderId: __t.string(),
+  actorId: __t.string(),
+  title: __t.string(),
+  summary: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type CommandOrderHistory = __Infer<typeof CommandOrderHistory>;
+
+export const CommandPartyMember = __t.object("CommandPartyMember", {
+  memberKey: __t.string(),
+  sessionKey: __t.string(),
+  playerId: __t.identity(),
+  actorId: __t.string(),
+  label: __t.string(),
+  role: __t.string(),
+  availability: __t.string(),
+  trust: __t.f64(),
+  notes: __t.option(__t.string()),
+  sortOrder: __t.u32(),
+  updatedAt: __t.timestamp(),
+});
+export type CommandPartyMember = __Infer<typeof CommandPartyMember>;
+
+export const CommandSession = __t.object("CommandSession", {
+  sessionKey: __t.string(),
+  playerId: __t.identity(),
+  scenarioId: __t.string(),
+  sourceTab: __t.string(),
+  returnTab: __t.string(),
+  phase: __t.string(),
+  status: __t.string(),
+  title: __t.string(),
+  briefing: __t.string(),
+  ordersJson: __t.string(),
+  selectedOrderId: __t.option(__t.string()),
+  resultTitle: __t.option(__t.string()),
+  resultSummary: __t.option(__t.string()),
+  createdAt: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+  resolvedAt: __t.option(__t.timestamp()),
+  closedAt: __t.option(__t.timestamp()),
+});
+export type CommandSession = __Infer<typeof CommandSession>;
+
 export const ContentSnapshot = __t.object("ContentSnapshot", {
   checksum: __t.string(),
   payloadJson: __t.string(),
@@ -123,6 +260,20 @@ export const PlayerLocation = __t.object("PlayerLocation", {
 });
 export type PlayerLocation = __Infer<typeof PlayerLocation>;
 
+export const PlayerMapEvent = __t.object("PlayerMapEvent", {
+  eventId: __t.string(),
+  playerId: __t.identity(),
+  templateId: __t.string(),
+  snapshotChecksum: __t.string(),
+  payloadJson: __t.string(),
+  sourceLocationId: __t.string(),
+  status: __t.string(),
+  spawnedAt: __t.timestamp(),
+  expiresAt: __t.timestamp(),
+  resolvedAt: __t.option(__t.timestamp()),
+});
+export type PlayerMapEvent = __Infer<typeof PlayerMapEvent>;
+
 export const PlayerMindCase = __t.object("PlayerMindCase", {
   playerCaseKey: __t.string(),
   playerId: __t.identity(),
@@ -170,6 +321,16 @@ export const PlayerQuest = __t.object("PlayerQuest", {
   updatedAt: __t.timestamp(),
 });
 export type PlayerQuest = __Infer<typeof PlayerQuest>;
+
+export const PlayerRedeemedCode = __t.object("PlayerRedeemedCode", {
+  redemptionId: __t.string(),
+  playerId: __t.identity(),
+  codeId: __t.string(),
+  requestId: __t.string(),
+  redeemedAt: __t.timestamp(),
+  result: __t.string(),
+});
+export type PlayerRedeemedCode = __Infer<typeof PlayerRedeemedCode>;
 
 export const PlayerRelationship = __t.object("PlayerRelationship", {
   relationshipKey: __t.string(),

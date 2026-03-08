@@ -2,22 +2,29 @@ import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
 import {
   applyEffects,
+  cleanupExpiredMapEvents,
   createEvidenceKey,
   createInventoryKey,
   createQuestKey,
   createRelationshipKey,
   createUnlockGroupKey,
+  createRedeemedCodeKey,
   emitTelemetry,
   ensureIdempotent,
   ensurePlayerProfile,
   getActiveSnapshot,
   getFlag,
+  getPlayerActiveMapEventByEventId,
   getVar,
   type MapAction,
   type MapBinding,
   type MapCondition,
   type MapPoint,
   type MapPointState,
+  markMapEventResolved,
+  parseStoredMapEventPayload,
+  sha256Hex,
+  spawnMapEventInternal,
   upsertFlag,
 } from "./helpers";
 import { startScenarioInternal } from "./vn";
@@ -58,6 +65,23 @@ const resolvePointState = (ctx: any, point: MapPoint): MapPointState => {
   }
 
   return point.defaultState ?? "locked";
+};
+
+const isPointInteractable = (ctx: any, point: MapPoint): boolean => {
+  if (point.category === "HUB") {
+    return true;
+  }
+
+  const briefingComplete = getFlag(ctx, "agency_briefing_complete");
+  if (!briefingComplete && point.category !== "EPHEMERAL") {
+    return false;
+  }
+
+  if (point.category === "PUBLIC" || point.category === "EPHEMERAL") {
+    return true;
+  }
+
+  return resolvePointState(ctx, point) !== "locked";
 };
 
 const evaluateMapCondition = (
@@ -121,6 +145,27 @@ const toVnEffect = (action: Exclude<MapAction, { type: "start_scenario" }>) => {
   if (action.type === "travel_to") {
     return { type: "travel_to", locationId: action.locationId } as const;
   }
+  if (action.type === "open_command_mode") {
+    return {
+      type: "open_command_mode",
+      scenarioId: action.scenarioId,
+      returnTab: action.returnTab,
+    } as const;
+  }
+  if (action.type === "open_battle_mode") {
+    return {
+      type: "open_battle_mode",
+      scenarioId: action.scenarioId,
+      returnTab: action.returnTab,
+    } as const;
+  }
+  if (action.type === "spawn_map_event") {
+    return {
+      type: "spawn_map_event",
+      templateId: action.templateId,
+      ttlMinutes: action.ttlMinutes,
+    } as const;
+  }
   if (action.type === "set_flag") {
     return { type: "set_flag", key: action.key, value: action.value } as const;
   }
@@ -147,6 +192,42 @@ const toVnEffect = (action: Exclude<MapAction, { type: "start_scenario" }>) => {
       delta: action.delta,
     } as const;
   }
+  if (action.type === "shift_awakening") {
+    return {
+      type: "shift_awakening",
+      amount: action.amount,
+      exposureDelta: action.exposureDelta,
+    } as const;
+  }
+  if (action.type === "record_entity_observation") {
+    return {
+      type: "record_entity_observation",
+      observationId: action.observationId,
+      entityArchetypeId: action.entityArchetypeId,
+      signatureIds: action.signatureIds,
+    } as const;
+  }
+  if (action.type === "unlock_distortion_point") {
+    return {
+      type: "unlock_distortion_point",
+      pointId: action.pointId,
+    } as const;
+  }
+  if (action.type === "set_sight_mode") {
+    return { type: "set_sight_mode", mode: action.mode } as const;
+  }
+  if (action.type === "apply_rationalist_buffer") {
+    return {
+      type: "apply_rationalist_buffer",
+      amount: action.amount,
+    } as const;
+  }
+  if (action.type === "tag_entity_signature") {
+    return {
+      type: "tag_entity_signature",
+      signatureId: action.signatureId,
+    } as const;
+  }
   return {
     type: "track_event",
     eventName: action.eventName,
@@ -160,19 +241,30 @@ const executeAction = (
   point: MapPoint,
   binding: MapBinding,
   action: MapAction,
+  options?: { trackVisited?: boolean; sourceType?: string },
 ): string | null => {
   if (action.type === "start_scenario") {
     startScenarioInternal(ctx, action.scenarioId);
-    upsertFlag(ctx, visitedFlagKey(point.id), true);
+    if (options?.trackVisited !== false) {
+      upsertFlag(ctx, visitedFlagKey(point.id), true);
+    }
     return action.scenarioId;
   }
 
+  if (action.type === "spawn_map_event") {
+    spawnMapEventInternal(ctx, action.templateId, {
+      ttlMinutes: action.ttlMinutes,
+      sourceLocationId: point.locationId,
+    });
+    return null;
+  }
+
   applyEffects(ctx, [toVnEffect(action)], {
-    sourceType: "map_binding",
+    sourceType: options?.sourceType ?? "map_binding",
     sourceId: `${point.id}::${binding.id}`,
   });
 
-  if (action.type === "travel_to") {
+  if (action.type === "travel_to" && options?.trackVisited !== false) {
     upsertFlag(ctx, visitedFlagKey(point.id), true);
   }
 
@@ -213,6 +305,7 @@ export const map_interact = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "map_interact");
     ensurePlayerProfile(ctx);
+    cleanupExpiredMapEvents(ctx);
 
     const { snapshot, activeVersion } = getActiveSnapshot(ctx);
     const telemetryBase = {
@@ -230,20 +323,33 @@ export const map_interact = spacetimedb.reducer(
       return;
     }
 
-    const point = map.points.find((entry) => entry.id === pointId);
-    if (!point) {
+    const point = map.points.find((entry) => entry.id === pointId) ?? null;
+    const activeEventRow =
+      point === null ? getPlayerActiveMapEventByEventId(ctx, pointId) : null;
+    const runtimePoint =
+      point ??
+      (activeEventRow
+        ? parseStoredMapEventPayload(activeEventRow.payloadJson).point
+        : null);
+    if (!runtimePoint) {
       rejectMapInteraction(ctx, telemetryBase, "binding_not_found");
       return;
     }
+    if (!activeEventRow && !isPointInteractable(ctx, runtimePoint)) {
+      rejectMapInteraction(ctx, telemetryBase, "point_not_visible");
+      return;
+    }
 
-    const binding = point.bindings.find((entry) => entry.id === bindingId);
+    const binding = runtimePoint.bindings.find(
+      (entry) => entry.id === bindingId,
+    );
     if (!binding || binding.trigger !== trigger) {
       rejectMapInteraction(ctx, telemetryBase, "binding_not_found");
       return;
     }
 
     const conditionsMet = (binding.conditions ?? []).every((condition) =>
-      evaluateMapCondition(ctx, point, condition),
+      evaluateMapCondition(ctx, runtimePoint, condition),
     );
     if (!conditionsMet) {
       rejectMapInteraction(ctx, telemetryBase, "conditions_failed");
@@ -253,10 +359,22 @@ export const map_interact = spacetimedb.reducer(
     let startedScenarioId: string | null = null;
     try {
       for (const action of binding.actions) {
-        const startedFromAction = executeAction(ctx, point, binding, action);
+        const startedFromAction = executeAction(
+          ctx,
+          runtimePoint,
+          binding,
+          action,
+          {
+            trackVisited: !activeEventRow,
+            sourceType: activeEventRow ? "map_event_binding" : "map_binding",
+          },
+        );
         if (startedFromAction) {
           startedScenarioId = startedFromAction;
         }
+      }
+      if (activeEventRow) {
+        markMapEventResolved(ctx, activeEventRow.eventId);
       }
     } catch (error) {
       const normalized = normalizeMapActionError(error);
@@ -267,6 +385,124 @@ export const map_interact = spacetimedb.reducer(
       ...telemetryBase,
       intent: binding.intent,
       startedScenarioId,
+    });
+  },
+);
+
+export const redeem_map_code = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    code: t.string(),
+  },
+  (ctx, { requestId, code }) => {
+    if (!code || code.trim().length === 0) {
+      throw new SenderError("code must not be empty");
+    }
+
+    ensureIdempotent(ctx, requestId, "redeem_map_code");
+    ensurePlayerProfile(ctx);
+    cleanupExpiredMapEvents(ctx);
+
+    const { snapshot, activeVersion } = getActiveSnapshot(ctx);
+    const registry = snapshot.map?.qrCodeRegistry ?? [];
+    const codeHash = sha256Hex(code.trim());
+    const entry = registry.find((candidate) => candidate.codeHash === codeHash);
+
+    if (!entry) {
+      emitTelemetry(ctx, "map_code_rejected", {
+        requestId,
+        reason: "invalid_code",
+        contentVersion: activeVersion.version,
+      });
+      throw new SenderError("invalid_map_code");
+    }
+
+    const redemptionId = createRedeemedCodeKey(ctx.sender, requestId);
+    const priorSuccess = [...ctx.db.playerRedeemedCode.iter()].find(
+      (row) =>
+        row.playerId.toHexString() === ctx.sender.toHexString() &&
+        row.codeId === entry.codeId &&
+        (row.result === "applied" || row.result === "queued_after_briefing"),
+    );
+
+    if (entry.redeemPolicy === "once_per_player" && priorSuccess) {
+      ctx.db.playerRedeemedCode.insert({
+        redemptionId,
+        playerId: ctx.sender,
+        codeId: entry.codeId,
+        requestId,
+        redeemedAt: ctx.timestamp,
+        result: "already_redeemed",
+      });
+      emitTelemetry(ctx, "map_code_rejected", {
+        requestId,
+        codeId: entry.codeId,
+        reason: "already_redeemed",
+        contentVersion: activeVersion.version,
+      });
+      throw new SenderError("code_already_redeemed");
+    }
+
+    const missingFlags = (entry.requiresFlagsAll ?? []).filter(
+      (flagKey) => getFlag(ctx, flagKey) === false,
+    );
+    const missingNonBriefingFlags = missingFlags.filter(
+      (flagKey) => flagKey !== "agency_briefing_complete",
+    );
+    if (missingNonBriefingFlags.length > 0) {
+      ctx.db.playerRedeemedCode.insert({
+        redemptionId,
+        playerId: ctx.sender,
+        codeId: entry.codeId,
+        requestId,
+        redeemedAt: ctx.timestamp,
+        result: "blocked_flags",
+      });
+      emitTelemetry(ctx, "map_code_rejected", {
+        requestId,
+        codeId: entry.codeId,
+        reason: "blocked_flags",
+        missingFlags: missingNonBriefingFlags,
+        contentVersion: activeVersion.version,
+      });
+      throw new SenderError("code_not_available");
+    }
+
+    const queuedAfterBriefing =
+      missingFlags.includes("agency_briefing_complete") &&
+      !entry.requiresBriefingBypass;
+
+    for (const effect of entry.effects) {
+      if (effect.type === "spawn_map_event") {
+        spawnMapEventInternal(ctx, effect.templateId, {
+          ttlMinutes: effect.ttlMinutes,
+          sourceLocationId: "loc_agency",
+          snapshot,
+          snapshotChecksum: activeVersion.checksum,
+        });
+        continue;
+      }
+
+      applyEffects(ctx, [effect], {
+        sourceType: "map_code",
+        sourceId: entry.codeId,
+      });
+    }
+
+    ctx.db.playerRedeemedCode.insert({
+      redemptionId,
+      playerId: ctx.sender,
+      codeId: entry.codeId,
+      requestId,
+      redeemedAt: ctx.timestamp,
+      result: queuedAfterBriefing ? "queued_after_briefing" : "applied",
+    });
+
+    emitTelemetry(ctx, "map_code_redeemed", {
+      requestId,
+      codeId: entry.codeId,
+      result: queuedAfterBriefing ? "queued_after_briefing" : "applied",
+      contentVersion: activeVersion.version,
     });
   },
 );

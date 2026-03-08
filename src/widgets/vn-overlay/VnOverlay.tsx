@@ -5,7 +5,15 @@ interface VnOverlayProps {
   initialScenarioId?: string;
   onScenarioChange?: (scenarioId: string) => void;
   onNavigateTab?: (
-    tab: "home" | "vn" | "character" | "map" | "mind_palace" | "dev",
+    tab:
+      | "home"
+      | "vn"
+      | "character"
+      | "map"
+      | "mind_palace"
+      | "dev"
+      | "command"
+      | "battle",
   ) => void;
 }
 

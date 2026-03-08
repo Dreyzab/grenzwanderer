@@ -10,6 +10,9 @@ Operational procedure for publishing and rolling back VN content snapshots using
 - Module published to target DB (`spacetime:publish:local` or `spacetime:publish` as needed).
 - Fresh snapshot generated:
   - `bun run content:extract`
+- Expected runtime schema:
+  - writer emits `schemaVersion: 5`
+  - readers accept legacy `v4` and `v5`.
 
 ## Release Procedure
 
@@ -19,7 +22,24 @@ Operational procedure for publishing and rolling back VN content snapshots using
 bun run content:manifest:check
 ```
 
-2. Publish content:
+2. Validate quality gates:
+
+```bash
+bun run quality:loop-poc
+bun run content:obsidian:coverage:check
+bun run content:map:metrics:check
+bun run test
+```
+
+Note: `checklist.py` is not part of this repository; use script-based gates above.
+
+3. Validate drift against committed snapshot artifacts:
+
+```bash
+bun run content:drift:check
+```
+
+4. Publish content:
 
 ```bash
 bun run content:release -- --version X.Y.Z --server local --db grezwandererdata
@@ -35,8 +55,16 @@ Release payload contract:
 
 - CLI publishes the full snapshot payload (`schemaVersion`, `scenarios`, `nodes`, `vnRuntime`, `mindPalace`, `map`, `questCatalog` when present).
 - Snapshot metadata fields (`checksum`, `generatedAt`) are excluded from reducer payload before publish.
+- `VnChoice` gating fields in v5:
+  - `visibleIfAll`, `visibleIfAny` control visibility.
+  - `requireAll`, `requireAny` control enablement.
+  - legacy `conditions` remains read-only alias for `requireAll`.
+- Passive checks lifecycle:
+  - node entry resolves passive checks first,
+  - interaction is locked until checks resolve,
+  - reducer rejects early transitions with `Passive checks pending`.
 
-3. Verify post-conditions:
+5. Verify post-conditions:
 
 - `content_version` has one active version.
 - active version format is `content-vX.Y.Z+checksum8`.

@@ -13,6 +13,17 @@ export type VnEffect =
   | { type: "add_var"; key: string; value: number }
   | { type: "travel_to"; locationId: string }
   | {
+      type: "open_command_mode";
+      scenarioId: string;
+      returnTab?: "map" | "vn";
+    }
+  | {
+      type: "open_battle_mode";
+      scenarioId: string;
+      returnTab?: "map" | "vn";
+    }
+  | { type: "spawn_map_event"; templateId: string; ttlMinutes?: number }
+  | {
       type: "track_event";
       eventName: string;
       tags?: Record<string, unknown>;
@@ -28,9 +39,21 @@ export type VnEffect =
   | { type: "set_quest_stage"; questId: string; stage: number }
   | { type: "change_relationship"; characterId: string; delta: number }
   | { type: "grant_evidence"; evidenceId: string }
+  | { type: "grant_item"; itemId: string; quantity: number }
   | { type: "add_heat"; amount: number }
   | { type: "add_tension"; amount: number }
-  | { type: "grant_influence"; amount: number };
+  | { type: "grant_influence"; amount: number }
+  | { type: "shift_awakening"; amount: number; exposureDelta?: number }
+  | {
+      type: "record_entity_observation";
+      observationId: string;
+      entityArchetypeId?: string;
+      signatureIds?: string[];
+    }
+  | { type: "unlock_distortion_point"; pointId: string }
+  | { type: "set_sight_mode"; mode: SightMode }
+  | { type: "apply_rationalist_buffer"; amount: number }
+  | { type: "tag_entity_signature"; signatureId: string };
 
 export type VnDiceMode = "d20" | "d10";
 
@@ -39,6 +62,7 @@ export interface VnSkillCheck {
   voiceId: string;
   difficulty: number;
   isPassive?: boolean;
+  showChancePercent?: boolean;
   onSuccess?: { nextNodeId?: string; effects?: VnEffect[] };
   onFail?: { nextNodeId?: string; effects?: VnEffect[] };
 }
@@ -48,6 +72,11 @@ export interface VnChoice {
   text: string;
   nextNodeId: string;
   choiceType?: "action" | "inquiry" | "flavor";
+  visibleIfAll?: VnCondition[];
+  visibleIfAny?: VnCondition[];
+  requireAll?: VnCondition[];
+  requireAny?: VnCondition[];
+  /** Legacy alias for requireAll. Kept for backward compatibility. */
   conditions?: VnCondition[];
   effects?: VnEffect[];
   skillCheck?: VnSkillCheck;
@@ -124,6 +153,49 @@ export interface MindPalaceSnapshot {
   hypotheses: MindHypothesisContent[];
 }
 
+export type MysticAwakeningBand =
+  | "suppressed"
+  | "fractured"
+  | "open"
+  | "pierced";
+
+export type SightMode = "rational" | "sensitive" | "ether";
+
+export type MysticObservationKind =
+  | "sighting"
+  | "trace"
+  | "echo"
+  | "sample"
+  | "theory";
+
+export interface MysticEntityArchetype {
+  id: string;
+  label: string;
+  veilLevel: number;
+  signatures: string[];
+  habitats: string[];
+  temperament: string;
+  witnessValue: number;
+  rationalCoverStories: string[];
+  allowedManifestations: string[];
+}
+
+export interface MysticObservationDefinition {
+  id: string;
+  kind: MysticObservationKind;
+  title: string;
+  text: string;
+  entityArchetypeId?: string;
+  signatureIds?: string[];
+  rationalInterpretation?: string;
+  unlockedByDefault?: boolean;
+}
+
+export interface MysticSnapshot {
+  entityArchetypes: MysticEntityArchetype[];
+  observations: MysticObservationDefinition[];
+}
+
 export interface VnRuntimeSettings {
   skillCheckDice?: VnDiceMode;
   defaultEntryScenarioId?: string;
@@ -144,12 +216,14 @@ export interface QuestCatalogEntry {
 
 export type MapPointState = "locked" | "discovered" | "visited" | "completed";
 export type MapPointDefaultState = "locked" | "discovered";
+export type MapPointCategory = "HUB" | "PUBLIC" | "SHADOW" | "EPHEMERAL";
 export type MapBindingTrigger =
   | "card_primary"
   | "card_secondary"
   | "map_pin"
   | "auto";
 export type MapBindingIntent = "objective" | "interaction" | "travel";
+export type QrRedeemPolicy = "once_per_player" | "repeatable";
 
 export type MapCondition =
   | { type: "flag_is"; key: string; value: boolean }
@@ -168,6 +242,17 @@ export type MapCondition =
 export type MapAction =
   | { type: "start_scenario"; scenarioId: string }
   | { type: "travel_to"; locationId: string }
+  | {
+      type: "open_command_mode";
+      scenarioId: string;
+      returnTab?: "map" | "vn";
+    }
+  | {
+      type: "open_battle_mode";
+      scenarioId: string;
+      returnTab?: "map" | "vn";
+    }
+  | { type: "spawn_map_event"; templateId: string; ttlMinutes?: number }
   | { type: "set_flag"; key: string; value: boolean }
   | { type: "unlock_group"; groupId: string }
   | { type: "set_quest_stage"; questId: string; stage: number }
@@ -179,7 +264,18 @@ export type MapAction =
       eventName: string;
       tags?: Record<string, unknown>;
       value?: number;
-    };
+    }
+  | { type: "shift_awakening"; amount: number; exposureDelta?: number }
+  | {
+      type: "record_entity_observation";
+      observationId: string;
+      entityArchetypeId?: string;
+      signatureIds?: string[];
+    }
+  | { type: "unlock_distortion_point"; pointId: string }
+  | { type: "set_sight_mode"; mode: SightMode }
+  | { type: "apply_rationalist_buffer"; amount: number }
+  | { type: "tag_entity_signature"; signatureId: string };
 
 export interface MapBinding {
   id: string;
@@ -205,19 +301,59 @@ export interface MapPointSnapshot {
   regionId: string;
   lat: number;
   lng: number;
+  category: MapPointCategory;
   description?: string;
   image?: string;
   locationId: string;
   defaultState?: MapPointDefaultState;
   unlockGroup?: string;
   isHiddenInitially?: boolean;
+  visibilityModes?: SightMode[];
+  distortionWindow?: {
+    minAwakening?: number;
+    maxAwakening?: number;
+  };
+  revealConditions?: MapCondition[];
+  entitySignature?: string;
+  rumorHookId?: string;
   bindings: MapBinding[];
+}
+
+export interface MapShadowRoute {
+  id: string;
+  regionId: string;
+  pointIds: string[];
+  color?: string;
+  revealFlagsAll?: string[];
+}
+
+export interface MapEventTemplate {
+  id: string;
+  point: MapPointSnapshot;
+  ttlMinutes?: number;
+}
+
+export interface MapQrCodeRegistryEntry {
+  codeId: string;
+  codeHash: string;
+  redeemPolicy: QrRedeemPolicy;
+  effects: VnEffect[];
+  requiresFlagsAll?: string[];
+  requiresBriefingBypass?: boolean;
+}
+
+export interface MapTestDefaults {
+  defaultEventTtlMinutes?: number;
 }
 
 export interface MapSnapshot {
   defaultRegionId: string;
   regions: MapRegionSnapshot[];
   points: MapPointSnapshot[];
+  shadowRoutes?: MapShadowRoute[];
+  qrCodeRegistry?: MapQrCodeRegistryEntry[];
+  mapEventTemplates?: MapEventTemplate[];
+  testDefaults?: MapTestDefaults;
 }
 
 export interface VnSnapshot {
@@ -226,6 +362,7 @@ export interface VnSnapshot {
   nodes: VnNode[];
   vnRuntime?: VnRuntimeSettings;
   mindPalace?: MindPalaceSnapshot;
+  mysticism?: MysticSnapshot;
   map?: MapSnapshot;
   questCatalog?: QuestCatalogEntry[];
 }

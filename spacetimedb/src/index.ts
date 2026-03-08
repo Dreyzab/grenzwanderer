@@ -11,6 +11,7 @@ import { emitTelemetry, ensurePlayerProfile } from "./reducers/helpers";
 register_maintenance_reducers(spacetimedb);
 
 export {
+  begin_freiburg_origin,
   buy_item,
   set_flag,
   set_nickname,
@@ -23,6 +24,7 @@ export {
   change_relationship,
   unlock_group,
   grant_xp,
+  grant_item,
 } from "./reducers/core";
 export { publish_content, rollback_content } from "./reducers/content";
 export {
@@ -30,7 +32,7 @@ export {
   start_scenario,
   perform_skill_check,
 } from "./reducers/vn";
-export { map_interact } from "./reducers/map";
+export { map_interact, redeem_map_code } from "./reducers/map";
 export {
   discover_fact,
   set_hypothesis_focus,
@@ -42,6 +44,18 @@ export {
   enqueue_ai_request,
   register_worker_identity,
 } from "./reducers/ai";
+export {
+  close_command_mode,
+  issue_command,
+  open_command_mode,
+  resolve_command,
+} from "./reducers/command";
+export {
+  close_battle_mode,
+  end_battle_turn,
+  open_battle_mode,
+  play_battle_card,
+} from "./reducers/battle";
 export {
   aggregate_telemetry,
   cleanup_idempotency_log,

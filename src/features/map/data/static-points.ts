@@ -229,4 +229,18 @@ export const STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     defaultState: "locked",
     legacyScenarioIds: ["interlude_lotte_warning", "quest_lotte_wires"],
   },
+  {
+    id: "loc_agency",
+    regionId: "FREIBURG_1905",
+    title: "Detektivbüro Grenzwanderer",
+    description:
+      "The Grenzwanderer Detective Agency — your central hub for cases, equipment, and partnerships.",
+    lat: 47.9952,
+    lng: 7.8508,
+    image: "/images/locations/loc_agency.webp",
+    locationId: "loc_agency",
+    category: "HUB",
+    defaultState: "discovered",
+    legacyScenarioIds: ["agency_intro"],
+  },
 ];

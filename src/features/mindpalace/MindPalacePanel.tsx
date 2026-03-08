@@ -1,15 +1,14 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useReducer, useTable } from "spacetimedb/react";
-import { usePlayerFlags } from "../../entities/player/hooks/usePlayerFlags";
 import { usePlayerVars } from "../../entities/player/hooks/usePlayerVars";
 import { reducers, tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
-
-type RequiredVar = {
-  key: string;
-  op: "gte" | "lte" | "eq";
-  value: number;
-};
+import { MindBoardCanvas } from "../mindboard/MindBoardCanvas";
+import {
+  deriveHypothesisState,
+  parseRequiredFactIds,
+  parseRequiredVars,
+} from "./model/readiness";
 
 const createRequestId = (): string => {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -18,88 +17,22 @@ const createRequestId = (): string => {
   return `req-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 };
 
-const parseRequiredFactIds = (requiredFactIdsJson: string): string[] => {
-  try {
-    const parsed = JSON.parse(requiredFactIdsJson);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed.filter((entry): entry is string => typeof entry === "string");
-  } catch (_error) {
-    return [];
-  }
-};
-
-const parseRequiredVars = (requiredVarsJson: string): RequiredVar[] => {
-  try {
-    const parsed = JSON.parse(requiredVarsJson);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed.filter(
-      (entry): entry is RequiredVar =>
-        typeof entry === "object" &&
-        entry !== null &&
-        "key" in entry &&
-        "op" in entry &&
-        "value" in entry &&
-        typeof (entry as { key?: unknown }).key === "string" &&
-        ((entry as { op?: unknown }).op === "gte" ||
-          (entry as { op?: unknown }).op === "lte" ||
-          (entry as { op?: unknown }).op === "eq") &&
-        typeof (entry as { value?: unknown }).value === "number",
-    );
-  } catch (_error) {
-    return [];
-  }
-};
-
-const doesVarPass = (
-  requiredVar: RequiredVar,
-  currentValue: number,
-): boolean => {
-  if (requiredVar.op === "gte") {
-    return currentValue >= requiredVar.value;
-  }
-  if (requiredVar.op === "lte") {
-    return currentValue <= requiredVar.value;
-  }
-
-  return currentValue === requiredVar.value;
-};
-
-const formatVarCondition = (requiredVar: RequiredVar): string => {
-  const symbol =
-    requiredVar.op === "gte" ? ">=" : requiredVar.op === "lte" ? "<=" : "=";
-  return `${requiredVar.key} ${symbol} ${requiredVar.value}`;
-};
-
-const focusFlagKey = (caseId: string, hypothesisId: string): string =>
-  `mind_focus::${caseId}::${hypothesisId}`;
-
 export const MindPalacePanel = () => {
   const { identityHex } = useIdentity();
+  const varsByKey = usePlayerVars();
 
   const [mindCases] = useTable(tables.mindCase);
-  const [mindFacts] = useTable(tables.mindFact);
   const [mindHypotheses] = useTable(tables.mindHypothesis);
-  const [playerMindCases] = useTable(tables.playerMindCase);
   const [playerMindFacts] = useTable(tables.playerMindFact);
   const [playerMindHypotheses] = useTable(tables.playerMindHypothesis);
+  const [playerMindCases] = useTable(tables.playerMindCase);
 
   const startMindCase = useReducer(reducers.startMindCase);
-  const validateHypothesis = useReducer(reducers.validateHypothesis);
-  const setHypothesisFocus = useReducer(reducers.setHypothesisFocus);
 
   const [selectedCaseId, setSelectedCaseId] = useState("");
   const [isBusy, setIsBusy] = useState(false);
   const [statusLine, setStatusLine] = useState("");
   const [error, setError] = useState<string | null>(null);
-
-  const varsByKey = usePlayerVars();
-  const flagsByKey = usePlayerFlags();
 
   const activeCases = useMemo(
     () =>
@@ -138,112 +71,66 @@ export const MindPalacePanel = () => {
     );
   }, [identityHex, playerMindCases, selectedCaseId]);
 
-  const factsForCase = useMemo(
-    () => mindFacts.filter((entry) => entry.caseId === selectedCaseId),
-    [mindFacts, selectedCaseId],
-  );
-
-  const discoveredFactIds = useMemo(() => {
-    const ids = new Set<string>();
-
-    for (const row of playerMindFacts) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
-      if (row.caseId !== selectedCaseId) {
-        continue;
-      }
-
-      ids.add(row.factId);
+  const caseReadySummary = useMemo(() => {
+    if (!selectedCaseId) {
+      return { readyCount: 0, totalHypotheses: 0 };
     }
 
-    return ids;
-  }, [identityHex, playerMindFacts, selectedCaseId]);
+    const discoveredFactIds = new Set(
+      playerMindFacts
+        .filter(
+          (row) =>
+            row.playerId.toHexString() === identityHex &&
+            row.caseId === selectedCaseId,
+        )
+        .map((row) => row.factId),
+    );
 
-  const hypothesesForCase = useMemo(
-    () => mindHypotheses.filter((entry) => entry.caseId === selectedCaseId),
-    [mindHypotheses, selectedCaseId],
-  );
+    const validatedHypothesisIds = new Set(
+      playerMindHypotheses
+        .filter(
+          (row) =>
+            row.playerId.toHexString() === identityHex &&
+            row.caseId === selectedCaseId &&
+            row.status === "validated",
+        )
+        .map((row) => row.hypothesisId),
+    );
 
-  const factTextById = useMemo(() => {
-    const byId = new Map<string, string>();
-    for (const fact of factsForCase) {
-      byId.set(fact.factId, fact.text);
-    }
-    return byId;
-  }, [factsForCase]);
+    const hypothesesForCase = mindHypotheses.filter(
+      (entry) => entry.caseId === selectedCaseId,
+    );
 
-  const playerHypothesisMap = useMemo(() => {
-    const map = new Map<string, { status: string; validatedAt?: unknown }>();
-
-    for (const row of playerMindHypotheses) {
-      if (row.playerId.toHexString() !== identityHex) {
+    let readyCount = 0;
+    for (const hypothesis of hypothesesForCase) {
+      if (validatedHypothesisIds.has(hypothesis.hypothesisId)) {
         continue;
       }
-      if (row.caseId !== selectedCaseId) {
-        continue;
-      }
 
-      map.set(row.hypothesisId, {
-        status: row.status,
-        validatedAt: row.validatedAt,
+      const state = deriveHypothesisState({
+        requiredFactIds: parseRequiredFactIds(hypothesis.requiredFactIdsJson),
+        requiredVars: parseRequiredVars(hypothesis.requiredVarsJson),
+        discoveredFactIds,
+        varsByKey,
+        validated: false,
       });
+      if (state.ready) {
+        readyCount += 1;
+      }
     }
 
-    return map;
-  }, [identityHex, playerMindHypotheses, selectedCaseId]);
-
-  const derivedHypotheses = useMemo(
-    () =>
-      hypothesesForCase.map((hypothesis) => {
-        const requiredFactIds = parseRequiredFactIds(
-          hypothesis.requiredFactIdsJson,
-        );
-        const requiredVars = parseRequiredVars(hypothesis.requiredVarsJson);
-
-        const missingFacts = requiredFactIds.filter(
-          (factId) => !discoveredFactIds.has(factId),
-        );
-        const failedVars = requiredVars.filter(
-          (requiredVar) =>
-            !doesVarPass(requiredVar, varsByKey[requiredVar.key] ?? 0),
-        );
-
-        const playerHypothesis = playerHypothesisMap.get(
-          hypothesis.hypothesisId,
-        );
-        const validated = playerHypothesis?.status === "validated";
-        const focused =
-          flagsByKey[focusFlagKey(selectedCaseId, hypothesis.hypothesisId)] ??
-          false;
-
-        return {
-          ...hypothesis,
-          requiredFactIds,
-          requiredFactLabels: requiredFactIds.map(
-            (factId) => factTextById.get(factId) ?? "Unknown fact",
-          ),
-          requiredVars,
-          missingFacts,
-          missingFactLabels: missingFacts.map(
-            (factId) => factTextById.get(factId) ?? "Unknown fact",
-          ),
-          failedVars,
-          validated,
-          focused,
-          ready: missingFacts.length === 0 && failedVars.length === 0,
-        };
-      }),
-    [
-      discoveredFactIds,
-      flagsByKey,
-      hypothesesForCase,
-      playerHypothesisMap,
-      selectedCaseId,
-      varsByKey,
-      factTextById,
-    ],
-  );
+    return {
+      readyCount,
+      totalHypotheses: hypothesesForCase.length,
+    };
+  }, [
+    identityHex,
+    mindHypotheses,
+    playerMindFacts,
+    playerMindHypotheses,
+    selectedCaseId,
+    varsByKey,
+  ]);
 
   const caseCompletion =
     myCase?.status === "completed"
@@ -285,45 +172,21 @@ export const MindPalacePanel = () => {
     });
   };
 
-  const handleValidateHypothesis = async (hypothesisId: string) => {
-    if (!selectedCaseId) {
-      return;
-    }
-
-    await runAction("Hypothesis validated.", async () => {
-      await validateHypothesis({
-        requestId: createRequestId(),
-        caseId: selectedCaseId,
-        hypothesisId,
-      });
-    });
-  };
-
-  const handleToggleFocus = async (hypothesisId: string, focused: boolean) => {
-    if (!selectedCaseId) {
-      return;
-    }
-
-    await runAction("Hypothesis focus updated.", async () => {
-      await setHypothesisFocus({
-        caseId: selectedCaseId,
-        hypothesisId,
-        focused: !focused,
-      });
-    });
-  };
-
   return (
-    <section className="panel-section">
-      <header className="panel-header">
+    <section className="panel-section h-full flex flex-col p-4 w-full h-[calc(100vh-64px)] max-h-[850px] mx-auto">
+      <header className="panel-header shrink-0">
         <div>
-          <h2>Mind Palace</h2>
-          <p>Server-authoritative deduction for one active case.</p>
+          <h2 className="text-3xl font-newsreader text-red-100">
+            The Conspiracy Board
+          </h2>
+          <p className="text-white/60">
+            Connect evidence and form hypotheses to uncover the truth.
+          </p>
         </div>
       </header>
 
       {activeCases.length > 0 ? (
-        <article className="card">
+        <article className="card shrink-0">
           <label className="field">
             Active case
             <select
@@ -343,177 +206,42 @@ export const MindPalacePanel = () => {
             <button
               type="button"
               onClick={handleStartCase}
-              disabled={!selectedCaseId || isBusy}
+              disabled={
+                !selectedCaseId || isBusy || myCase?.status === "in_progress"
+              }
             >
-              Start Case
+              {myCase?.status === "in_progress" ? "Case Active" : "Start Case"}
             </button>
           </div>
+          {selectedCaseId ? (
+            <p className="text-xs text-white/70 mt-2">
+              Ready hypotheses: {caseReadySummary.readyCount}/
+              {caseReadySummary.totalHypotheses}
+            </p>
+          ) : null}
         </article>
       ) : (
         <article className="card warning">
+          <p>No active mind cases were found.</p>
+        </article>
+      )}
+
+      {selectedCaseId && myCase?.status === "in_progress" ? (
+        <div className="flex-1 w-full min-h-[600px] border border-[#2b2b2b] mt-4 relative overflow-hidden ring-1 ring-black/50 shadow-2xl">
+          <MindBoardCanvas caseId={selectedCaseId} />
+        </div>
+      ) : selectedCaseId ? (
+        <article className="card warning mt-4">
           <p>
-            No active mind cases were found in the published content. Publish
-            <code>schemaVersion &gt;= 2</code> snapshot with{" "}
-            <code>mindPalace</code> payload.
+            This case is {caseCompletion}. The Conspiracy Board is only
+            available for cases currently in progress.
           </p>
         </article>
-      )}
+      ) : null}
 
-      {selectedCaseId && (
-        <div className="mind-grid two-col-grid">
-          <article className="card">
-            <h3>Case Progress</h3>
-            <ul className="unstyled-list">
-              <li className="list-row">
-                <span>Status</span>
-                <strong>{caseCompletion}</strong>
-              </li>
-              <li className="list-row">
-                <span>Discovered facts</span>
-                <strong>
-                  {discoveredFactIds.size}/{factsForCase.length}
-                </strong>
-              </li>
-              <li className="list-row">
-                <span>Validated hypotheses</span>
-                <strong>
-                  {derivedHypotheses.filter((entry) => entry.validated).length}/
-                  {derivedHypotheses.length}
-                </strong>
-              </li>
-            </ul>
-          </article>
-
-          <article className="card">
-            <h3>Readiness Signals</h3>
-            <ul className="unstyled-list">
-              <li className="list-row">
-                <span>Ready hypotheses</span>
-                <strong>
-                  {derivedHypotheses.filter((entry) => entry.ready).length}/
-                  {derivedHypotheses.length}
-                </strong>
-              </li>
-              <li className="list-row">
-                <span>Blocked hypotheses</span>
-                <strong>
-                  {derivedHypotheses.filter((entry) => !entry.ready).length}
-                </strong>
-              </li>
-            </ul>
-          </article>
-        </div>
-      )}
-
-      {selectedCaseId && (
-        <article className="card">
-          <h3>Facts</h3>
-          <div className="mind-list">
-            {factsForCase.map((fact) => {
-              const discovered = discoveredFactIds.has(fact.factId);
-              const factIndex =
-                factsForCase.findIndex(
-                  (entry) => entry.factId === fact.factId,
-                ) + 1;
-
-              return (
-                <div key={fact.factId} className="mind-item">
-                  <div className="mind-item-header">
-                    <strong>{`Fact ${factIndex}`}</strong>
-                    <span className={discovered ? "success" : "muted"}>
-                      {discovered ? "discovered" : "not discovered"}
-                    </span>
-                  </div>
-                  <p>{fact.text}</p>
-                  {!discovered ? (
-                    <p className="muted">
-                      Discover this fact through VN choices or map interactions.
-                    </p>
-                  ) : null}
-                </div>
-              );
-            })}
-            {factsForCase.length === 0 && (
-              <p className="muted">No facts configured for this case.</p>
-            )}
-          </div>
-        </article>
-      )}
-
-      {selectedCaseId && (
-        <article className="card">
-          <h3>Hypotheses</h3>
-          <div className="mind-list">
-            {derivedHypotheses.map((hypothesis) => (
-              <div key={hypothesis.hypothesisId} className="mind-item">
-                <div className="mind-item-header">
-                  <strong>Hypothesis</strong>
-                  <span className={hypothesis.validated ? "success" : "muted"}>
-                    {hypothesis.validated ? "validated" : "pending"}
-                  </span>
-                </div>
-                <p>{hypothesis.text}</p>
-                <p className="muted">
-                  Required facts:{" "}
-                  {hypothesis.requiredFactLabels.join(" | ") || "none"}
-                </p>
-                <p className="muted">
-                  Required vars:{" "}
-                  {hypothesis.requiredVars.map(formatVarCondition).join(", ") ||
-                    "none"}
-                </p>
-                {hypothesis.missingFacts.length > 0 && (
-                  <p className="error">
-                    Missing facts: {hypothesis.missingFactLabels.join(" | ")}
-                  </p>
-                )}
-                {hypothesis.failedVars.length > 0 && (
-                  <p className="error">
-                    Failed vars:{" "}
-                    {hypothesis.failedVars.map(formatVarCondition).join(", ")}
-                  </p>
-                )}
-                <div className="button-row">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleValidateHypothesis(hypothesis.hypothesisId)
-                    }
-                    disabled={
-                      !hypothesis.ready || hypothesis.validated || isBusy
-                    }
-                  >
-                    Validate
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleToggleFocus(
-                        hypothesis.hypothesisId,
-                        hypothesis.focused,
-                      )
-                    }
-                    disabled={isBusy}
-                  >
-                    {hypothesis.focused ? "Unfocus" : "Focus"}
-                  </button>
-                </div>
-              </div>
-            ))}
-            {derivedHypotheses.length === 0 && (
-              <p className="muted">No hypotheses configured for this case.</p>
-            )}
-          </div>
-        </article>
-      )}
-
-      <div aria-live="polite" aria-atomic="true" className="status-stack">
+      <div aria-live="polite" aria-atomic="true" className="status-stack pb-4">
         {statusLine && <p className="status-line success">{statusLine}</p>}
         {error && <p className="status-line error">{error}</p>}
-        <p className="status-line muted">
-          Facts are unlocked via narrative actions (`discover_fact`) in VN/map
-          flow.
-        </p>
       </div>
     </section>
   );

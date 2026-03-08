@@ -35,18 +35,29 @@ import {
 
 // Import all reducer arg schemas
 import AdvanceQuestReducer from "./advance_quest_reducer";
+import BeginFreiburgOriginReducer from "./begin_freiburg_origin_reducer";
 import BuyItemReducer from "./buy_item_reducer";
 import ChangeRelationshipReducer from "./change_relationship_reducer";
+import CloseBattleModeReducer from "./close_battle_mode_reducer";
+import CloseCommandModeReducer from "./close_command_mode_reducer";
 import DeliverThoughtReducer from "./deliver_thought_reducer";
 import DiscoverFactReducer from "./discover_fact_reducer";
+import EndBattleTurnReducer from "./end_battle_turn_reducer";
 import EnqueueAiRequestReducer from "./enqueue_ai_request_reducer";
 import GrantEvidenceReducer from "./grant_evidence_reducer";
+import GrantItemReducer from "./grant_item_reducer";
 import GrantXpReducer from "./grant_xp_reducer";
+import IssueCommandReducer from "./issue_command_reducer";
 import MapInteractReducer from "./map_interact_reducer";
+import OpenBattleModeReducer from "./open_battle_mode_reducer";
+import OpenCommandModeReducer from "./open_command_mode_reducer";
 import PerformSkillCheckReducer from "./perform_skill_check_reducer";
+import PlayBattleCardReducer from "./play_battle_card_reducer";
 import PublishContentReducer from "./publish_content_reducer";
 import RecordChoiceReducer from "./record_choice_reducer";
+import RedeemMapCodeReducer from "./redeem_map_code_reducer";
 import RegisterWorkerIdentityReducer from "./register_worker_identity_reducer";
+import ResolveCommandReducer from "./resolve_command_reducer";
 import RollbackContentReducer from "./rollback_content_reducer";
 import SetFlagReducer from "./set_flag_reducer";
 import SetHypothesisFocusReducer from "./set_hypothesis_focus_reducer";
@@ -64,6 +75,13 @@ import ValidateHypothesisReducer from "./validate_hypothesis_reducer";
 
 // Import all table schema definitions
 import AiRequestRow from "./ai_request_table";
+import BattleCardInstanceRow from "./battle_card_instance_table";
+import BattleCombatantRow from "./battle_combatant_table";
+import BattleHistoryRow from "./battle_history_table";
+import BattleSessionRow from "./battle_session_table";
+import CommandOrderHistoryRow from "./command_order_history_table";
+import CommandPartyMemberRow from "./command_party_member_table";
+import CommandSessionRow from "./command_session_table";
 import ContentSnapshotRow from "./content_snapshot_table";
 import ContentVersionRow from "./content_version_table";
 import IdempotencyLogRow from "./idempotency_log_table";
@@ -74,11 +92,13 @@ import PlayerEvidenceRow from "./player_evidence_table";
 import PlayerFlagRow from "./player_flag_table";
 import PlayerInventoryRow from "./player_inventory_table";
 import PlayerLocationRow from "./player_location_table";
+import PlayerMapEventRow from "./player_map_event_table";
 import PlayerMindCaseRow from "./player_mind_case_table";
 import PlayerMindFactRow from "./player_mind_fact_table";
 import PlayerMindHypothesisRow from "./player_mind_hypothesis_table";
 import PlayerProfileRow from "./player_profile_table";
 import PlayerQuestRow from "./player_quest_table";
+import PlayerRedeemedCodeRow from "./player_redeemed_code_table";
 import PlayerRelationshipRow from "./player_relationship_table";
 import PlayerUnlockGroupRow from "./player_unlock_group_table";
 import PlayerVarRow from "./player_var_table";
@@ -112,6 +132,146 @@ const tablesSchema = __schema({
       { name: 'ai_request_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, AiRequestRow),
+  battleCardInstance: __table({
+    name: 'battle_card_instance',
+    indexes: [
+      { name: 'cardInstanceKey', algorithm: 'btree', columns: [
+        'cardInstanceKey',
+      ] },
+      { name: 'battle_card_instance_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'battle_card_instance_session_key', algorithm: 'btree', columns: [
+        'sessionKey',
+      ] },
+      { name: 'battle_card_instance_zone', algorithm: 'btree', columns: [
+        'zone',
+      ] },
+    ],
+    constraints: [
+      { name: 'battle_card_instance_card_instance_key_key', constraint: 'unique', columns: ['cardInstanceKey'] },
+    ],
+  }, BattleCardInstanceRow),
+  battleCombatant: __table({
+    name: 'battle_combatant',
+    indexes: [
+      { name: 'combatantKey', algorithm: 'btree', columns: [
+        'combatantKey',
+      ] },
+      { name: 'battle_combatant_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'battle_combatant_session_key', algorithm: 'btree', columns: [
+        'sessionKey',
+      ] },
+      { name: 'battle_combatant_side', algorithm: 'btree', columns: [
+        'side',
+      ] },
+    ],
+    constraints: [
+      { name: 'battle_combatant_combatant_key_key', constraint: 'unique', columns: ['combatantKey'] },
+    ],
+  }, BattleCombatantRow),
+  battleHistory: __table({
+    name: 'battle_history',
+    indexes: [
+      { name: 'historyKey', algorithm: 'btree', columns: [
+        'historyKey',
+      ] },
+      { name: 'battle_history_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'battle_history_session_key', algorithm: 'btree', columns: [
+        'sessionKey',
+      ] },
+      { name: 'battle_history_turn_count', algorithm: 'btree', columns: [
+        'turnCount',
+      ] },
+    ],
+    constraints: [
+      { name: 'battle_history_history_key_key', constraint: 'unique', columns: ['historyKey'] },
+    ],
+  }, BattleHistoryRow),
+  battleSession: __table({
+    name: 'battle_session',
+    indexes: [
+      { name: 'battle_session_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'battle_session_scenario_id', algorithm: 'btree', columns: [
+        'scenarioId',
+      ] },
+      { name: 'sessionKey', algorithm: 'btree', columns: [
+        'sessionKey',
+      ] },
+      { name: 'battle_session_status', algorithm: 'btree', columns: [
+        'status',
+      ] },
+    ],
+    constraints: [
+      { name: 'battle_session_session_key_key', constraint: 'unique', columns: ['sessionKey'] },
+    ],
+  }, BattleSessionRow),
+  commandOrderHistory: __table({
+    name: 'command_order_history',
+    indexes: [
+      { name: 'historyKey', algorithm: 'btree', columns: [
+        'historyKey',
+      ] },
+      { name: 'command_order_history_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'command_order_history_scenario_id', algorithm: 'btree', columns: [
+        'scenarioId',
+      ] },
+      { name: 'command_order_history_session_key', algorithm: 'btree', columns: [
+        'sessionKey',
+      ] },
+    ],
+    constraints: [
+      { name: 'command_order_history_history_key_key', constraint: 'unique', columns: ['historyKey'] },
+    ],
+  }, CommandOrderHistoryRow),
+  commandPartyMember: __table({
+    name: 'command_party_member',
+    indexes: [
+      { name: 'command_party_member_actor_id', algorithm: 'btree', columns: [
+        'actorId',
+      ] },
+      { name: 'memberKey', algorithm: 'btree', columns: [
+        'memberKey',
+      ] },
+      { name: 'command_party_member_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'command_party_member_session_key', algorithm: 'btree', columns: [
+        'sessionKey',
+      ] },
+    ],
+    constraints: [
+      { name: 'command_party_member_member_key_key', constraint: 'unique', columns: ['memberKey'] },
+    ],
+  }, CommandPartyMemberRow),
+  commandSession: __table({
+    name: 'command_session',
+    indexes: [
+      { name: 'command_session_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'command_session_scenario_id', algorithm: 'btree', columns: [
+        'scenarioId',
+      ] },
+      { name: 'sessionKey', algorithm: 'btree', columns: [
+        'sessionKey',
+      ] },
+      { name: 'command_session_status', algorithm: 'btree', columns: [
+        'status',
+      ] },
+    ],
+    constraints: [
+      { name: 'command_session_session_key_key', constraint: 'unique', columns: ['sessionKey'] },
+    ],
+  }, CommandSessionRow),
   contentSnapshot: __table({
     name: 'content_snapshot',
     indexes: [
@@ -273,6 +433,29 @@ const tablesSchema = __schema({
       { name: 'player_location_player_id_key', constraint: 'unique', columns: ['playerId'] },
     ],
   }, PlayerLocationRow),
+  playerMapEvent: __table({
+    name: 'player_map_event',
+    indexes: [
+      { name: 'eventId', algorithm: 'btree', columns: [
+        'eventId',
+      ] },
+      { name: 'player_map_event_expires_at', algorithm: 'btree', columns: [
+        'expiresAt',
+      ] },
+      { name: 'player_map_event_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'player_map_event_status', algorithm: 'btree', columns: [
+        'status',
+      ] },
+      { name: 'player_map_event_template_id', algorithm: 'btree', columns: [
+        'templateId',
+      ] },
+    ],
+    constraints: [
+      { name: 'player_map_event_event_id_key', constraint: 'unique', columns: ['eventId'] },
+    ],
+  }, PlayerMapEventRow),
   playerMindCase: __table({
     name: 'player_mind_case',
     indexes: [
@@ -367,6 +550,26 @@ const tablesSchema = __schema({
       { name: 'player_quest_quest_key_key', constraint: 'unique', columns: ['questKey'] },
     ],
   }, PlayerQuestRow),
+  playerRedeemedCode: __table({
+    name: 'player_redeemed_code',
+    indexes: [
+      { name: 'player_redeemed_code_code_id', algorithm: 'btree', columns: [
+        'codeId',
+      ] },
+      { name: 'player_redeemed_code_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'redemptionId', algorithm: 'btree', columns: [
+        'redemptionId',
+      ] },
+      { name: 'player_redeemed_code_request_id', algorithm: 'btree', columns: [
+        'requestId',
+      ] },
+    ],
+    constraints: [
+      { name: 'player_redeemed_code_redemption_id_key', constraint: 'unique', columns: ['redemptionId'] },
+    ],
+  }, PlayerRedeemedCodeRow),
   playerRelationship: __table({
     name: 'player_relationship',
     indexes: [
@@ -505,18 +708,29 @@ const tablesSchema = __schema({
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
   __reducerSchema("advance_quest", AdvanceQuestReducer),
+  __reducerSchema("begin_freiburg_origin", BeginFreiburgOriginReducer),
   __reducerSchema("buy_item", BuyItemReducer),
   __reducerSchema("change_relationship", ChangeRelationshipReducer),
+  __reducerSchema("close_battle_mode", CloseBattleModeReducer),
+  __reducerSchema("close_command_mode", CloseCommandModeReducer),
   __reducerSchema("deliver_thought", DeliverThoughtReducer),
   __reducerSchema("discover_fact", DiscoverFactReducer),
+  __reducerSchema("end_battle_turn", EndBattleTurnReducer),
   __reducerSchema("enqueue_ai_request", EnqueueAiRequestReducer),
   __reducerSchema("grant_evidence", GrantEvidenceReducer),
+  __reducerSchema("grant_item", GrantItemReducer),
   __reducerSchema("grant_xp", GrantXpReducer),
+  __reducerSchema("issue_command", IssueCommandReducer),
   __reducerSchema("map_interact", MapInteractReducer),
+  __reducerSchema("open_battle_mode", OpenBattleModeReducer),
+  __reducerSchema("open_command_mode", OpenCommandModeReducer),
   __reducerSchema("perform_skill_check", PerformSkillCheckReducer),
+  __reducerSchema("play_battle_card", PlayBattleCardReducer),
   __reducerSchema("publish_content", PublishContentReducer),
   __reducerSchema("record_choice", RecordChoiceReducer),
+  __reducerSchema("redeem_map_code", RedeemMapCodeReducer),
   __reducerSchema("register_worker_identity", RegisterWorkerIdentityReducer),
+  __reducerSchema("resolve_command", ResolveCommandReducer),
   __reducerSchema("rollback_content", RollbackContentReducer),
   __reducerSchema("set_flag", SetFlagReducer),
   __reducerSchema("set_hypothesis_focus", SetHypothesisFocusReducer),

@@ -19,4 +19,8 @@ export const MAPBOX_STYLE =
   import.meta.env.VITE_MAPBOX_STYLE ??
   "mapbox://styles/inoti/cmktqmmks002s01pa3f3gfpll";
 
-export const APP_VERSION = "0.2.0-phase2-s1";
+export const APP_VERSION = __APP_VERSION__;
+
+export const APP_COMMIT_SHA = __APP_COMMIT_SHA__;
+
+export const APP_BUILD_TIMESTAMP = __APP_BUILD_TIMESTAMP__;

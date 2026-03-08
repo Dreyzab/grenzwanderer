@@ -1,11 +1,14 @@
-import type { OriginProfileDefinition } from "../../character/originProfiles";
+import {
+  getOriginProfileByFlags,
+  originProfiles,
+} from "../../character/originProfiles";
 import { getScenarioById } from "../vnContent";
 import type { VnScenario, VnSnapshot } from "../types";
 
 export type FreiburgEntryTarget =
   | { kind: "blocked_sync" }
   | { kind: "resume"; scenarioId: string }
-  | { kind: "show_dossier"; profileId: "journalist" }
+  | { kind: "select_origin" }
   | { kind: "start"; scenarioId: string };
 
 export interface ResolveFreiburgEntryInput {
@@ -23,7 +26,6 @@ export interface ResolveFreiburgEntryInput {
     completedAt?: unknown;
   }[];
   flags: Record<string, boolean>;
-  originProfile: OriginProfileDefinition | null;
 }
 
 const hasOptionalValue = (value: unknown): boolean => {
@@ -82,21 +84,6 @@ const resolveBootstrapScenario = (
   return inbound[0] ?? null;
 };
 
-const resolvePostOriginScenarioId = (
-  snapshot: VnSnapshot,
-  originScenarioId: string,
-): string | null => {
-  const preferred = snapshot.vnRuntime?.defaultEntryScenarioId;
-  if (preferred && getScenarioById(snapshot, preferred)) {
-    return preferred;
-  }
-
-  const fallback =
-    snapshot.scenarios.find((scenario) => scenario.id !== originScenarioId) ??
-    snapshot.scenarios[0];
-  return fallback?.id ?? null;
-};
-
 const collectDownstreamScenarioIds = (
   snapshot: VnSnapshot,
   startScenarioId: string,
@@ -126,6 +113,50 @@ const collectDownstreamScenarioIds = (
 const isOpenSession = (session: { completedAt?: unknown }): boolean =>
   !hasOptionalValue(session.completedAt);
 
+const resolveDefaultEntryScenarioId = (snapshot: VnSnapshot): string | null => {
+  const scenarioId = snapshot.vnRuntime?.defaultEntryScenarioId;
+  if (!scenarioId) {
+    return null;
+  }
+  return getScenarioById(snapshot, scenarioId) ? scenarioId : null;
+};
+
+const collectFreiburgScenarioIds = (
+  snapshot: VnSnapshot,
+  defaultEntryScenarioId: string,
+): Set<string> => {
+  const scenarioIds = new Set<string>();
+
+  for (const profile of originProfiles) {
+    scenarioIds.add(profile.scenarioId);
+
+    const bootstrapScenario = resolveBootstrapScenario(
+      snapshot,
+      profile.scenarioId,
+      profile.originFlagKey,
+    );
+    if (bootstrapScenario) {
+      scenarioIds.add(bootstrapScenario.id);
+    }
+
+    for (const scenarioId of collectDownstreamScenarioIds(
+      snapshot,
+      profile.scenarioId,
+    )) {
+      scenarioIds.add(scenarioId);
+    }
+  }
+
+  for (const scenarioId of collectDownstreamScenarioIds(
+    snapshot,
+    defaultEntryScenarioId,
+  )) {
+    scenarioIds.add(scenarioId);
+  }
+
+  return scenarioIds;
+};
+
 export const resolveFreiburgEntryTarget = (
   input: ResolveFreiburgEntryInput,
 ): FreiburgEntryTarget => {
@@ -138,7 +169,6 @@ export const resolveFreiburgEntryTarget = (
     snapshot,
     sessions,
     flags,
-    originProfile,
   } = input;
 
   if (
@@ -148,46 +178,20 @@ export const resolveFreiburgEntryTarget = (
     !flagsReady ||
     !snapshot ||
     !identityHex ||
-    !originProfile ||
     snapshot.scenarios.length === 0
   ) {
     return { kind: "blocked_sync" };
   }
 
-  const originScenarioId = originProfile.scenarioId;
-  const bootstrapScenario = resolveBootstrapScenario(
-    snapshot,
-    originScenarioId,
-    originProfile.originFlagKey,
-  );
-  const postOriginScenarioId = resolvePostOriginScenarioId(
-    snapshot,
-    originScenarioId,
-  );
-  if (!postOriginScenarioId) {
+  const defaultEntryScenarioId = resolveDefaultEntryScenarioId(snapshot);
+  if (!defaultEntryScenarioId) {
     return { kind: "blocked_sync" };
   }
 
-  const candidateScenarioIds = new Set<string>();
-  candidateScenarioIds.add(originScenarioId);
-  candidateScenarioIds.add(postOriginScenarioId);
-  if (bootstrapScenario) {
-    candidateScenarioIds.add(bootstrapScenario.id);
-  }
-
-  for (const scenarioId of collectDownstreamScenarioIds(
+  const candidateScenarioIds = collectFreiburgScenarioIds(
     snapshot,
-    originScenarioId,
-  )) {
-    candidateScenarioIds.add(scenarioId);
-  }
-  for (const scenarioId of collectDownstreamScenarioIds(
-    snapshot,
-    postOriginScenarioId,
-  )) {
-    candidateScenarioIds.add(scenarioId);
-  }
-
+    defaultEntryScenarioId,
+  );
   const activeSessions = sessions
     .filter((session) => session.playerId.toHexString() === identityHex)
     .filter((session) => candidateScenarioIds.has(session.scenarioId))
@@ -207,17 +211,17 @@ export const resolveFreiburgEntryTarget = (
     return { kind: "resume", scenarioId: activeSessions[0].scenarioId };
   }
 
-  const hasOriginSelected = Boolean(flags[originProfile.originFlagKey]);
-  if (!hasOriginSelected) {
-    return { kind: "show_dossier", profileId: "journalist" };
+  const selectedProfile = getOriginProfileByFlags(flags);
+  if (!selectedProfile) {
+    return { kind: "select_origin" };
   }
 
-  if (
-    Boolean(flags.origin_journalist_handoff_done) ||
-    Boolean(flags.met_anna_intro)
-  ) {
-    return { kind: "start", scenarioId: postOriginScenarioId };
+  const handoffDone = selectedProfile.handoffDoneFlagKeys.some(
+    (flagKey) => Boolean(flags[flagKey]),
+  );
+  if (handoffDone) {
+    return { kind: "start", scenarioId: defaultEntryScenarioId };
   }
 
-  return { kind: "start", scenarioId: originScenarioId };
+  return { kind: "start", scenarioId: selectedProfile.scenarioId };
 };

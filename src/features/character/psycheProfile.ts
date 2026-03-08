@@ -1,4 +1,9 @@
-﻿export interface PsycheProfileInput {
+import {
+  buildMysticStateSummary,
+  formatSightModeLabel,
+} from "../mysticism/model/mysticism";
+
+export interface PsycheProfileInput {
   flags: Record<string, boolean>;
   vars: Record<string, number>;
 }
@@ -44,12 +49,25 @@ export interface PsycheChecksSummary {
   confidencePercent: number;
 }
 
+export interface PsycheMysticismSummary {
+  awakeningLevel: number;
+  band: string;
+  bandLabel: string;
+  bandDescription: string;
+  mysticExposure: number;
+  rationalism: number;
+  rationalistBuffer: number;
+  sightMode: string;
+  sightModeLabel: string;
+}
+
 export interface PsycheProfileData {
   alignment: PsycheAlignmentSummary;
   factionSignals: PsycheFactionSignal[];
   secrets: PsycheSecretState[];
   evolutionTracks: PsycheEvolutionTrack[];
   checks: PsycheChecksSummary;
+  mysticism: PsycheMysticismSummary;
 }
 
 const clamp = (value: number, min: number, max: number): number =>
@@ -203,6 +221,24 @@ const resolveChecks = (vars: Record<string, number>): PsycheChecksSummary => {
   };
 };
 
+const resolveMysticism = (
+  vars: Record<string, number>,
+): PsycheMysticismSummary => {
+  const mysticState = buildMysticStateSummary(vars);
+
+  return {
+    awakeningLevel: mysticState.awakeningLevel,
+    band: mysticState.awakeningBand,
+    bandLabel: mysticState.awakeningBandLabel,
+    bandDescription: mysticState.awakeningBandDescription,
+    mysticExposure: mysticState.mysticExposure,
+    rationalism: mysticState.rationalism,
+    rationalistBuffer: mysticState.rationalistBuffer,
+    sightMode: mysticState.activeSightMode,
+    sightModeLabel: formatSightModeLabel(mysticState.activeSightMode),
+  };
+};
+
 export const buildPsycheProfile = (
   input: PsycheProfileInput,
 ): PsycheProfileData => {
@@ -219,5 +255,6 @@ export const buildPsycheProfile = (
     secrets: resolveSecrets(input.flags),
     evolutionTracks: resolveTracks(input.vars),
     checks: resolveChecks(input.vars),
+    mysticism: resolveMysticism(input.vars),
   };
 };

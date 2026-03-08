@@ -8,19 +8,15 @@ const mocks = vi.hoisted(() => ({
   useReducerMock: vi.fn(),
   useIdentityMock: vi.fn(),
   usePlayerVarsMock: vi.fn(),
-  usePlayerFlagsMock: vi.fn(),
   tablesMock: {
     mindCase: Symbol("mindCase"),
-    mindFact: Symbol("mindFact"),
     mindHypothesis: Symbol("mindHypothesis"),
-    playerMindCase: Symbol("playerMindCase"),
     playerMindFact: Symbol("playerMindFact"),
     playerMindHypothesis: Symbol("playerMindHypothesis"),
+    playerMindCase: Symbol("playerMindCase"),
   },
   reducersMock: {
     startMindCase: Symbol("startMindCase"),
-    validateHypothesis: Symbol("validateHypothesis"),
-    setHypothesisFocus: Symbol("setHypothesisFocus"),
   },
 }));
 
@@ -37,13 +33,15 @@ vi.mock("../../entities/player/hooks/usePlayerVars", () => ({
   usePlayerVars: () => mocks.usePlayerVarsMock(),
 }));
 
-vi.mock("../../entities/player/hooks/usePlayerFlags", () => ({
-  usePlayerFlags: () => mocks.usePlayerFlagsMock(),
-}));
-
 vi.mock("../../shared/spacetime/bindings", () => ({
   tables: mocks.tablesMock,
   reducers: mocks.reducersMock,
+}));
+
+vi.mock("../mindboard/MindBoardCanvas", () => ({
+  MindBoardCanvas: ({ caseId }: { caseId: string }) => (
+    <div data-testid="mind-board-canvas">{caseId}</div>
+  ),
 }));
 
 const makeIdentity = (hex: string) => ({
@@ -55,57 +53,29 @@ describe("MindPalacePanel", () => {
     vi.clearAllMocks();
 
     mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
-    mocks.usePlayerVarsMock.mockReturnValue({});
-    mocks.usePlayerFlagsMock.mockReturnValue({});
+    mocks.usePlayerVarsMock.mockReturnValue({ attr_logic: 3 });
 
-    const asyncNoop = vi.fn().mockResolvedValue(undefined);
+    const startMindCase = vi.fn().mockResolvedValue(undefined);
     mocks.useReducerMock.mockImplementation((reducer: symbol) => {
       if (reducer === mocks.reducersMock.startMindCase) {
-        return asyncNoop;
+        return startMindCase;
       }
-      if (reducer === mocks.reducersMock.validateHypothesis) {
-        return asyncNoop;
-      }
-      if (reducer === mocks.reducersMock.setHypothesisFocus) {
-        return asyncNoop;
-      }
-      return asyncNoop;
+      return vi.fn().mockResolvedValue(undefined);
     });
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
       if (table === mocks.tablesMock.mindCase) {
-        return [
-          [{ caseId: "case_1", title: "Case One", isActive: true }],
-          true,
-        ];
-      }
-      if (table === mocks.tablesMock.mindFact) {
-        return [
-          [{ caseId: "case_1", factId: "fact_1", text: "Fact text" }],
-          true,
-        ];
+        return [[{ caseId: "case_1", title: "Case One", isActive: true }], true];
       }
       if (table === mocks.tablesMock.mindHypothesis) {
         return [
           [
             {
               caseId: "case_1",
-              hypothesisId: "hypothesis_internal_id_001",
-              text: "The suspect had inside help.",
+              hypothesisId: "hyp_1",
+              text: "Hypothesis",
               requiredFactIdsJson: '["fact_1"]',
-              requiredVarsJson: "[]",
-            },
-          ],
-          true,
-        ];
-      }
-      if (table === mocks.tablesMock.playerMindCase) {
-        return [
-          [
-            {
-              playerId: makeIdentity("me"),
-              caseId: "case_1",
-              status: "in_progress",
+              requiredVarsJson: '[{"key":"attr_logic","op":"gte","value":2}]',
             },
           ],
           true,
@@ -113,39 +83,59 @@ describe("MindPalacePanel", () => {
       }
       if (table === mocks.tablesMock.playerMindFact) {
         return [
-          [
-            {
-              playerId: makeIdentity("me"),
-              caseId: "case_1",
-              factId: "fact_1",
-            },
-          ],
+          [{ playerId: makeIdentity("me"), caseId: "case_1", factId: "fact_1" }],
           true,
         ];
       }
       if (table === mocks.tablesMock.playerMindHypothesis) {
         return [[], true];
       }
+      if (table === mocks.tablesMock.playerMindCase) {
+        return [
+          [{ playerId: makeIdentity("me"), caseId: "case_1", status: "in_progress" }],
+          true,
+        ];
+      }
       return [[], true];
     });
   });
 
-  it("uses human-facing status lines and polite live region", async () => {
+  it("shows readiness summary derived from shared readiness model", () => {
+    render(<MindPalacePanel />);
+
+    expect(screen.getByText("Ready hypotheses: 1/1")).toBeInTheDocument();
+    expect(screen.getByTestId("mind-board-canvas")).toHaveTextContent("case_1");
+  });
+
+  it("starts a case and renders status line", async () => {
     const user = userEvent.setup();
+
+    mocks.useTableMock.mockImplementation((table: symbol) => {
+      if (table === mocks.tablesMock.mindCase) {
+        return [[{ caseId: "case_1", title: "Case One", isActive: true }], true];
+      }
+      if (table === mocks.tablesMock.mindHypothesis) {
+        return [[], true];
+      }
+      if (table === mocks.tablesMock.playerMindFact) {
+        return [[], true];
+      }
+      if (table === mocks.tablesMock.playerMindHypothesis) {
+        return [[], true];
+      }
+      if (table === mocks.tablesMock.playerMindCase) {
+        return [[], true];
+      }
+      return [[], true];
+    });
 
     render(<MindPalacePanel />);
 
-    const validateButton = await screen.findByRole("button", {
-      name: "Validate",
-    });
-    await user.click(validateButton);
+    await user.click(screen.getByRole("button", { name: "Start Case" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Hypothesis validated.")).toBeInTheDocument();
+      expect(screen.getByText("Mind case started")).toBeInTheDocument();
     });
-    expect(
-      screen.queryByText(/hypothesis_internal_id_001/i),
-    ).not.toBeInTheDocument();
     expect(document.querySelector('[aria-live="polite"]')).not.toBeNull();
   });
 });

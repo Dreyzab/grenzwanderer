@@ -69,4 +69,14 @@ describe("useVnSession", () => {
     expect(result.current.session?.scenarioId).toBe("s_active");
     expect(result.current.isReady).toBe(true);
   });
+
+  it("treats an authenticated identity as ready even when the raw table flag lags", () => {
+    useIdentityMock.mockReturnValue({ identityHex: "me" });
+    useTableMock.mockReturnValue([[], false]);
+
+    const { result } = renderHook(() => useVnSession("s1"));
+
+    expect(result.current.session).toBeNull();
+    expect(result.current.isReady).toBe(true);
+  });
 });

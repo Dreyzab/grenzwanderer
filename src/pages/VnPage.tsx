@@ -2,7 +2,15 @@ import { useState } from "react";
 import { VnPilotPanel } from "../features/vn/VnPilotPanel";
 import { VnOverlay } from "../widgets/vn-overlay/VnOverlay";
 
-type TabId = "home" | "vn" | "character" | "map" | "mind_palace" | "dev";
+type TabId =
+  | "home"
+  | "vn"
+  | "character"
+  | "map"
+  | "mind_palace"
+  | "dev"
+  | "command"
+  | "battle";
 
 interface VnPageProps {
   initialScenarioId?: string;

@@ -2,6 +2,7 @@
 import spacetimedb from "../schema";
 import {
   applyEffects,
+  arePassiveChecksResolved,
   createSessionKey,
   createSkillCheckResultKey,
   emitTelemetry,
@@ -56,9 +57,14 @@ export interface StartScenarioInternalResult {
   startNode: { id: string; terminal?: boolean };
 }
 
+export interface StartScenarioInternalOptions {
+  skipInboundRouteValidation?: boolean;
+}
+
 export const startScenarioInternal = (
   ctx: any,
   scenarioId: string,
+  options: StartScenarioInternalOptions = {},
 ): StartScenarioInternalResult => {
   if (!scenarioId || scenarioId.trim().length === 0) {
     throw new SenderError("scenarioId must not be empty");
@@ -73,7 +79,7 @@ export const startScenarioInternal = (
   const inboundScenarios = snapshot.scenarios.filter(
     (entry) => entry.completionRoute?.nextScenarioId === scenarioId,
   );
-  if (inboundScenarios.length > 0) {
+  if (!options.skipInboundRouteValidation && inboundScenarios.length > 0) {
     const hasValidInboundRoute = inboundScenarios.some((sourceScenario) => {
       const route = sourceScenario.completionRoute;
       if (!route) {
@@ -239,17 +245,17 @@ export const perform_skill_check = spacetimedb.reducer(
 
     if (
       checkOwnerChoice &&
-      !isChoiceAllowed(ctx, checkOwnerChoice.conditions)
+      !isChoiceAllowed(ctx, checkOwnerChoice)
     ) {
       emitTelemetry(ctx, "transition_rejected", {
         scenarioId,
         nodeId: currentNode.id,
         choiceId: checkOwnerChoice.id,
         checkId,
-        reason: "conditions_failed",
+        reason: "choice_gated",
       });
       throw new SenderError(
-        "Choice conditions are not satisfied for this skill check",
+        "Choice gating conditions are not satisfied for this skill check",
       );
     }
 
@@ -385,19 +391,30 @@ export const record_choice = spacetimedb.reducer(
       throw new SenderError("Scenario already completed");
     }
 
+    if (
+      !arePassiveChecksResolved(
+        ctx,
+        scenarioId,
+        currentNode.id,
+        currentNode.passiveChecks,
+      )
+    ) {
+      throw new SenderError("Passive checks pending");
+    }
+
     const choice = currentNode.choices.find((entry) => entry.id === choiceId);
     if (!choice) {
       throw new SenderError(`Choice ${choiceId} not found in current node`);
     }
 
-    if (!isChoiceAllowed(ctx, choice.conditions)) {
+    if (!isChoiceAllowed(ctx, choice)) {
       emitTelemetry(ctx, "transition_rejected", {
         scenarioId,
         nodeId: currentNode.id,
         choiceId,
-        reason: "conditions_failed",
+        reason: "choice_gated",
       });
-      throw new SenderError("Choice conditions are not satisfied");
+      throw new SenderError("Choice gating conditions are not satisfied");
     }
 
     if (choice.skillCheck) {

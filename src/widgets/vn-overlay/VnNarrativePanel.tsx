@@ -93,7 +93,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         >
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-amber-900/10 via-transparent to-transparent pointer-events-none" />
           <div className="absolute inset-0 bg-stone-950/40 pointer-events-none" />
-          <div className="fixed inset-0 bg-[url('/paper-texture.png')] opacity-[0.05] mix-blend-overlay pointer-events-none" />
+          <div className="fixed inset-0 opacity-[0.05] mix-blend-overlay pointer-events-none" />
 
           <div className="font-body text-base sm:text-lg leading-relaxed text-stone-200 relative z-10 p-0">
             <VnNarrativeText

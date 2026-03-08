@@ -1,6 +1,7 @@
 ﻿import type {
   MapAction,
   MapCondition,
+  MapPointCategory,
   MapSnapshot,
 } from "../../src/features/vn/types";
 
@@ -13,6 +14,7 @@ export interface Case01PointSource {
   description?: string;
   image?: string;
   locationId: string;
+  category: Exclude<MapPointCategory, "EPHEMERAL">;
   unlockGroup?: string;
   defaultState?: "locked" | "discovered";
   legacyScenarioIds?: string[];
@@ -158,8 +160,49 @@ const CLOSED_CASES_CONDITION: LegacyMapCondition = {
   ],
 };
 
+const AGENCY_BRIEFING_SCENARIO_ID = "sandbox_agency_briefing";
+const WORKERS_PUB_EVENT_TEMPLATE_ID = "evt_workers_pub_raid";
+
 const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
+  loc_agency: [
+    {
+      id: "bind_agency_briefing_start",
+      trigger: "card_primary",
+      label: "Receive First Briefing",
+      priority: 160,
+      intent: "objective",
+      conditions: [
+        { type: "flag_is", key: "agency_briefing_complete", value: false },
+      ],
+      actions: [
+        { type: "start_scenario", scenarioId: AGENCY_BRIEFING_SCENARIO_ID },
+      ],
+    },
+    {
+      id: "bind_agency_caseboard",
+      trigger: "card_primary",
+      label: "Review Active Files",
+      priority: 80,
+      intent: "interaction",
+      conditions: [
+        { type: "flag_is", key: "agency_briefing_complete", value: true },
+      ],
+      actions: [{ type: "start_scenario", scenarioId: "sandbox_case01_pilot" }],
+    },
+  ],
   loc_hbf: [
+    {
+      id: "bind_hbf_demo_reward",
+      trigger: "card_primary",
+      label: "Claim Demo Reward",
+      priority: 150,
+      intent: "interaction",
+      conditions: [{ type: "var_gte", key: "loop_demo_solved", value: 1 }],
+      actions: [
+        { type: "track_event", eventName: "loop_demo_completed" },
+        { type: "grant_xp", amount: 100 },
+      ],
+    },
     {
       id: "bind_hbf_intro_start",
       trigger: "card_primary",
@@ -283,6 +326,45 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
   ],
   loc_workers_pub: [
     {
+      id: "bind_pub_rumor_raid",
+      trigger: "card_secondary",
+      label: "Follow Fresh Rumor",
+      priority: 135,
+      intent: "interaction",
+      conditions: [
+        { type: "flag_is", key: "agency_briefing_complete", value: true },
+      ],
+      actions: [
+        {
+          type: "spawn_map_event",
+          templateId: WORKERS_PUB_EVENT_TEMPLATE_ID,
+        },
+        {
+          type: "track_event",
+          eventName: "workers_pub_rumor_spawned",
+          tags: { templateId: WORKERS_PUB_EVENT_TEMPLATE_ID },
+        },
+      ],
+    },
+    {
+      id: "bind_pub_dog_close",
+      trigger: "card_primary",
+      label: "Confront Handler",
+      priority: 90,
+      intent: "objective",
+      conditions: [
+        { type: "flag_is", key: "dog_reunion_reached", value: true },
+        { type: "flag_is", key: "dog_route_proven", value: true },
+        { type: "flag_is", key: "dog_handler_proven", value: true },
+        { type: "flag_is", key: "dog_case_closed", value: false },
+      ],
+      actions: [
+        { type: "set_quest_stage", questId: "quest_dog", stage: 3 },
+        { type: "set_flag", key: "dog_case_closed", value: true },
+        { type: "grant_xp", amount: 40 },
+      ],
+    },
+    {
       id: "bind_pub_ghost_start",
       trigger: "card_primary",
       label: "Start Ghost File",
@@ -355,9 +437,63 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       ],
     },
   ],
+  loc_student_house: [
+    {
+      id: "bind_city_student_tip",
+      trigger: "card_primary",
+      label: "Talk to Student",
+      priority: 80,
+      intent: "interaction",
+      conditions: [{ type: "flag_is", key: "city_student_seen", value: false }],
+      actions: [
+        { type: "start_scenario", scenarioId: "sandbox_city_student_tip" },
+      ],
+    },
+  ],
+  loc_red_light: [
+    {
+      id: "bind_city_cleaner_tip",
+      trigger: "card_primary",
+      label: "Talk to Cleaner",
+      priority: 80,
+      intent: "interaction",
+      conditions: [{ type: "flag_is", key: "city_cleaner_seen", value: false }],
+      actions: [
+        { type: "start_scenario", scenarioId: "sandbox_city_cleaner_tip" },
+      ],
+    },
+  ],
+  loc_martinstor: [
+    {
+      id: "bind_city_bootblack_tip",
+      trigger: "card_primary",
+      label: "Talk to Bootblack",
+      priority: 80,
+      intent: "interaction",
+      conditions: [
+        { type: "flag_is", key: "city_bootblack_seen", value: false },
+      ],
+      actions: [
+        { type: "start_scenario", scenarioId: "sandbox_city_bootblack_tip" },
+      ],
+    },
+  ],
 };
 
 export const CASE_01_POINTS: Case01PointSource[] = [
+  {
+    id: "loc_agency",
+    regionId: "FREIBURG_1905",
+    title: "Grenzwanderer Agency",
+    description:
+      "Your hidden office and operations hub. Briefings, evidence walls, and trusted informants start here.",
+    lat: 47.9952,
+    lng: 7.8508,
+    image: "/images/locations/loc_agency.webp",
+    locationId: "loc_agency",
+    category: "HUB",
+    defaultState: "discovered",
+  },
   {
     id: "loc_hbf",
     regionId: "FREIBURG_1905",
@@ -368,7 +504,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.842609,
     image: "/images/locations/loc_hauptbahnhof.webp",
     locationId: "loc_hbf",
+    category: "PUBLIC",
     defaultState: "discovered",
+    isHiddenInitially: true,
     legacyScenarioIds: ["detective_case1_hbf_arrival"],
   },
   {
@@ -381,8 +519,10 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.852296,
     image: "/images/locations/loc_bankhaus.webp",
     locationId: "loc_freiburg_bank",
+    category: "PUBLIC",
     unlockGroup: "loc_freiburg_bank",
     defaultState: "discovered",
+    isHiddenInitially: true,
     legacyScenarioIds: [
       "detective_case1_qr_scan_bank",
       "detective_case1_bank_scene",
@@ -397,8 +537,10 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.8492596695028,
     image: "/images/locations/loc_rathaus_archiv.webp",
     locationId: "loc_rathaus",
+    category: "PUBLIC",
     unlockGroup: "loc_rathaus",
     defaultState: "discovered",
+    isHiddenInitially: true,
     legacyScenarioIds: [
       "detective_case1_alt_briefing",
       "detective_case1_mayor_followup",
@@ -414,7 +556,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.8529,
     image: "/images/locations/loc_munster.webp",
     locationId: "loc_munster",
+    category: "PUBLIC",
     defaultState: "discovered",
+    isHiddenInitially: true,
     legacyScenarioIds: ["encounter_tourist"],
   },
   {
@@ -426,7 +570,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.846,
     image: "/images/locations/loc_uni.webp",
     locationId: "loc_uni_chem",
+    category: "PUBLIC",
     defaultState: "discovered",
+    isHiddenInitially: true,
     legacyScenarioIds: ["detective_case1_lab_analysis"],
   },
   {
@@ -438,7 +584,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.847,
     image: "/images/locations/loc_uni.webp",
     locationId: "loc_uni_med",
+    category: "PUBLIC",
     defaultState: "discovered",
+    isHiddenInitially: true,
     legacyScenarioIds: ["detective_case1_lab_analysis"],
   },
   {
@@ -450,7 +598,10 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.848,
     image: "/images/locations/loc_student_house.webp",
     locationId: "loc_student_house",
-    defaultState: "discovered",
+    category: "SHADOW",
+    unlockGroup: "loc_student_house",
+    defaultState: "locked",
+    isHiddenInitially: true,
     legacyScenarioIds: ["encounter_student"],
   },
   {
@@ -462,7 +613,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.854,
     image: "/images/locations/loc_ganter_brauerei.webp",
     locationId: "loc_pub_deutsche",
+    category: "PUBLIC",
     defaultState: "discovered",
+    isHiddenInitially: true,
     legacyScenarioIds: ["encounter_tourist"],
   },
   {
@@ -474,7 +627,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.851,
     image: "/images/locations/loc_suburbs.webp",
     locationId: "loc_red_light",
+    category: "PUBLIC",
     defaultState: "discovered",
+    isHiddenInitially: true,
     legacyScenarioIds: ["encounter_cleaner"],
   },
   {
@@ -487,7 +642,10 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.838,
     image: "/images/locations/loc_stuhlinger_warehouse.webp",
     locationId: "loc_freiburg_warehouse",
+    category: "SHADOW",
+    unlockGroup: "loc_freiburg_warehouse",
     defaultState: "locked",
+    isHiddenInitially: true,
     legacyScenarioIds: ["case1_finale"],
   },
   {
@@ -499,7 +657,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.839,
     image: "/images/locations/loc_ganter_brauerei.webp",
     locationId: "loc_workers_pub",
+    category: "PUBLIC",
     defaultState: "discovered",
+    isHiddenInitially: true,
     legacyScenarioIds: ["encounter_cleaner", "quest_victoria_poetry"],
   },
   {
@@ -511,7 +671,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.849,
     image: "/images/locations/loc_munster.webp",
     locationId: "loc_martinstor",
+    category: "PUBLIC",
     defaultState: "discovered",
+    isHiddenInitially: true,
     legacyScenarioIds: ["encounter_tourist"],
   },
   {
@@ -523,7 +685,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.8545,
     image: "/images/locations/loc_munster.webp",
     locationId: "loc_schwabentor",
+    category: "PUBLIC",
     defaultState: "discovered",
+    isHiddenInitially: true,
     legacyScenarioIds: ["encounter_cleaner"],
   },
   {
@@ -535,7 +699,10 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.8525,
     image: "/images/locations/loc_student_house.webp",
     locationId: "loc_tailor",
+    category: "SHADOW",
+    unlockGroup: "loc_tailor",
     defaultState: "locked",
+    isHiddenInitially: true,
     legacyScenarioIds: ["lead_tailor"],
   },
   {
@@ -547,7 +714,10 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.8535,
     image: "/images/locations/loc_uni.webp",
     locationId: "loc_apothecary",
+    category: "SHADOW",
+    unlockGroup: "loc_apothecary",
     defaultState: "locked",
+    isHiddenInitially: true,
     legacyScenarioIds: ["lead_apothecary"],
   },
   {
@@ -559,20 +729,11 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.8495,
     image: "/images/locations/loc_ganter_brauerei.webp",
     locationId: "loc_pub",
+    category: "SHADOW",
+    unlockGroup: "loc_pub",
     defaultState: "locked",
+    isHiddenInitially: true,
     legacyScenarioIds: ["lead_pub"],
-  },
-  {
-    id: "loc_street_event",
-    regionId: "FREIBURG_1905",
-    title: "Street Encounter",
-    description: "Temporary event location for interlude beats.",
-    lat: 47.9945,
-    lng: 7.8505,
-    image: "/images/locations/loc_suburbs.webp",
-    locationId: "loc_street_event",
-    defaultState: "locked",
-    legacyScenarioIds: ["interlude_victoria_street"],
   },
   {
     id: "loc_telephone",
@@ -583,8 +744,82 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     lng: 7.8485,
     image: "/images/locations/loc_rathaus_archiv.webp",
     locationId: "loc_telephone",
+    category: "SHADOW",
+    unlockGroup: "loc_telephone",
     defaultState: "locked",
+    isHiddenInitially: true,
     legacyScenarioIds: ["interlude_lotte_warning", "quest_lotte_wires"],
+  },
+];
+
+const CASE_01_SHADOW_ROUTES: NonNullable<MapSnapshot["shadowRoutes"]> = [
+  {
+    id: "route_ghost_undercity",
+    regionId: "FREIBURG_1905",
+    pointIds: ["loc_munster", "loc_apothecary", "loc_pub"],
+    color: "#5d4632",
+    revealFlagsAll: ["ghost_route_unlocked"],
+  },
+  {
+    id: "route_finale_stuhlinger",
+    regionId: "FREIBURG_1905",
+    pointIds: ["loc_agency", "loc_workers_pub", "loc_freiburg_warehouse"],
+    color: "#2f3c4f",
+    revealFlagsAll: ["freiburg_finale_open"],
+  },
+];
+
+const CASE_01_QR_CODE_REGISTRY: NonNullable<MapSnapshot["qrCodeRegistry"]> = [
+  {
+    codeId: "qr_warehouse_dock",
+    codeHash:
+      "f910aaad92f4ffe866e78870e8ef623e8eb3fa9a0c6739d5cdf48ecf655e7a67",
+    redeemPolicy: "once_per_player",
+    effects: [{ type: "unlock_group", groupId: "loc_freiburg_warehouse" }],
+    requiresFlagsAll: ["agency_briefing_complete"],
+  },
+];
+
+const CASE_01_MAP_EVENT_TEMPLATES: NonNullable<
+  MapSnapshot["mapEventTemplates"]
+> = [
+  {
+    id: WORKERS_PUB_EVENT_TEMPLATE_ID,
+    ttlMinutes: 15,
+    point: {
+      id: "evt_workers_pub_raid_pin",
+      title: "Street Raid Lead",
+      regionId: "FREIBURG_1905",
+      lat: 47.9972,
+      lng: 7.8456,
+      category: "EPHEMERAL",
+      description:
+        "A whispered lead points to a raid already unfolding near the rail yards.",
+      image: "/images/locations/loc_suburbs.webp",
+      locationId: "loc_street_event",
+      defaultState: "discovered",
+      isHiddenInitially: false,
+      bindings: [
+        {
+          id: "bind_evt_workers_pub_raid_start",
+          trigger: "map_pin",
+          label: "Investigate",
+          priority: 120,
+          intent: "interaction",
+          actions: [
+            { type: "start_scenario", scenarioId: "sandbox_workers_pub_rumor" },
+          ],
+        },
+        {
+          id: "bind_evt_workers_pub_raid_travel",
+          trigger: "card_secondary",
+          label: "Travel",
+          priority: 10,
+          intent: "travel",
+          actions: [{ type: "travel_to", locationId: "loc_street_event" }],
+        },
+      ],
+    },
   },
 ];
 
@@ -659,10 +894,17 @@ export const buildCase01MapSnapshot = (
       description: point.description,
       image: point.image,
       locationId: point.locationId,
+      category: point.category,
       defaultState: point.defaultState,
       unlockGroup: point.unlockGroup,
       isHiddenInitially: point.isHiddenInitially,
       bindings: bindings.map((binding) => toSnapshotBinding(binding)),
     };
   }),
+  shadowRoutes: CASE_01_SHADOW_ROUTES,
+  qrCodeRegistry: CASE_01_QR_CODE_REGISTRY,
+  mapEventTemplates: CASE_01_MAP_EVENT_TEMPLATES,
+  testDefaults: {
+    defaultEventTtlMinutes: 15,
+  },
 });

@@ -20,8 +20,17 @@ import type {
   VnSkillCheck,
   VnSnapshot,
 } from "../src/features/vn/types";
+import { CURRENT_VN_SNAPSHOT_SCHEMA_VERSION } from "../src/features/vn/snapshotSchema";
 import { buildOriginChoiceEffects, originProfiles } from "./origins.manifest";
 import { CONTENT_IDS } from "./content-ids";
+import {
+  CONDITION_OPERATORS,
+  EFFECT_OPERATORS,
+  FLAG_KEYS,
+  VAR_KEYS,
+  VOICE_IDS,
+  suggestClosest,
+} from "./content-vocabulary";
 import { buildCase01MapSnapshot } from "./data/case_01_points";
 import { parseCase01Onboarding } from "./vn-case01-onboarding";
 
@@ -76,6 +85,14 @@ const AUTO_CONTINUE_PREFIX = "AUTO_CONTINUE_";
 
 const scenarios: ScenarioBlueprint[] = [
   {
+    id: "sandbox_loop_demo",
+    title: "Loop Demo Pilot",
+    startNodeId: "scene_loop_demo_intro",
+    mode: "overlay",
+    packId: "system_loop_demo",
+    nodeIds: ["scene_loop_demo_intro", "scene_loop_demo_end"],
+  },
+  {
     id: "sandbox_intro_pilot",
     title: "Sandbox Intro Pilot",
     startNodeId: "scene_start",
@@ -94,18 +111,28 @@ const scenarios: ScenarioBlueprint[] = [
     ],
   },
   {
+    id: "sandbox_agency_briefing",
+    title: "Agency Briefing",
+    startNodeId: "scene_agency_briefing_intro",
+    mode: "overlay",
+    packId: "freiburg_agency",
+    nodeIds: ["scene_agency_briefing_intro", "scene_agency_briefing_outro"],
+  },
+  {
     id: "sandbox_banker_pilot",
     title: "Banker Intro Pilot",
     startNodeId: "scene_bank_intro",
     mode: "fullscreen",
     packId: "freiburg_banker",
-    defaultBackgroundUrl: "/assets/vn/bg/bank_exterior.webp",
+    defaultBackgroundUrl: "/images/scenes/scene_bank_intro.png",
     nodeIds: [
       "scene_bank_intro",
       "scene_bank_intro_ch1",
       "scene_bank_intro_ch2",
       "scene_bank_leads",
       "scene_bank_resolution",
+      "scene_bank_resolution_victory",
+      "scene_bank_resolution_defeat",
     ],
   },
   {
@@ -114,15 +141,20 @@ const scenarios: ScenarioBlueprint[] = [
     startNodeId: "scene_dog_briefing",
     mode: "fullscreen",
     packId: "freiburg_dog",
-    defaultBackgroundUrl: "/assets/vn/bg/rathaus_hall.webp",
+    defaultBackgroundUrl: "/images/scenes/scene_rathaus_interior.webp",
     nodeIds: [
       "scene_dog_briefing",
       "scene_dog_leads",
+      "scene_dog_caseboard",
       "scene_dog_market_encounter",
+      "scene_dog_market_beat2",
       "scene_dog_station_encounter",
+      "scene_dog_station_beat2",
       "scene_dog_tailor_encounter",
+      "scene_dog_tailor_beat2",
       "scene_dog_uni_encounter",
       "scene_dog_pub_encounter",
+      "scene_dog_pub_beat2",
       "scene_park_reunion_beat1",
       "scene_park_reunion",
     ],
@@ -133,7 +165,7 @@ const scenarios: ScenarioBlueprint[] = [
     startNodeId: "scene_estate_intro",
     mode: "fullscreen",
     packId: "freiburg_ghost",
-    defaultBackgroundUrl: "/assets/vn/bg/estate_night.webp",
+    defaultBackgroundUrl: "/images/scenes/scene_estate_intro.png",
     musicUrl: "/assets/vn/music/ghost_ambient.ogg",
     nodeIds: [
       "scene_estate_intro",
@@ -145,6 +177,38 @@ const scenarios: ScenarioBlueprint[] = [
       "scene_conclusion_false",
       "scene_conclusion_true",
     ],
+  },
+  {
+    id: "sandbox_city_student_tip",
+    title: "Living City: Student Tip",
+    startNodeId: "scene_city_student_tip",
+    mode: "overlay",
+    packId: "freiburg_living_city",
+    nodeIds: ["scene_city_student_tip", "scene_city_student_tip_end"],
+  },
+  {
+    id: "sandbox_city_cleaner_tip",
+    title: "Living City: Cleaner Tip",
+    startNodeId: "scene_city_cleaner_tip",
+    mode: "overlay",
+    packId: "freiburg_living_city",
+    nodeIds: ["scene_city_cleaner_tip", "scene_city_cleaner_tip_end"],
+  },
+  {
+    id: "sandbox_city_bootblack_tip",
+    title: "Living City: Bootblack Tip",
+    startNodeId: "scene_city_bootblack_tip",
+    mode: "overlay",
+    packId: "freiburg_living_city",
+    nodeIds: ["scene_city_bootblack_tip", "scene_city_bootblack_tip_end"],
+  },
+  {
+    id: "sandbox_workers_pub_rumor",
+    title: "Workers Pub Rumor",
+    startNodeId: "scene_workers_pub_rumor",
+    mode: "overlay",
+    packId: "freiburg_rumors",
+    nodeIds: ["scene_workers_pub_rumor", "scene_workers_pub_rumor_end"],
   },
   {
     id: "origin_journalist_bootstrap",
@@ -165,7 +229,7 @@ const scenarios: ScenarioBlueprint[] = [
     startNodeId: "scene_journalist_intro",
     mode: "fullscreen",
     packId: "journalist_origin",
-    defaultBackgroundUrl: "/assets/vn/bg/cafe_riegler.webp",
+    defaultBackgroundUrl: "/images/scenes/jurnalistintro.png",
     nodeIds: [
       "scene_journalist_intro",
       "scene_journalist_shivers",
@@ -182,7 +246,7 @@ const scenarios: ScenarioBlueprint[] = [
     startNodeId: "scene_aristocrat_intro",
     mode: "fullscreen",
     packId: "aristocrat_origin",
-    defaultBackgroundUrl: "/assets/vn/bg/salon_night.webp",
+    defaultBackgroundUrl: "/images/scenes/salon_night.png",
     nodeIds: [
       "scene_aristocrat_intro",
       "scene_aristocrat_ballroom",
@@ -198,7 +262,7 @@ const scenarios: ScenarioBlueprint[] = [
     startNodeId: "scene_veteran_intro",
     mode: "fullscreen",
     packId: "veteran_origin",
-    defaultBackgroundUrl: "/assets/vn/bg/barracks_dusk.webp",
+    defaultBackgroundUrl: "/images/scenes/barracks_dusk.png",
     nodeIds: [
       "scene_veteran_intro",
       "scene_veteran_flashback",
@@ -214,7 +278,7 @@ const scenarios: ScenarioBlueprint[] = [
     startNodeId: "scene_archivist_intro",
     mode: "fullscreen",
     packId: "archivist_origin",
-    defaultBackgroundUrl: "/assets/vn/bg/archive_stacks.webp",
+    defaultBackgroundUrl: "/images/scenes/archive_stacks.png",
     nodeIds: [
       "scene_archivist_intro",
       "scene_archivist_catalog",
@@ -244,7 +308,41 @@ const originBackstoryChoices: ChoiceBlueprint[] = originProfiles.map(
 
 const nodes: NodeBlueprint[] = [
   {
+    id: "scene_loop_demo_intro",
+    scenarioId: "sandbox_loop_demo",
+    sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_start.md",
+    titleOverride: "Loop Demo Start",
+    bodyOverride: "This is a demo scenario for testing the Mind Palace loop.",
+    choices: [
+      {
+        id: "LOOP_DEMO_CLUE",
+        text: "Discover the demo fact",
+        choiceType: "action",
+        nextNodeId: "scene_loop_demo_end",
+        effects: [
+          {
+            type: "discover_fact",
+            caseId: "case_loop_demo",
+            factId: "fact_loop_clue",
+          },
+          { type: "track_event", eventName: "loop_demo_fact_discovered" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_loop_demo_end",
+    scenarioId: "sandbox_loop_demo",
+    sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_start.md",
+    titleOverride: "Loop Demo End",
+    bodyOverride:
+      "You have discovered the fact. Please check your Mind Palace.",
+    terminal: true,
+    choices: [],
+  },
+  {
     id: "scene_start",
+    backgroundUrl: "/images/scenes/scene_start.webp",
     scenarioId: "sandbox_intro_pilot",
     sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_start.md",
     choices: [
@@ -257,6 +355,7 @@ const nodes: NodeBlueprint[] = [
   },
   {
     id: "scene_language_select",
+    backgroundUrl: "/images/scenes/scene_language_select.webp",
     scenarioId: "sandbox_intro_pilot",
     sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_language_select.md",
     choices: [
@@ -303,14 +402,44 @@ const nodes: NodeBlueprint[] = [
   },
   {
     id: "scene_backstory_select",
+    backgroundUrl: "/images/scenes/scene_backstory_select.webp",
     scenarioId: "sandbox_intro_pilot",
     sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_backstory_select.md",
     choices: originBackstoryChoices,
   },
   {
     id: "scene_map_intro",
+    backgroundUrl: "/images/scenes/scene_map_intro.webp",
     scenarioId: "sandbox_intro_pilot",
     sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_map_intro.md",
+    terminal: true,
+    choices: [],
+  },
+  {
+    id: "scene_agency_briefing_intro",
+    scenarioId: "sandbox_agency_briefing",
+    sourcePath:
+      "40_GameViewer/Case01/Plot/02_Agency/scene_agency_briefing_intro.md",
+    characterId: "inspector",
+    choices: [
+      {
+        id: "AGENCY_BRIEFING_ACCEPT",
+        text: "Take the first assignments and open the city map.",
+        nextNodeId: "scene_agency_briefing_outro",
+        effects: [
+          { type: "set_flag", key: "agency_briefing_complete", value: true },
+          { type: "set_quest_stage", questId: "quest_banker", stage: 1 },
+          { type: "track_event", eventName: "agency_briefing_completed" },
+          { type: "grant_xp", amount: 10 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_agency_briefing_outro",
+    scenarioId: "sandbox_agency_briefing",
+    sourcePath:
+      "40_GameViewer/Case01/Plot/02_Agency/scene_agency_briefing_outro.md",
     terminal: true,
     choices: [],
   },
@@ -455,7 +584,15 @@ const nodes: NodeBlueprint[] = [
         conditions: [{ type: "var_gte", key: "case_progress", value: 0.2 }],
         effects: [
           { type: "set_flag", key: "banker_finale_started", value: true },
+          { type: "set_flag", key: "son_duel_done", value: false },
+          { type: "set_flag", key: "son_duel_won", value: false },
+          { type: "set_flag", key: "son_duel_lost", value: false },
           { type: "add_var", key: "checks_passed", value: 1 },
+          {
+            type: "open_battle_mode",
+            scenarioId: "sandbox_son_duel",
+            returnTab: "vn",
+          },
         ],
       },
     ],
@@ -464,14 +601,51 @@ const nodes: NodeBlueprint[] = [
     id: "scene_bank_resolution",
     scenarioId: "sandbox_banker_pilot",
     sourcePath: "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_casino_duel.md",
-    backgroundUrl: "/assets/vn/bg/casino_interior.webp",
+    backgroundUrl: "/images/scenes/scene_casino_duel.png",
+    choices: [
+      {
+        id: "BANK_RESOLUTION_WIN",
+        text: "Press the advantage",
+        nextNodeId: "scene_bank_resolution_victory",
+        conditions: [{ type: "flag_equals", key: "son_duel_won", value: true }],
+      },
+      {
+        id: "BANK_RESOLUTION_LOSS",
+        text: "Recover the thread",
+        nextNodeId: "scene_bank_resolution_defeat",
+        conditions: [{ type: "flag_equals", key: "son_duel_lost", value: true }],
+      },
+    ],
+    fallbackBody:
+      "The room holds its breath after the duel. Continue once the outcome has settled.",
+  },
+  {
+    id: "scene_bank_resolution_victory",
+    scenarioId: "sandbox_banker_pilot",
+    sourcePath: "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_casino_duel.md",
+    backgroundUrl: "/images/scenes/scene_casino_duel.png",
     terminal: true,
     choices: [],
     onEnter: [
       { type: "set_quest_stage", questId: "quest_banker", stage: 3 },
-      { type: "grant_xp", amount: 50 },
+      { type: "set_flag", key: "banker_case_closed", value: true },
     ],
-    fallbackBody: "Pilot resolution node for the banker scenario.",
+    fallbackBody:
+      "Friedrich finally buckles. The bluff is broken and the banker case can now close on your terms.",
+  },
+  {
+    id: "scene_bank_resolution_defeat",
+    scenarioId: "sandbox_banker_pilot",
+    sourcePath: "40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_casino_duel.md",
+    backgroundUrl: "/images/scenes/scene_casino_duel.png",
+    terminal: true,
+    choices: [],
+    onEnter: [
+      { type: "set_quest_stage", questId: "quest_banker", stage: 3 },
+      { type: "set_flag", key: "banker_case_closed", value: true },
+    ],
+    fallbackBody:
+      "Friedrich steals the momentum for a moment, but the case still lurches into a fail-forward resolution.",
   },
   {
     id: "scene_dog_briefing",
@@ -537,11 +711,28 @@ const nodes: NodeBlueprint[] = [
         ],
       },
       {
+        id: "DOG_LEAD_CASEBOARD",
+        text: "Review the current findings",
+        nextNodeId: "scene_dog_caseboard",
+      },
+      {
         id: "DOG_LEAD_REUNION",
         text: "Convene at the park",
         nextNodeId: "scene_park_reunion_beat1",
-        conditions: [{ type: "var_gte", key: "dog_leads_progress", value: 3 }],
+        conditions: [{ type: "var_gte", key: "dog_leads_progress", value: 5 }],
         effects: [{ type: "set_quest_stage", questId: "quest_dog", stage: 2 }],
+      },
+    ],
+  },
+  {
+    id: "scene_dog_caseboard",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath: "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_caseboard.md",
+    choices: [
+      {
+        id: "DOG_CASEBOARD_RETURN",
+        text: "Back to leads",
+        nextNodeId: "scene_dog_leads",
       },
     ],
   },
@@ -559,11 +750,12 @@ const nodes: NodeBlueprint[] = [
         id: "DOG_MARKET_VENDOR_PRESS",
         text: "Pressure the vendor for route details",
         choiceType: "action",
-        nextNodeId: "scene_dog_leads",
+        nextNodeId: "scene_dog_market_beat2",
         skillCheck: {
           id: "check_dog_market_pressure",
           voiceId: "attr_social",
           difficulty: 11,
+          showChancePercent: true,
           onSuccess: {
             effects: [
               {
@@ -583,8 +775,28 @@ const nodes: NodeBlueprint[] = [
         id: "DOG_MARKET_QUIET_NOTE",
         text: "Log observations and move on",
         choiceType: "inquiry",
-        nextNodeId: "scene_dog_leads",
+        nextNodeId: "scene_dog_market_beat2",
         effects: [{ type: "add_var", key: "dog_case_confidence", value: 0.2 }],
+      },
+    ],
+  },
+  {
+    id: "scene_dog_market_beat2",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_market_beat2.md",
+    onEnter: [
+      {
+        type: "discover_fact",
+        caseId: "case_dog_trail",
+        factId: "fact_dog_market_route",
+      },
+    ],
+    choices: [
+      {
+        id: "DOG_MARKET_BEAT2_RETURN",
+        text: "Return to lead board",
+        nextNodeId: "scene_dog_leads",
       },
     ],
   },
@@ -603,7 +815,7 @@ const nodes: NodeBlueprint[] = [
         id: "DOG_STATION_BRIBE_PORTER",
         text: "Bribe the porter for schedule logs",
         choiceType: "action",
-        nextNodeId: "scene_dog_leads",
+        nextNodeId: "scene_dog_station_beat2",
         effects: [
           { type: "set_flag", key: "dog_station_log_obtained", value: true },
           { type: "add_var", key: "rep_civic", value: -0.1 },
@@ -613,20 +825,40 @@ const nodes: NodeBlueprint[] = [
         id: "DOG_STATION_INTERVIEW",
         text: "Conduct a formal witness interview",
         choiceType: "inquiry",
-        nextNodeId: "scene_dog_leads",
+        nextNodeId: "scene_dog_station_beat2",
         effects: [{ type: "add_var", key: "dog_case_confidence", value: 0.3 }],
       },
       {
         id: "DOG_STATION_RECHECK",
         text: "Re-check rail manifests",
         choiceType: "inquiry",
-        nextNodeId: "scene_dog_leads",
+        nextNodeId: "scene_dog_station_beat2",
         conditions: [{ type: "var_gte", key: "attr_intellect", value: 2 }],
         effects: [{ type: "add_var", key: "dog_case_confidence", value: 0.4 }],
       },
       {
         id: "DOG_STATION_WRAP",
         text: "Return to lead board",
+        nextNodeId: "scene_dog_leads",
+      },
+    ],
+  },
+  {
+    id: "scene_dog_station_beat2",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_station_beat2.md",
+    onEnter: [
+      {
+        type: "discover_fact",
+        caseId: "case_dog_trail",
+        factId: "fact_dog_station_manifest",
+      },
+    ],
+    choices: [
+      {
+        id: "DOG_STATION_BEAT2_RETURN",
+        text: "Back to lead board",
         nextNodeId: "scene_dog_leads",
       },
     ],
@@ -646,14 +878,14 @@ const nodes: NodeBlueprint[] = [
         id: "DOG_TAILOR_AUDIT_BOOKS",
         text: "Audit tailor invoices",
         choiceType: "inquiry",
-        nextNodeId: "scene_dog_leads",
+        nextNodeId: "scene_dog_tailor_beat2",
         effects: [{ type: "add_var", key: "dog_case_confidence", value: 0.3 }],
       },
       {
         id: "DOG_TAILOR_INTIMIDATE",
         text: "Intimidate workshop apprentice",
         choiceType: "action",
-        nextNodeId: "scene_dog_leads",
+        nextNodeId: "scene_dog_tailor_beat2",
         effects: [
           { type: "add_tension", amount: 1 },
           { type: "set_flag", key: "dog_tailor_intimidation", value: true },
@@ -661,6 +893,26 @@ const nodes: NodeBlueprint[] = [
       },
       {
         id: "DOG_TAILOR_RETURN",
+        text: "Return to lead board",
+        nextNodeId: "scene_dog_leads",
+      },
+    ],
+  },
+  {
+    id: "scene_dog_tailor_beat2",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_tailor_beat2.md",
+    onEnter: [
+      {
+        type: "discover_fact",
+        caseId: "case_dog_trail",
+        factId: "fact_dog_tailor_invoice",
+      },
+    ],
+    choices: [
+      {
+        id: "DOG_TAILOR_BEAT2_RETURN",
         text: "Return to lead board",
         nextNodeId: "scene_dog_leads",
       },
@@ -675,6 +927,11 @@ const nodes: NodeBlueprint[] = [
       { type: "set_flag", key: "dog_lead_uni_done", value: true },
       { type: "set_flag", key: "dog_registry_found", value: true },
       { type: "add_var", key: "dog_leads_progress", value: 1 },
+      {
+        type: "discover_fact",
+        caseId: "case_dog_trail",
+        factId: "fact_dog_uni_registry",
+      },
     ],
     choices: [
       {
@@ -723,18 +980,19 @@ const nodes: NodeBlueprint[] = [
         id: "DOG_PUB_TRUST_BARTENDER",
         text: "Trust bartender testimony",
         choiceType: "inquiry",
-        nextNodeId: "scene_dog_leads",
+        nextNodeId: "scene_dog_pub_beat2",
         effects: [{ type: "add_var", key: "dog_case_confidence", value: 0.2 }],
       },
       {
         id: "DOG_PUB_TAIL_SUSPECT",
         text: "Tail the suspect immediately",
         choiceType: "action",
-        nextNodeId: "scene_dog_leads",
+        nextNodeId: "scene_dog_pub_beat2",
         skillCheck: {
           id: "check_dog_pub_tail",
           voiceId: "attr_perception",
           difficulty: 10,
+          showChancePercent: true,
           onSuccess: {
             effects: [
               { type: "set_flag", key: "dog_pub_tail_success", value: true },
@@ -754,7 +1012,27 @@ const nodes: NodeBlueprint[] = [
     ],
   },
   {
+    id: "scene_dog_pub_beat2",
+    scenarioId: "sandbox_dog_pilot",
+    sourcePath: "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_dog_pub_beat2.md",
+    onEnter: [
+      {
+        type: "discover_fact",
+        caseId: "case_dog_trail",
+        factId: "fact_dog_pub_identification",
+      },
+    ],
+    choices: [
+      {
+        id: "DOG_PUB_BEAT2_RETURN",
+        text: "Head back to leads",
+        nextNodeId: "scene_dog_leads",
+      },
+    ],
+  },
+  {
     id: "scene_park_reunion_beat1",
+    backgroundUrl: "/images/scenes/scene_park_reunion.png",
     scenarioId: "sandbox_dog_pilot",
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_park_reunion_beat1.md",
@@ -768,14 +1046,18 @@ const nodes: NodeBlueprint[] = [
   },
   {
     id: "scene_park_reunion",
+    backgroundUrl: "/images/scenes/scene_park_reunion.png",
     scenarioId: "sandbox_dog_pilot",
     sourcePath: "40_GameViewer/Sandbox_KA/Plot/02_Dog/scene_park_reunion.md",
     terminal: true,
     choices: [],
     onEnter: [
-      { type: "set_quest_stage", questId: "quest_dog", stage: 3 },
-      { type: "set_flag", key: "dog_case_closed", value: true },
-      { type: "grant_xp", amount: 40 },
+      { type: "set_flag", key: "dog_reunion_reached", value: true },
+      {
+        type: "discover_fact",
+        caseId: "case_dog_trail",
+        factId: "fact_dog_reunion_capstone",
+      },
     ],
   },
   {
@@ -817,6 +1099,7 @@ const nodes: NodeBlueprint[] = [
   },
   {
     id: "scene_guild_tutorial",
+    backgroundUrl: "/images/scenes/scene_guild_tutorial.png",
     scenarioId: "sandbox_ghost_pilot",
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_guild_tutorial.md",
@@ -843,6 +1126,7 @@ const nodes: NodeBlueprint[] = [
   },
   {
     id: "scene_evidence_collection",
+    backgroundUrl: "/images/scenes/scene_evidence_collection.png",
     scenarioId: "sandbox_ghost_pilot",
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_evidence_collection.md",
@@ -884,6 +1168,7 @@ const nodes: NodeBlueprint[] = [
           id: "check_ghost_thermometer",
           voiceId: "attr_intellect",
           difficulty: 8,
+          showChancePercent: true,
           onSuccess: {
             effects: [
               {
@@ -1029,6 +1314,7 @@ const nodes: NodeBlueprint[] = [
           id: "check_journalist_shivers",
           voiceId: "attr_spirit",
           difficulty: 11,
+          showChancePercent: true,
           onSuccess: {
             nextNodeId: "scene_journalist_shivers",
             effects: [
@@ -1129,6 +1415,7 @@ const nodes: NodeBlueprint[] = [
           id: "check_journalist_show_seal",
           voiceId: "attr_deception",
           difficulty: 12,
+          showChancePercent: true,
           onSuccess: {
             nextNodeId: "scene_journalist_show_telegram",
             effects: [
@@ -1297,6 +1584,7 @@ const nodes: NodeBlueprint[] = [
           id: "check_aristocrat_courtesy",
           voiceId: "attr_social",
           difficulty: 10,
+          showChancePercent: true,
           onSuccess: {
             nextNodeId: "scene_aristocrat_ballroom",
             effects: [
@@ -1426,6 +1714,7 @@ const nodes: NodeBlueprint[] = [
           id: "check_veteran_flashback",
           voiceId: "attr_spirit",
           difficulty: 10,
+          showChancePercent: true,
           onSuccess: {
             nextNodeId: "scene_veteran_flashback",
             effects: [{ type: "add_var", key: "checks_passed", value: 1 }],
@@ -1552,6 +1841,7 @@ const nodes: NodeBlueprint[] = [
           id: "check_archivist_index",
           voiceId: "attr_intellect",
           difficulty: 11,
+          showChancePercent: true,
           onSuccess: {
             nextNodeId: "scene_archivist_catalog",
             effects: [{ type: "add_var", key: "checks_passed", value: 1 }],
@@ -1657,13 +1947,111 @@ const nodes: NodeBlueprint[] = [
     ],
     choices: [],
   },
+  {
+    id: "scene_city_student_tip",
+    scenarioId: "sandbox_city_student_tip",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_LivingCity/scene_city_student_tip.md",
+    onEnter: [
+      { type: "set_flag", key: "city_student_seen", value: true },
+      { type: "track_event", eventName: "city_student_tip_seen" },
+    ],
+    choices: [
+      {
+        id: "CITY_STUDENT_CONTINUE",
+        text: "Leave them be",
+        nextNodeId: "scene_city_student_tip_end",
+      },
+    ],
+  },
+  {
+    id: "scene_city_student_tip_end",
+    scenarioId: "sandbox_city_student_tip",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_LivingCity/scene_city_student_tip_end.md",
+    terminal: true,
+    choices: [],
+  },
+  {
+    id: "scene_city_cleaner_tip",
+    scenarioId: "sandbox_city_cleaner_tip",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_LivingCity/scene_city_cleaner_tip.md",
+    onEnter: [
+      { type: "set_flag", key: "city_cleaner_seen", value: true },
+      { type: "track_event", eventName: "city_cleaner_tip_seen" },
+    ],
+    choices: [
+      {
+        id: "CITY_CLEANER_CONTINUE",
+        text: "Move along",
+        nextNodeId: "scene_city_cleaner_tip_end",
+      },
+    ],
+  },
+  {
+    id: "scene_city_cleaner_tip_end",
+    scenarioId: "sandbox_city_cleaner_tip",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_LivingCity/scene_city_cleaner_tip_end.md",
+    terminal: true,
+    choices: [],
+  },
+  {
+    id: "scene_city_bootblack_tip",
+    scenarioId: "sandbox_city_bootblack_tip",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_LivingCity/scene_city_bootblack_tip.md",
+    onEnter: [
+      { type: "set_flag", key: "city_bootblack_seen", value: true },
+      { type: "track_event", eventName: "city_bootblack_tip_seen" },
+    ],
+    choices: [
+      {
+        id: "CITY_BOOTBLACK_CONTINUE",
+        text: "Walk away",
+        nextNodeId: "scene_city_bootblack_tip_end",
+      },
+    ],
+  },
+  {
+    id: "scene_city_bootblack_tip_end",
+    scenarioId: "sandbox_city_bootblack_tip",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_LivingCity/scene_city_bootblack_tip_end.md",
+    terminal: true,
+    choices: [],
+  },
+  {
+    id: "scene_workers_pub_rumor",
+    scenarioId: "sandbox_workers_pub_rumor",
+    sourcePath:
+      "40_GameViewer/Case01/Plot/03_Rumors/scene_workers_pub_rumor.md",
+    onEnter: [{ type: "track_event", eventName: "workers_pub_rumor_opened" }],
+    choices: [
+      {
+        id: "WORKERS_PUB_RUMOR_PURSUE",
+        text: "Cut through the alleys before the lead goes cold.",
+        nextNodeId: "scene_workers_pub_rumor_end",
+        effects: [{ type: "grant_xp", amount: 5 }],
+      },
+    ],
+  },
+  {
+    id: "scene_workers_pub_rumor_end",
+    scenarioId: "sandbox_workers_pub_rumor",
+    sourcePath:
+      "40_GameViewer/Case01/Plot/03_Rumors/scene_workers_pub_rumor_end.md",
+    terminal: true,
+    choices: [],
+  },
 ];
 
 const case01Onboarding = parseCase01Onboarding(storyRoot);
 for (const diagnostic of case01Onboarding.diagnostics) {
   if (diagnostic.severity === "warning") {
     console.warn(
-      `Case01 parser warning: ${diagnostic.relativePath}:${diagnostic.line} [${diagnostic.code}] ${diagnostic.message}`,
+      `Case01 parser warning: ${diagnostic.relativePath}:${diagnostic.line}:${diagnostic.column} [${diagnostic.code}] ${diagnostic.message}`,
     );
   }
 }
@@ -1679,12 +2067,31 @@ const nodesWithCase01: NodeBlueprint[] = [
 
 const mindCases: MindCaseContent[] = [
   {
+    id: "case_loop_demo",
+    title: "Loop Demo Case",
+  },
+  {
     id: "case_banker_theft",
     title: "Banker Ledger Theft",
+  },
+  {
+    id: "case_dog_trail",
+    title: "The Dog's Trail",
   },
 ];
 
 const mindFacts: MindFactContent[] = [
+  {
+    id: "fact_loop_clue",
+    caseId: "case_loop_demo",
+    sourceType: "vn_choice",
+    sourceId: "sandbox_loop_demo::scene_loop_demo_intro::LOOP_DEMO_CLUE",
+    text: "This is a demo fact proving the loop works.",
+    tags: {
+      theme: "demo",
+      reliability: "high",
+    },
+  },
   {
     id: "fact_ledger_gap",
     caseId: "case_banker_theft",
@@ -1752,9 +2159,91 @@ const mindFacts: MindFactContent[] = [
       reliability: "high",
     },
   },
+  {
+    id: "fact_dog_market_route",
+    caseId: "case_dog_trail",
+    sourceType: "vn_on_enter",
+    sourceId: "sandbox_dog_pilot::scene_dog_market_beat2",
+    text: "Trader confirms someone matching Dog crossed toward the station.",
+    tags: {
+      theme: "witness",
+      reliability: "medium",
+    },
+  },
+  {
+    id: "fact_dog_station_manifest",
+    caseId: "case_dog_trail",
+    sourceType: "vn_on_enter",
+    sourceId: "sandbox_dog_pilot::scene_dog_station_beat2",
+    text: "Night train manifests show a passenger fitting Dog's description.",
+    tags: {
+      theme: "documents",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_dog_tailor_invoice",
+    caseId: "case_dog_trail",
+    sourceType: "vn_on_enter",
+    sourceId: "sandbox_dog_pilot::scene_dog_tailor_beat2",
+    text: "Tailor's secret log shows bespoke trench coats paid by an unknown handler.",
+    tags: {
+      theme: "finance",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_dog_pub_identification",
+    caseId: "case_dog_trail",
+    sourceType: "vn_on_enter",
+    sourceId: "sandbox_dog_pilot::scene_dog_pub_beat2",
+    text: "Barman described a handler meeting people looking exactly like Dog.",
+    tags: {
+      theme: "witness",
+      reliability: "medium",
+    },
+  },
+  {
+    id: "fact_dog_uni_registry",
+    caseId: "case_dog_trail",
+    sourceType: "vn_on_enter",
+    sourceId: "sandbox_dog_pilot::scene_dog_uni",
+    text: "University registry lists a researcher missing around the time Dog appeared.",
+    tags: {
+      theme: "documents",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_dog_reunion_capstone",
+    caseId: "case_dog_trail",
+    sourceType: "vn_on_enter",
+    sourceId: "sandbox_dog_pilot::scene_park_reunion",
+    text: "Dog intercepted you in the park, demanding answers about their origin.",
+    tags: {
+      theme: "witness",
+      reliability: "high",
+    },
+  },
 ];
 
 const mindHypotheses: MindHypothesisContent[] = [
+  {
+    id: "hyp_loop_solved",
+    caseId: "case_loop_demo",
+    key: "loop_demo_solved",
+    text: "The loop demo has been completed successfully.",
+    requiredFactIds: ["fact_loop_clue"],
+    requiredVars: [],
+    rewardEffects: [
+      { type: "set_var", key: "loop_demo_solved", value: 1 },
+      {
+        type: "track_event",
+        eventName: "mind_case_loop_demo_solved",
+        tags: { caseId: "case_loop_demo" },
+      },
+    ],
+  },
   {
     id: "hyp_banker_inside_job",
     caseId: "case_banker_theft",
@@ -1780,6 +2269,44 @@ const mindHypotheses: MindHypothesisContent[] = [
         eventName: "mind_case_banker_solved",
         tags: { caseId: "case_banker_theft" },
       },
+    ],
+  },
+  {
+    id: "hyp_dog_route_reconstruction",
+    caseId: "case_dog_trail",
+    key: "dog_route_proven",
+    text: "The Dog traveled from the university area via the market toward the train station.",
+    requiredFactIds: [
+      "fact_dog_market_route",
+      "fact_dog_station_manifest",
+      "fact_dog_uni_registry",
+    ],
+    requiredVars: [],
+    rewardEffects: [
+      { type: "set_flag", key: "dog_route_proven", value: true },
+      { type: "track_event", eventName: "mind_dog_route_proven" },
+    ],
+  },
+  {
+    id: "hyp_dog_handler_exposed",
+    caseId: "case_dog_trail",
+    key: "dog_handler_proven",
+    text: "A proxy handler operates out of the pub, outfitting assets at the tailor. Dog confronted me looking for them.",
+    requiredFactIds: [
+      "fact_dog_tailor_invoice",
+      "fact_dog_pub_identification",
+      "fact_dog_reunion_capstone",
+    ],
+    requiredVars: [
+      {
+        key: "dog_case_confidence",
+        op: "gte",
+        value: 0.8,
+      },
+    ],
+    rewardEffects: [
+      { type: "set_flag", key: "dog_handler_proven", value: true },
+      { type: "track_event", eventName: "mind_dog_handler_proven" },
     ],
   },
 ];
@@ -1906,12 +2433,103 @@ const assertKnownId = (
   }
 };
 
+const assertKnownVocabularyKey = (
+  registry: Set<string>,
+  value: string,
+  fieldName: string,
+): void => {
+  if (registry.has(value)) {
+    return;
+  }
+
+  const suggestion = suggestClosest(value, registry);
+  if (suggestion) {
+    throw new Error(
+      `${fieldName} references unknown key: ${value}. Did you mean '${suggestion}'?`,
+    );
+  }
+  throw new Error(`${fieldName} references unknown key: ${value}`);
+};
+
+const validateConditionOperator = (condition: VnCondition, context: string) => {
+  if (!CONDITION_OPERATORS.has(condition.type)) {
+    throw new Error(
+      `condition.type in ${context} is unsupported: ${condition.type}`,
+    );
+  }
+};
+
+const validateEffectOperator = (effect: VnEffect, context: string) => {
+  if (!EFFECT_OPERATORS.has(effect.type)) {
+    throw new Error(`effect.type in ${context} is unsupported: ${effect.type}`);
+  }
+};
+
+const validateConditionBlueprint = (
+  condition: VnCondition,
+  context: string,
+): void => {
+  validateConditionOperator(condition, context);
+  if ("key" in condition) {
+    assertAscii(condition.key, `${context}.key`);
+    if (condition.type === "flag_equals") {
+      assertKnownVocabularyKey(FLAG_KEYS, condition.key, `${context}.key`);
+    }
+    if (condition.type === "var_gte" || condition.type === "var_lte") {
+      assertKnownVocabularyKey(VAR_KEYS, condition.key, `${context}.key`);
+    }
+  }
+  if ("evidenceId" in condition) {
+    assertAscii(condition.evidenceId, `${context}.evidenceId`);
+    assertKnownId(CONTENT_IDS.evidenceIds, condition.evidenceId, context);
+  }
+  if ("questId" in condition) {
+    assertAscii(condition.questId, `${context}.questId`);
+    assertKnownId(CONTENT_IDS.questIds, condition.questId, context);
+  }
+  if ("characterId" in condition) {
+    assertAscii(condition.characterId, `${context}.characterId`);
+    assertKnownId(CONTENT_IDS.characterIds, condition.characterId, context);
+  }
+  if ("itemId" in condition) {
+    assertAscii(condition.itemId, `${context}.itemId`);
+  }
+};
+
 const validateEffectBlueprint = (effect: VnEffect, context: string): void => {
+  validateEffectOperator(effect, context);
   if ("key" in effect) {
     assertAscii(effect.key, `effect.key in ${context}`);
+    if (effect.type === "set_flag") {
+      assertKnownVocabularyKey(
+        FLAG_KEYS,
+        effect.key,
+        `effect.key in ${context}`,
+      );
+    }
+    if (effect.type === "set_var" || effect.type === "add_var") {
+      assertKnownVocabularyKey(
+        VAR_KEYS,
+        effect.key,
+        `effect.key in ${context}`,
+      );
+    }
   }
   if ("locationId" in effect) {
     assertAscii(effect.locationId, `effect.locationId in ${context}`);
+    assertKnownId(
+      CONTENT_IDS.locationIds,
+      effect.locationId,
+      `effect.locationId in ${context}`,
+    );
+  }
+  if ("templateId" in effect) {
+    assertAscii(effect.templateId, `effect.templateId in ${context}`);
+    assertKnownId(
+      CONTENT_IDS.mapEventTemplateIds,
+      effect.templateId,
+      `effect.templateId in ${context}`,
+    );
   }
   if ("eventName" in effect) {
     assertAscii(effect.eventName, `effect.eventName in ${context}`);
@@ -1957,11 +2575,19 @@ const validateEffectBlueprint = (effect: VnEffect, context: string): void => {
       `effect.evidenceId in ${context}`,
     );
   }
+  if ("itemId" in effect) {
+    assertAscii(effect.itemId, `effect.itemId in ${context}`);
+  }
 };
 
 const validateSkillCheck = (check: VnSkillCheck, context: string): void => {
   assertAscii(check.id, `skillCheck.id in ${context}`);
   assertAscii(check.voiceId, `skillCheck.voiceId in ${context}`);
+  assertKnownVocabularyKey(
+    VOICE_IDS,
+    check.voiceId,
+    `skillCheck.voiceId in ${context}`,
+  );
 
   for (const [outcome, branch] of [
     ["success", check.onSuccess],
@@ -2016,45 +2642,19 @@ const validateChoiceBlueprint = (
   assertAscii(choice.nextNodeId, `choice.nextNodeId at node ${nodeId}`);
 
   for (const condition of choice.conditions ?? []) {
-    if ("key" in condition) {
-      assertAscii(condition.key, `condition.key in choice ${choice.id}`);
-    }
-    if ("evidenceId" in condition) {
-      assertAscii(
-        condition.evidenceId,
-        `condition.evidenceId in choice ${choice.id}`,
-      );
-      assertKnownId(
-        CONTENT_IDS.evidenceIds,
-        condition.evidenceId,
-        `condition.evidenceId in choice ${choice.id}`,
-      );
-    }
-    if ("questId" in condition) {
-      assertAscii(
-        condition.questId,
-        `condition.questId in choice ${choice.id}`,
-      );
-      assertKnownId(
-        CONTENT_IDS.questIds,
-        condition.questId,
-        `condition.questId in choice ${choice.id}`,
-      );
-    }
-    if ("characterId" in condition) {
-      assertAscii(
-        condition.characterId,
-        `condition.characterId in choice ${choice.id}`,
-      );
-      assertKnownId(
-        CONTENT_IDS.characterIds,
-        condition.characterId,
-        `condition.characterId in choice ${choice.id}`,
-      );
-    }
-    if ("itemId" in condition) {
-      assertAscii(condition.itemId, `condition.itemId in choice ${choice.id}`);
-    }
+    validateConditionBlueprint(condition, `choice ${choice.id}`);
+  }
+  for (const condition of choice.visibleIfAll ?? []) {
+    validateConditionBlueprint(condition, `choice ${choice.id}.visibleIfAll`);
+  }
+  for (const condition of choice.visibleIfAny ?? []) {
+    validateConditionBlueprint(condition, `choice ${choice.id}.visibleIfAny`);
+  }
+  for (const condition of choice.requireAll ?? []) {
+    validateConditionBlueprint(condition, `choice ${choice.id}.requireAll`);
+  }
+  for (const condition of choice.requireAny ?? []) {
+    validateConditionBlueprint(condition, `choice ${choice.id}.requireAny`);
   }
 
   for (const effect of choice.effects ?? []) {
@@ -2097,13 +2697,32 @@ const validateNodeBlueprint = (node: NodeBlueprint): void => {
     );
   }
 
+  const activeSkillCheckIds = new Set<string>();
   for (const choice of node.choices) {
     validateChoiceBlueprint(choice, node.id);
+    if (choice.skillCheck) {
+      if (activeSkillCheckIds.has(choice.skillCheck.id)) {
+        throw new Error(
+          `node(${node.id}) duplicates active skill check id '${choice.skillCheck.id}'`,
+        );
+      }
+      activeSkillCheckIds.add(choice.skillCheck.id);
+    }
+  }
+  for (const condition of node.preconditions ?? []) {
+    validateConditionBlueprint(condition, `node(${node.id}).preconditions`);
   }
   for (const effect of node.onEnter ?? []) {
     validateEffectBlueprint(effect, `node.onEnter ${node.id}`);
   }
+  const passiveCheckIds = new Set<string>();
   for (const check of node.passiveChecks ?? []) {
+    if (passiveCheckIds.has(check.id)) {
+      throw new Error(
+        `node(${node.id}) duplicates passive check id '${check.id}'`,
+      );
+    }
+    passiveCheckIds.add(check.id);
     validateSkillCheck(check, `node.passiveChecks ${node.id}`);
   }
 };
@@ -2209,6 +2828,12 @@ const validateMapCondition = (
 ): void => {
   if ("key" in condition) {
     assertAscii(condition.key, `${context}.key`);
+    if (condition.type === "flag_is") {
+      assertKnownVocabularyKey(FLAG_KEYS, condition.key, `${context}.key`);
+    }
+    if (condition.type === "var_gte" || condition.type === "var_lte") {
+      assertKnownVocabularyKey(VAR_KEYS, condition.key, `${context}.key`);
+    }
   }
   if ("evidenceId" in condition) {
     assertKnownId(CONTENT_IDS.evidenceIds, condition.evidenceId, context);
@@ -2235,12 +2860,28 @@ const validateMapCondition = (
 const validateMapAction = (action: MapAction, context: string): void => {
   if ("locationId" in action) {
     assertAscii(action.locationId, `${context}.locationId`);
+    assertKnownId(
+      CONTENT_IDS.locationIds,
+      action.locationId,
+      `${context}.locationId`,
+    );
   }
   if ("key" in action) {
     assertAscii(action.key, `${context}.key`);
+    if (action.type === "set_flag") {
+      assertKnownVocabularyKey(FLAG_KEYS, action.key, `${context}.key`);
+    }
   }
   if ("scenarioId" in action) {
     assertAscii(action.scenarioId, `${context}.scenarioId`);
+  }
+  if ("templateId" in action) {
+    assertAscii(action.templateId, `${context}.templateId`);
+    assertKnownId(
+      CONTENT_IDS.mapEventTemplateIds,
+      action.templateId,
+      `${context}.templateId`,
+    );
   }
   if ("groupId" in action) {
     assertKnownId(CONTENT_IDS.unlockGroups, action.groupId, context);
@@ -2442,7 +3083,7 @@ const collectContentContractWarnings = (
 
   const minNodeRules = new Map<string, number>([
     ["sandbox_banker_pilot", 5],
-    ["sandbox_dog_pilot", 8],
+    ["sandbox_dog_pilot", 12],
     ["sandbox_ghost_pilot", 8],
   ]);
 
@@ -2553,7 +3194,15 @@ function normalizeNodeAutoContinue(node: NodeBlueprint): NodeBlueprint {
   if (choice.id.startsWith(AUTO_CONTINUE_PREFIX)) {
     return node;
   }
-  if (choice.conditions || choice.effects || choice.skillCheck) {
+  if (
+    choice.conditions ||
+    choice.visibleIfAll ||
+    choice.visibleIfAny ||
+    choice.requireAll ||
+    choice.requireAny ||
+    choice.effects ||
+    choice.skillCheck
+  ) {
     return node;
   }
   if (!isImplicitContinueText(choice.text)) {
@@ -2700,6 +3349,11 @@ for (const point of mapSnapshot.points) {
       `Map point ${point.id} references unknown regionId ${point.regionId}`,
     );
   }
+  assertKnownId(
+    CONTENT_IDS.locationIds,
+    point.locationId,
+    `map point ${point.id}`,
+  );
   if (point.bindings.length === 0) {
     throw new Error(`Map point ${point.id} has no bindings`);
   }
@@ -2735,6 +3389,129 @@ for (const point of mapSnapshot.points) {
   }
 }
 
+const seenShadowRouteIds = new Set<string>();
+for (const route of mapSnapshot.shadowRoutes ?? []) {
+  if (seenShadowRouteIds.has(route.id)) {
+    throw new Error(`Map shadow route id is duplicated: ${route.id}`);
+  }
+  seenShadowRouteIds.add(route.id);
+
+  if (!knownRegionIds.has(route.regionId)) {
+    throw new Error(
+      `Map shadow route ${route.id} references unknown regionId ${route.regionId}`,
+    );
+  }
+  if (route.pointIds.length < 2) {
+    throw new Error(
+      `Map shadow route ${route.id} must contain at least two pointIds`,
+    );
+  }
+  for (const pointId of route.pointIds) {
+    if (!seenPointIds.has(pointId)) {
+      throw new Error(
+        `Map shadow route ${route.id} references unknown pointId ${pointId}`,
+      );
+    }
+  }
+  for (const flagKey of route.revealFlagsAll ?? []) {
+    assertKnownVocabularyKey(
+      FLAG_KEYS,
+      flagKey,
+      `map shadow route ${route.id}.revealFlagsAll`,
+    );
+  }
+}
+
+const seenQrCodeIds = new Set<string>();
+for (const entry of mapSnapshot.qrCodeRegistry ?? []) {
+  assertKnownId(
+    CONTENT_IDS.mapQrCodeIds,
+    entry.codeId,
+    `map qr code ${entry.codeId}`,
+  );
+  if (seenQrCodeIds.has(entry.codeId)) {
+    throw new Error(`Map qr code id is duplicated: ${entry.codeId}`);
+  }
+  seenQrCodeIds.add(entry.codeId);
+
+  for (const flagKey of entry.requiresFlagsAll ?? []) {
+    assertKnownVocabularyKey(
+      FLAG_KEYS,
+      flagKey,
+      `map qr code ${entry.codeId}.requiresFlagsAll`,
+    );
+  }
+  for (const effect of entry.effects) {
+    validateEffectBlueprint(effect, `map qr code ${entry.codeId}`);
+  }
+}
+
+const seenMapEventTemplateIds = new Set<string>();
+const seenMapEventPointIds = new Set<string>();
+for (const template of mapSnapshot.mapEventTemplates ?? []) {
+  assertKnownId(
+    CONTENT_IDS.mapEventTemplateIds,
+    template.id,
+    `map event template ${template.id}`,
+  );
+  if (seenMapEventTemplateIds.has(template.id)) {
+    throw new Error(`Map event template id is duplicated: ${template.id}`);
+  }
+  if (
+    seenMapEventPointIds.has(template.point.id) ||
+    seenPointIds.has(template.point.id)
+  ) {
+    throw new Error(
+      `Map event template ${template.id} reuses an existing point id: ${template.point.id}`,
+    );
+  }
+  seenMapEventTemplateIds.add(template.id);
+  seenMapEventPointIds.add(template.point.id);
+
+  if (template.point.category !== "EPHEMERAL") {
+    throw new Error(
+      `Map event template ${template.id} must use EPHEMERAL point category`,
+    );
+  }
+  if (!knownRegionIds.has(template.point.regionId)) {
+    throw new Error(
+      `Map event template ${template.id} references unknown regionId ${template.point.regionId}`,
+    );
+  }
+  assertKnownId(
+    CONTENT_IDS.locationIds,
+    template.point.locationId,
+    `map event template ${template.id}.locationId`,
+  );
+
+  for (const binding of template.point.bindings) {
+    if (seenBindingIds.has(binding.id)) {
+      throw new Error(`Map binding id is duplicated: ${binding.id}`);
+    }
+    seenBindingIds.add(binding.id);
+    for (const condition of binding.conditions ?? []) {
+      validateMapCondition(
+        condition,
+        `map event template ${template.id} binding ${binding.id}`,
+      );
+    }
+    for (const action of binding.actions) {
+      validateMapAction(
+        action,
+        `map event template ${template.id} binding ${binding.id}`,
+      );
+      if (
+        action.type === "start_scenario" &&
+        !availableScenarioIds.has(action.scenarioId)
+      ) {
+        throw new Error(
+          `Map event template ${template.id} binding ${binding.id} references unknown scenarioId ${action.scenarioId}`,
+        );
+      }
+    }
+  }
+}
+
 for (const quest of questCatalog) {
   for (const stage of quest.stages) {
     for (const pointId of stage.objectivePointIds ?? []) {
@@ -2759,7 +3536,7 @@ if (pointsWithRichBindings < 5) {
 }
 
 const snapshotPayload: VnSnapshot = {
-  schemaVersion: 4,
+  schemaVersion: CURRENT_VN_SNAPSHOT_SCHEMA_VERSION,
   scenarios: builtScenarios,
   nodes: builtNodes,
   vnRuntime: {

@@ -10,11 +10,24 @@ import AppShell from "./AppShell";
 
 const mocks = vi.hoisted(() => ({
   useIdentityMock: vi.fn(),
+  useTableMock: vi.fn(),
   lastVnProps: null as null | Record<string, unknown>,
+  tables: {
+    commandSession: Symbol("commandSession"),
+    battleSession: Symbol("battleSession"),
+  },
+}));
+
+vi.mock("spacetimedb/react", () => ({
+  useTable: (...args: unknown[]) => mocks.useTableMock(...args),
 }));
 
 vi.mock("../shared/spacetime/useIdentity", () => ({
   useIdentity: () => mocks.useIdentityMock(),
+}));
+
+vi.mock("../shared/spacetime/bindings", () => ({
+  tables: mocks.tables,
 }));
 
 vi.mock("../pages/VnPage", () => ({
@@ -54,10 +67,25 @@ vi.mock("../pages/MapPage", () => ({ MapPage: () => <div>map</div> }));
 vi.mock("../pages/CharacterPage", () => ({
   CharacterPage: () => <div>character</div>,
 }));
+vi.mock("../pages/CommandPage", () => ({
+  CommandPage: () => <div data-testid="command-page">command</div>,
+}));
+vi.mock("../pages/BattlePage", () => ({
+  BattlePage: () => <div data-testid="battle-page">battle</div>,
+}));
 vi.mock("../pages/MindPalacePage", () => ({
   MindPalacePage: () => <div>mind</div>,
 }));
 vi.mock("../pages/DevPage", () => ({ DevPage: () => <div>dev</div> }));
+vi.mock("../features/mindpalace/useFactDiscoveryToast", () => ({
+  useFactDiscoveryToast: () => {},
+}));
+vi.mock("../features/mindpalace/useHypothesisRewardToast", () => ({
+  useHypothesisRewardToast: () => {},
+}));
+vi.mock("../features/mindpalace/useMindPalaceReadiness", () => ({
+  useMindPalaceReadiness: () => ({ hasReadyHypotheses: false }),
+}));
 
 vi.mock("../widgets/navbar/Navbar", () => ({
   Navbar: ({
@@ -85,6 +113,7 @@ describe("AppShell URL synchronization", () => {
       identity: { toHexString: () => "me" },
       identityHex: "me",
     });
+    mocks.useTableMock.mockReturnValue([[], true]);
     window.history.replaceState(null, "", "/");
   });
 
@@ -144,5 +173,55 @@ describe("AppShell URL synchronization", () => {
     expect(window.location.search).toContain(
       "vnScenario=origin_journalist_bootstrap",
     );
+  });
+
+  it("switches into command tab when an active command session appears", async () => {
+    mocks.useTableMock.mockImplementation((table: symbol) => {
+      if (table === mocks.tables.commandSession) {
+        return [
+          [
+            {
+              sessionKey: "me::command",
+              playerId: { toHexString: () => "me" },
+              status: "active",
+            },
+          ],
+          true,
+        ];
+      }
+      return [[], true];
+    });
+
+    render(<AppShell />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("command-page")).toBeInTheDocument();
+    });
+    expect(window.location.search).toContain("tab=command");
+  });
+
+  it("switches into battle tab when an active battle session appears", async () => {
+    mocks.useTableMock.mockImplementation((table: symbol) => {
+      if (table === mocks.tables.battleSession) {
+        return [
+          [
+            {
+              sessionKey: "me::battle",
+              playerId: { toHexString: () => "me" },
+              status: "active",
+            },
+          ],
+          true,
+        ];
+      }
+      return [[], true];
+    });
+
+    render(<AppShell />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("battle-page")).toBeInTheDocument();
+    });
+    expect(window.location.search).toContain("tab=battle");
   });
 });

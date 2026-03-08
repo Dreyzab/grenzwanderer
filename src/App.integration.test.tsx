@@ -1,6 +1,11 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { buildPsycheProfile } from "./features/character/psycheProfile";
-import { isChoiceAvailable, parseSnapshot } from "./features/vn/vnContent";
+import {
+  isChoiceAvailable,
+  isChoiceEnabled,
+  isChoiceVisible,
+  parseSnapshot,
+} from "./features/vn/vnContent";
 
 describe("pilot helpers", () => {
   it("builds contested alignment when reputations are close", () => {
@@ -119,16 +124,35 @@ describe("pilot helpers", () => {
       ],
     } as const;
 
-    // Note: The frontend isChoiceAvailable currently only checks flags and vars
-    // for local preview purposes. We'll verify it doesn't crash and returns false
-    // for unsupported conditions without a proper context.
+    // Frontend pre-check is advisory and must not block choices that rely on
+    // backend-only sources (evidence/quest/relationship).
 
     // In actual implementation, these conditions are evaluated on the backend
     // using the player's SpacetimeDB state (Evidence, Quest, Relationship tables).
 
-    // Test that the frontend local evaluator safely denies the choice if it can't
-    // evaluate the condition (which it currently can't for these new types).
-    expect(isChoiceAvailable(choice as any, {}, {})).toBe(false);
+    expect(isChoiceAvailable(choice as any, {}, {})).toBe(true);
+  });
+
+  it("separates visibility and enablement with If/Require groups", () => {
+    const choice = {
+      id: "c1",
+      text: "Choice",
+      nextNodeId: "node_x",
+      visibleIfAll: [{ type: "flag_equals", key: "seen_hint", value: true }],
+      visibleIfAny: [
+        { type: "var_gte", key: "attr_intellect", value: 3 },
+        { type: "var_gte", key: "attr_social", value: 3 },
+      ],
+      requireAll: [{ type: "flag_equals", key: "has_key", value: true }],
+      requireAny: [{ type: "var_gte", key: "attr_shadow", value: 2 }],
+    } as const;
+
+    const flags = { seen_hint: true, has_key: false };
+    const vars = { attr_intellect: 4, attr_shadow: 3 };
+
+    expect(isChoiceVisible(choice as any, flags, vars)).toBe(true);
+    expect(isChoiceEnabled(choice as any, flags, vars)).toBe(false);
+    expect(isChoiceAvailable(choice as any, flags, vars)).toBe(false);
   });
 
   it("parses optional completionRoute for scenario handoff", () => {
@@ -200,6 +224,126 @@ describe("pilot helpers", () => {
     expect(parsed?.vnRuntime?.defaultEntryScenarioId).toBe(
       "sandbox_case01_pilot",
     );
+  });
+
+  it("parses command and battle mode effects and map actions", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify({
+        schemaVersion: 3,
+        scenarios: [
+          {
+            id: "ops_intro",
+            title: "Ops Intro",
+            startNodeId: "ops_node",
+            nodeIds: ["ops_node"],
+          },
+        ],
+        nodes: [
+          {
+            id: "ops_node",
+            scenarioId: "ops_intro",
+            title: "Ops",
+            body: "Body",
+            choices: [
+              {
+                id: "open_ops",
+                text: "Open command desk",
+                nextNodeId: "ops_node",
+                effects: [
+                  {
+                    type: "open_command_mode",
+                    scenarioId: "agency_evening_briefing",
+                    returnTab: "vn",
+                  },
+                ],
+              },
+              {
+                id: "open_duel",
+                text: "Open battle",
+                nextNodeId: "ops_node",
+                effects: [
+                  {
+                    type: "open_battle_mode",
+                    scenarioId: "sandbox_son_duel",
+                    returnTab: "vn",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        vnRuntime: {
+          defaultEntryScenarioId: "ops_intro",
+        },
+        mindPalace: { cases: [], facts: [], hypotheses: [] },
+        map: {
+          defaultRegionId: "FREIBURG_1905",
+          regions: [
+            {
+              id: "FREIBURG_1905",
+              name: "Freiburg",
+              geoCenterLat: 47.99,
+              geoCenterLng: 7.85,
+              zoom: 14,
+            },
+          ],
+          points: [
+            {
+              id: "loc_agency",
+              title: "Agency",
+              regionId: "FREIBURG_1905",
+              lat: 47.99,
+              lng: 7.85,
+              category: "HUB",
+              locationId: "loc_agency",
+              bindings: [
+                {
+                  id: "agency_command_desk",
+                  trigger: "card_secondary",
+                  label: "Open command desk",
+                  priority: 80,
+                  intent: "interaction",
+                  actions: [
+                    {
+                      type: "open_command_mode",
+                      scenarioId: "agency_evening_briefing",
+                      returnTab: "map",
+                    },
+                    {
+                      type: "open_battle_mode",
+                      scenarioId: "sandbox_son_duel",
+                      returnTab: "map",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(parsed).not.toBeNull();
+    expect(parsed?.nodes[0]?.choices[0]?.effects?.[0]).toEqual({
+      type: "open_command_mode",
+      scenarioId: "agency_evening_briefing",
+      returnTab: "vn",
+    });
+    expect(parsed?.nodes[0]?.choices[1]?.effects?.[0]).toEqual({
+      type: "open_battle_mode",
+      scenarioId: "sandbox_son_duel",
+      returnTab: "vn",
+    });
+    expect(parsed?.map?.points[0]?.bindings[0]?.actions[0]).toEqual({
+      type: "open_command_mode",
+      scenarioId: "agency_evening_briefing",
+      returnTab: "map",
+    });
+    expect(parsed?.map?.points[0]?.bindings[0]?.actions[1]).toEqual({
+      type: "open_battle_mode",
+      scenarioId: "sandbox_son_duel",
+      returnTab: "map",
+    });
   });
 
   it("rejects malformed completionRoute payloads", () => {

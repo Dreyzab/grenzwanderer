@@ -1,4 +1,5 @@
 import { Suspense, lazy } from "react";
+import "../features/map/ui/mapExperience.css";
 
 const LazyMapView = lazy(async () => {
   const module = await import("../features/map/ui/MapView");
@@ -7,18 +8,60 @@ const LazyMapView = lazy(async () => {
 
 interface MapPageProps {
   onOpenVnScenario: (scenarioId: string) => void;
+  initialPanel?: "qr";
 }
 
-export const MapPage = ({ onOpenVnScenario }: MapPageProps) => (
+export const MapPage = ({ onOpenVnScenario, initialPanel }: MapPageProps) => (
   <Suspense
     fallback={
-      <section className="panel-section">
-        <article className="card">
-          <p className="muted">Loading map...</p>
+      <section className="gw-map-shell gw-map-shell--fallback">
+        <article
+          className="gw-map-empty-state gw-map-empty-state--loading"
+          style={{
+            padding: "1.4rem 1.5rem",
+            borderRadius: "1rem",
+            border: "1px solid rgba(214, 196, 144, 0.22)",
+            background:
+              "linear-gradient(160deg, rgba(58, 42, 28, 0.92), rgba(21, 17, 13, 0.96))",
+            boxShadow:
+              "0 20px 50px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 248, 220, 0.04)",
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              color: "#d3b27a",
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.74rem",
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+            }}
+          >
+            Cartography Chamber
+          </p>
+          <h3
+            style={{
+              margin: "0.45rem 0 0",
+              color: "#f5e9ca",
+              fontFamily: "var(--font-serif)",
+              fontSize: "1.65rem",
+            }}
+          >
+            Preparing the city atlas
+          </h3>
+          <p
+            className="muted"
+            style={{ margin: "0.8rem 0 0", color: "#d2c4a4" }}
+          >
+            Loading map...
+          </p>
         </article>
       </section>
     }
   >
-    <LazyMapView onOpenVnScenario={onOpenVnScenario} />
+    <LazyMapView
+      onOpenVnScenario={onOpenVnScenario}
+      initialPanel={initialPanel}
+    />
   </Suspense>
 );

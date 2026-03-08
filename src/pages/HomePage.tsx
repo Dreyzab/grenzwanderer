@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { useReducer, useTable } from "spacetimedb/react";
 import { Building2, Landmark, Map as MapIcon, QrCode } from "lucide-react";
-import { getOriginProfileById } from "../features/character/originProfiles";
-import { OriginDossierScreen } from "../features/origin/ui/JournalistDossierScreen";
+import { getOriginProfileById, originProfiles } from "../features/character/originProfiles";
+import { OriginSelectionScreen } from "../features/origin/ui/OriginSelectionScreen";
 import {
   resolveFreiburgEntryTarget,
   type FreiburgEntryTarget,
@@ -10,18 +10,18 @@ import {
 import { parseSnapshot } from "../features/vn/vnContent";
 import { reducers, tables } from "../shared/spacetime/bindings";
 import { useIdentity } from "../shared/spacetime/useIdentity";
+import { ConfirmationModal } from "../shared/ui/ConfirmationModal";
 
 interface HomePageProps {
   onNavigate: (
     target: "vn" | "character" | "map" | "mind_palace" | "dev",
+    options?: { mapPanel?: "qr" },
   ) => void;
   onOpenVnScenario: (scenarioId: string) => void;
 }
 
 type CitySelection = "freiburg_1905" | "karlsruhe_1905";
-
-const JOURNALIST_PROFILE_ID = "journalist";
-const BOOTSTRAP_SCENARIO_ID = "origin_journalist_bootstrap";
+type FreiburgFlowState = "idle" | "confirm_reset" | "select_origin";
 
 const buildPlayerFlags = (
   identityHex: string,
@@ -48,8 +48,7 @@ const buildPlayerFlags = (
 const resolveSyncStatus = (
   isConnected: boolean,
   contentReady: boolean,
-  sessionReady: boolean,
-  flagsReady: boolean,
+  playerStateReady: boolean,
   hasConnectionError: boolean,
 ): string => {
   if (hasConnectionError) {
@@ -61,29 +60,53 @@ const resolveSyncStatus = (
   if (!contentReady) {
     return "Syncing content snapshot...";
   }
-  if (!sessionReady || !flagsReady) {
+  if (!playerStateReady) {
     return "Syncing player state...";
   }
   return "Syncing...";
 };
 
+const hasFreiburgProgressHeuristic = (
+  identityHex: string,
+  sessions: readonly { playerId: { toHexString(): string } }[],
+  flags: Record<string, boolean>,
+): boolean => {
+  if (!identityHex) {
+    return false;
+  }
+
+  if (sessions.some((session) => session.playerId.toHexString() === identityHex)) {
+    return true;
+  }
+
+  if (flags.char_creation_complete) {
+    return true;
+  }
+
+  return originProfiles.some(
+    (profile) =>
+      Boolean(flags[profile.originFlagKey]) ||
+      profile.handoffDoneFlagKeys.some((flagKey) => Boolean(flags[flagKey])),
+  );
+};
+
 export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const { identityHex, isConnected, connectionError } = useIdentity();
-  const startScenario = useReducer(reducers.startScenario);
+  const beginFreiburgOrigin = useReducer(reducers.beginFreiburgOrigin);
 
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
   const [sessions, sessionsReady] = useTable(tables.vnSession);
   const [flagsRows, flagsReady] = useTable(tables.playerFlag);
 
-  const [isDossierOpen, setIsDossierOpen] = useState(false);
-  const [dossierStatus, setDossierStatus] = useState<string | null>(null);
+  const [flowState, setFlowState] = useState<FreiburgFlowState>("idle");
+  const [flowStatus, setFlowStatus] = useState<string | null>(null);
   const [isLaunching, setIsLaunching] = useState(false);
   const [selectedCity, setSelectedCity] =
     useState<CitySelection>("freiburg_1905");
+  const [pendingResetOnBegin, setPendingResetOnBegin] = useState(false);
   const launchInFlightRef = useRef(false);
 
-  const contentReady = versionsReady && snapshotsReady;
   const activeVersion = useMemo(
     () => versions.find((entry) => entry.isActive) ?? null,
     [versions],
@@ -103,22 +126,18 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
 
     return parseSnapshot(snapshotRow.payloadJson);
   }, [activeVersion, snapshots]);
+  const contentReady =
+    (versionsReady && snapshotsReady) || Boolean(activeVersion && snapshot);
+  const playerStateReady =
+    (sessionsReady && flagsReady) || Boolean(isConnected && identityHex);
 
   const playerFlags = useMemo(
     () => buildPlayerFlags(identityHex, flagsRows),
     [flagsRows, identityHex],
   );
   const hasAnyPlayerProgress = useMemo(
-    () =>
-      sessions.some(
-        (session) => session.playerId.toHexString() === identityHex,
-      ),
-    [identityHex, sessions],
-  );
-
-  const originProfile = useMemo(
-    () => getOriginProfileById(JOURNALIST_PROFILE_ID),
-    [],
+    () => hasFreiburgProgressHeuristic(identityHex, sessions, playerFlags),
+    [identityHex, playerFlags, sessions],
   );
 
   const entryTarget = useMemo<FreiburgEntryTarget>(
@@ -126,23 +145,20 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
       resolveFreiburgEntryTarget({
         isConnected,
         contentReady,
-        sessionReady: sessionsReady,
-        flagsReady,
+        sessionReady: playerStateReady,
+        flagsReady: playerStateReady,
         identityHex,
         snapshot,
         sessions,
         flags: playerFlags,
-        originProfile,
       }),
     [
       contentReady,
-      flagsReady,
       identityHex,
       isConnected,
-      originProfile,
       playerFlags,
+      playerStateReady,
       sessions,
-      sessionsReady,
       snapshot,
     ],
   );
@@ -150,49 +166,37 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const syncStatus = resolveSyncStatus(
     isConnected,
     contentReady,
-    sessionsReady,
-    flagsReady,
+    playerStateReady,
     Boolean(connectionError),
   );
   const isEntryBlocked = entryTarget.kind === "blocked_sync";
   const isFreiburgSelected = selectedCity === "freiburg_1905";
+  const pageStatus = isEntryBlocked ? syncStatus : flowStatus;
+
+  const closeOriginFlow = () => {
+    setFlowState("idle");
+    setPendingResetOnBegin(false);
+    setFlowStatus(null);
+  };
+
+  const openOriginSelection = (nextPendingReset: boolean) => {
+    setPendingResetOnBegin(nextPendingReset);
+    setFlowStatus(null);
+    setFlowState("select_origin");
+  };
 
   const handleOpenScenario = (scenarioId: string) => {
     onOpenVnScenario(scenarioId);
   };
 
-  const handleFreshStart = async (scenarioId: string) => {
-    if (launchInFlightRef.current) {
-      return;
-    }
-
-    launchInFlightRef.current = true;
-    setIsLaunching(true);
-    setDossierStatus(null);
-
-    try {
-      await startScenario({
-        requestId: `home_restart_${Date.now()}`,
-        scenarioId,
-      });
-      handleOpenScenario(scenarioId);
-    } catch (_error) {
-      setDossierStatus("Failed to start scenario. Please retry.");
-    } finally {
-      window.setTimeout(() => {
-        launchInFlightRef.current = false;
-        setIsLaunching(false);
-      }, 350);
-    }
-  };
-
-  const handleFreiburgClick = async () => {
-    if (!originProfile) {
+  const handleContinue = async () => {
+    if (!isFreiburgSelected) {
+      setFlowStatus("Karlsruhe flow is not available yet.");
       return;
     }
 
     if (entryTarget.kind === "blocked_sync") {
-      setDossierStatus(syncStatus);
+      setFlowStatus(syncStatus);
       return;
     }
 
@@ -201,59 +205,64 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
       return;
     }
 
-    setDossierStatus(null);
-    setIsDossierOpen(true);
-  };
-
-  const handleContinue = async () => {
-    if (!isFreiburgSelected) {
-      setDossierStatus("Karlsruhe flow is not available yet.");
-      return;
-    }
-    await handleFreiburgClick();
+    openOriginSelection(false);
   };
 
   const handleNewGame = async () => {
     if (!isFreiburgSelected) {
-      setDossierStatus("Karlsruhe flow is not available yet.");
+      setFlowStatus("Karlsruhe flow is not available yet.");
       return;
     }
 
     if (entryTarget.kind === "blocked_sync") {
-      setDossierStatus(syncStatus);
+      setFlowStatus(syncStatus);
       return;
     }
 
     if (hasAnyPlayerProgress) {
-      const shouldRestart = window.confirm(
-        "Start new game? Current progress in Freiburg flow will be reset.",
-      );
-      if (!shouldRestart) {
-        return;
-      }
-    }
-
-    if (entryTarget.kind === "resume" || entryTarget.kind === "start") {
-      await handleFreshStart(entryTarget.scenarioId);
+      setFlowStatus(null);
+      setFlowState("confirm_reset");
       return;
     }
 
-    setDossierStatus(null);
-    setIsDossierOpen(true);
+    openOriginSelection(false);
   };
 
-  const handleDossierConfirm = async () => {
-    if (launchInFlightRef.current) {
+  const handleOriginConfirm = async (profileId: string) => {
+    const profile = getOriginProfileById(profileId);
+    if (launchInFlightRef.current || !profile) {
       return;
     }
 
     if (entryTarget.kind === "blocked_sync") {
-      setDossierStatus(syncStatus);
+      setFlowStatus(syncStatus);
       return;
     }
 
-    await handleFreshStart(BOOTSTRAP_SCENARIO_ID);
-    setIsDossierOpen(false);
+    launchInFlightRef.current = true;
+    setIsLaunching(true);
+    setFlowStatus(null);
+
+    try {
+      await beginFreiburgOrigin({
+        requestId: `home_begin_freiburg_${Date.now()}`,
+        profileId: profile.id,
+        resetProgress: pendingResetOnBegin,
+      });
+      handleOpenScenario(profile.scenarioId);
+      closeOriginFlow();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to begin Freiburg origin. Please retry.";
+      setFlowStatus(message);
+    } finally {
+      window.setTimeout(() => {
+        launchInFlightRef.current = false;
+        setIsLaunching(false);
+      }, 350);
+    }
   };
 
   return (
@@ -293,7 +302,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
               type="button"
               onClick={() => {
                 setSelectedCity("freiburg_1905");
-                setDossierStatus(null);
+                setFlowStatus(null);
               }}
               className={`h-12 border flex items-center justify-center gap-2 rounded-lg transition-colors ${
                 isFreiburgSelected
@@ -308,7 +317,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
               type="button"
               onClick={() => {
                 setSelectedCity("karlsruhe_1905");
-                setDossierStatus(null);
+                closeOriginFlow();
               }}
               className={`h-12 border flex items-center justify-center gap-2 rounded-lg transition-colors ${
                 !isFreiburgSelected
@@ -321,24 +330,24 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
             </button>
           </div>
 
-          {(isEntryBlocked || dossierStatus) && (
-            <p className="text-[12px] text-amber-200/80 mb-4">
-              {dossierStatus ?? syncStatus}
-            </p>
-          )}
+          {pageStatus ? (
+            <p className="text-[12px] text-amber-200/80 mb-4">{pageStatus}</p>
+          ) : null}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
             <button
               type="button"
               onClick={() => void handleContinue()}
-              className="h-12 bg-[#44403c] hover:bg-[#57534e] text-[#f5f5f4] border border-[#57534e] flex items-center justify-center gap-2 rounded-lg transition-colors"
+              disabled={isLaunching}
+              className="h-12 bg-[#44403c] hover:bg-[#57534e] text-[#f5f5f4] border border-[#57534e] flex items-center justify-center gap-2 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLaunching ? "Opening..." : "Continue"}
             </button>
             <button
               type="button"
               onClick={() => void handleNewGame()}
-              className="h-12 bg-[#a16207] hover:bg-[#b45309] text-[#f5f5f4] border border-[#b45309] flex items-center justify-center gap-2 rounded-lg transition-colors"
+              disabled={isLaunching}
+              className="h-12 bg-[#a16207] hover:bg-[#b45309] text-[#f5f5f4] border border-[#b45309] flex items-center justify-center gap-2 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             >
               New Game
             </button>
@@ -346,7 +355,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
 
           <button
             type="button"
-            onClick={() => onNavigate("map")}
+            onClick={() => onNavigate("map", { mapPanel: "qr" })}
             className="w-full h-11 bg-primary/80 hover:bg-primary text-[#f5f5f4] font-bold flex items-center justify-center gap-2 rounded-lg transition-colors"
           >
             <QrCode className="w-4 h-4" strokeWidth={2.5} />
@@ -355,15 +364,24 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
         </div>
       </main>
 
-      {isDossierOpen && (
-        <OriginDossierScreen
-          profileId={JOURNALIST_PROFILE_ID}
-          onConfirm={handleDossierConfirm}
-          onCancel={() => setIsDossierOpen(false)}
-          disabled={isEntryBlocked || isLaunching}
-          status={isEntryBlocked ? syncStatus : dossierStatus}
+      {flowState === "confirm_reset" ? (
+        <ConfirmationModal
+          title="Start New Game?"
+          description="This will wipe current Freiburg progress and begin a fresh origin route after dossier confirmation."
+          confirmLabel="Confirm Reset"
+          onCancel={closeOriginFlow}
+          onConfirm={() => openOriginSelection(true)}
         />
-      )}
+      ) : null}
+
+      {flowState === "select_origin" ? (
+        <OriginSelectionScreen
+          disabled={isEntryBlocked || isLaunching}
+          status={isEntryBlocked ? syncStatus : flowStatus}
+          onCancel={closeOriginFlow}
+          onConfirmOrigin={(profileId) => void handleOriginConfirm(profileId)}
+        />
+      ) : null}
     </div>
   );
 };

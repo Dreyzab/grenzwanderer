@@ -1,4 +1,12 @@
-﻿import { useMemo } from "react";
+import { type ReactNode, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  BookOpenText,
+  Brain,
+  FileText,
+  Fingerprint,
+  type LucideIcon,
+} from "lucide-react";
 import { useTable } from "spacetimedb/react";
 import { usePlayerFlags } from "../../entities/player/hooks/usePlayerFlags";
 import { usePlayerVars } from "../../entities/player/hooks/usePlayerVars";
@@ -8,15 +16,1062 @@ import { tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
 import { GameIcon } from "../../shared/ui/icons/game-icons";
 import { getCharacterStrings } from "../i18n/uiStrings";
+import {
+  buildEntityKnowledge,
+  formatObservationKindLabel,
+  resolveUnlockedObservationEntries,
+} from "../mysticism/model/mysticism";
 import { parseSnapshot } from "../vn/vnContent";
-import { getOriginProfileByFlags } from "./originProfiles";
-import { buildPsycheProfile } from "./psycheProfile";
+import {
+  CORE_CHARACTERISTICS,
+  SPECIALIZED_BY_CORE,
+  type CharacterAttributeDefinition,
+  type CharacterTabId,
+} from "./characterScreenModel";
+import {
+  getOriginProfileByFlags,
+  type OriginProfileDefinition,
+} from "./originProfiles";
+import { buildPsycheProfile, type PsycheProfileData } from "./psycheProfile";
+import {
+  CharacterRadarChart,
+  type CharacterRadarDatum,
+} from "./ui/CharacterRadarChart";
+
+const C = {
+  coal: "#0E0D0B",
+  ink: "#171614",
+  bone: "#F2E9D8",
+  crimson: "#A61C2F",
+  brass: "#B5852B",
+  amber: "#D4A74F",
+  slate: "#8A97A8",
+} as const;
+
+const CLIP_CARD =
+  "polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))";
+const CLIP_PANEL =
+  "polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))";
+
+const TAB_TRANSITION = { duration: 0.24, ease: "easeOut" as const };
+
+const DOSSIER_TABS: Array<{
+  id: CharacterTabId;
+  icon: LucideIcon;
+  label: string;
+}> = [
+  { id: "profile", icon: FileText, label: "Profile" },
+  { id: "development", icon: Brain, label: "Development" },
+  { id: "psyche", icon: Fingerprint, label: "Psyche" },
+  { id: "journal", icon: BookOpenText, label: "Journal" },
+];
+
+interface CharacterQuestJournalEntry {
+  id: string;
+  title: string;
+  currentStage: number;
+  activeStage?: {
+    title: string;
+    objectiveHint: string;
+    objectivePointIds?: string[];
+  };
+  status: "Completed" | "In progress" | "Not started";
+}
+
+interface CharacterObservationEntry {
+  id: string;
+  kind: string;
+  title: string;
+  text: string;
+  rationalInterpretation?: string;
+  entityArchetypeId?: string;
+}
+
+interface CharacterAttributeCard extends CharacterAttributeDefinition {
+  value: number;
+  specialized: Array<CharacterAttributeDefinition & { value: number }>;
+}
+
+interface SectionCardProps {
+  eyebrow: string;
+  title: string;
+  accent?: string;
+  children: ReactNode;
+  className?: string;
+}
 
 const toLocale = (value: number): string =>
   Number.isInteger(value) ? value.toString() : value.toFixed(2);
 
 const normalizeNumber = (value: number | bigint): number =>
   typeof value === "bigint" ? Number(value) : value;
+
+const getGenderLabel = (
+  gender: OriginProfileDefinition["dossier"]["gender"],
+): string => (gender === "female" ? "F" : "M");
+
+const getStatusTone = (status: CharacterQuestJournalEntry["status"]) => {
+  if (status === "Completed") {
+    return {
+      borderColor: "rgba(52, 211, 153, 0.35)",
+      color: "#86efac",
+      backgroundColor: "rgba(6, 78, 59, 0.18)",
+    };
+  }
+
+  if (status === "In progress") {
+    return {
+      borderColor: "rgba(212, 167, 79, 0.35)",
+      color: "#fcd34d",
+      backgroundColor: "rgba(120, 53, 15, 0.18)",
+    };
+  }
+
+  return {
+    borderColor: "rgba(138, 151, 168, 0.22)",
+    color: "#cbd5e1",
+    backgroundColor: "rgba(23, 22, 20, 0.3)",
+  };
+};
+
+const SectionCard = ({
+  eyebrow,
+  title,
+  accent = C.brass,
+  children,
+  className = "",
+}: SectionCardProps) => (
+  <article
+    className={`rounded-[1.2rem] border border-white/8 bg-[rgba(16,14,12,0.68)] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.28)] backdrop-blur-sm ${className}`}
+    style={{ clipPath: CLIP_CARD }}
+  >
+    <p
+      className="text-[10px] uppercase tracking-[0.3em]"
+      style={{ color: accent, fontFamily: "var(--font-mono)" }}
+    >
+      {eyebrow}
+    </p>
+    <h3
+      className="mt-2 text-xl font-semibold tracking-[0.04em] text-stone-100"
+      style={{ fontFamily: "var(--font-display)" }}
+    >
+      {title}
+    </h3>
+    <div className="mt-4">{children}</div>
+  </article>
+);
+
+const DossierTabButton = ({
+  active,
+  icon: Icon,
+  id,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  icon: LucideIcon;
+  id: CharacterTabId;
+  label: string;
+  onClick: (tabId: CharacterTabId) => void;
+}) => (
+  <button
+    aria-controls={`character-tabpanel-${id}`}
+    aria-selected={active}
+    className={`relative overflow-hidden rounded-[1rem] border px-4 py-3 text-left transition-colors ${
+      active
+        ? "border-amber-700/50 text-stone-100"
+        : "border-stone-700/60 text-stone-400 hover:border-stone-500/70 hover:text-stone-200"
+    }`}
+    id={`character-tab-${id}`}
+    onClick={() => onClick(id)}
+    role="tab"
+    style={{
+      clipPath: CLIP_CARD,
+      backgroundColor: active
+        ? "rgba(181, 133, 43, 0.14)"
+        : "rgba(23, 22, 20, 0.55)",
+    }}
+    type="button"
+  >
+    {active ? (
+      <motion.span
+        aria-hidden="true"
+        className="absolute inset-0"
+        layoutId="character-dossier-tab-glow"
+        style={{
+          background:
+            "linear-gradient(140deg, rgba(181, 133, 43, 0.22), rgba(181, 133, 43, 0.04))",
+        }}
+      />
+    ) : null}
+
+    <span className="relative z-10 flex items-center gap-3">
+      <span
+        className="flex h-10 w-10 items-center justify-center rounded-[0.8rem] border"
+        style={{
+          borderColor: active
+            ? "rgba(212, 167, 79, 0.32)"
+            : "rgba(138, 151, 168, 0.22)",
+          backgroundColor: active
+            ? "rgba(166, 28, 47, 0.16)"
+            : "rgba(12, 10, 9, 0.75)",
+        }}
+      >
+        <Icon size={18} strokeWidth={2.2} />
+      </span>
+      <span>
+        <span
+          className="block text-[10px] uppercase tracking-[0.3em]"
+          style={{
+            color: active ? "#f4d18a" : "#7c8797",
+            fontFamily: "var(--font-mono)",
+          }}
+        >
+          Dossier
+        </span>
+        <span className="mt-0.5 block text-sm font-semibold">{label}</span>
+      </span>
+    </span>
+  </button>
+);
+
+const InfoBlock = ({ label, value }: { label: string; value: string }) => (
+  <div className="rounded-[0.95rem] border border-white/8 bg-black/20 px-3 py-2.5">
+    <div
+      className="text-[10px] uppercase tracking-[0.28em] text-stone-500"
+      style={{ fontFamily: "var(--font-mono)" }}
+    >
+      {label}
+    </div>
+    <div className="mt-1 text-sm text-stone-100">{value}</div>
+  </div>
+);
+
+const MetricBox = ({
+  label,
+  tone,
+  value,
+}: {
+  label: string;
+  tone: "success" | "danger" | "neutral" | "warning";
+  value: number | string;
+}) => {
+  const toneMap = {
+    success: {
+      backgroundColor: "rgba(6, 78, 59, 0.18)",
+      borderColor: "rgba(52, 211, 153, 0.28)",
+      color: "#86efac",
+    },
+    danger: {
+      backgroundColor: "rgba(127, 29, 29, 0.18)",
+      borderColor: "rgba(248, 113, 113, 0.28)",
+      color: "#fca5a5",
+    },
+    neutral: {
+      backgroundColor: "rgba(0, 0, 0, 0.18)",
+      borderColor: "rgba(255, 255, 255, 0.08)",
+      color: "#e2e8f0",
+    },
+    warning: {
+      backgroundColor: "rgba(120, 53, 15, 0.18)",
+      borderColor: "rgba(251, 191, 36, 0.28)",
+      color: "#fcd34d",
+    },
+  } as const;
+
+  return (
+    <div className="rounded-[1rem] border px-3 py-3" style={toneMap[tone]}>
+      <div
+        className="text-xl font-bold"
+        style={{ fontFamily: "var(--font-display)" }}
+      >
+        {value}
+      </div>
+      <div
+        className="mt-1 text-[10px] uppercase tracking-[0.28em] text-stone-500"
+        style={{ fontFamily: "var(--font-mono)" }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+};
+
+const ProfileTab = ({
+  activeOrigin,
+  alignment,
+  debugEnabled,
+  flags,
+  panelSubtitle,
+  questCount,
+  vars,
+}: {
+  activeOrigin: OriginProfileDefinition | null;
+  alignment: PsycheProfileData["alignment"];
+  debugEnabled: boolean;
+  flags: Record<string, boolean>;
+  panelSubtitle: string;
+  questCount: number;
+  vars: Record<string, number>;
+}) => {
+  const dossierAccent = activeOrigin?.dossier.accentColor ?? C.brass;
+
+  return (
+    <motion.div
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-4"
+      exit={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: 10 }}
+      key="profile"
+      transition={TAB_TRANSITION}
+    >
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.9fr)]">
+        <SectionCard
+          accent={dossierAccent}
+          eyebrow="Origin Profile"
+          title={activeOrigin?.label ?? "Field Identity Pending"}
+        >
+          {activeOrigin ? (
+            <div className="space-y-4 text-sm text-stone-300">
+              <p className="leading-relaxed text-stone-300">
+                {activeOrigin.summary}
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <InfoBlock
+                  label="Identity"
+                  value={activeOrigin.dossier.characterName}
+                />
+                <InfoBlock
+                  label="Biometrics"
+                  value={`${getGenderLabel(activeOrigin.dossier.gender)} / ${activeOrigin.dossier.age}`}
+                />
+                <InfoBlock
+                  label="Origin City"
+                  value={activeOrigin.dossier.cityOrigin}
+                />
+                <InfoBlock label="Scenario" value={activeOrigin.scenarioId} />
+              </div>
+              <blockquote
+                className="rounded-[1rem] border border-white/8 bg-black/20 px-4 py-3 italic text-stone-300"
+                style={{
+                  borderLeftColor: dossierAccent,
+                  borderLeftWidth: "3px",
+                }}
+              >
+                "{activeOrigin.dossier.quote}"
+              </blockquote>
+            </div>
+          ) : (
+            <p className="leading-relaxed text-stone-400">
+              No origin dossier is active yet. The screen still reflects live
+              player flags, variables, and active content state.
+            </p>
+          )}
+        </SectionCard>
+
+        <SectionCard
+          accent={C.crimson}
+          eyebrow="Operational Overview"
+          title={alignment.label}
+        >
+          <div className="space-y-4 text-sm text-stone-300">
+            <p className="leading-relaxed text-stone-300">
+              {alignment.description}
+            </p>
+            <p className="leading-relaxed text-stone-400">
+              {panelSubtitle} Live metrics are synthesized from
+              <code className="mx-1 rounded bg-black/20 px-1.5 py-0.5 text-[12px] text-stone-200">
+                player_var
+              </code>
+              and
+              <code className="mx-1 rounded bg-black/20 px-1.5 py-0.5 text-[12px] text-stone-200">
+                player_flag
+              </code>
+              with active snapshot context.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <InfoBlock
+                label="Quest Load"
+                value={`${questCount} catalogued`}
+              />
+              <InfoBlock
+                label="Snapshot State"
+                value={questCount > 0 ? "Published" : "Unseeded"}
+              />
+              <InfoBlock
+                label="Confidence"
+                value={`${Math.max(0, Math.round(vars.checks_passed ?? 0))} passed`}
+              />
+              <InfoBlock
+                label="Faction Drift"
+                value={alignment.tier.replace(/_/g, " ")}
+              />
+            </div>
+          </div>
+        </SectionCard>
+      </div>
+
+      {activeOrigin ? (
+        <div className="grid gap-4 xl:grid-cols-2">
+          <SectionCard
+            accent={activeOrigin.dossier.accentColor}
+            eyebrow="Signature"
+            title={activeOrigin.signature.title}
+          >
+            <div className="space-y-3 text-sm text-stone-300">
+              <p className="leading-relaxed">
+                {activeOrigin.signature.description}
+              </p>
+              <span
+                className="inline-flex rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.3em]"
+                style={{
+                  borderColor: "rgba(181, 133, 43, 0.35)",
+                  color: "#f4d18a",
+                  backgroundColor: "rgba(181, 133, 43, 0.12)",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {activeOrigin.signature.passiveLabel}
+              </span>
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            accent={C.crimson}
+            eyebrow="Flaw"
+            title={activeOrigin.flaw.title}
+          >
+            <div className="space-y-3 text-sm text-stone-300">
+              <p className="leading-relaxed">{activeOrigin.flaw.description}</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <InfoBlock
+                  label="Check Voice"
+                  value={activeOrigin.flaw.checkVoice}
+                />
+                <InfoBlock label="DC" value={activeOrigin.flaw.dc.toString()} />
+                <InfoBlock
+                  label="Duration"
+                  value={activeOrigin.flaw.durationLabel}
+                />
+              </div>
+            </div>
+          </SectionCard>
+        </div>
+      ) : null}
+
+      {debugEnabled ? (
+        <div className="grid gap-4 xl:grid-cols-2">
+          <SectionCard accent={C.slate} eyebrow="Debug" title="Raw Flags">
+            <pre className="max-h-[280px] overflow-auto rounded-[1rem] border border-white/8 bg-black/30 p-3 text-xs text-stone-200">
+              {JSON.stringify(flags, null, 2)}
+            </pre>
+          </SectionCard>
+          <SectionCard accent={C.slate} eyebrow="Debug" title="Raw Vars">
+            <pre className="max-h-[280px] overflow-auto rounded-[1rem] border border-white/8 bg-black/30 p-3 text-xs text-stone-200">
+              {JSON.stringify(vars, null, 2)}
+            </pre>
+          </SectionCard>
+        </div>
+      ) : null}
+    </motion.div>
+  );
+};
+
+const DevelopmentTab = ({
+  attributes,
+  radarData,
+}: {
+  attributes: CharacterAttributeCard[];
+  radarData: CharacterRadarDatum[];
+}) => (
+  <motion.div
+    animate={{ opacity: 1, y: 0 }}
+    className="space-y-4"
+    exit={{ opacity: 0, y: -10 }}
+    initial={{ opacity: 0, y: 10 }}
+    key="development"
+    transition={TAB_TRANSITION}
+  >
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_320px]">
+      <SectionCard
+        accent={C.amber}
+        eyebrow="Development Diagram"
+        title="Core Characteristic Radar"
+      >
+        <div className="space-y-4">
+          <p className="max-w-2xl text-sm leading-relaxed text-stone-400">
+            The radar shows the six primary characteristics only. Specialized
+            branches stay nested under their parent traits so the screen keeps a
+            clear hierarchy.
+          </p>
+          <CharacterRadarChart data={radarData} />
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        accent={C.brass}
+        eyebrow="Structure"
+        title="Core vs Specialized"
+      >
+        <div className="space-y-3 text-sm text-stone-300">
+          <p className="leading-relaxed text-stone-400">
+            Core characteristics define the overall investigative profile.
+            Specialized attributes remain attached to their parent domain rather
+            than becoming a detached second stat layer.
+          </p>
+          <div className="grid gap-2">
+            {attributes.map((attribute) => (
+              <div
+                key={attribute.key}
+                className="flex items-center justify-between rounded-[0.9rem] border border-white/8 bg-black/20 px-3 py-2"
+              >
+                <span className="flex items-center gap-2 text-sm text-stone-200">
+                  <GameIcon
+                    name={attribute.icon}
+                    size={18}
+                    style={{ color: attribute.accent }}
+                  />
+                  {attribute.label}
+                </span>
+                <strong style={{ color: attribute.accent }}>
+                  {toLocale(attribute.value)}
+                </strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      </SectionCard>
+    </div>
+
+    <div className="grid gap-4 xl:grid-cols-2">
+      {attributes.map((attribute) => (
+        <article
+          key={attribute.key}
+          className="rounded-[1.2rem] border border-white/8 bg-[rgba(16,14,12,0.68)] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.28)]"
+          data-testid={`core-attr-${attribute.key}`}
+          style={{ clipPath: CLIP_CARD }}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <span
+                className="flex h-11 w-11 items-center justify-center rounded-[0.9rem] border"
+                style={{
+                  borderColor: `${attribute.accent}55`,
+                  backgroundColor: `${attribute.accent}14`,
+                }}
+              >
+                <GameIcon
+                  name={attribute.icon}
+                  size={22}
+                  style={{ color: attribute.accent }}
+                />
+              </span>
+              <div>
+                <p
+                  className="text-[10px] uppercase tracking-[0.3em]"
+                  style={{
+                    color: attribute.accent,
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  Core Characteristic
+                </p>
+                <h3 className="mt-1 text-xl font-semibold text-stone-100">
+                  {attribute.label}
+                </h3>
+              </div>
+            </div>
+            <strong
+              className="text-3xl font-black"
+              style={{
+                color: attribute.accent,
+                fontFamily: "var(--font-display)",
+              }}
+            >
+              {toLocale(attribute.value)}
+            </strong>
+          </div>
+
+          <p className="mt-4 text-sm leading-relaxed text-stone-400">
+            {attribute.description}
+          </p>
+
+          {attribute.specialized.length > 0 ? (
+            <div className="mt-5 space-y-2">
+              <p
+                className="text-[10px] uppercase tracking-[0.3em]"
+                style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
+              >
+                Specialized Focus
+              </p>
+              {attribute.specialized.map((specialized) => (
+                <div
+                  key={specialized.key}
+                  className="flex items-center justify-between rounded-[0.95rem] border border-white/8 bg-black/20 px-3 py-2.5"
+                >
+                  <div className="flex items-center gap-3">
+                    <GameIcon
+                      name={specialized.icon}
+                      size={18}
+                      style={{ color: specialized.accent }}
+                    />
+                    <div>
+                      <div className="text-sm font-medium text-stone-100">
+                        {specialized.label}
+                      </div>
+                      <div className="text-xs text-stone-500">
+                        {specialized.description}
+                      </div>
+                    </div>
+                  </div>
+                  <strong
+                    className="text-lg"
+                    style={{ color: specialized.accent }}
+                  >
+                    {toLocale(specialized.value)}
+                  </strong>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </article>
+      ))}
+    </div>
+  </motion.div>
+);
+
+const PsycheTab = ({ profile }: { profile: PsycheProfileData }) => {
+  const maxFactionMagnitude = Math.max(
+    1,
+    ...profile.factionSignals.map((signal) => Math.abs(signal.reputation)),
+  );
+
+  return (
+    <motion.div
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-4"
+      exit={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: 10 }}
+      key="psyche"
+      transition={TAB_TRANSITION}
+    >
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_300px]">
+        <SectionCard
+          accent={C.crimson}
+          eyebrow="Alignment"
+          title={profile.alignment.label}
+        >
+          <div className="space-y-4">
+            <p className="text-sm leading-relaxed text-stone-300">
+              {profile.alignment.description}
+            </p>
+            <div className="space-y-3">
+              {profile.factionSignals.map((signal) => {
+                const width = Math.max(
+                  8,
+                  Math.round(
+                    (Math.abs(signal.reputation) / maxFactionMagnitude) * 100,
+                  ),
+                );
+
+                return (
+                  <div key={signal.key} className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-3 text-sm">
+                      <span className="text-stone-200">{signal.label}</span>
+                      <strong style={{ color: signal.color }}>
+                        {toLocale(signal.reputation)}
+                      </strong>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full border border-white/8 bg-black/20">
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${width}%`,
+                          backgroundColor: `${signal.color}99`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          accent={C.brass}
+          eyebrow="Field Check Reliability"
+          title="Check Snapshot"
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <MetricBox
+              label="Passed"
+              tone="success"
+              value={profile.checks.passed}
+            />
+            <MetricBox
+              label="Failed"
+              tone="danger"
+              value={profile.checks.failed}
+            />
+            <MetricBox
+              label="Locked"
+              tone="neutral"
+              value={profile.checks.locked}
+            />
+            <MetricBox
+              label="Confidence"
+              tone="warning"
+              value={`${profile.checks.confidencePercent}%`}
+            />
+          </div>
+        </SectionCard>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_300px]">
+        <SectionCard
+          accent={C.amber}
+          eyebrow="Awakening"
+          title={profile.mysticism.bandLabel}
+        >
+          <div className="space-y-4">
+            <p className="text-sm leading-relaxed text-stone-300">
+              {profile.mysticism.bandDescription}
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <MetricBox
+                label="Awakening"
+                tone="warning"
+                value={`${profile.mysticism.awakeningLevel}/100`}
+              />
+              <MetricBox
+                label="Rationalism"
+                tone="neutral"
+                value={`${profile.mysticism.rationalism}/100`}
+              />
+              <MetricBox
+                label="Exposure"
+                tone="danger"
+                value={profile.mysticism.mysticExposure}
+              />
+              <MetricBox
+                label="Sight Mode"
+                tone="success"
+                value={profile.mysticism.sightModeLabel}
+              />
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          accent={C.crimson}
+          eyebrow="Counterweight"
+          title="Rational Buffer"
+        >
+          <div className="space-y-3 text-sm text-stone-300">
+            <p className="leading-relaxed text-stone-400">
+              Rationalist choices do not erase anomalies. They absorb part of
+              incoming awakening pressure and keep the investigative frame
+              stable long enough for a grounded interpretation.
+            </p>
+            <MetricBox
+              label="Buffer"
+              tone="neutral"
+              value={profile.mysticism.rationalistBuffer}
+            />
+            <p className="leading-relaxed text-stone-500">
+              Active mode: {profile.mysticism.sightModeLabel}. Higher sight
+              modes inherit lower visibility layers, but never replace
+              evidence-first play.
+            </p>
+          </div>
+        </SectionCard>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <SectionCard
+          accent={C.crimson}
+          eyebrow="Secrets"
+          title="Knowledge Registry"
+        >
+          <div className="space-y-3">
+            {profile.secrets.map((secret) => (
+              <div
+                key={secret.id}
+                className="rounded-[1rem] border px-4 py-3"
+                style={{
+                  borderColor: secret.unlocked
+                    ? "rgba(52, 211, 153, 0.25)"
+                    : "rgba(255, 255, 255, 0.08)",
+                  backgroundColor: secret.unlocked
+                    ? "rgba(6, 78, 59, 0.18)"
+                    : "rgba(0, 0, 0, 0.16)",
+                }}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <strong
+                    className={
+                      secret.unlocked ? "text-emerald-100" : "text-stone-300"
+                    }
+                  >
+                    {secret.unlocked ? secret.title : "Classified Entry"}
+                  </strong>
+                  <span
+                    className="text-[10px] uppercase tracking-[0.3em]"
+                    style={{
+                      color: secret.unlocked ? "#86efac" : "#8A97A8",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    {secret.unlocked ? "Unlocked" : "Locked"}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-stone-400">
+                  {secret.unlocked
+                    ? "This file is now available in your active knowledge registry."
+                    : secret.hint}
+                </p>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          accent={C.brass}
+          eyebrow="Evolution"
+          title="Long Arc Tracks"
+        >
+          <div className="space-y-3">
+            {profile.evolutionTracks.map((track) => (
+              <div
+                key={track.id}
+                className="rounded-[1rem] border border-white/8 bg-black/20 px-4 py-3"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <strong className="text-stone-200">{track.title}</strong>
+                  <span
+                    className="text-[10px] uppercase tracking-[0.3em]"
+                    style={{ color: C.amber, fontFamily: "var(--font-mono)" }}
+                  >
+                    {track.progressPercent}%
+                  </span>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full border border-white/8 bg-black/25">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-700 via-amber-500 to-amber-300"
+                    style={{ width: `${track.progressPercent}%` }}
+                  />
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-stone-400">
+                  {track.note}
+                </p>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+    </motion.div>
+  );
+};
+
+const JournalTab = ({
+  entityKnowledge,
+  getObjectivePointLabel,
+  observationEntries,
+  questJournalEntries,
+}: {
+  entityKnowledge: Array<{
+    id: string;
+    label: string;
+    veilLevel: number;
+    observationCount: number;
+    signatureIds: string[];
+  }>;
+  getObjectivePointLabel: (pointId: string) => string;
+  observationEntries: CharacterObservationEntry[];
+  questJournalEntries: CharacterQuestJournalEntry[];
+}) => (
+  <motion.div
+    animate={{ opacity: 1, y: 0 }}
+    className="space-y-4"
+    exit={{ opacity: 0, y: -10 }}
+    initial={{ opacity: 0, y: 10 }}
+    key="journal"
+    transition={TAB_TRANSITION}
+  >
+    <div className="grid gap-4 xl:grid-cols-2">
+      <SectionCard
+        accent={C.brass}
+        eyebrow="Quest Journal"
+        title="Investigation Log"
+      >
+        {questJournalEntries.length === 0 ? (
+          <p className="text-sm leading-relaxed text-stone-400">
+            No quest catalog is available in active content.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {questJournalEntries.map((entry) => {
+              const statusTone = getStatusTone(entry.status);
+
+              return (
+                <article
+                  key={entry.id}
+                  className="rounded-[1rem] border border-white/8 bg-black/20 px-4 py-3"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <strong className="text-stone-100">{entry.title}</strong>
+                    <span
+                      className="rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.3em]"
+                      style={{
+                        ...statusTone,
+                        fontFamily: "var(--font-mono)",
+                      }}
+                    >
+                      {entry.status}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-stone-300">
+                    Stage {entry.currentStage}
+                    {entry.activeStage ? ` - ${entry.activeStage.title}` : ""}
+                  </p>
+                  {entry.activeStage ? (
+                    <p className="mt-2 text-sm leading-relaxed text-stone-400">
+                      {entry.activeStage.objectiveHint}
+                    </p>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </SectionCard>
+
+      <SectionCard
+        accent={C.crimson}
+        eyebrow="Objective Points"
+        title="Mapped Follow-Ups"
+      >
+        {questJournalEntries.length === 0 ? (
+          <p className="text-sm leading-relaxed text-stone-400">
+            Objectives become available after content publish.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {questJournalEntries.map((entry) => (
+              <div
+                key={`${entry.id}-points`}
+                className="rounded-[1rem] border border-white/8 bg-black/20 px-4 py-3"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <strong className="text-stone-100">{entry.title}</strong>
+                  <span
+                    className="text-[10px] uppercase tracking-[0.3em]"
+                    style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
+                  >
+                    {entry.activeStage?.objectivePointIds?.length ?? 0} points
+                  </span>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-stone-400">
+                  {entry.activeStage?.objectivePointIds
+                    ?.map((pointId) => getObjectivePointLabel(pointId))
+                    .join(", ") ?? "none"}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+    </div>
+
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_320px]">
+      <SectionCard
+        accent={C.amber}
+        eyebrow="Observation Journal"
+        title="Anomalous Registry"
+      >
+        {observationEntries.length === 0 ? (
+          <p className="text-sm leading-relaxed text-stone-400">
+            No anomalous observations are archived yet. Rational casework
+            remains your primary ledger until the veil leaves something you can
+            actually file.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {observationEntries.map((entry) => (
+              <article
+                key={entry.id}
+                className="rounded-[1rem] border border-white/8 bg-black/20 px-4 py-3"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <strong className="text-stone-100">{entry.title}</strong>
+                  <span
+                    className="rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.3em]"
+                    style={{
+                      borderColor: "rgba(212, 167, 79, 0.26)",
+                      color: "#f4d18a",
+                      backgroundColor: "rgba(181, 133, 43, 0.12)",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    {entry.kind}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-stone-300">
+                  {entry.text}
+                </p>
+                {entry.rationalInterpretation ? (
+                  <p className="mt-2 text-sm leading-relaxed text-stone-500">
+                    Rational read: {entry.rationalInterpretation}
+                  </p>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
+      <SectionCard
+        accent={C.crimson}
+        eyebrow="Entity Knowledge"
+        title="Archetype Fragments"
+      >
+        {entityKnowledge.length === 0 ? (
+          <p className="text-sm leading-relaxed text-stone-400">
+            No archetype has enough corroborated traces to form a working file.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {entityKnowledge.map((entry) => (
+              <div
+                key={entry.id}
+                className="rounded-[1rem] border border-white/8 bg-black/20 px-4 py-3"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <strong className="text-stone-100">{entry.label}</strong>
+                  <span
+                    className="text-[10px] uppercase tracking-[0.3em]"
+                    style={{ color: C.amber, fontFamily: "var(--font-mono)" }}
+                  >
+                    Veil {entry.veilLevel}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-stone-300">
+                  {entry.observationCount} observations
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-stone-500">
+                  {entry.signatureIds.length > 0
+                    ? `Signatures: ${entry.signatureIds.join(", ")}`
+                    : "No stable signature tags yet."}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+    </div>
+  </motion.div>
+);
 
 export const CharacterPanel = () => {
   const { identityHex } = useIdentity();
@@ -25,6 +1080,7 @@ export const CharacterPanel = () => {
   const [questRows] = useTable(tables.playerQuest);
   const [versions] = useTable(tables.contentVersion);
   const [snapshots] = useTable(tables.contentSnapshot);
+  const [activeTab, setActiveTab] = useState<CharacterTabId>("profile");
 
   const profile = useMemo(
     () => buildPsycheProfile({ flags: myFlags, vars: myVars }),
@@ -84,7 +1140,7 @@ export const CharacterPanel = () => {
     return ENABLE_DEBUG_CONTENT_SEED ? pointId : "Unknown objective point";
   };
 
-  const questJournalEntries = useMemo(() => {
+  const questJournalEntries = useMemo<CharacterQuestJournalEntry[]>(() => {
     const catalog = activeSnapshot?.questCatalog ?? [];
 
     return catalog.map((quest) => {
@@ -115,193 +1171,225 @@ export const CharacterPanel = () => {
     });
   }, [activeSnapshot?.questCatalog, questStageById]);
 
-  const attributeCards: Array<{ key: string; icon: string; label: string }> = [
-    { key: "attr_intellect", icon: "intellect", label: "Intellect" },
-    { key: "attr_encyclopedia", icon: "intellect", label: "Encyclopedia" },
-    { key: "attr_perception", icon: "spirit", label: "Perception" },
-    { key: "attr_deception", icon: "shadow", label: "Deception" },
-    { key: "attr_social", icon: "social", label: "Social" },
-    { key: "attr_physical", icon: "physical", label: "Physical" },
-    { key: "attr_psyche", icon: "psyche", label: "Psyche" },
-    { key: "attr_spirit", icon: "spirit", label: "Spirit" },
-    { key: "attr_shadow", icon: "shadow", label: "Shadow" },
-  ];
+  const observationEntries = useMemo<CharacterObservationEntry[]>(
+    () =>
+      resolveUnlockedObservationEntries(activeSnapshot, myFlags).map((entry) => ({
+        id: entry.id,
+        kind: formatObservationKindLabel(entry.kind),
+        title: entry.title,
+        text: entry.text,
+        rationalInterpretation: entry.rationalInterpretation,
+        entityArchetypeId: entry.entityArchetypeId,
+      })),
+    [activeSnapshot, myFlags],
+  );
+
+  const entityKnowledge = useMemo(
+    () =>
+      buildEntityKnowledge(
+        activeSnapshot?.mysticism?.entityArchetypes,
+        resolveUnlockedObservationEntries(activeSnapshot, myFlags),
+      ),
+    [activeSnapshot, myFlags],
+  );
+
+  const attributeCards = useMemo<CharacterAttributeCard[]>(
+    () =>
+      CORE_CHARACTERISTICS.map((attribute) => ({
+        ...attribute,
+        value: myVars[attribute.key] ?? 0,
+        specialized: (SPECIALIZED_BY_CORE[attribute.key] ?? []).map(
+          (specialized) => ({
+            ...specialized,
+            value: myVars[specialized.key] ?? 0,
+          }),
+        ),
+      })),
+    [myVars],
+  );
+
+  const radarData = useMemo<CharacterRadarDatum[]>(
+    () =>
+      attributeCards.map((attribute) => ({
+        key: attribute.key,
+        label: attribute.label,
+        icon: attribute.icon,
+        color: attribute.accent,
+        value: attribute.value,
+      })),
+    [attributeCards],
+  );
 
   return (
-    <section className="panel-section">
-      <header className="panel-header">
-        <div>
-          <h2>{t.panelTitle}</h2>
-          <p>
-            {t.panelSubtitle} <code>player_var</code> / <code>player_flag</code>
-            .
-          </p>
-        </div>
-      </header>
+    <section className="panel-section pb-24">
+      <div
+        className="relative overflow-hidden rounded-[1.75rem] border border-white/8 text-stone-100 shadow-[0_25px_80px_rgba(0,0,0,0.36)]"
+        style={{
+          clipPath: CLIP_PANEL,
+          background: `
+            radial-gradient(circle at 20% 18%, rgba(166, 28, 47, 0.18), transparent 34%),
+            radial-gradient(circle at 82% 0%, rgba(181, 133, 43, 0.12), transparent 28%),
+            linear-gradient(150deg, ${C.coal} 0%, ${C.ink} 55%, #111217 100%)
+          `,
+        }}
+      >
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-[0.045]"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.45'/%3E%3C/svg%3E\")",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(242, 233, 216, 0.4), transparent)",
+          }}
+        />
 
-      <div className="card-grid">
-        {attributeCards.map((card) => (
-          <article key={card.key} className="card compact">
-            <div className="icon-row">
-              <GameIcon name={card.icon} size={24} />
-              <strong>{card.label}</strong>
+        <div className="relative z-10 flex flex-col gap-6 p-4 sm:p-6 lg:p-8">
+          <header className="flex flex-col gap-4 border-b border-white/8 pb-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p
+                className="text-[10px] uppercase tracking-[0.38em]"
+                style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
+              >
+                Freiburg Character Dossier
+              </p>
+              <h2
+                className="mt-2 text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl"
+                style={{ color: C.bone, fontFamily: "var(--font-display)" }}
+              >
+                Character Dossier
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-stone-400">
+                {t.panelSubtitle}
+              </p>
             </div>
-            <div className="stat-number">{toLocale(myVars[card.key] ?? 0)}</div>
-          </article>
-        ))}
-      </div>
 
-      <article className="card">
-        <h3>{profile.alignment.label}</h3>
-        <p>{profile.alignment.description}</p>
-      </article>
+            <div className="flex flex-wrap gap-2">
+              <span
+                className="inline-flex rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.32em]"
+                style={{
+                  color: activeOrigin?.dossier.accentColor ?? C.amber,
+                  borderColor: `${activeOrigin?.dossier.accentColor ?? C.amber}55`,
+                  backgroundColor: "rgba(0, 0, 0, 0.18)",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {activeOrigin?.label ?? "No origin"}
+              </span>
+              <span
+                className="inline-flex rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.32em]"
+                style={{
+                  color: C.bone,
+                  borderColor: "rgba(242, 233, 216, 0.16)",
+                  backgroundColor: "rgba(255, 255, 255, 0.04)",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {profile.alignment.label}
+              </span>
+              <span
+                className="inline-flex rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.32em]"
+                style={{
+                  color: C.amber,
+                  borderColor: "rgba(212, 167, 79, 0.24)",
+                  backgroundColor: "rgba(181, 133, 43, 0.08)",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {profile.mysticism.bandLabel}
+              </span>
+            </div>
+          </header>
 
-      {activeOrigin ? (
-        <article className="card">
-          <h3>{t.originProfile}</h3>
-          <p>{activeOrigin.label}</p>
-          <p>{activeOrigin.summary}</p>
-          <p>
-            {`Flaw: ${activeOrigin.flawFlagKey.replace(/^flaw_/, "").replace(/_/g, " ")}`}
-          </p>
-          <p>
-            {`Signature: ${activeOrigin.signatureAbilityFlagKey
-              .replace(/^ability_/, "")
-              .replace(/_/g, " ")}`}
-          </p>
-        </article>
-      ) : null}
-
-      <div className="card-grid two-col">
-        <article className="card">
-          <h3>Quest Journal</h3>
-          {questJournalEntries.length === 0 ? (
-            <p className="muted">
-              No quest catalog is available in active content.
-            </p>
-          ) : (
-            <ul className="unstyled-list">
-              {questJournalEntries.map((entry) => (
-                <li key={entry.id} className="secret-row">
-                  <strong>{entry.title}</strong>
-                  <span>
-                    {entry.status} · Stage {entry.currentStage}
-                    {entry.activeStage ? `: ${entry.activeStage.title}` : ""}
-                  </span>
-                  {entry.activeStage ? (
-                    <span className="muted">
-                      {entry.activeStage.objectiveHint}
-                    </span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </article>
-
-        <article className="card">
-          <h3>Objective Points</h3>
-          {questJournalEntries.length === 0 ? (
-            <p className="muted">
-              Objectives become available after content publish.
-            </p>
-          ) : (
-            <ul className="unstyled-list">
-              {questJournalEntries.map((entry) => (
-                <li key={`${entry.id}-points`} className="list-row">
-                  <span>{entry.title}</span>
-                  <strong>
-                    {entry.activeStage?.objectivePointIds
-                      ?.map((pointId) => getObjectivePointLabel(pointId))
-                      .join(", ") ?? "none"}
-                  </strong>
-                </li>
-              ))}
-            </ul>
-          )}
-        </article>
-      </div>
-
-      <div className="card-grid two-col">
-        <article className="card">
-          <h3>{t.factionSignals}</h3>
-          <ul className="unstyled-list">
-            {profile.factionSignals.map((signal) => (
-              <li key={signal.key} className="list-row">
-                <span
-                  className="dot"
-                  style={{ backgroundColor: signal.color }}
+          <div className="grid gap-4 xl:grid-cols-[220px_minmax(0,1fr)]">
+            <nav
+              aria-label="Character dossier sections"
+              className="flex gap-2 overflow-x-auto pb-1 xl:flex-col xl:overflow-visible"
+              role="tablist"
+            >
+              {DOSSIER_TABS.map((tab) => (
+                <DossierTabButton
+                  key={tab.id}
+                  active={activeTab === tab.id}
+                  icon={tab.icon}
+                  id={tab.id}
+                  label={tab.label}
+                  onClick={setActiveTab}
                 />
-                <span>{signal.label}</span>
-                <strong>{toLocale(signal.reputation)}</strong>
-              </li>
-            ))}
-          </ul>
-        </article>
+              ))}
+            </nav>
 
-        <article className="card">
-          <h3>{t.checks}</h3>
-          <ul className="unstyled-list">
-            <li className="list-row">
-              <span>Passed</span>
-              <strong>{profile.checks.passed}</strong>
-            </li>
-            <li className="list-row">
-              <span>Failed</span>
-              <strong>{profile.checks.failed}</strong>
-            </li>
-            <li className="list-row">
-              <span>Locked</span>
-              <strong>{profile.checks.locked}</strong>
-            </li>
-            <li className="list-row">
-              <span>Confidence</span>
-              <strong>{profile.checks.confidencePercent}%</strong>
-            </li>
-          </ul>
-        </article>
-      </div>
+            <div
+              className="min-w-0 rounded-[1.4rem] border border-white/8 bg-[rgba(10,9,7,0.46)] p-4 sm:p-6"
+              style={{ clipPath: CLIP_PANEL }}
+            >
+              <AnimatePresence mode="wait">
+                {activeTab === "profile" ? (
+                  <div
+                    aria-labelledby="character-tab-profile"
+                    id="character-tabpanel-profile"
+                    role="tabpanel"
+                  >
+                    <ProfileTab
+                      activeOrigin={activeOrigin}
+                      alignment={profile.alignment}
+                      debugEnabled={ENABLE_DEBUG_CONTENT_SEED}
+                      flags={myFlags}
+                      panelSubtitle={t.panelSubtitle}
+                      questCount={questJournalEntries.length}
+                      vars={myVars}
+                    />
+                  </div>
+                ) : null}
 
-      <div className="card-grid two-col">
-        <article className="card">
-          <h3>{t.secrets}</h3>
-          <ul className="unstyled-list">
-            {profile.secrets.map((secret) => (
-              <li key={secret.id} className="secret-row">
-                <strong>{secret.title}</strong>
-                <span>{secret.unlocked ? "Unlocked" : secret.hint}</span>
-              </li>
-            ))}
-          </ul>
-        </article>
+                {activeTab === "development" ? (
+                  <div
+                    aria-labelledby="character-tab-development"
+                    id="character-tabpanel-development"
+                    role="tabpanel"
+                  >
+                    <DevelopmentTab
+                      attributes={attributeCards}
+                      radarData={radarData}
+                    />
+                  </div>
+                ) : null}
 
-        <article className="card">
-          <h3>{t.evolutionTracks}</h3>
-          <ul className="unstyled-list">
-            {profile.evolutionTracks.map((track) => (
-              <li key={track.id} className="secret-row">
-                <strong>
-                  {track.title} ({track.progressPercent}%)
-                </strong>
-                <span>{track.note}</span>
-              </li>
-            ))}
-          </ul>
-        </article>
-      </div>
+                {activeTab === "psyche" ? (
+                  <div
+                    aria-labelledby="character-tab-psyche"
+                    id="character-tabpanel-psyche"
+                    role="tabpanel"
+                  >
+                    <PsycheTab profile={profile} />
+                  </div>
+                ) : null}
 
-      {ENABLE_DEBUG_CONTENT_SEED ? (
-        <div className="card-grid two-col">
-          <article className="card">
-            <h3>Raw Flags</h3>
-            <pre className="code-box">{JSON.stringify(myFlags, null, 2)}</pre>
-          </article>
-          <article className="card">
-            <h3>Raw Vars</h3>
-            <pre className="code-box">{JSON.stringify(myVars, null, 2)}</pre>
-          </article>
+                {activeTab === "journal" ? (
+                  <div
+                    aria-labelledby="character-tab-journal"
+                    id="character-tabpanel-journal"
+                    role="tabpanel"
+                  >
+                    <JournalTab
+                      entityKnowledge={entityKnowledge}
+                      getObjectivePointLabel={getObjectivePointLabel}
+                      observationEntries={observationEntries}
+                      questJournalEntries={questJournalEntries}
+                    />
+                  </div>
+                ) : null}
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
-      ) : null}
+      </div>
     </section>
   );
 };

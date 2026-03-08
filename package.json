@@ -1,7 +1,7 @@
 {
-  "name": "Grezwanderer",
+  "name": "grenzwanderer",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,7 +13,9 @@
     "format:check": "prettier . --check --ignore-path .prettierignore",
     "lint": "bun run check:module-bindings-imports && eslint .",
     "check:module-bindings-imports": "bun run scripts/check-module-bindings-imports.ts",
-    "quality:release": "bun run lint && bun run test && bun run build",
+    "quality:release": "bun run lint && bun run test && bun run build && spacetime build --module-path spacetimedb",
+    "quality:loop-poc": "bun run lint && bun run test && bun run build && bun run content:extract && bun run content:obsidian:coverage:check && bun run content:map:metrics:check",
+    "acceptance:matrix": "bun run scripts/acceptance-matrix.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "content:extract": "bun run scripts/extract-vn-content.ts",
@@ -22,8 +24,11 @@
     "smoke:origin-entry": "bun run scripts/smoke-origin-entry.ts",
     "smoke:origin-handoff": "bun run scripts/smoke-origin-handoff.ts",
     "smoke:mvp-routes": "bun run scripts/smoke-mvp-routes.ts",
+    "smoke:battle-authority": "bun run scripts/smoke-battle-authority.ts",
+    "smoke:banker-duel": "bun run scripts/smoke-banker-duel.ts",
     "smoke:mindpalace": "bun run scripts/smoke-mindpalace.ts",
     "smoke:map-authority": "bun run scripts/smoke-map-authority.ts",
+    "smoke:dog-deduction": "bun run scripts/smoke-dog-deduction.ts",
     "smoke:all": "bun run scripts/smoke-all.ts",
     "generate": "cargo run -p gen-bindings -- --out-dir src/module_bindings --module-path spacetimedb && bun run scripts/postgenerate.ts && prettier --write src/module_bindings",
     "spacetime:generate": "spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetimedb && bun run scripts/postgenerate.ts",
@@ -31,6 +36,7 @@
     "spacetime:publish:local:clear": "spacetime publish grezwandererdata --clear-database -y --module-path spacetimedb --server local",
     "spacetime:publish": "spacetime publish grezwandererdata --module-path spacetimedb --server maincloud",
     "content:release": "bun run scripts/content-release.ts",
+    "content:tag": "bun run scripts/content-tag.ts",
     "content:rollback": "bun run scripts/content-rollback.ts",
     "content:manifest:check": "bun run scripts/content-manifest-check.ts",
     "content:obsidian:coverage:check": "bun run scripts/content-obsidian-coverage-check.ts",
@@ -39,12 +45,17 @@
     "content:drift:check": "bun run content:extract && bun run content:obsidian:coverage:check && bun run content:map:metrics:check && bun run scripts/content-drift-check.ts"
   },
   "dependencies": {
+    "@react-three/fiber": "^8.18.0",
+    "@xyflow/react": "^12.10.1",
+    "framer-motion": "^11.18.2",
     "lucide-react": "^0.575.0",
     "mapbox-gl": "^3.18.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-map-gl": "^8.1.0",
-    "spacetimedb": "^2.0.1"
+    "recharts": "^3.2.1",
+    "spacetimedb": "^2.0.1",
+    "three": "^0.183.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
@@ -53,6 +64,7 @@
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^25.3.2",
+    "@types/three": "^0.183.0",
     "@types/mapbox-gl": "^3.4.1",
     "@types/mapbox__point-geometry": "^0.1.4",
     "@types/react": "^18.3.18",

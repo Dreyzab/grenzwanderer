@@ -1,6 +1,8 @@
 ﻿import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
 import {
+  applyEffects,
+  cleanupExpiredMapEvents,
   createEvidenceKey,
   createInventoryKey,
   createQuestKey,
@@ -9,11 +11,61 @@ import {
   emitTelemetry,
   ensureIdempotent,
   ensurePlayerProfile,
+  getActiveSnapshot,
+  getScenario,
+  hasPlayerGameplayProgress,
+  resetPlayerGameplayState,
   setNickname,
+  type VnEffect,
   upsertFlag,
   upsertLocation,
   upsertVar,
 } from "./helpers";
+import { startScenarioInternal } from "./vn";
+
+const FREIBURG_ORIGIN_ALLOWLIST = {
+  journalist: {
+    choiceId: "BACKSTORY_JOURNALIST",
+    scenarioId: "intro_journalist",
+  },
+  aristocrat: {
+    choiceId: "BACKSTORY_ARISTOCRAT",
+    scenarioId: "intro_aristocrat",
+  },
+  veteran: {
+    choiceId: "BACKSTORY_VETERAN",
+    scenarioId: "intro_veteran",
+  },
+  archivist: {
+    choiceId: "BACKSTORY_ARCHIVIST",
+    scenarioId: "intro_archivist",
+  },
+} as const;
+
+type FreiburgOriginProfileId = keyof typeof FREIBURG_ORIGIN_ALLOWLIST;
+
+const isFreiburgOriginProfileId = (
+  value: string,
+): value is FreiburgOriginProfileId =>
+  Object.prototype.hasOwnProperty.call(FREIBURG_ORIGIN_ALLOWLIST, value);
+
+const resolveOriginChoiceEffects = (
+  snapshot: { nodes: Array<{ choices: Array<{ id: string; effects?: VnEffect[] }> }> },
+  choiceId: string,
+): VnEffect[] => {
+  for (const node of snapshot.nodes) {
+    const choice = node.choices.find((entry) => entry.id === choiceId);
+    if (!choice) {
+      continue;
+    }
+    if (!choice.effects || choice.effects.length === 0) {
+      throw new SenderError(`Origin choice ${choiceId} has no effects`);
+    }
+    return choice.effects;
+  }
+
+  throw new SenderError(`Origin choice ${choiceId} is missing from snapshot`);
+};
 
 export const set_nickname = spacetimedb.reducer(
   { nickname: t.string() },
@@ -42,6 +94,8 @@ export const set_var = spacetimedb.reducer(
 export const travel_to = spacetimedb.reducer(
   { locationId: t.string() },
   (ctx, { locationId }) => {
+    ensurePlayerProfile(ctx);
+    cleanupExpiredMapEvents(ctx);
     upsertLocation(ctx, locationId);
     emitTelemetry(ctx, "travel_to", { locationId });
   },
@@ -66,6 +120,51 @@ export const track_event = spacetimedb.reducer(
     }
 
     emitTelemetry(ctx, eventName, parsedTags, value);
+  },
+);
+
+export const begin_freiburg_origin = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    profileId: t.string(),
+    resetProgress: t.bool(),
+  },
+  (ctx, { requestId, profileId, resetProgress }) => {
+    if (!profileId || profileId.trim().length === 0) {
+      throw new SenderError("profileId must not be empty");
+    }
+
+    ensureIdempotent(ctx, requestId, "begin_freiburg_origin");
+    ensurePlayerProfile(ctx);
+
+    if (!isFreiburgOriginProfileId(profileId)) {
+      throw new SenderError("profileId must reference a supported Freiburg origin");
+    }
+
+    if (!resetProgress && hasPlayerGameplayProgress(ctx)) {
+      throw new SenderError("Existing Freiburg progress requires resetProgress=true");
+    }
+
+    if (resetProgress) {
+      resetPlayerGameplayState(ctx);
+    }
+
+    const { snapshot } = getActiveSnapshot(ctx);
+    const profile = FREIBURG_ORIGIN_ALLOWLIST[profileId];
+    getScenario(snapshot, profile.scenarioId);
+
+    applyEffects(
+      ctx,
+      resolveOriginChoiceEffects(snapshot, profile.choiceId),
+      {
+        sourceType: "home_begin_freiburg_origin",
+        sourceId: `home::${profileId}`,
+      },
+    );
+
+    startScenarioInternal(ctx, profile.scenarioId, {
+      skipInboundRouteValidation: true,
+    });
   },
 );
 
@@ -317,5 +416,45 @@ export const grant_xp = spacetimedb.reducer(
     }
 
     emitTelemetry(ctx, "xp_granted", {}, amount);
+  },
+);
+
+export const grant_item = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    itemId: t.string(),
+    quantity: t.u32(),
+  },
+  (ctx, { requestId, itemId, quantity }) => {
+    if (!itemId || itemId.trim().length === 0) {
+      throw new SenderError("itemId must not be empty");
+    }
+    if (quantity < 1) {
+      throw new SenderError("quantity must be at least 1");
+    }
+
+    ensureIdempotent(ctx, requestId, "grant_item");
+    ensurePlayerProfile(ctx);
+
+    const inventoryKey = createInventoryKey(ctx.sender, itemId);
+    const existing = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
+
+    if (existing) {
+      ctx.db.playerInventory.inventoryKey.update({
+        ...existing,
+        quantity: existing.quantity + quantity,
+        updatedAt: ctx.timestamp,
+      });
+    } else {
+      ctx.db.playerInventory.insert({
+        inventoryKey,
+        playerId: ctx.sender,
+        itemId,
+        quantity,
+        updatedAt: ctx.timestamp,
+      });
+    }
+
+    emitTelemetry(ctx, "item_granted", { itemId, quantity }, quantity);
   },
 );

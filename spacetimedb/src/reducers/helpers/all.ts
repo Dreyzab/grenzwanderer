@@ -1,7 +1,43 @@
 import { Timestamp } from "spacetimedb";
 import { SenderError } from "spacetimedb/server";
+import {
+  getBattleCard,
+  getBattleScenario,
+  type BattleCardDefinition,
+  type BattleCardEffect,
+  type BattleCardEffectTarget,
+  type BattleScenarioTemplate,
+} from "./battle_catalog";
 
 const IDEMPOTENCY_TTL_MICROS = 86_400_000_000n;
+
+export type NpcAvailabilityState =
+  | "available"
+  | "hidden"
+  | "wounded"
+  | "arrested"
+  | "drunk"
+  | "watching"
+  | "on_the_run";
+
+export type FactionSignalTrend = "rising" | "stable" | "falling";
+export type RumorStateStatus = "registered" | "verified";
+export type RumorVerificationKind =
+  | "evidence"
+  | "fact"
+  | "service_unlock"
+  | "map_unlock";
+export type AgencyServiceCriterionId =
+  | "verified_rumor_chain"
+  | "preserved_source_network"
+  | "clean_closure";
+export type NpcRosterTier = "archetype" | "functional" | "major";
+export type NpcServiceRole =
+  | "information"
+  | "archives"
+  | "social_introduction"
+  | "political_cover"
+  | "transport";
 
 export type VnCondition =
   | { type: "flag_equals"; key: string; value: boolean }
@@ -10,13 +46,28 @@ export type VnCondition =
   | { type: "has_evidence"; evidenceId: string }
   | { type: "quest_stage_gte"; questId: string; stage: number }
   | { type: "relationship_gte"; characterId: string; value: number }
-  | { type: "has_item"; itemId: string };
+  | { type: "has_item"; itemId: string }
+  | { type: "favor_balance_gte"; npcId: string; value: number }
+  | { type: "agency_standing_gte"; value: number }
+  | { type: "rumor_state_is"; rumorId: string; status: RumorStateStatus }
+  | { type: "career_rank_gte"; rankId: string };
 
 export type VnEffect =
   | { type: "set_flag"; key: string; value: boolean }
   | { type: "set_var"; key: string; value: number }
   | { type: "add_var"; key: string; value: number }
   | { type: "travel_to"; locationId: string }
+  | {
+      type: "open_command_mode";
+      scenarioId: string;
+      returnTab?: CommandReturnTab;
+    }
+  | {
+      type: "open_battle_mode";
+      scenarioId: string;
+      returnTab?: CommandReturnTab;
+    }
+  | { type: "spawn_map_event"; templateId: string; ttlMinutes?: number }
   | {
       type: "track_event";
       eventName: string;
@@ -32,10 +83,45 @@ export type VnEffect =
   | { type: "unlock_group"; groupId: string }
   | { type: "set_quest_stage"; questId: string; stage: number }
   | { type: "change_relationship"; characterId: string; delta: number }
+  | {
+      type: "change_favor_balance";
+      npcId: string;
+      delta: number;
+      reason?: string;
+    }
+  | { type: "change_agency_standing"; delta: number; reason?: string }
+  | {
+      type: "change_faction_signal";
+      factionId: string;
+      delta: number;
+      reason?: string;
+    }
+  | { type: "register_rumor"; rumorId: string }
+  | {
+      type: "verify_rumor";
+      rumorId: string;
+      verificationKind: RumorVerificationKind;
+    }
+  | {
+      type: "record_service_criterion";
+      criterionId: AgencyServiceCriterionId;
+    }
   | { type: "grant_evidence"; evidenceId: string }
+  | { type: "grant_item"; itemId: string; quantity: number }
   | { type: "add_heat"; amount: number }
   | { type: "add_tension"; amount: number }
-  | { type: "grant_influence"; amount: number };
+  | { type: "grant_influence"; amount: number }
+  | { type: "shift_awakening"; amount: number; exposureDelta?: number }
+  | {
+      type: "record_entity_observation";
+      observationId: string;
+      entityArchetypeId?: string;
+      signatureIds?: string[];
+    }
+  | { type: "unlock_distortion_point"; pointId: string }
+  | { type: "set_sight_mode"; mode: SightMode }
+  | { type: "apply_rationalist_buffer"; amount: number }
+  | { type: "tag_entity_signature"; signatureId: string };
 
 export type VnDiceMode = "d20" | "d10";
 
@@ -44,6 +130,7 @@ export interface VnSkillCheck {
   voiceId: string;
   difficulty: number;
   isPassive?: boolean;
+  showChancePercent?: boolean;
   onSuccess?: { nextNodeId?: string; effects?: VnEffect[] };
   onFail?: { nextNodeId?: string; effects?: VnEffect[] };
 }
@@ -53,6 +140,11 @@ export interface VnChoice {
   text: string;
   nextNodeId: string;
   choiceType?: "action" | "inquiry" | "flavor";
+  visibleIfAll?: VnCondition[];
+  visibleIfAny?: VnCondition[];
+  requireAll?: VnCondition[];
+  requireAny?: VnCondition[];
+  /** Legacy alias for requireAll. Kept for backward compatibility. */
   conditions?: VnCondition[];
   effects?: VnEffect[];
   skillCheck?: VnSkillCheck;
@@ -129,6 +221,49 @@ export interface MindPalaceSnapshot {
   hypotheses: MindHypothesisContent[];
 }
 
+export type MysticAwakeningBand =
+  | "suppressed"
+  | "fractured"
+  | "open"
+  | "pierced";
+
+export type SightMode = "rational" | "sensitive" | "ether";
+
+export type MysticObservationKind =
+  | "sighting"
+  | "trace"
+  | "echo"
+  | "sample"
+  | "theory";
+
+export interface MysticEntityArchetype {
+  id: string;
+  label: string;
+  veilLevel: number;
+  signatures: string[];
+  habitats: string[];
+  temperament: string;
+  witnessValue: number;
+  rationalCoverStories: string[];
+  allowedManifestations: string[];
+}
+
+export interface MysticObservationDefinition {
+  id: string;
+  kind: MysticObservationKind;
+  title: string;
+  text: string;
+  entityArchetypeId?: string;
+  signatureIds?: string[];
+  rationalInterpretation?: string;
+  unlockedByDefault?: boolean;
+}
+
+export interface MysticSnapshot {
+  entityArchetypes: MysticEntityArchetype[];
+  observations: MysticObservationDefinition[];
+}
+
 export interface VnRuntimeSettings {
   skillCheckDice?: VnDiceMode;
   defaultEntryScenarioId?: string;
@@ -147,14 +282,68 @@ export interface QuestCatalogEntry {
   stages: QuestStageContent[];
 }
 
+export interface NpcRuntimeIdentity {
+  id: string;
+  displayName: string;
+  factionId: string;
+  publicRole: string;
+  rosterTier: NpcRosterTier;
+  portraitUrl?: string;
+  introFlag?: string;
+  homePointId?: string;
+  workPointId?: string;
+  serviceIds?: string[];
+}
+
+export interface NpcServiceDefinition {
+  id: string;
+  npcId: string;
+  role: NpcServiceRole;
+  label: string;
+  baseAccess: string;
+  unlockFlag?: string;
+  costNote?: string;
+  qualityNote?: string;
+  consequenceNote?: string;
+}
+
+export interface RumorTemplate {
+  id: string;
+  title: string;
+  caseId: string;
+  leadPointId?: string;
+  sourceNpcId?: string;
+  verifiesOn: RumorVerificationKind[];
+  careerCriterionOnVerify?: AgencyServiceCriterionId;
+}
+
+export interface CareerRankDefinition {
+  id: string;
+  label: string;
+  order: number;
+  standingRequired: number;
+  qualifyingCaseId?: string;
+  serviceCriteriaNeeded: number;
+  privileges: string[];
+}
+
+export interface SocialCatalogSnapshot {
+  npcIdentities: NpcRuntimeIdentity[];
+  services: NpcServiceDefinition[];
+  rumors: RumorTemplate[];
+  careerRanks: CareerRankDefinition[];
+}
+
 export type MapPointState = "locked" | "discovered" | "visited" | "completed";
 export type MapPointDefaultState = "locked" | "discovered";
+export type MapPointCategory = "HUB" | "PUBLIC" | "SHADOW" | "EPHEMERAL";
 export type MapBindingTrigger =
   | "card_primary"
   | "card_secondary"
   | "map_pin"
   | "auto";
 export type MapBindingIntent = "objective" | "interaction" | "travel";
+export type QrRedeemPolicy = "once_per_player" | "repeatable";
 
 export type MapCondition =
   | { type: "flag_is"; key: string; value: boolean }
@@ -164,6 +353,10 @@ export type MapCondition =
   | { type: "has_evidence"; evidenceId: string }
   | { type: "quest_stage_gte"; questId: string; stage: number }
   | { type: "relationship_gte"; characterId: string; value: number }
+  | { type: "favor_balance_gte"; npcId: string; value: number }
+  | { type: "agency_standing_gte"; value: number }
+  | { type: "rumor_state_is"; rumorId: string; status: RumorStateStatus }
+  | { type: "career_rank_gte"; rankId: string }
   | { type: "unlock_group_has"; groupId: string }
   | { type: "point_state_is"; state: MapPointState }
   | { type: "logic_and"; conditions: MapCondition[] }
@@ -173,6 +366,17 @@ export type MapCondition =
 export type MapAction =
   | { type: "start_scenario"; scenarioId: string }
   | { type: "travel_to"; locationId: string }
+  | {
+      type: "open_command_mode";
+      scenarioId: string;
+      returnTab?: CommandReturnTab;
+    }
+  | {
+      type: "open_battle_mode";
+      scenarioId: string;
+      returnTab?: CommandReturnTab;
+    }
+  | { type: "spawn_map_event"; templateId: string; ttlMinutes?: number }
   | { type: "set_flag"; key: string; value: boolean }
   | { type: "unlock_group"; groupId: string }
   | { type: "set_quest_stage"; questId: string; stage: number }
@@ -180,11 +384,45 @@ export type MapAction =
   | { type: "grant_xp"; amount: number }
   | { type: "change_relationship"; characterId: string; delta: number }
   | {
+      type: "change_favor_balance";
+      npcId: string;
+      delta: number;
+      reason?: string;
+    }
+  | { type: "change_agency_standing"; delta: number; reason?: string }
+  | {
+      type: "change_faction_signal";
+      factionId: string;
+      delta: number;
+      reason?: string;
+    }
+  | { type: "register_rumor"; rumorId: string }
+  | {
+      type: "verify_rumor";
+      rumorId: string;
+      verificationKind: RumorVerificationKind;
+    }
+  | {
+      type: "record_service_criterion";
+      criterionId: AgencyServiceCriterionId;
+    }
+  | {
       type: "track_event";
       eventName: string;
       tags?: Record<string, unknown>;
       value?: number;
-    };
+    }
+  | { type: "shift_awakening"; amount: number; exposureDelta?: number }
+  | {
+      type: "record_entity_observation";
+      observationId: string;
+      entityArchetypeId?: string;
+      signatureIds?: string[];
+    }
+  | { type: "unlock_distortion_point"; pointId: string }
+  | { type: "set_sight_mode"; mode: SightMode }
+  | { type: "apply_rationalist_buffer"; amount: number }
+  | { type: "tag_entity_signature"; signatureId: string };
 
 export interface MapBinding {
   id: string;
@@ -195,6 +433,171 @@ export interface MapBinding {
   conditions?: MapCondition[];
   actions: MapAction[];
 }
+
+export type CommandReturnTab = "map" | "vn";
+export type CommandPhase =
+  | "briefing"
+  | "orders"
+  | "resolving"
+  | "result"
+  | "closed";
+export type CommandMemberAvailability = "available" | "locked";
+export type BattleReturnTab = CommandReturnTab | "dev";
+export type BattleSourceTab = BattleReturnTab;
+export type BattlePhase = "player_turn" | "enemy_turn" | "result" | "closed";
+export type BattleResultType = "victory" | "defeat";
+export type BattleSide = "player" | "enemy";
+export type BattleZone = "deck" | "hand" | "discard";
+
+interface CommandActorTemplate {
+  actorId: string;
+  label: string;
+  role: string;
+  notes?: string;
+  sortOrder: number;
+  trustCharacterId?: string;
+  alwaysAvailable?: boolean;
+  unlockFlag?: string;
+  minimumRelationship?: {
+    characterId: string;
+    value: number;
+  };
+}
+
+interface CommandOrderTemplate {
+  id: string;
+  actorId: string;
+  label: string;
+  description: string;
+  effectPreview: string;
+  resultTitle: string;
+  resultSummary: string;
+  effects: VnEffect[];
+}
+
+interface CommandScenarioTemplate {
+  id: string;
+  title: string;
+  briefing: string;
+  actors: readonly CommandActorTemplate[];
+  orders: readonly CommandOrderTemplate[];
+}
+
+export interface CommandActorPresentation {
+  actorId: string;
+  label: string;
+  role: string;
+  availability: CommandMemberAvailability;
+  trust: number;
+  notes?: string;
+  sortOrder: number;
+}
+
+export interface CommandOrderPresentation {
+  id: string;
+  actorId: string;
+  label: string;
+  description: string;
+  effectPreview: string;
+  disabled: boolean;
+  disabledReason?: string;
+}
+
+const COMMAND_SCENARIOS: readonly CommandScenarioTemplate[] = [
+  {
+    id: "agency_evening_briefing",
+    title: "Agency Evening Briefing",
+    briefing:
+      "The bureau has three leads that can be pursued before dawn. You only have time to commit one operative package before the city shutters its archives and telegraph offices.",
+    actors: [
+      {
+        actorId: "inspector",
+        label: "Inspector",
+        role: "Field Lead",
+        notes: "Always available to execute direct surveillance orders.",
+        sortOrder: 0,
+        alwaysAvailable: true,
+      },
+      {
+        actorId: "npc_anna_mahler",
+        label: "Anna Mahler",
+        role: "Informant",
+        notes: "Unlocks once Anna has been met or her trust has started to move.",
+        sortOrder: 1,
+        trustCharacterId: "npc_anna_mahler",
+        unlockFlag: "met_anna_intro",
+        minimumRelationship: {
+          characterId: "npc_anna_mahler",
+          value: 1,
+        },
+      },
+      {
+        actorId: "npc_archivist_otto",
+        label: "Archivist Otto",
+        role: "Records Specialist",
+        notes: "Requires a standing connection to the Rathaus archives.",
+        sortOrder: 2,
+        trustCharacterId: "npc_archivist_otto",
+        unlockFlag: "archive_pass_granted",
+        minimumRelationship: {
+          characterId: "npc_archivist_otto",
+          value: 1,
+        },
+      },
+    ],
+    orders: [
+      {
+        id: "deploy_inspector_watch",
+        actorId: "inspector",
+        label: "Deploy Night Watch",
+        description:
+          "Place the inspector on a fixed surveillance route near the station quarter.",
+        effectPreview: "Reveal a fresh investigative angle and bank experience.",
+        resultTitle: "Night Watch Assigned",
+        resultSummary:
+          "The inspector locks down the station quarter and marks suspicious traffic before dawn.",
+        effects: [
+          { type: "set_flag", key: "command_watch_assigned", value: true },
+          { type: "grant_xp", amount: 5 },
+        ],
+      },
+      {
+        id: "request_anna_network",
+        actorId: "npc_anna_mahler",
+        label: "Tap Anna's Network",
+        description:
+          "Ask Anna to circulate questions through her café and messenger routes.",
+        effectPreview: "Gain a rumor lead and deepen Anna's trust.",
+        resultTitle: "Anna Activates Her Network",
+        resultSummary:
+          "Anna puts her quiet channels to work and sends back a tighter rumor net before first light.",
+        effects: [
+          { type: "set_flag", key: "command_anna_network_ready", value: true },
+          {
+            type: "change_relationship",
+            characterId: "npc_anna_mahler",
+            delta: 1,
+          },
+        ],
+      },
+      {
+        id: "pull_archive_packet",
+        actorId: "npc_archivist_otto",
+        label: "Pull Archive Packet",
+        description:
+          "Have Otto prepare registry extracts and compare sealed filing movements.",
+        effectPreview: "Prepare an archive packet and reduce later search friction.",
+        resultTitle: "Archive Packet Prepared",
+        resultSummary:
+          "Otto assembles a precise packet of municipal records and flags anomalies for the next sweep.",
+        effects: [
+          { type: "set_flag", key: "command_archive_packet_ready", value: true },
+          { type: "grant_xp", amount: 3 },
+        ],
+      },
+    ],
+  },
+];
 
 export interface MapRegion {
   id: string;
@@ -210,19 +613,59 @@ export interface MapPoint {
   regionId: string;
   lat: number;
   lng: number;
+  category: MapPointCategory;
   description?: string;
   image?: string;
   locationId: string;
   defaultState?: MapPointDefaultState;
   unlockGroup?: string;
   isHiddenInitially?: boolean;
+  visibilityModes?: SightMode[];
+  distortionWindow?: {
+    minAwakening?: number;
+    maxAwakening?: number;
+  };
+  revealConditions?: MapCondition[];
+  entitySignature?: string;
+  rumorHookId?: string;
   bindings: MapBinding[];
+}
+
+export interface MapShadowRoute {
+  id: string;
+  regionId: string;
+  pointIds: string[];
+  color?: string;
+  revealFlagsAll?: string[];
+}
+
+export interface MapEventTemplate {
+  id: string;
+  point: MapPoint;
+  ttlMinutes?: number;
+}
+
+export interface MapQrCodeRegistryEntry {
+  codeId: string;
+  codeHash: string;
+  redeemPolicy: QrRedeemPolicy;
+  effects: VnEffect[];
+  requiresFlagsAll?: string[];
+  requiresBriefingBypass?: boolean;
+}
+
+export interface MapTestDefaults {
+  defaultEventTtlMinutes?: number;
 }
 
 export interface MapSnapshot {
   defaultRegionId: string;
   regions: MapRegion[];
   points: MapPoint[];
+  shadowRoutes?: MapShadowRoute[];
+  qrCodeRegistry?: MapQrCodeRegistryEntry[];
+  mapEventTemplates?: MapEventTemplate[];
+  testDefaults?: MapTestDefaults;
 }
 
 export interface VnSnapshot {
@@ -231,8 +674,10 @@ export interface VnSnapshot {
   nodes: VnNode[];
   vnRuntime?: VnRuntimeSettings;
   mindPalace?: MindPalaceSnapshot;
+  mysticism?: MysticSnapshot;
   map?: MapSnapshot;
   questCatalog?: QuestCatalogEntry[];
+  socialCatalog?: SocialCatalogSnapshot;
 }
 
 export interface HypothesisReadiness {
@@ -330,6 +775,24 @@ const isVnCondition = (value: unknown): value is VnCondition => {
   if (condition.type === "has_item") {
     return typeof condition.itemId === "string";
   }
+  if (condition.type === "favor_balance_gte") {
+    return (
+      typeof condition.npcId === "string" &&
+      typeof condition.value === "number"
+    );
+  }
+  if (condition.type === "agency_standing_gte") {
+    return typeof condition.value === "number";
+  }
+  if (condition.type === "rumor_state_is") {
+    return (
+      typeof condition.rumorId === "string" &&
+      (condition.status === "registered" || condition.status === "verified")
+    );
+  }
+  if (condition.type === "career_rank_gte") {
+    return typeof condition.rankId === "string";
+  }
 
   return false;
 };
@@ -348,6 +811,28 @@ const isVnEffect = (value: unknown): value is VnEffect => {
   }
   if (effect.type === "travel_to") {
     return typeof effect.locationId === "string";
+  }
+  if (effect.type === "open_command_mode") {
+    return (
+      typeof effect.scenarioId === "string" &&
+      (effect.returnTab === undefined ||
+        effect.returnTab === "map" ||
+        effect.returnTab === "vn")
+    );
+  }
+  if (effect.type === "open_battle_mode") {
+    return (
+      typeof effect.scenarioId === "string" &&
+      (effect.returnTab === undefined ||
+        effect.returnTab === "map" ||
+        effect.returnTab === "vn")
+    );
+  }
+  if (effect.type === "spawn_map_event") {
+    return (
+      typeof effect.templateId === "string" &&
+      (effect.ttlMinutes === undefined || typeof effect.ttlMinutes === "number")
+    );
   }
   if (effect.type === "track_event") {
     return typeof effect.eventName === "string";
@@ -373,8 +858,52 @@ const isVnEffect = (value: unknown): value is VnEffect => {
       typeof effect.characterId === "string" && typeof effect.delta === "number"
     );
   }
+  if (effect.type === "change_favor_balance") {
+    return (
+      typeof effect.npcId === "string" &&
+      typeof effect.delta === "number" &&
+      (effect.reason === undefined || typeof effect.reason === "string")
+    );
+  }
+  if (effect.type === "change_agency_standing") {
+    return (
+      typeof effect.delta === "number" &&
+      (effect.reason === undefined || typeof effect.reason === "string")
+    );
+  }
+  if (effect.type === "change_faction_signal") {
+    return (
+      typeof effect.factionId === "string" &&
+      typeof effect.delta === "number" &&
+      (effect.reason === undefined || typeof effect.reason === "string")
+    );
+  }
+  if (effect.type === "register_rumor") {
+    return typeof effect.rumorId === "string";
+  }
+  if (effect.type === "verify_rumor") {
+    return (
+      typeof effect.rumorId === "string" &&
+      (effect.verificationKind === "evidence" ||
+        effect.verificationKind === "fact" ||
+        effect.verificationKind === "service_unlock" ||
+        effect.verificationKind === "map_unlock")
+    );
+  }
+  if (effect.type === "record_service_criterion") {
+    return (
+      effect.criterionId === "verified_rumor_chain" ||
+      effect.criterionId === "preserved_source_network" ||
+      effect.criterionId === "clean_closure"
+    );
+  }
   if (effect.type === "grant_evidence") {
     return typeof effect.evidenceId === "string";
+  }
+  if (effect.type === "grant_item") {
+    return (
+      typeof effect.itemId === "string" && typeof effect.quantity === "number"
+    );
   }
   if (
     effect.type === "add_heat" ||
@@ -382,6 +911,39 @@ const isVnEffect = (value: unknown): value is VnEffect => {
     effect.type === "grant_influence"
   ) {
     return typeof effect.amount === "number";
+  }
+  if (effect.type === "shift_awakening") {
+    return (
+      typeof effect.amount === "number" &&
+      (effect.exposureDelta === undefined ||
+        typeof effect.exposureDelta === "number")
+    );
+  }
+  if (effect.type === "record_entity_observation") {
+    return (
+      typeof effect.observationId === "string" &&
+      (effect.entityArchetypeId === undefined ||
+        typeof effect.entityArchetypeId === "string") &&
+      (effect.signatureIds === undefined ||
+        (Array.isArray(effect.signatureIds) &&
+          effect.signatureIds.every((entry) => typeof entry === "string")))
+    );
+  }
+  if (effect.type === "unlock_distortion_point") {
+    return typeof effect.pointId === "string";
+  }
+  if (effect.type === "set_sight_mode") {
+    return (
+      effect.mode === "rational" ||
+      effect.mode === "sensitive" ||
+      effect.mode === "ether"
+    );
+  }
+  if (effect.type === "apply_rationalist_buffer") {
+    return typeof effect.amount === "number";
+  }
+  if (effect.type === "tag_entity_signature") {
+    return typeof effect.signatureId === "string";
   }
 
   return false;
@@ -466,6 +1028,38 @@ const isChoice = (value: unknown): value is VnChoice => {
     choice.conditions !== undefined &&
     (!Array.isArray(choice.conditions) ||
       !choice.conditions.every((entry) => isVnCondition(entry)))
+  ) {
+    return false;
+  }
+
+  if (
+    choice.visibleIfAll !== undefined &&
+    (!Array.isArray(choice.visibleIfAll) ||
+      !choice.visibleIfAll.every((entry) => isVnCondition(entry)))
+  ) {
+    return false;
+  }
+
+  if (
+    choice.visibleIfAny !== undefined &&
+    (!Array.isArray(choice.visibleIfAny) ||
+      !choice.visibleIfAny.every((entry) => isVnCondition(entry)))
+  ) {
+    return false;
+  }
+
+  if (
+    choice.requireAll !== undefined &&
+    (!Array.isArray(choice.requireAll) ||
+      !choice.requireAll.every((entry) => isVnCondition(entry)))
+  ) {
+    return false;
+  }
+
+  if (
+    choice.requireAny !== undefined &&
+    (!Array.isArray(choice.requireAny) ||
+      !choice.requireAny.every((entry) => isVnCondition(entry)))
   ) {
     return false;
   }
@@ -632,6 +1226,12 @@ const isMapPointDefaultState = (
 ): value is MapPointDefaultState =>
   value === "locked" || value === "discovered";
 
+const isMapPointCategory = (value: unknown): value is MapPointCategory =>
+  value === "HUB" ||
+  value === "PUBLIC" ||
+  value === "SHADOW" ||
+  value === "EPHEMERAL";
+
 const isMapBindingTrigger = (value: unknown): value is MapBindingTrigger =>
   value === "card_primary" ||
   value === "card_secondary" ||
@@ -640,6 +1240,9 @@ const isMapBindingTrigger = (value: unknown): value is MapBindingTrigger =>
 
 const isMapBindingIntent = (value: unknown): value is MapBindingIntent =>
   value === "objective" || value === "interaction" || value === "travel";
+
+const isQrRedeemPolicy = (value: unknown): value is QrRedeemPolicy =>
+  value === "once_per_player" || value === "repeatable";
 
 const isMapCondition = (value: unknown): value is MapCondition => {
   if (!value || typeof value !== "object") {
@@ -706,6 +1309,28 @@ const isMapAction = (value: unknown): value is MapAction => {
   if (action.type === "travel_to") {
     return typeof action.locationId === "string";
   }
+  if (action.type === "open_command_mode") {
+    return (
+      typeof action.scenarioId === "string" &&
+      (action.returnTab === undefined ||
+        action.returnTab === "map" ||
+        action.returnTab === "vn")
+    );
+  }
+  if (action.type === "open_battle_mode") {
+    return (
+      typeof action.scenarioId === "string" &&
+      (action.returnTab === undefined ||
+        action.returnTab === "map" ||
+        action.returnTab === "vn")
+    );
+  }
+  if (action.type === "spawn_map_event") {
+    return (
+      typeof action.templateId === "string" &&
+      (action.ttlMinutes === undefined || typeof action.ttlMinutes === "number")
+    );
+  }
   if (action.type === "set_flag") {
     return typeof action.key === "string" && typeof action.value === "boolean";
   }
@@ -730,6 +1355,39 @@ const isMapAction = (value: unknown): value is MapAction => {
   }
   if (action.type === "track_event") {
     return typeof action.eventName === "string";
+  }
+  if (action.type === "shift_awakening") {
+    return (
+      typeof action.amount === "number" &&
+      (action.exposureDelta === undefined ||
+        typeof action.exposureDelta === "number")
+    );
+  }
+  if (action.type === "record_entity_observation") {
+    return (
+      typeof action.observationId === "string" &&
+      (action.entityArchetypeId === undefined ||
+        typeof action.entityArchetypeId === "string") &&
+      (action.signatureIds === undefined ||
+        (Array.isArray(action.signatureIds) &&
+          action.signatureIds.every((entry) => typeof entry === "string")))
+    );
+  }
+  if (action.type === "unlock_distortion_point") {
+    return typeof action.pointId === "string";
+  }
+  if (action.type === "set_sight_mode") {
+    return (
+      action.mode === "rational" ||
+      action.mode === "sensitive" ||
+      action.mode === "ether"
+    );
+  }
+  if (action.type === "apply_rationalist_buffer") {
+    return typeof action.amount === "number";
+  }
+  if (action.type === "tag_entity_signature") {
+    return typeof action.signatureId === "string";
   }
 
   return false;
@@ -789,6 +1447,19 @@ const isMapRegion = (value: unknown): value is MapRegion => {
   );
 };
 
+const isDistortionWindow = (value: unknown): boolean =>
+  value === undefined ||
+  (typeof value === "object" &&
+    value !== null &&
+    ((
+      value as { minAwakening?: unknown }
+    ).minAwakening === undefined ||
+      typeof (value as { minAwakening?: unknown }).minAwakening === "number") &&
+    ((
+      value as { maxAwakening?: unknown }
+    ).maxAwakening === undefined ||
+      typeof (value as { maxAwakening?: unknown }).maxAwakening === "number"));
+
 const isMapPoint = (value: unknown): value is MapPoint => {
   if (!value || typeof value !== "object") {
     return false;
@@ -803,6 +1474,7 @@ const isMapPoint = (value: unknown): value is MapPoint => {
     Number.isFinite(point.lat) &&
     typeof point.lng === "number" &&
     Number.isFinite(point.lng) &&
+    isMapPointCategory(point.category) &&
     (point.description === undefined ||
       typeof point.description === "string") &&
     (point.image === undefined || typeof point.image === "string") &&
@@ -813,8 +1485,76 @@ const isMapPoint = (value: unknown): value is MapPoint => {
       typeof point.unlockGroup === "string") &&
     (point.isHiddenInitially === undefined ||
       typeof point.isHiddenInitially === "boolean") &&
+    (point.visibilityModes === undefined ||
+      (Array.isArray(point.visibilityModes) &&
+        point.visibilityModes.every(
+          (entry) =>
+            entry === "rational" || entry === "sensitive" || entry === "ether",
+        ))) &&
+    isDistortionWindow(point.distortionWindow) &&
+    (point.revealConditions === undefined ||
+      (Array.isArray(point.revealConditions) &&
+        point.revealConditions.every((entry) => isMapCondition(entry)))) &&
+    (point.entitySignature === undefined ||
+      typeof point.entitySignature === "string") &&
+    (point.rumorHookId === undefined || typeof point.rumorHookId === "string") &&
     Array.isArray(point.bindings) &&
     point.bindings.every((entry) => isMapBinding(entry))
+  );
+};
+
+const isMapShadowRoute = (value: unknown): value is MapShadowRoute => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const route = value as Record<string, unknown>;
+  return (
+    typeof route.id === "string" &&
+    typeof route.regionId === "string" &&
+    Array.isArray(route.pointIds) &&
+    route.pointIds.every((pointId) => typeof pointId === "string") &&
+    (route.color === undefined || typeof route.color === "string") &&
+    (route.revealFlagsAll === undefined ||
+      (Array.isArray(route.revealFlagsAll) &&
+        route.revealFlagsAll.every((flag) => typeof flag === "string")))
+  );
+};
+
+const isMapEventTemplate = (value: unknown): value is MapEventTemplate => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const template = value as Record<string, unknown>;
+  return (
+    typeof template.id === "string" &&
+    isMapPoint(template.point) &&
+    (template.ttlMinutes === undefined ||
+      typeof template.ttlMinutes === "number")
+  );
+};
+
+const isMapQrCodeRegistryEntry = (
+  value: unknown,
+): value is MapQrCodeRegistryEntry => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const entry = value as Record<string, unknown>;
+  return (
+    typeof entry.codeId === "string" &&
+    typeof entry.codeHash === "string" &&
+    /^[a-f0-9]{64}$/.test(entry.codeHash) &&
+    isQrRedeemPolicy(entry.redeemPolicy) &&
+    Array.isArray(entry.effects) &&
+    entry.effects.every((effect) => isVnEffect(effect)) &&
+    (entry.requiresFlagsAll === undefined ||
+      (Array.isArray(entry.requiresFlagsAll) &&
+        entry.requiresFlagsAll.every((flag) => typeof flag === "string"))) &&
+    (entry.requiresBriefingBypass === undefined ||
+      typeof entry.requiresBriefingBypass === "boolean")
   );
 };
 
@@ -871,8 +1611,20 @@ const parseMapSnapshot = (
   const scenarioIds = new Set(scenarios.map((scenario) => scenario.id));
   const pointIds = new Set<string>();
   const bindingIds = new Set<string>();
+  const parsedPoints: MapPoint[] = [];
 
-  for (const point of rawPoints) {
+  for (const rawPoint of rawPoints) {
+    const category =
+      rawPoint.category ??
+      (schemaVersion >= 6 ? undefined : ("PUBLIC" as const));
+    if (!isMapPointCategory(category)) {
+      throw new SenderError("payloadJson.map.points has invalid shape");
+    }
+
+    const point: MapPoint = {
+      ...rawPoint,
+      category,
+    };
     if (pointIds.has(point.id)) {
       throw new SenderError(
         `payloadJson.map.points contains duplicate id ${point.id}`,
@@ -905,12 +1657,165 @@ const parseMapSnapshot = (
         }
       }
     }
+
+    parsedPoints.push(point);
+  }
+
+  let shadowRoutes: MapShadowRoute[] | undefined;
+  if (mapPayload.shadowRoutes !== undefined) {
+    if (
+      !Array.isArray(mapPayload.shadowRoutes) ||
+      !mapPayload.shadowRoutes.every((entry) => isMapShadowRoute(entry))
+    ) {
+      throw new SenderError("payloadJson.map.shadowRoutes has invalid shape");
+    }
+
+    const routeIds = new Set<string>();
+    shadowRoutes = [];
+    for (const route of mapPayload.shadowRoutes) {
+      if (routeIds.has(route.id)) {
+        throw new SenderError(
+          `payloadJson.map.shadowRoutes contains duplicate id ${route.id}`,
+        );
+      }
+      if (!regionIds.has(route.regionId)) {
+        throw new SenderError(
+          `payloadJson.map.shadowRoutes regionId is unknown for route ${route.id}`,
+        );
+      }
+      if (
+        route.pointIds.length < 2 ||
+        route.pointIds.some((pointId) => !pointIds.has(pointId))
+      ) {
+        throw new SenderError(
+          `payloadJson.map.shadowRoutes pointIds are invalid for route ${route.id}`,
+        );
+      }
+      routeIds.add(route.id);
+      shadowRoutes.push(route);
+    }
+  }
+
+  let qrCodeRegistry: MapQrCodeRegistryEntry[] | undefined;
+  if (mapPayload.qrCodeRegistry !== undefined) {
+    if (
+      !Array.isArray(mapPayload.qrCodeRegistry) ||
+      !mapPayload.qrCodeRegistry.every((entry) =>
+        isMapQrCodeRegistryEntry(entry),
+      )
+    ) {
+      throw new SenderError("payloadJson.map.qrCodeRegistry has invalid shape");
+    }
+
+    const codeIds = new Set<string>();
+    qrCodeRegistry = [];
+    for (const entry of mapPayload.qrCodeRegistry) {
+      if (codeIds.has(entry.codeId)) {
+        throw new SenderError(
+          `payloadJson.map.qrCodeRegistry contains duplicate codeId ${entry.codeId}`,
+        );
+      }
+      codeIds.add(entry.codeId);
+      qrCodeRegistry.push(entry);
+    }
+  }
+
+  let mapEventTemplates: MapEventTemplate[] | undefined;
+  if (mapPayload.mapEventTemplates !== undefined) {
+    if (
+      !Array.isArray(mapPayload.mapEventTemplates) ||
+      !mapPayload.mapEventTemplates.every((entry) => isMapEventTemplate(entry))
+    ) {
+      throw new SenderError(
+        "payloadJson.map.mapEventTemplates has invalid shape",
+      );
+    }
+
+    const templateIds = new Set<string>();
+    const templatePointIds = new Set<string>();
+    mapEventTemplates = [];
+    for (const template of mapPayload.mapEventTemplates) {
+      if (templateIds.has(template.id)) {
+        throw new SenderError(
+          `payloadJson.map.mapEventTemplates contains duplicate id ${template.id}`,
+        );
+      }
+      if (
+        templatePointIds.has(template.point.id) ||
+        pointIds.has(template.point.id)
+      ) {
+        throw new SenderError(
+          `payloadJson.map.mapEventTemplates point id is duplicated for template ${template.id}`,
+        );
+      }
+      if (
+        template.point.category !== "EPHEMERAL" ||
+        !regionIds.has(template.point.regionId)
+      ) {
+        throw new SenderError(
+          `payloadJson.map.mapEventTemplates point is invalid for template ${template.id}`,
+        );
+      }
+
+      for (const binding of template.point.bindings) {
+        if (bindingIds.has(binding.id)) {
+          throw new SenderError(
+            `payloadJson.map.bindings contains duplicate id ${binding.id}`,
+          );
+        }
+        bindingIds.add(binding.id);
+
+        for (const action of binding.actions) {
+          if (
+            action.type === "start_scenario" &&
+            !scenarioIds.has(action.scenarioId)
+          ) {
+            throw new SenderError(
+              `payloadJson.map event template binding ${binding.id} references unknown scenario ${action.scenarioId}`,
+            );
+          }
+        }
+      }
+
+      templateIds.add(template.id);
+      templatePointIds.add(template.point.id);
+      mapEventTemplates.push(template);
+    }
+  }
+
+  let testDefaults: MapTestDefaults | undefined;
+  if (mapPayload.testDefaults !== undefined) {
+    if (
+      !mapPayload.testDefaults ||
+      typeof mapPayload.testDefaults !== "object"
+    ) {
+      throw new SenderError("payloadJson.map.testDefaults has invalid shape");
+    }
+
+    const defaults = mapPayload.testDefaults as Record<string, unknown>;
+    if (
+      defaults.defaultEventTtlMinutes !== undefined &&
+      (typeof defaults.defaultEventTtlMinutes !== "number" ||
+        !Number.isFinite(defaults.defaultEventTtlMinutes))
+    ) {
+      throw new SenderError("payloadJson.map.testDefaults has invalid shape");
+    }
+
+    testDefaults = {
+      defaultEventTtlMinutes: defaults.defaultEventTtlMinutes as
+        | number
+        | undefined,
+    };
   }
 
   return {
     defaultRegionId: mapPayload.defaultRegionId,
     regions: rawRegions,
-    points: rawPoints,
+    points: parsedPoints,
+    shadowRoutes,
+    qrCodeRegistry,
+    mapEventTemplates,
+    testDefaults,
   };
 };
 
@@ -1073,6 +1978,10 @@ export const createSessionKey = (
   scenarioId: string,
 ): string => `${identityKey(player)}::${scenarioId}`;
 
+export const createCommandSessionKey = (player: {
+  toHexString(): string;
+}): string => `${identityKey(player)}::command`;
+
 export const createInventoryKey = (
   player: { toHexString(): string },
   itemId: string,
@@ -1093,10 +2002,28 @@ export const createRelationshipKey = (
   characterId: string,
 ): string => `${identityKey(player)}::${characterId}`;
 
+export const createCommandPartyMemberKey = (
+  player: { toHexString(): string },
+  actorId: string,
+): string => `${identityKey(player)}::command::member::${actorId}`;
+
 export const createUnlockGroupKey = (
   player: { toHexString(): string },
   groupId: string,
 ): string => `${identityKey(player)}::${groupId}`;
+
+export const createMapEventKey = (
+  player: { toHexString(): string },
+  templateId: string,
+  timestampMicros: bigint,
+  attempt: number,
+): string =>
+  `${identityKey(player)}::event::${templateId}::${timestampMicros.toString()}::${attempt}`;
+
+export const createRedeemedCodeKey = (
+  player: { toHexString(): string },
+  requestId: string,
+): string => `${identityKey(player)}::redeem::${requestId}`;
 
 export const createPlayerMindCaseKey = (
   player: { toHexString(): string },
@@ -1127,6 +2054,34 @@ export const createSkillCheckResultKey = (
   checkId: string,
 ): string =>
   `${identityKey(player)}::check::${scenarioId}::${nodeId}::${checkId}`;
+
+export const createCommandHistoryKey = (
+  player: { toHexString(): string },
+  orderId: string,
+  timestampMicros: bigint,
+): string =>
+  `${identityKey(player)}::command::history::${orderId}::${timestampMicros.toString()}`;
+
+export const createBattleSessionKey = (player: {
+  toHexString(): string;
+}): string => `${identityKey(player)}::battle`;
+
+export const createBattleCombatantKey = (
+  player: { toHexString(): string },
+  combatantId: string,
+): string => `${identityKey(player)}::battle::combatant::${combatantId}`;
+
+export const createBattleCardInstanceKey = (
+  player: { toHexString(): string },
+  instanceId: string,
+): string => `${identityKey(player)}::battle::card::${instanceId}`;
+
+export const createBattleHistoryKey = (
+  player: { toHexString(): string },
+  timestampMicros: bigint,
+  ordinal: number,
+): string =>
+  `${identityKey(player)}::battle::history::${timestampMicros.toString()}::${ordinal}`;
 
 // Deterministic hash seed for VN skill checks.
 const hashDeterministicSeed = (
@@ -1181,6 +2136,165 @@ export const ensurePlayerProfile = (ctx: any): void => {
       updatedAt: ctx.timestamp,
     });
   }
+};
+
+const isRowOwnedBySender = (
+  row: { playerId: { toHexString(): string } },
+  senderHex: string,
+): boolean => row.playerId.toHexString() === senderHex;
+
+const hasAnyRowsForSender = <TRow extends { playerId: { toHexString(): string } }>(
+  rows: Iterable<TRow>,
+  senderHex: string,
+): boolean => {
+  for (const row of rows) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+export const hasPlayerGameplayProgress = (ctx: any): boolean => {
+  const senderHex = ctx.sender.toHexString();
+
+  if (hasAnyRowsForSender(ctx.db.vnSession.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.vnSkillCheckResult.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerFlag.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerVar.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerInventory.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerEvidence.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerQuest.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerRelationship.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerUnlockGroup.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerMapEvent.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerMindCase.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerMindFact.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerMindHypothesis.iter(), senderHex)) {
+    return true;
+  }
+  if (hasAnyRowsForSender(ctx.db.playerRedeemedCode.iter(), senderHex)) {
+    return true;
+  }
+
+  const location = ctx.db.playerLocation.playerId.find(ctx.sender);
+  return Boolean(location && location.locationId !== "loc_intro");
+};
+
+export const resetPlayerGameplayState = (ctx: any): void => {
+  const senderHex = ctx.sender.toHexString();
+
+  for (const row of [...ctx.db.vnSession.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.vnSession.sessionKey.delete(row.sessionKey);
+    }
+  }
+
+  for (const row of [...ctx.db.vnSkillCheckResult.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.vnSkillCheckResult.resultKey.delete(row.resultKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerFlag.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerFlag.flagId.delete(row.flagId);
+    }
+  }
+
+  for (const row of [...ctx.db.playerVar.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerVar.varId.delete(row.varId);
+    }
+  }
+
+  for (const row of [...ctx.db.playerInventory.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerInventory.inventoryKey.delete(row.inventoryKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerEvidence.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerEvidence.evidenceKey.delete(row.evidenceKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerQuest.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerQuest.questKey.delete(row.questKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerRelationship.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerRelationship.relationshipKey.delete(row.relationshipKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerUnlockGroup.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerUnlockGroup.unlockKey.delete(row.unlockKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerMapEvent.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerMapEvent.eventId.delete(row.eventId);
+    }
+  }
+
+  for (const row of [...ctx.db.playerMindCase.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerMindCase.playerCaseKey.delete(row.playerCaseKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerMindFact.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerMindFact.playerFactKey.delete(row.playerFactKey);
+    }
+  }
+
+  for (const row of [...ctx.db.playerMindHypothesis.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerMindHypothesis.playerHypothesisKey.delete(
+        row.playerHypothesisKey,
+      );
+    }
+  }
+
+  for (const row of [...ctx.db.playerRedeemedCode.iter()]) {
+    if (isRowOwnedBySender(row, senderHex)) {
+      ctx.db.playerRedeemedCode.redemptionId.delete(row.redemptionId);
+    }
+  }
+
+  upsertLocation(ctx, "loc_intro");
 };
 
 export const setNickname = (ctx: any, nickname: string): void => {
@@ -1268,6 +2382,24 @@ export const upsertVar = (ctx: any, key: string, floatValue: number): void => {
 export const addToVar = (ctx: any, key: string, delta: number): void => {
   const current = getVar(ctx, key);
   upsertVar(ctx, key, current + delta);
+};
+
+const MYSTIC_AWAKENING_VAR = "mystic_awakening";
+const MYSTIC_EXPOSURE_VAR = "mystic_exposure";
+const MYSTIC_RATIONALIST_BUFFER_VAR = "mystic_rationalist_buffer";
+const MYSTIC_SIGHT_MODE_VAR = "mystic_sight_mode_tier";
+
+const clampNumber = (value: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, value));
+
+const sightModeTier = (mode: SightMode): number => {
+  if (mode === "ether") {
+    return 2;
+  }
+  if (mode === "sensitive") {
+    return 1;
+  }
+  return 0;
 };
 
 export const upsertLocation = (ctx: any, locationId: string): void => {
@@ -1433,10 +2565,65 @@ export const areConditionsSatisfied = (
   });
 };
 
-export const isChoiceAllowed = (
+const areAnyConditionsSatisfied = (
   ctx: any,
   conditions: VnCondition[] | undefined,
-): boolean => areConditionsSatisfied(ctx, conditions);
+): boolean => {
+  if (!conditions || conditions.length === 0) {
+    return true;
+  }
+
+  return conditions.some((condition) =>
+    areConditionsSatisfied(ctx, [condition]),
+  );
+};
+
+const resolveRequireAll = (
+  choice: Pick<VnChoice, "requireAll" | "conditions">,
+): VnCondition[] | undefined => choice.requireAll ?? choice.conditions;
+
+export const isChoiceVisible = (
+  ctx: any,
+  choice: Pick<VnChoice, "visibleIfAll" | "visibleIfAny">,
+): boolean =>
+  areConditionsSatisfied(ctx, choice.visibleIfAll) &&
+  areAnyConditionsSatisfied(ctx, choice.visibleIfAny);
+
+export const isChoiceEnabled = (
+  ctx: any,
+  choice: Pick<VnChoice, "requireAll" | "requireAny" | "conditions">,
+): boolean =>
+  areConditionsSatisfied(ctx, resolveRequireAll(choice)) &&
+  areAnyConditionsSatisfied(ctx, choice.requireAny);
+
+export const isChoiceAllowed = (
+  ctx: any,
+  choice: Pick<
+    VnChoice,
+    "visibleIfAll" | "visibleIfAny" | "requireAll" | "requireAny" | "conditions"
+  >,
+): boolean => isChoiceVisible(ctx, choice) && isChoiceEnabled(ctx, choice);
+
+export const arePassiveChecksResolved = (
+  ctx: any,
+  scenarioId: string,
+  nodeId: string,
+  checks: VnSkillCheck[] | undefined,
+): boolean => {
+  if (!checks || checks.length === 0) {
+    return true;
+  }
+
+  return checks.every((check) => {
+    const resultKey = createSkillCheckResultKey(
+      ctx.sender,
+      scenarioId,
+      nodeId,
+      check.id,
+    );
+    return Boolean(ctx.db.vnSkillCheckResult.resultKey.find(resultKey));
+  });
+};
 
 export const isNodeEntryAllowed = (
   ctx: any,
@@ -1759,6 +2946,1134 @@ export const validateHypothesisInternal = (
   };
 };
 
+const getCommandScenario = (scenarioId: string): CommandScenarioTemplate => {
+  const scenario = COMMAND_SCENARIOS.find((entry) => entry.id === scenarioId);
+  if (!scenario) {
+    throw new SenderError(`Unknown command scenario ${scenarioId}`);
+  }
+  return scenario;
+};
+
+const getRelationshipValue = (ctx: any, characterId: string): number => {
+  const row = ctx.db.playerRelationship.relationshipKey.find(
+    createRelationshipKey(ctx.sender, characterId),
+  );
+  return row ? row.value : 0;
+};
+
+const isCommandActorUnlocked = (
+  ctx: any,
+  actor: CommandActorTemplate,
+): boolean => {
+  if (actor.alwaysAvailable) {
+    return true;
+  }
+
+  if (actor.unlockFlag && getFlag(ctx, actor.unlockFlag)) {
+    return true;
+  }
+
+  if (actor.minimumRelationship) {
+    return (
+      getRelationshipValue(ctx, actor.minimumRelationship.characterId) >=
+      actor.minimumRelationship.value
+    );
+  }
+
+  return false;
+};
+
+const buildCommandActorPresentation = (
+  ctx: any,
+  actor: CommandActorTemplate,
+): CommandActorPresentation => {
+  const trust = actor.trustCharacterId
+    ? getRelationshipValue(ctx, actor.trustCharacterId)
+    : 0;
+  const availability = isCommandActorUnlocked(ctx, actor) ? "available" : "locked";
+
+  return {
+    actorId: actor.actorId,
+    label: actor.label,
+    role: actor.role,
+    availability,
+    trust,
+    notes:
+      availability === "available"
+        ? actor.notes
+        : actor.notes ?? "This operative has not been unlocked yet.",
+    sortOrder: actor.sortOrder,
+  };
+};
+
+const buildCommandOrderPresentation = (
+  ctx: any,
+  scenario: CommandScenarioTemplate,
+): CommandOrderPresentation[] => {
+  const actors = new Map(
+    scenario.actors.map((actor) => [
+      actor.actorId,
+      buildCommandActorPresentation(ctx, actor),
+    ]),
+  );
+
+  return scenario.orders.map((order) => {
+    const actor = actors.get(order.actorId);
+    const isAvailable = actor?.availability === "available";
+    return {
+      id: order.id,
+      actorId: order.actorId,
+      label: order.label,
+      description: order.description,
+      effectPreview: order.effectPreview,
+      disabled: !isAvailable,
+      disabledReason: isAvailable
+        ? undefined
+        : `${actor?.label ?? order.actorId} is not ready for assignment.`,
+    };
+  });
+};
+
+const replaceCommandPartyMembers = (
+  ctx: any,
+  sessionKey: string,
+  actors: readonly CommandActorPresentation[],
+): void => {
+  for (const row of ctx.db.commandPartyMember.iter()) {
+    if (
+      row.sessionKey === sessionKey &&
+      identityKey(row.playerId) === identityKey(ctx.sender)
+    ) {
+      ctx.db.commandPartyMember.memberKey.delete(row.memberKey);
+    }
+  }
+
+  for (const actor of actors) {
+    ctx.db.commandPartyMember.insert({
+      memberKey: createCommandPartyMemberKey(ctx.sender, actor.actorId),
+      sessionKey,
+      playerId: ctx.sender,
+      actorId: actor.actorId,
+      label: actor.label,
+      role: actor.role,
+      availability: actor.availability,
+      trust: actor.trust,
+      notes: actor.notes,
+      sortOrder: actor.sortOrder,
+      updatedAt: ctx.timestamp,
+    });
+  }
+};
+
+export const openCommandModeInternal = (
+  ctx: any,
+  scenarioId: string,
+  options: {
+    returnTab?: CommandReturnTab;
+    sourceTab?: CommandReturnTab;
+  } = {},
+): void => {
+  ensurePlayerProfile(ctx);
+
+  const scenario = getCommandScenario(scenarioId);
+  const actors = scenario.actors
+    .map((actor) => buildCommandActorPresentation(ctx, actor))
+    .sort((left, right) => left.sortOrder - right.sortOrder);
+  const orders = buildCommandOrderPresentation(ctx, scenario);
+  const sessionKey = createCommandSessionKey(ctx.sender);
+  const existing = ctx.db.commandSession.sessionKey.find(sessionKey);
+
+  const nextRow = {
+    sessionKey,
+    playerId: ctx.sender,
+    scenarioId,
+    sourceTab: options.sourceTab ?? "map",
+    returnTab: options.returnTab ?? options.sourceTab ?? "map",
+    phase: "orders" as CommandPhase,
+    status: "active",
+    title: scenario.title,
+    briefing: scenario.briefing,
+    ordersJson: JSON.stringify(orders),
+    selectedOrderId: undefined,
+    resultTitle: undefined,
+    resultSummary: undefined,
+    createdAt: existing?.createdAt ?? ctx.timestamp,
+    updatedAt: ctx.timestamp,
+    resolvedAt: undefined,
+    closedAt: undefined,
+  };
+
+  if (existing) {
+    ctx.db.commandSession.sessionKey.update({
+      ...existing,
+      ...nextRow,
+    });
+  } else {
+    ctx.db.commandSession.insert(nextRow);
+  }
+
+  replaceCommandPartyMembers(ctx, sessionKey, actors);
+
+  emitTelemetry(ctx, "command_mode_opened", {
+    scenarioId,
+    sourceTab: nextRow.sourceTab,
+    returnTab: nextRow.returnTab,
+  });
+};
+
+const getActiveCommandSession = (ctx: any): any => {
+  const session = ctx.db.commandSession.sessionKey.find(
+    createCommandSessionKey(ctx.sender),
+  );
+  if (!session || session.status === "closed") {
+    throw new SenderError("No active command session");
+  }
+  return session;
+};
+
+export const issueCommandInternal = (ctx: any, orderId: string): any => {
+  const session = getActiveCommandSession(ctx);
+  if (session.phase !== "orders" && session.phase !== "briefing") {
+    throw new SenderError("Command session is not ready for new orders");
+  }
+
+  const scenario = getCommandScenario(session.scenarioId);
+  const availableOrders = buildCommandOrderPresentation(ctx, scenario);
+  const selected = availableOrders.find((entry) => entry.id === orderId);
+  if (!selected) {
+    throw new SenderError(`Unknown command order ${orderId}`);
+  }
+  if (selected.disabled) {
+    throw new SenderError(selected.disabledReason ?? "Command order is locked");
+  }
+
+  ctx.db.commandSession.sessionKey.update({
+    ...session,
+    phase: "resolving",
+    selectedOrderId: orderId,
+    resultTitle: undefined,
+    resultSummary: undefined,
+    updatedAt: ctx.timestamp,
+    closedAt: undefined,
+  });
+
+  emitTelemetry(ctx, "command_order_issued", {
+    scenarioId: session.scenarioId,
+    orderId,
+    actorId: selected.actorId,
+  });
+
+  return selected;
+};
+
+export const resolveCommandInternal = (ctx: any): void => {
+  const session = getActiveCommandSession(ctx);
+  if (session.phase !== "resolving" || !session.selectedOrderId) {
+    throw new SenderError("No command order is awaiting resolution");
+  }
+
+  const scenario = getCommandScenario(session.scenarioId);
+  const order = scenario.orders.find(
+    (entry) => entry.id === session.selectedOrderId,
+  );
+  if (!order) {
+    throw new SenderError(`Unknown command order ${session.selectedOrderId}`);
+  }
+
+  applyEffects(ctx, order.effects, {
+    sourceType: "command_order",
+    sourceId: `${scenario.id}::${order.id}`,
+  });
+
+  ctx.db.commandOrderHistory.insert({
+    historyKey: createCommandHistoryKey(
+      ctx.sender,
+      order.id,
+      ctx.timestamp.microsSinceUnixEpoch,
+    ),
+    sessionKey: session.sessionKey,
+    playerId: ctx.sender,
+    scenarioId: scenario.id,
+    orderId: order.id,
+    actorId: order.actorId,
+    title: order.resultTitle,
+    summary: order.resultSummary,
+    createdAt: ctx.timestamp,
+  });
+
+  const refreshedOrders = buildCommandOrderPresentation(ctx, scenario);
+  const refreshedActors = scenario.actors
+    .map((actor) => buildCommandActorPresentation(ctx, actor))
+    .sort((left, right) => left.sortOrder - right.sortOrder);
+  replaceCommandPartyMembers(ctx, session.sessionKey, refreshedActors);
+
+  ctx.db.commandSession.sessionKey.update({
+    ...session,
+    phase: "result",
+    status: "resolved",
+    ordersJson: JSON.stringify(refreshedOrders),
+    resultTitle: order.resultTitle,
+    resultSummary: order.resultSummary,
+    updatedAt: ctx.timestamp,
+    resolvedAt: ctx.timestamp,
+  });
+
+  emitTelemetry(ctx, "command_order_resolved", {
+    scenarioId: scenario.id,
+    orderId: order.id,
+    actorId: order.actorId,
+  });
+};
+
+export const closeCommandModeInternal = (ctx: any): void => {
+  const session = getActiveCommandSession(ctx);
+
+  ctx.db.commandSession.sessionKey.update({
+    ...session,
+    phase: "closed",
+    status: "closed",
+    updatedAt: ctx.timestamp,
+    closedAt: ctx.timestamp,
+  });
+
+  emitTelemetry(ctx, "command_mode_closed", {
+    scenarioId: session.scenarioId,
+    returnTab: session.returnTab,
+  });
+};
+
+interface BattleStatusState {
+  statusId: string;
+  label: string;
+  amount: number;
+  durationTurns: number;
+}
+
+interface BattleCombatantState {
+  combatantId: string;
+  side: BattleSide;
+  slotIndex: number;
+  label: string;
+  subtitle?: string;
+  portraitUrl?: string;
+  resolve: number;
+  maxResolve: number;
+  ap: number;
+  maxAp: number;
+  block: number;
+  nextIntentCardId?: string;
+  nextIntentLabel?: string;
+  nextIntentSummary?: string;
+  initiative?: number;
+  statuses: BattleStatusState[];
+  targetRulesJson?: string;
+  resourceExtrasJson?: string;
+}
+
+interface BattleCardInstanceState {
+  instanceId: string;
+  ownerCombatantId: string;
+  cardId: string;
+  zone: BattleZone;
+  zoneOrder: number;
+}
+
+const getBattleScenarioInternal = (
+  scenarioId: string,
+): BattleScenarioTemplate => {
+  try {
+    return getBattleScenario(scenarioId);
+  } catch (error) {
+    throw new SenderError(
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+};
+
+const getBattleCardInternal = (cardId: string): BattleCardDefinition => {
+  try {
+    return getBattleCard(cardId);
+  } catch (error) {
+    throw new SenderError(
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+};
+
+const extractSourceScenarioId = (
+  source?: { sourceType: string; sourceId: string },
+): string | undefined => {
+  if (!source || !source.sourceType.startsWith("vn_")) {
+    return undefined;
+  }
+
+  const [scenarioId] = source.sourceId.split("::");
+  return scenarioId && scenarioId.trim().length > 0 ? scenarioId : undefined;
+};
+
+const parseBattleStatuses = (value: string | undefined): BattleStatusState[] => {
+  if (!value) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter((entry): entry is BattleStatusState => {
+      if (!entry || typeof entry !== "object") {
+        return false;
+      }
+      const status = entry as Record<string, unknown>;
+      return (
+        typeof status.statusId === "string" &&
+        typeof status.label === "string" &&
+        typeof status.amount === "number" &&
+        typeof status.durationTurns === "number"
+      );
+    });
+  } catch (_error) {
+    return [];
+  }
+};
+
+const nextBattleIntentCard = (
+  scenario: BattleScenarioTemplate,
+  cursor: number,
+): BattleCardDefinition | null => {
+  if (scenario.enemy.intentSequence.length === 0) {
+    return null;
+  }
+
+  return getBattleCardInternal(
+    scenario.enemy.intentSequence[cursor % scenario.enemy.intentSequence.length]!,
+  );
+};
+
+const setEnemyIntentPreview = (
+  enemy: BattleCombatantState,
+  scenario: BattleScenarioTemplate,
+  cursor: number,
+): void => {
+  const nextIntent = nextBattleIntentCard(scenario, cursor);
+  enemy.nextIntentCardId = nextIntent?.id;
+  enemy.nextIntentLabel = nextIntent?.label;
+  enemy.nextIntentSummary = nextIntent?.effectPreview;
+};
+
+const compareBattleZoneOrder = (
+  left: BattleCardInstanceState,
+  right: BattleCardInstanceState,
+): number => left.zoneOrder - right.zoneOrder || left.instanceId.localeCompare(right.instanceId);
+
+const normalizeBattleCardZones = (
+  cards: BattleCardInstanceState[],
+): BattleCardInstanceState[] => {
+  for (const zone of ["deck", "hand", "discard"] as BattleZone[]) {
+    const zoneCards = cards.filter((entry) => entry.zone === zone).sort(compareBattleZoneOrder);
+    zoneCards.forEach((entry, index) => {
+      entry.zoneOrder = index;
+    });
+  }
+  return cards;
+};
+
+const listBattleCardsInZone = (
+  cards: BattleCardInstanceState[],
+  zone: BattleZone,
+): BattleCardInstanceState[] =>
+  cards.filter((entry) => entry.zone === zone).sort(compareBattleZoneOrder);
+
+const drawBattleCards = (
+  cards: BattleCardInstanceState[],
+  amount: number,
+): number => {
+  let drawn = 0;
+  for (let idx = 0; idx < amount; idx += 1) {
+    let deckCards = listBattleCardsInZone(cards, "deck");
+    if (deckCards.length === 0) {
+      const discardCards = listBattleCardsInZone(cards, "discard");
+      if (discardCards.length === 0) {
+        break;
+      }
+
+      discardCards.forEach((entry) => {
+        entry.zone = "deck";
+      });
+      normalizeBattleCardZones(cards);
+      deckCards = listBattleCardsInZone(cards, "deck");
+    }
+
+    const nextCard = deckCards[0];
+    if (!nextCard) {
+      break;
+    }
+
+    nextCard.zone = "hand";
+    drawn += 1;
+    normalizeBattleCardZones(cards);
+  }
+
+  return drawn;
+};
+
+const moveBattleCardToDiscard = (
+  cards: BattleCardInstanceState[],
+  instanceId: string,
+): void => {
+  const card = cards.find((entry) => entry.instanceId === instanceId);
+  if (!card) {
+    throw new SenderError(`Unknown battle card instance ${instanceId}`);
+  }
+
+  card.zone = "discard";
+  normalizeBattleCardZones(cards);
+};
+
+const createInitialBattleCards = (
+  scenario: BattleScenarioTemplate,
+): BattleCardInstanceState[] => {
+  const cards = scenario.player.deck.map((cardId, index) => ({
+    instanceId: `card_${index}`,
+    ownerCombatantId: scenario.player.combatantId,
+    cardId,
+    zone: "deck" as BattleZone,
+    zoneOrder: index,
+  }));
+
+  drawBattleCards(cards, scenario.player.openingHand);
+  return normalizeBattleCardZones(cards);
+};
+
+const getBattleCombatantBySide = (
+  combatants: readonly BattleCombatantState[],
+  side: BattleSide,
+): BattleCombatantState => {
+  const combatant = combatants.find((entry) => entry.side === side);
+  if (!combatant) {
+    throw new SenderError(`Missing battle combatant for side ${side}`);
+  }
+  return combatant;
+};
+
+const applyBattleStatus = (
+  target: BattleCombatantState,
+  effect: Extract<BattleCardEffect, { type: "apply_status" }>,
+): void => {
+  const existing = target.statuses.find(
+    (entry) => entry.statusId === effect.statusId,
+  );
+  if (existing) {
+    existing.amount += effect.amount;
+    existing.durationTurns = Math.max(
+      existing.durationTurns,
+      effect.durationTurns,
+    );
+    return;
+  }
+
+  target.statuses.push({
+    statusId: effect.statusId,
+    label: effect.label,
+    amount: effect.amount,
+    durationTurns: effect.durationTurns,
+  });
+};
+
+const applyBattleDamage = (
+  target: BattleCombatantState,
+  amount: number,
+): { absorbed: number; dealt: number } => {
+  const absorbed = Math.min(target.block, amount);
+  const dealt = Math.max(0, amount - absorbed);
+  target.block = Math.max(0, target.block - absorbed);
+  target.resolve = Math.max(0, target.resolve - dealt);
+  return { absorbed, dealt };
+};
+
+const resolveBattleEffectTarget = (
+  acting: BattleCombatantState,
+  opposing: BattleCombatantState,
+  target: BattleCardEffectTarget,
+): BattleCombatantState => (target === "self" ? acting : opposing);
+
+const applyBattleCardEffectsInternal = (
+  acting: BattleCombatantState,
+  opposing: BattleCombatantState,
+  card: BattleCardDefinition,
+  cards: BattleCardInstanceState[],
+  labels: BattleScenarioTemplate["labels"],
+  history: string[],
+): void => {
+  history.push(`${acting.label} plays ${card.label}.`);
+
+  for (const effect of card.effects) {
+    if (effect.type === "damage_resolve") {
+      const target = resolveBattleEffectTarget(acting, opposing, effect.target);
+      const { absorbed, dealt } = applyBattleDamage(target, effect.amount);
+      if (absorbed > 0) {
+        history.push(
+          `${target.label} absorbs ${absorbed} ${labels.resolve.toLowerCase()} with ${labels.block.toLowerCase()}.`,
+        );
+      }
+      if (dealt > 0) {
+        history.push(
+          `${target.label} loses ${dealt} ${labels.resolve.toLowerCase()}.`,
+        );
+      }
+      continue;
+    }
+
+    if (effect.type === "gain_block") {
+      const target = resolveBattleEffectTarget(acting, opposing, effect.target);
+      target.block += effect.amount;
+      history.push(
+        `${target.label} gains ${effect.amount} ${labels.block.toLowerCase()}.`,
+      );
+      continue;
+    }
+
+    if (effect.type === "heal_resolve") {
+      const target = resolveBattleEffectTarget(acting, opposing, effect.target);
+      const healed = Math.min(
+        effect.amount,
+        Math.max(0, target.maxResolve - target.resolve),
+      );
+      target.resolve += healed;
+      if (healed > 0) {
+        history.push(
+          `${target.label} recovers ${healed} ${labels.resolve.toLowerCase()}.`,
+        );
+      }
+      continue;
+    }
+
+    if (effect.type === "draw_cards") {
+      const drawn = drawBattleCards(cards, effect.amount);
+      if (drawn > 0) {
+        history.push(`${acting.label} draws ${drawn} card${drawn === 1 ? "" : "s"}.`);
+      }
+      continue;
+    }
+
+    if (effect.type === "gain_ap") {
+      acting.ap += effect.amount;
+      history.push(`${acting.label} gains ${effect.amount} ${labels.ap.toLowerCase()}.`);
+      continue;
+    }
+
+    applyBattleStatus(
+      resolveBattleEffectTarget(acting, opposing, effect.target),
+      effect,
+    );
+    history.push(
+      `${resolveBattleEffectTarget(acting, opposing, effect.target).label} gains ${effect.label}.`,
+    );
+  }
+};
+
+const replaceBattleCombatants = (
+  ctx: any,
+  sessionKey: string,
+  combatants: readonly BattleCombatantState[],
+): void => {
+  for (const row of ctx.db.battleCombatant.iter()) {
+    if (
+      row.sessionKey === sessionKey &&
+      identityKey(row.playerId) === identityKey(ctx.sender)
+    ) {
+      ctx.db.battleCombatant.combatantKey.delete(row.combatantKey);
+    }
+  }
+
+  for (const combatant of combatants) {
+    ctx.db.battleCombatant.insert({
+      combatantKey: createBattleCombatantKey(ctx.sender, combatant.combatantId),
+      sessionKey,
+      playerId: ctx.sender,
+      combatantId: combatant.combatantId,
+      side: combatant.side,
+      slotIndex: combatant.slotIndex,
+      label: combatant.label,
+      subtitle: combatant.subtitle,
+      portraitUrl: combatant.portraitUrl,
+      resolve: combatant.resolve,
+      maxResolve: combatant.maxResolve,
+      ap: combatant.ap,
+      maxAp: combatant.maxAp,
+      block: combatant.block,
+      nextIntentCardId: combatant.nextIntentCardId,
+      nextIntentLabel: combatant.nextIntentLabel,
+      nextIntentSummary: combatant.nextIntentSummary,
+      initiative: combatant.initiative,
+      statusesJson: JSON.stringify(combatant.statuses),
+      targetRulesJson: combatant.targetRulesJson,
+      resourceExtrasJson: combatant.resourceExtrasJson,
+      updatedAt: ctx.timestamp,
+    });
+  }
+};
+
+const replaceBattleCards = (
+  ctx: any,
+  sessionKey: string,
+  cards: readonly BattleCardInstanceState[],
+  player: BattleCombatantState,
+  phase: BattlePhase,
+): void => {
+  for (const row of ctx.db.battleCardInstance.iter()) {
+    if (
+      row.sessionKey === sessionKey &&
+      identityKey(row.playerId) === identityKey(ctx.sender)
+    ) {
+      ctx.db.battleCardInstance.cardInstanceKey.delete(row.cardInstanceKey);
+    }
+  }
+
+  for (const card of cards) {
+    const definition = getBattleCardInternal(card.cardId);
+    const isPlayable =
+      phase === "player_turn" &&
+      card.zone === "hand" &&
+      card.ownerCombatantId === player.combatantId &&
+      player.ap >= definition.costAp;
+
+    ctx.db.battleCardInstance.insert({
+      cardInstanceKey: createBattleCardInstanceKey(ctx.sender, card.instanceId),
+      sessionKey,
+      playerId: ctx.sender,
+      instanceId: card.instanceId,
+      ownerCombatantId: card.ownerCombatantId,
+      cardId: card.cardId,
+      label: definition.label,
+      description: definition.description,
+      effectPreview: definition.effectPreview,
+      artUrl: definition.artUrl,
+      tagsJson: definition.tags ? JSON.stringify(definition.tags) : undefined,
+      costAp: definition.costAp,
+      zone: card.zone,
+      zoneOrder: card.zoneOrder,
+      isPlayable,
+      playableReason:
+        card.zone !== "hand"
+          ? undefined
+          : phase !== "player_turn"
+            ? "Wait for your turn."
+            : player.ap < definition.costAp
+              ? `Requires ${definition.costAp} Pressure.`
+              : undefined,
+      targetRule: undefined,
+      updatedAt: ctx.timestamp,
+    });
+  }
+};
+
+const appendBattleHistory = (
+  ctx: any,
+  sessionKey: string,
+  turnCount: number,
+  entryType: string,
+  messages: readonly string[],
+): void => {
+  messages.forEach((message, index) => {
+    ctx.db.battleHistory.insert({
+      historyKey: createBattleHistoryKey(
+        ctx.sender,
+        ctx.timestamp.microsSinceUnixEpoch,
+        index,
+      ),
+      sessionKey,
+      playerId: ctx.sender,
+      turnCount,
+      entryType,
+      message,
+      createdAt: ctx.timestamp,
+    });
+  });
+};
+
+const clearBattleHistory = (ctx: any, sessionKey: string): void => {
+  for (const row of ctx.db.battleHistory.iter()) {
+    if (
+      row.sessionKey === sessionKey &&
+      identityKey(row.playerId) === identityKey(ctx.sender)
+    ) {
+      ctx.db.battleHistory.historyKey.delete(row.historyKey);
+    }
+  }
+};
+
+const getActiveBattleSession = (ctx: any): any => {
+  const session = ctx.db.battleSession.sessionKey.find(
+    createBattleSessionKey(ctx.sender),
+  );
+  if (!session || session.status === "closed") {
+    throw new SenderError("No active battle session");
+  }
+  return session;
+};
+
+const readBattleCombatants = (
+  ctx: any,
+  sessionKey: string,
+): BattleCombatantState[] =>
+  [...ctx.db.battleCombatant.iter()]
+    .filter(
+      (row) =>
+        row.sessionKey === sessionKey &&
+        identityKey(row.playerId) === identityKey(ctx.sender),
+    )
+    .map((row) => ({
+      combatantId: row.combatantId,
+      side: (row.side === "enemy" ? "enemy" : "player") as BattleSide,
+      slotIndex: Number(row.slotIndex),
+      label: row.label,
+      subtitle: row.subtitle,
+      portraitUrl: row.portraitUrl,
+      resolve: row.resolve,
+      maxResolve: row.maxResolve,
+      ap: row.ap,
+      maxAp: row.maxAp,
+      block: row.block,
+      nextIntentCardId: row.nextIntentCardId,
+      nextIntentLabel: row.nextIntentLabel,
+      nextIntentSummary: row.nextIntentSummary,
+      initiative: row.initiative,
+      statuses: parseBattleStatuses(row.statusesJson),
+      targetRulesJson: row.targetRulesJson,
+      resourceExtrasJson: row.resourceExtrasJson,
+    }))
+    .sort((left, right) => left.slotIndex - right.slotIndex);
+
+const readBattleCards = (
+  ctx: any,
+  sessionKey: string,
+): BattleCardInstanceState[] =>
+  normalizeBattleCardZones(
+    [...ctx.db.battleCardInstance.iter()]
+      .filter(
+        (row) =>
+          row.sessionKey === sessionKey &&
+          identityKey(row.playerId) === identityKey(ctx.sender),
+      )
+      .map((row) => ({
+        instanceId: row.instanceId,
+        ownerCombatantId: row.ownerCombatantId,
+        cardId: row.cardId,
+        zone:
+          row.zone === "hand"
+            ? ("hand" as const)
+            : row.zone === "discard"
+              ? ("discard" as const)
+              : ("deck" as const),
+        zoneOrder: Number(row.zoneOrder),
+      })),
+  );
+
+const resolveBattleOutcomeInternal = (
+  ctx: any,
+  session: any,
+  scenario: BattleScenarioTemplate,
+  player: BattleCombatantState,
+  enemy: BattleCombatantState,
+  cards: BattleCardInstanceState[],
+  resultType: BattleResultType,
+  extraHistory: readonly string[],
+): void => {
+  const outcome = scenario.outcomes[resultType];
+  applyEffects(ctx, [...outcome.effects], {
+    sourceType: "battle_outcome",
+    sourceId: `${scenario.id}::${resultType}`,
+  });
+
+  replaceBattleCombatants(ctx, session.sessionKey, [player, enemy]);
+  replaceBattleCards(ctx, session.sessionKey, cards, player, "result");
+  appendBattleHistory(ctx, session.sessionKey, Number(session.turnCount), "result", [
+    ...extraHistory,
+    outcome.title,
+    outcome.summary,
+  ]);
+
+  ctx.db.battleSession.sessionKey.update({
+    ...session,
+    phase: "result",
+    status: "resolved",
+    resultType,
+    resultTitle: outcome.title,
+    resultSummary: outcome.summary,
+    updatedAt: ctx.timestamp,
+    resolvedAt: ctx.timestamp,
+  });
+
+  emitTelemetry(ctx, "battle_resolved", {
+    scenarioId: scenario.id,
+    resultType,
+    returnTab: session.returnTab,
+  });
+};
+
+export const openBattleModeInternal = (
+  ctx: any,
+  scenarioId: string,
+  options: {
+    returnTab?: BattleReturnTab;
+    sourceTab?: BattleSourceTab;
+    sourceContextId?: string;
+    sourceScenarioId?: string;
+  } = {},
+): void => {
+  ensurePlayerProfile(ctx);
+
+  const scenario = getBattleScenarioInternal(scenarioId);
+  const sessionKey = createBattleSessionKey(ctx.sender);
+  const existing = ctx.db.battleSession.sessionKey.find(sessionKey);
+  const cards = createInitialBattleCards(scenario);
+  const player: BattleCombatantState = {
+    combatantId: scenario.player.combatantId,
+    side: "player",
+    slotIndex: 0,
+    label: scenario.player.label,
+    subtitle: scenario.player.subtitle,
+    portraitUrl: scenario.player.portraitUrl,
+    resolve: scenario.player.startingResolve,
+    maxResolve: scenario.player.startingResolve,
+    ap: scenario.player.maxAp,
+    maxAp: scenario.player.maxAp,
+    block: 0,
+    statuses: [],
+  };
+  const enemy: BattleCombatantState = {
+    combatantId: scenario.enemy.combatantId,
+    side: "enemy",
+    slotIndex: 0,
+    label: scenario.enemy.label,
+    subtitle: scenario.enemy.subtitle,
+    portraitUrl: scenario.enemy.portraitUrl,
+    resolve: scenario.enemy.startingResolve,
+    maxResolve: scenario.enemy.startingResolve,
+    ap: 0,
+    maxAp: 0,
+    block: 0,
+    statuses: [],
+  };
+  setEnemyIntentPreview(enemy, scenario, 0);
+
+  const sourceTab = options.sourceTab ?? "map";
+  const returnTab = options.returnTab ?? sourceTab;
+  const nextSessionRow = {
+    sessionKey,
+    playerId: ctx.sender,
+    scenarioId,
+    sourceTab,
+    returnTab,
+    sourceContextId: options.sourceContextId,
+    sourceScenarioId: options.sourceScenarioId,
+    phase: "player_turn",
+    status: "active",
+    turnCount: 1,
+    drawPerTurn: scenario.player.drawPerTurn,
+    enemyIntentCursor: 0,
+    title: scenario.title,
+    briefing: scenario.briefing,
+    resolveLabel: scenario.labels.resolve,
+    apLabel: scenario.labels.ap,
+    blockLabel: scenario.labels.block,
+    backgroundUrl: scenario.backgroundUrl,
+    resultType: undefined,
+    resultTitle: undefined,
+    resultSummary: undefined,
+    createdAt: existing?.createdAt ?? ctx.timestamp,
+    updatedAt: ctx.timestamp,
+    resolvedAt: undefined,
+    closedAt: undefined,
+  };
+
+  if (existing) {
+    ctx.db.battleSession.sessionKey.update({
+      ...existing,
+      ...nextSessionRow,
+    });
+  } else {
+    ctx.db.battleSession.insert(nextSessionRow);
+  }
+
+  replaceBattleCombatants(ctx, sessionKey, [player, enemy]);
+  replaceBattleCards(ctx, sessionKey, cards, player, "player_turn");
+  clearBattleHistory(ctx, sessionKey);
+  appendBattleHistory(ctx, sessionKey, 1, "system", [
+    `Battle opened: ${scenario.title}.`,
+    `Opponent: ${enemy.label}.`,
+  ]);
+
+  emitTelemetry(ctx, "battle_mode_opened", {
+    scenarioId,
+    sourceTab,
+    returnTab,
+  });
+};
+
+export const playBattleCardInternal = (ctx: any, instanceId: string): void => {
+  const session = getActiveBattleSession(ctx);
+  if (session.phase !== "player_turn" || session.status !== "active") {
+    throw new SenderError("Battle is not ready for player actions");
+  }
+
+  const scenario = getBattleScenarioInternal(session.scenarioId);
+  const combatants = readBattleCombatants(ctx, session.sessionKey);
+  const cards = readBattleCards(ctx, session.sessionKey);
+  const player = getBattleCombatantBySide(combatants, "player");
+  const enemy = getBattleCombatantBySide(combatants, "enemy");
+  const cardState = cards.find(
+    (entry) => entry.instanceId === instanceId && entry.zone === "hand",
+  );
+
+  if (!cardState) {
+    throw new SenderError(`Battle card ${instanceId} is not available in hand`);
+  }
+
+  const card = getBattleCardInternal(cardState.cardId);
+  if (player.ap < card.costAp) {
+    throw new SenderError("Not enough AP to play this card");
+  }
+
+  player.ap -= card.costAp;
+  const history: string[] = [];
+  applyBattleCardEffectsInternal(
+    player,
+    enemy,
+    card,
+    cards,
+    scenario.labels,
+    history,
+  );
+  moveBattleCardToDiscard(cards, instanceId);
+
+  if (enemy.resolve <= 0) {
+    resolveBattleOutcomeInternal(
+      ctx,
+      session,
+      scenario,
+      player,
+      enemy,
+      cards,
+      "victory",
+      history,
+    );
+    return;
+  }
+
+  replaceBattleCombatants(ctx, session.sessionKey, [player, enemy]);
+  replaceBattleCards(ctx, session.sessionKey, cards, player, "player_turn");
+  appendBattleHistory(ctx, session.sessionKey, Number(session.turnCount), "player_action", history);
+
+  emitTelemetry(ctx, "battle_card_played", {
+    scenarioId: scenario.id,
+    cardId: card.id,
+  });
+};
+
+export const endBattleTurnInternal = (ctx: any): void => {
+  const session = getActiveBattleSession(ctx);
+  if (session.phase !== "player_turn" || session.status !== "active") {
+    throw new SenderError("Battle is not ready to end the turn");
+  }
+
+  const scenario = getBattleScenarioInternal(session.scenarioId);
+  const combatants = readBattleCombatants(ctx, session.sessionKey);
+  const cards = readBattleCards(ctx, session.sessionKey);
+  const player = getBattleCombatantBySide(combatants, "player");
+  const enemy = getBattleCombatantBySide(combatants, "enemy");
+  const enemyCard = nextBattleIntentCard(
+    scenario,
+    Number(session.enemyIntentCursor),
+  );
+
+  const history: string[] = ["You concede the floor for a moment."];
+  player.block = 0;
+
+  if (enemyCard) {
+    applyBattleCardEffectsInternal(
+      enemy,
+      player,
+      enemyCard,
+      cards,
+      scenario.labels,
+      history,
+    );
+  }
+
+  const nextCursor = Number(session.enemyIntentCursor) + (enemyCard ? 1 : 0);
+
+  if (player.resolve <= 0) {
+    enemy.nextIntentCardId = undefined;
+    enemy.nextIntentLabel = undefined;
+    enemy.nextIntentSummary = undefined;
+    resolveBattleOutcomeInternal(
+      ctx,
+      session,
+      scenario,
+      player,
+      enemy,
+      cards,
+      "defeat",
+      history,
+    );
+    return;
+  }
+
+  enemy.block = 0;
+  player.ap = player.maxAp;
+  const drawn = drawBattleCards(cards, Number(session.drawPerTurn));
+  if (drawn > 0) {
+    history.push(`You draw ${drawn} card${drawn === 1 ? "" : "s"} for the next exchange.`);
+  }
+
+  setEnemyIntentPreview(enemy, scenario, nextCursor);
+
+  ctx.db.battleSession.sessionKey.update({
+    ...session,
+    phase: "player_turn",
+    status: "active",
+    turnCount: Number(session.turnCount) + 1,
+    enemyIntentCursor: nextCursor,
+    updatedAt: ctx.timestamp,
+  });
+
+  replaceBattleCombatants(ctx, session.sessionKey, [player, enemy]);
+  replaceBattleCards(ctx, session.sessionKey, cards, player, "player_turn");
+  appendBattleHistory(
+    ctx,
+    session.sessionKey,
+    Number(session.turnCount) + 1,
+    "enemy_turn",
+    history,
+  );
+
+  emitTelemetry(ctx, "battle_turn_ended", {
+    scenarioId: scenario.id,
+    turnCount: Number(session.turnCount) + 1,
+  });
+};
+
+export const closeBattleModeInternal = (ctx: any): void => {
+  const session = getActiveBattleSession(ctx);
+
+  ctx.db.battleSession.sessionKey.update({
+    ...session,
+    phase: "closed",
+    status: "closed",
+    updatedAt: ctx.timestamp,
+    closedAt: ctx.timestamp,
+  });
+
+  emitTelemetry(ctx, "battle_mode_closed", {
+    scenarioId: session.scenarioId,
+    returnTab: session.returnTab,
+  });
+};
+
 export const applyEffects = (
   ctx: any,
   effects: VnEffect[] | undefined,
@@ -1769,6 +4084,9 @@ export const applyEffects = (
   }
 
   for (const effect of effects) {
+    const sourceTab =
+      source?.sourceType && source.sourceType.startsWith("vn_") ? "vn" : "map";
+
     if (effect.type === "set_flag") {
       upsertFlag(ctx, effect.key, effect.value);
       continue;
@@ -1785,6 +4103,28 @@ export const applyEffects = (
       upsertLocation(ctx, effect.locationId);
       continue;
     }
+    if (effect.type === "open_command_mode") {
+      openCommandModeInternal(ctx, effect.scenarioId, {
+        returnTab: effect.returnTab,
+        sourceTab,
+      });
+      continue;
+    }
+    if (effect.type === "open_battle_mode") {
+      openBattleModeInternal(ctx, effect.scenarioId, {
+        returnTab: effect.returnTab,
+        sourceTab,
+        sourceContextId: source?.sourceId,
+        sourceScenarioId: extractSourceScenarioId(source),
+      });
+      continue;
+    }
+    if (effect.type === "spawn_map_event") {
+      spawnMapEventInternal(ctx, effect.templateId, {
+        ttlMinutes: effect.ttlMinutes,
+      });
+      continue;
+    }
     if (effect.type === "track_event") {
       emitTelemetry(ctx, effect.eventName, effect.tags ?? {}, effect.value);
       continue;
@@ -1794,6 +4134,59 @@ export const applyEffects = (
         sourceType: source?.sourceType ?? "vn_effect",
         sourceId: source?.sourceId ?? `${effect.caseId}::${effect.factId}`,
       });
+      continue;
+    }
+    if (effect.type === "shift_awakening") {
+      const currentAwakening = getVar(ctx, MYSTIC_AWAKENING_VAR);
+      const currentBuffer = Math.max(0, getVar(ctx, MYSTIC_RATIONALIST_BUFFER_VAR));
+      const dampening =
+        effect.amount > 0 ? Math.min(effect.amount, currentBuffer) : 0;
+      const nextAwakening = clampNumber(
+        currentAwakening + effect.amount - dampening,
+        0,
+        100,
+      );
+      upsertVar(ctx, MYSTIC_AWAKENING_VAR, nextAwakening);
+      if (dampening > 0) {
+        upsertVar(ctx, MYSTIC_RATIONALIST_BUFFER_VAR, currentBuffer - dampening);
+      }
+      if (effect.exposureDelta !== undefined) {
+        upsertVar(
+          ctx,
+          MYSTIC_EXPOSURE_VAR,
+          Math.max(0, getVar(ctx, MYSTIC_EXPOSURE_VAR) + effect.exposureDelta),
+        );
+      }
+      continue;
+    }
+    if (effect.type === "record_entity_observation") {
+      upsertFlag(ctx, `mystic_obs_${effect.observationId}`, true);
+      if (effect.entityArchetypeId) {
+        upsertFlag(ctx, `mystic_entity_${effect.entityArchetypeId}`, true);
+      }
+      for (const signatureId of effect.signatureIds ?? []) {
+        upsertFlag(ctx, `mystic_signature_${signatureId}`, true);
+      }
+      continue;
+    }
+    if (effect.type === "unlock_distortion_point") {
+      upsertFlag(ctx, `mystic_distortion_${effect.pointId}`, true);
+      continue;
+    }
+    if (effect.type === "set_sight_mode") {
+      upsertVar(ctx, MYSTIC_SIGHT_MODE_VAR, sightModeTier(effect.mode));
+      continue;
+    }
+    if (effect.type === "apply_rationalist_buffer") {
+      const nextBuffer = Math.max(
+        0,
+        getVar(ctx, MYSTIC_RATIONALIST_BUFFER_VAR) + effect.amount,
+      );
+      upsertVar(ctx, MYSTIC_RATIONALIST_BUFFER_VAR, nextBuffer);
+      continue;
+    }
+    if (effect.type === "tag_entity_signature") {
+      upsertFlag(ctx, `mystic_signature_${effect.signatureId}`, true);
       continue;
     }
 
@@ -1868,6 +4261,27 @@ export const applyEffects = (
           playerId: ctx.sender,
           evidenceId: effect.evidenceId,
           discoveredAt: ctx.timestamp,
+        });
+      }
+      continue;
+    }
+
+    if (effect.type === "grant_item") {
+      const inventoryKey = createInventoryKey(ctx.sender, effect.itemId);
+      const existing = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
+      if (existing) {
+        ctx.db.playerInventory.inventoryKey.update({
+          ...existing,
+          quantity: existing.quantity + effect.quantity,
+          updatedAt: ctx.timestamp,
+        });
+      } else {
+        ctx.db.playerInventory.insert({
+          inventoryKey,
+          playerId: ctx.sender,
+          itemId: effect.itemId,
+          quantity: effect.quantity,
+          updatedAt: ctx.timestamp,
         });
       }
       continue;
@@ -2038,6 +4452,303 @@ export const deactivateContentVersions = (ctx: any): void => {
       publishedAt: ctx.timestamp,
     });
   }
+};
+
+const MAP_EVENT_STATUS_ACTIVE = "active";
+const MAP_EVENT_STATUS_EXPIRED = "expired";
+const MAP_EVENT_STATUS_RESOLVED = "resolved";
+
+const isExpiredAt = (timestamp: Timestamp, now: Timestamp): boolean =>
+  timestamp.microsSinceUnixEpoch <= now.microsSinceUnixEpoch;
+
+export const parseStoredMapEventPayload = (
+  payloadJson: string,
+): { point: MapPoint } => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(payloadJson);
+  } catch (_error) {
+    throw new SenderError("map event payloadJson must be valid JSON");
+  }
+
+  const payload = asRecord(parsed, "map event payloadJson");
+  if (!isMapPoint(payload.point) || payload.point.category !== "EPHEMERAL") {
+    throw new SenderError("map event payloadJson has invalid shape");
+  }
+
+  return {
+    point: payload.point,
+  };
+};
+
+const resolveMapEventTemplate = (
+  snapshot: VnSnapshot,
+  templateId: string,
+): MapEventTemplate => {
+  const template = snapshot.map?.mapEventTemplates?.find(
+    (entry) => entry.id === templateId,
+  );
+  if (!template) {
+    throw new SenderError(`Unknown map event template: ${templateId}`);
+  }
+
+  return template;
+};
+
+const resolveMapEventTtlMinutes = (
+  snapshot: VnSnapshot,
+  template: MapEventTemplate,
+  ttlMinutes?: number,
+): number => {
+  const resolved =
+    ttlMinutes ??
+    template.ttlMinutes ??
+    snapshot.map?.testDefaults?.defaultEventTtlMinutes ??
+    15;
+
+  if (!Number.isFinite(resolved) || resolved <= 0) {
+    throw new SenderError("map event ttlMinutes must be a positive number");
+  }
+
+  return resolved;
+};
+
+export const cleanupExpiredMapEvents = (ctx: any): void => {
+  for (const row of ctx.db.playerMapEvent.iter()) {
+    if (row.playerId.toHexString() !== ctx.sender.toHexString()) {
+      continue;
+    }
+    if (row.status !== MAP_EVENT_STATUS_ACTIVE) {
+      continue;
+    }
+    if (!isExpiredAt(row.expiresAt, ctx.timestamp)) {
+      continue;
+    }
+
+    ctx.db.playerMapEvent.eventId.update({
+      ...row,
+      status: MAP_EVENT_STATUS_EXPIRED,
+      resolvedAt: undefined,
+    });
+  }
+};
+
+export const listPlayerMapEvents = (ctx: any): any[] =>
+  [...ctx.db.playerMapEvent.iter()].filter(
+    (row) => row.playerId.toHexString() === ctx.sender.toHexString(),
+  );
+
+export const getPlayerActiveMapEventByEventId = (
+  ctx: any,
+  eventId: string,
+): any | null => {
+  const row = ctx.db.playerMapEvent.eventId.find(eventId);
+  if (!row || row.playerId.toHexString() !== ctx.sender.toHexString()) {
+    return null;
+  }
+  if (row.status !== MAP_EVENT_STATUS_ACTIVE) {
+    return null;
+  }
+  if (isExpiredAt(row.expiresAt, ctx.timestamp)) {
+    return null;
+  }
+  return row;
+};
+
+export const markMapEventResolved = (ctx: any, eventId: string): void => {
+  const existing = ctx.db.playerMapEvent.eventId.find(eventId);
+  if (
+    !existing ||
+    existing.playerId.toHexString() !== ctx.sender.toHexString()
+  ) {
+    return;
+  }
+  if (existing.status !== MAP_EVENT_STATUS_ACTIVE) {
+    return;
+  }
+
+  ctx.db.playerMapEvent.eventId.update({
+    ...existing,
+    status: MAP_EVENT_STATUS_RESOLVED,
+    resolvedAt: ctx.timestamp,
+  });
+};
+
+export const spawnMapEventInternal = (
+  ctx: any,
+  templateId: string,
+  options?: {
+    ttlMinutes?: number;
+    sourceLocationId?: string;
+    snapshot?: VnSnapshot;
+    snapshotChecksum?: string;
+  },
+): any => {
+  ensurePlayerProfile(ctx);
+  cleanupExpiredMapEvents(ctx);
+
+  const activeSnapshot =
+    options?.snapshot && options?.snapshotChecksum
+      ? {
+          snapshot: options.snapshot,
+          activeVersion: { checksum: options.snapshotChecksum },
+        }
+      : getActiveSnapshot(ctx);
+  const template = resolveMapEventTemplate(activeSnapshot.snapshot, templateId);
+
+  const existingActive = listPlayerMapEvents(ctx).find(
+    (row) =>
+      row.templateId === templateId &&
+      row.status === MAP_EVENT_STATUS_ACTIVE &&
+      !isExpiredAt(row.expiresAt, ctx.timestamp),
+  );
+  if (existingActive) {
+    return existingActive;
+  }
+
+  const ttlMinutes = resolveMapEventTtlMinutes(
+    activeSnapshot.snapshot,
+    template,
+    options?.ttlMinutes,
+  );
+  const ttlMicros = BigInt(Math.round(ttlMinutes * 60 * 1_000_000));
+  let attempt = 0;
+  let eventId = createMapEventKey(
+    ctx.sender,
+    templateId,
+    ctx.timestamp.microsSinceUnixEpoch,
+    attempt,
+  );
+  while (ctx.db.playerMapEvent.eventId.find(eventId)) {
+    attempt += 1;
+    eventId = createMapEventKey(
+      ctx.sender,
+      templateId,
+      ctx.timestamp.microsSinceUnixEpoch,
+      attempt,
+    );
+  }
+
+  const row = {
+    eventId,
+    playerId: ctx.sender,
+    templateId,
+    snapshotChecksum: activeSnapshot.activeVersion.checksum,
+    payloadJson: JSON.stringify({ point: template.point }),
+    sourceLocationId: options?.sourceLocationId ?? template.point.locationId,
+    status: MAP_EVENT_STATUS_ACTIVE,
+    spawnedAt: ctx.timestamp,
+    expiresAt: new Timestamp(ctx.timestamp.microsSinceUnixEpoch + ttlMicros),
+    resolvedAt: undefined,
+  };
+  ctx.db.playerMapEvent.insert(row);
+  emitTelemetry(ctx, "map_event_spawned", {
+    templateId,
+    eventId,
+    sourceLocationId: row.sourceLocationId,
+    snapshotChecksum: row.snapshotChecksum,
+  });
+
+  return row;
+};
+
+const rightRotate = (value: number, amount: number): number =>
+  (value >>> amount) | (value << (32 - amount));
+
+export const sha256Hex = (input: string): string => {
+  const normalized = unescape(encodeURIComponent(input));
+  const bytes = Array.from(normalized, (char) => char.charCodeAt(0));
+  const bitLength = bytes.length * 8;
+
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) {
+    bytes.push(0);
+  }
+
+  const upper = Math.floor(bitLength / 0x100000000);
+  const lower = bitLength >>> 0;
+  for (const shift of [24, 16, 8, 0]) {
+    bytes.push((upper >>> shift) & 0xff);
+  }
+  for (const shift of [24, 16, 8, 0]) {
+    bytes.push((lower >>> shift) & 0xff);
+  }
+
+  const words = new Array<number>(64);
+  const hash = [
+    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c,
+    0x1f83d9ab, 0x5be0cd19,
+  ];
+  const primes = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
+    0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+    0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786,
+    0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147,
+    0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+    0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
+    0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a,
+    0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+    0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+  ];
+
+  for (let offset = 0; offset < bytes.length; offset += 64) {
+    for (let index = 0; index < 16; index += 1) {
+      const base = offset + index * 4;
+      words[index] =
+        (bytes[base] << 24) |
+        (bytes[base + 1] << 16) |
+        (bytes[base + 2] << 8) |
+        bytes[base + 3];
+    }
+    for (let index = 16; index < 64; index += 1) {
+      const s0 =
+        rightRotate(words[index - 15], 7) ^
+        rightRotate(words[index - 15], 18) ^
+        (words[index - 15] >>> 3);
+      const s1 =
+        rightRotate(words[index - 2], 17) ^
+        rightRotate(words[index - 2], 19) ^
+        (words[index - 2] >>> 10);
+      words[index] =
+        (((words[index - 16] + s0) | 0) + ((words[index - 7] + s1) | 0)) | 0;
+    }
+
+    let [a, b, c, d, e, f, g, h] = hash;
+    for (let index = 0; index < 64; index += 1) {
+      const s1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
+      const ch = (e & f) ^ (~e & g);
+      const temp1 =
+        (((((h + s1) | 0) + ch) | 0) + ((primes[index] + words[index]) | 0)) |
+        0;
+      const s0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const temp2 = (s0 + maj) | 0;
+
+      h = g;
+      g = f;
+      f = e;
+      e = (d + temp1) | 0;
+      d = c;
+      c = b;
+      b = a;
+      a = (temp1 + temp2) | 0;
+    }
+
+    hash[0] = (hash[0] + a) | 0;
+    hash[1] = (hash[1] + b) | 0;
+    hash[2] = (hash[2] + c) | 0;
+    hash[3] = (hash[3] + d) | 0;
+    hash[4] = (hash[4] + e) | 0;
+    hash[5] = (hash[5] + f) | 0;
+    hash[6] = (hash[6] + g) | 0;
+    hash[7] = (hash[7] + h) | 0;
+  }
+
+  return hash
+    .map((value) => (value >>> 0).toString(16).padStart(8, "0"))
+    .join("");
 };
 
 export const parseRequiredFactIdsJson = (

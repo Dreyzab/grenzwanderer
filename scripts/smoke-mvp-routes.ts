@@ -3,6 +3,11 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { DbConnection } from "../src/module_bindings";
+import {
+  closeBattleIfOpen,
+  getCurrentBattleSession,
+  playOutBattle,
+} from "./battle-smoke-helpers";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
@@ -94,10 +99,16 @@ const startScenarioWithRetry = async (
   }
 };
 
+type ScenarioStep = {
+  nodeId: string;
+  choiceId: string;
+  passiveChecks?: string[];
+};
+
 const runScenarioPath = async (
   conn: DbConnection,
   scenarioId: string,
-  steps: ReadonlyArray<{ nodeId: string; choiceId: string }>,
+  steps: ReadonlyArray<ScenarioStep>,
 ): Promise<void> => {
   if (!scenarioIds.has(scenarioId)) {
     throw new Error(`Scenario ${scenarioId} is missing in snapshot`);
@@ -105,6 +116,15 @@ const runScenarioPath = async (
   await startScenarioWithRetry(conn, scenarioId);
 
   for (const step of steps) {
+    if (step.passiveChecks) {
+      for (const checkId of step.passiveChecks) {
+        await conn.reducers.performSkillCheck({
+          requestId: nextRequestId(`check_${scenarioId}_${checkId}`),
+          scenarioId,
+          checkId,
+        });
+      }
+    }
     const choiceId = resolveChoiceId(step.nodeId, step.choiceId);
     await conn.reducers.recordChoice({
       requestId: nextRequestId(`choice_${scenarioId}`),
@@ -174,18 +194,59 @@ const runSmoke = async () =>
               .subscriptionBuilder()
               .onApplied(() => resolveSync())
               .subscribe([
+                "SELECT * FROM battle_session",
+                "SELECT * FROM battle_combatant",
+                "SELECT * FROM battle_card_instance",
                 "SELECT * FROM player_quest",
                 "SELECT * FROM player_flag",
+                "SELECT * FROM player_var",
                 "SELECT * FROM vn_session",
               ]);
           });
 
+          const playerHex = identity.toHexString();
+          await closeBattleIfOpen(conn, playerHex, nextRequestId);
+          await conn.reducers.setFlag({ key: "son_duel_done", value: false });
+          await conn.reducers.setFlag({ key: "son_duel_won", value: false });
+          await conn.reducers.setFlag({ key: "son_duel_lost", value: false });
+
           await runScenarioPath(conn, "sandbox_banker_pilot", [
-            { nodeId: "scene_bank_intro", choiceId: "BANK_INTRO_ACCEPT" },
+            {
+              nodeId: "scene_bank_intro",
+              passiveChecks: ["check_bank_first_impression"],
+              choiceId: "BANK_INTRO_ACCEPT",
+            },
             { nodeId: "scene_bank_intro_ch1", choiceId: "BANK_CH1_CONTINUE" },
             { nodeId: "scene_bank_leads", choiceId: "BANK_LEAD_HOUSE" },
             { nodeId: "scene_bank_leads", choiceId: "BANK_LEAD_CASINO" },
           ]);
+
+          const bankerBattle = getCurrentBattleSession(conn, playerHex);
+          if (!bankerBattle || bankerBattle.scenarioId !== "sandbox_son_duel") {
+            throw new Error("Banker route did not open sandbox_son_duel");
+          }
+
+          const resolvedBattle = await playOutBattle(
+            conn,
+            playerHex,
+            nextRequestId,
+            "victory",
+          );
+          if (resolvedBattle.resultType !== "victory") {
+            throw new Error("Banker MVP route battle did not resolve to victory");
+          }
+
+          await conn.reducers.closeBattleMode({
+            requestId: nextRequestId("close_banker_battle"),
+          });
+          await conn.reducers.recordChoice({
+            requestId: nextRequestId("banker_resolution"),
+            scenarioId: "sandbox_banker_pilot",
+            choiceId: resolveChoiceId(
+              "scene_bank_resolution",
+              "BANK_RESOLUTION_WIN",
+            ),
+          });
 
           await runScenarioPath(conn, "sandbox_dog_pilot", [
             { nodeId: "scene_dog_briefing", choiceId: "DOG_BRIEFING_CONTINUE" },
@@ -194,15 +255,41 @@ const runSmoke = async () =>
               nodeId: "scene_dog_market_encounter",
               choiceId: "DOG_MARKET_QUIET_NOTE",
             },
+            {
+              nodeId: "scene_dog_market_beat2",
+              choiceId: "DOG_MARKET_BEAT2_RETURN",
+            },
             { nodeId: "scene_dog_leads", choiceId: "DOG_LEAD_STATION" },
             {
               nodeId: "scene_dog_station_encounter",
               choiceId: "DOG_STATION_INTERVIEW",
             },
+            {
+              nodeId: "scene_dog_station_beat2",
+              choiceId: "DOG_STATION_BEAT2_RETURN",
+            },
+            { nodeId: "scene_dog_leads", choiceId: "DOG_LEAD_TAILOR" },
+            {
+              nodeId: "scene_dog_tailor_encounter",
+              choiceId: "DOG_TAILOR_AUDIT_BOOKS",
+            },
+            {
+              nodeId: "scene_dog_tailor_beat2",
+              choiceId: "DOG_TAILOR_BEAT2_RETURN",
+            },
             { nodeId: "scene_dog_leads", choiceId: "DOG_LEAD_UNI" },
             {
               nodeId: "scene_dog_uni_encounter",
               choiceId: "DOG_UNI_ARCHIVE_REQUEST",
+            },
+            { nodeId: "scene_dog_leads", choiceId: "DOG_LEAD_PUB" },
+            {
+              nodeId: "scene_dog_pub_encounter",
+              choiceId: "DOG_PUB_TRUST_BARTENDER",
+            },
+            {
+              nodeId: "scene_dog_pub_beat2",
+              choiceId: "DOG_PUB_BEAT2_RETURN",
             },
             { nodeId: "scene_dog_leads", choiceId: "DOG_LEAD_REUNION" },
             {
@@ -227,6 +314,7 @@ const runSmoke = async () =>
             },
             {
               nodeId: "scene_evidence_collection",
+              passiveChecks: ["check_ghost_cold_draft"],
               choiceId: "GHOST_EVIDENCE_BOOKSHELF",
             },
             {
@@ -243,12 +331,12 @@ const runSmoke = async () =>
             },
           ]);
 
-          const playerHex = identity.toHexString();
           assertQuestStageAtLeast(conn, playerHex, "quest_banker", 3);
-          assertQuestStageAtLeast(conn, playerHex, "quest_dog", 3);
+          assertQuestStageAtLeast(conn, playerHex, "quest_dog", 2);
           assertQuestStageAtLeast(conn, playerHex, "quest_ghost", 3);
 
-          assertFlagTrue(conn, playerHex, "dog_case_closed");
+          assertFlagTrue(conn, playerHex, "banker_case_closed");
+          assertFlagTrue(conn, playerHex, "dog_reunion_reached");
           assertFlagTrue(conn, playerHex, "ghost_case_closed");
           assertFlagTrue(conn, playerHex, "ghost_truth_proven");
 

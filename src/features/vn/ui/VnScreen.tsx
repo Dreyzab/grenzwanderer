@@ -1,8 +1,13 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useReducer, useTable } from "spacetimedb/react";
+import { Volume2, VolumeX } from "lucide-react";
 import { usePlayerFlags } from "../../../entities/player/hooks/usePlayerFlags";
 import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
 import { getVnStrings } from "../../i18n/uiStrings";
+import {
+  calculateSkillCheckSuccessPercent,
+  resolveSkillCheckDiceMode,
+} from "../checkChance";
 import { useCurrentNode } from "../hooks/useCurrentNode";
 import { useVnSession } from "../hooks/useVnSession";
 import { resolveCompletionRoute } from "../completionRoute";
@@ -17,9 +22,13 @@ import {
   getNodeById,
   getScenarioById,
   isChoiceAvailable,
+  isChoiceVisible,
   parseSnapshot,
 } from "../vnContent";
-import type { VnChoice, VnScenario, VnSkillCheck, VnSnapshot } from "../types";
+import {
+  formatSkillCheckVoiceLabel,
+} from "../skillCheckPalette";
+import type { VnChoice, VnScenario, VnSnapshot } from "../types";
 import { VnChoiceButton } from "./VnChoiceButton";
 import {
   VnPassiveCheckBanner,
@@ -27,11 +36,17 @@ import {
 } from "./VnPassiveCheckBanner";
 import { OriginChoiceCards } from "./OriginChoiceCards";
 import {
-  VnSkillCheckToast,
-  type VnSkillCheckToastData,
-} from "./VnSkillCheckToast";
+  VnSkillCheckResolveOverlay,
+  type FrozenSkillCheckPresentation,
+  type VnSkillCheckResolveState,
+} from "./VnSkillCheckResolveOverlay";
 import type { TypedTextHandle } from "./TypedText";
 import { resolveBackgroundUrl } from "./VnBackgroundResolver";
+import {
+  playVnSkillCheckSfx,
+  readVnSfxMuted,
+  writeVnSfxMuted,
+} from "./vnSkillCheckAudio";
 import { VnNarrativePanel } from "../../../widgets/vn-overlay/VnNarrativePanel";
 
 interface VnScreenProps {
@@ -39,7 +54,15 @@ interface VnScreenProps {
   initialScenarioId?: string;
   onScenarioChange?: (scenarioId: string) => void;
   onNavigateTab?: (
-    tab: "home" | "vn" | "character" | "map" | "mind_palace" | "dev",
+    tab:
+      | "home"
+      | "vn"
+      | "character"
+      | "map"
+      | "mind_palace"
+      | "dev"
+      | "command"
+      | "battle",
   ) => void;
 }
 
@@ -48,6 +71,17 @@ interface AwaitingSkillChoice {
   nodeId: string;
   choiceId: string;
   checkId: string;
+  choiceText: string;
+  voiceId: string;
+  voiceLabel: string;
+  diceMode: "d20" | "d10";
+  chancePercent?: number;
+  frozen: FrozenSkillCheckPresentation;
+}
+
+interface ActiveSkillSequence {
+  startedAt: number;
+  token: number;
 }
 
 type TransitionState =
@@ -59,6 +93,9 @@ type TransitionState =
 
 const AUTO_CONTINUE_PREFIX = "AUTO_CONTINUE_";
 const TAP_CONTINUE_COOLDOWN_MS = 220;
+const ACTIVE_SKILL_ARMING_MS = 300;
+const ACTIVE_SKILL_ROLLING_MS = 1200;
+const ACTIVE_SKILL_IMPACT_MS = 500;
 
 const createRequestId = (): string => {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -83,10 +120,7 @@ const formatSpeaker = (characterId?: string): string => {
 };
 
 const formatVoiceLabel = (voiceId: string): string =>
-  voiceId
-    .replace(/^attr_/, "")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (entry) => entry.toUpperCase());
+  formatSkillCheckVoiceLabel(voiceId);
 
 const buildCheckKey = (
   scenarioId: string,
@@ -159,6 +193,14 @@ const sessionPointer = (session: VnSession | null): string | null => {
   return `${session.nodeId}::${updatedToken}`;
 };
 
+const waitMs = (time: number): Promise<void> =>
+  new Promise((resolve) => {
+    window.setTimeout(resolve, time);
+  });
+
+const nowMs = (): number =>
+  typeof performance !== "undefined" ? performance.now() : Date.now();
+
 export const VnScreen = ({
   onOpenDebug,
   initialScenarioId,
@@ -182,6 +224,7 @@ export const VnScreen = ({
   const [statusLine, setStatusLine] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [isSfxMuted, setIsSfxMuted] = useState(() => readVnSfxMuted());
   const [pendingChoiceId, setPendingChoiceId] = useState<string | null>(null);
   const [awaitingSkillChoice, setAwaitingSkillChoice] =
     useState<AwaitingSkillChoice | null>(null);
@@ -191,27 +234,30 @@ export const VnScreen = ({
   const [visitedChoiceKeys, setVisitedChoiceKeys] = useState<
     Record<string, true>
   >({});
-  const [toastQueue, setToastQueue] = useState<VnSkillCheckToastData[]>([]);
-  const [activeToast, setActiveToast] = useState<VnSkillCheckToastData | null>(
-    null,
-  );
+  const [activeSkillResolve, setActiveSkillResolve] =
+    useState<VnSkillCheckResolveState | null>(null);
 
   const typedTextRef = useRef<TypedTextHandle>(null);
-  const seenSkillResultKeysRef = useRef<Set<string>>(new Set());
-  const primedScenarioRef = useRef<string | null>(null);
   const passiveInFlightRef = useRef<Set<string>>(new Set());
   const autoStartAttemptedRef = useRef<Set<string>>(new Set());
   const autoStartInFlightRef = useRef<Set<string>>(new Set());
   const mapFallbackTriggeredRef = useRef<Set<string>>(new Set());
   const choiceSessionPointerRef = useRef<string | null>(null);
   const typingFinishedAtRef = useRef(0);
+  const activeSkillTokenRef = useRef(0);
+  const activeSkillSequenceRef = useRef<ActiveSkillSequence | null>(null);
+  const activeSkillSkipTokenRef = useRef(0);
+  const activeSkillSfxTokenRef = useRef(0);
 
   const myFlags = usePlayerFlags();
   const myVars = usePlayerVars();
   const uiLanguage = useUiLanguage(myFlags);
   const t = useMemo(() => getVnStrings(uiLanguage), [uiLanguage]);
 
-  const contentReady = versionsReady && snapshotsReady;
+  useEffect(() => {
+    writeVnSfxMuted(isSfxMuted);
+  }, [isSfxMuted]);
+
   const activeVersion = useMemo(
     () => versions.find((entry) => entry.isActive) ?? null,
     [versions],
@@ -231,6 +277,8 @@ export const VnScreen = ({
 
     return parseSnapshot(snapshotRow.payloadJson);
   }, [activeVersion, snapshots]);
+  const contentReady =
+    (versionsReady && snapshotsReady) || Boolean(activeVersion && snapshot);
 
   useEffect(() => {
     if (!snapshot || snapshot.scenarios.length === 0 || selectedScenarioId) {
@@ -288,7 +336,12 @@ export const VnScreen = ({
     setFailedChoiceKeys({});
     setTransitionState("idle");
     setError(null);
+    setActiveSkillResolve(null);
     choiceSessionPointerRef.current = null;
+    activeSkillTokenRef.current += 1;
+    activeSkillSequenceRef.current = null;
+    activeSkillSkipTokenRef.current = 0;
+    activeSkillSfxTokenRef.current = 0;
     if (selectedScenarioId) {
       mapFallbackTriggeredRef.current.delete(selectedScenarioId);
     }
@@ -347,32 +400,28 @@ export const VnScreen = ({
     [identityHex, selectedScenarioId, skillResults],
   );
 
-  const scenarioCheckLookup = useMemo(() => {
-    const lookup = new Map<string, VnSkillCheck>();
+  const currentDiceMode = useMemo(
+    () =>
+      snapshot && selectedScenarioId
+        ? resolveSkillCheckDiceMode(snapshot, selectedScenarioId)
+        : "d20",
+    [selectedScenarioId, snapshot],
+  );
 
-    if (!snapshot || !selectedScenario) {
-      return lookup;
-    }
-
-    for (const nodeId of selectedScenario.nodeIds) {
-      const node = getNodeById(snapshot, nodeId);
-      if (!node) {
-        continue;
+  const getChoiceChancePercent = useCallback(
+    (choice: VnChoice): number | undefined => {
+      if (!choice.skillCheck?.showChancePercent) {
+        return undefined;
       }
 
-      for (const check of node.passiveChecks ?? []) {
-        lookup.set(`${node.id}::${check.id}`, check);
-      }
-
-      for (const choice of node.choices) {
-        if (choice.skillCheck) {
-          lookup.set(`${node.id}::${choice.skillCheck.id}`, choice.skillCheck);
-        }
-      }
-    }
-
-    return lookup;
-  }, [selectedScenario, snapshot]);
+      return calculateSkillCheckSuccessPercent({
+        diceMode: currentDiceMode,
+        difficulty: choice.skillCheck.difficulty,
+        voiceLevel: myVars[choice.skillCheck.voiceId] ?? 0,
+      });
+    },
+    [currentDiceMode, myVars],
+  );
 
   const completionRoute = useMemo(() => {
     if (!sessionsReady) {
@@ -545,55 +594,6 @@ export const VnScreen = ({
     void runCompletionTransition();
   }, [isScenarioCompleted, runCompletionTransition, t.sceneCompleted]);
 
-  useEffect(() => {
-    if (!selectedScenarioId) {
-      return;
-    }
-
-    if (primedScenarioRef.current !== selectedScenarioId) {
-      primedScenarioRef.current = selectedScenarioId;
-      seenSkillResultKeysRef.current = new Set(
-        mySkillResults.map((entry) => entry.resultKey),
-      );
-      setToastQueue([]);
-      setActiveToast(null);
-      return;
-    }
-
-    const additions: VnSkillCheckToastData[] = [];
-    for (const result of mySkillResults) {
-      if (seenSkillResultKeysRef.current.has(result.resultKey)) {
-        continue;
-      }
-
-      seenSkillResultKeysRef.current.add(result.resultKey);
-      const check = scenarioCheckLookup.get(
-        `${result.nodeId}::${result.checkId}`,
-      );
-      additions.push({
-        resultKey: result.resultKey,
-        checkId: result.checkId,
-        voiceLabel: formatVoiceLabel(check?.voiceId ?? result.checkId),
-        roll: result.roll,
-        voiceLevel: result.voiceLevel,
-        difficulty: result.difficulty,
-        passed: result.passed,
-      });
-    }
-
-    if (additions.length > 0) {
-      setToastQueue((previous) => [...previous, ...additions]);
-    }
-  }, [mySkillResults, scenarioCheckLookup, selectedScenarioId]);
-
-  useEffect(() => {
-    if (activeToast || toastQueue.length === 0) {
-      return;
-    }
-    setActiveToast(toastQueue[0]);
-    setToastQueue((previous) => previous.slice(1));
-  }, [activeToast, toastQueue]);
-
   const passiveCheckItems = useMemo<PassiveCheckDisplay[]>(() => {
     if (!currentNode) {
       return [];
@@ -719,6 +719,270 @@ export const VnScreen = ({
     [currentSessionPointer, recordChoice, t.choiceApplied],
   );
 
+  const createFrozenSkillCheckPresentation =
+    useCallback((): FrozenSkillCheckPresentation => {
+      const fallbackSpeakerLabel = formatSpeaker(currentNode?.characterId);
+
+      return {
+        locationName: selectedScenario?.title ?? t.unknownScenario,
+        characterName:
+          fallbackSpeakerLabel === "Narrator" ? undefined : fallbackSpeakerLabel,
+        narrativeText: currentNode
+          ? normalizeBody(currentNode.body)
+          : sessionReady
+            ? ""
+            : t.sessionHydrating,
+        backgroundImageUrl:
+          resolveBackgroundUrl(
+            currentNode?.backgroundUrl,
+            selectedScenario?.defaultBackgroundUrl,
+          ) ?? undefined,
+        visibleChoices:
+          currentNode?.choices.filter(
+            (choice) =>
+              !isAutoContinueChoice(choice) &&
+              isChoiceVisible(choice, myFlags, myVars),
+          ) ?? [],
+        autoContinueChoice:
+          currentNode?.choices.find(
+            (choice) =>
+              isAutoContinueChoice(choice) &&
+              isChoiceVisible(choice, myFlags, myVars),
+          ) ?? null,
+        showOriginCards:
+          selectedScenarioId === "sandbox_intro_pilot" &&
+          currentNode?.id === "scene_backstory_select",
+        isScenarioCompleted: Boolean(
+          mySession &&
+            currentNode &&
+            currentNode.terminal &&
+            hasOptionalValue(mySession.completedAt),
+        ),
+      };
+    }, [
+      currentNode,
+      myFlags,
+      mySession,
+      myVars,
+      selectedScenario,
+      selectedScenarioId,
+      sessionReady,
+      t.sessionHydrating,
+      t.unknownScenario,
+    ]);
+
+  const cancelActiveSkillResolve = useCallback(() => {
+    activeSkillTokenRef.current += 1;
+    activeSkillSequenceRef.current = null;
+    activeSkillSkipTokenRef.current = 0;
+    activeSkillSfxTokenRef.current = 0;
+    setActiveSkillResolve(null);
+  }, []);
+
+  const playActiveSkillImpactSfx = useCallback(
+    (passed: boolean, token: number) => {
+      if (isSfxMuted || activeSkillSfxTokenRef.current === token) {
+        return;
+      }
+
+      activeSkillSfxTokenRef.current = token;
+      void playVnSkillCheckSfx(passed, false);
+    },
+    [isSfxMuted],
+  );
+
+  const buildResolvedSkillState = useCallback(
+    (
+      pending: AwaitingSkillChoice,
+      matchedResult: VnSkillCheckResult,
+      phase: VnSkillCheckResolveState["phase"],
+    ): VnSkillCheckResolveState => ({
+      scenarioId: pending.scenarioId,
+      nodeId: pending.nodeId,
+      checkId: pending.checkId,
+      choiceId: pending.choiceId,
+      choiceText: pending.choiceText,
+      voiceId: pending.voiceId,
+      voiceLabel: pending.voiceLabel,
+      diceMode: pending.diceMode,
+      chancePercent: pending.chancePercent,
+      phase,
+      passed: matchedResult.passed,
+      roll: matchedResult.roll,
+      voiceLevel: matchedResult.voiceLevel,
+      difficulty: matchedResult.difficulty,
+      nextNodeId: unwrapOptionalString(matchedResult.nextNodeId),
+      frozen: pending.frozen,
+    }),
+    [],
+  );
+
+  const hydrateExistingSkillState = useCallback(
+    (
+      base: VnSkillCheckResolveState,
+      matchedResult: VnSkillCheckResult,
+      phase: VnSkillCheckResolveState["phase"],
+    ): VnSkillCheckResolveState => ({
+      ...base,
+      phase,
+      passed: matchedResult.passed,
+      roll: matchedResult.roll,
+      voiceLevel: matchedResult.voiceLevel,
+      difficulty: matchedResult.difficulty,
+      nextNodeId: unwrapOptionalString(matchedResult.nextNodeId),
+    }),
+    [],
+  );
+
+  const dismissActiveSkillResolve = useCallback(
+    async (resolveState: VnSkillCheckResolveState) => {
+      const failedChoiceKey = buildChoiceKey(
+        resolveState.scenarioId,
+        resolveState.nodeId,
+        resolveState.choiceId,
+      );
+
+      typingFinishedAtRef.current = Date.now();
+      cancelActiveSkillResolve();
+
+      if (resolveState.nextNodeId) {
+        setPendingChoiceId(null);
+        setStatusLine(t.skillResolved);
+        return;
+      }
+
+      if (!resolveState.passed) {
+        setFailedChoiceKeys((previous) => ({
+          ...previous,
+          [failedChoiceKey]: true,
+        }));
+        setPendingChoiceId(null);
+        setStatusLine(t.skillFailed);
+        return;
+      }
+
+      await applyChoiceCommit(resolveState.scenarioId, resolveState.choiceId);
+    },
+    [applyChoiceCommit, cancelActiveSkillResolve, t.skillFailed, t.skillResolved],
+  );
+
+  const handleActiveResolveInteraction = useCallback((): boolean => {
+    if (!activeSkillResolve) {
+      return false;
+    }
+
+    const currentToken = activeSkillTokenRef.current;
+    const matchedResult = mySkillResults.find((entry) =>
+      checkResultMatches(
+        entry,
+        activeSkillResolve.scenarioId,
+        activeSkillResolve.nodeId,
+        activeSkillResolve.checkId,
+      ),
+    );
+
+    if (activeSkillResolve.phase !== "result") {
+      activeSkillSkipTokenRef.current = currentToken;
+
+      if (matchedResult) {
+        playActiveSkillImpactSfx(matchedResult.passed, currentToken);
+        setActiveSkillResolve((previous) =>
+          previous
+            ? hydrateExistingSkillState(previous, matchedResult, "result")
+            : previous,
+        );
+        activeSkillSequenceRef.current = null;
+      }
+
+      return true;
+    }
+
+    void dismissActiveSkillResolve(activeSkillResolve);
+    return true;
+  }, [
+    activeSkillResolve,
+    dismissActiveSkillResolve,
+    hydrateExistingSkillState,
+    mySkillResults,
+    playActiveSkillImpactSfx,
+  ]);
+
+  const runActiveSkillResolveSequence = useCallback(
+    async (
+      pending: AwaitingSkillChoice,
+      matchedResult: VnSkillCheckResult,
+    ): Promise<void> => {
+      const sequence =
+        activeSkillSequenceRef.current ??
+        ({
+          startedAt: nowMs(),
+          token: activeSkillTokenRef.current,
+        } satisfies ActiveSkillSequence);
+      const remainingArming = Math.max(
+        0,
+        ACTIVE_SKILL_ARMING_MS - (nowMs() - sequence.startedAt),
+      );
+
+      if (remainingArming > 0) {
+        await waitMs(remainingArming);
+      }
+      if (activeSkillTokenRef.current !== sequence.token) {
+        return;
+      }
+
+      if (activeSkillSkipTokenRef.current === sequence.token) {
+        playActiveSkillImpactSfx(matchedResult.passed, sequence.token);
+        activeSkillSequenceRef.current = null;
+        setActiveSkillResolve(
+          buildResolvedSkillState(pending, matchedResult, "result"),
+        );
+        return;
+      }
+
+      setActiveSkillResolve(
+        buildResolvedSkillState(pending, matchedResult, "rolling"),
+      );
+
+      await waitMs(ACTIVE_SKILL_ROLLING_MS);
+      if (activeSkillTokenRef.current !== sequence.token) {
+        return;
+      }
+
+      if (activeSkillSkipTokenRef.current === sequence.token) {
+        playActiveSkillImpactSfx(matchedResult.passed, sequence.token);
+        activeSkillSequenceRef.current = null;
+        setActiveSkillResolve(
+          buildResolvedSkillState(pending, matchedResult, "result"),
+        );
+        return;
+      }
+
+      setActiveSkillResolve(
+        buildResolvedSkillState(pending, matchedResult, "impact"),
+      );
+      playActiveSkillImpactSfx(matchedResult.passed, sequence.token);
+
+      if (activeSkillSkipTokenRef.current === sequence.token) {
+        activeSkillSequenceRef.current = null;
+        setActiveSkillResolve(
+          buildResolvedSkillState(pending, matchedResult, "result"),
+        );
+        return;
+      }
+
+      await waitMs(ACTIVE_SKILL_IMPACT_MS);
+      if (activeSkillTokenRef.current !== sequence.token) {
+        return;
+      }
+
+      activeSkillSequenceRef.current = null;
+      setActiveSkillResolve(
+        buildResolvedSkillState(pending, matchedResult, "result"),
+      );
+    },
+    [buildResolvedSkillState, playActiveSkillImpactSfx],
+  );
+
   useEffect(() => {
     if (!awaitingSkillChoice) {
       return;
@@ -737,42 +1001,9 @@ export const VnScreen = ({
       return;
     }
 
-    const nextNodeId = unwrapOptionalString(matchedResult.nextNodeId);
-    const failedChoiceKey = buildChoiceKey(
-      awaitingSkillChoice.scenarioId,
-      awaitingSkillChoice.nodeId,
-      awaitingSkillChoice.choiceId,
-    );
-
     setAwaitingSkillChoice(null);
-
-    if (nextNodeId) {
-      setPendingChoiceId(null);
-      setStatusLine(t.skillResolved);
-      return;
-    }
-
-    if (!matchedResult.passed) {
-      setFailedChoiceKeys((previous) => ({
-        ...previous,
-        [failedChoiceKey]: true,
-      }));
-      setPendingChoiceId(null);
-      setStatusLine(t.skillFailed);
-      return;
-    }
-
-    void applyChoiceCommit(
-      awaitingSkillChoice.scenarioId,
-      awaitingSkillChoice.choiceId,
-    );
-  }, [
-    applyChoiceCommit,
-    awaitingSkillChoice,
-    mySkillResults,
-    t.skillFailed,
-    t.skillResolved,
-  ]);
+    void runActiveSkillResolveSequence(awaitingSkillChoice, matchedResult);
+  }, [awaitingSkillChoice, mySkillResults, runActiveSkillResolveSequence]);
 
   const handleStartScenario = async () => {
     if (!selectedScenarioId) {
@@ -820,6 +1051,7 @@ export const VnScreen = ({
       isLocked ||
       pendingChoiceId ||
       awaitingSkillChoice ||
+      activeSkillResolve ||
       transitionState !== "idle"
     ) {
       return;
@@ -877,11 +1109,42 @@ export const VnScreen = ({
       return;
     }
 
+    const chancePercent = getChoiceChancePercent(choice);
+    const voiceLabel = formatVoiceLabel(choice.skillCheck.voiceId);
+    const frozen = createFrozenSkillCheckPresentation();
+    const nextActiveToken = activeSkillTokenRef.current + 1;
+    activeSkillTokenRef.current = nextActiveToken;
+    activeSkillSequenceRef.current = {
+      startedAt: nowMs(),
+      token: nextActiveToken,
+    };
+    activeSkillSkipTokenRef.current = 0;
+    activeSkillSfxTokenRef.current = 0;
+    setActiveSkillResolve({
+      scenarioId: selectedScenarioId,
+      nodeId: currentNode.id,
+      checkId: choice.skillCheck.id,
+      choiceId: choice.id,
+      choiceText: choice.text,
+      voiceId: choice.skillCheck.voiceId,
+      voiceLabel,
+      diceMode: currentDiceMode,
+      chancePercent,
+      phase: "arming",
+      frozen,
+    });
+
     setAwaitingSkillChoice({
       scenarioId: selectedScenarioId,
       nodeId: currentNode.id,
       choiceId: choice.id,
       checkId: choice.skillCheck.id,
+      choiceText: choice.text,
+      voiceId: choice.skillCheck.voiceId,
+      voiceLabel,
+      diceMode: currentDiceMode,
+      chancePercent,
+      frozen,
     });
 
     try {
@@ -893,6 +1156,7 @@ export const VnScreen = ({
     } catch (caughtError) {
       setAwaitingSkillChoice(null);
       setPendingChoiceId(null);
+      cancelActiveSkillResolve();
       const message =
         caughtError instanceof Error
           ? caughtError.message
@@ -908,26 +1172,93 @@ export const VnScreen = ({
     }
   }, []);
 
-  const visibleChoices = useMemo(
+  const currentVisibleChoices = useMemo(
     () =>
-      currentNode?.choices.filter((choice) => !isAutoContinueChoice(choice)) ??
-      [],
-    [currentNode],
+      currentNode?.choices.filter(
+        (choice) =>
+          !isAutoContinueChoice(choice) &&
+          isChoiceVisible(choice, myFlags, myVars),
+      ) ?? [],
+    [currentNode, myFlags, myVars],
   );
-  const autoContinueChoice = useMemo(
+  const currentAutoContinueChoice = useMemo(
     () =>
-      currentNode?.choices.find((choice) => isAutoContinueChoice(choice)) ??
+      currentNode?.choices.find(
+        (choice) =>
+          isAutoContinueChoice(choice) &&
+          isChoiceVisible(choice, myFlags, myVars),
+      ) ??
       null,
-    [currentNode],
+    [currentNode, myFlags, myVars],
   );
-  const narrativeText = useMemo(() => {
+  const hasPendingPassiveChecks = useMemo(() => {
+    if (!selectedScenarioId || !currentNode) {
+      return false;
+    }
+    const checks = currentNode.passiveChecks ?? [];
+    if (checks.length === 0) {
+      return false;
+    }
+    return checks.some(
+      (check) =>
+        !mySkillResults.some((entry) =>
+          checkResultMatches(
+            entry,
+            selectedScenarioId,
+            currentNode.id,
+            check.id,
+          ),
+        ),
+    );
+  }, [currentNode, mySkillResults, selectedScenarioId]);
+  const currentNarrativeText = useMemo(() => {
     if (!currentNode) {
       return sessionReady ? "" : t.sessionHydrating;
     }
     return normalizeBody(currentNode.body);
   }, [currentNode, sessionReady, t.sessionHydrating]);
+  const currentResolvedBgUrl = useMemo(
+    () =>
+      resolveBackgroundUrl(
+        currentNode?.backgroundUrl,
+        selectedScenario?.defaultBackgroundUrl,
+      ),
+    [currentNode, selectedScenario],
+  );
+  const currentSpeakerLabel = useMemo(
+    () => formatSpeaker(currentNode?.characterId),
+    [currentNode?.characterId],
+  );
+  const currentShowOriginCards =
+    selectedScenarioId === "sandbox_intro_pilot" &&
+    currentNode?.id === "scene_backstory_select";
+
+  const displayedPresentation = activeSkillResolve?.frozen;
+  const visibleChoices =
+    displayedPresentation?.visibleChoices ?? currentVisibleChoices;
+  const autoContinueChoice =
+    displayedPresentation?.autoContinueChoice ?? currentAutoContinueChoice;
+  const narrativeText =
+    displayedPresentation?.narrativeText ?? currentNarrativeText;
+  const resolvedBgUrl =
+    displayedPresentation?.backgroundImageUrl ?? currentResolvedBgUrl;
+  const speakerLabel = displayedPresentation
+    ? displayedPresentation.characterName ?? "Narrator"
+    : currentSpeakerLabel;
+  const displayLocationName =
+    displayedPresentation?.locationName ??
+    selectedScenario?.title ??
+    t.unknownScenario;
+  const showOriginCards =
+    displayedPresentation?.showOriginCards ?? currentShowOriginCards;
+  const displayedScenarioCompleted =
+    displayedPresentation?.isScenarioCompleted ?? isScenarioCompleted;
 
   const handleSurfaceTap = () => {
+    if (handleActiveResolveInteraction()) {
+      return;
+    }
+
     if (transitionState === "handoff_failed") {
       return;
     }
@@ -951,7 +1282,7 @@ export const VnScreen = ({
       return;
     }
 
-    if (isScenarioCompleted) {
+    if (displayedScenarioCompleted) {
       void runCompletionTransition();
       return;
     }
@@ -973,15 +1304,6 @@ export const VnScreen = ({
     void handleChoiceClick(autoContinueChoice, false);
   };
 
-  const resolvedBgUrl = useMemo(
-    () =>
-      resolveBackgroundUrl(
-        currentNode?.backgroundUrl,
-        selectedScenario?.defaultBackgroundUrl,
-      ),
-    [currentNode, selectedScenario],
-  );
-
   if (!activeVersion || !snapshot) {
     return (
       <section className="vn-empty-state">
@@ -998,12 +1320,11 @@ export const VnScreen = ({
     );
   }
 
-  const speakerLabel = formatSpeaker(currentNode?.characterId);
-  const showOriginCards =
-    selectedScenarioId === "sandbox_intro_pilot" &&
-    currentNode?.id === "scene_backstory_select";
   const isInteractionLocked =
-    transitionState !== "idle" || Boolean(awaitingSkillChoice);
+    transitionState !== "idle" ||
+    Boolean(awaitingSkillChoice) ||
+    Boolean(activeSkillResolve) ||
+    hasPendingPassiveChecks;
   const canTriggerCompletion =
     transitionState !== "handoff_in_flight" &&
     transitionState !== "handoff_failed";
@@ -1043,14 +1364,8 @@ export const VnScreen = ({
         </div>
       </header>
 
-      <VnSkillCheckToast
-        toast={activeToast}
-        onClose={() => setActiveToast(null)}
-      />
-      <VnPassiveCheckBanner items={passiveCheckItems} />
-
       <VnNarrativePanel
-        locationName={selectedScenario?.title ?? t.unknownScenario}
+        locationName={displayLocationName}
         characterName={speakerLabel === "Narrator" ? undefined : speakerLabel}
         narrativeText={narrativeText}
         backgroundImageUrl={resolvedBgUrl ?? undefined}
@@ -1081,11 +1396,28 @@ export const VnScreen = ({
                   choice.id,
                 );
                 const isAvailable = isChoiceAvailable(choice, myFlags, myVars);
+                const chancePercent = getChoiceChancePercent(choice);
+                const skillCheckState =
+                  activeSkillResolve?.choiceId === choice.id
+                    ? activeSkillResolve.phase === "arming"
+                      ? "arming"
+                      : activeSkillResolve.phase === "rolling"
+                        ? "rolling"
+                        : activeSkillResolve.phase === "impact"
+                          ? activeSkillResolve.passed
+                            ? "impact_success"
+                            : "impact_fail"
+                          : activeSkillResolve.passed
+                            ? "result_success"
+                            : "result_fail"
+                    : "idle";
                 return (
                   <VnChoiceButton
                     key={choice.id}
                     choice={choice}
                     index={index}
+                    chancePercent={chancePercent}
+                    skillCheckState={skillCheckState}
                     isVisited={Boolean(visitedChoiceKeys[choiceKey])}
                     isLocked={!isAvailable || !mySession}
                     isPending={pendingChoiceId === choice.id}
@@ -1097,7 +1429,7 @@ export const VnScreen = ({
                   />
                 );
               })
-            ) : isScenarioCompleted ? (
+            ) : displayedScenarioCompleted ? (
               <div className="flex flex-col gap-3">
                 <p className="opacity-70 italic text-sm text-center">
                   {t.terminalNoChoices}
@@ -1134,7 +1466,27 @@ export const VnScreen = ({
             ) : null}
           </div>
         }
-      />
+      >
+        <VnSkillCheckResolveOverlay
+          state={activeSkillResolve}
+          onInteract={handleActiveResolveInteraction}
+        />
+        {!activeSkillResolve ? <VnPassiveCheckBanner items={passiveCheckItems} /> : null}
+        <button
+          type="button"
+          className={["vn-sfx-toggle", isSfxMuted ? "is-muted" : ""].join(" ")}
+          aria-label={
+            isSfxMuted ? "Unmute skill check audio" : "Mute skill check audio"
+          }
+          onClick={(event) => {
+            event.stopPropagation();
+            setIsSfxMuted((previous) => !previous);
+          }}
+        >
+          {isSfxMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+          <span>SFX</span>
+        </button>
+      </VnNarrativePanel>
 
       {statusLine ? <p className="status-line success">{statusLine}</p> : null}
       {error ? <p className="status-line error">{error}</p> : null}

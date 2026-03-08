@@ -143,7 +143,7 @@ Text.
 
     withFixture(files, (storyRoot) => {
       expect(() => parseCase01Onboarding(storyRoot)).toThrow(
-        /scene_intro_journey\.md:1 \[MISSING_TYPE\]/,
+        /scene_intro_journey\.md:1:\d+ \[MISSING_TYPE\]/,
       );
     });
   });
@@ -176,7 +176,149 @@ Text.
 
     withFixture(files, (storyRoot) => {
       expect(() => parseCase01Onboarding(storyRoot)).toThrow(
-        /scene_intro_journey\.md:\d+ \[INVALID_EFFECT_SYNTAX\]/,
+        /scene_intro_journey\.md:\d+:\d+ \[INVALID_EFFECT_SYNTAX\]/,
+      );
+    });
+  });
+
+  it("parses DSL v2 choice gates and skill-check branches", () => {
+    const files: Record<string, string> = {
+      "scene_intro_journey.md": `
+---
+id: scene_intro_journey
+type: vn_scene
+---
+# Intro
+## Narrative
+Text.
+## Preconditions
+- if: var_gte( attr_intellect , 2 )
+## OnEnter
+- effect:add_var( tension , 1 )
+## Choices
+1. Probe witness.
+   - If: flag_equals(origin_journalist,true)
+   - IfAny: has_evidence(ev_a)
+   - Require: var_gte(attr_social,3)
+   - RequireAny: has_item(lockpick)
+   - Next: [[scene_hbf_arrival]]
+   - Check: id=check_probe voice=attr_social dc=8 showchance=true
+   - OnSuccess: next=[[scene_hbf_arrival]]
+   - OnFail: next=[[scene_hbf_arrival]]
+   - OnSuccessEffect: add_var( checks_passed , 1 )
+`,
+      "scene_hbf_arrival.md": `
+---
+id: scene_hbf_arrival
+type: vn_scene
+---
+# HBF
+## Narrative
+Text.
+`,
+    };
+
+    withFixture(files, (storyRoot) => {
+      const parsed = parseCase01Onboarding(storyRoot);
+      const intro = parsed.nodeBlueprints.find(
+        (node) => node.id === "scene_intro_journey",
+      );
+      expect(intro).toBeDefined();
+      if (!intro) {
+        return;
+      }
+
+      expect(intro.preconditions).toEqual([
+        { type: "var_gte", key: "attr_intellect", value: 2 },
+      ]);
+      expect(intro.onEnter).toEqual([
+        { type: "add_var", key: "tension", value: 1 },
+      ]);
+
+      const choice = intro.choices[0];
+      expect(choice.visibleIfAll).toEqual([
+        { type: "flag_equals", key: "origin_journalist", value: true },
+      ]);
+      expect(choice.visibleIfAny).toEqual([
+        { type: "has_evidence", evidenceId: "ev_a" },
+      ]);
+      expect(choice.requireAll).toEqual([
+        { type: "var_gte", key: "attr_social", value: 3 },
+      ]);
+      expect(choice.requireAny).toEqual([{ type: "has_item", itemId: "lockpick" }]);
+      expect(choice.skillCheck?.id).toBe("check_probe");
+      expect(choice.skillCheck?.showChancePercent).toBe(true);
+      expect(choice.skillCheck?.onSuccess?.effects?.[0]).toEqual({
+        type: "add_var",
+        key: "checks_passed",
+        value: 1,
+      });
+    });
+  });
+
+  it("rejects invalid showchance values", () => {
+    const files: Record<string, string> = {
+      "scene_intro_journey.md": `
+---
+id: scene_intro_journey
+type: vn_scene
+---
+# Intro
+## Narrative
+Text.
+## Choices
+1. Probe witness.
+   - Next: [[scene_hbf_arrival]]
+   - Check: id=check_probe voice=attr_social dc=8 showchance=maybe
+`,
+      "scene_hbf_arrival.md": `
+---
+id: scene_hbf_arrival
+type: vn_scene
+---
+# HBF
+## Narrative
+Text.
+`,
+    };
+
+    withFixture(files, (storyRoot) => {
+      expect(() => parseCase01Onboarding(storyRoot)).toThrow(
+        /INVALID_BOOLEAN/,
+      );
+    });
+  });
+
+  it("returns did-you-mean for unknown var key", () => {
+    const files: Record<string, string> = {
+      "scene_intro_journey.md": `
+---
+id: scene_intro_journey
+type: vn_scene
+---
+# Intro
+## Narrative
+Text.
+## OnEnter
+- Effect: add_var(tnsion,1)
+## Choices
+1. Continue
+   - Next: [[scene_hbf_arrival]]
+`,
+      "scene_hbf_arrival.md": `
+---
+id: scene_hbf_arrival
+type: vn_scene
+---
+# HBF
+## Narrative
+Text.
+`,
+    };
+
+    withFixture(files, (storyRoot) => {
+      expect(() => parseCase01Onboarding(storyRoot)).toThrow(
+        /did you mean 'tension'/,
       );
     });
   });

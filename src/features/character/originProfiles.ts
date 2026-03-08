@@ -1,5 +1,10 @@
 import type { VnEffect } from "../vn/types";
 
+export interface OriginTrackStepDefinition {
+  voice: string;
+  requiredXp: number;
+}
+
 export interface OriginTrackDefinition {
   id: string;
   title: string;
@@ -7,25 +12,42 @@ export interface OriginTrackDefinition {
   progressVarKey: string;
   tier1FlagKey: string;
   tier2FlagKey: string;
+  focus: string;
+  steps: OriginTrackStepDefinition[];
+  finalAbilityTitle: string;
+  finalAbilityDescription: string;
+}
+
+export interface OriginSignatureDefinition {
+  title: string;
+  description: string;
+  passiveLabel: string;
+}
+
+export interface OriginFlawDefinition {
+  title: string;
+  description: string;
+  icon: string;
+  checkVoice: string;
+  dc: number;
+  durationLabel: string;
 }
 
 export interface OriginDossierDefinition {
   characterName: string;
   age: number;
+  gender: "male" | "female";
   cityOrigin: string;
   quote: string;
   avatarUrl: string;
   accentColor: string;
-  signatureTitle: string;
-  signatureDescription: string;
-  flawTitle: string;
-  flawDescription: string;
 }
 
 export interface OriginProfileDefinition {
   id: string;
   choiceId: string;
   originFlagKey: string;
+  handoffDoneFlagKeys: string[];
   label: string;
   summary: string;
   scenarioId: string;
@@ -33,33 +55,17 @@ export interface OriginProfileDefinition {
   signatureAbilityFlagKey: string;
   statEffects: Array<{ key: string; value: number }>;
   tracks: OriginTrackDefinition[];
+  signature: OriginSignatureDefinition;
+  flaw: OriginFlawDefinition;
   dossier: OriginDossierDefinition;
 }
-
-const sharedTracks: OriginTrackDefinition[] = [
-  {
-    id: "whistleblower",
-    title: "Whistleblower",
-    description: "Build trusted informants and document leaks.",
-    progressVarKey: "track_whistleblower_xp",
-    tier1FlagKey: "track_whistleblower_tier1",
-    tier2FlagKey: "track_whistleblower_tier2",
-  },
-  {
-    id: "mythologist",
-    title: "Mythologist",
-    description: "Use folklore and rumor webs as investigative leverage.",
-    progressVarKey: "track_mythologist_xp",
-    tier1FlagKey: "track_mythologist_tier1",
-    tier2FlagKey: "track_mythologist_tier2",
-  },
-];
 
 export const originProfiles: OriginProfileDefinition[] = [
   {
     id: "journalist",
     choiceId: "BACKSTORY_JOURNALIST",
     originFlagKey: "origin_journalist",
+    handoffDoneFlagKeys: ["origin_journalist_handoff_done", "met_anna_intro"],
     label: "Journalist Origin",
     summary: "Leaks, rumor networks, and pressure through publication.",
     scenarioId: "intro_journalist",
@@ -70,25 +76,72 @@ export const originProfiles: OriginProfileDefinition[] = [
       { key: "attr_perception", value: 3 },
       { key: "attr_deception", value: 2 },
     ],
-    tracks: sharedTracks,
+    signature: {
+      title: "Nose for a Story",
+      description:
+        "Bonus Encyclopedia check (DC -2) on entering a new location. On success, it exposes a buried lore thread before anyone else notices it.",
+      passiveLabel: "Passive",
+    },
+    flaw: {
+      title: "Gambling Addiction",
+      description:
+        "Cannot resist high-risk opportunities. A bad impulse can push the journalist into reckless bets before the room is fully read.",
+      icon: "star",
+      checkVoice: "volition",
+      dc: 10,
+      durationLabel: "Instant",
+    },
+    tracks: [
+      {
+        id: "journalist_whistleblower",
+        title: "Whistleblower",
+        description: "Build trusted informants and document leaks.",
+        progressVarKey: "track_whistleblower_xp",
+        tier1FlagKey: "track_whistleblower_tier1",
+        tier2FlagKey: "track_whistleblower_tier2",
+        focus: "Logic + Intrusion",
+        steps: [
+          { voice: "logic", requiredXp: 100 },
+          { voice: "intrusion", requiredXp: 200 },
+          { voice: "stealth", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "Hot Press",
+        finalAbilityDescription:
+          "Turn a published lead into direct pressure against compromised officials and merchants.",
+      },
+      {
+        id: "journalist_mythologist",
+        title: "Mythologist",
+        description: "Use folklore and rumor webs as investigative leverage.",
+        progressVarKey: "track_mythologist_xp",
+        tier1FlagKey: "track_mythologist_tier1",
+        tier2FlagKey: "track_mythologist_tier2",
+        focus: "Tradition + Occultism",
+        steps: [
+          { voice: "tradition", requiredXp: 100 },
+          { voice: "occultism", requiredXp: 200 },
+          { voice: "intuition", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "Connecting Thread",
+        finalAbilityDescription:
+          "Spot hidden continuities between old legends, present crimes, and documents that should not agree.",
+      },
+    ],
     dossier: {
       characterName: "Arthur Vance",
       age: 32,
+      gender: "male",
       cityOrigin: "Stuttgart -> Freiburg",
       quote: "The city lies beautifully. My job is to make it stumble.",
       avatarUrl: "/images/characters/journalist_portrait.png",
-      accentColor: "#a61c2f",
-      signatureTitle: "Nose for a Story",
-      signatureDescription:
-        "Passive: bonus Encyclopedia check (DC -2) on entering a new location.",
-      flawTitle: "Gambling Addiction",
-      flawDescription: "Cannot resist high-risk opportunities.",
+      accentColor: "#A61C2F",
     },
   },
   {
     id: "aristocrat",
     choiceId: "BACKSTORY_ARISTOCRAT",
     originFlagKey: "origin_aristocrat",
+    handoffDoneFlagKeys: ["origin_aristocrat_handoff_done"],
     label: "Aristocrat Origin",
     summary: "Etiquette, political leverage, and controlled influence.",
     scenarioId: "intro_aristocrat",
@@ -99,25 +152,72 @@ export const originProfiles: OriginProfileDefinition[] = [
       { key: "attr_deception", value: 2 },
       { key: "attr_encyclopedia", value: 2 },
     ],
-    tracks: sharedTracks,
+    signature: {
+      title: "Sharp Gaze",
+      description:
+        "Upper-class interrogations and drawing-room duels of status cost less effort. Authority in noble circles starts from advantage, not parity.",
+      passiveLabel: "Passive",
+    },
+    flaw: {
+      title: "Claustrophobia",
+      description:
+        "Tight spaces destabilize focus and composure. Confined archives, tunnels, and cellars can turn memory into panic.",
+      icon: "triangle-alert",
+      checkVoice: "volition",
+      dc: 8,
+      durationLabel: "Instant",
+    },
+    tracks: [
+      {
+        id: "aristocrat_criminalist",
+        title: "Criminalist",
+        description: "Reconstruct evidence and motive through cultivated perception.",
+        progressVarKey: "track_criminalist_xp",
+        tier1FlagKey: "track_criminalist_tier1",
+        tier2FlagKey: "track_criminalist_tier2",
+        focus: "Imagination + Senses",
+        steps: [
+          { voice: "imagination", requiredXp: 100 },
+          { voice: "senses", requiredXp: 200 },
+          { voice: "empathy", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "Reconstruction",
+        finalAbilityDescription:
+          "At a crime scene, intuition and imagination lock together into a near-forensic reenactment of the missing minute.",
+      },
+      {
+        id: "aristocrat_duelist",
+        title: "Duelist",
+        description: "Turn grace, threat, and timing into leverage.",
+        progressVarKey: "track_duelist_xp",
+        tier1FlagKey: "track_duelist_tier1",
+        tier2FlagKey: "track_duelist_tier2",
+        focus: "Endurance + Intrusion",
+        steps: [
+          { voice: "endurance", requiredXp: 100 },
+          { voice: "stealth", requiredXp: 200 },
+          { voice: "intrusion", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "First Blood",
+        finalAbilityDescription:
+          "Win physical confrontations before they become brawls by turning ceremony, tempo, and posture into force.",
+      },
+    ],
     dossier: {
       characterName: "Charlotte von Waldstein",
       age: 25,
+      gender: "female",
       cityOrigin: "Karlsruhe (Hochadel)",
-      quote: "I was taught to hold a rapier and hold a conversation.",
+      quote: "I was taught to hold a rapier and hold a conversation. Now I learn to hold the truth.",
       avatarUrl: "/images/characters/aristocrat_portrait.png",
-      accentColor: "#4e5d6c",
-      signatureTitle: "Sharp Gaze",
-      signatureDescription:
-        "Passive: social authority checks gain reduced difficulty in noble circles.",
-      flawTitle: "Claustrophobia",
-      flawDescription: "Tight spaces destabilize focus and composure.",
+      accentColor: "#4E5D6C",
     },
   },
   {
     id: "veteran",
     choiceId: "BACKSTORY_VETERAN",
     originFlagKey: "origin_veteran",
+    handoffDoneFlagKeys: ["origin_veteran_handoff_done"],
     label: "Veteran Origin",
     summary: "Discipline, intimidation, and survival instincts.",
     scenarioId: "intro_veteran",
@@ -128,25 +228,72 @@ export const originProfiles: OriginProfileDefinition[] = [
       { key: "attr_perception", value: 2 },
       { key: "attr_spirit", value: 2 },
     ],
-    tracks: sharedTracks,
+    signature: {
+      title: "Combat Instinct",
+      description:
+        "Danger clarifies the veteran instead of overwhelming him. Physical risk sharpens senses, timing, and coercive presence.",
+      passiveLabel: "Passive",
+    },
+    flaw: {
+      title: "Alcoholism",
+      description:
+        "Stress and silence alike can drag him toward the bottle. Relief is quick; the cost is slower, meaner, and cumulative.",
+      icon: "beer",
+      checkVoice: "volition",
+      dc: 9,
+      durationLabel: "Next Scene",
+    },
+    tracks: [
+      {
+        id: "veteran_shield",
+        title: "Shield",
+        description: "Hold the line, anchor the squad, survive the worst minute.",
+        progressVarKey: "track_shield_xp",
+        tier1FlagKey: "track_shield_tier1",
+        tier2FlagKey: "track_shield_tier2",
+        focus: "Volition + Charisma",
+        steps: [
+          { voice: "volition", requiredXp: 100 },
+          { voice: "charisma", requiredXp: 200 },
+          { voice: "empathy", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "Last Stand",
+        finalAbilityDescription:
+          "Refuse collapse once per critical scene and keep everyone else standing long enough to finish the job.",
+      },
+      {
+        id: "veteran_hunter",
+        title: "Hunter",
+        description: "Move first, vanish early, strike where the route is weakest.",
+        progressVarKey: "track_hunter_xp",
+        tier1FlagKey: "track_hunter_tier1",
+        tier2FlagKey: "track_hunter_tier2",
+        focus: "Stealth + Agility",
+        steps: [
+          { voice: "stealth", requiredXp: 100 },
+          { voice: "agility", requiredXp: 200 },
+          { voice: "intrusion", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "Shadow of War",
+        finalAbilityDescription:
+          "At night, underground, or under pressure, the veteran moves like a trained absence rather than a man.",
+      },
+    ],
     dossier: {
       characterName: "Gustav Eisenhart",
       age: 40,
+      gender: "male",
       cityOrigin: "Baden-Wurttemberg",
       quote: "War took everything except the instinct to survive.",
       avatarUrl: "/images/characters/veteran_portrait.png",
-      accentColor: "#b5852b",
-      signatureTitle: "Combat Instinct",
-      signatureDescription:
-        "Passive: gains an edge in physical danger and confrontation scenes.",
-      flawTitle: "Alcoholism",
-      flawDescription: "Stress can push the veteran toward destructive relief.",
+      accentColor: "#B5852B",
     },
   },
   {
     id: "archivist",
     choiceId: "BACKSTORY_ARCHIVIST",
     originFlagKey: "origin_archivist",
+    handoffDoneFlagKeys: ["origin_archivist_handoff_done"],
     label: "Archivist Origin",
     summary: "Records, cross-indexing, and procedural certainty.",
     scenarioId: "intro_archivist",
@@ -157,20 +304,65 @@ export const originProfiles: OriginProfileDefinition[] = [
       { key: "attr_encyclopedia", value: 3 },
       { key: "attr_social", value: 1 },
     ],
-    tracks: sharedTracks,
+    signature: {
+      title: "Index of Everything",
+      description:
+        "The archivist can align records, discrepancies, and bureaucratic residue before other investigators even realize a pattern exists.",
+      passiveLabel: "Passive",
+    },
+    flaw: {
+      title: "Obsessive Archivist",
+      description:
+        "Missing documents become a private emergency. The need to complete the record can override urgency, danger, and social reality.",
+      icon: "book-open-text",
+      checkVoice: "volition",
+      dc: 8,
+      durationLabel: "Until Resolved",
+    },
+    tracks: [
+      {
+        id: "archivist_ledgerkeeper",
+        title: "Ledgerkeeper",
+        description: "Turn civic paperwork into leverage, timing, and legal pressure.",
+        progressVarKey: "track_ledgerkeeper_xp",
+        tier1FlagKey: "track_ledgerkeeper_tier1",
+        tier2FlagKey: "track_ledgerkeeper_tier2",
+        focus: "Logic + Encyclopedia",
+        steps: [
+          { voice: "logic", requiredXp: 100 },
+          { voice: "encyclopedia", requiredXp: 200 },
+          { voice: "authority", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "Paper Trail Lock",
+        finalAbilityDescription:
+          "Seal a suspect behind their own filings by surfacing the one document they assumed no one could still find.",
+      },
+      {
+        id: "archivist_dust_cartographer",
+        title: "Dust Cartographer",
+        description: "Map omissions, hidden shelves, and institutional blind spots.",
+        progressVarKey: "track_dust_cartographer_xp",
+        tier1FlagKey: "track_dust_cartographer_tier1",
+        tier2FlagKey: "track_dust_cartographer_tier2",
+        focus: "Intuition + Imagination",
+        steps: [
+          { voice: "intuition", requiredXp: 100 },
+          { voice: "imagination", requiredXp: 200 },
+          { voice: "perception", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "Ghost Catalog",
+        finalAbilityDescription:
+          "Reveal the negative space of an archive: the missing shelf, the altered numbering, the erased acquisition, the lie in the inventory.",
+      },
+    ],
     dossier: {
       characterName: "Martha Heller",
       age: 40,
+      gender: "female",
       cityOrigin: "Freiburg (Altstadt)",
       quote: "Every archive hides a truth someone paid to bury.",
       avatarUrl: "/images/characters/doctor_portrait.png",
-      accentColor: "#2e6b57",
-      signatureTitle: "Index of Everything",
-      signatureDescription:
-        "Passive: automatically links records and inconsistencies across cases.",
-      flawTitle: "Obsessive Archivist",
-      flawDescription:
-        "Fixation on missing records can override immediate priorities.",
+      accentColor: "#2E6B57",
     },
   },
 ];

@@ -1,6 +1,17 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 6,
   "scenarios": [
+    {
+      "id": "sandbox_loop_demo",
+      "title": "Loop Demo Pilot",
+      "startNodeId": "scene_loop_demo_intro",
+      "nodeIds": [
+        "scene_loop_demo_intro",
+        "scene_loop_demo_end"
+      ],
+      "mode": "overlay",
+      "packId": "system_loop_demo"
+    },
     {
       "id": "sandbox_intro_pilot",
       "title": "Sandbox Intro Pilot",
@@ -25,6 +36,17 @@
       "packId": "freiburg_intro"
     },
     {
+      "id": "sandbox_agency_briefing",
+      "title": "Agency Briefing",
+      "startNodeId": "scene_agency_briefing_intro",
+      "nodeIds": [
+        "scene_agency_briefing_intro",
+        "scene_agency_briefing_outro"
+      ],
+      "mode": "overlay",
+      "packId": "freiburg_agency"
+    },
+    {
       "id": "sandbox_banker_pilot",
       "title": "Banker Intro Pilot",
       "startNodeId": "scene_bank_intro",
@@ -33,11 +55,13 @@
         "scene_bank_intro_ch1",
         "scene_bank_intro_ch2",
         "scene_bank_leads",
-        "scene_bank_resolution"
+        "scene_bank_resolution",
+        "scene_bank_resolution_victory",
+        "scene_bank_resolution_defeat"
       ],
       "mode": "fullscreen",
       "packId": "freiburg_banker",
-      "defaultBackgroundUrl": "/assets/vn/bg/bank_exterior.webp"
+      "defaultBackgroundUrl": "/images/scenes/scene_bank_intro.png"
     },
     {
       "id": "sandbox_dog_pilot",
@@ -46,17 +70,22 @@
       "nodeIds": [
         "scene_dog_briefing",
         "scene_dog_leads",
+        "scene_dog_caseboard",
         "scene_dog_market_encounter",
+        "scene_dog_market_beat2",
         "scene_dog_station_encounter",
+        "scene_dog_station_beat2",
         "scene_dog_tailor_encounter",
+        "scene_dog_tailor_beat2",
         "scene_dog_uni_encounter",
         "scene_dog_pub_encounter",
+        "scene_dog_pub_beat2",
         "scene_park_reunion_beat1",
         "scene_park_reunion"
       ],
       "mode": "fullscreen",
       "packId": "freiburg_dog",
-      "defaultBackgroundUrl": "/assets/vn/bg/rathaus_hall.webp"
+      "defaultBackgroundUrl": "/images/scenes/scene_rathaus_interior.webp"
     },
     {
       "id": "sandbox_ghost_pilot",
@@ -75,7 +104,51 @@
       "mode": "fullscreen",
       "packId": "freiburg_ghost",
       "musicUrl": "/assets/vn/music/ghost_ambient.ogg",
-      "defaultBackgroundUrl": "/assets/vn/bg/estate_night.webp"
+      "defaultBackgroundUrl": "/images/scenes/scene_estate_intro.png"
+    },
+    {
+      "id": "sandbox_city_student_tip",
+      "title": "Living City: Student Tip",
+      "startNodeId": "scene_city_student_tip",
+      "nodeIds": [
+        "scene_city_student_tip",
+        "scene_city_student_tip_end"
+      ],
+      "mode": "overlay",
+      "packId": "freiburg_living_city"
+    },
+    {
+      "id": "sandbox_city_cleaner_tip",
+      "title": "Living City: Cleaner Tip",
+      "startNodeId": "scene_city_cleaner_tip",
+      "nodeIds": [
+        "scene_city_cleaner_tip",
+        "scene_city_cleaner_tip_end"
+      ],
+      "mode": "overlay",
+      "packId": "freiburg_living_city"
+    },
+    {
+      "id": "sandbox_city_bootblack_tip",
+      "title": "Living City: Bootblack Tip",
+      "startNodeId": "scene_city_bootblack_tip",
+      "nodeIds": [
+        "scene_city_bootblack_tip",
+        "scene_city_bootblack_tip_end"
+      ],
+      "mode": "overlay",
+      "packId": "freiburg_living_city"
+    },
+    {
+      "id": "sandbox_workers_pub_rumor",
+      "title": "Workers Pub Rumor",
+      "startNodeId": "scene_workers_pub_rumor",
+      "nodeIds": [
+        "scene_workers_pub_rumor",
+        "scene_workers_pub_rumor_end"
+      ],
+      "mode": "overlay",
+      "packId": "freiburg_rumors"
     },
     {
       "id": "origin_journalist_bootstrap",
@@ -112,7 +185,7 @@
       ],
       "mode": "fullscreen",
       "packId": "journalist_origin",
-      "defaultBackgroundUrl": "/assets/vn/bg/cafe_riegler.webp"
+      "defaultBackgroundUrl": "/images/scenes/jurnalistintro.png"
     },
     {
       "id": "intro_aristocrat",
@@ -128,7 +201,7 @@
       ],
       "mode": "fullscreen",
       "packId": "aristocrat_origin",
-      "defaultBackgroundUrl": "/assets/vn/bg/salon_night.webp"
+      "defaultBackgroundUrl": "/images/scenes/salon_night.png"
     },
     {
       "id": "intro_veteran",
@@ -144,7 +217,7 @@
       ],
       "mode": "fullscreen",
       "packId": "veteran_origin",
-      "defaultBackgroundUrl": "/assets/vn/bg/barracks_dusk.webp"
+      "defaultBackgroundUrl": "/images/scenes/barracks_dusk.png"
     },
     {
       "id": "intro_archivist",
@@ -160,7 +233,7 @@
       ],
       "mode": "fullscreen",
       "packId": "archivist_origin",
-      "defaultBackgroundUrl": "/assets/vn/bg/archive_stacks.webp"
+      "defaultBackgroundUrl": "/images/scenes/archive_stacks.png"
     },
     {
       "id": "sandbox_case01_pilot",
@@ -186,6 +259,39 @@
   ],
   "nodes": [
     {
+      "id": "scene_loop_demo_intro",
+      "scenarioId": "sandbox_loop_demo",
+      "title": "Loop Demo Start",
+      "body": "This is a demo scenario for testing the Mind Palace loop.",
+      "choices": [
+        {
+          "id": "LOOP_DEMO_CLUE",
+          "text": "Discover the demo fact",
+          "choiceType": "action",
+          "nextNodeId": "scene_loop_demo_end",
+          "effects": [
+            {
+              "type": "discover_fact",
+              "caseId": "case_loop_demo",
+              "factId": "fact_loop_clue"
+            },
+            {
+              "type": "track_event",
+              "eventName": "loop_demo_fact_discovered"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_loop_demo_end",
+      "scenarioId": "sandbox_loop_demo",
+      "title": "Loop Demo End",
+      "body": "You have discovered the fact. Please check your Mind Palace.",
+      "terminal": true,
+      "choices": []
+    },
+    {
       "id": "scene_start",
       "scenarioId": "sandbox_intro_pilot",
       "title": "Entry: scene_start",
@@ -196,7 +302,8 @@
           "text": "Continue to language setup",
           "nextNodeId": "scene_language_select"
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/scene_start.webp"
     },
     {
       "id": "scene_language_select",
@@ -261,7 +368,8 @@
             }
           ]
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/scene_language_select.webp"
     },
     {
       "id": "scene_backstory_select",
@@ -370,12 +478,12 @@
             },
             {
               "type": "set_var",
-              "key": "track_whistleblower_xp",
+              "key": "track_criminalist_xp",
               "value": 0
             },
             {
               "type": "set_var",
-              "key": "track_mythologist_xp",
+              "key": "track_duelist_xp",
               "value": 0
             },
             {
@@ -429,12 +537,12 @@
             },
             {
               "type": "set_var",
-              "key": "track_whistleblower_xp",
+              "key": "track_shield_xp",
               "value": 0
             },
             {
               "type": "set_var",
-              "key": "track_mythologist_xp",
+              "key": "track_hunter_xp",
               "value": 0
             },
             {
@@ -488,12 +596,12 @@
             },
             {
               "type": "set_var",
-              "key": "track_whistleblower_xp",
+              "key": "track_ledgerkeeper_xp",
               "value": 0
             },
             {
               "type": "set_var",
-              "key": "track_mythologist_xp",
+              "key": "track_dust_cartographer_xp",
               "value": 0
             },
             {
@@ -505,13 +613,57 @@
             }
           ]
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/scene_backstory_select.webp"
     },
     {
       "id": "scene_map_intro",
       "scenarioId": "sandbox_intro_pilot",
       "title": "Entry: scene_map_intro",
       "body": "- Entered from [[40_GameViewer/Sandbox_KA/00_Entry/scene_backstory_select|scene_backstory_select]]. - Entry chain is complete. - Introduces free-order sandbox structure and map-centric play.",
+      "terminal": true,
+      "choices": [],
+      "backgroundUrl": "/images/scenes/scene_map_intro.webp"
+    },
+    {
+      "id": "scene_agency_briefing_intro",
+      "scenarioId": "sandbox_agency_briefing",
+      "title": "Agency Briefing",
+      "body": "The agency shutters are drawn. A fresh case board waits under gaslight, and the city outside is still mostly blank to you. The inspector slides a folder across the desk: the bank, the cathedral square, the worker taverns. Freiburg only starts to make sense once you know where ...",
+      "choices": [
+        {
+          "id": "AGENCY_BRIEFING_ACCEPT",
+          "text": "Take the first assignments and open the city map.",
+          "nextNodeId": "scene_agency_briefing_outro",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "agency_briefing_complete",
+              "value": true
+            },
+            {
+              "type": "set_quest_stage",
+              "questId": "quest_banker",
+              "stage": 1
+            },
+            {
+              "type": "track_event",
+              "eventName": "agency_briefing_completed"
+            },
+            {
+              "type": "grant_xp",
+              "amount": 10
+            }
+          ]
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_agency_briefing_outro",
+      "scenarioId": "sandbox_agency_briefing",
+      "title": "The City Opens",
+      "body": "Pins begin to surface on the agency map. The obvious landmarks appear first, but the darker routes are still submerged beneath the surface. Your first assignment is clear: start with the bank and follow whatever falls out of the ledger.",
       "terminal": true,
       "choices": []
     },
@@ -729,9 +881,29 @@
               "value": true
             },
             {
+              "type": "set_flag",
+              "key": "son_duel_done",
+              "value": false
+            },
+            {
+              "type": "set_flag",
+              "key": "son_duel_won",
+              "value": false
+            },
+            {
+              "type": "set_flag",
+              "key": "son_duel_lost",
+              "value": false
+            },
+            {
               "type": "add_var",
               "key": "checks_passed",
               "value": 1
+            },
+            {
+              "type": "open_battle_mode",
+              "scenarioId": "sandbox_son_duel",
+              "returnTab": "vn"
             }
           ]
         }
@@ -739,6 +911,39 @@
     },
     {
       "id": "scene_bank_resolution",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Сцена: Казино и очная ставка",
+      "body": "- Вход из [[40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_bank_leads|scene_bank_leads]]. - `sandbox_banker = started` - Рекомендуется хотя бы одна собранная улика (`CLUE_B01` или `CLUE_B03`), но вход не блокируется.",
+      "choices": [
+        {
+          "id": "BANK_RESOLUTION_WIN",
+          "text": "Press the advantage",
+          "nextNodeId": "scene_bank_resolution_victory",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "son_duel_won",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "BANK_RESOLUTION_LOSS",
+          "text": "Recover the thread",
+          "nextNodeId": "scene_bank_resolution_defeat",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "son_duel_lost",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "backgroundUrl": "/images/scenes/scene_casino_duel.png"
+    },
+    {
+      "id": "scene_bank_resolution_victory",
       "scenarioId": "sandbox_banker_pilot",
       "title": "Сцена: Казино и очная ставка",
       "body": "- Вход из [[40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_bank_leads|scene_bank_leads]]. - `sandbox_banker = started` - Рекомендуется хотя бы одна собранная улика (`CLUE_B01` или `CLUE_B03`), но вход не блокируется.",
@@ -751,11 +956,33 @@
           "stage": 3
         },
         {
-          "type": "grant_xp",
-          "amount": 50
+          "type": "set_flag",
+          "key": "banker_case_closed",
+          "value": true
         }
       ],
-      "backgroundUrl": "/assets/vn/bg/casino_interior.webp"
+      "backgroundUrl": "/images/scenes/scene_casino_duel.png"
+    },
+    {
+      "id": "scene_bank_resolution_defeat",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Сцена: Казино и очная ставка",
+      "body": "- Вход из [[40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_bank_leads|scene_bank_leads]]. - `sandbox_banker = started` - Рекомендуется хотя бы одна собранная улика (`CLUE_B01` или `CLUE_B03`), но вход не блокируется.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_quest_stage",
+          "questId": "quest_banker",
+          "stage": 3
+        },
+        {
+          "type": "set_flag",
+          "key": "banker_case_closed",
+          "value": true
+        }
+      ],
+      "backgroundUrl": "/images/scenes/scene_casino_duel.png"
     },
     {
       "id": "scene_dog_briefing",
@@ -851,6 +1078,11 @@
           ]
         },
         {
+          "id": "DOG_LEAD_CASEBOARD",
+          "text": "Review the current findings",
+          "nextNodeId": "scene_dog_caseboard"
+        },
+        {
           "id": "DOG_LEAD_REUNION",
           "text": "Convene at the park",
           "nextNodeId": "scene_park_reunion_beat1",
@@ -858,7 +1090,7 @@
             {
               "type": "var_gte",
               "key": "dog_leads_progress",
-              "value": 3
+              "value": 5
             }
           ],
           "effects": [
@@ -872,6 +1104,19 @@
       ]
     },
     {
+      "id": "scene_dog_caseboard",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "Dog Caseboard",
+      "body": "The caseboard is filled with red strings and polaroids. What does it all mean?",
+      "choices": [
+        {
+          "id": "DOG_CASEBOARD_RETURN",
+          "text": "Back to leads",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ]
+    },
+    {
       "id": "scene_dog_market_encounter",
       "scenarioId": "sandbox_dog_pilot",
       "title": "🐟 False Lead: The Market",
@@ -881,11 +1126,12 @@
           "id": "DOG_MARKET_VENDOR_PRESS",
           "text": "Pressure the vendor for route details",
           "choiceType": "action",
-          "nextNodeId": "scene_dog_leads",
+          "nextNodeId": "scene_dog_market_beat2",
           "skillCheck": {
             "id": "check_dog_market_pressure",
             "voiceId": "attr_social",
             "difficulty": 11,
+            "showChancePercent": true,
             "onSuccess": {
               "effects": [
                 {
@@ -914,7 +1160,7 @@
           "id": "DOG_MARKET_QUIET_NOTE",
           "text": "Log observations and move on",
           "choiceType": "inquiry",
-          "nextNodeId": "scene_dog_leads",
+          "nextNodeId": "scene_dog_market_beat2",
           "effects": [
             {
               "type": "add_var",
@@ -938,6 +1184,26 @@
       ]
     },
     {
+      "id": "scene_dog_market_beat2",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "Market Lead - Beat 2",
+      "body": "The vendor seems to have nothing more to say. Perhaps you should look elsewhere.",
+      "choices": [
+        {
+          "id": "DOG_MARKET_BEAT2_RETURN",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_market_route"
+        }
+      ]
+    },
+    {
       "id": "scene_dog_station_encounter",
       "scenarioId": "sandbox_dog_pilot",
       "title": "🚂 False Lead: The Station",
@@ -947,7 +1213,7 @@
           "id": "DOG_STATION_BRIBE_PORTER",
           "text": "Bribe the porter for schedule logs",
           "choiceType": "action",
-          "nextNodeId": "scene_dog_leads",
+          "nextNodeId": "scene_dog_station_beat2",
           "effects": [
             {
               "type": "set_flag",
@@ -965,7 +1231,7 @@
           "id": "DOG_STATION_INTERVIEW",
           "text": "Conduct a formal witness interview",
           "choiceType": "inquiry",
-          "nextNodeId": "scene_dog_leads",
+          "nextNodeId": "scene_dog_station_beat2",
           "effects": [
             {
               "type": "add_var",
@@ -978,7 +1244,7 @@
           "id": "DOG_STATION_RECHECK",
           "text": "Re-check rail manifests",
           "choiceType": "inquiry",
-          "nextNodeId": "scene_dog_leads",
+          "nextNodeId": "scene_dog_station_beat2",
           "conditions": [
             {
               "type": "var_gte",
@@ -1019,6 +1285,26 @@
       ]
     },
     {
+      "id": "scene_dog_station_beat2",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "Station Lead - Beat 2",
+      "body": "The trains come and go. You've gathered all the witness accounts you could.",
+      "choices": [
+        {
+          "id": "DOG_STATION_BEAT2_RETURN",
+          "text": "Back to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_station_manifest"
+        }
+      ]
+    },
+    {
       "id": "scene_dog_tailor_encounter",
       "scenarioId": "sandbox_dog_pilot",
       "title": "🧵 False Lead: The Tailor",
@@ -1028,7 +1314,7 @@
           "id": "DOG_TAILOR_AUDIT_BOOKS",
           "text": "Audit tailor invoices",
           "choiceType": "inquiry",
-          "nextNodeId": "scene_dog_leads",
+          "nextNodeId": "scene_dog_tailor_beat2",
           "effects": [
             {
               "type": "add_var",
@@ -1041,7 +1327,7 @@
           "id": "DOG_TAILOR_INTIMIDATE",
           "text": "Intimidate workshop apprentice",
           "choiceType": "action",
-          "nextNodeId": "scene_dog_leads",
+          "nextNodeId": "scene_dog_tailor_beat2",
           "effects": [
             {
               "type": "add_tension",
@@ -1074,6 +1360,26 @@
         {
           "type": "grant_evidence",
           "evidenceId": "ev_bank_master_key"
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_tailor_beat2",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "Tailor Lead - Beat 2",
+      "body": "The tailor continues to work on the fabrics, ignoring your pointed glares.",
+      "choices": [
+        {
+          "id": "DOG_TAILOR_BEAT2_RETURN",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_tailor_invoice"
         }
       ]
     },
@@ -1139,6 +1445,11 @@
           "type": "add_var",
           "key": "dog_leads_progress",
           "value": 1
+        },
+        {
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_uni_registry"
         }
       ]
     },
@@ -1152,7 +1463,7 @@
           "id": "DOG_PUB_TRUST_BARTENDER",
           "text": "Trust bartender testimony",
           "choiceType": "inquiry",
-          "nextNodeId": "scene_dog_leads",
+          "nextNodeId": "scene_dog_pub_beat2",
           "effects": [
             {
               "type": "add_var",
@@ -1165,11 +1476,12 @@
           "id": "DOG_PUB_TAIL_SUSPECT",
           "text": "Tail the suspect immediately",
           "choiceType": "action",
-          "nextNodeId": "scene_dog_leads",
+          "nextNodeId": "scene_dog_pub_beat2",
           "skillCheck": {
             "id": "check_dog_pub_tail",
             "voiceId": "attr_perception",
             "difficulty": 10,
+            "showChancePercent": true,
             "onSuccess": {
               "effects": [
                 {
@@ -1219,6 +1531,26 @@
       ]
     },
     {
+      "id": "scene_dog_pub_beat2",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "Pub Lead - Beat 2",
+      "body": "The pub is loud and full of patrons. The trail here seems cold for now.",
+      "choices": [
+        {
+          "id": "DOG_PUB_BEAT2_RETURN",
+          "text": "Head back to leads",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_pub_identification"
+        }
+      ]
+    },
+    {
       "id": "scene_park_reunion_beat1",
       "scenarioId": "sandbox_dog_pilot",
       "title": "📖 Beat 1: A Good Boy?",
@@ -1229,7 +1561,8 @@
           "text": "Finalize findings",
           "nextNodeId": "scene_park_reunion"
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/scene_park_reunion.png"
     },
     {
       "id": "scene_park_reunion",
@@ -1240,20 +1573,17 @@
       "choices": [],
       "onEnter": [
         {
-          "type": "set_quest_stage",
-          "questId": "quest_dog",
-          "stage": 3
-        },
-        {
           "type": "set_flag",
-          "key": "dog_case_closed",
+          "key": "dog_reunion_reached",
           "value": true
         },
         {
-          "type": "grant_xp",
-          "amount": 40
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_reunion_capstone"
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/scene_park_reunion.png"
     },
     {
       "id": "scene_estate_intro",
@@ -1311,7 +1641,8 @@
           "text": "Continue briefing",
           "nextNodeId": "scene_guild_tutorial_beat1"
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/scene_guild_tutorial.png"
     },
     {
       "id": "scene_guild_tutorial_beat1",
@@ -1363,6 +1694,7 @@
             "id": "check_ghost_thermometer",
             "voiceId": "attr_intellect",
             "difficulty": 8,
+            "showChancePercent": true,
             "onSuccess": {
               "effects": [
                 {
@@ -1437,7 +1769,8 @@
             ]
           }
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/scene_evidence_collection.png"
     },
     {
       "id": "scene_evidence_collection_beat1",
@@ -1624,6 +1957,7 @@
             "id": "check_journalist_shivers",
             "voiceId": "attr_spirit",
             "difficulty": 11,
+            "showChancePercent": true,
             "onSuccess": {
               "nextNodeId": "scene_journalist_shivers",
               "effects": [
@@ -1777,6 +2111,7 @@
             "id": "check_journalist_show_seal",
             "voiceId": "attr_deception",
             "difficulty": 12,
+            "showChancePercent": true,
             "onSuccess": {
               "nextNodeId": "scene_journalist_show_telegram",
               "effects": [
@@ -2023,6 +2358,7 @@
             "id": "check_aristocrat_courtesy",
             "voiceId": "attr_social",
             "difficulty": 10,
+            "showChancePercent": true,
             "onSuccess": {
               "nextNodeId": "scene_aristocrat_ballroom",
               "effects": [
@@ -2211,6 +2547,7 @@
             "id": "check_veteran_flashback",
             "voiceId": "attr_spirit",
             "difficulty": 10,
+            "showChancePercent": true,
             "onSuccess": {
               "nextNodeId": "scene_veteran_flashback",
               "effects": [
@@ -2388,6 +2725,7 @@
             "id": "check_archivist_index",
             "voiceId": "attr_intellect",
             "difficulty": 11,
+            "showChancePercent": true,
             "onSuccess": {
               "nextNodeId": "scene_archivist_catalog",
               "effects": [
@@ -2529,6 +2867,135 @@
         }
       ],
       "characterId": "inspector"
+    },
+    {
+      "id": "scene_city_student_tip",
+      "scenarioId": "sandbox_city_student_tip",
+      "title": "City Student Tip",
+      "body": "A student drops their books and complains about the university curfews.",
+      "choices": [
+        {
+          "id": "CITY_STUDENT_CONTINUE",
+          "text": "Leave them be",
+          "nextNodeId": "scene_city_student_tip_end"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "city_student_seen",
+          "value": true
+        },
+        {
+          "type": "track_event",
+          "eventName": "city_student_tip_seen"
+        }
+      ]
+    },
+    {
+      "id": "scene_city_student_tip_end",
+      "scenarioId": "sandbox_city_student_tip",
+      "title": "Student Tip End",
+      "body": "You offer a sympathetic hum.",
+      "terminal": true,
+      "choices": []
+    },
+    {
+      "id": "scene_city_cleaner_tip",
+      "scenarioId": "sandbox_city_cleaner_tip",
+      "title": "City Cleaner Tip",
+      "body": "The cleaner mutters something about strange hours at the banks.",
+      "choices": [
+        {
+          "id": "CITY_CLEANER_CONTINUE",
+          "text": "Move along",
+          "nextNodeId": "scene_city_cleaner_tip_end"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "city_cleaner_seen",
+          "value": true
+        },
+        {
+          "type": "track_event",
+          "eventName": "city_cleaner_tip_seen"
+        }
+      ]
+    },
+    {
+      "id": "scene_city_cleaner_tip_end",
+      "scenarioId": "sandbox_city_cleaner_tip",
+      "title": "Cleaner Tip End",
+      "body": "You nod slowly, taking note.",
+      "terminal": true,
+      "choices": []
+    },
+    {
+      "id": "scene_city_bootblack_tip",
+      "scenarioId": "sandbox_city_bootblack_tip",
+      "title": "City Bootblack Tip",
+      "body": "The bootblack shares a quiet rumor about the streets.",
+      "choices": [
+        {
+          "id": "CITY_BOOTBLACK_CONTINUE",
+          "text": "Walk away",
+          "nextNodeId": "scene_city_bootblack_tip_end"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "city_bootblack_seen",
+          "value": true
+        },
+        {
+          "type": "track_event",
+          "eventName": "city_bootblack_tip_seen"
+        }
+      ]
+    },
+    {
+      "id": "scene_city_bootblack_tip_end",
+      "scenarioId": "sandbox_city_bootblack_tip",
+      "title": "Bootblack Tip End",
+      "body": "You flip him a coin and walk away.",
+      "terminal": true,
+      "choices": []
+    },
+    {
+      "id": "scene_workers_pub_rumor",
+      "scenarioId": "sandbox_workers_pub_rumor",
+      "title": "Tavern Whisper",
+      "body": "A dockhand leans in just long enough to mutter about a street raid breaking apart near the rail yards. If you move now, there may still be witnesses to catch.",
+      "choices": [
+        {
+          "id": "WORKERS_PUB_RUMOR_PURSUE",
+          "text": "Cut through the alleys before the lead goes cold.",
+          "nextNodeId": "scene_workers_pub_rumor_end",
+          "effects": [
+            {
+              "type": "grant_xp",
+              "amount": 5
+            }
+          ]
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "track_event",
+          "eventName": "workers_pub_rumor_opened"
+        }
+      ]
+    },
+    {
+      "id": "scene_workers_pub_rumor_end",
+      "scenarioId": "sandbox_workers_pub_rumor",
+      "title": "Late to the Alley",
+      "body": "By the time you arrive, the shouting has already thinned into scattered footsteps and a single overturned crate. Someone was here. Someone will talk later if you come back with better timing.",
+      "terminal": true,
+      "choices": []
     },
     {
       "id": "scene_intro_journey",
@@ -2819,11 +3286,30 @@
   "mindPalace": {
     "cases": [
       {
+        "id": "case_loop_demo",
+        "title": "Loop Demo Case"
+      },
+      {
         "id": "case_banker_theft",
         "title": "Banker Ledger Theft"
+      },
+      {
+        "id": "case_dog_trail",
+        "title": "The Dog's Trail"
       }
     ],
     "facts": [
+      {
+        "id": "fact_loop_clue",
+        "caseId": "case_loop_demo",
+        "sourceType": "vn_choice",
+        "sourceId": "sandbox_loop_demo::scene_loop_demo_intro::LOOP_DEMO_CLUE",
+        "text": "This is a demo fact proving the loop works.",
+        "tags": {
+          "theme": "demo",
+          "reliability": "high"
+        }
+      },
       {
         "id": "fact_ledger_gap",
         "caseId": "case_banker_theft",
@@ -2889,9 +3375,99 @@
           "theme": "evidence",
           "reliability": "high"
         }
+      },
+      {
+        "id": "fact_dog_market_route",
+        "caseId": "case_dog_trail",
+        "sourceType": "vn_on_enter",
+        "sourceId": "sandbox_dog_pilot::scene_dog_market_beat2",
+        "text": "Trader confirms someone matching Dog crossed toward the station.",
+        "tags": {
+          "theme": "witness",
+          "reliability": "medium"
+        }
+      },
+      {
+        "id": "fact_dog_station_manifest",
+        "caseId": "case_dog_trail",
+        "sourceType": "vn_on_enter",
+        "sourceId": "sandbox_dog_pilot::scene_dog_station_beat2",
+        "text": "Night train manifests show a passenger fitting Dog's description.",
+        "tags": {
+          "theme": "documents",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_dog_tailor_invoice",
+        "caseId": "case_dog_trail",
+        "sourceType": "vn_on_enter",
+        "sourceId": "sandbox_dog_pilot::scene_dog_tailor_beat2",
+        "text": "Tailor's secret log shows bespoke trench coats paid by an unknown handler.",
+        "tags": {
+          "theme": "finance",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_dog_pub_identification",
+        "caseId": "case_dog_trail",
+        "sourceType": "vn_on_enter",
+        "sourceId": "sandbox_dog_pilot::scene_dog_pub_beat2",
+        "text": "Barman described a handler meeting people looking exactly like Dog.",
+        "tags": {
+          "theme": "witness",
+          "reliability": "medium"
+        }
+      },
+      {
+        "id": "fact_dog_uni_registry",
+        "caseId": "case_dog_trail",
+        "sourceType": "vn_on_enter",
+        "sourceId": "sandbox_dog_pilot::scene_dog_uni",
+        "text": "University registry lists a researcher missing around the time Dog appeared.",
+        "tags": {
+          "theme": "documents",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_dog_reunion_capstone",
+        "caseId": "case_dog_trail",
+        "sourceType": "vn_on_enter",
+        "sourceId": "sandbox_dog_pilot::scene_park_reunion",
+        "text": "Dog intercepted you in the park, demanding answers about their origin.",
+        "tags": {
+          "theme": "witness",
+          "reliability": "high"
+        }
       }
     ],
     "hypotheses": [
+      {
+        "id": "hyp_loop_solved",
+        "caseId": "case_loop_demo",
+        "key": "loop_demo_solved",
+        "text": "The loop demo has been completed successfully.",
+        "requiredFactIds": [
+          "fact_loop_clue"
+        ],
+        "requiredVars": [],
+        "rewardEffects": [
+          {
+            "type": "set_var",
+            "key": "loop_demo_solved",
+            "value": 1
+          },
+          {
+            "type": "track_event",
+            "eventName": "mind_case_loop_demo_solved",
+            "tags": {
+              "caseId": "case_loop_demo"
+            }
+          }
+        ]
+      },
       {
         "id": "hyp_banker_inside_job",
         "caseId": "case_banker_theft",
@@ -2928,6 +3504,58 @@
             }
           }
         ]
+      },
+      {
+        "id": "hyp_dog_route_reconstruction",
+        "caseId": "case_dog_trail",
+        "key": "dog_route_proven",
+        "text": "The Dog traveled from the university area via the market toward the train station.",
+        "requiredFactIds": [
+          "fact_dog_market_route",
+          "fact_dog_station_manifest",
+          "fact_dog_uni_registry"
+        ],
+        "requiredVars": [],
+        "rewardEffects": [
+          {
+            "type": "set_flag",
+            "key": "dog_route_proven",
+            "value": true
+          },
+          {
+            "type": "track_event",
+            "eventName": "mind_dog_route_proven"
+          }
+        ]
+      },
+      {
+        "id": "hyp_dog_handler_exposed",
+        "caseId": "case_dog_trail",
+        "key": "dog_handler_proven",
+        "text": "A proxy handler operates out of the pub, outfitting assets at the tailor. Dog confronted me looking for them.",
+        "requiredFactIds": [
+          "fact_dog_tailor_invoice",
+          "fact_dog_pub_identification",
+          "fact_dog_reunion_capstone"
+        ],
+        "requiredVars": [
+          {
+            "key": "dog_case_confidence",
+            "op": "gte",
+            "value": 0.8
+          }
+        ],
+        "rewardEffects": [
+          {
+            "type": "set_flag",
+            "key": "dog_handler_proven",
+            "value": true
+          },
+          {
+            "type": "track_event",
+            "eventName": "mind_dog_handler_proven"
+          }
+        ]
       }
     ]
   },
@@ -2944,6 +3572,73 @@
     ],
     "points": [
       {
+        "id": "loc_agency",
+        "title": "Grenzwanderer Agency",
+        "regionId": "FREIBURG_1905",
+        "lat": 47.9952,
+        "lng": 7.8508,
+        "description": "Your hidden office and operations hub. Briefings, evidence walls, and trusted informants start here.",
+        "image": "/images/locations/loc_agency.webp",
+        "locationId": "loc_agency",
+        "category": "HUB",
+        "defaultState": "discovered",
+        "bindings": [
+          {
+            "id": "bind_agency_briefing_start",
+            "trigger": "card_primary",
+            "label": "Receive First Briefing",
+            "priority": 160,
+            "intent": "objective",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "agency_briefing_complete",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_agency_briefing"
+              }
+            ]
+          },
+          {
+            "id": "bind_agency_caseboard",
+            "trigger": "card_primary",
+            "label": "Review Active Files",
+            "priority": 80,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "agency_briefing_complete",
+                "value": true
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_case01_pilot"
+              }
+            ]
+          },
+          {
+            "id": "sys_travel_loc_agency",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 10,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_agency"
+              }
+            ]
+          }
+        ]
+      },
+      {
         "id": "loc_hbf",
         "title": "Hauptbahnhof",
         "regionId": "FREIBURG_1905",
@@ -2952,8 +3647,34 @@
         "description": "Steam-era gateway to Freiburg. Arrivals from Basel and Strasbourg.",
         "image": "/images/locations/loc_hauptbahnhof.webp",
         "locationId": "loc_hbf",
+        "category": "PUBLIC",
         "defaultState": "discovered",
+        "isHiddenInitially": true,
         "bindings": [
+          {
+            "id": "bind_hbf_demo_reward",
+            "trigger": "card_primary",
+            "label": "Claim Demo Reward",
+            "priority": 150,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "var_gte",
+                "key": "loop_demo_solved",
+                "value": 1
+              }
+            ],
+            "actions": [
+              {
+                "type": "track_event",
+                "eventName": "loop_demo_completed"
+              },
+              {
+                "type": "grant_xp",
+                "amount": 100
+              }
+            ]
+          },
           {
             "id": "bind_hbf_intro_start",
             "trigger": "card_primary",
@@ -3035,8 +3756,10 @@
         "description": "Prestigious bank at Munsterplatz, currently under renovation.",
         "image": "/images/locations/loc_bankhaus.webp",
         "locationId": "loc_freiburg_bank",
+        "category": "PUBLIC",
         "defaultState": "discovered",
         "unlockGroup": "loc_freiburg_bank",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "bind_bank_start",
@@ -3147,8 +3870,10 @@
         "description": "City Hall and records authority for central Freiburg.",
         "image": "/images/locations/loc_rathaus_archiv.webp",
         "locationId": "loc_rathaus",
+        "category": "PUBLIC",
         "defaultState": "discovered",
         "unlockGroup": "loc_rathaus",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "bind_rathaus_dog_start",
@@ -3263,7 +3988,9 @@
         "description": "Gothic cathedral dominating the city center.",
         "image": "/images/locations/loc_munster.webp",
         "locationId": "loc_munster",
+        "category": "PUBLIC",
         "defaultState": "discovered",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "legacy_start_loc_munster",
@@ -3302,7 +4029,9 @@
         "description": "University chemistry lab for forensic analysis.",
         "image": "/images/locations/loc_uni.webp",
         "locationId": "loc_uni_chem",
+        "category": "PUBLIC",
         "defaultState": "discovered",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "legacy_start_loc_uni_chem",
@@ -3341,7 +4070,9 @@
         "description": "Medical institute focused on serology and lab diagnostics.",
         "image": "/images/locations/loc_uni.webp",
         "locationId": "loc_uni_med",
+        "category": "PUBLIC",
         "defaultState": "discovered",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "legacy_start_loc_uni_med",
@@ -3380,18 +4111,28 @@
         "description": "Fraternity house in the university quarter.",
         "image": "/images/locations/loc_student_house.webp",
         "locationId": "loc_student_house",
-        "defaultState": "discovered",
+        "category": "SHADOW",
+        "defaultState": "locked",
+        "unlockGroup": "loc_student_house",
+        "isHiddenInitially": true,
         "bindings": [
           {
-            "id": "legacy_start_loc_student_house",
+            "id": "bind_city_student_tip",
             "trigger": "card_primary",
-            "label": "Start Scenario",
-            "priority": 100,
+            "label": "Talk to Student",
+            "priority": 80,
             "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "city_student_seen",
+                "value": false
+              }
+            ],
             "actions": [
               {
                 "type": "start_scenario",
-                "scenarioId": "sandbox_intro_pilot"
+                "scenarioId": "sandbox_city_student_tip"
               }
             ]
           },
@@ -3419,7 +4160,9 @@
         "description": "Busy inn popular with locals and travelers.",
         "image": "/images/locations/loc_ganter_brauerei.webp",
         "locationId": "loc_pub_deutsche",
+        "category": "PUBLIC",
         "defaultState": "discovered",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "legacy_start_loc_pub_deutsche",
@@ -3458,18 +4201,27 @@
         "description": "Tanners quarter where movement is best watched at night.",
         "image": "/images/locations/loc_suburbs.webp",
         "locationId": "loc_red_light",
+        "category": "PUBLIC",
         "defaultState": "discovered",
+        "isHiddenInitially": true,
         "bindings": [
           {
-            "id": "legacy_start_loc_red_light",
+            "id": "bind_city_cleaner_tip",
             "trigger": "card_primary",
-            "label": "Start Scenario",
-            "priority": 100,
+            "label": "Talk to Cleaner",
+            "priority": 80,
             "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "city_cleaner_seen",
+                "value": false
+              }
+            ],
             "actions": [
               {
                 "type": "start_scenario",
-                "scenarioId": "sandbox_intro_pilot"
+                "scenarioId": "sandbox_city_cleaner_tip"
               }
             ]
           },
@@ -3497,7 +4249,10 @@
         "description": "Rail yard storage facility used for late-stage investigation.",
         "image": "/images/locations/loc_stuhlinger_warehouse.webp",
         "locationId": "loc_freiburg_warehouse",
+        "category": "SHADOW",
         "defaultState": "locked",
+        "unlockGroup": "loc_freiburg_warehouse",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "bind_warehouse_finale",
@@ -3604,8 +4359,82 @@
         "description": "Workers tavern and hub for social leads.",
         "image": "/images/locations/loc_ganter_brauerei.webp",
         "locationId": "loc_workers_pub",
+        "category": "PUBLIC",
         "defaultState": "discovered",
+        "isHiddenInitially": true,
         "bindings": [
+          {
+            "id": "bind_pub_rumor_raid",
+            "trigger": "card_secondary",
+            "label": "Follow Fresh Rumor",
+            "priority": 135,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "agency_briefing_complete",
+                "value": true
+              }
+            ],
+            "actions": [
+              {
+                "type": "spawn_map_event",
+                "templateId": "evt_workers_pub_raid"
+              },
+              {
+                "type": "track_event",
+                "eventName": "workers_pub_rumor_spawned",
+                "tags": {
+                  "templateId": "evt_workers_pub_raid"
+                }
+              }
+            ]
+          },
+          {
+            "id": "bind_pub_dog_close",
+            "trigger": "card_primary",
+            "label": "Confront Handler",
+            "priority": 90,
+            "intent": "objective",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "dog_reunion_reached",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "dog_route_proven",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "dog_handler_proven",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "dog_case_closed",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "set_quest_stage",
+                "questId": "quest_dog",
+                "stage": 3
+              },
+              {
+                "type": "set_flag",
+                "key": "dog_case_closed",
+                "value": true
+              },
+              {
+                "type": "grant_xp",
+                "amount": 40
+              }
+            ]
+          },
           {
             "id": "bind_pub_ghost_start",
             "trigger": "card_primary",
@@ -3720,18 +4549,27 @@
         "description": "Historic city gate with strong foot traffic.",
         "image": "/images/locations/loc_munster.webp",
         "locationId": "loc_martinstor",
+        "category": "PUBLIC",
         "defaultState": "discovered",
+        "isHiddenInitially": true,
         "bindings": [
           {
-            "id": "legacy_start_loc_martinstor",
+            "id": "bind_city_bootblack_tip",
             "trigger": "card_primary",
-            "label": "Start Scenario",
-            "priority": 100,
+            "label": "Talk to Bootblack",
+            "priority": 80,
             "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "city_bootblack_seen",
+                "value": false
+              }
+            ],
             "actions": [
               {
                 "type": "start_scenario",
-                "scenarioId": "sandbox_intro_pilot"
+                "scenarioId": "sandbox_city_bootblack_tip"
               }
             ]
           },
@@ -3759,7 +4597,9 @@
         "description": "Eastern city gate and surveillance vantage point.",
         "image": "/images/locations/loc_munster.webp",
         "locationId": "loc_schwabentor",
+        "category": "PUBLIC",
         "defaultState": "discovered",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "legacy_start_loc_schwabentor",
@@ -3798,7 +4638,10 @@
         "description": "Disguise and costume workshop tied to lead progression.",
         "image": "/images/locations/loc_student_house.webp",
         "locationId": "loc_tailor",
+        "category": "SHADOW",
         "defaultState": "locked",
+        "unlockGroup": "loc_tailor",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "legacy_start_loc_tailor",
@@ -3837,7 +4680,10 @@
         "description": "Pharmacy near the cathedral with chemical evidence links.",
         "image": "/images/locations/loc_uni.webp",
         "locationId": "loc_apothecary",
+        "category": "SHADOW",
         "defaultState": "locked",
+        "unlockGroup": "loc_apothecary",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "legacy_start_loc_apothecary",
@@ -3876,7 +4722,10 @@
         "description": "Tavern near Martinstor with working-class witnesses.",
         "image": "/images/locations/loc_ganter_brauerei.webp",
         "locationId": "loc_pub",
+        "category": "SHADOW",
         "defaultState": "locked",
+        "unlockGroup": "loc_pub",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "legacy_start_loc_pub",
@@ -3907,45 +4756,6 @@
         ]
       },
       {
-        "id": "loc_street_event",
-        "title": "Street Encounter",
-        "regionId": "FREIBURG_1905",
-        "lat": 47.9945,
-        "lng": 7.8505,
-        "description": "Temporary event location for interlude beats.",
-        "image": "/images/locations/loc_suburbs.webp",
-        "locationId": "loc_street_event",
-        "defaultState": "locked",
-        "bindings": [
-          {
-            "id": "legacy_start_loc_street_event",
-            "trigger": "card_primary",
-            "label": "Start Scenario",
-            "priority": 100,
-            "intent": "interaction",
-            "actions": [
-              {
-                "type": "start_scenario",
-                "scenarioId": "sandbox_case01_pilot"
-              }
-            ]
-          },
-          {
-            "id": "sys_travel_loc_street_event",
-            "trigger": "card_secondary",
-            "label": "Travel",
-            "priority": 10,
-            "intent": "travel",
-            "actions": [
-              {
-                "type": "travel_to",
-                "locationId": "loc_street_event"
-              }
-            ]
-          }
-        ]
-      },
-      {
         "id": "loc_telephone",
         "title": "Telegraph Office",
         "regionId": "FREIBURG_1905",
@@ -3954,7 +4764,10 @@
         "description": "Message relay and switchboard narrative checkpoint.",
         "image": "/images/locations/loc_rathaus_archiv.webp",
         "locationId": "loc_telephone",
+        "category": "SHADOW",
         "defaultState": "locked",
+        "unlockGroup": "loc_telephone",
+        "isHiddenInitially": true,
         "bindings": [
           {
             "id": "legacy_start_loc_telephone",
@@ -3984,7 +4797,101 @@
           }
         ]
       }
-    ]
+    ],
+    "shadowRoutes": [
+      {
+        "id": "route_ghost_undercity",
+        "regionId": "FREIBURG_1905",
+        "pointIds": [
+          "loc_munster",
+          "loc_apothecary",
+          "loc_pub"
+        ],
+        "color": "#5d4632",
+        "revealFlagsAll": [
+          "ghost_route_unlocked"
+        ]
+      },
+      {
+        "id": "route_finale_stuhlinger",
+        "regionId": "FREIBURG_1905",
+        "pointIds": [
+          "loc_agency",
+          "loc_workers_pub",
+          "loc_freiburg_warehouse"
+        ],
+        "color": "#2f3c4f",
+        "revealFlagsAll": [
+          "freiburg_finale_open"
+        ]
+      }
+    ],
+    "qrCodeRegistry": [
+      {
+        "codeId": "qr_warehouse_dock",
+        "codeHash": "f910aaad92f4ffe866e78870e8ef623e8eb3fa9a0c6739d5cdf48ecf655e7a67",
+        "redeemPolicy": "once_per_player",
+        "effects": [
+          {
+            "type": "unlock_group",
+            "groupId": "loc_freiburg_warehouse"
+          }
+        ],
+        "requiresFlagsAll": [
+          "agency_briefing_complete"
+        ]
+      }
+    ],
+    "mapEventTemplates": [
+      {
+        "id": "evt_workers_pub_raid",
+        "ttlMinutes": 15,
+        "point": {
+          "id": "evt_workers_pub_raid_pin",
+          "title": "Street Raid Lead",
+          "regionId": "FREIBURG_1905",
+          "lat": 47.9972,
+          "lng": 7.8456,
+          "category": "EPHEMERAL",
+          "description": "A whispered lead points to a raid already unfolding near the rail yards.",
+          "image": "/images/locations/loc_suburbs.webp",
+          "locationId": "loc_street_event",
+          "defaultState": "discovered",
+          "isHiddenInitially": false,
+          "bindings": [
+            {
+              "id": "bind_evt_workers_pub_raid_start",
+              "trigger": "map_pin",
+              "label": "Investigate",
+              "priority": 120,
+              "intent": "interaction",
+              "actions": [
+                {
+                  "type": "start_scenario",
+                  "scenarioId": "sandbox_workers_pub_rumor"
+                }
+              ]
+            },
+            {
+              "id": "bind_evt_workers_pub_raid_travel",
+              "trigger": "card_secondary",
+              "label": "Travel",
+              "priority": 10,
+              "intent": "travel",
+              "actions": [
+                {
+                  "type": "travel_to",
+                  "locationId": "loc_street_event"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "testDefaults": {
+      "defaultEventTtlMinutes": 15
+    }
   },
   "questCatalog": [
     {
@@ -4081,6 +4988,6 @@
       ]
     }
   ],
-  "checksum": "472ee039e885ff6de60c77914d7a216c9902f4074e199cf781305c77559454ca",
-  "generatedAt": "2026-03-03T20:01:47.062Z"
+  "checksum": "31e1cb952334e40d1b99cb062f3b1e981f0c333a5846b5661e3b46e29900dae1",
+  "generatedAt": "2026-03-08T09:25:52.558Z"
 }

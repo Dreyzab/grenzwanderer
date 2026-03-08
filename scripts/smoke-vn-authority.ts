@@ -250,7 +250,7 @@ const runSmoke = async () =>
                 scenarioId: ids.scenarioAuthority,
                 checkId: ids.checkConditional,
               }),
-            "Choice conditions are not satisfied for this skill check",
+            "Choice gating conditions are not satisfied for this skill check",
           );
 
           await conn.reducers.performSkillCheck({

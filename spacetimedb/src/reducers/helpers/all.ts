@@ -1278,6 +1278,24 @@ const isMapCondition = (value: unknown): value is MapCondition => {
       typeof condition.value === "number"
     );
   }
+  if (condition.type === "favor_balance_gte") {
+    return (
+      typeof condition.npcId === "string" &&
+      typeof condition.value === "number"
+    );
+  }
+  if (condition.type === "agency_standing_gte") {
+    return typeof condition.value === "number";
+  }
+  if (condition.type === "rumor_state_is") {
+    return (
+      typeof condition.rumorId === "string" &&
+      (condition.status === "registered" || condition.status === "verified")
+    );
+  }
+  if (condition.type === "career_rank_gte") {
+    return typeof condition.rankId === "string";
+  }
   if (condition.type === "unlock_group_has") {
     return typeof condition.groupId === "string";
   }
@@ -1351,6 +1369,45 @@ const isMapAction = (value: unknown): value is MapAction => {
   if (action.type === "change_relationship") {
     return (
       typeof action.characterId === "string" && typeof action.delta === "number"
+    );
+  }
+  if (action.type === "change_favor_balance") {
+    return (
+      typeof action.npcId === "string" &&
+      typeof action.delta === "number" &&
+      (action.reason === undefined || typeof action.reason === "string")
+    );
+  }
+  if (action.type === "change_agency_standing") {
+    return (
+      typeof action.delta === "number" &&
+      (action.reason === undefined || typeof action.reason === "string")
+    );
+  }
+  if (action.type === "change_faction_signal") {
+    return (
+      typeof action.factionId === "string" &&
+      typeof action.delta === "number" &&
+      (action.reason === undefined || typeof action.reason === "string")
+    );
+  }
+  if (action.type === "register_rumor") {
+    return typeof action.rumorId === "string";
+  }
+  if (action.type === "verify_rumor") {
+    return (
+      typeof action.rumorId === "string" &&
+      (action.verificationKind === "evidence" ||
+        action.verificationKind === "fact" ||
+        action.verificationKind === "service_unlock" ||
+        action.verificationKind === "map_unlock")
+    );
+  }
+  if (action.type === "record_service_criterion") {
+    return (
+      action.criterionId === "verified_rumor_chain" ||
+      action.criterionId === "preserved_source_network" ||
+      action.criterionId === "clean_closure"
     );
   }
   if (action.type === "track_event") {
@@ -1862,6 +1919,207 @@ const parseQuestCatalog = (
   return payloadQuestCatalog as QuestCatalogEntry[];
 };
 
+const parseSocialCatalog = (
+  payloadSocialCatalog: unknown,
+): SocialCatalogSnapshot | undefined => {
+  if (payloadSocialCatalog === undefined) {
+    return undefined;
+  }
+
+  const catalog = asRecord(payloadSocialCatalog, "payloadJson.socialCatalog");
+  const npcIdentities = Array.isArray(catalog.npcIdentities)
+    ? catalog.npcIdentities
+    : null;
+  const services = Array.isArray(catalog.services) ? catalog.services : null;
+  const rumors = Array.isArray(catalog.rumors) ? catalog.rumors : null;
+  const careerRanks = Array.isArray(catalog.careerRanks)
+    ? catalog.careerRanks
+    : null;
+
+  if (!npcIdentities || !services || !rumors || !careerRanks) {
+    throw new SenderError("payloadJson.socialCatalog has invalid shape");
+  }
+
+  const parsedNpcIdentities: NpcRuntimeIdentity[] = npcIdentities.map(
+    (entry, index) => {
+      const record = asRecord(
+        entry,
+        `payloadJson.socialCatalog.npcIdentities[${index}]`,
+      );
+      const rosterTier = record.rosterTier;
+      if (
+        rosterTier !== "archetype" &&
+        rosterTier !== "functional" &&
+        rosterTier !== "major"
+      ) {
+        throw new SenderError("payloadJson.socialCatalog has invalid shape");
+      }
+
+      return {
+        id: String(record.id ?? ""),
+        displayName: String(record.displayName ?? ""),
+        factionId: String(record.factionId ?? ""),
+        publicRole: String(record.publicRole ?? ""),
+        rosterTier,
+        portraitUrl:
+          record.portraitUrl === undefined ? undefined : String(record.portraitUrl),
+        introFlag:
+          record.introFlag === undefined ? undefined : String(record.introFlag),
+        homePointId:
+          record.homePointId === undefined
+            ? undefined
+            : String(record.homePointId),
+        workPointId:
+          record.workPointId === undefined
+            ? undefined
+            : String(record.workPointId),
+        serviceIds:
+          record.serviceIds === undefined
+            ? undefined
+            : asStringArray(
+                record.serviceIds,
+                `payloadJson.socialCatalog.npcIdentities[${index}].serviceIds`,
+              ),
+      };
+    },
+  );
+
+  const parsedServices: NpcServiceDefinition[] = services.map((entry, index) => {
+    const record = asRecord(
+      entry,
+      `payloadJson.socialCatalog.services[${index}]`,
+    );
+    const role = record.role;
+    if (
+      role !== "information" &&
+      role !== "archives" &&
+      role !== "social_introduction" &&
+      role !== "political_cover" &&
+      role !== "transport"
+    ) {
+      throw new SenderError("payloadJson.socialCatalog has invalid shape");
+    }
+
+    return {
+      id: String(record.id ?? ""),
+      npcId: String(record.npcId ?? ""),
+      role,
+      label: String(record.label ?? ""),
+      baseAccess: String(record.baseAccess ?? ""),
+      unlockFlag:
+        record.unlockFlag === undefined ? undefined : String(record.unlockFlag),
+      costNote:
+        record.costNote === undefined ? undefined : String(record.costNote),
+      qualityNote:
+        record.qualityNote === undefined ? undefined : String(record.qualityNote),
+      consequenceNote:
+        record.consequenceNote === undefined
+          ? undefined
+          : String(record.consequenceNote),
+    };
+  });
+
+  const parsedRumors: RumorTemplate[] = rumors.map((entry, index) => {
+    const record = asRecord(entry, `payloadJson.socialCatalog.rumors[${index}]`);
+    const verifiesOn = asStringArray(
+      record.verifiesOn,
+      `payloadJson.socialCatalog.rumors[${index}].verifiesOn`,
+    );
+    if (
+      !verifiesOn.every(
+        (value) =>
+          value === "evidence" ||
+          value === "fact" ||
+          value === "service_unlock" ||
+          value === "map_unlock",
+      )
+    ) {
+      throw new SenderError("payloadJson.socialCatalog has invalid shape");
+    }
+
+    const careerCriterionOnVerify = record.careerCriterionOnVerify;
+    if (
+      careerCriterionOnVerify !== undefined &&
+      careerCriterionOnVerify !== "verified_rumor_chain" &&
+      careerCriterionOnVerify !== "preserved_source_network" &&
+      careerCriterionOnVerify !== "clean_closure"
+    ) {
+      throw new SenderError("payloadJson.socialCatalog has invalid shape");
+    }
+
+    return {
+      id: String(record.id ?? ""),
+      title: String(record.title ?? ""),
+      caseId: String(record.caseId ?? ""),
+      leadPointId:
+        record.leadPointId === undefined ? undefined : String(record.leadPointId),
+      sourceNpcId:
+        record.sourceNpcId === undefined ? undefined : String(record.sourceNpcId),
+      verifiesOn: verifiesOn as RumorVerificationKind[],
+      careerCriterionOnVerify:
+        careerCriterionOnVerify as AgencyServiceCriterionId | undefined,
+    };
+  });
+
+  const parsedCareerRanks: CareerRankDefinition[] = careerRanks.map(
+    (entry, index) => {
+      const record = asRecord(
+        entry,
+        `payloadJson.socialCatalog.careerRanks[${index}]`,
+      );
+      return {
+        id: String(record.id ?? ""),
+        label: String(record.label ?? ""),
+        order: asNumber(
+          record.order,
+          `payloadJson.socialCatalog.careerRanks[${index}].order`,
+        ),
+        standingRequired: asNumber(
+          record.standingRequired,
+          `payloadJson.socialCatalog.careerRanks[${index}].standingRequired`,
+        ),
+        qualifyingCaseId:
+          record.qualifyingCaseId === undefined
+            ? undefined
+            : String(record.qualifyingCaseId),
+        serviceCriteriaNeeded: asNumber(
+          record.serviceCriteriaNeeded,
+          `payloadJson.socialCatalog.careerRanks[${index}].serviceCriteriaNeeded`,
+        ),
+        privileges: asStringArray(
+          record.privileges,
+          `payloadJson.socialCatalog.careerRanks[${index}].privileges`,
+        ),
+      };
+    },
+  );
+
+  const assertUniqueIds = (
+    entries: ReadonlyArray<{ id: string }>,
+    fieldName: string,
+  ): void => {
+    const ids = new Set<string>();
+    for (const entry of entries) {
+      if (entry.id.trim().length === 0 || ids.has(entry.id)) {
+        throw new SenderError(`${fieldName} has invalid shape`);
+      }
+      ids.add(entry.id);
+    }
+  };
+
+  assertUniqueIds(parsedNpcIdentities, "payloadJson.socialCatalog.npcIdentities");
+  assertUniqueIds(parsedServices, "payloadJson.socialCatalog.services");
+  assertUniqueIds(parsedRumors, "payloadJson.socialCatalog.rumors");
+  assertUniqueIds(parsedCareerRanks, "payloadJson.socialCatalog.careerRanks");
+
+  return {
+    npcIdentities: parsedNpcIdentities,
+    services: parsedServices,
+    rumors: parsedRumors,
+    careerRanks: parsedCareerRanks,
+  };
+};
+
 export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
   let parsed: unknown;
   try {
@@ -1900,6 +2158,7 @@ export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
     payload.vnRuntime === undefined ? undefined : payload.vnRuntime;
   const map = parseMapSnapshot(payload.map, schemaVersion, payload.scenarios);
   const questCatalog = parseQuestCatalog(payload.questCatalog, schemaVersion);
+  const socialCatalog = parseSocialCatalog(payload.socialCatalog);
 
   if (payload.mindPalace === undefined) {
     if (schemaVersion >= 2) {
@@ -1915,6 +2174,7 @@ export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
       vnRuntime,
       map,
       questCatalog,
+      socialCatalog,
       mindPalace: {
         cases: [],
         facts: [],
@@ -1952,6 +2212,7 @@ export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
     vnRuntime,
     map,
     questCatalog,
+    socialCatalog,
     mindPalace: {
       cases,
       facts,
@@ -2001,6 +2262,26 @@ export const createRelationshipKey = (
   player: { toHexString(): string },
   characterId: string,
 ): string => `${identityKey(player)}::${characterId}`;
+
+export const createNpcStateKey = (
+  player: { toHexString(): string },
+  npcId: string,
+): string => `${identityKey(player)}::npc::${npcId}`;
+
+export const createNpcFavorKey = (
+  player: { toHexString(): string },
+  npcId: string,
+): string => `${identityKey(player)}::favor::${npcId}`;
+
+export const createFactionSignalKey = (
+  player: { toHexString(): string },
+  factionId: string,
+): string => `${identityKey(player)}::faction::${factionId}`;
+
+export const createRumorStateKey = (
+  player: { toHexString(): string },
+  rumorId: string,
+): string => `${identityKey(player)}::rumor::${rumorId}`;
 
 export const createCommandPartyMemberKey = (
   player: { toHexString(): string },

@@ -141,6 +141,10 @@ const evaluateMapCondition = (
   return false;
 };
 
+const assertUnsupportedMapAction = (action: never): never => {
+  throw new SenderError(`Unsupported map action: ${JSON.stringify(action)}`);
+};
+
 const toVnEffect = (action: Exclude<MapAction, { type: "start_scenario" }>) => {
   if (action.type === "travel_to") {
     return { type: "travel_to", locationId: action.locationId } as const;
@@ -192,6 +196,45 @@ const toVnEffect = (action: Exclude<MapAction, { type: "start_scenario" }>) => {
       delta: action.delta,
     } as const;
   }
+  if (action.type === "change_favor_balance") {
+    return {
+      type: "change_favor_balance",
+      npcId: action.npcId,
+      delta: action.delta,
+      reason: action.reason,
+    } as const;
+  }
+  if (action.type === "change_agency_standing") {
+    return {
+      type: "change_agency_standing",
+      delta: action.delta,
+      reason: action.reason,
+    } as const;
+  }
+  if (action.type === "change_faction_signal") {
+    return {
+      type: "change_faction_signal",
+      factionId: action.factionId,
+      delta: action.delta,
+      reason: action.reason,
+    } as const;
+  }
+  if (action.type === "register_rumor") {
+    return { type: "register_rumor", rumorId: action.rumorId } as const;
+  }
+  if (action.type === "verify_rumor") {
+    return {
+      type: "verify_rumor",
+      rumorId: action.rumorId,
+      verificationKind: action.verificationKind,
+    } as const;
+  }
+  if (action.type === "record_service_criterion") {
+    return {
+      type: "record_service_criterion",
+      criterionId: action.criterionId,
+    } as const;
+  }
   if (action.type === "shift_awakening") {
     return {
       type: "shift_awakening",
@@ -228,12 +271,15 @@ const toVnEffect = (action: Exclude<MapAction, { type: "start_scenario" }>) => {
       signatureId: action.signatureId,
     } as const;
   }
-  return {
-    type: "track_event",
-    eventName: action.eventName,
-    tags: action.tags,
-    value: action.value,
-  } as const;
+  if (action.type === "track_event") {
+    return {
+      type: "track_event",
+      eventName: action.eventName,
+      tags: action.tags,
+      value: action.value,
+    } as const;
+  }
+  return assertUnsupportedMapAction(action);
 };
 
 const executeAction = (

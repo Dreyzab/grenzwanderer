@@ -62,6 +62,11 @@ export interface MapResolverContext {
   unlockGroupIds: ReadonlySet<string>;
   questStages: ReadonlyMap<string, number>;
   relationships: ReadonlyMap<string, number>;
+  favorBalances: ReadonlyMap<string, number>;
+  agencyStanding: number;
+  careerRankId: string | null;
+  rumorStates: ReadonlyMap<string, string>;
+  careerRankOrder: ReadonlyMap<string, number>;
 }
 
 export type MapResolverInputs = Omit<MapResolverContext, "pointState">;

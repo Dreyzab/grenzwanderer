@@ -32,6 +32,22 @@ export const evaluateMapCondition = (
       (context.relationships.get(condition.characterId) ?? 0) >= condition.value
     );
   }
+  if (condition.type === "favor_balance_gte") {
+    return (context.favorBalances.get(condition.npcId) ?? 0) >= condition.value;
+  }
+  if (condition.type === "agency_standing_gte") {
+    return context.agencyStanding >= condition.value;
+  }
+  if (condition.type === "rumor_state_is") {
+    return context.rumorStates.get(condition.rumorId) === condition.status;
+  }
+  if (condition.type === "career_rank_gte") {
+    const currentRankOrder =
+      context.careerRankId === null
+        ? -1
+        : (context.careerRankOrder.get(context.careerRankId) ?? -1);
+    return currentRankOrder >= (context.careerRankOrder.get(condition.rankId) ?? -1);
+  }
   if (condition.type === "unlock_group_has") {
     return context.unlockGroupIds.has(condition.groupId);
   }

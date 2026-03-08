@@ -12,6 +12,7 @@ import { useCurrentNode } from "../hooks/useCurrentNode";
 import { useVnSession } from "../hooks/useVnSession";
 import { resolveCompletionRoute } from "../completionRoute";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
+import { getNpcDisplayName } from "../../../shared/game/socialPresentation";
 import { reducers, tables } from "../../../shared/spacetime/bindings";
 import type {
   VnSession,
@@ -108,15 +109,15 @@ const createRequestId = (): string => {
 const normalizeBody = (body: string): string =>
   body.replace(/\s+/g, " ").replace(/\|/g, " ").trim();
 
-const formatSpeaker = (characterId?: string): string => {
+const formatSpeaker = (
+  characterId?: string,
+  snapshot?: VnSnapshot | null,
+): string => {
   if (!characterId) {
     return "Narrator";
   }
 
-  return characterId
-    .replace(/^npc_/, "")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (entry) => entry.toUpperCase());
+  return getNpcDisplayName(snapshot?.socialCatalog, characterId);
 };
 
 const formatVoiceLabel = (voiceId: string): string =>
@@ -721,7 +722,7 @@ export const VnScreen = ({
 
   const createFrozenSkillCheckPresentation =
     useCallback((): FrozenSkillCheckPresentation => {
-      const fallbackSpeakerLabel = formatSpeaker(currentNode?.characterId);
+      const fallbackSpeakerLabel = formatSpeaker(currentNode?.characterId, snapshot);
 
       return {
         locationName: selectedScenario?.title ?? t.unknownScenario,
@@ -767,6 +768,7 @@ export const VnScreen = ({
       selectedScenario,
       selectedScenarioId,
       sessionReady,
+      snapshot,
       t.sessionHydrating,
       t.unknownScenario,
     ]);
@@ -1226,8 +1228,8 @@ export const VnScreen = ({
     [currentNode, selectedScenario],
   );
   const currentSpeakerLabel = useMemo(
-    () => formatSpeaker(currentNode?.characterId),
-    [currentNode?.characterId],
+    () => formatSpeaker(currentNode?.characterId, snapshot),
+    [currentNode?.characterId, snapshot],
   );
   const currentShowOriginCards =
     selectedScenarioId === "sandbox_intro_pilot" &&

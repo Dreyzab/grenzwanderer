@@ -25,10 +25,9 @@ import {
   isChoiceAvailable,
   isChoiceVisible,
   parseSnapshot,
+  type VnChoiceEvaluationContext,
 } from "../vnContent";
-import {
-  formatSkillCheckVoiceLabel,
-} from "../skillCheckPalette";
+import { formatSkillCheckVoiceLabel } from "../skillCheckPalette";
 import type { VnChoice, VnScenario, VnSnapshot } from "../types";
 import { VnChoiceButton } from "./VnChoiceButton";
 import {
@@ -162,6 +161,9 @@ const hasOptionalValue = (value: unknown): boolean => {
   return true;
 };
 
+const normalizeNumeric = (value: number | bigint | null | undefined): number =>
+  typeof value === "bigint" ? Number(value) : (value ?? 0);
+
 const isCompletionRouteBlockedError = (message: string): boolean =>
   message.includes("Scenario start is blocked by completion route rules");
 
@@ -214,6 +216,9 @@ export const VnScreen = ({
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
   const [sessions, sessionsReady] = useTable(tables.vnSession);
   const [skillResults] = useTable(tables.vnSkillCheckResult);
+  const [npcFavorRows] = useTable(tables.playerNpcFavor);
+  const [agencyCareerRows] = useTable(tables.playerAgencyCareer);
+  const [rumorStateRows] = useTable(tables.playerRumorState);
 
   const startScenario = useReducer(reducers.startScenario);
   const recordChoice = useReducer(reducers.recordChoice);
@@ -278,6 +283,47 @@ export const VnScreen = ({
 
     return parseSnapshot(snapshotRow.payloadJson);
   }, [activeVersion, snapshots]);
+  const choiceEvaluationContext = useMemo<VnChoiceEvaluationContext>(() => {
+    const favorBalances = new Map<string, number>();
+    for (const row of npcFavorRows) {
+      if (row.playerId.toHexString() !== identityHex) {
+        continue;
+      }
+      favorBalances.set(row.npcId, normalizeNumeric(row.balance));
+    }
+
+    const rumorStates = new Map<string, "registered" | "verified">();
+    for (const row of rumorStateRows) {
+      if (row.playerId.toHexString() !== identityHex) {
+        continue;
+      }
+      rumorStates.set(row.rumorId, row.status as "registered" | "verified");
+    }
+
+    const agencyCareer =
+      agencyCareerRows.find(
+        (row) => row.playerId.toHexString() === identityHex,
+      ) ?? null;
+
+    return {
+      favorBalances,
+      agencyStanding: normalizeNumeric(agencyCareer?.standingScore),
+      rumorStates,
+      careerRankId: agencyCareer?.rankId ?? null,
+      careerRankOrder: new Map<string, number>(
+        (snapshot?.socialCatalog?.careerRanks ?? []).map((rank) => [
+          rank.id,
+          rank.order,
+        ]),
+      ),
+    };
+  }, [
+    agencyCareerRows,
+    identityHex,
+    npcFavorRows,
+    rumorStateRows,
+    snapshot?.socialCatalog?.careerRanks,
+  ]);
   const contentReady =
     (versionsReady && snapshotsReady) || Boolean(activeVersion && snapshot);
 
@@ -722,12 +768,17 @@ export const VnScreen = ({
 
   const createFrozenSkillCheckPresentation =
     useCallback((): FrozenSkillCheckPresentation => {
-      const fallbackSpeakerLabel = formatSpeaker(currentNode?.characterId, snapshot);
+      const fallbackSpeakerLabel = formatSpeaker(
+        currentNode?.characterId,
+        snapshot,
+      );
 
       return {
         locationName: selectedScenario?.title ?? t.unknownScenario,
         characterName:
-          fallbackSpeakerLabel === "Narrator" ? undefined : fallbackSpeakerLabel,
+          fallbackSpeakerLabel === "Narrator"
+            ? undefined
+            : fallbackSpeakerLabel,
         narrativeText: currentNode
           ? normalizeBody(currentNode.body)
           : sessionReady
@@ -742,25 +793,26 @@ export const VnScreen = ({
           currentNode?.choices.filter(
             (choice) =>
               !isAutoContinueChoice(choice) &&
-              isChoiceVisible(choice, myFlags, myVars),
+              isChoiceVisible(choice, myFlags, myVars, choiceEvaluationContext),
           ) ?? [],
         autoContinueChoice:
           currentNode?.choices.find(
             (choice) =>
               isAutoContinueChoice(choice) &&
-              isChoiceVisible(choice, myFlags, myVars),
+              isChoiceVisible(choice, myFlags, myVars, choiceEvaluationContext),
           ) ?? null,
         showOriginCards:
           selectedScenarioId === "sandbox_intro_pilot" &&
           currentNode?.id === "scene_backstory_select",
         isScenarioCompleted: Boolean(
           mySession &&
-            currentNode &&
-            currentNode.terminal &&
-            hasOptionalValue(mySession.completedAt),
+          currentNode &&
+          currentNode.terminal &&
+          hasOptionalValue(mySession.completedAt),
         ),
       };
     }, [
+      choiceEvaluationContext,
       currentNode,
       myFlags,
       mySession,
@@ -865,7 +917,12 @@ export const VnScreen = ({
 
       await applyChoiceCommit(resolveState.scenarioId, resolveState.choiceId);
     },
-    [applyChoiceCommit, cancelActiveSkillResolve, t.skillFailed, t.skillResolved],
+    [
+      applyChoiceCommit,
+      cancelActiveSkillResolve,
+      t.skillFailed,
+      t.skillResolved,
+    ],
   );
 
   const handleActiveResolveInteraction = useCallback((): boolean => {
@@ -1179,19 +1236,18 @@ export const VnScreen = ({
       currentNode?.choices.filter(
         (choice) =>
           !isAutoContinueChoice(choice) &&
-          isChoiceVisible(choice, myFlags, myVars),
+          isChoiceVisible(choice, myFlags, myVars, choiceEvaluationContext),
       ) ?? [],
-    [currentNode, myFlags, myVars],
+    [choiceEvaluationContext, currentNode, myFlags, myVars],
   );
   const currentAutoContinueChoice = useMemo(
     () =>
       currentNode?.choices.find(
         (choice) =>
           isAutoContinueChoice(choice) &&
-          isChoiceVisible(choice, myFlags, myVars),
-      ) ??
-      null,
-    [currentNode, myFlags, myVars],
+          isChoiceVisible(choice, myFlags, myVars, choiceEvaluationContext),
+      ) ?? null,
+    [choiceEvaluationContext, currentNode, myFlags, myVars],
   );
   const hasPendingPassiveChecks = useMemo(() => {
     if (!selectedScenarioId || !currentNode) {
@@ -1245,7 +1301,7 @@ export const VnScreen = ({
   const resolvedBgUrl =
     displayedPresentation?.backgroundImageUrl ?? currentResolvedBgUrl;
   const speakerLabel = displayedPresentation
-    ? displayedPresentation.characterName ?? "Narrator"
+    ? (displayedPresentation.characterName ?? "Narrator")
     : currentSpeakerLabel;
   const displayLocationName =
     displayedPresentation?.locationName ??
@@ -1298,7 +1354,12 @@ export const VnScreen = ({
       return;
     }
 
-    const isAvailable = isChoiceAvailable(autoContinueChoice, myFlags, myVars);
+    const isAvailable = isChoiceAvailable(
+      autoContinueChoice,
+      myFlags,
+      myVars,
+      choiceEvaluationContext,
+    );
     if (!isAvailable) {
       return;
     }
@@ -1386,6 +1447,7 @@ export const VnScreen = ({
                     choice,
                     myFlags,
                     myVars,
+                    choiceEvaluationContext,
                   );
                   void handleChoiceClick(choice, !isAvailable || !mySession);
                 }}
@@ -1397,7 +1459,12 @@ export const VnScreen = ({
                   currentNode.id,
                   choice.id,
                 );
-                const isAvailable = isChoiceAvailable(choice, myFlags, myVars);
+                const isAvailable = isChoiceAvailable(
+                  choice,
+                  myFlags,
+                  myVars,
+                  choiceEvaluationContext,
+                );
                 const chancePercent = getChoiceChancePercent(choice);
                 const skillCheckState =
                   activeSkillResolve?.choiceId === choice.id
@@ -1473,7 +1540,9 @@ export const VnScreen = ({
           state={activeSkillResolve}
           onInteract={handleActiveResolveInteraction}
         />
-        {!activeSkillResolve ? <VnPassiveCheckBanner items={passiveCheckItems} /> : null}
+        {!activeSkillResolve ? (
+          <VnPassiveCheckBanner items={passiveCheckItems} />
+        ) : null}
         <button
           type="button"
           className={["vn-sfx-toggle", isSfxMuted ? "is-muted" : ""].join(" ")}

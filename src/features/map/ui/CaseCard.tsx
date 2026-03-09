@@ -1,4 +1,14 @@
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
+import { useTable } from "spacetimedb/react";
+import {
+  getAgencyStandingPresentation,
+  getCareerRankLabel,
+  getNpcDisplayName,
+  getTrustBandPresentation,
+} from "../../../shared/game/socialPresentation";
+import { tables } from "../../../shared/spacetime/bindings";
+import { parseSnapshot } from "../../vn/vnContent";
+import type { SocialCatalogSnapshot } from "../../vn/types";
 import type { RuntimeMapBinding, RuntimeMapPoint } from "../types";
 
 interface CaseCardProps {
@@ -41,12 +51,72 @@ const toneByState: Record<
   completed: { color: "#216c97", glow: "rgba(33, 108, 151, 0.18)" },
 };
 
+const describeSocialCondition = (
+  condition: NonNullable<RuntimeMapBinding["conditions"]>[number],
+  socialCatalog?: SocialCatalogSnapshot,
+): string | null => {
+  if (condition.type === "logic_or") {
+    const nested = condition.conditions
+      .map((entry) => describeSocialCondition(entry, socialCatalog))
+      .filter((entry): entry is string => entry !== null);
+    return nested.length > 0 ? nested.join(" or ") : null;
+  }
+  if (condition.type === "logic_and") {
+    const nested = condition.conditions
+      .map((entry) => describeSocialCondition(entry, socialCatalog))
+      .filter((entry): entry is string => entry !== null);
+    return nested.length > 0 ? nested.join(" and ") : null;
+  }
+  if (condition.type === "logic_not") {
+    const nested = describeSocialCondition(condition.condition, socialCatalog);
+    return nested ? `Not: ${nested}` : null;
+  }
+  if (condition.type === "relationship_gte") {
+    return `${getNpcDisplayName(socialCatalog, condition.characterId)}: ${getTrustBandPresentation(condition.value).label}`;
+  }
+  if (condition.type === "favor_balance_gte") {
+    return `${getNpcDisplayName(socialCatalog, condition.npcId)} owes you a favor`;
+  }
+  if (condition.type === "agency_standing_gte") {
+    return `Agency standing: ${getAgencyStandingPresentation(condition.value).label}`;
+  }
+  if (condition.type === "career_rank_gte") {
+    return `Rank: ${getCareerRankLabel(socialCatalog, condition.rankId)}`;
+  }
+  if (condition.type === "rumor_state_is") {
+    const rumorTitle =
+      socialCatalog?.rumors.find((entry) => entry.id === condition.rumorId)
+        ?.title ?? condition.rumorId.replace(/_/g, " ");
+    return `Rumor ${rumorTitle} must be ${condition.status}`;
+  }
+  return null;
+};
+
+const describeSocialCost = (
+  binding: RuntimeMapBinding | undefined | null,
+  socialCatalog?: SocialCatalogSnapshot,
+): string | null => {
+  const favorCost = binding?.actions.find(
+    (action) => action.type === "change_favor_balance" && action.delta < 0,
+  );
+  if (
+    favorCost &&
+    favorCost.type === "change_favor_balance" &&
+    favorCost.delta < 0
+  ) {
+    return `Cost: you will owe ${getNpcDisplayName(socialCatalog, favorCost.npcId)} a favor`;
+  }
+  return null;
+};
+
 export const CaseCard = ({
   point,
   currentLocationId,
   onRunBinding,
   onClose,
 }: CaseCardProps) => {
+  const [versionRows] = useTable(tables.contentVersion);
+  const [snapshotRows] = useTable(tables.contentSnapshot);
   const titleId = useId();
   const [pendingBindingId, setPendingBindingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +134,38 @@ export const CaseCard = ({
     point.image ?? "/images/locations/location_placeholder.webp";
   const tone = toneByState[point.state];
   const visibilityModesLabel = point.visibilityModes?.join(" / ");
+  const activeVersion = useMemo(
+    () => versionRows.find((row) => row.isActive) ?? null,
+    [versionRows],
+  );
+  const socialCatalog = useMemo(() => {
+    if (!activeVersion) {
+      return undefined;
+    }
+    const row =
+      snapshotRows.find((entry) => entry.checksum === activeVersion.checksum) ??
+      null;
+    return row ? parseSnapshot(row.payloadJson)?.socialCatalog : undefined;
+  }, [activeVersion, snapshotRows]);
+  const socialRequirements = useMemo(
+    () =>
+      (point.bindings ?? [])
+        .flatMap((binding) => binding.conditions ?? [])
+        .map((condition) => describeSocialCondition(condition, socialCatalog))
+        .filter((entry): entry is string => entry !== null)
+        .slice(0, 3),
+    [point.bindings, socialCatalog],
+  );
+  const socialCost = useMemo(
+    () => describeSocialCost(primaryBinding, socialCatalog),
+    [primaryBinding, socialCatalog],
+  );
+  const fallbackRoute =
+    point.availableBindings.find((binding) => binding.id !== primaryBinding?.id)
+      ?.label ??
+    (socialRequirements.length > 0
+      ? "Alternative lead or evidence route"
+      : null);
 
   const runBinding = async (binding: RuntimeMapBinding) => {
     setPendingBindingId(binding.id);
@@ -319,7 +421,82 @@ export const CaseCard = ({
             ))}
           </dl>
 
-          {point.entitySignature || point.rumorHookId || visibilityModesLabel ? (
+          {socialRequirements.length > 0 || socialCost || fallbackRoute ? (
+            <section
+              style={{
+                display: "grid",
+                gap: "0.65rem",
+                padding: "0.9rem 1rem",
+                borderRadius: "0.95rem",
+                border: "1px solid rgba(59, 37, 18, 0.12)",
+                background: "rgba(255, 249, 237, 0.56)",
+              }}
+            >
+              {socialRequirements.length > 0 ? (
+                <div>
+                  <div
+                    style={{
+                      marginBottom: "0.25rem",
+                      color: "#6d5744",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.68rem",
+                      letterSpacing: "0.14em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Social Requirement
+                  </div>
+                  <p style={{ margin: 0, color: "#2d1c12", lineHeight: 1.55 }}>
+                    {socialRequirements.join(" / ")}
+                  </p>
+                </div>
+              ) : null}
+
+              {socialCost ? (
+                <div>
+                  <div
+                    style={{
+                      marginBottom: "0.25rem",
+                      color: "#6d5744",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.68rem",
+                      letterSpacing: "0.14em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Social Cost
+                  </div>
+                  <p style={{ margin: 0, color: "#2d1c12", lineHeight: 1.55 }}>
+                    {socialCost}
+                  </p>
+                </div>
+              ) : null}
+
+              {fallbackRoute ? (
+                <div>
+                  <div
+                    style={{
+                      marginBottom: "0.25rem",
+                      color: "#6d5744",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.68rem",
+                      letterSpacing: "0.14em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Fallback Route
+                  </div>
+                  <p style={{ margin: 0, color: "#2d1c12", lineHeight: 1.55 }}>
+                    {fallbackRoute}
+                  </p>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
+          {point.entitySignature ||
+          point.rumorHookId ||
+          visibilityModesLabel ? (
             <div
               style={{
                 padding: "0.9rem 0.95rem",

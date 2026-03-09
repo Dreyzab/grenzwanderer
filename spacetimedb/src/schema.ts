@@ -614,6 +614,155 @@ export const playerRelationship = table(
   },
 );
 
+export const playerNpcState = table(
+  {
+    name: "player_npc_state",
+    public: true,
+    indexes: [
+      {
+        accessor: "player_npc_state_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "player_npc_state_npc_id",
+        algorithm: "btree",
+        columns: ["npcId"],
+      },
+    ],
+  },
+  {
+    npcStateKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    npcId: t.string(),
+    trustScore: t.f64(),
+    availabilityState: t.string(),
+    lastMeaningfulContactAt: t.timestamp().optional(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+export const playerNpcFavor = table(
+  {
+    name: "player_npc_favor",
+    public: true,
+    indexes: [
+      {
+        accessor: "player_npc_favor_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "player_npc_favor_npc_id",
+        algorithm: "btree",
+        columns: ["npcId"],
+      },
+    ],
+  },
+  {
+    favorKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    npcId: t.string(),
+    balance: t.i32(),
+    lastReason: t.string().optional(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+export const playerFactionSignal = table(
+  {
+    name: "player_faction_signal",
+    public: true,
+    indexes: [
+      {
+        accessor: "player_faction_signal_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "player_faction_signal_faction_id",
+        algorithm: "btree",
+        columns: ["factionId"],
+      },
+    ],
+  },
+  {
+    signalKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    factionId: t.string(),
+    value: t.f64(),
+    trend: t.string(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+export const playerAgencyCareer = table(
+  {
+    name: "player_agency_career",
+    public: true,
+    indexes: [
+      {
+        accessor: "player_agency_career_rank_id",
+        algorithm: "btree",
+        columns: ["rankId"],
+      },
+    ],
+  },
+  {
+    playerId: t.identity().primaryKey(),
+    standingScore: t.f64(),
+    standingTrend: t.string(),
+    rankId: t.string(),
+    qualifyingCaseId: t.string().optional(),
+    rumorCriterionComplete: t.bool(),
+    sourceCriterionComplete: t.bool(),
+    cleanClosureCriterionComplete: t.bool(),
+    updatedAt: t.timestamp(),
+    promotedAt: t.timestamp().optional(),
+  },
+);
+
+export const playerRumorState = table(
+  {
+    name: "player_rumor_state",
+    public: true,
+    indexes: [
+      {
+        accessor: "player_rumor_state_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "player_rumor_state_rumor_id",
+        algorithm: "btree",
+        columns: ["rumorId"],
+      },
+      {
+        accessor: "player_rumor_state_status",
+        algorithm: "btree",
+        columns: ["status"],
+      },
+      {
+        accessor: "player_rumor_state_case_id",
+        algorithm: "btree",
+        columns: ["caseId"],
+      },
+    ],
+  },
+  {
+    rumorStateKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    rumorId: t.string(),
+    status: t.string(),
+    leadPointId: t.string().optional(),
+    sourceNpcId: t.string().optional(),
+    caseId: t.string(),
+    verificationKind: t.string().optional(),
+    verifiedAt: t.timestamp().optional(),
+    updatedAt: t.timestamp(),
+  },
+);
+
 export const battleSession = table(
   {
     name: "battle_session",
@@ -1030,6 +1179,11 @@ const spacetimedb = schema({
   playerQuest,
   playerEvidence,
   playerRelationship,
+  playerNpcState,
+  playerNpcFavor,
+  playerFactionSignal,
+  playerAgencyCareer,
+  playerRumorState,
   battleSession,
   battleCombatant,
   battleCardInstance,

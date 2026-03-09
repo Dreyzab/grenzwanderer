@@ -1,6 +1,14 @@
 import { useMemo, useState } from "react";
 import { useTable } from "spacetimedb/react";
+import {
+  getAgencyStandingPresentation,
+  getCareerRankLabel,
+  getFavorPresentation,
+  getTrustBandPresentation,
+} from "../../../shared/game/socialPresentation";
 import { tables } from "../../../shared/spacetime/bindings";
+import { useIdentity } from "../../../shared/spacetime/useIdentity";
+import { parseSnapshot } from "../../vn/vnContent";
 import type { RuntimeMapBinding, RuntimeMapPoint } from "../types";
 
 type HubTab = "briefing" | "inventory" | "partners";
@@ -30,30 +38,117 @@ export const DetectiveHub = ({
   onRunBinding,
   onClose,
 }: DetectiveHubProps) => {
+  const { identityHex } = useIdentity();
   const [activeTab, setActiveTab] = useState<HubTab>("briefing");
   const [pendingBindingId, setPendingBindingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [inventoryRows] = useTable(tables.playerInventory);
   const [relationshipRows] = useTable(tables.playerRelationship);
+  const [npcStateRows] = useTable(tables.playerNpcState);
+  const [npcFavorRows] = useTable(tables.playerNpcFavor);
+  const [agencyCareerRows] = useTable(tables.playerAgencyCareer);
   const [flagRows] = useTable(tables.playerFlag);
+  const [versionRows] = useTable(tables.contentVersion);
+  const [snapshotRows] = useTable(tables.contentSnapshot);
+
+  const activeVersion = useMemo(
+    () => versionRows.find((row) => row.isActive) ?? null,
+    [versionRows],
+  );
+
+  const snapshot = useMemo(() => {
+    if (!activeVersion) {
+      return null;
+    }
+    const row =
+      snapshotRows.find((entry) => entry.checksum === activeVersion.checksum) ??
+      null;
+    return row ? parseSnapshot(row.payloadJson) : null;
+  }, [activeVersion, snapshotRows]);
 
   const introCompleted = useMemo(
     () =>
       flagRows.some(
-        (row) => row.key === "INTRO_COMPLETED" && row.value === true,
+        (row) =>
+          row.playerId.toHexString() === identityHex &&
+          row.key === "INTRO_COMPLETED" &&
+          row.value === true,
       ),
-    [flagRows],
+    [flagRows, identityHex],
   );
 
   const inventoryItems = useMemo(
-    () => inventoryRows.filter((row) => row.quantity > 0),
-    [inventoryRows],
+    () =>
+      inventoryRows.filter(
+        (row) => row.playerId.toHexString() === identityHex && row.quantity > 0,
+      ),
+    [identityHex, inventoryRows],
   );
 
-  const companions = useMemo(
-    () => relationshipRows.filter((row) => row.value > 0),
-    [relationshipRows],
+  const companions = useMemo(() => {
+    const trustByNpcId = new Map<string, number>();
+    for (const row of relationshipRows) {
+      if (row.playerId.toHexString() !== identityHex) {
+        continue;
+      }
+      trustByNpcId.set(row.characterId, row.value);
+    }
+    for (const row of npcStateRows) {
+      if (row.playerId.toHexString() !== identityHex) {
+        continue;
+      }
+      trustByNpcId.set(row.npcId, row.trustScore);
+    }
+
+    const favorByNpcId = new Map<string, number>();
+    for (const row of npcFavorRows) {
+      if (row.playerId.toHexString() !== identityHex) {
+        continue;
+      }
+      favorByNpcId.set(
+        row.npcId,
+        typeof row.balance === "bigint" ? Number(row.balance) : row.balance,
+      );
+    }
+
+    return (snapshot?.socialCatalog?.npcIdentities ?? [])
+      .filter(
+        (identity) =>
+          trustByNpcId.has(identity.id) || favorByNpcId.has(identity.id),
+      )
+      .map((identity) => {
+        const trust = trustByNpcId.get(identity.id) ?? 0;
+        const favor = favorByNpcId.get(identity.id) ?? 0;
+        return {
+          id: identity.id,
+          displayName: identity.displayName,
+          publicRole: identity.publicRole,
+          trustLabel: getTrustBandPresentation(trust).label,
+          favorLabel: getFavorPresentation(favor).label,
+        };
+      });
+  }, [
+    identityHex,
+    npcFavorRows,
+    npcStateRows,
+    relationshipRows,
+    snapshot?.socialCatalog?.npcIdentities,
+  ]);
+
+  const agencyCareer = useMemo(
+    () =>
+      agencyCareerRows.find(
+        (row) => row.playerId.toHexString() === identityHex,
+      ) ?? null,
+    [agencyCareerRows, identityHex],
+  );
+  const agencyStandingLabel = getAgencyStandingPresentation(
+    agencyCareer?.standingScore ?? 0,
+  ).label;
+  const agencyRankLabel = getCareerRankLabel(
+    snapshot?.socialCatalog,
+    agencyCareer?.rankId,
   );
 
   const primaryBinding = point.primaryBinding;
@@ -281,10 +376,8 @@ export const DetectiveHub = ({
                 {[
                   ["Inventory ready", `${inventoryItems.length} entries`],
                   ["Partners on file", `${companions.length} contacts`],
-                  [
-                    "Agency status",
-                    introCompleted ? "Briefing complete" : "Intro pending",
-                  ],
+                  ["Agency rank", agencyRankLabel],
+                  ["Agency status", agencyStandingLabel],
                 ].map(([label, value]) => (
                   <div
                     key={label}
@@ -347,7 +440,8 @@ export const DetectiveHub = ({
                       style={{
                         display: "grid",
                         gap: "0.65rem",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(12rem, 1fr))",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(12rem, 1fr))",
                       }}
                     >
                       {secondaryBindings.map((binding) => (
@@ -367,7 +461,12 @@ export const DetectiveHub = ({
                             opacity: isBusy ? 0.72 : 1,
                           }}
                         >
-                          <strong style={{ display: "block", marginBottom: "0.18rem" }}>
+                          <strong
+                            style={{
+                              display: "block",
+                              marginBottom: "0.18rem",
+                            }}
+                          >
                             {pendingBindingId === binding.id
                               ? `${binding.label}...`
                               : binding.label}
@@ -503,7 +602,7 @@ export const DetectiveHub = ({
               ) : (
                 companions.map((companion) => (
                   <article
-                    key={companion.relationshipKey}
+                    key={companion.id}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -524,7 +623,7 @@ export const DetectiveHub = ({
                           fontSize: "1rem",
                         }}
                       >
-                        {companion.characterId}
+                        {companion.displayName}
                       </h4>
                       <p
                         style={{
@@ -533,20 +632,27 @@ export const DetectiveHub = ({
                           fontSize: "0.9rem",
                         }}
                       >
-                        Relationship recorded in the active file.
+                        {companion.publicRole}
                       </p>
                     </div>
-                    <span
+                    <div
                       style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.2rem",
+                        alignItems: "flex-end",
                         color: "#3f2815",
                         fontFamily: "var(--font-mono)",
                         fontSize: "0.78rem",
-                        letterSpacing: "0.14em",
+                        letterSpacing: "0.08em",
                         textTransform: "uppercase",
                       }}
                     >
-                      Trust {formatValue(companion.value)}
-                    </span>
+                      <span>{companion.trustLabel}</span>
+                      <span style={{ color: "#6b4a24" }}>
+                        {companion.favorLabel}
+                      </span>
+                    </div>
                   </article>
                 ))
               )}

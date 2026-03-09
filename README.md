@@ -2,6 +2,8 @@
 
 Grenzwanderer is a private SpacetimeDB + React project focused on VN runtime, map gameplay, and content-driven progression.
 
+Current supported player-facing city: Freiburg. Karlsruhe remains intentionally unavailable in the supported flow set.
+
 ## Toolchain
 
 - Bun `1.3.3`
@@ -114,6 +116,8 @@ Snapshot-backed supported flows must pass these content gates before smoke execu
 ```bash
 bun run content:extract
 bun run content:manifest:check
+bun run content:obsidian:coverage:check
+bun run content:map:metrics:check
 bun run content:drift:check
 ```
 
@@ -124,6 +128,7 @@ bun run smoke:all
 ```
 
 `smoke:all` is derived from the acceptance matrix. Synthetic contract flows in the matrix explicitly mark extract/manifest/drift gates as `n/a`.
+The Freiburg social loop is covered through `smoke:social-access`, `smoke:rumor-verification`, `smoke:agency-career`, and `smoke:service-unlock`.
 
 ## Git And PR Flow
 
@@ -188,8 +193,12 @@ bun run content:extract
 
 ```bash
 bun run content:manifest:check
+bun run content:obsidian:coverage:check
+bun run content:map:metrics:check
 bun run content:drift:check
 ```
+
+`content:drift:check` rewrites generated snapshot artifacts because it runs `content:extract` internally.
 
 3. Publish content:
 

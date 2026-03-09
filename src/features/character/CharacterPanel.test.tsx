@@ -11,6 +11,10 @@ const mocks = vi.hoisted(() => ({
   debugEnabled: false,
   tablesMock: {
     playerQuest: Symbol("playerQuest"),
+    playerNpcState: Symbol("playerNpcState"),
+    playerNpcFavor: Symbol("playerNpcFavor"),
+    playerFactionSignal: Symbol("playerFactionSignal"),
+    playerAgencyCareer: Symbol("playerAgencyCareer"),
     contentVersion: Symbol("contentVersion"),
     contentSnapshot: Symbol("contentSnapshot"),
   },
@@ -138,7 +142,8 @@ const fullSnapshot = {
         text: "The rail kept its cold after the traffic cleared.",
         entityArchetypeId: "echo_hound",
         signatureIds: ["cold"],
-        rationalInterpretation: "Weather inversion and stress remain plausible.",
+        rationalInterpretation:
+          "Weather inversion and stress remain plausible.",
       },
     ],
   },
@@ -171,6 +176,79 @@ const fullSnapshot = {
       ],
     },
   ],
+  socialCatalog: {
+    npcIdentities: [
+      {
+        id: "npc_anna_mahler",
+        displayName: "Anna Mahler",
+        factionId: "underworld",
+        publicRole: "Railway fixer",
+        rosterTier: "major",
+        serviceIds: ["svc_anna_info", "svc_anna_intro"],
+      },
+      {
+        id: "npc_archivist_otto",
+        displayName: "Archivist Otto",
+        factionId: "civic_order",
+        publicRole: "Archive clerk",
+        rosterTier: "functional",
+        serviceIds: ["svc_otto_archives"],
+      },
+    ],
+    services: [
+      {
+        id: "svc_anna_info",
+        npcId: "npc_anna_mahler",
+        role: "information",
+        label: "Information",
+        baseAccess: "Shared during field meetings.",
+      },
+      {
+        id: "svc_anna_intro",
+        npcId: "npc_anna_mahler",
+        role: "social_introduction",
+        label: "Social Introduction",
+        baseAccess: "Requires basic rapport.",
+      },
+      {
+        id: "svc_otto_archives",
+        npcId: "npc_archivist_otto",
+        role: "archives",
+        label: "Archives",
+        baseAccess: "Agency filing access.",
+      },
+    ],
+    rumors: [
+      {
+        id: "rumor_bank_rail_yard",
+        title: "Rail yard movement",
+        caseId: "quest_banker",
+        leadPointId: "loc_freiburg_bank",
+        sourceNpcId: "npc_anna_mahler",
+        verifiesOn: ["map_unlock"],
+        careerCriterionOnVerify: "verified_rumor_chain",
+      },
+    ],
+    careerRanks: [
+      {
+        id: "trainee",
+        label: "Стажёр",
+        order: 0,
+        standingRequired: -100,
+        serviceCriteriaNeeded: 0,
+        privileges: [],
+      },
+      {
+        id: "junior_detective",
+        label: "Младший детектив",
+        order: 1,
+        standingRequired: 15,
+        qualifyingCaseId: "quest_banker",
+        serviceCriteriaNeeded: 2,
+        privileges: ["Field warrant"],
+      },
+    ],
+  },
 };
 
 describe("CharacterPanel", () => {
@@ -206,6 +284,65 @@ describe("CharacterPanel", () => {
           true,
         ];
       }
+      if (table === mocks.tablesMock.playerNpcState) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              npcId: "npc_anna_mahler",
+              trustScore: 32,
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerNpcFavor) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              npcId: "npc_anna_mahler",
+              balance: 1,
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerFactionSignal) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              factionId: "civic_order",
+              value: 22,
+              trend: "rising",
+            },
+            {
+              playerId: makeIdentity("me"),
+              factionId: "financial_bloc",
+              value: 6,
+              trend: "stable",
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerAgencyCareer) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              standingScore: 18,
+              standingTrend: "rising",
+              rankId: "trainee",
+              rumorCriterionComplete: true,
+              sourceCriterionComplete: false,
+              cleanClosureCriterionComplete: false,
+            },
+          ],
+          true,
+        ];
+      }
       if (table === mocks.tablesMock.contentVersion) {
         return [[{ checksum: "abc", isActive: true }], true];
       }
@@ -225,6 +362,13 @@ describe("CharacterPanel", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Psyche/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Journal/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/Стаж/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Над.+сотрудник/i).length).toBeGreaterThan(0);
+    expect(screen.getByText("Anna Mahler")).toBeInTheDocument();
+    expect(
+      screen.getByText("Services: Information, Social Introduction"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("1/3 logged")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: /Development/i }));
 
@@ -259,11 +403,13 @@ describe("CharacterPanel", () => {
   it("shows awakening state on the psyche tab and in the header chips", () => {
     render(<CharacterPanel />);
 
-    expect(screen.getByText("Fracture")).toBeInTheDocument();
+    expect(screen.getAllByText(/Стаж/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Над.+сотрудник/i).length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole("tab", { name: /Psyche/i }));
 
     expect(screen.getAllByText("Awakening")).not.toHaveLength(0);
+    expect(screen.getByText("Fracture")).toBeInTheDocument();
     expect(screen.getByText("Sensitive")).toBeInTheDocument();
     expect(screen.getByText("Rational Buffer")).toBeInTheDocument();
   });

@@ -155,6 +155,58 @@ describe("pilot helpers", () => {
     expect(isChoiceAvailable(choice as any, flags, vars)).toBe(false);
   });
 
+  it("evaluates social choice requirements from authoritative runtime state", () => {
+    const choice = {
+      id: "c_social",
+      text: "Call in Anna's introduction",
+      nextNodeId: "node_social_end",
+      requireAll: [
+        {
+          type: "rumor_state_is",
+          rumorId: "rumor_bank_rail_yard",
+          status: "verified",
+        },
+      ],
+      requireAny: [
+        {
+          type: "favor_balance_gte",
+          npcId: "npc_anna_mahler",
+          value: 1,
+        },
+        {
+          type: "agency_standing_gte",
+          value: 15,
+        },
+      ],
+    } as const;
+
+    expect(
+      isChoiceAvailable(
+        choice as any,
+        {},
+        {},
+        {
+          favorBalances: { npc_anna_mahler: 1 },
+          agencyStanding: 10,
+          rumorStates: { rumor_bank_rail_yard: "verified" },
+        },
+      ),
+    ).toBe(true);
+
+    expect(
+      isChoiceAvailable(
+        choice as any,
+        {},
+        {},
+        {
+          favorBalances: { npc_anna_mahler: 0 },
+          agencyStanding: 12,
+          rumorStates: { rumor_bank_rail_yard: "registered" },
+        },
+      ),
+    ).toBe(false);
+  });
+
   it("parses optional completionRoute for scenario handoff", () => {
     const parsed = parseSnapshot(
       JSON.stringify({

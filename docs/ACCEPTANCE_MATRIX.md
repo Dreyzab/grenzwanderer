@@ -18,3 +18,12 @@ A flow is considered supported in this repository only when all of the following
    - synthetic contract flow: snapshot gates are `n/a`
 
 Do not hand-maintain a second matrix in docs. Update the script first, then sync `README.md`, `ARCHITECTURE.md`, `DOCS_POLICY.md`, and `docs/MIGRATION_BRIDGE_DETECTIV0.md` when the supported flow set changes.
+
+Current supported player-facing scope is Freiburg only. Karlsruhe is still outside the supported flow set until it has its own matrix entry and smoke coverage.
+
+Current Freiburg social flows in the matrix:
+
+- `freiburg_social_access`
+- `freiburg_rumor_verification`
+- `freiburg_agency_career_progression`
+- `freiburg_service_unlock`

@@ -6,10 +6,17 @@ import { DetectiveHub } from "./DetectiveHub";
 
 const mocks = vi.hoisted(() => ({
   useTableMock: vi.fn(),
+  useIdentityMock: vi.fn(),
+  parseSnapshotMock: vi.fn(),
   tablesMock: {
     playerInventory: Symbol("playerInventory"),
     playerRelationship: Symbol("playerRelationship"),
+    playerNpcState: Symbol("playerNpcState"),
+    playerNpcFavor: Symbol("playerNpcFavor"),
+    playerAgencyCareer: Symbol("playerAgencyCareer"),
     playerFlag: Symbol("playerFlag"),
+    contentVersion: Symbol("contentVersion"),
+    contentSnapshot: Symbol("contentSnapshot"),
   },
 }));
 
@@ -17,9 +24,47 @@ vi.mock("spacetimedb/react", () => ({
   useTable: (...args: unknown[]) => mocks.useTableMock(...args),
 }));
 
+vi.mock("../../../shared/spacetime/useIdentity", () => ({
+  useIdentity: () => mocks.useIdentityMock(),
+}));
+
 vi.mock("../../../shared/spacetime/bindings", () => ({
   tables: mocks.tablesMock,
 }));
+
+vi.mock("../../vn/vnContent", () => ({
+  parseSnapshot: (...args: unknown[]) => mocks.parseSnapshotMock(...args),
+}));
+
+const makeIdentity = (hex: string) => ({
+  toHexString: () => hex,
+});
+
+const socialSnapshot = {
+  socialCatalog: {
+    npcIdentities: [
+      {
+        id: "npc_anna_mahler",
+        displayName: "Anna Mahler",
+        factionId: "underworld",
+        publicRole: "Railway fixer",
+        rosterTier: "major",
+      },
+    ],
+    services: [],
+    rumors: [],
+    careerRanks: [
+      {
+        id: "trainee",
+        label: "Стажёр",
+        order: 0,
+        standingRequired: -100,
+        serviceCriteriaNeeded: 0,
+        privileges: [],
+      },
+    ],
+  },
+};
 
 const basePoint: RuntimeMapPoint = {
   id: "loc_agency",
@@ -64,12 +109,15 @@ const basePoint: RuntimeMapPoint = {
 describe("DetectiveHub", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
+    mocks.parseSnapshotMock.mockReturnValue(socialSnapshot);
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
       if (table === mocks.tablesMock.playerInventory) {
         return [
           [
             {
+              playerId: makeIdentity("me"),
               inventoryKey: "inv_1",
               itemId: "lockpick_kit",
               quantity: 2,
@@ -82,16 +130,68 @@ describe("DetectiveHub", () => {
         return [
           [
             {
+              playerId: makeIdentity("me"),
               relationshipKey: "rel_1",
-              characterId: "inspector_huber",
-              value: 3,
+              characterId: "npc_anna_mahler",
+              value: 12,
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerNpcState) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              npcId: "npc_anna_mahler",
+              trustScore: 32,
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerNpcFavor) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              npcId: "npc_anna_mahler",
+              balance: 1,
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerAgencyCareer) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              standingScore: 18,
+              rankId: "trainee",
             },
           ],
           true,
         ];
       }
       if (table === mocks.tablesMock.playerFlag) {
-        return [[], true];
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              key: "INTRO_COMPLETED",
+              value: false,
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.contentVersion) {
+        return [[{ checksum: "abc", isActive: true }], true];
+      }
+      if (table === mocks.tablesMock.contentSnapshot) {
+        return [[{ checksum: "abc", payloadJson: "{}" }], true];
       }
       return [[], true];
     });
@@ -112,12 +212,16 @@ describe("DetectiveHub", () => {
     expect(
       screen.getByText(/first briefing is still pending/i),
     ).toBeInTheDocument();
+    expect(screen.getByText("Стажёр")).toBeInTheDocument();
+    expect(screen.getByText("1 contacts")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Inventory" }));
     expect(screen.getByText("lockpick_kit")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Partners" }));
-    expect(screen.getByText("inspector_huber")).toBeInTheDocument();
+    expect(screen.getByText("Anna Mahler")).toBeInTheDocument();
+    expect(screen.getByText("Railway fixer")).toBeInTheDocument();
+    expect(screen.getByText("Персонаж вам должен")).toBeInTheDocument();
   });
 
   it("runs the primary briefing action", async () => {

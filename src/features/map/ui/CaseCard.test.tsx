@@ -1,8 +1,29 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RuntimeMapPoint } from "../types";
 import { CaseCard } from "./CaseCard";
+
+const mocks = vi.hoisted(() => ({
+  useTableMock: vi.fn(),
+  parseSnapshotMock: vi.fn(),
+  tablesMock: {
+    contentVersion: Symbol("contentVersion"),
+    contentSnapshot: Symbol("contentSnapshot"),
+  },
+}));
+
+vi.mock("spacetimedb/react", () => ({
+  useTable: (...args: unknown[]) => mocks.useTableMock(...args),
+}));
+
+vi.mock("../../../shared/spacetime/bindings", () => ({
+  tables: mocks.tablesMock,
+}));
+
+vi.mock("../../vn/vnContent", () => ({
+  parseSnapshot: (...args: unknown[]) => mocks.parseSnapshotMock(...args),
+}));
 
 const basePoint: RuntimeMapPoint = {
   id: "loc_freiburg_bank",
@@ -14,6 +35,42 @@ const basePoint: RuntimeMapPoint = {
   locationId: "loc_freiburg_bank",
   description: "Crime scene",
   state: "discovered",
+  bindings: [
+    {
+      id: "bind_start",
+      trigger: "card_primary",
+      label: "Investigate",
+      priority: 100,
+      intent: "objective",
+      conditions: [
+        {
+          type: "relationship_gte",
+          characterId: "npc_baroness_elise",
+          value: 25,
+        },
+        {
+          type: "agency_standing_gte",
+          value: 15,
+        },
+      ],
+      actions: [
+        { type: "start_scenario", scenarioId: "sandbox_case01_pilot" },
+        {
+          type: "change_favor_balance",
+          npcId: "npc_baroness_elise",
+          delta: -1,
+        },
+      ],
+    },
+    {
+      id: "bind_archive_route",
+      trigger: "card_secondary",
+      label: "Archive route",
+      priority: 60,
+      intent: "interaction",
+      actions: [{ type: "set_flag", key: "archive_route", value: true }],
+    },
+  ],
   availableBindings: [
     {
       id: "bind_start",
@@ -21,8 +78,25 @@ const basePoint: RuntimeMapPoint = {
       label: "Investigate",
       priority: 100,
       intent: "objective",
-      actions: [{ type: "start_scenario", scenarioId: "sandbox_case01_pilot" }],
+      actions: [
+        { type: "start_scenario", scenarioId: "sandbox_case01_pilot" },
+        {
+          type: "change_favor_balance",
+          npcId: "npc_baroness_elise",
+          delta: -1,
+        },
+      ],
       hasStartScenario: true,
+      hasTravelAction: false,
+    },
+    {
+      id: "bind_archive_route",
+      trigger: "card_secondary",
+      label: "Archive route",
+      priority: 60,
+      intent: "interaction",
+      actions: [{ type: "set_flag", key: "archive_route", value: true }],
+      hasStartScenario: false,
       hasTravelAction: false,
     },
     {
@@ -42,7 +116,14 @@ const basePoint: RuntimeMapPoint = {
     label: "Investigate",
     priority: 100,
     intent: "objective",
-    actions: [{ type: "start_scenario", scenarioId: "sandbox_case01_pilot" }],
+    actions: [
+      { type: "start_scenario", scenarioId: "sandbox_case01_pilot" },
+      {
+        type: "change_favor_balance",
+        npcId: "npc_baroness_elise",
+        delta: -1,
+      },
+    ],
     hasStartScenario: true,
     hasTravelAction: false,
   },
@@ -64,6 +145,46 @@ const basePoint: RuntimeMapPoint = {
 };
 
 describe("CaseCard", () => {
+  const socialSnapshot = {
+    socialCatalog: {
+      npcIdentities: [
+        {
+          id: "npc_baroness_elise",
+          displayName: "Baroness Elise",
+          factionId: "financial_bloc",
+          publicRole: "Patron",
+          rosterTier: "major",
+        },
+      ],
+      services: [],
+      rumors: [],
+      careerRanks: [
+        {
+          id: "trainee",
+          label: "Стажёр",
+          order: 0,
+          standingRequired: -100,
+          serviceCriteriaNeeded: 0,
+          privileges: [],
+        },
+      ],
+    },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.parseSnapshotMock.mockReturnValue(socialSnapshot);
+    mocks.useTableMock.mockImplementation((table: symbol) => {
+      if (table === mocks.tablesMock.contentVersion) {
+        return [[{ checksum: "abc", isActive: true }], true];
+      }
+      if (table === mocks.tablesMock.contentSnapshot) {
+        return [[{ checksum: "abc", payloadJson: "{}" }], true];
+      }
+      return [[], true];
+    });
+  });
+
   it("shows unavailable scenario hint when point cannot start scenario", () => {
     render(
       <CaseCard
@@ -84,6 +205,14 @@ describe("CaseCard", () => {
     expect(
       screen.getByRole("button", { name: "Investigate" }),
     ).toBeInTheDocument();
+    expect(screen.getByText("Social Requirement")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Baroness Elise: Над.+контакт/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Social Cost")).toBeInTheDocument();
+    expect(screen.getByText(/owe Baroness Elise a favor/i)).toBeInTheDocument();
+    expect(screen.getByText("Fallback Route")).toBeInTheDocument();
+    expect(screen.getByText("Archive route")).toBeInTheDocument();
   });
 
   it("shows reducer-derived error on failed action", async () => {
@@ -153,5 +282,86 @@ describe("CaseCard", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Investigate" })).toBeEnabled();
     });
+  });
+
+  it("describes nested social gates from logic_or conditions", () => {
+    render(
+      <CaseCard
+        point={{
+          ...basePoint,
+          bindings: [
+            {
+              id: "bind_social_gate",
+              trigger: "card_primary",
+              label: "Student House",
+              priority: 100,
+              intent: "interaction",
+              conditions: [
+                {
+                  type: "logic_or",
+                  conditions: [
+                    {
+                      type: "favor_balance_gte",
+                      npcId: "npc_baroness_elise",
+                      value: 1,
+                    },
+                    {
+                      type: "agency_standing_gte",
+                      value: 15,
+                    },
+                  ],
+                },
+              ],
+              actions: [
+                {
+                  type: "start_scenario",
+                  scenarioId: "sandbox_student_house_access",
+                },
+              ],
+            },
+          ],
+          availableBindings: [
+            {
+              id: "bind_social_gate",
+              trigger: "card_primary",
+              label: "Student House",
+              priority: 100,
+              intent: "interaction",
+              actions: [
+                {
+                  type: "start_scenario",
+                  scenarioId: "sandbox_student_house_access",
+                },
+              ],
+              hasStartScenario: true,
+              hasTravelAction: false,
+            },
+          ],
+          primaryBinding: {
+            id: "bind_social_gate",
+            trigger: "card_primary",
+            label: "Student House",
+            priority: 100,
+            intent: "interaction",
+            actions: [
+              {
+                type: "start_scenario",
+                scenarioId: "sandbox_student_house_access",
+              },
+            ],
+            hasStartScenario: true,
+            hasTravelAction: false,
+          },
+          travelBinding: null,
+        }}
+        currentLocationId={null}
+        onRunBinding={vi.fn().mockResolvedValue(undefined)}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByText(/Baroness Elise owes you a favor or Agency standing/i),
+    ).toBeInTheDocument();
   });
 });

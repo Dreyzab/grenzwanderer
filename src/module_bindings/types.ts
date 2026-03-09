@@ -227,6 +227,20 @@ export const MindHypothesis = __t.object("MindHypothesis", {
 });
 export type MindHypothesis = __Infer<typeof MindHypothesis>;
 
+export const PlayerAgencyCareer = __t.object("PlayerAgencyCareer", {
+  playerId: __t.identity(),
+  standingScore: __t.f64(),
+  standingTrend: __t.string(),
+  rankId: __t.string(),
+  qualifyingCaseId: __t.option(__t.string()),
+  rumorCriterionComplete: __t.bool(),
+  sourceCriterionComplete: __t.bool(),
+  cleanClosureCriterionComplete: __t.bool(),
+  updatedAt: __t.timestamp(),
+  promotedAt: __t.option(__t.timestamp()),
+});
+export type PlayerAgencyCareer = __Infer<typeof PlayerAgencyCareer>;
+
 export const PlayerEvidence = __t.object("PlayerEvidence", {
   evidenceKey: __t.string(),
   playerId: __t.identity(),
@@ -234,6 +248,16 @@ export const PlayerEvidence = __t.object("PlayerEvidence", {
   discoveredAt: __t.timestamp(),
 });
 export type PlayerEvidence = __Infer<typeof PlayerEvidence>;
+
+export const PlayerFactionSignal = __t.object("PlayerFactionSignal", {
+  signalKey: __t.string(),
+  playerId: __t.identity(),
+  factionId: __t.string(),
+  value: __t.f64(),
+  trend: __t.string(),
+  updatedAt: __t.timestamp(),
+});
+export type PlayerFactionSignal = __Infer<typeof PlayerFactionSignal>;
 
 export const PlayerFlag = __t.object("PlayerFlag", {
   flagId: __t.string(),
@@ -305,6 +329,27 @@ export const PlayerMindHypothesis = __t.object("PlayerMindHypothesis", {
 });
 export type PlayerMindHypothesis = __Infer<typeof PlayerMindHypothesis>;
 
+export const PlayerNpcFavor = __t.object("PlayerNpcFavor", {
+  favorKey: __t.string(),
+  playerId: __t.identity(),
+  npcId: __t.string(),
+  balance: __t.i32(),
+  lastReason: __t.option(__t.string()),
+  updatedAt: __t.timestamp(),
+});
+export type PlayerNpcFavor = __Infer<typeof PlayerNpcFavor>;
+
+export const PlayerNpcState = __t.object("PlayerNpcState", {
+  npcStateKey: __t.string(),
+  playerId: __t.identity(),
+  npcId: __t.string(),
+  trustScore: __t.f64(),
+  availabilityState: __t.string(),
+  lastMeaningfulContactAt: __t.option(__t.timestamp()),
+  updatedAt: __t.timestamp(),
+});
+export type PlayerNpcState = __Infer<typeof PlayerNpcState>;
+
 export const PlayerProfile = __t.object("PlayerProfile", {
   playerId: __t.identity(),
   nickname: __t.option(__t.string()),
@@ -340,6 +385,20 @@ export const PlayerRelationship = __t.object("PlayerRelationship", {
   updatedAt: __t.timestamp(),
 });
 export type PlayerRelationship = __Infer<typeof PlayerRelationship>;
+
+export const PlayerRumorState = __t.object("PlayerRumorState", {
+  rumorStateKey: __t.string(),
+  playerId: __t.identity(),
+  rumorId: __t.string(),
+  status: __t.string(),
+  leadPointId: __t.option(__t.string()),
+  sourceNpcId: __t.option(__t.string()),
+  caseId: __t.string(),
+  verificationKind: __t.option(__t.string()),
+  verifiedAt: __t.option(__t.timestamp()),
+  updatedAt: __t.timestamp(),
+});
+export type PlayerRumorState = __Infer<typeof PlayerRumorState>;
 
 export const PlayerUnlockGroup = __t.object("PlayerUnlockGroup", {
   unlockKey: __t.string(),

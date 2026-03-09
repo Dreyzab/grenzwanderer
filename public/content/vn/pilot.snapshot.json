@@ -5,10 +5,7 @@
       "id": "sandbox_loop_demo",
       "title": "Loop Demo Pilot",
       "startNodeId": "scene_loop_demo_intro",
-      "nodeIds": [
-        "scene_loop_demo_intro",
-        "scene_loop_demo_end"
-      ],
+      "nodeIds": ["scene_loop_demo_intro", "scene_loop_demo_end"],
       "mode": "overlay",
       "packId": "system_loop_demo"
     },
@@ -25,9 +22,7 @@
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "intro_journalist",
-        "requiredFlagsAll": [
-          "origin_journalist"
-        ],
+        "requiredFlagsAll": ["origin_journalist"],
         "blockedIfFlagsAny": [
           "met_anna_intro",
           "origin_journalist_handoff_done"
@@ -39,10 +34,7 @@
       "id": "sandbox_agency_briefing",
       "title": "Agency Briefing",
       "startNodeId": "scene_agency_briefing_intro",
-      "nodeIds": [
-        "scene_agency_briefing_intro",
-        "scene_agency_briefing_outro"
-      ],
+      "nodeIds": ["scene_agency_briefing_intro", "scene_agency_briefing_outro"],
       "mode": "overlay",
       "packId": "freiburg_agency"
     },
@@ -110,10 +102,7 @@
       "id": "sandbox_city_student_tip",
       "title": "Living City: Student Tip",
       "startNodeId": "scene_city_student_tip",
-      "nodeIds": [
-        "scene_city_student_tip",
-        "scene_city_student_tip_end"
-      ],
+      "nodeIds": ["scene_city_student_tip", "scene_city_student_tip_end"],
       "mode": "overlay",
       "packId": "freiburg_living_city"
     },
@@ -121,10 +110,7 @@
       "id": "sandbox_city_cleaner_tip",
       "title": "Living City: Cleaner Tip",
       "startNodeId": "scene_city_cleaner_tip",
-      "nodeIds": [
-        "scene_city_cleaner_tip",
-        "scene_city_cleaner_tip_end"
-      ],
+      "nodeIds": ["scene_city_cleaner_tip", "scene_city_cleaner_tip_end"],
       "mode": "overlay",
       "packId": "freiburg_living_city"
     },
@@ -132,10 +118,7 @@
       "id": "sandbox_city_bootblack_tip",
       "title": "Living City: Bootblack Tip",
       "startNodeId": "scene_city_bootblack_tip",
-      "nodeIds": [
-        "scene_city_bootblack_tip",
-        "scene_city_bootblack_tip_end"
-      ],
+      "nodeIds": ["scene_city_bootblack_tip", "scene_city_bootblack_tip_end"],
       "mode": "overlay",
       "packId": "freiburg_living_city"
     },
@@ -143,26 +126,52 @@
       "id": "sandbox_workers_pub_rumor",
       "title": "Workers Pub Rumor",
       "startNodeId": "scene_workers_pub_rumor",
-      "nodeIds": [
-        "scene_workers_pub_rumor",
-        "scene_workers_pub_rumor_end"
-      ],
+      "nodeIds": ["scene_workers_pub_rumor", "scene_workers_pub_rumor_end"],
       "mode": "overlay",
       "packId": "freiburg_rumors"
+    },
+    {
+      "id": "sandbox_agency_service_unlock",
+      "title": "Agency Service: Anna's Introduction",
+      "startNodeId": "scene_agency_service_unlock",
+      "nodeIds": [
+        "scene_agency_service_unlock",
+        "scene_agency_service_unlock_end"
+      ],
+      "mode": "overlay",
+      "packId": "freiburg_social"
+    },
+    {
+      "id": "sandbox_student_house_access",
+      "title": "Student House Access",
+      "startNodeId": "scene_student_house_access",
+      "nodeIds": [
+        "scene_student_house_access",
+        "scene_student_house_access_end"
+      ],
+      "mode": "overlay",
+      "packId": "freiburg_social"
+    },
+    {
+      "id": "sandbox_agency_promotion_review",
+      "title": "Agency Promotion Review",
+      "startNodeId": "scene_agency_promotion_review",
+      "nodeIds": [
+        "scene_agency_promotion_review",
+        "scene_agency_promotion_review_end"
+      ],
+      "mode": "overlay",
+      "packId": "freiburg_social"
     },
     {
       "id": "origin_journalist_bootstrap",
       "title": "Origin Bootstrap - Journalist",
       "startNodeId": "scene_origin_journalist_bootstrap",
-      "nodeIds": [
-        "scene_origin_journalist_bootstrap"
-      ],
+      "nodeIds": ["scene_origin_journalist_bootstrap"],
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "intro_journalist",
-        "requiredFlagsAll": [
-          "origin_journalist"
-        ],
+        "requiredFlagsAll": ["origin_journalist"],
         "blockedIfFlagsAny": [
           "origin_journalist_handoff_done",
           "met_anna_intro"
@@ -2978,6 +2987,23 @@
             {
               "type": "grant_xp",
               "amount": 5
+            },
+            {
+              "type": "register_rumor",
+              "rumorId": "rumor_bank_rail_yard"
+            },
+            {
+              "type": "change_favor_balance",
+              "npcId": "npc_anna_mahler",
+              "delta": 1,
+              "reason": "workers_pub_rumor_chain"
+            },
+            {
+              "type": "track_event",
+              "eventName": "workers_pub_rumor_registered",
+              "tags": {
+                "rumorId": "rumor_bank_rail_yard"
+              }
             }
           ]
         }
@@ -2994,6 +3020,217 @@
       "scenarioId": "sandbox_workers_pub_rumor",
       "title": "Late to the Alley",
       "body": "By the time you arrive, the shouting has already thinned into scattered footsteps and a single overturned crate. Someone was here. Someone will talk later if you come back with better timing.",
+      "terminal": true,
+      "choices": []
+    },
+    {
+      "id": "scene_agency_service_unlock",
+      "scenarioId": "sandbox_agency_service_unlock",
+      "title": "Agency Service: Anna's Introduction",
+      "body": "Anna can still open the student house, but only if your ledger with her or the agency still carries enough weight.",
+      "choices": [
+        {
+          "id": "AGENCY_SERVICE_UNLOCK_CONFIRM",
+          "text": "Commit Anna's introduction to the banker file.",
+          "nextNodeId": "scene_agency_service_unlock_end",
+          "requireAll": [
+            {
+              "type": "rumor_state_is",
+              "rumorId": "rumor_bank_rail_yard",
+              "status": "verified"
+            },
+            {
+              "type": "flag_equals",
+              "key": "service_anna_student_intro_unlocked",
+              "value": false
+            }
+          ],
+          "requireAny": [
+            {
+              "type": "favor_balance_gte",
+              "npcId": "npc_anna_mahler",
+              "value": 1
+            },
+            {
+              "type": "agency_standing_gte",
+              "value": 15
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "service_anna_student_intro_unlocked",
+              "value": true
+            },
+            {
+              "type": "unlock_group",
+              "groupId": "loc_student_house"
+            },
+            {
+              "type": "change_favor_balance",
+              "npcId": "npc_anna_mahler",
+              "delta": -1,
+              "reason": "student_house_introduction"
+            },
+            {
+              "type": "change_agency_standing",
+              "delta": 5,
+              "reason": "source_network_preserved"
+            },
+            {
+              "type": "record_service_criterion",
+              "criterionId": "preserved_source_network"
+            },
+            {
+              "type": "track_event",
+              "eventName": "agency_service_student_intro_unlocked",
+              "tags": {
+                "serviceId": "svc_anna_student_intro"
+              }
+            }
+          ]
+        },
+        {
+          "id": "AGENCY_SERVICE_UNLOCK_DELAY",
+          "text": "Hold the introduction in reserve for now.",
+          "nextNodeId": "scene_agency_service_unlock_end"
+        }
+      ],
+      "characterId": "npc_anna_mahler"
+    },
+    {
+      "id": "scene_agency_service_unlock_end",
+      "scenarioId": "sandbox_agency_service_unlock",
+      "title": "Agency Desk",
+      "body": "The file returns to the board with Anna's channels either committed or kept in reserve.",
+      "terminal": true,
+      "choices": []
+    },
+    {
+      "id": "scene_student_house_access",
+      "scenarioId": "sandbox_student_house_access",
+      "title": "Student House Access",
+      "body": "A fraternity porter weighs Anna's name against your badge before deciding whether the door opens.",
+      "choices": [
+        {
+          "id": "STUDENT_HOUSE_PRESENT_INTRODUCTION",
+          "text": "Present Anna's introduction and enter the house.",
+          "nextNodeId": "scene_student_house_access_end",
+          "requireAll": [
+            {
+              "type": "flag_equals",
+              "key": "service_anna_student_intro_unlocked",
+              "value": true
+            }
+          ],
+          "requireAny": [
+            {
+              "type": "favor_balance_gte",
+              "npcId": "npc_anna_mahler",
+              "value": 1
+            },
+            {
+              "type": "agency_standing_gte",
+              "value": 15
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "student_house_accessed",
+              "value": true
+            },
+            {
+              "type": "change_agency_standing",
+              "delta": 3,
+              "reason": "student_house_entry_logged"
+            },
+            {
+              "type": "change_faction_signal",
+              "factionId": "underworld",
+              "delta": 4,
+              "reason": "student_house_entry"
+            },
+            {
+              "type": "track_event",
+              "eventName": "student_house_access_opened",
+              "tags": {
+                "pointId": "loc_student_house"
+              }
+            }
+          ]
+        },
+        {
+          "id": "STUDENT_HOUSE_BACK_OUT",
+          "text": "Leave the introduction unused.",
+          "nextNodeId": "scene_student_house_access_end"
+        }
+      ],
+      "preconditions": [
+        {
+          "type": "flag_equals",
+          "key": "service_anna_student_intro_unlocked",
+          "value": true
+        }
+      ],
+      "characterId": "npc_anna_mahler"
+    },
+    {
+      "id": "scene_student_house_access_end",
+      "scenarioId": "sandbox_student_house_access",
+      "title": "Back On The Street",
+      "body": "You leave the student house route with its cost now written into the wider Freiburg file.",
+      "terminal": true,
+      "choices": []
+    },
+    {
+      "id": "scene_agency_promotion_review",
+      "scenarioId": "sandbox_agency_promotion_review",
+      "title": "Agency Promotion Review",
+      "body": "The agency board finally reflects that the banker file, the rumor chain, and the source work all landed on one record.",
+      "choices": [
+        {
+          "id": "AGENCY_PROMOTION_REVIEW_CONFIRM",
+          "text": "File the promotion review and return to operations.",
+          "nextNodeId": "scene_agency_promotion_review_end",
+          "requireAll": [
+            {
+              "type": "career_rank_gte",
+              "rankId": "junior_detective"
+            },
+            {
+              "type": "flag_equals",
+              "key": "agency_promotion_review_complete",
+              "value": false
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "agency_promotion_review_complete",
+              "value": true
+            },
+            {
+              "type": "change_agency_standing",
+              "delta": 2,
+              "reason": "promotion_review_filed"
+            },
+            {
+              "type": "track_event",
+              "eventName": "agency_promotion_review_complete",
+              "tags": {
+                "rankId": "junior_detective"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_agency_promotion_review_end",
+      "scenarioId": "sandbox_agency_promotion_review",
+      "title": "Promotion Filed",
+      "body": "The promotion file closes cleanly, and the next Freiburg route now sees the rank on your name.",
       "terminal": true,
       "choices": []
     },
@@ -3449,9 +3686,7 @@
         "caseId": "case_loop_demo",
         "key": "loop_demo_solved",
         "text": "The loop demo has been completed successfully.",
-        "requiredFactIds": [
-          "fact_loop_clue"
-        ],
+        "requiredFactIds": ["fact_loop_clue"],
         "requiredVars": [],
         "rewardEffects": [
           {
@@ -3624,6 +3859,74 @@
             ]
           },
           {
+            "id": "bind_agency_student_intro_service",
+            "trigger": "card_secondary",
+            "label": "Call In Anna's Introduction",
+            "priority": 70,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "agency_briefing_complete",
+                "value": true
+              },
+              {
+                "type": "rumor_state_is",
+                "rumorId": "rumor_bank_rail_yard",
+                "status": "verified"
+              },
+              {
+                "type": "flag_is",
+                "key": "service_anna_student_intro_unlocked",
+                "value": false
+              },
+              {
+                "type": "logic_or",
+                "conditions": [
+                  {
+                    "type": "favor_balance_gte",
+                    "npcId": "npc_anna_mahler",
+                    "value": 1
+                  },
+                  {
+                    "type": "agency_standing_gte",
+                    "value": 15
+                  }
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_agency_service_unlock"
+              }
+            ]
+          },
+          {
+            "id": "bind_agency_promotion_review",
+            "trigger": "card_secondary",
+            "label": "Review Promotion File",
+            "priority": 60,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "career_rank_gte",
+                "rankId": "junior_detective"
+              },
+              {
+                "type": "flag_is",
+                "key": "agency_promotion_review_complete",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_agency_promotion_review"
+              }
+            ]
+          },
+          {
             "id": "sys_travel_loc_agency",
             "trigger": "card_secondary",
             "label": "Travel",
@@ -3729,6 +4032,39 @@
                 "type": "set_flag",
                 "key": "case01_bridge_started",
                 "value": true
+              }
+            ]
+          },
+          {
+            "id": "bind_hbf_verify_rail_yard_rumor",
+            "trigger": "card_primary",
+            "label": "Verify Rail Yard Whisper",
+            "priority": 118,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "rumor_state_is",
+                "rumorId": "rumor_bank_rail_yard",
+                "status": "registered"
+              }
+            ],
+            "actions": [
+              {
+                "type": "verify_rumor",
+                "rumorId": "rumor_bank_rail_yard",
+                "verificationKind": "service_unlock"
+              },
+              {
+                "type": "change_agency_standing",
+                "delta": 10,
+                "reason": "validated_bank_rail_yard_whisper"
+              },
+              {
+                "type": "track_event",
+                "eventName": "bank_rail_yard_rumor_verified",
+                "tags": {
+                  "pointId": "loc_hbf"
+                }
               }
             ]
           },
@@ -4117,12 +4453,51 @@
         "isHiddenInitially": true,
         "bindings": [
           {
-            "id": "bind_city_student_tip",
+            "id": "bind_student_house_access",
             "trigger": "card_primary",
-            "label": "Talk to Student",
-            "priority": 80,
+            "label": "Use Anna's Introduction",
+            "priority": 110,
             "intent": "interaction",
             "conditions": [
+              {
+                "type": "flag_is",
+                "key": "service_anna_student_intro_unlocked",
+                "value": true
+              },
+              {
+                "type": "logic_or",
+                "conditions": [
+                  {
+                    "type": "favor_balance_gte",
+                    "npcId": "npc_anna_mahler",
+                    "value": 1
+                  },
+                  {
+                    "type": "agency_standing_gte",
+                    "value": 15
+                  }
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_student_house_access"
+              }
+            ]
+          },
+          {
+            "id": "bind_city_student_tip",
+            "trigger": "card_secondary",
+            "label": "Talk to Student",
+            "priority": 70,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "service_anna_student_intro_unlocked",
+                "value": true
+              },
               {
                 "type": "flag_is",
                 "key": "city_student_seen",
@@ -4374,6 +4749,14 @@
                 "type": "flag_is",
                 "key": "agency_briefing_complete",
                 "value": true
+              },
+              {
+                "type": "logic_not",
+                "condition": {
+                  "type": "rumor_state_is",
+                  "rumorId": "rumor_bank_rail_yard",
+                  "status": "verified"
+                }
               }
             ],
             "actions": [
@@ -4802,28 +5185,16 @@
       {
         "id": "route_ghost_undercity",
         "regionId": "FREIBURG_1905",
-        "pointIds": [
-          "loc_munster",
-          "loc_apothecary",
-          "loc_pub"
-        ],
+        "pointIds": ["loc_munster", "loc_apothecary", "loc_pub"],
         "color": "#5d4632",
-        "revealFlagsAll": [
-          "ghost_route_unlocked"
-        ]
+        "revealFlagsAll": ["ghost_route_unlocked"]
       },
       {
         "id": "route_finale_stuhlinger",
         "regionId": "FREIBURG_1905",
-        "pointIds": [
-          "loc_agency",
-          "loc_workers_pub",
-          "loc_freiburg_warehouse"
-        ],
+        "pointIds": ["loc_agency", "loc_workers_pub", "loc_freiburg_warehouse"],
         "color": "#2f3c4f",
-        "revealFlagsAll": [
-          "freiburg_finale_open"
-        ]
+        "revealFlagsAll": ["freiburg_finale_open"]
       }
     ],
     "qrCodeRegistry": [
@@ -4837,9 +5208,7 @@
             "groupId": "loc_freiburg_warehouse"
           }
         ],
-        "requiresFlagsAll": [
-          "agency_briefing_complete"
-        ]
+        "requiresFlagsAll": ["agency_briefing_complete"]
       }
     ],
     "mapEventTemplates": [
@@ -4902,26 +5271,19 @@
           "stage": 1,
           "title": "Initial Briefing",
           "objectiveHint": "Meet Kessler at the bank and open the ledger trail.",
-          "objectivePointIds": [
-            "loc_freiburg_bank"
-          ]
+          "objectivePointIds": ["loc_freiburg_bank"]
         },
         {
           "stage": 2,
           "title": "Cross-Check Leads",
           "objectiveHint": "Revisit the bank after checking external testimonies.",
-          "objectivePointIds": [
-            "loc_freiburg_bank",
-            "loc_hbf"
-          ]
+          "objectivePointIds": ["loc_freiburg_bank", "loc_hbf"]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Banker case archived.",
-          "objectivePointIds": [
-            "loc_freiburg_warehouse"
-          ]
+          "objectivePointIds": ["loc_freiburg_warehouse"]
         }
       ]
     },
@@ -4933,26 +5295,19 @@
           "stage": 1,
           "title": "Open Dog Lead Board",
           "objectiveHint": "Collect initial route intel from Rathaus.",
-          "objectivePointIds": [
-            "loc_rathaus"
-          ]
+          "objectivePointIds": ["loc_rathaus"]
         },
         {
           "stage": 2,
           "title": "Converge Leads",
           "objectiveHint": "Convene in the park after enough witness routes.",
-          "objectivePointIds": [
-            "loc_rathaus",
-            "loc_workers_pub"
-          ]
+          "objectivePointIds": ["loc_rathaus", "loc_workers_pub"]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Dog trail logged and sealed.",
-          "objectivePointIds": [
-            "loc_workers_pub"
-          ]
+          "objectivePointIds": ["loc_workers_pub"]
         }
       ]
     },
@@ -4964,30 +5319,133 @@
           "stage": 1,
           "title": "Estate Survey",
           "objectiveHint": "Open the ghost investigation from the workers' tavern.",
-          "objectivePointIds": [
-            "loc_workers_pub"
-          ]
+          "objectivePointIds": ["loc_workers_pub"]
         },
         {
           "stage": 2,
           "title": "Assemble Proof",
           "objectiveHint": "Correlate bookshelf and floor evidence before accusation.",
-          "objectivePointIds": [
-            "loc_workers_pub",
-            "loc_freiburg_bank"
-          ]
+          "objectivePointIds": ["loc_workers_pub", "loc_freiburg_bank"]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Ghost case finalized and written into records.",
-          "objectivePointIds": [
-            "loc_freiburg_warehouse"
-          ]
+          "objectivePointIds": ["loc_freiburg_warehouse"]
         }
       ]
     }
   ],
-  "checksum": "31e1cb952334e40d1b99cb062f3b1e981f0c333a5846b5661e3b46e29900dae1",
-  "generatedAt": "2026-03-08T09:25:52.558Z"
+  "socialCatalog": {
+    "npcIdentities": [
+      {
+        "id": "npc_anna_mahler",
+        "displayName": "Anna Mahler",
+        "factionId": "underworld",
+        "publicRole": "Railway fixer",
+        "rosterTier": "major",
+        "introFlag": "met_anna_intro",
+        "homePointId": "loc_workers_pub",
+        "workPointId": "loc_agency",
+        "serviceIds": ["svc_anna_whispers", "svc_anna_student_intro"]
+      },
+      {
+        "id": "npc_archivist_otto",
+        "displayName": "Archivist Otto",
+        "factionId": "civic_order",
+        "publicRole": "Records specialist",
+        "rosterTier": "functional",
+        "introFlag": "met_archivist_intro",
+        "homePointId": "loc_rathaus",
+        "workPointId": "loc_rathaus",
+        "serviceIds": ["svc_otto_archive_packet"]
+      }
+    ],
+    "services": [
+      {
+        "id": "svc_anna_whispers",
+        "npcId": "npc_anna_mahler",
+        "role": "information",
+        "label": "Rail Yard Whispers",
+        "baseAccess": "Available once the Workers' Pub lead is active and Anna's channels trust you.",
+        "qualityNote": "Fast rumor triage through station messengers and tavern staff.",
+        "consequenceNote": "Loose handling can burn a source and push the network underground."
+      },
+      {
+        "id": "svc_anna_student_intro",
+        "npcId": "npc_anna_mahler",
+        "role": "social_introduction",
+        "label": "Student House Introduction",
+        "baseAccess": "Requires a verified rumor chain plus either one favor in reserve or agency standing.",
+        "unlockFlag": "service_anna_student_intro_unlocked",
+        "costNote": "Usually costs one favor unless your standing is already carrying the weight.",
+        "qualityNote": "Turns a closed fraternity house into a supported Freiburg route instead of a blind trespass.",
+        "consequenceNote": "Commits part of Anna's network to your banker file and is tracked as agency service work."
+      },
+      {
+        "id": "svc_otto_archive_packet",
+        "npcId": "npc_archivist_otto",
+        "role": "archives",
+        "label": "Archive Packet",
+        "baseAccess": "Used from Freiburg civic contacts once the Rathaus route is already warm.",
+        "qualityNote": "Provides cross-indexed filing movement notes for follow-up checks."
+      }
+    ],
+    "rumors": [
+      {
+        "id": "rumor_bank_rail_yard",
+        "title": "Rail Yard Ledger Whisper",
+        "caseId": "quest_banker",
+        "leadPointId": "loc_hbf",
+        "sourceNpcId": "npc_anna_mahler",
+        "verifiesOn": ["service_unlock"],
+        "careerCriterionOnVerify": "verified_rumor_chain"
+      }
+    ],
+    "careerRanks": [
+      {
+        "id": "trainee",
+        "label": "Trainee",
+        "order": 0,
+        "standingRequired": -100,
+        "serviceCriteriaNeeded": 0,
+        "privileges": []
+      },
+      {
+        "id": "junior_detective",
+        "label": "Junior Detective",
+        "order": 1,
+        "standingRequired": 15,
+        "qualifyingCaseId": "quest_banker",
+        "serviceCriteriaNeeded": 2,
+        "privileges": ["Field warrant"]
+      },
+      {
+        "id": "agency_detective",
+        "label": "Agency Detective",
+        "order": 2,
+        "standingRequired": 35,
+        "serviceCriteriaNeeded": 2,
+        "privileges": ["Priority filing access"]
+      },
+      {
+        "id": "senior_detective",
+        "label": "Senior Detective",
+        "order": 3,
+        "standingRequired": 55,
+        "serviceCriteriaNeeded": 2,
+        "privileges": ["Discretionary field command"]
+      },
+      {
+        "id": "lead_investigator",
+        "label": "Lead Investigator",
+        "order": 4,
+        "standingRequired": 75,
+        "serviceCriteriaNeeded": 2,
+        "privileges": ["Agency-wide mandate"]
+      }
+    ]
+  },
+  "checksum": "f660ef307fd7466bfad1da8409117e8e11d3b737615c08b21ccac50a8295c9ce",
+  "generatedAt": "2026-03-08T21:41:53.494Z"
 }

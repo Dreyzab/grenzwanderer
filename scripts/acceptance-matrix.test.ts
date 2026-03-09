@@ -26,6 +26,10 @@ describe("acceptance matrix", () => {
       { label: "Origin handoff", script: "smoke:origin-handoff" },
       { label: "MVP routes", script: "smoke:mvp-routes" },
       { label: "Banker duel", script: "smoke:banker-duel" },
+      { label: "Social access", script: "smoke:social-access" },
+      { label: "Rumor verification", script: "smoke:rumor-verification" },
+      { label: "Agency career", script: "smoke:agency-career" },
+      { label: "Service unlock", script: "smoke:service-unlock" },
       { label: "MindPalace", script: "smoke:mindpalace" },
       { label: "Dog Deduction", script: "smoke:dog-deduction" },
     ]);

@@ -36,6 +36,14 @@ type LegacyMapCondition =
   | { type: "has_evidence"; evidenceId: string }
   | { type: "quest_stage_gte"; questId: string; stage: number }
   | { type: "relationship_gte"; characterId: string; value: number }
+  | { type: "favor_balance_gte"; npcId: string; value: number }
+  | { type: "agency_standing_gte"; value: number }
+  | {
+      type: "rumor_state_is";
+      rumorId: string;
+      status: "registered" | "verified";
+    }
+  | { type: "career_rank_gte"; rankId: string }
   | { type: "unlock_group_has"; groupId: string }
   | {
       type: "point_state_is";
@@ -161,7 +169,17 @@ const CLOSED_CASES_CONDITION: LegacyMapCondition = {
 };
 
 const AGENCY_BRIEFING_SCENARIO_ID = "sandbox_agency_briefing";
+const AGENCY_SERVICE_UNLOCK_SCENARIO_ID = "sandbox_agency_service_unlock";
+const STUDENT_HOUSE_SCENARIO_ID = "sandbox_student_house_access";
+const AGENCY_PROMOTION_SCENARIO_ID = "sandbox_agency_promotion_review";
 const WORKERS_PUB_EVENT_TEMPLATE_ID = "evt_workers_pub_raid";
+const ANNA_ACCESS_CONDITION: LegacyMapCondition = {
+  type: "logic_or",
+  conditions: [
+    { type: "favor_balance_gte", npcId: "npc_anna_mahler", value: 1 },
+    { type: "agency_standing_gte", value: 15 },
+  ],
+};
 
 const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
   loc_agency: [
@@ -188,6 +206,54 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
         { type: "flag_is", key: "agency_briefing_complete", value: true },
       ],
       actions: [{ type: "start_scenario", scenarioId: "sandbox_case01_pilot" }],
+    },
+    {
+      id: "bind_agency_student_intro_service",
+      trigger: "card_secondary",
+      label: "Call In Anna's Introduction",
+      priority: 70,
+      intent: "interaction",
+      conditions: [
+        { type: "flag_is", key: "agency_briefing_complete", value: true },
+        {
+          type: "rumor_state_is",
+          rumorId: "rumor_bank_rail_yard",
+          status: "verified",
+        },
+        {
+          type: "flag_is",
+          key: "service_anna_student_intro_unlocked",
+          value: false,
+        },
+        ANNA_ACCESS_CONDITION,
+      ],
+      actions: [
+        {
+          type: "start_scenario",
+          scenarioId: AGENCY_SERVICE_UNLOCK_SCENARIO_ID,
+        },
+      ],
+    },
+    {
+      id: "bind_agency_promotion_review",
+      trigger: "card_secondary",
+      label: "Review Promotion File",
+      priority: 60,
+      intent: "interaction",
+      conditions: [
+        { type: "career_rank_gte", rankId: "junior_detective" },
+        {
+          type: "flag_is",
+          key: "agency_promotion_review_complete",
+          value: false,
+        },
+      ],
+      actions: [
+        {
+          type: "start_scenario",
+          scenarioId: AGENCY_PROMOTION_SCENARIO_ID,
+        },
+      ],
     },
   ],
   loc_hbf: [
@@ -234,6 +300,37 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       actions: [
         { type: "start_scenario", scenarioId: "sandbox_case01_pilot" },
         { type: "set_flag", key: "case01_bridge_started", value: true },
+      ],
+    },
+    {
+      id: "bind_hbf_verify_rail_yard_rumor",
+      trigger: "card_primary",
+      label: "Verify Rail Yard Whisper",
+      priority: 118,
+      intent: "interaction",
+      conditions: [
+        {
+          type: "rumor_state_is",
+          rumorId: "rumor_bank_rail_yard",
+          status: "registered",
+        },
+      ],
+      actions: [
+        {
+          type: "verify_rumor",
+          rumorId: "rumor_bank_rail_yard",
+          verificationKind: "service_unlock",
+        },
+        {
+          type: "change_agency_standing",
+          delta: 10,
+          reason: "validated_bank_rail_yard_whisper",
+        },
+        {
+          type: "track_event",
+          eventName: "bank_rail_yard_rumor_verified",
+          tags: { pointId: "loc_hbf" },
+        },
       ],
     },
   ],
@@ -333,6 +430,14 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       intent: "interaction",
       conditions: [
         { type: "flag_is", key: "agency_briefing_complete", value: true },
+        {
+          type: "logic_not",
+          condition: {
+            type: "rumor_state_is",
+            rumorId: "rumor_bank_rail_yard",
+            status: "verified",
+          },
+        },
       ],
       actions: [
         {
@@ -439,12 +544,37 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
   ],
   loc_student_house: [
     {
-      id: "bind_city_student_tip",
+      id: "bind_student_house_access",
       trigger: "card_primary",
-      label: "Talk to Student",
-      priority: 80,
+      label: "Use Anna's Introduction",
+      priority: 110,
       intent: "interaction",
-      conditions: [{ type: "flag_is", key: "city_student_seen", value: false }],
+      conditions: [
+        {
+          type: "flag_is",
+          key: "service_anna_student_intro_unlocked",
+          value: true,
+        },
+        ANNA_ACCESS_CONDITION,
+      ],
+      actions: [
+        { type: "start_scenario", scenarioId: STUDENT_HOUSE_SCENARIO_ID },
+      ],
+    },
+    {
+      id: "bind_city_student_tip",
+      trigger: "card_secondary",
+      label: "Talk to Student",
+      priority: 70,
+      intent: "interaction",
+      conditions: [
+        {
+          type: "flag_is",
+          key: "service_anna_student_intro_unlocked",
+          value: true,
+        },
+        { type: "flag_is", key: "city_student_seen", value: false },
+      ],
       actions: [
         { type: "start_scenario", scenarioId: "sandbox_city_student_tip" },
       ],

@@ -20,6 +20,14 @@ const baseContext: MapResolverContext = {
   unlockGroupIds: new Set(["group_bank"]),
   questStages: new Map([["quest_main", 3]]),
   relationships: new Map([["npc_anna", 2]]),
+  favorBalances: new Map([["npc_anna", 1]]),
+  agencyStanding: 18,
+  careerRankId: "junior_detective",
+  rumorStates: new Map([["rumor_bank_rail_yard", "verified"]]),
+  careerRankOrder: new Map([
+    ["trainee", 0],
+    ["junior_detective", 1],
+  ]),
 };
 
 describe("mapResolver", () => {
@@ -49,6 +57,51 @@ describe("mapResolver", () => {
         type: "logic_not",
         condition: { type: "flag_is", key: "flag_on", value: true },
       }),
+    ).toBe(false);
+  });
+
+  it("evaluates social conditions for favor, standing, rumor, and career rank", () => {
+    expect(
+      evaluateMapCondition(baseContext, {
+        type: "favor_balance_gte",
+        npcId: "npc_anna",
+        value: 1,
+      }),
+    ).toBe(true);
+
+    expect(
+      evaluateMapCondition(baseContext, {
+        type: "agency_standing_gte",
+        value: 15,
+      }),
+    ).toBe(true);
+
+    expect(
+      evaluateMapCondition(baseContext, {
+        type: "rumor_state_is",
+        rumorId: "rumor_bank_rail_yard",
+        status: "verified",
+      }),
+    ).toBe(true);
+
+    expect(
+      evaluateMapCondition(baseContext, {
+        type: "career_rank_gte",
+        rankId: "trainee",
+      }),
+    ).toBe(true);
+
+    expect(
+      evaluateMapCondition(
+        {
+          ...baseContext,
+          careerRankId: "trainee",
+        },
+        {
+          type: "career_rank_gte",
+          rankId: "junior_detective",
+        },
+      ),
     ).toBe(false);
   });
 

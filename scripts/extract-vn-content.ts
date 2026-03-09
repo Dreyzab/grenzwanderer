@@ -32,6 +32,13 @@ import {
   suggestClosest,
 } from "./content-vocabulary";
 import { buildCase01MapSnapshot } from "./data/case_01_points";
+import {
+  AGENCY_SERVICE_CRITERION_IDS,
+  FREIBURG_SOCIAL_CATALOG,
+  FREIBURG_SOCIAL_CAREER_RANK_IDS,
+  FREIBURG_SOCIAL_NPC_IDS,
+  FREIBURG_SOCIAL_RUMOR_IDS,
+} from "./data/freiburg_social_catalog";
 import { parseCase01Onboarding } from "./vn-case01-onboarding";
 
 type ChoiceBlueprint = VnChoice;
@@ -82,6 +89,15 @@ const publicOutputPath = path.join(
 const defaultSkillCheckDice: VnDiceMode = "d20";
 const defaultEntryScenarioId = "sandbox_case01_pilot";
 const AUTO_CONTINUE_PREFIX = "AUTO_CONTINUE_";
+const SOCIAL_VERIFICATION_KINDS = new Set([
+  "evidence",
+  "fact",
+  "service_unlock",
+  "map_unlock",
+]);
+const RUMOR_TEMPLATE_BY_ID = new Map(
+  FREIBURG_SOCIAL_CATALOG.rumors.map((entry) => [entry.id, entry]),
+);
 
 const scenarios: ScenarioBlueprint[] = [
   {
@@ -209,6 +225,33 @@ const scenarios: ScenarioBlueprint[] = [
     mode: "overlay",
     packId: "freiburg_rumors",
     nodeIds: ["scene_workers_pub_rumor", "scene_workers_pub_rumor_end"],
+  },
+  {
+    id: "sandbox_agency_service_unlock",
+    title: "Agency Service: Anna's Introduction",
+    startNodeId: "scene_agency_service_unlock",
+    mode: "overlay",
+    packId: "freiburg_social",
+    nodeIds: ["scene_agency_service_unlock", "scene_agency_service_unlock_end"],
+  },
+  {
+    id: "sandbox_student_house_access",
+    title: "Student House Access",
+    startNodeId: "scene_student_house_access",
+    mode: "overlay",
+    packId: "freiburg_social",
+    nodeIds: ["scene_student_house_access", "scene_student_house_access_end"],
+  },
+  {
+    id: "sandbox_agency_promotion_review",
+    title: "Agency Promotion Review",
+    startNodeId: "scene_agency_promotion_review",
+    mode: "overlay",
+    packId: "freiburg_social",
+    nodeIds: [
+      "scene_agency_promotion_review",
+      "scene_agency_promotion_review_end",
+    ],
   },
   {
     id: "origin_journalist_bootstrap",
@@ -613,7 +656,9 @@ const nodes: NodeBlueprint[] = [
         id: "BANK_RESOLUTION_LOSS",
         text: "Recover the thread",
         nextNodeId: "scene_bank_resolution_defeat",
-        conditions: [{ type: "flag_equals", key: "son_duel_lost", value: true }],
+        conditions: [
+          { type: "flag_equals", key: "son_duel_lost", value: true },
+        ],
       },
     ],
     fallbackBody:
@@ -2033,7 +2078,21 @@ const nodes: NodeBlueprint[] = [
         id: "WORKERS_PUB_RUMOR_PURSUE",
         text: "Cut through the alleys before the lead goes cold.",
         nextNodeId: "scene_workers_pub_rumor_end",
-        effects: [{ type: "grant_xp", amount: 5 }],
+        effects: [
+          { type: "grant_xp", amount: 5 },
+          { type: "register_rumor", rumorId: "rumor_bank_rail_yard" },
+          {
+            type: "change_favor_balance",
+            npcId: "npc_anna_mahler",
+            delta: 1,
+            reason: "workers_pub_rumor_chain",
+          },
+          {
+            type: "track_event",
+            eventName: "workers_pub_rumor_registered",
+            tags: { rumorId: "rumor_bank_rail_yard" },
+          },
+        ],
       },
     ],
   },
@@ -2042,6 +2101,215 @@ const nodes: NodeBlueprint[] = [
     scenarioId: "sandbox_workers_pub_rumor",
     sourcePath:
       "40_GameViewer/Case01/Plot/03_Rumors/scene_workers_pub_rumor_end.md",
+    terminal: true,
+    choices: [],
+  },
+  {
+    id: "scene_agency_service_unlock",
+    scenarioId: "sandbox_agency_service_unlock",
+    sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_map_intro.md",
+    titleOverride: "Agency Service: Anna's Introduction",
+    bodyOverride:
+      "Anna can still open the student house, but only if your ledger with her or the agency still carries enough weight.",
+    characterId: "npc_anna_mahler",
+    choices: [
+      {
+        id: "AGENCY_SERVICE_UNLOCK_CONFIRM",
+        text: "Commit Anna's introduction to the banker file.",
+        nextNodeId: "scene_agency_service_unlock_end",
+        requireAll: [
+          {
+            type: "rumor_state_is",
+            rumorId: "rumor_bank_rail_yard",
+            status: "verified",
+          },
+          {
+            type: "flag_equals",
+            key: "service_anna_student_intro_unlocked",
+            value: false,
+          },
+        ],
+        requireAny: [
+          {
+            type: "favor_balance_gte",
+            npcId: "npc_anna_mahler",
+            value: 1,
+          },
+          {
+            type: "agency_standing_gte",
+            value: 15,
+          },
+        ],
+        effects: [
+          {
+            type: "set_flag",
+            key: "service_anna_student_intro_unlocked",
+            value: true,
+          },
+          { type: "unlock_group", groupId: "loc_student_house" },
+          {
+            type: "change_favor_balance",
+            npcId: "npc_anna_mahler",
+            delta: -1,
+            reason: "student_house_introduction",
+          },
+          {
+            type: "change_agency_standing",
+            delta: 5,
+            reason: "source_network_preserved",
+          },
+          {
+            type: "record_service_criterion",
+            criterionId: "preserved_source_network",
+          },
+          {
+            type: "track_event",
+            eventName: "agency_service_student_intro_unlocked",
+            tags: { serviceId: "svc_anna_student_intro" },
+          },
+        ],
+      },
+      {
+        id: "AGENCY_SERVICE_UNLOCK_DELAY",
+        text: "Hold the introduction in reserve for now.",
+        nextNodeId: "scene_agency_service_unlock_end",
+      },
+    ],
+  },
+  {
+    id: "scene_agency_service_unlock_end",
+    scenarioId: "sandbox_agency_service_unlock",
+    sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_map_intro.md",
+    titleOverride: "Agency Desk",
+    bodyOverride:
+      "The file returns to the board with Anna's channels either committed or kept in reserve.",
+    terminal: true,
+    choices: [],
+  },
+  {
+    id: "scene_student_house_access",
+    scenarioId: "sandbox_student_house_access",
+    sourcePath:
+      "40_GameViewer/Case01/Plot/03_Rumors/scene_workers_pub_rumor.md",
+    titleOverride: "Student House Access",
+    bodyOverride:
+      "A fraternity porter weighs Anna's name against your badge before deciding whether the door opens.",
+    characterId: "npc_anna_mahler",
+    preconditions: [
+      {
+        type: "flag_equals",
+        key: "service_anna_student_intro_unlocked",
+        value: true,
+      },
+    ],
+    choices: [
+      {
+        id: "STUDENT_HOUSE_PRESENT_INTRODUCTION",
+        text: "Present Anna's introduction and enter the house.",
+        nextNodeId: "scene_student_house_access_end",
+        requireAll: [
+          {
+            type: "flag_equals",
+            key: "service_anna_student_intro_unlocked",
+            value: true,
+          },
+        ],
+        requireAny: [
+          {
+            type: "favor_balance_gte",
+            npcId: "npc_anna_mahler",
+            value: 1,
+          },
+          {
+            type: "agency_standing_gte",
+            value: 15,
+          },
+        ],
+        effects: [
+          { type: "set_flag", key: "student_house_accessed", value: true },
+          {
+            type: "change_agency_standing",
+            delta: 3,
+            reason: "student_house_entry_logged",
+          },
+          {
+            type: "change_faction_signal",
+            factionId: "underworld",
+            delta: 4,
+            reason: "student_house_entry",
+          },
+          {
+            type: "track_event",
+            eventName: "student_house_access_opened",
+            tags: { pointId: "loc_student_house" },
+          },
+        ],
+      },
+      {
+        id: "STUDENT_HOUSE_BACK_OUT",
+        text: "Leave the introduction unused.",
+        nextNodeId: "scene_student_house_access_end",
+      },
+    ],
+  },
+  {
+    id: "scene_student_house_access_end",
+    scenarioId: "sandbox_student_house_access",
+    sourcePath:
+      "40_GameViewer/Case01/Plot/03_Rumors/scene_workers_pub_rumor_end.md",
+    titleOverride: "Back On The Street",
+    bodyOverride:
+      "You leave the student house route with its cost now written into the wider Freiburg file.",
+    terminal: true,
+    choices: [],
+  },
+  {
+    id: "scene_agency_promotion_review",
+    scenarioId: "sandbox_agency_promotion_review",
+    sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_map_intro.md",
+    titleOverride: "Agency Promotion Review",
+    bodyOverride:
+      "The agency board finally reflects that the banker file, the rumor chain, and the source work all landed on one record.",
+    choices: [
+      {
+        id: "AGENCY_PROMOTION_REVIEW_CONFIRM",
+        text: "File the promotion review and return to operations.",
+        nextNodeId: "scene_agency_promotion_review_end",
+        requireAll: [
+          { type: "career_rank_gte", rankId: "junior_detective" },
+          {
+            type: "flag_equals",
+            key: "agency_promotion_review_complete",
+            value: false,
+          },
+        ],
+        effects: [
+          {
+            type: "set_flag",
+            key: "agency_promotion_review_complete",
+            value: true,
+          },
+          {
+            type: "change_agency_standing",
+            delta: 2,
+            reason: "promotion_review_filed",
+          },
+          {
+            type: "track_event",
+            eventName: "agency_promotion_review_complete",
+            tags: { rankId: "junior_detective" },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_agency_promotion_review_end",
+    scenarioId: "sandbox_agency_promotion_review",
+    sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_map_intro.md",
+    titleOverride: "Promotion Filed",
+    bodyOverride:
+      "The promotion file closes cleanly, and the next Freiburg route now sees the rank on your name.",
     terminal: true,
     choices: [],
   },
@@ -2491,6 +2759,26 @@ const validateConditionBlueprint = (
     assertAscii(condition.characterId, `${context}.characterId`);
     assertKnownId(CONTENT_IDS.characterIds, condition.characterId, context);
   }
+  if ("npcId" in condition) {
+    assertAscii(condition.npcId, `${context}.npcId`);
+    assertKnownId(FREIBURG_SOCIAL_NPC_IDS, condition.npcId, `${context}.npcId`);
+  }
+  if ("rumorId" in condition) {
+    assertAscii(condition.rumorId, `${context}.rumorId`);
+    assertKnownId(
+      FREIBURG_SOCIAL_RUMOR_IDS,
+      condition.rumorId,
+      `${context}.rumorId`,
+    );
+  }
+  if ("rankId" in condition) {
+    assertAscii(condition.rankId, `${context}.rankId`);
+    assertKnownId(
+      FREIBURG_SOCIAL_CAREER_RANK_IDS,
+      condition.rankId,
+      `${context}.rankId`,
+    );
+  }
   if ("itemId" in condition) {
     assertAscii(condition.itemId, `${context}.itemId`);
   }
@@ -2566,6 +2854,49 @@ const validateEffectBlueprint = (effect: VnEffect, context: string): void => {
       effect.characterId,
       `effect.characterId in ${context}`,
     );
+  }
+  if ("npcId" in effect) {
+    assertAscii(effect.npcId, `effect.npcId in ${context}`);
+    assertKnownId(
+      FREIBURG_SOCIAL_NPC_IDS,
+      effect.npcId,
+      `effect.npcId in ${context}`,
+    );
+  }
+  if ("rumorId" in effect) {
+    assertAscii(effect.rumorId, `effect.rumorId in ${context}`);
+    assertKnownId(
+      FREIBURG_SOCIAL_RUMOR_IDS,
+      effect.rumorId,
+      `effect.rumorId in ${context}`,
+    );
+    if (effect.type === "verify_rumor") {
+      if (!SOCIAL_VERIFICATION_KINDS.has(effect.verificationKind)) {
+        throw new Error(
+          `effect.verificationKind in ${context} is unsupported: ${effect.verificationKind}`,
+        );
+      }
+      const rumorTemplate = RUMOR_TEMPLATE_BY_ID.get(effect.rumorId);
+      if (
+        rumorTemplate &&
+        !rumorTemplate.verifiesOn.includes(effect.verificationKind)
+      ) {
+        throw new Error(
+          `effect.verify_rumor in ${context} uses unsupported verification kind '${effect.verificationKind}' for rumor '${effect.rumorId}'`,
+        );
+      }
+    }
+  }
+  if ("criterionId" in effect) {
+    assertAscii(effect.criterionId, `effect.criterionId in ${context}`);
+    assertKnownId(
+      AGENCY_SERVICE_CRITERION_IDS,
+      effect.criterionId,
+      `effect.criterionId in ${context}`,
+    );
+  }
+  if ("factionId" in effect) {
+    assertAscii(effect.factionId, `effect.factionId in ${context}`);
   }
   if ("evidenceId" in effect) {
     assertAscii(effect.evidenceId, `effect.evidenceId in ${context}`);
@@ -2844,6 +3175,15 @@ const validateMapCondition = (
   if ("characterId" in condition) {
     assertKnownId(CONTENT_IDS.characterIds, condition.characterId, context);
   }
+  if ("npcId" in condition) {
+    assertKnownId(FREIBURG_SOCIAL_NPC_IDS, condition.npcId, context);
+  }
+  if ("rumorId" in condition) {
+    assertKnownId(FREIBURG_SOCIAL_RUMOR_IDS, condition.rumorId, context);
+  }
+  if ("rankId" in condition) {
+    assertKnownId(FREIBURG_SOCIAL_CAREER_RANK_IDS, condition.rankId, context);
+  }
   if ("groupId" in condition) {
     assertKnownId(CONTENT_IDS.unlockGroups, condition.groupId, context);
   }
@@ -2894,6 +3234,38 @@ const validateMapAction = (action: MapAction, context: string): void => {
   }
   if ("characterId" in action) {
     assertKnownId(CONTENT_IDS.characterIds, action.characterId, context);
+  }
+  if ("npcId" in action) {
+    assertKnownId(FREIBURG_SOCIAL_NPC_IDS, action.npcId, context);
+  }
+  if ("rumorId" in action) {
+    assertKnownId(FREIBURG_SOCIAL_RUMOR_IDS, action.rumorId, context);
+    if (action.type === "verify_rumor") {
+      const rumorTemplate = RUMOR_TEMPLATE_BY_ID.get(action.rumorId);
+      if (
+        rumorTemplate &&
+        !rumorTemplate.verifiesOn.includes(action.verificationKind)
+      ) {
+        throw new Error(
+          `${context} uses unsupported verification kind '${action.verificationKind}' for rumor '${action.rumorId}'`,
+        );
+      }
+    }
+  }
+  if ("criterionId" in action) {
+    if (typeof action.criterionId !== "string") {
+      throw new Error(`${context}.criterionId must be a string`);
+    }
+    assertKnownId(AGENCY_SERVICE_CRITERION_IDS, action.criterionId, context);
+  }
+  if ("rankId" in action) {
+    if (typeof action.rankId !== "string") {
+      throw new Error(`${context}.rankId must be a string`);
+    }
+    assertKnownId(FREIBURG_SOCIAL_CAREER_RANK_IDS, action.rankId, context);
+  }
+  if ("factionId" in action) {
+    assertAscii(action.factionId, `${context}.factionId`);
   }
   if ("eventName" in action) {
     assertAscii(action.eventName, `${context}.eventName`);
@@ -3550,6 +3922,7 @@ const snapshotPayload: VnSnapshot = {
   },
   map: mapSnapshot,
   questCatalog,
+  socialCatalog: FREIBURG_SOCIAL_CATALOG,
 };
 
 const payloadJson = JSON.stringify(snapshotPayload);

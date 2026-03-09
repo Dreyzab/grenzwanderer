@@ -603,6 +603,315 @@ describe("vnContent runtime parsing", () => {
     expect(parsed).toBeNull();
   });
 
+  it("parses social catalog and pilot social runtime contracts", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          scenarios: [
+            {
+              id: "scenario_a",
+              title: "Scenario A",
+              startNodeId: "node_a",
+              nodeIds: ["node_a", "node_b"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_a",
+              scenarioId: "scenario_a",
+              title: "Node A",
+              body: "Body",
+              choices: [
+                {
+                  id: "choice_social",
+                  text: "Lean on the network",
+                  nextNodeId: "node_b",
+                  requireAll: [
+                    {
+                      type: "favor_balance_gte",
+                      npcId: "npc_anna_mahler",
+                      value: 1,
+                    },
+                    { type: "agency_standing_gte", value: 15 },
+                    {
+                      type: "rumor_state_is",
+                      rumorId: "rumor_bank_rail_yard",
+                      status: "verified",
+                    },
+                    {
+                      type: "career_rank_gte",
+                      rankId: "trainee",
+                    },
+                  ],
+                  effects: [
+                    {
+                      type: "change_favor_balance",
+                      npcId: "npc_anna_mahler",
+                      delta: -1,
+                    },
+                    {
+                      type: "change_agency_standing",
+                      delta: 6,
+                    },
+                    {
+                      type: "change_faction_signal",
+                      factionId: "civic_order",
+                      delta: 4,
+                    },
+                    {
+                      type: "register_rumor",
+                      rumorId: "rumor_bank_rail_yard",
+                    },
+                    {
+                      type: "verify_rumor",
+                      rumorId: "rumor_bank_rail_yard",
+                      verificationKind: "map_unlock",
+                    },
+                    {
+                      type: "record_service_criterion",
+                      criterionId: "verified_rumor_chain",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "node_b",
+              scenarioId: "scenario_a",
+              title: "Node B",
+              body: "Body",
+              choices: [],
+            },
+          ],
+          map: {
+            defaultRegionId: "FREIBURG_1905",
+            regions: [
+              {
+                id: "FREIBURG_1905",
+                name: "Freiburg",
+                geoCenterLat: 47.99,
+                geoCenterLng: 7.85,
+                zoom: 14,
+              },
+            ],
+            points: [
+              {
+                id: "loc_bank",
+                title: "Bank",
+                regionId: "FREIBURG_1905",
+                lat: 47.99,
+                lng: 7.85,
+                category: "PUBLIC",
+                locationId: "loc_bank",
+                bindings: [
+                  {
+                    id: "bind_social_route",
+                    trigger: "card_primary",
+                    label: "Call in cover",
+                    priority: 100,
+                    intent: "objective",
+                    conditions: [
+                      {
+                        type: "relationship_gte",
+                        characterId: "npc_baroness_elise",
+                        value: 25,
+                      },
+                      { type: "agency_standing_gte", value: 15 },
+                    ],
+                    actions: [
+                      { type: "start_scenario", scenarioId: "scenario_a" },
+                      {
+                        type: "change_favor_balance",
+                        npcId: "npc_baroness_elise",
+                        delta: -1,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          socialCatalog: {
+            npcIdentities: [
+              {
+                id: "npc_anna_mahler",
+                displayName: "Anna Mahler",
+                factionId: "underworld",
+                publicRole: "Railway fixer",
+                rosterTier: "major",
+                serviceIds: ["svc_anna_info"],
+              },
+              {
+                id: "npc_baroness_elise",
+                displayName: "Baroness Elise",
+                factionId: "financial_bloc",
+                publicRole: "Patron",
+                rosterTier: "major",
+                serviceIds: ["svc_elise_cover"],
+              },
+            ],
+            services: [
+              {
+                id: "svc_anna_info",
+                npcId: "npc_anna_mahler",
+                role: "information",
+                label: "Information",
+                baseAccess: "Shared through trusted channels.",
+              },
+              {
+                id: "svc_elise_cover",
+                npcId: "npc_baroness_elise",
+                role: "political_cover",
+                label: "Political Cover",
+                baseAccess: "Requires agency standing.",
+              },
+            ],
+            rumors: [
+              {
+                id: "rumor_bank_rail_yard",
+                title: "Rail yard whispers",
+                caseId: "quest_banker",
+                leadPointId: "loc_bank",
+                sourceNpcId: "npc_anna_mahler",
+                verifiesOn: ["map_unlock"],
+                careerCriterionOnVerify: "verified_rumor_chain",
+              },
+            ],
+            careerRanks: [
+              {
+                id: "trainee",
+                label: "Стажёр",
+                order: 0,
+                standingRequired: -100,
+                serviceCriteriaNeeded: 0,
+                privileges: [],
+              },
+              {
+                id: "junior_detective",
+                label: "Младший детектив",
+                order: 1,
+                standingRequired: 15,
+                qualifyingCaseId: "quest_banker",
+                serviceCriteriaNeeded: 2,
+                privileges: ["Field warrant"],
+              },
+            ],
+          },
+        }),
+      ),
+    );
+
+    expect(parsed).not.toBeNull();
+    expect(parsed?.socialCatalog?.npcIdentities[0]?.displayName).toBe(
+      "Anna Mahler",
+    );
+    expect(parsed?.socialCatalog?.rumors[0]?.careerCriterionOnVerify).toBe(
+      "verified_rumor_chain",
+    );
+    expect(parsed?.nodes[0]?.choices[0]?.requireAll?.[0]).toEqual({
+      type: "favor_balance_gte",
+      npcId: "npc_anna_mahler",
+      value: 1,
+    });
+    expect(parsed?.nodes[0]?.choices[0]?.effects?.[5]).toEqual({
+      type: "record_service_criterion",
+      criterionId: "verified_rumor_chain",
+    });
+    expect(parsed?.map?.points[0]?.bindings[0]?.actions[1]).toEqual({
+      type: "change_favor_balance",
+      npcId: "npc_baroness_elise",
+      delta: -1,
+    });
+  });
+
+  it("rejects malformed social catalog with duplicate rumor ids", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          socialCatalog: {
+            npcIdentities: [
+              {
+                id: "npc_anna_mahler",
+                displayName: "Anna Mahler",
+                factionId: "underworld",
+                publicRole: "Railway fixer",
+                rosterTier: "major",
+              },
+            ],
+            services: [],
+            rumors: [
+              {
+                id: "rumor_bank_rail_yard",
+                title: "First rumor",
+                caseId: "quest_banker",
+                verifiesOn: ["map_unlock"],
+              },
+              {
+                id: "rumor_bank_rail_yard",
+                title: "Duplicate rumor",
+                caseId: "quest_banker",
+                verifiesOn: ["evidence"],
+              },
+            ],
+            careerRanks: [],
+          },
+        }),
+      ),
+    );
+
+    expect(parsed).toBeNull();
+  });
+
+  it("rejects malformed social catalog with invalid rumor verification kind", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          socialCatalog: {
+            npcIdentities: [],
+            services: [],
+            rumors: [
+              {
+                id: "rumor_bank_rail_yard",
+                title: "Broken rumor",
+                caseId: "quest_banker",
+                verifiesOn: ["unsupported_kind" as never],
+              },
+            ],
+            careerRanks: [],
+          },
+        }),
+      ),
+    );
+
+    expect(parsed).toBeNull();
+  });
+
+  it("rejects malformed social catalog with invalid career rank definitions", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          socialCatalog: {
+            npcIdentities: [],
+            services: [],
+            rumors: [],
+            careerRanks: [
+              {
+                id: "junior_detective",
+                label: "Junior Detective",
+                order: "first" as unknown as number,
+                standingRequired: 15,
+                serviceCriteriaNeeded: 2,
+                privileges: [],
+              },
+            ],
+          },
+        }),
+      ),
+    );
+
+    expect(parsed).toBeNull();
+  });
+
   it("parses schema v6 map expansions", () => {
     const parsed = parseSnapshot(
       JSON.stringify(

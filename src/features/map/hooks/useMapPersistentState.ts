@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useTable } from "spacetimedb/react";
+import { getCareerRanks } from "../../../shared/game/socialPresentation";
 import { tables } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
 import { parseSnapshot } from "../../vn/vnContent";
@@ -231,6 +232,12 @@ export const useMapPersistentState = (
   const [relationships, relationshipsReady] = useTable(
     tables.playerRelationship,
   );
+  const [npcStates, npcStatesReady] = useTable(tables.playerNpcState);
+  const [npcFavors, npcFavorsReady] = useTable(tables.playerNpcFavor);
+  const [agencyCareers, agencyCareersReady] = useTable(
+    tables.playerAgencyCareer,
+  );
+  const [rumorStates, rumorStatesReady] = useTable(tables.playerRumorState);
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
 
@@ -339,6 +346,42 @@ export const useMapPersistentState = (
       relationshipValues.set(row.characterId, row.value);
     }
 
+    for (const row of npcStates) {
+      if (!playerIdFilter(row.playerId)) {
+        continue;
+      }
+      relationshipValues.set(row.npcId, row.trustScore);
+    }
+
+    const favorBalances = new Map<string, number>();
+    for (const row of npcFavors) {
+      if (!playerIdFilter(row.playerId)) {
+        continue;
+      }
+      favorBalances.set(row.npcId, normalizeNumber(row.balance));
+    }
+
+    const agencyCareer =
+      identityHex.length > 0
+        ? (agencyCareers.find((entry) => playerIdFilter(entry.playerId)) ??
+          null)
+        : null;
+    const agencyStanding = agencyCareer?.standingScore ?? 0;
+    const careerRankId = agencyCareer?.rankId ?? null;
+
+    const rumorStateById = new Map<string, string>();
+    for (const row of rumorStates) {
+      if (!playerIdFilter(row.playerId)) {
+        continue;
+      }
+      rumorStateById.set(row.rumorId, row.status);
+    }
+
+    const careerRankOrder = new Map<string, number>();
+    for (const rank of getCareerRanks(snapshot?.socialCatalog)) {
+      careerRankOrder.set(rank.id, rank.order);
+    }
+
     const resolverInputs: MapResolverInputs = {
       flags: activeFlags,
       vars: varsByKey,
@@ -347,6 +390,11 @@ export const useMapPersistentState = (
       unlockGroupIds: unlockedGroups,
       questStages,
       relationships: relationshipValues,
+      favorBalances,
+      agencyStanding,
+      careerRankId,
+      rumorStates: rumorStateById,
+      careerRankOrder,
     };
     const mysticState = buildMysticStateSummary(
       Object.fromEntries(varsByKey.entries()),
@@ -478,9 +526,15 @@ export const useMapPersistentState = (
         evidenceReady &&
         questsReady &&
         relationshipsReady &&
+        npcStatesReady &&
+        npcFavorsReady &&
+        agencyCareersReady &&
+        rumorStatesReady &&
         contentReady,
     };
   }, [
+    agencyCareers,
+    agencyCareersReady,
     evidence,
     evidenceReady,
     flags,
@@ -491,11 +545,17 @@ export const useMapPersistentState = (
     locations,
     locationsReady,
     mapDataSource,
+    npcFavors,
+    npcFavorsReady,
+    npcStates,
+    npcStatesReady,
     quests,
     questsReady,
     regionId,
     relationships,
     relationshipsReady,
+    rumorStates,
+    rumorStatesReady,
     snapshots,
     snapshotsReady,
     unlockGroups,

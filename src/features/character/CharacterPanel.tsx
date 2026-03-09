@@ -11,6 +11,13 @@ import { useTable } from "spacetimedb/react";
 import { usePlayerFlags } from "../../entities/player/hooks/usePlayerFlags";
 import { usePlayerVars } from "../../entities/player/hooks/usePlayerVars";
 import { ENABLE_DEBUG_CONTENT_SEED } from "../../config";
+import {
+  getAgencyStandingPresentation,
+  getCareerRankLabel,
+  getFavorPresentation,
+  getTrendLabel,
+  getTrustBandPresentation,
+} from "../../shared/game/socialPresentation";
 import { useUiLanguage } from "../../shared/hooks/useUiLanguage";
 import { tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
@@ -87,6 +94,25 @@ interface CharacterObservationEntry {
   entityArchetypeId?: string;
 }
 
+interface CharacterContactEntry {
+  id: string;
+  displayName: string;
+  publicRole: string;
+  relationshipStatus: string;
+  relationshipTone: "danger" | "warning" | "neutral" | "success" | "highlight";
+  favorState: string;
+  favorTone: "danger" | "warning" | "neutral" | "success" | "highlight";
+  services: string[];
+}
+
+interface AgencyCareerSummary {
+  rankLabel: string;
+  standingLabel: string;
+  standingTone: "danger" | "warning" | "neutral" | "success" | "highlight";
+  trendLabel: string;
+  criteriaSummary: string;
+}
+
 interface CharacterAttributeCard extends CharacterAttributeDefinition {
   value: number;
   specialized: Array<CharacterAttributeDefinition & { value: number }>;
@@ -131,6 +157,44 @@ const getStatusTone = (status: CharacterQuestJournalEntry["status"]) => {
     borderColor: "rgba(138, 151, 168, 0.22)",
     color: "#cbd5e1",
     backgroundColor: "rgba(23, 22, 20, 0.3)",
+  };
+};
+
+const getSocialTone = (
+  tone: CharacterContactEntry["relationshipTone"],
+): { borderColor: string; color: string; backgroundColor: string } => {
+  if (tone === "highlight") {
+    return {
+      borderColor: "rgba(212, 167, 79, 0.34)",
+      color: "#fcd34d",
+      backgroundColor: "rgba(120, 53, 15, 0.18)",
+    };
+  }
+  if (tone === "success") {
+    return {
+      borderColor: "rgba(52, 211, 153, 0.28)",
+      color: "#86efac",
+      backgroundColor: "rgba(6, 78, 59, 0.18)",
+    };
+  }
+  if (tone === "warning") {
+    return {
+      borderColor: "rgba(251, 191, 36, 0.28)",
+      color: "#fcd34d",
+      backgroundColor: "rgba(120, 53, 15, 0.18)",
+    };
+  }
+  if (tone === "danger") {
+    return {
+      borderColor: "rgba(248, 113, 113, 0.28)",
+      color: "#fca5a5",
+      backgroundColor: "rgba(127, 29, 29, 0.18)",
+    };
+  }
+  return {
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    color: "#e2e8f0",
+    backgroundColor: "rgba(0, 0, 0, 0.18)",
   };
 };
 
@@ -300,18 +364,20 @@ const MetricBox = ({
 const ProfileTab = ({
   activeOrigin,
   alignment,
+  agencyCareer,
+  contacts,
   debugEnabled,
   flags,
   panelSubtitle,
-  questCount,
   vars,
 }: {
   activeOrigin: OriginProfileDefinition | null;
   alignment: PsycheProfileData["alignment"];
+  agencyCareer: AgencyCareerSummary;
+  contacts: CharacterContactEntry[];
   debugEnabled: boolean;
   flags: Record<string, boolean>;
   panelSubtitle: string;
-  questCount: number;
   vars: Record<string, number>;
 }) => {
   const dossierAccent = activeOrigin?.dossier.accentColor ?? C.brass;
@@ -371,45 +437,79 @@ const ProfileTab = ({
 
         <SectionCard
           accent={C.crimson}
-          eyebrow="Operational Overview"
-          title={alignment.label}
+          eyebrow="Agency Standing"
+          title={agencyCareer.rankLabel}
         >
           <div className="space-y-4 text-sm text-stone-300">
             <p className="leading-relaxed text-stone-300">
-              {alignment.description}
+              {panelSubtitle} Agency recognition now tracks rank, standing, and
+              qualifying milestones rather than a second XP bar.
             </p>
             <p className="leading-relaxed text-stone-400">
-              {panelSubtitle} Live metrics are synthesized from
-              <code className="mx-1 rounded bg-black/20 px-1.5 py-0.5 text-[12px] text-stone-200">
-                player_var
-              </code>
-              and
-              <code className="mx-1 rounded bg-black/20 px-1.5 py-0.5 text-[12px] text-stone-200">
-                player_flag
-              </code>
-              with active snapshot context.
+              {agencyCareer.standingLabel}. {agencyCareer.trendLabel}. Alignment
+              remains {alignment.label.toLowerCase()}.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
+              <InfoBlock label="Rank" value={agencyCareer.rankLabel} />
+              <InfoBlock label="Standing" value={agencyCareer.standingLabel} />
+              <InfoBlock label="Trend" value={agencyCareer.trendLabel} />
               <InfoBlock
-                label="Quest Load"
-                value={`${questCount} catalogued`}
-              />
-              <InfoBlock
-                label="Snapshot State"
-                value={questCount > 0 ? "Published" : "Unseeded"}
-              />
-              <InfoBlock
-                label="Confidence"
-                value={`${Math.max(0, Math.round(vars.checks_passed ?? 0))} passed`}
-              />
-              <InfoBlock
-                label="Faction Drift"
-                value={alignment.tier.replace(/_/g, " ")}
+                label="Service Criteria"
+                value={agencyCareer.criteriaSummary}
               />
             </div>
           </div>
         </SectionCard>
       </div>
+
+      <SectionCard
+        accent={C.amber}
+        eyebrow="Contact Network"
+        title={`${contacts.length} active files`}
+      >
+        {contacts.length === 0 ? (
+          <p className="text-sm leading-relaxed text-stone-400">
+            No pilot contacts have moved into your network yet.
+          </p>
+        ) : (
+          <div className="grid gap-3 xl:grid-cols-2">
+            {contacts.map((contact) => (
+              <article
+                key={contact.id}
+                className="rounded-[1rem] border border-white/8 bg-black/20 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="text-base font-semibold text-stone-100">
+                      {contact.displayName}
+                    </h4>
+                    <p className="mt-1 text-sm text-stone-400">
+                      {contact.publicRole}
+                    </p>
+                  </div>
+                  <span
+                    className="rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.28em]"
+                    style={getSocialTone(contact.relationshipTone)}
+                  >
+                    {contact.relationshipStatus}
+                  </span>
+                </div>
+                <p
+                  className="mt-3 inline-flex rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.24em]"
+                  style={getSocialTone(contact.favorTone)}
+                >
+                  {contact.favorState}
+                </p>
+                <p className="mt-3 text-xs leading-relaxed text-stone-500">
+                  {contact.services.length > 0
+                    ? `Services: ${contact.services.join(", ")}`
+                    : "No published services yet."}
+                </p>
+              </article>
+            ))}
+          </div>
+        )}
+      </SectionCard>
 
       {activeOrigin ? (
         <div className="grid gap-4 xl:grid-cols-2">
@@ -641,11 +741,6 @@ const DevelopmentTab = ({
 );
 
 const PsycheTab = ({ profile }: { profile: PsycheProfileData }) => {
-  const maxFactionMagnitude = Math.max(
-    1,
-    ...profile.factionSignals.map((signal) => Math.abs(signal.reputation)),
-  );
-
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
@@ -666,34 +761,26 @@ const PsycheTab = ({ profile }: { profile: PsycheProfileData }) => {
               {profile.alignment.description}
             </p>
             <div className="space-y-3">
-              {profile.factionSignals.map((signal) => {
-                const width = Math.max(
-                  8,
-                  Math.round(
-                    (Math.abs(signal.reputation) / maxFactionMagnitude) * 100,
-                  ),
-                );
-
-                return (
-                  <div key={signal.key} className="space-y-1.5">
-                    <div className="flex items-center justify-between gap-3 text-sm">
-                      <span className="text-stone-200">{signal.label}</span>
-                      <strong style={{ color: signal.color }}>
-                        {toLocale(signal.reputation)}
-                      </strong>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full border border-white/8 bg-black/20">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${width}%`,
-                          backgroundColor: `${signal.color}99`,
-                        }}
-                      />
-                    </div>
+              {profile.factionSignals.map((signal) => (
+                <div key={signal.factionId} className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-3 text-sm">
+                    <span className="text-stone-200">{signal.label}</span>
+                    <strong style={{ color: signal.color }}>
+                      {signal.stateLabel}
+                    </strong>
                   </div>
-                );
-              })}
+                  <div className="h-2 overflow-hidden rounded-full border border-white/8 bg-black/20">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${signal.intensityPercent}%`,
+                        backgroundColor: `${signal.color}99`,
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-stone-500">{signal.trendLabel}</p>
+                </div>
+              ))}
             </div>
           </div>
         </SectionCard>
@@ -1078,14 +1165,13 @@ export const CharacterPanel = () => {
   const myFlags = usePlayerFlags();
   const myVars = usePlayerVars();
   const [questRows] = useTable(tables.playerQuest);
+  const [npcStateRows] = useTable(tables.playerNpcState);
+  const [npcFavorRows] = useTable(tables.playerNpcFavor);
+  const [factionSignalRows] = useTable(tables.playerFactionSignal);
+  const [agencyCareerRows] = useTable(tables.playerAgencyCareer);
   const [versions] = useTable(tables.contentVersion);
   const [snapshots] = useTable(tables.contentSnapshot);
   const [activeTab, setActiveTab] = useState<CharacterTabId>("profile");
-
-  const profile = useMemo(
-    () => buildPsycheProfile({ flags: myFlags, vars: myVars }),
-    [myFlags, myVars],
-  );
   const uiLanguage = useUiLanguage(myFlags);
   const t = useMemo(() => getCharacterStrings(uiLanguage), [uiLanguage]);
   const activeOrigin = useMemo(
@@ -1113,6 +1199,56 @@ export const CharacterPanel = () => {
     return parseSnapshot(snapshotRow.payloadJson);
   }, [activeVersion, snapshots]);
 
+  const socialCatalog = activeSnapshot?.socialCatalog;
+
+  const factionSignalState = useMemo(
+    () =>
+      factionSignalRows
+        .filter((row) => row.playerId.toHexString() === identityHex)
+        .map((row) => ({
+          factionId: row.factionId,
+          value: row.value,
+          trend: row.trend,
+        })),
+    [factionSignalRows, identityHex],
+  );
+
+  const profile = useMemo(
+    () =>
+      buildPsycheProfile({
+        flags: myFlags,
+        vars: myVars,
+        factionSignals: factionSignalState,
+      }),
+    [factionSignalState, myFlags, myVars],
+  );
+
+  const agencyCareerRow = useMemo(
+    () =>
+      agencyCareerRows.find(
+        (row) => row.playerId.toHexString() === identityHex,
+      ) ?? null,
+    [agencyCareerRows, identityHex],
+  );
+
+  const agencyCareerSummary = useMemo<AgencyCareerSummary>(() => {
+    const standingScore = agencyCareerRow?.standingScore ?? 0;
+    const standingPresentation = getAgencyStandingPresentation(standingScore);
+    const completedCriteria = [
+      agencyCareerRow?.rumorCriterionComplete,
+      agencyCareerRow?.sourceCriterionComplete,
+      agencyCareerRow?.cleanClosureCriterionComplete,
+    ].filter(Boolean).length;
+
+    return {
+      rankLabel: getCareerRankLabel(socialCatalog, agencyCareerRow?.rankId),
+      standingLabel: standingPresentation.label,
+      standingTone: standingPresentation.tone,
+      trendLabel: getTrendLabel(agencyCareerRow?.standingTrend),
+      criteriaSummary: `${completedCriteria}/3 logged`,
+    };
+  }, [agencyCareerRow, socialCatalog]);
+
   const questStageById = useMemo(() => {
     const byId = new Map<string, number>();
     for (const row of questRows) {
@@ -1131,6 +1267,58 @@ export const CharacterPanel = () => {
     }
     return byId;
   }, [activeSnapshot?.map?.points]);
+
+  const contactEntries = useMemo<CharacterContactEntry[]>(() => {
+    const trustByNpcId = new Map<string, number>();
+    for (const row of npcStateRows) {
+      if (row.playerId.toHexString() !== identityHex) {
+        continue;
+      }
+      trustByNpcId.set(row.npcId, row.trustScore);
+    }
+
+    const favorByNpcId = new Map<string, number>();
+    for (const row of npcFavorRows) {
+      if (row.playerId.toHexString() !== identityHex) {
+        continue;
+      }
+      favorByNpcId.set(row.npcId, normalizeNumber(row.balance));
+    }
+
+    const serviceLabelById = new Map<string, string>();
+    for (const service of socialCatalog?.services ?? []) {
+      serviceLabelById.set(service.id, service.label);
+    }
+
+    return (socialCatalog?.npcIdentities ?? [])
+      .map((identity) => {
+        const trustPresentation = getTrustBandPresentation(
+          trustByNpcId.get(identity.id) ?? 0,
+        );
+        const favorPresentation = getFavorPresentation(
+          favorByNpcId.get(identity.id) ?? 0,
+        );
+        return {
+          id: identity.id,
+          displayName: identity.displayName,
+          publicRole: identity.publicRole,
+          relationshipStatus: trustPresentation.label,
+          relationshipTone: trustPresentation.tone,
+          favorState: favorPresentation.label,
+          favorTone: favorPresentation.tone,
+          services: (identity.serviceIds ?? []).map(
+            (serviceId) => serviceLabelById.get(serviceId) ?? serviceId,
+          ),
+        };
+      })
+      .sort((left, right) => left.displayName.localeCompare(right.displayName));
+  }, [
+    identityHex,
+    npcFavorRows,
+    npcStateRows,
+    socialCatalog?.npcIdentities,
+    socialCatalog?.services,
+  ]);
 
   const getObjectivePointLabel = (pointId: string): string => {
     const title = pointTitleById.get(pointId);
@@ -1173,14 +1361,16 @@ export const CharacterPanel = () => {
 
   const observationEntries = useMemo<CharacterObservationEntry[]>(
     () =>
-      resolveUnlockedObservationEntries(activeSnapshot, myFlags).map((entry) => ({
-        id: entry.id,
-        kind: formatObservationKindLabel(entry.kind),
-        title: entry.title,
-        text: entry.text,
-        rationalInterpretation: entry.rationalInterpretation,
-        entityArchetypeId: entry.entityArchetypeId,
-      })),
+      resolveUnlockedObservationEntries(activeSnapshot, myFlags).map(
+        (entry) => ({
+          id: entry.id,
+          kind: formatObservationKindLabel(entry.kind),
+          title: entry.title,
+          text: entry.text,
+          rationalInterpretation: entry.rationalInterpretation,
+          entityArchetypeId: entry.entityArchetypeId,
+        }),
+      ),
     [activeSnapshot, myFlags],
   );
 
@@ -1291,7 +1481,7 @@ export const CharacterPanel = () => {
                   fontFamily: "var(--font-mono)",
                 }}
               >
-                {profile.alignment.label}
+                {agencyCareerSummary.rankLabel}
               </span>
               <span
                 className="inline-flex rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.32em]"
@@ -1302,7 +1492,7 @@ export const CharacterPanel = () => {
                   fontFamily: "var(--font-mono)",
                 }}
               >
-                {profile.mysticism.bandLabel}
+                {agencyCareerSummary.standingLabel}
               </span>
             </div>
           </header>
@@ -1339,10 +1529,11 @@ export const CharacterPanel = () => {
                     <ProfileTab
                       activeOrigin={activeOrigin}
                       alignment={profile.alignment}
+                      agencyCareer={agencyCareerSummary}
+                      contacts={contactEntries}
                       debugEnabled={ENABLE_DEBUG_CONTENT_SEED}
                       flags={myFlags}
                       panelSubtitle={t.panelSubtitle}
-                      questCount={questJournalEntries.length}
                       vars={myVars}
                     />
                   </div>

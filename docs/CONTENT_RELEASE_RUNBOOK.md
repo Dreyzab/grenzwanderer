@@ -11,8 +11,8 @@ Operational procedure for publishing and rolling back VN content snapshots using
 - Fresh snapshot generated:
   - `bun run content:extract`
 - Expected runtime schema:
-  - writer emits `schemaVersion: 5`
-  - readers accept legacy `v4` and `v5`.
+  - writer emits `schemaVersion: 6`
+  - current release baseline is schema `6`.
 
 ## Release Procedure
 
@@ -39,6 +39,13 @@ Note: `checklist.py` is not part of this repository; use script-based gates abov
 bun run content:drift:check
 ```
 
+Important:
+
+- `content:drift:check` is not read-only in this repository.
+- The command runs `content:extract` before drift validation.
+- It rewrites `content/vn/pilot.snapshot.json` and `public/content/vn/pilot.snapshot.json` as part of the check.
+- Run it only when the current extractor/runtime state is intended to become the new baseline.
+
 4. Publish content:
 
 ```bash
@@ -53,12 +60,17 @@ Optional overrides:
 
 Release payload contract:
 
-- CLI publishes the full snapshot payload (`schemaVersion`, `scenarios`, `nodes`, `vnRuntime`, `mindPalace`, `map`, `questCatalog` when present).
+- CLI publishes the full snapshot payload (`schemaVersion`, `scenarios`, `nodes`, `vnRuntime`, `mindPalace`, `map`, `questCatalog`, `socialCatalog` when present).
 - Snapshot metadata fields (`checksum`, `generatedAt`) are excluded from reducer payload before publish.
-- `VnChoice` gating fields in v5:
+- `VnChoice` gating fields in schema `6`:
   - `visibleIfAll`, `visibleIfAny` control visibility.
   - `requireAll`, `requireAny` control enablement.
   - legacy `conditions` remains read-only alias for `requireAll`.
+- Freiburg social payload in schema `6` includes:
+  - `socialCatalog.npcIdentities`
+  - `socialCatalog.services`
+  - `socialCatalog.rumors`
+  - `socialCatalog.careerRanks`
 - Passive checks lifecycle:
   - node entry resolves passive checks first,
   - interaction is locked until checks resolve,
@@ -68,7 +80,7 @@ Release payload contract:
 
 - `content_version` has one active version.
 - active version format is `content-vX.Y.Z+checksum8`.
-- `content/vn/releases.manifest.json` has new release entry.
+- `content/vn/releases.manifest.json` latest release entry matches the checksum in `content/vn/pilot.snapshot.json`.
 
 ## Rollback Procedure
 

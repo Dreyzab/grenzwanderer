@@ -17,6 +17,8 @@ const mergeSnapshot = (
         ? { ...base.vnRuntime }
         : undefined,
   mindPalace: overrides.mindPalace ?? base.mindPalace,
+  socialCatalog:
+    "socialCatalog" in overrides ? overrides.socialCatalog : base.socialCatalog,
   mysticism:
     "mysticism" in overrides
       ? overrides.mysticism
@@ -102,6 +104,12 @@ export const createTestSnapshot = (
         mapEventTemplates: [],
       },
       questCatalog: [],
+      socialCatalog: {
+        npcIdentities: [],
+        services: [],
+        rumors: [],
+        careerRanks: [],
+      },
     },
     overrides,
   );

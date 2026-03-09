@@ -2,10 +2,16 @@ import {
   buildMysticStateSummary,
   formatSightModeLabel,
 } from "../mysticism/model/mysticism";
+import { getFactionSignalPresentation } from "../../shared/game/socialPresentation";
 
 export interface PsycheProfileInput {
   flags: Record<string, boolean>;
   vars: Record<string, number>;
+  factionSignals?: Array<{
+    factionId: string;
+    value: number;
+    trend?: string;
+  }>;
 }
 
 type AlignmentTier =
@@ -22,9 +28,11 @@ export interface PsycheAlignmentSummary {
 }
 
 export interface PsycheFactionSignal {
-  key: string;
+  factionId: string;
   label: string;
-  reputation: number;
+  stateLabel: string;
+  trendLabel: string;
+  intensityPercent: number;
   color: string;
 }
 
@@ -73,22 +81,20 @@ export interface PsycheProfileData {
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
-const factionMeta: Array<{ key: string; label: string; color: string }> = [
-  { key: "rep_civic", label: "Civic Order", color: "#2563eb" },
-  { key: "rep_underworld", label: "Underworld", color: "#ea580c" },
-  { key: "rep_finance", label: "Financial Bloc", color: "#ca8a04" },
+const factionMeta: Array<{ factionId: string; fallbackVarKey: string }> = [
+  { factionId: "civic_order", fallbackVarKey: "rep_civic" },
+  { factionId: "underworld", fallbackVarKey: "rep_underworld" },
+  { factionId: "financial_bloc", fallbackVarKey: "rep_finance" },
 ];
 
 const resolveAlignment = (
-  signals: PsycheFactionSignal[],
+  signals: Array<{ factionId: string; value: number }>,
 ): PsycheAlignmentSummary => {
-  const ranked = [...signals].sort(
-    (left, right) => right.reputation - left.reputation,
-  );
+  const ranked = [...signals].sort((left, right) => right.value - left.value);
   const leader = ranked[0];
   const runnerUp = ranked[1];
 
-  if (!leader || leader.reputation < 1) {
+  if (!leader || leader.value < 1) {
     return {
       tier: "unaligned",
       label: "Unaligned Observer",
@@ -97,7 +103,7 @@ const resolveAlignment = (
     };
   }
 
-  if (runnerUp && Math.abs(leader.reputation - runnerUp.reputation) <= 0.5) {
+  if (runnerUp && Math.abs(leader.value - runnerUp.value) <= 5) {
     return {
       tier: "contested",
       label: "Contested Alignment",
@@ -106,7 +112,7 @@ const resolveAlignment = (
     };
   }
 
-  if (leader.key === "rep_civic") {
+  if (leader.factionId === "civic_order") {
     return {
       tier: "civic_order",
       label: "Civic Order",
@@ -115,7 +121,7 @@ const resolveAlignment = (
     };
   }
 
-  if (leader.key === "rep_underworld") {
+  if (leader.factionId === "underworld") {
     return {
       tier: "underworld",
       label: "Underworld Sympathizer",
@@ -242,15 +248,23 @@ const resolveMysticism = (
 export const buildPsycheProfile = (
   input: PsycheProfileInput,
 ): PsycheProfileData => {
-  const factionSignals: PsycheFactionSignal[] = factionMeta.map((meta) => ({
-    key: meta.key,
-    label: meta.label,
-    color: meta.color,
-    reputation: input.vars[meta.key] ?? 0,
-  }));
+  const signalValues = factionMeta.map((meta) => {
+    const canonicalRow = input.factionSignals?.find(
+      (entry) => entry.factionId === meta.factionId,
+    );
+    return {
+      factionId: meta.factionId,
+      value: canonicalRow?.value ?? input.vars[meta.fallbackVarKey] ?? 0,
+      trend: canonicalRow?.trend ?? "stable",
+    };
+  });
+
+  const factionSignals: PsycheFactionSignal[] = signalValues.map((entry) =>
+    getFactionSignalPresentation(entry.factionId, entry.value, entry.trend),
+  );
 
   return {
-    alignment: resolveAlignment(factionSignals),
+    alignment: resolveAlignment(signalValues),
     factionSignals,
     secrets: resolveSecrets(input.flags),
     evolutionTracks: resolveTracks(input.vars),

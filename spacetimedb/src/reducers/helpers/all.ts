@@ -522,7 +522,8 @@ const COMMAND_SCENARIOS: readonly CommandScenarioTemplate[] = [
         actorId: "npc_anna_mahler",
         label: "Anna Mahler",
         role: "Informant",
-        notes: "Unlocks once Anna has been met or her trust has started to move.",
+        notes:
+          "Unlocks once Anna has been met or her trust has started to move.",
         sortOrder: 1,
         trustCharacterId: "npc_anna_mahler",
         unlockFlag: "met_anna_intro",
@@ -552,7 +553,8 @@ const COMMAND_SCENARIOS: readonly CommandScenarioTemplate[] = [
         label: "Deploy Night Watch",
         description:
           "Place the inspector on a fixed surveillance route near the station quarter.",
-        effectPreview: "Reveal a fresh investigative angle and bank experience.",
+        effectPreview:
+          "Reveal a fresh investigative angle and bank experience.",
         resultTitle: "Night Watch Assigned",
         resultSummary:
           "The inspector locks down the station quarter and marks suspicious traffic before dawn.",
@@ -591,12 +593,17 @@ const COMMAND_SCENARIOS: readonly CommandScenarioTemplate[] = [
         label: "Pull Archive Packet",
         description:
           "Have Otto prepare registry extracts and compare sealed filing movements.",
-        effectPreview: "Prepare an archive packet and reduce later search friction.",
+        effectPreview:
+          "Prepare an archive packet and reduce later search friction.",
         resultTitle: "Archive Packet Prepared",
         resultSummary:
           "Otto assembles a precise packet of municipal records and flags anomalies for the next sweep.",
         effects: [
-          { type: "set_flag", key: "command_archive_packet_ready", value: true },
+          {
+            type: "set_flag",
+            key: "command_archive_packet_ready",
+            value: true,
+          },
           { type: "grant_xp", amount: 3 },
         ],
       },
@@ -782,8 +789,7 @@ const isVnCondition = (value: unknown): value is VnCondition => {
   }
   if (condition.type === "favor_balance_gte") {
     return (
-      typeof condition.npcId === "string" &&
-      typeof condition.value === "number"
+      typeof condition.npcId === "string" && typeof condition.value === "number"
     );
   }
   if (condition.type === "agency_standing_gte") {
@@ -1285,8 +1291,7 @@ const isMapCondition = (value: unknown): value is MapCondition => {
   }
   if (condition.type === "favor_balance_gte") {
     return (
-      typeof condition.npcId === "string" &&
-      typeof condition.value === "number"
+      typeof condition.npcId === "string" && typeof condition.value === "number"
     );
   }
   if (condition.type === "agency_standing_gte") {
@@ -1513,13 +1518,9 @@ const isDistortionWindow = (value: unknown): boolean =>
   value === undefined ||
   (typeof value === "object" &&
     value !== null &&
-    ((
-      value as { minAwakening?: unknown }
-    ).minAwakening === undefined ||
+    ((value as { minAwakening?: unknown }).minAwakening === undefined ||
       typeof (value as { minAwakening?: unknown }).minAwakening === "number") &&
-    ((
-      value as { maxAwakening?: unknown }
-    ).maxAwakening === undefined ||
+    ((value as { maxAwakening?: unknown }).maxAwakening === undefined ||
       typeof (value as { maxAwakening?: unknown }).maxAwakening === "number"));
 
 const isMapPoint = (value: unknown): value is MapPoint => {
@@ -1559,7 +1560,8 @@ const isMapPoint = (value: unknown): value is MapPoint => {
         point.revealConditions.every((entry) => isMapCondition(entry)))) &&
     (point.entitySignature === undefined ||
       typeof point.entitySignature === "string") &&
-    (point.rumorHookId === undefined || typeof point.rumorHookId === "string") &&
+    (point.rumorHookId === undefined ||
+      typeof point.rumorHookId === "string") &&
     Array.isArray(point.bindings) &&
     point.bindings.every((entry) => isMapBinding(entry))
   );
@@ -1967,7 +1969,9 @@ const parseSocialCatalog = (
         publicRole: String(record.publicRole ?? ""),
         rosterTier,
         portraitUrl:
-          record.portraitUrl === undefined ? undefined : String(record.portraitUrl),
+          record.portraitUrl === undefined
+            ? undefined
+            : String(record.portraitUrl),
         introFlag:
           record.introFlag === undefined ? undefined : String(record.introFlag),
         homePointId:
@@ -1989,43 +1993,52 @@ const parseSocialCatalog = (
     },
   );
 
-  const parsedServices: NpcServiceDefinition[] = services.map((entry, index) => {
-    const record = asRecord(
-      entry,
-      `payloadJson.socialCatalog.services[${index}]`,
-    );
-    const role = record.role;
-    if (
-      role !== "information" &&
-      role !== "archives" &&
-      role !== "social_introduction" &&
-      role !== "political_cover" &&
-      role !== "transport"
-    ) {
-      throw new SenderError("payloadJson.socialCatalog has invalid shape");
-    }
+  const parsedServices: NpcServiceDefinition[] = services.map(
+    (entry, index) => {
+      const record = asRecord(
+        entry,
+        `payloadJson.socialCatalog.services[${index}]`,
+      );
+      const role = record.role;
+      if (
+        role !== "information" &&
+        role !== "archives" &&
+        role !== "social_introduction" &&
+        role !== "political_cover" &&
+        role !== "transport"
+      ) {
+        throw new SenderError("payloadJson.socialCatalog has invalid shape");
+      }
 
-    return {
-      id: String(record.id ?? ""),
-      npcId: String(record.npcId ?? ""),
-      role,
-      label: String(record.label ?? ""),
-      baseAccess: String(record.baseAccess ?? ""),
-      unlockFlag:
-        record.unlockFlag === undefined ? undefined : String(record.unlockFlag),
-      costNote:
-        record.costNote === undefined ? undefined : String(record.costNote),
-      qualityNote:
-        record.qualityNote === undefined ? undefined : String(record.qualityNote),
-      consequenceNote:
-        record.consequenceNote === undefined
-          ? undefined
-          : String(record.consequenceNote),
-    };
-  });
+      return {
+        id: String(record.id ?? ""),
+        npcId: String(record.npcId ?? ""),
+        role,
+        label: String(record.label ?? ""),
+        baseAccess: String(record.baseAccess ?? ""),
+        unlockFlag:
+          record.unlockFlag === undefined
+            ? undefined
+            : String(record.unlockFlag),
+        costNote:
+          record.costNote === undefined ? undefined : String(record.costNote),
+        qualityNote:
+          record.qualityNote === undefined
+            ? undefined
+            : String(record.qualityNote),
+        consequenceNote:
+          record.consequenceNote === undefined
+            ? undefined
+            : String(record.consequenceNote),
+      };
+    },
+  );
 
   const parsedRumors: RumorTemplate[] = rumors.map((entry, index) => {
-    const record = asRecord(entry, `payloadJson.socialCatalog.rumors[${index}]`);
+    const record = asRecord(
+      entry,
+      `payloadJson.socialCatalog.rumors[${index}]`,
+    );
     const verifiesOn = asStringArray(
       record.verifiesOn,
       `payloadJson.socialCatalog.rumors[${index}].verifiesOn`,
@@ -2057,12 +2070,17 @@ const parseSocialCatalog = (
       title: String(record.title ?? ""),
       caseId: String(record.caseId ?? ""),
       leadPointId:
-        record.leadPointId === undefined ? undefined : String(record.leadPointId),
+        record.leadPointId === undefined
+          ? undefined
+          : String(record.leadPointId),
       sourceNpcId:
-        record.sourceNpcId === undefined ? undefined : String(record.sourceNpcId),
+        record.sourceNpcId === undefined
+          ? undefined
+          : String(record.sourceNpcId),
       verifiesOn: verifiesOn as RumorVerificationKind[],
-      careerCriterionOnVerify:
-        careerCriterionOnVerify as AgencyServiceCriterionId | undefined,
+      careerCriterionOnVerify: careerCriterionOnVerify as
+        | AgencyServiceCriterionId
+        | undefined,
     };
   });
 
@@ -2112,7 +2130,10 @@ const parseSocialCatalog = (
     }
   };
 
-  assertUniqueIds(parsedNpcIdentities, "payloadJson.socialCatalog.npcIdentities");
+  assertUniqueIds(
+    parsedNpcIdentities,
+    "payloadJson.socialCatalog.npcIdentities",
+  );
   assertUniqueIds(parsedServices, "payloadJson.socialCatalog.services");
   assertUniqueIds(parsedRumors, "payloadJson.socialCatalog.rumors");
   assertUniqueIds(parsedCareerRanks, "payloadJson.socialCatalog.careerRanks");
@@ -2429,7 +2450,9 @@ const isRowOwnedBySender = (
   senderHex: string,
 ): boolean => row.playerId.toHexString() === senderHex;
 
-const hasAnyRowsForSender = <TRow extends { playerId: { toHexString(): string } }>(
+const hasAnyRowsForSender = <
+  TRow extends { playerId: { toHexString(): string } },
+>(
   rows: Iterable<TRow>,
   senderHex: string,
 ): boolean => {
@@ -2795,9 +2818,8 @@ const upsertLegacyRelationshipProjection = (
   value: number,
 ): void => {
   const relationshipKey = createRelationshipKey(ctx.sender, characterId);
-  const existing = ctx.db.playerRelationship.relationshipKey.find(
-    relationshipKey,
-  );
+  const existing =
+    ctx.db.playerRelationship.relationshipKey.find(relationshipKey);
   if (existing) {
     ctx.db.playerRelationship.relationshipKey.update({
       ...existing,
@@ -2816,7 +2838,9 @@ const upsertLegacyRelationshipProjection = (
   });
 };
 
-const tryGetActiveSocialCatalog = (ctx: any): SocialCatalogSnapshot | undefined => {
+const tryGetActiveSocialCatalog = (
+  ctx: any,
+): SocialCatalogSnapshot | undefined => {
   try {
     return getActiveSnapshot(ctx).snapshot.socialCatalog;
   } catch (_error) {
@@ -2982,9 +3006,11 @@ export const changeFactionSignalInternal = (
   return nextValue;
 };
 
-const countCompletedServiceCriteria = (
-  row: ReturnType<typeof ensureAgencyCareerRow>,
-): number =>
+const countCompletedServiceCriteria = (row: {
+  rumorCriterionComplete: boolean;
+  sourceCriterionComplete: boolean;
+  cleanClosureCriterionComplete: boolean;
+}): number =>
   Number(row.rumorCriterionComplete) +
   Number(row.sourceCriterionComplete) +
   Number(row.cleanClosureCriterionComplete);
@@ -3362,7 +3388,9 @@ export const areConditionsSatisfied = (
       return row ? row.stage >= condition.stage : false;
     }
     if (condition.type === "relationship_gte") {
-      return getRelationshipValue(ctx, condition.characterId) >= condition.value;
+      return (
+        getRelationshipValue(ctx, condition.characterId) >= condition.value
+      );
     }
     if (condition.type === "has_item") {
       const inventoryKey = createInventoryKey(ctx.sender, condition.itemId);
@@ -3807,7 +3835,9 @@ const buildCommandActorPresentation = (
   const trust = actor.trustCharacterId
     ? getRelationshipValue(ctx, actor.trustCharacterId)
     : 0;
-  const availability = isCommandActorUnlocked(ctx, actor) ? "available" : "locked";
+  const availability = isCommandActorUnlocked(ctx, actor)
+    ? "available"
+    : "locked";
 
   return {
     actorId: actor.actorId,
@@ -3818,7 +3848,7 @@ const buildCommandActorPresentation = (
     notes:
       availability === "available"
         ? actor.notes
-        : actor.notes ?? "This operative has not been unlocked yet.",
+        : (actor.notes ?? "This operative has not been unlocked yet."),
     sortOrder: actor.sortOrder,
   };
 };
@@ -4117,9 +4147,10 @@ const getBattleCardInternal = (cardId: string): BattleCardDefinition => {
   }
 };
 
-const extractSourceScenarioId = (
-  source?: { sourceType: string; sourceId: string },
-): string | undefined => {
+const extractSourceScenarioId = (source?: {
+  sourceType: string;
+  sourceId: string;
+}): string | undefined => {
   if (!source || !source.sourceType.startsWith("vn_")) {
     return undefined;
   }
@@ -4128,7 +4159,9 @@ const extractSourceScenarioId = (
   return scenarioId && scenarioId.trim().length > 0 ? scenarioId : undefined;
 };
 
-const parseBattleStatuses = (value: string | undefined): BattleStatusState[] => {
+const parseBattleStatuses = (
+  value: string | undefined,
+): BattleStatusState[] => {
   if (!value) {
     return [];
   }
@@ -4165,7 +4198,9 @@ const nextBattleIntentCard = (
   }
 
   return getBattleCardInternal(
-    scenario.enemy.intentSequence[cursor % scenario.enemy.intentSequence.length]!,
+    scenario.enemy.intentSequence[
+      cursor % scenario.enemy.intentSequence.length
+    ]!,
   );
 };
 
@@ -4183,13 +4218,17 @@ const setEnemyIntentPreview = (
 const compareBattleZoneOrder = (
   left: BattleCardInstanceState,
   right: BattleCardInstanceState,
-): number => left.zoneOrder - right.zoneOrder || left.instanceId.localeCompare(right.instanceId);
+): number =>
+  left.zoneOrder - right.zoneOrder ||
+  left.instanceId.localeCompare(right.instanceId);
 
 const normalizeBattleCardZones = (
   cards: BattleCardInstanceState[],
 ): BattleCardInstanceState[] => {
   for (const zone of ["deck", "hand", "discard"] as BattleZone[]) {
-    const zoneCards = cards.filter((entry) => entry.zone === zone).sort(compareBattleZoneOrder);
+    const zoneCards = cards
+      .filter((entry) => entry.zone === zone)
+      .sort(compareBattleZoneOrder);
     zoneCards.forEach((entry, index) => {
       entry.zoneOrder = index;
     });
@@ -4370,14 +4409,18 @@ const applyBattleCardEffectsInternal = (
     if (effect.type === "draw_cards") {
       const drawn = drawBattleCards(cards, effect.amount);
       if (drawn > 0) {
-        history.push(`${acting.label} draws ${drawn} card${drawn === 1 ? "" : "s"}.`);
+        history.push(
+          `${acting.label} draws ${drawn} card${drawn === 1 ? "" : "s"}.`,
+        );
       }
       continue;
     }
 
     if (effect.type === "gain_ap") {
       acting.ap += effect.amount;
-      history.push(`${acting.label} gains ${effect.amount} ${labels.ap.toLowerCase()}.`);
+      history.push(
+        `${acting.label} gains ${effect.amount} ${labels.ap.toLowerCase()}.`,
+      );
       continue;
     }
 
@@ -4607,11 +4650,13 @@ const resolveBattleOutcomeInternal = (
 
   replaceBattleCombatants(ctx, session.sessionKey, [player, enemy]);
   replaceBattleCards(ctx, session.sessionKey, cards, player, "result");
-  appendBattleHistory(ctx, session.sessionKey, Number(session.turnCount), "result", [
-    ...extraHistory,
-    outcome.title,
-    outcome.summary,
-  ]);
+  appendBattleHistory(
+    ctx,
+    session.sessionKey,
+    Number(session.turnCount),
+    "result",
+    [...extraHistory, outcome.title, outcome.summary],
+  );
 
   ctx.db.battleSession.sessionKey.update({
     ...session,
@@ -4783,7 +4828,13 @@ export const playBattleCardInternal = (ctx: any, instanceId: string): void => {
 
   replaceBattleCombatants(ctx, session.sessionKey, [player, enemy]);
   replaceBattleCards(ctx, session.sessionKey, cards, player, "player_turn");
-  appendBattleHistory(ctx, session.sessionKey, Number(session.turnCount), "player_action", history);
+  appendBattleHistory(
+    ctx,
+    session.sessionKey,
+    Number(session.turnCount),
+    "player_action",
+    history,
+  );
 
   emitTelemetry(ctx, "battle_card_played", {
     scenarioId: scenario.id,
@@ -4844,7 +4895,9 @@ export const endBattleTurnInternal = (ctx: any): void => {
   player.ap = player.maxAp;
   const drawn = drawBattleCards(cards, Number(session.drawPerTurn));
   if (drawn > 0) {
-    history.push(`You draw ${drawn} card${drawn === 1 ? "" : "s"} for the next exchange.`);
+    history.push(
+      `You draw ${drawn} card${drawn === 1 ? "" : "s"} for the next exchange.`,
+    );
   }
 
   setEnemyIntentPreview(enemy, scenario, nextCursor);
@@ -4955,7 +5008,10 @@ export const applyEffects = (
     }
     if (effect.type === "shift_awakening") {
       const currentAwakening = getVar(ctx, MYSTIC_AWAKENING_VAR);
-      const currentBuffer = Math.max(0, getVar(ctx, MYSTIC_RATIONALIST_BUFFER_VAR));
+      const currentBuffer = Math.max(
+        0,
+        getVar(ctx, MYSTIC_RATIONALIST_BUFFER_VAR),
+      );
       const dampening =
         effect.amount > 0 ? Math.min(effect.amount, currentBuffer) : 0;
       const nextAwakening = clampNumber(
@@ -4965,7 +5021,11 @@ export const applyEffects = (
       );
       upsertVar(ctx, MYSTIC_AWAKENING_VAR, nextAwakening);
       if (dampening > 0) {
-        upsertVar(ctx, MYSTIC_RATIONALIST_BUFFER_VAR, currentBuffer - dampening);
+        upsertVar(
+          ctx,
+          MYSTIC_RATIONALIST_BUFFER_VAR,
+          currentBuffer - dampening,
+        );
       }
       if (effect.exposureDelta !== undefined) {
         upsertVar(
@@ -5046,7 +5106,12 @@ export const applyEffects = (
     }
 
     if (effect.type === "change_favor_balance") {
-      changeFavorBalanceInternal(ctx, effect.npcId, effect.delta, effect.reason);
+      changeFavorBalanceInternal(
+        ctx,
+        effect.npcId,
+        effect.delta,
+        effect.reason,
+      );
       continue;
     }
 

@@ -41,7 +41,8 @@ export const acceptanceFlows: AcceptanceFlow[] = [
       manifest: false,
       drift: false,
     },
-    notes: "Reducer contract smoke; does not depend on extracted Obsidian content.",
+    notes:
+      "Reducer contract smoke; does not depend on extracted Obsidian content.",
   },
   {
     id: "map_authority_contract",
@@ -144,6 +145,74 @@ export const acceptanceFlows: AcceptanceFlow[] = [
       "Snapshot-backed banker confrontation flow covering authoritative battle resolution and VN fallout flags.",
   },
   {
+    id: "freiburg_social_access",
+    label: "Freiburg social access",
+    kind: "player_flow",
+    entryPath:
+      "Map -> Workers' Pub rumor route -> Hbf verification -> Agency service unlock -> Student House access",
+    smokeCommand: "smoke:social-access",
+    smokeLabel: "Social access",
+    includeInSmokeAll: true,
+    gates: {
+      extract: true,
+      manifest: true,
+      drift: true,
+    },
+    notes:
+      "Locks the Freiburg student-house route behind verified rumor plus favor-or-standing gating, then confirms the matching VN access path.",
+  },
+  {
+    id: "freiburg_rumor_verification",
+    label: "Freiburg rumor verification",
+    kind: "player_flow",
+    entryPath:
+      "Workers' Pub map event -> sandbox_workers_pub_rumor -> Hbf verify rail yard whisper -> agency binding unlock",
+    smokeCommand: "smoke:rumor-verification",
+    smokeLabel: "Rumor verification",
+    includeInSmokeAll: true,
+    gates: {
+      extract: true,
+      manifest: true,
+      drift: true,
+    },
+    notes:
+      "Confirms rumor registration, verification, and the downstream agency service binding that only appears after verification.",
+  },
+  {
+    id: "freiburg_agency_career_progression",
+    label: "Freiburg agency career progression",
+    kind: "player_flow",
+    entryPath:
+      "Verified rumor chain + preserved source network + banker closure -> junior_detective -> agency promotion review",
+    smokeCommand: "smoke:agency-career",
+    smokeLabel: "Agency career",
+    includeInSmokeAll: true,
+    gates: {
+      extract: true,
+      manifest: true,
+      drift: true,
+    },
+    notes:
+      "Keeps rank promotion tied to authoritative standing, criteria completion, and quest closure before a career_rank_gte-gated agency action unlocks.",
+  },
+  {
+    id: "freiburg_service_unlock",
+    label: "Freiburg service unlock",
+    kind: "player_flow",
+    entryPath:
+      "Anna service definition -> sandbox_agency_service_unlock -> unlock_group(loc_student_house) -> new map route",
+    smokeCommand: "smoke:service-unlock",
+    smokeLabel: "Service unlock",
+    includeInSmokeAll: true,
+    gates: {
+      extract: true,
+      manifest: true,
+      drift: true,
+    },
+    notes:
+      "Verifies that a service defined in socialCatalog is not decorative and writes real runtime effects into map state.",
+  },
+  {
     id: "mind_palace_loop",
     label: "Mind Palace loop",
     kind: "player_flow",
@@ -213,7 +282,9 @@ export const validateAcceptanceMatrix = (
   scripts: Record<string, string> = readPackageScripts(),
 ): void => {
   if (acceptanceFlows.length === 0) {
-    throw new Error("acceptance matrix must contain at least one supported flow");
+    throw new Error(
+      "acceptance matrix must contain at least one supported flow",
+    );
   }
 
   const seenIds = new Set<string>();

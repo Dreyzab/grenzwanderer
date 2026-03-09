@@ -321,7 +321,12 @@ export interface SocialCatalogSnapshot {
 
 export type MapPointState = "locked" | "discovered" | "visited" | "completed";
 export type MapPointDefaultState = "locked" | "discovered";
-export type MapPointCategory = "HUB" | "PUBLIC" | "SHADOW" | "EPHEMERAL";
+export type MapPointCategory =
+  | "HUB"
+  | "PUBLIC"
+  | "SHADOW"
+  | "EPHEMERAL"
+  | "OCCULT";
 export type MapBindingTrigger =
   | "card_primary"
   | "card_secondary"

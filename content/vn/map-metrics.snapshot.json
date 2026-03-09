@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "points": 18,
-  "bindings": 45,
-  "conditionDrivenBindings": 14,
-  "richPoints": 5,
-  "updatedAt": "2026-03-04T20:59:57.181Z"
+  "bindings": 52,
+  "conditionDrivenBindings": 25,
+  "richPoints": 7,
+  "updatedAt": "2026-03-08T21:39:33.151Z"
 }

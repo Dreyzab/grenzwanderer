@@ -29,6 +29,7 @@ This document defines runtime architecture, content release lifecycle, and repos
 - Narrative source lives in `obsidian/StoryDetective`.
 - Extractor generates `content/vn/pilot.snapshot.json` and the public copy.
 - Snapshot carries deterministic checksum metadata.
+- Repo-backed Freiburg social content lives in `scripts/data/freiburg_social_catalog.ts` and is emitted into `VnSnapshot.socialCatalog`.
 
 ## Acceptance Contract
 
@@ -39,14 +40,16 @@ This document defines runtime architecture, content release lifecycle, and repos
   - one smoke command;
   - whether `content:extract`, `content:manifest:check`, and `content:drift:check` are required.
 - `scripts/smoke-all.ts` is derived from the acceptance matrix instead of maintaining its own list.
-- Snapshot-backed acceptance flows currently cover Freiburg entry/handoff, Freiburg case slice, and Freiburg dog deduction closure.
+- Snapshot-backed acceptance flows currently cover Freiburg entry/handoff, Freiburg case slice, Freiburg dog deduction closure, and the Freiburg social loop.
 - Synthetic contract flows cover reducer/runtime authority checks where extracted content is intentionally not required.
+- Freiburg is the only supported city in the current player-facing path. Karlsruhe remains explicitly unavailable.
 
 ## Content Release Lifecycle
 
 1. Author or update narrative in `obsidian/`.
 2. Build a fresh snapshot with `bun run content:extract`.
 3. Validate integrity and drift.
+   - `content:drift:check` mutates generated snapshot artifacts because it invokes `content:extract`.
 4. Publish through `bun run content:release -- --version X.Y.Z ...`.
 5. Record the release in `content/vn/releases.manifest.json`.
 6. Create the matching git tag through `bun run content:tag -- --version X.Y.Z`.

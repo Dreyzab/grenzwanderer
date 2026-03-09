@@ -37,6 +37,9 @@ import {
 import AdvanceQuestReducer from "./advance_quest_reducer";
 import BeginFreiburgOriginReducer from "./begin_freiburg_origin_reducer";
 import BuyItemReducer from "./buy_item_reducer";
+import ChangeAgencyStandingReducer from "./change_agency_standing_reducer";
+import ChangeFactionSignalReducer from "./change_faction_signal_reducer";
+import ChangeFavorBalanceReducer from "./change_favor_balance_reducer";
 import ChangeRelationshipReducer from "./change_relationship_reducer";
 import CloseBattleModeReducer from "./close_battle_mode_reducer";
 import CloseCommandModeReducer from "./close_command_mode_reducer";
@@ -55,7 +58,9 @@ import PerformSkillCheckReducer from "./perform_skill_check_reducer";
 import PlayBattleCardReducer from "./play_battle_card_reducer";
 import PublishContentReducer from "./publish_content_reducer";
 import RecordChoiceReducer from "./record_choice_reducer";
+import RecordServiceCriterionReducer from "./record_service_criterion_reducer";
 import RedeemMapCodeReducer from "./redeem_map_code_reducer";
+import RegisterRumorReducer from "./register_rumor_reducer";
 import RegisterWorkerIdentityReducer from "./register_worker_identity_reducer";
 import ResolveCommandReducer from "./resolve_command_reducer";
 import RollbackContentReducer from "./rollback_content_reducer";
@@ -70,6 +75,7 @@ import TrackEventReducer from "./track_event_reducer";
 import TravelToReducer from "./travel_to_reducer";
 import UnlockGroupReducer from "./unlock_group_reducer";
 import ValidateHypothesisReducer from "./validate_hypothesis_reducer";
+import VerifyRumorReducer from "./verify_rumor_reducer";
 
 // Import all procedure arg schemas
 
@@ -88,7 +94,9 @@ import IdempotencyLogRow from "./idempotency_log_table";
 import MindCaseRow from "./mind_case_table";
 import MindFactRow from "./mind_fact_table";
 import MindHypothesisRow from "./mind_hypothesis_table";
+import PlayerAgencyCareerRow from "./player_agency_career_table";
 import PlayerEvidenceRow from "./player_evidence_table";
+import PlayerFactionSignalRow from "./player_faction_signal_table";
 import PlayerFlagRow from "./player_flag_table";
 import PlayerInventoryRow from "./player_inventory_table";
 import PlayerLocationRow from "./player_location_table";
@@ -96,10 +104,13 @@ import PlayerMapEventRow from "./player_map_event_table";
 import PlayerMindCaseRow from "./player_mind_case_table";
 import PlayerMindFactRow from "./player_mind_fact_table";
 import PlayerMindHypothesisRow from "./player_mind_hypothesis_table";
+import PlayerNpcFavorRow from "./player_npc_favor_table";
+import PlayerNpcStateRow from "./player_npc_state_table";
 import PlayerProfileRow from "./player_profile_table";
 import PlayerQuestRow from "./player_quest_table";
 import PlayerRedeemedCodeRow from "./player_redeemed_code_table";
 import PlayerRelationshipRow from "./player_relationship_table";
+import PlayerRumorStateRow from "./player_rumor_state_table";
 import PlayerUnlockGroupRow from "./player_unlock_group_table";
 import PlayerVarRow from "./player_var_table";
 import TelemetryAggregateRow from "./telemetry_aggregate_table";
@@ -371,6 +382,20 @@ const tablesSchema = __schema({
       { name: 'mind_hypothesis_hypothesis_id_key', constraint: 'unique', columns: ['hypothesisId'] },
     ],
   }, MindHypothesisRow),
+  playerAgencyCareer: __table({
+    name: 'player_agency_career',
+    indexes: [
+      { name: 'playerId', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'player_agency_career_rank_id', algorithm: 'btree', columns: [
+        'rankId',
+      ] },
+    ],
+    constraints: [
+      { name: 'player_agency_career_player_id_key', constraint: 'unique', columns: ['playerId'] },
+    ],
+  }, PlayerAgencyCareerRow),
   playerEvidence: __table({
     name: 'player_evidence',
     indexes: [
@@ -388,6 +413,23 @@ const tablesSchema = __schema({
       { name: 'player_evidence_evidence_key_key', constraint: 'unique', columns: ['evidenceKey'] },
     ],
   }, PlayerEvidenceRow),
+  playerFactionSignal: __table({
+    name: 'player_faction_signal',
+    indexes: [
+      { name: 'player_faction_signal_faction_id', algorithm: 'btree', columns: [
+        'factionId',
+      ] },
+      { name: 'player_faction_signal_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'signalKey', algorithm: 'btree', columns: [
+        'signalKey',
+      ] },
+    ],
+    constraints: [
+      { name: 'player_faction_signal_signal_key_key', constraint: 'unique', columns: ['signalKey'] },
+    ],
+  }, PlayerFactionSignalRow),
   playerFlag: __table({
     name: 'player_flag',
     indexes: [
@@ -519,6 +561,40 @@ const tablesSchema = __schema({
       { name: 'player_mind_hypothesis_player_hypothesis_key_key', constraint: 'unique', columns: ['playerHypothesisKey'] },
     ],
   }, PlayerMindHypothesisRow),
+  playerNpcFavor: __table({
+    name: 'player_npc_favor',
+    indexes: [
+      { name: 'favorKey', algorithm: 'btree', columns: [
+        'favorKey',
+      ] },
+      { name: 'player_npc_favor_npc_id', algorithm: 'btree', columns: [
+        'npcId',
+      ] },
+      { name: 'player_npc_favor_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'player_npc_favor_favor_key_key', constraint: 'unique', columns: ['favorKey'] },
+    ],
+  }, PlayerNpcFavorRow),
+  playerNpcState: __table({
+    name: 'player_npc_state',
+    indexes: [
+      { name: 'player_npc_state_npc_id', algorithm: 'btree', columns: [
+        'npcId',
+      ] },
+      { name: 'npcStateKey', algorithm: 'btree', columns: [
+        'npcStateKey',
+      ] },
+      { name: 'player_npc_state_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'player_npc_state_npc_state_key_key', constraint: 'unique', columns: ['npcStateKey'] },
+    ],
+  }, PlayerNpcStateRow),
   playerProfile: __table({
     name: 'player_profile',
     indexes: [
@@ -587,6 +663,29 @@ const tablesSchema = __schema({
       { name: 'player_relationship_relationship_key_key', constraint: 'unique', columns: ['relationshipKey'] },
     ],
   }, PlayerRelationshipRow),
+  playerRumorState: __table({
+    name: 'player_rumor_state',
+    indexes: [
+      { name: 'player_rumor_state_case_id', algorithm: 'btree', columns: [
+        'caseId',
+      ] },
+      { name: 'player_rumor_state_player_id', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { name: 'player_rumor_state_rumor_id', algorithm: 'btree', columns: [
+        'rumorId',
+      ] },
+      { name: 'rumorStateKey', algorithm: 'btree', columns: [
+        'rumorStateKey',
+      ] },
+      { name: 'player_rumor_state_status', algorithm: 'btree', columns: [
+        'status',
+      ] },
+    ],
+    constraints: [
+      { name: 'player_rumor_state_rumor_state_key_key', constraint: 'unique', columns: ['rumorStateKey'] },
+    ],
+  }, PlayerRumorStateRow),
   playerUnlockGroup: __table({
     name: 'player_unlock_group',
     indexes: [
@@ -710,6 +809,9 @@ const reducersSchema = __reducers(
   __reducerSchema("advance_quest", AdvanceQuestReducer),
   __reducerSchema("begin_freiburg_origin", BeginFreiburgOriginReducer),
   __reducerSchema("buy_item", BuyItemReducer),
+  __reducerSchema("change_agency_standing", ChangeAgencyStandingReducer),
+  __reducerSchema("change_faction_signal", ChangeFactionSignalReducer),
+  __reducerSchema("change_favor_balance", ChangeFavorBalanceReducer),
   __reducerSchema("change_relationship", ChangeRelationshipReducer),
   __reducerSchema("close_battle_mode", CloseBattleModeReducer),
   __reducerSchema("close_command_mode", CloseCommandModeReducer),
@@ -728,7 +830,9 @@ const reducersSchema = __reducers(
   __reducerSchema("play_battle_card", PlayBattleCardReducer),
   __reducerSchema("publish_content", PublishContentReducer),
   __reducerSchema("record_choice", RecordChoiceReducer),
+  __reducerSchema("record_service_criterion", RecordServiceCriterionReducer),
   __reducerSchema("redeem_map_code", RedeemMapCodeReducer),
+  __reducerSchema("register_rumor", RegisterRumorReducer),
   __reducerSchema("register_worker_identity", RegisterWorkerIdentityReducer),
   __reducerSchema("resolve_command", ResolveCommandReducer),
   __reducerSchema("rollback_content", RollbackContentReducer),
@@ -743,6 +847,7 @@ const reducersSchema = __reducers(
   __reducerSchema("travel_to", TravelToReducer),
   __reducerSchema("unlock_group", UnlockGroupReducer),
   __reducerSchema("validate_hypothesis", ValidateHypothesisReducer),
+  __reducerSchema("verify_rumor", VerifyRumorReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */

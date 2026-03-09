@@ -22,6 +22,7 @@ import type {
   QuestCatalogEntry,
   QuestStageContent,
   QrRedeemPolicy,
+  RumorStateStatus,
   SightMode,
   VnChoice,
   VnCondition,
@@ -497,7 +498,9 @@ const parseMysticism = (
   if (
     value.observations !== undefined &&
     (!Array.isArray(value.observations) ||
-      !value.observations.every((entry) => isMysticObservationDefinition(entry)))
+      !value.observations.every((entry) =>
+        isMysticObservationDefinition(entry),
+      ))
   ) {
     return null;
   }
@@ -1230,13 +1233,18 @@ const parseSocialCatalog = (
       (entry.rosterTier !== "archetype" &&
         entry.rosterTier !== "functional" &&
         entry.rosterTier !== "major") ||
-      (entry.portraitUrl !== undefined && typeof entry.portraitUrl !== "string") ||
+      (entry.portraitUrl !== undefined &&
+        typeof entry.portraitUrl !== "string") ||
       (entry.introFlag !== undefined && typeof entry.introFlag !== "string") ||
-      (entry.homePointId !== undefined && typeof entry.homePointId !== "string") ||
-      (entry.workPointId !== undefined && typeof entry.workPointId !== "string") ||
+      (entry.homePointId !== undefined &&
+        typeof entry.homePointId !== "string") ||
+      (entry.workPointId !== undefined &&
+        typeof entry.workPointId !== "string") ||
       (entry.serviceIds !== undefined &&
         (!Array.isArray(entry.serviceIds) ||
-          !entry.serviceIds.every((serviceId) => typeof serviceId === "string")))
+          !entry.serviceIds.every(
+            (serviceId) => typeof serviceId === "string",
+          )))
     ) {
       return null;
     }
@@ -1246,7 +1254,7 @@ const parseSocialCatalog = (
       displayName: entry.displayName,
       factionId: entry.factionId,
       publicRole: entry.publicRole,
-      rosterTier: entry.rosterTier,
+      rosterTier: entry.rosterTier as "archetype" | "functional" | "major",
       portraitUrl: entry.portraitUrl,
       introFlag: entry.introFlag,
       homePointId: entry.homePointId,
@@ -1267,9 +1275,11 @@ const parseSocialCatalog = (
         entry.role !== "transport") ||
       typeof entry.label !== "string" ||
       typeof entry.baseAccess !== "string" ||
-      (entry.unlockFlag !== undefined && typeof entry.unlockFlag !== "string") ||
+      (entry.unlockFlag !== undefined &&
+        typeof entry.unlockFlag !== "string") ||
       (entry.costNote !== undefined && typeof entry.costNote !== "string") ||
-      (entry.qualityNote !== undefined && typeof entry.qualityNote !== "string") ||
+      (entry.qualityNote !== undefined &&
+        typeof entry.qualityNote !== "string") ||
       (entry.consequenceNote !== undefined &&
         typeof entry.consequenceNote !== "string")
     ) {
@@ -1279,7 +1289,12 @@ const parseSocialCatalog = (
     return {
       id: entry.id,
       npcId: entry.npcId,
-      role: entry.role,
+      role: entry.role as
+        | "information"
+        | "archives"
+        | "social_introduction"
+        | "political_cover"
+        | "transport",
       label: entry.label,
       baseAccess: entry.baseAccess,
       unlockFlag: entry.unlockFlag,
@@ -1295,8 +1310,10 @@ const parseSocialCatalog = (
       typeof entry.id !== "string" ||
       typeof entry.title !== "string" ||
       typeof entry.caseId !== "string" ||
-      (entry.leadPointId !== undefined && typeof entry.leadPointId !== "string") ||
-      (entry.sourceNpcId !== undefined && typeof entry.sourceNpcId !== "string") ||
+      (entry.leadPointId !== undefined &&
+        typeof entry.leadPointId !== "string") ||
+      (entry.sourceNpcId !== undefined &&
+        typeof entry.sourceNpcId !== "string") ||
       !Array.isArray(entry.verifiesOn) ||
       !entry.verifiesOn.every(
         (verificationKind) =>
@@ -1319,8 +1336,14 @@ const parseSocialCatalog = (
       caseId: entry.caseId,
       leadPointId: entry.leadPointId,
       sourceNpcId: entry.sourceNpcId,
-      verifiesOn: entry.verifiesOn,
-      careerCriterionOnVerify: entry.careerCriterionOnVerify,
+      verifiesOn: entry.verifiesOn as Array<
+        "evidence" | "fact" | "service_unlock" | "map_unlock"
+      >,
+      careerCriterionOnVerify: entry.careerCriterionOnVerify as
+        | "verified_rumor_chain"
+        | "preserved_source_network"
+        | "clean_closure"
+        | undefined,
     };
   });
 
@@ -1360,23 +1383,36 @@ const parseSocialCatalog = (
     return null;
   }
 
+  const validNpcIdentities = parsedNpcIdentities.filter(
+    (entry): entry is NonNullable<typeof entry> => entry !== null,
+  );
+  const validServices = parsedServices.filter(
+    (entry): entry is NonNullable<typeof entry> => entry !== null,
+  );
+  const validRumors = parsedRumors.filter(
+    (entry): entry is NonNullable<typeof entry> => entry !== null,
+  );
+  const validCareerRanks = parsedCareerRanks.filter(
+    (entry): entry is NonNullable<typeof entry> => entry !== null,
+  );
+
   const ensureUniqueIds = (entries: ReadonlyArray<{ id: string }>): boolean =>
     new Set(entries.map((entry) => entry.id)).size === entries.length;
 
   if (
-    !ensureUniqueIds(parsedNpcIdentities) ||
-    !ensureUniqueIds(parsedServices) ||
-    !ensureUniqueIds(parsedRumors) ||
-    !ensureUniqueIds(parsedCareerRanks)
+    !ensureUniqueIds(validNpcIdentities) ||
+    !ensureUniqueIds(validServices) ||
+    !ensureUniqueIds(validRumors) ||
+    !ensureUniqueIds(validCareerRanks)
   ) {
     return null;
   }
 
   return {
-    npcIdentities: parsedNpcIdentities,
-    services: parsedServices,
-    rumors: parsedRumors,
-    careerRanks: parsedCareerRanks,
+    npcIdentities: validNpcIdentities,
+    services: validServices,
+    rumors: validRumors,
+    careerRanks: validCareerRanks,
   };
 };
 
@@ -1462,10 +1498,54 @@ export const getNodeById = (
   nodeId: string,
 ): VnNode | null => snapshot.nodes.find((entry) => entry.id === nodeId) ?? null;
 
+export interface VnChoiceEvaluationContext {
+  favorBalances?:
+    | ReadonlyMap<string, number>
+    | Readonly<Record<string, number>>;
+  agencyStanding?: number;
+  rumorStates?:
+    | ReadonlyMap<string, RumorStateStatus>
+    | Readonly<Record<string, RumorStateStatus>>;
+  careerRankId?: string | null;
+  careerRankOrder?:
+    | ReadonlyMap<string, number>
+    | Readonly<Record<string, number>>;
+}
+
+const readMappedNumber = (
+  source:
+    | ReadonlyMap<string, number>
+    | Readonly<Record<string, number>>
+    | undefined,
+  key: string,
+): number => {
+  if (!source) {
+    return 0;
+  }
+  if (source instanceof Map) {
+    return source.get(key) ?? 0;
+  }
+  return (source as Readonly<Record<string, number>>)[key] ?? 0;
+};
+
+const readMappedString = <T extends string>(
+  source: ReadonlyMap<string, T> | Readonly<Record<string, T>> | undefined,
+  key: string,
+): T | null => {
+  if (!source) {
+    return null;
+  }
+  if (source instanceof Map) {
+    return source.get(key) ?? null;
+  }
+  return (source as Readonly<Record<string, T>>)[key] ?? null;
+};
+
 const evaluateChoiceCondition = (
   condition: VnCondition,
   flags: Record<string, boolean>,
   vars: Record<string, number>,
+  context?: VnChoiceEvaluationContext,
 ): boolean => {
   if (condition.type === "flag_equals") {
     return (flags[condition.key] ?? false) === condition.value;
@@ -1475,6 +1555,36 @@ const evaluateChoiceCondition = (
   }
   if (condition.type === "var_lte") {
     return (vars[condition.key] ?? 0) <= condition.value;
+  }
+  if (condition.type === "favor_balance_gte") {
+    return (
+      readMappedNumber(context?.favorBalances, condition.npcId) >=
+      condition.value
+    );
+  }
+  if (condition.type === "agency_standing_gte") {
+    return (context?.agencyStanding ?? 0) >= condition.value;
+  }
+  if (condition.type === "rumor_state_is") {
+    return (
+      readMappedString(context?.rumorStates, condition.rumorId) ===
+      condition.status
+    );
+  }
+  if (condition.type === "career_rank_gte") {
+    const currentRankId = context?.careerRankId;
+    if (!currentRankId) {
+      return false;
+    }
+    const currentOrder = readMappedNumber(
+      context?.careerRankOrder,
+      currentRankId,
+    );
+    const requiredOrder = readMappedNumber(
+      context?.careerRankOrder,
+      condition.rankId,
+    );
+    return currentOrder >= requiredOrder;
   }
 
   // Client pre-check is advisory; leave server as authority for unsupported
@@ -1486,12 +1596,13 @@ const groupAll = (
   conditions: VnCondition[] | undefined,
   flags: Record<string, boolean>,
   vars: Record<string, number>,
+  context?: VnChoiceEvaluationContext,
 ): boolean => {
   if (!conditions || conditions.length === 0) {
     return true;
   }
   return conditions.every((condition) =>
-    evaluateChoiceCondition(condition, flags, vars),
+    evaluateChoiceCondition(condition, flags, vars, context),
   );
 };
 
@@ -1499,12 +1610,13 @@ const groupAny = (
   conditions: VnCondition[] | undefined,
   flags: Record<string, boolean>,
   vars: Record<string, number>,
+  context?: VnChoiceEvaluationContext,
 ): boolean => {
   if (!conditions || conditions.length === 0) {
     return true;
   }
   return conditions.some((condition) =>
-    evaluateChoiceCondition(condition, flags, vars),
+    evaluateChoiceCondition(condition, flags, vars, context),
   );
 };
 
@@ -1515,22 +1627,25 @@ export const isChoiceVisible = (
   choice: VnChoice,
   flags: Record<string, boolean>,
   vars: Record<string, number>,
+  context?: VnChoiceEvaluationContext,
 ): boolean =>
-  groupAll(choice.visibleIfAll, flags, vars) &&
-  groupAny(choice.visibleIfAny, flags, vars);
+  groupAll(choice.visibleIfAll, flags, vars, context) &&
+  groupAny(choice.visibleIfAny, flags, vars, context);
 
 export const isChoiceEnabled = (
   choice: VnChoice,
   flags: Record<string, boolean>,
   vars: Record<string, number>,
+  context?: VnChoiceEvaluationContext,
 ): boolean =>
-  groupAll(resolveRequireAll(choice), flags, vars) &&
-  groupAny(choice.requireAny, flags, vars);
+  groupAll(resolveRequireAll(choice), flags, vars, context) &&
+  groupAny(choice.requireAny, flags, vars, context);
 
 export const isChoiceAvailable = (
   choice: VnChoice,
   flags: Record<string, boolean>,
   vars: Record<string, number>,
+  context?: VnChoiceEvaluationContext,
 ): boolean => {
-  return isChoiceEnabled(choice, flags, vars);
+  return isChoiceEnabled(choice, flags, vars, context);
 };

@@ -217,6 +217,28 @@ export const contentSnapshot = table(
   },
 );
 
+export const adminIdentity = table(
+  {
+    name: "admin_identity",
+  },
+  {
+    identity: t.identity().primaryKey(),
+    grantedAt: t.timestamp(),
+    grantedBy: t.identity().optional(),
+  },
+);
+
+export const workerAllowlist = table(
+  {
+    name: "worker_allowlist",
+  },
+  {
+    identity: t.identity().primaryKey(),
+    grantedAt: t.timestamp(),
+    grantedBy: t.identity(),
+  },
+);
+
 export const idempotencyLog = table(
   {
     name: "idempotency_log",
@@ -1162,6 +1184,8 @@ const spacetimedb = schema({
   vnSkillCheckResult,
   contentVersion,
   contentSnapshot,
+  adminIdentity,
+  workerAllowlist,
   idempotencyLog,
   telemetryEvent,
   telemetryAggregate,

@@ -35,7 +35,9 @@ import {
 
 // Import all reducer arg schemas
 import AdvanceQuestReducer from "./advance_quest_reducer";
+import AllowWorkerIdentityReducer from "./allow_worker_identity_reducer";
 import BeginFreiburgOriginReducer from "./begin_freiburg_origin_reducer";
+import BootstrapAdminIdentityReducer from "./bootstrap_admin_identity_reducer";
 import BuyItemReducer from "./buy_item_reducer";
 import ChangeAgencyStandingReducer from "./change_agency_standing_reducer";
 import ChangeFactionSignalReducer from "./change_faction_signal_reducer";
@@ -47,6 +49,7 @@ import DeliverThoughtReducer from "./deliver_thought_reducer";
 import DiscoverFactReducer from "./discover_fact_reducer";
 import EndBattleTurnReducer from "./end_battle_turn_reducer";
 import EnqueueAiRequestReducer from "./enqueue_ai_request_reducer";
+import GrantAdminIdentityReducer from "./grant_admin_identity_reducer";
 import GrantEvidenceReducer from "./grant_evidence_reducer";
 import GrantItemReducer from "./grant_item_reducer";
 import GrantXpReducer from "./grant_xp_reducer";
@@ -807,7 +810,9 @@ const tablesSchema = __schema({
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
   __reducerSchema("advance_quest", AdvanceQuestReducer),
+  __reducerSchema("allow_worker_identity", AllowWorkerIdentityReducer),
   __reducerSchema("begin_freiburg_origin", BeginFreiburgOriginReducer),
+  __reducerSchema("bootstrap_admin_identity", BootstrapAdminIdentityReducer),
   __reducerSchema("buy_item", BuyItemReducer),
   __reducerSchema("change_agency_standing", ChangeAgencyStandingReducer),
   __reducerSchema("change_faction_signal", ChangeFactionSignalReducer),
@@ -819,6 +824,7 @@ const reducersSchema = __reducers(
   __reducerSchema("discover_fact", DiscoverFactReducer),
   __reducerSchema("end_battle_turn", EndBattleTurnReducer),
   __reducerSchema("enqueue_ai_request", EnqueueAiRequestReducer),
+  __reducerSchema("grant_admin_identity", GrantAdminIdentityReducer),
   __reducerSchema("grant_evidence", GrantEvidenceReducer),
   __reducerSchema("grant_item", GrantItemReducer),
   __reducerSchema("grant_xp", GrantXpReducer),

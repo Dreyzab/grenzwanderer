@@ -1,5 +1,11 @@
 import { createHash } from "node:crypto";
 import { DbConnection } from "../src/module_bindings";
+import {
+  ensureAdminAccess,
+  ensureWorkerAccess,
+  getOperatorToken,
+  persistOperatorToken,
+} from "./spacetime-operator";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
@@ -57,42 +63,133 @@ const payload = {
 const payloadJson = JSON.stringify(payload);
 const checksum = createHash("sha256").update(payloadJson, "utf8").digest("hex");
 
-const runSmoke = async () =>
-  new Promise<void>((resolve, reject) => {
+const waitForAiRequest = async (
+  conn: DbConnection,
+  requestId: string,
+): Promise<{ id: bigint; requestId: string }> => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const row = [...conn.db.aiRequest.iter()].find(
+      (entry) => entry.requestId === requestId,
+    );
+    if (row) {
+      return row;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+
+  throw new Error("AI smoke failed: queued request was not persisted");
+};
+
+const runUnauthorizedWorkerChecks = async (
+  request: (suffix: string) => string,
+): Promise<void> =>
+  new Promise((resolve, reject) => {
     let finished = false;
 
-    const builder = DbConnection.builder()
+    DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
       .onConnect(async (conn) => {
         try {
+          let unauthorizedRegisterRejected = false;
+          try {
+            await conn.reducers.registerWorkerIdentity({});
+          } catch (_error) {
+            unauthorizedRegisterRejected = true;
+          }
+
+          if (!unauthorizedRegisterRejected) {
+            throw new Error(
+              "AI smoke failed: non-allowlisted register_worker_identity was accepted",
+            );
+          }
+
+          let unauthorizedDeliverRejected = false;
+          try {
+            await conn.reducers.deliverThought({
+              requestId: request("ai_deliver_denied"),
+              aiRequestId: 0n,
+              status: "processing",
+              responseJson: undefined,
+              error: undefined,
+            });
+          } catch (_error) {
+            unauthorizedDeliverRejected = true;
+          }
+
+          if (!unauthorizedDeliverRejected) {
+            throw new Error(
+              "AI smoke failed: unauthorized deliver_thought was accepted",
+            );
+          }
+
+          finished = true;
+          conn.disconnect();
+          resolve();
+        } catch (error) {
+          conn.disconnect();
+          reject(error);
+        }
+      })
+      .onConnectError((_ctx, error) => {
+        reject(error);
+      })
+      .onDisconnect((_ctx, error) => {
+        if (!finished && error) {
+          reject(error);
+        }
+      })
+      .build();
+  });
+
+const runSmoke = async () =>
+  new Promise<void>((resolve, reject) => {
+    let finished = false;
+    const runId = Date.now();
+    const request = (suffix: string) => `smoke_${suffix}_${runId}`;
+
+    const builder = DbConnection.builder()
+      .withUri(host)
+      .withDatabaseName(database)
+      .withToken(getOperatorToken(host, database))
+      .onConnect(async (conn, _identity, token) => {
+        try {
+          persistOperatorToken(host, database, token);
+          await ensureAdminAccess(conn);
+          await new Promise<void>((resolveSync) => {
+            conn
+              .subscriptionBuilder()
+              .onApplied(() => resolveSync())
+              .subscribe(["SELECT * FROM ai_request"]);
+          });
           await conn.reducers.publishContent({
-            requestId: "smoke_publish_1",
-            version: "smoke_v1",
+            requestId: request("publish"),
+            version: `smoke_v1_${runId}`,
             checksum,
             schemaVersion: 1,
             payloadJson,
           });
 
           await conn.reducers.startScenario({
-            requestId: "smoke_start_1",
+            requestId: request("start"),
             scenarioId: "smoke_scenario",
           });
 
           await conn.reducers.recordChoice({
-            requestId: "smoke_choice_1",
+            requestId: request("choice_1"),
             scenarioId: "smoke_scenario",
             choiceId: "choice_a",
           });
 
           await conn.reducers.recordChoice({
-            requestId: "smoke_choice_2",
+            requestId: request("choice_2"),
             scenarioId: "smoke_scenario",
             choiceId: "choice_b",
           });
 
+          const buyRequestId = request("buy");
           await conn.reducers.buyItem({
-            requestId: "smoke_buy_1",
+            requestId: buyRequestId,
             itemId: "smoke_item",
             quantity: 1,
           });
@@ -100,7 +197,7 @@ const runSmoke = async () =>
           let duplicateBuyRejected = false;
           try {
             await conn.reducers.buyItem({
-              requestId: "smoke_buy_1",
+              requestId: buyRequestId,
               itemId: "smoke_item",
               quantity: 1,
             });
@@ -127,35 +224,18 @@ const runSmoke = async () =>
           await conn.reducers.setVar({ key: "smoke_metric", floatValue: -0.5 });
 
           await conn.reducers.enqueueAiRequest({
-            requestId: "smoke_ai_1",
+            requestId: request("ai"),
             kind: "summary",
             payloadJson: '{"prompt":"smoke"}',
           });
+          const aiRequest = await waitForAiRequest(conn, request("ai"));
+          await runUnauthorizedWorkerChecks(request);
 
-          let unauthorizedDeliverRejected = false;
-          try {
-            await conn.reducers.deliverThought({
-              requestId: "smoke_ai_deliver_denied_1",
-              aiRequestId: 1n,
-              status: "processing",
-              responseJson: undefined,
-              error: undefined,
-            });
-          } catch (_error) {
-            unauthorizedDeliverRejected = true;
-          }
-
-          if (!unauthorizedDeliverRejected) {
-            throw new Error(
-              "AI smoke failed: unauthorized deliver_thought was accepted",
-            );
-          }
-
-          await conn.reducers.registerWorkerIdentity({});
+          await ensureWorkerAccess(conn);
 
           await conn.reducers.deliverThought({
-            requestId: "smoke_ai_deliver_ok_1",
-            aiRequestId: 1n,
+            requestId: request("ai_deliver_ok"),
+            aiRequestId: aiRequest.id,
             status: "completed",
             responseJson: '{"result":"ok"}',
             error: undefined,

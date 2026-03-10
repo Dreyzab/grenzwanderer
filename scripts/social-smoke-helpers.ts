@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type { DbConnection } from "../src/module_bindings";
+import { ensureAdminAccess } from "./spacetime-operator";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -131,6 +132,7 @@ export const publishPilotSnapshot = async (
   nextRequestId: (suffix: string) => string,
   versionPrefix: string,
 ): Promise<void> => {
+  await ensureAdminAccess(conn);
   await conn.reducers.publishContent({
     requestId: nextRequestId("publish"),
     version: `${versionPrefix}_${Date.now()}`,

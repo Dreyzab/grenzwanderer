@@ -9,6 +9,11 @@ import {
   getPlayerVarValue,
   playOutBattle,
 } from "./battle-smoke-helpers";
+import {
+  ensureAdminAccess,
+  getOperatorToken,
+  persistOperatorToken,
+} from "./spacetime-operator";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
@@ -144,8 +149,11 @@ const runSmoke = async () =>
     const builder = DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .onConnect(async (conn) => {
+      .withToken(getOperatorToken(host, database))
+      .onConnect(async (conn, _identity, token) => {
         try {
+          persistOperatorToken(host, database, token);
+          await ensureAdminAccess(conn);
           const identity = conn.identity;
           if (!identity) {
             throw new Error("Missing connection identity");
@@ -176,8 +184,14 @@ const runSmoke = async () =>
           });
 
           await closeBattleIfOpen(conn, playerHex, nextRequestId);
-          await conn.reducers.setFlag({ key: "banker_case_closed", value: false });
-          await conn.reducers.setFlag({ key: "banker_finale_started", value: false });
+          await conn.reducers.setFlag({
+            key: "banker_case_closed",
+            value: false,
+          });
+          await conn.reducers.setFlag({
+            key: "banker_finale_started",
+            value: false,
+          });
           await conn.reducers.setFlag({ key: "son_duel_done", value: false });
           await conn.reducers.setFlag({ key: "son_duel_won", value: false });
           await conn.reducers.setFlag({ key: "son_duel_lost", value: false });
@@ -197,13 +211,22 @@ const runSmoke = async () =>
 
           const battleSession = getCurrentBattleSession(conn, playerHex);
           if (!battleSession) {
-            throw new Error("BANK_LEAD_CASINO did not open an authoritative battle");
+            throw new Error(
+              "BANK_LEAD_CASINO did not open an authoritative battle",
+            );
           }
-          if (battleSession.returnTab !== "vn" || battleSession.sourceTab !== "vn") {
-            throw new Error("Banker battle session stored incorrect return/source tabs");
+          if (
+            battleSession.returnTab !== "vn" ||
+            battleSession.sourceTab !== "vn"
+          ) {
+            throw new Error(
+              "Banker battle session stored incorrect return/source tabs",
+            );
           }
           if (battleSession.sourceScenarioId !== "sandbox_banker_pilot") {
-            throw new Error("Banker battle session did not retain its source scenario");
+            throw new Error(
+              "Banker battle session did not retain its source scenario",
+            );
           }
 
           const resolvedBattle = await playOutBattle(
@@ -212,7 +235,10 @@ const runSmoke = async () =>
             nextRequestId,
             "victory",
           );
-          if (resolvedBattle.status !== "resolved" || resolvedBattle.resultType !== "victory") {
+          if (
+            resolvedBattle.status !== "resolved" ||
+            resolvedBattle.resultType !== "victory"
+          ) {
             throw new Error("Banker duel did not resolve to victory");
           }
           if (!getPlayerFlagValue(conn, playerHex, "son_duel_done")) {
@@ -249,10 +275,17 @@ const runSmoke = async () =>
             throw new Error("Banker duel fallout did not close the case");
           }
           if (getPlayerFlagValue(conn, playerHex, "son_duel_lost")) {
-            throw new Error("Victory banker smoke should not leave son_duel_lost set");
+            throw new Error(
+              "Victory banker smoke should not leave son_duel_lost set",
+            );
           }
-          if (getPlayerVarValue(conn, playerHex, "xp_total") !== xpBefore + 50) {
-            throw new Error("Banker duel should grant exactly 50 XP from battle resolution");
+          if (
+            getPlayerVarValue(conn, playerHex, "xp_total") !==
+            xpBefore + 50
+          ) {
+            throw new Error(
+              "Banker duel should grant exactly 50 XP from battle resolution",
+            );
           }
 
           finished = true;

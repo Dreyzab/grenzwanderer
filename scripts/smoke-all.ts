@@ -2,8 +2,12 @@ import { spawn } from "node:child_process";
 import { getSmokeAllPipeline } from "./acceptance-matrix";
 
 const pipeline = getSmokeAllPipeline();
+const smokeHost = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
+const shouldResetLocalDb =
+  process.env.SMOKE_ALL_RESET_LOCAL_DB !== "0" &&
+  /^wss?:\/\/(?:127\.0\.0\.1|localhost):3000$/i.test(smokeHost);
 
-const runScript = (script: string): Promise<void> =>
+const runBunScript = (script: string): Promise<void> =>
   new Promise((resolve, reject) => {
     const child = spawn("bun", ["run", script], {
       stdio: "inherit",
@@ -22,12 +26,22 @@ const runScript = (script: string): Promise<void> =>
     });
   });
 
+const resetLocalDbIfNeeded = async (): Promise<void> => {
+  if (!shouldResetLocalDb) {
+    return;
+  }
+
+  console.log("[smoke:all] Resetting local SpacetimeDB before next step...");
+  await runBunScript("spacetime:publish:local:clear");
+};
+
 const main = async () => {
   const startedAt = Date.now();
   for (const step of pipeline) {
+    await resetLocalDbIfNeeded();
     const stepStartedAt = Date.now();
     console.log(`\n[smoke:all] Running ${step.label} (${step.script})...`);
-    await runScript(step.script);
+    await runBunScript(step.script);
     const durationMs = Date.now() - stepStartedAt;
     console.log(`[smoke:all] ${step.label} passed in ${durationMs}ms.`);
   }

@@ -3,6 +3,7 @@ import spacetimedb from "../schema";
 import {
   deactivateContentVersions,
   emitTelemetry,
+  ensureAdminIdentity,
   ensureIdempotent,
   parseSnapshotPayload,
   resetForSchemaMigration,
@@ -18,6 +19,8 @@ export const publish_content = spacetimedb.reducer(
     payloadJson: t.string(),
   },
   (ctx, { requestId, version, checksum, schemaVersion, payloadJson }) => {
+    ensureAdminIdentity(ctx, "publish content");
+
     if (!version || version.trim().length === 0) {
       throw new SenderError("version must not be empty");
     }
@@ -94,6 +97,8 @@ export const rollback_content = spacetimedb.reducer(
     targetChecksum: t.string(),
   },
   (ctx, { requestId, targetChecksum }) => {
+    ensureAdminIdentity(ctx, "roll back content");
+
     if (!targetChecksum || targetChecksum.trim().length === 0) {
       throw new SenderError("targetChecksum must not be empty");
     }

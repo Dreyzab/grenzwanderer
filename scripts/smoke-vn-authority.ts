@@ -1,5 +1,10 @@
 import { createHash } from "node:crypto";
 import { DbConnection } from "../src/module_bindings";
+import {
+  ensureAdminAccess,
+  getOperatorToken,
+  persistOperatorToken,
+} from "./spacetime-operator";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
@@ -211,6 +216,46 @@ const expectRejected = async (
   }
 };
 
+const runUnauthorizedPublishCheck = async () =>
+  new Promise<void>((resolve, reject) => {
+    let finished = false;
+
+    DbConnection.builder()
+      .withUri(host)
+      .withDatabaseName(database)
+      .onConnect(async (conn) => {
+        try {
+          await expectRejected(
+            () =>
+              conn.reducers.publishContent({
+                requestId: nextRequestId("publish_denied"),
+                version: `smoke_vn_authority_denied_${runId}`,
+                checksum,
+                schemaVersion: 1,
+                payloadJson,
+              }),
+            "Only an admin identity can publish content",
+          );
+
+          finished = true;
+          conn.disconnect();
+          resolve();
+        } catch (error) {
+          conn.disconnect();
+          reject(error);
+        }
+      })
+      .onConnectError((_ctx, error) => {
+        reject(error);
+      })
+      .onDisconnect((_ctx, error) => {
+        if (!finished && error) {
+          reject(error);
+        }
+      })
+      .build();
+  });
+
 const runSmoke = async () =>
   new Promise<void>((resolve, reject) => {
     let finished = false;
@@ -218,8 +263,11 @@ const runSmoke = async () =>
     const builder = DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .onConnect(async (conn) => {
+      .withToken(getOperatorToken(host, database))
+      .onConnect(async (conn, _identity, token) => {
         try {
+          persistOperatorToken(host, database, token);
+          await ensureAdminAccess(conn);
           await conn.reducers.publishContent({
             requestId: nextRequestId("publish"),
             version: `smoke_vn_authority_${runId}`,
@@ -341,6 +389,7 @@ const runSmoke = async () =>
   });
 
 try {
+  await runUnauthorizedPublishCheck();
   await runSmoke();
   console.log("VN authority smoke script passed.");
 } catch (error) {

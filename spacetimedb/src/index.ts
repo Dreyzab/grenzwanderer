@@ -7,6 +7,11 @@ import {
   seed_maintenance_schedules,
 } from "./procedures/maintenance";
 import { emitTelemetry, ensurePlayerProfile } from "./reducers/helpers";
+export {
+  allow_worker_identity,
+  bootstrap_admin_identity,
+  grant_admin_identity,
+} from "./reducers/admin";
 
 register_maintenance_reducers(spacetimedb);
 

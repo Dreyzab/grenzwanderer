@@ -16,6 +16,8 @@
     "quality:release": "bun run lint && bun run test && bun run build && spacetime build --module-path spacetimedb",
     "quality:loop-poc": "bun run lint && bun run test && bun run build && bun run content:extract && bun run content:obsidian:coverage:check && bun run content:map:metrics:check",
     "acceptance:matrix": "bun run scripts/acceptance-matrix.ts",
+    "governance:visibility:matrix": "bun run scripts/visibility-matrix.ts",
+    "governance:visibility:check": "bun run scripts/visibility-matrix.ts --check",
     "preview": "vite preview",
     "test": "vitest run",
     "content:extract": "bun run scripts/extract-vn-content.ts",
@@ -90,7 +92,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
-      "eslint --max-warnings=0"
+      "eslint --max-warnings=0 --no-warn-ignored"
     ],
     "*.{ts,tsx,js,jsx,json,md,yml,yaml,css}": [
       "prettier --write"

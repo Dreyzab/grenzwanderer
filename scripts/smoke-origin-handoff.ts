@@ -2,6 +2,11 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { DbConnection } from "../src/module_bindings";
+import {
+  ensureAdminAccess,
+  getOperatorToken,
+  persistOperatorToken,
+} from "./spacetime-operator";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
@@ -96,8 +101,11 @@ const runSmoke = async () =>
     const builder = DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .onConnect(async (conn) => {
+      .withToken(getOperatorToken(host, database))
+      .onConnect(async (conn, _identity, token) => {
         try {
+          persistOperatorToken(host, database, token);
+          await ensureAdminAccess(conn);
           const snapshot = loadSnapshot();
           const introStartChoiceId = resolveIntroStartChoiceId(
             snapshot.payload,

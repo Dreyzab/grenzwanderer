@@ -6,6 +6,11 @@ import {
   loadManifest,
   saveManifest,
 } from "./content-manifest";
+import {
+  ensureAdminAccess,
+  getOperatorToken,
+  persistOperatorToken,
+} from "./spacetime-operator";
 
 interface CliOptions {
   checksum: string;
@@ -72,8 +77,11 @@ const rollbackContent = async (
     const builder = DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .onConnect(async (conn) => {
+      .withToken(getOperatorToken(host, database))
+      .onConnect(async (conn, _identity, token) => {
         try {
+          persistOperatorToken(host, database, token);
+          await ensureAdminAccess(conn);
           await conn.reducers.rollbackContent({
             requestId: nextRequestId(),
             targetChecksum: checksum,

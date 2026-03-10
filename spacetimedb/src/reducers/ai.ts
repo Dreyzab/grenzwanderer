@@ -2,6 +2,7 @@
 import spacetimedb from "../schema";
 import {
   emitTelemetry,
+  ensureAllowlistedWorker,
   ensureIdempotent,
   ensurePlayerProfile,
 } from "./helpers";
@@ -9,6 +10,8 @@ import {
 const AI_STATUSES = new Set(["processing", "completed", "failed"]);
 
 export const register_worker_identity = spacetimedb.reducer((ctx) => {
+  ensureAllowlistedWorker(ctx, "register worker identities");
+
   const existing = ctx.db.workerIdentity.identity.find(ctx.sender);
   if (existing) {
     return;
@@ -63,6 +66,7 @@ export const deliver_thought = spacetimedb.reducer(
     error: t.string().optional(),
   },
   (ctx, { requestId, aiRequestId, status, responseJson, error }) => {
+    ensureAllowlistedWorker(ctx, "deliver thoughts");
     ensureIdempotent(ctx, requestId, "deliver_thought");
 
     const worker = ctx.db.workerIdentity.identity.find(ctx.sender);

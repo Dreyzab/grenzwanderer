@@ -13,6 +13,7 @@ import {
   subscribeSocialTables,
   verifyRailYardRumor,
 } from "./social-smoke-helpers";
+import { getOperatorToken, persistOperatorToken } from "./spacetime-operator";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
@@ -27,8 +28,10 @@ const runSmoke = async () =>
     DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .onConnect(async (conn) => {
+      .withToken(getOperatorToken(host, database))
+      .onConnect(async (conn, _identity, token) => {
         try {
+          persistOperatorToken(host, database, token);
           const identity = conn.identity;
           if (!identity) {
             throw new Error("Missing connection identity");

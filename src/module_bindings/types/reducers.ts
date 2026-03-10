@@ -7,7 +7,9 @@ import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
 import AdvanceQuestReducer from "../advance_quest_reducer";
+import AllowWorkerIdentityReducer from "../allow_worker_identity_reducer";
 import BeginFreiburgOriginReducer from "../begin_freiburg_origin_reducer";
+import BootstrapAdminIdentityReducer from "../bootstrap_admin_identity_reducer";
 import BuyItemReducer from "../buy_item_reducer";
 import ChangeAgencyStandingReducer from "../change_agency_standing_reducer";
 import ChangeFactionSignalReducer from "../change_faction_signal_reducer";
@@ -19,6 +21,7 @@ import DeliverThoughtReducer from "../deliver_thought_reducer";
 import DiscoverFactReducer from "../discover_fact_reducer";
 import EndBattleTurnReducer from "../end_battle_turn_reducer";
 import EnqueueAiRequestReducer from "../enqueue_ai_request_reducer";
+import GrantAdminIdentityReducer from "../grant_admin_identity_reducer";
 import GrantEvidenceReducer from "../grant_evidence_reducer";
 import GrantItemReducer from "../grant_item_reducer";
 import GrantXpReducer from "../grant_xp_reducer";
@@ -50,7 +53,9 @@ import ValidateHypothesisReducer from "../validate_hypothesis_reducer";
 import VerifyRumorReducer from "../verify_rumor_reducer";
 
 export type AdvanceQuestParams = __Infer<typeof AdvanceQuestReducer>;
+export type AllowWorkerIdentityParams = __Infer<typeof AllowWorkerIdentityReducer>;
 export type BeginFreiburgOriginParams = __Infer<typeof BeginFreiburgOriginReducer>;
+export type BootstrapAdminIdentityParams = __Infer<typeof BootstrapAdminIdentityReducer>;
 export type BuyItemParams = __Infer<typeof BuyItemReducer>;
 export type ChangeAgencyStandingParams = __Infer<typeof ChangeAgencyStandingReducer>;
 export type ChangeFactionSignalParams = __Infer<typeof ChangeFactionSignalReducer>;
@@ -62,6 +67,7 @@ export type DeliverThoughtParams = __Infer<typeof DeliverThoughtReducer>;
 export type DiscoverFactParams = __Infer<typeof DiscoverFactReducer>;
 export type EndBattleTurnParams = __Infer<typeof EndBattleTurnReducer>;
 export type EnqueueAiRequestParams = __Infer<typeof EnqueueAiRequestReducer>;
+export type GrantAdminIdentityParams = __Infer<typeof GrantAdminIdentityReducer>;
 export type GrantEvidenceParams = __Infer<typeof GrantEvidenceReducer>;
 export type GrantItemParams = __Infer<typeof GrantItemReducer>;
 export type GrantXpParams = __Infer<typeof GrantXpReducer>;

@@ -23,6 +23,8 @@ This document defines runtime architecture, content release lifecycle, and repos
 
 - Defines tables and indexes.
 - Includes `contentVersion` and `contentSnapshot` tables used for content governance.
+- Visibility migration source of truth: `scripts/visibility-matrix.ts`
+- Human-readable note: `docs/VISIBILITY_MATRIX.md`
 
 4. Content authoring and extraction layer (`obsidian/`, `scripts/extract-vn-content.ts`)
 
@@ -43,6 +45,17 @@ This document defines runtime architecture, content release lifecycle, and repos
 - Snapshot-backed acceptance flows currently cover Freiburg entry/handoff, Freiburg case slice, Freiburg dog deduction closure, and the Freiburg social loop.
 - Synthetic contract flows cover reducer/runtime authority checks where extracted content is intentionally not required.
 - Freiburg is the only supported city in the current player-facing path. Karlsruhe remains explicitly unavailable.
+
+## Visibility Contract
+
+- Public-table decision matrix source of truth: `scripts/visibility-matrix.ts`
+- Human-readable note: `docs/VISIBILITY_MATRIX.md`
+- Every current `public: true` table must define:
+  - one class: `public-by-design`, `player-scoped`, or `operational-private`;
+  - current consumer surfaces;
+  - one replacement read path or explicit retain-public rationale;
+  - one ordered migration wave.
+- No raw player-scoped or operational table should flip to private before the replacement read path exists for current supported UI and smoke consumers.
 
 ## Content Release Lifecycle
 

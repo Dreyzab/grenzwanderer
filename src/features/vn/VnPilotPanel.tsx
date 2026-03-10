@@ -28,6 +28,7 @@ export const VnPilotPanel = () => {
   const [snapshots] = useTable(tables.contentSnapshot);
   const [sessions] = useTable(tables.vnSession);
 
+  const bootstrapAdminIdentity = useReducer(reducers.bootstrapAdminIdentity);
   const publishContent = useReducer(reducers.publishContent);
   const startScenario = useReducer(reducers.startScenario);
   const recordChoice = useReducer(reducers.recordChoice);
@@ -146,6 +147,7 @@ export const VnPilotPanel = () => {
         schemaVersion: number;
       };
 
+      await bootstrapAdminIdentity();
       await publishContent({
         requestId: createRequestId(),
         version: seedVersion,

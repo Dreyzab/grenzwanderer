@@ -6,6 +6,11 @@ import {
   saveManifest,
   upsertRelease,
 } from "./content-manifest";
+import {
+  ensureAdminAccess,
+  getOperatorToken,
+  persistOperatorToken,
+} from "./spacetime-operator";
 
 const SEMVER_RE = /^\d+\.\d+\.\d+$/;
 
@@ -76,8 +81,11 @@ const publishContent = async (
     const builder = DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .onConnect(async (conn) => {
+      .withToken(getOperatorToken(host, database))
+      .onConnect(async (conn, _identity, token) => {
         try {
+          persistOperatorToken(host, database, token);
+          await ensureAdminAccess(conn);
           await conn.reducers.publishContent({
             requestId: nextRequestId(),
             version,

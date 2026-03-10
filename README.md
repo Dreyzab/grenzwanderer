@@ -130,6 +130,27 @@ bun run smoke:all
 `smoke:all` is derived from the acceptance matrix. Synthetic contract flows in the matrix explicitly mark extract/manifest/drift gates as `n/a`.
 The Freiburg social loop is covered through `smoke:social-access`, `smoke:rumor-verification`, `smoke:agency-career`, and `smoke:service-unlock`.
 
+## SpacetimeDB Visibility Matrix
+
+Public-table decision matrix source of truth:
+
+- `scripts/visibility-matrix.ts`
+- `docs/VISIBILITY_MATRIX.md`
+
+Inspect the current matrix:
+
+```bash
+bun run governance:visibility:matrix
+```
+
+Validate matrix coverage against the current schema:
+
+```bash
+bun run governance:visibility:check
+```
+
+This inventory classifies every current `public: true` table as `public-by-design`, `player-scoped`, or `operational-private` and records the required replacement read path before any visibility flip.
+
 ## Git And PR Flow
 
 - Default branch: `main`

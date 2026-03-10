@@ -1,0 +1,72 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import type { DbConnection } from "../src/module_bindings";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, "..");
+
+const OPERATOR_TOKEN_ENV = "SPACETIMEDB_OPERATOR_TOKEN";
+const OPERATOR_TOKEN_FILE_ENV = "SPACETIMEDB_OPERATOR_TOKEN_FILE";
+
+const defaultTokenPath = (host: string, database: string): string => {
+  const hostHash = createHash("sha1").update(host).digest("hex").slice(0, 12);
+  return path.join(
+    repoRoot,
+    ".spacetime",
+    `${database}-${hostHash}.operator-token`,
+  );
+};
+
+const resolveTokenPath = (host: string, database: string): string =>
+  process.env[OPERATOR_TOKEN_FILE_ENV] || defaultTokenPath(host, database);
+
+export const getOperatorToken = (
+  host: string,
+  database: string,
+): string | undefined => {
+  const envToken = process.env[OPERATOR_TOKEN_ENV]?.trim();
+  if (envToken) {
+    return envToken;
+  }
+
+  const tokenPath = resolveTokenPath(host, database);
+  if (!existsSync(tokenPath)) {
+    return undefined;
+  }
+
+  const token = readFileSync(tokenPath, "utf8").trim();
+  return token.length > 0 ? token : undefined;
+};
+
+export const persistOperatorToken = (
+  host: string,
+  database: string,
+  token: string,
+): void => {
+  if (process.env[OPERATOR_TOKEN_ENV]) {
+    return;
+  }
+
+  const tokenPath = resolveTokenPath(host, database);
+  mkdirSync(path.dirname(tokenPath), { recursive: true });
+  writeFileSync(tokenPath, `${token}\n`, "utf8");
+};
+
+export const ensureAdminAccess = async (conn: DbConnection): Promise<void> => {
+  await conn.reducers.bootstrapAdminIdentity({});
+};
+
+export const ensureWorkerAccess = async (conn: DbConnection): Promise<void> => {
+  const identity = conn.identity;
+  if (!identity) {
+    throw new Error("Connection identity is not available");
+  }
+
+  await ensureAdminAccess(conn);
+  await conn.reducers.allowWorkerIdentity({ identity });
+  await conn.reducers.registerWorkerIdentity({});
+};

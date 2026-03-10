@@ -10,6 +10,13 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const AdminIdentity = __t.object("AdminIdentity", {
+  identity: __t.identity(),
+  grantedAt: __t.timestamp(),
+  grantedBy: __t.option(__t.identity()),
+});
+export type AdminIdentity = __Infer<typeof AdminIdentity>;
+
 export const AiRequest = __t.object("AiRequest", {
   id: __t.u64(),
   playerId: __t.identity(),
@@ -474,6 +481,13 @@ export const VnSkillCheckResult = __t.object("VnSkillCheckResult", {
   createdAt: __t.timestamp(),
 });
 export type VnSkillCheckResult = __Infer<typeof VnSkillCheckResult>;
+
+export const WorkerAllowlist = __t.object("WorkerAllowlist", {
+  identity: __t.identity(),
+  grantedAt: __t.timestamp(),
+  grantedBy: __t.identity(),
+});
+export type WorkerAllowlist = __Infer<typeof WorkerAllowlist>;
 
 export const WorkerIdentity = __t.object("WorkerIdentity", {
   identity: __t.identity(),

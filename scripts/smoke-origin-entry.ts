@@ -2,6 +2,11 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { DbConnection } from "../src/module_bindings";
+import {
+  ensureAdminAccess,
+  getOperatorToken,
+  persistOperatorToken,
+} from "./spacetime-operator";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
@@ -57,6 +62,35 @@ const expectRejected = async (
   }
 };
 
+const beginOriginDeterministically = async (
+  conn: DbConnection,
+  requestId: string,
+  profileId: string,
+): Promise<void> => {
+  try {
+    await conn.reducers.beginFreiburgOrigin({
+      requestId,
+      profileId,
+      resetProgress: false,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (
+      !message.includes(
+        "Existing Freiburg progress requires resetProgress=true",
+      )
+    ) {
+      throw error;
+    }
+
+    await conn.reducers.beginFreiburgOrigin({
+      requestId: `${requestId}_reset`,
+      profileId,
+      resetProgress: true,
+    });
+  }
+};
+
 const getMaxTelemetryEventId = (conn: DbConnection): bigint =>
   [...conn.db.telemetryEvent.iter()].reduce(
     (max, row) => (row.eventId > max ? row.eventId : max),
@@ -70,15 +104,20 @@ const runSmoke = async () =>
     const builder = DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .onConnect(async (conn) => {
+      .withToken(getOperatorToken(host, database))
+      .onConnect(async (conn, _identity, token) => {
         try {
+          persistOperatorToken(host, database, token);
+          await ensureAdminAccess(conn);
           const snapshot = loadSnapshot();
           const runId = Date.now();
           const request = (suffix: string) =>
             `smoke_origin_entry_${suffix}_${runId}`;
           const playerHex = conn.identity?.toHexString();
           if (!playerHex) {
-            throw new Error("Smoke connection did not expose a player identity");
+            throw new Error(
+              "Smoke connection did not expose a player identity",
+            );
           }
 
           await conn.reducers.publishContent({
@@ -104,11 +143,11 @@ const runSmoke = async () =>
 
           const beforeTelemetryEventId = getMaxTelemetryEventId(conn);
 
-          await conn.reducers.beginFreiburgOrigin({
-            requestId: request("journalist"),
-            profileId: "journalist",
-            resetProgress: false,
-          });
+          await beginOriginDeterministically(
+            conn,
+            request("journalist"),
+            "journalist",
+          );
 
           const journalistSessions = [...conn.db.vnSession.iter()].filter(
             (row) => row.playerId.toHexString() === playerHex,
@@ -135,7 +174,9 @@ const runSmoke = async () =>
               (row) => row.key === "origin_journalist" && row.value,
             )
           ) {
-            throw new Error("Expected journalist origin flag after begin reducer");
+            throw new Error(
+              "Expected journalist origin flag after begin reducer",
+            );
           }
 
           const journalistEvents = [...conn.db.telemetryEvent.iter()].filter(

@@ -10,6 +10,11 @@ import {
   getPlayerVarValue,
   playOutBattle,
 } from "./battle-smoke-helpers";
+import {
+  ensureAdminAccess,
+  getOperatorToken,
+  persistOperatorToken,
+} from "./spacetime-operator";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
@@ -68,7 +73,9 @@ const payload = createTestSnapshot({
           id: ids.choiceVnResolved,
           text: "Continue",
           nextNodeId: ids.nodeVnResult,
-          conditions: [{ type: "flag_equals", key: "son_duel_won", value: true }],
+          conditions: [
+            { type: "flag_equals", key: "son_duel_won", value: true },
+          ],
         },
       ],
     },
@@ -131,7 +138,9 @@ const payload = createTestSnapshot({
 const payloadJson = JSON.stringify(payload);
 const checksum = createHash("sha256").update(payloadJson, "utf8").digest("hex");
 if (!parseSnapshot(payloadJson)) {
-  throw new Error("Battle authority synthetic snapshot failed frontend parsing");
+  throw new Error(
+    "Battle authority synthetic snapshot failed frontend parsing",
+  );
 }
 
 let requestCounter = 0;
@@ -147,8 +156,11 @@ const runSmoke = async () =>
     const builder = DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .onConnect(async (conn) => {
+      .withToken(getOperatorToken(host, database))
+      .onConnect(async (conn, _identity, token) => {
         try {
+          persistOperatorToken(host, database, token);
+          await ensureAdminAccess(conn);
           const identity = conn.identity;
           if (!identity) {
             throw new Error("Missing connection identity");
@@ -182,7 +194,10 @@ const runSmoke = async () =>
           await conn.reducers.setFlag({ key: "son_duel_done", value: false });
           await conn.reducers.setFlag({ key: "son_duel_won", value: false });
           await conn.reducers.setFlag({ key: "son_duel_lost", value: false });
-          await conn.reducers.setFlag({ key: ids.flagVnResolved, value: false });
+          await conn.reducers.setFlag({
+            key: ids.flagVnResolved,
+            value: false,
+          });
 
           const xpBefore = getPlayerVarValue(conn, playerHex, "xp_total");
 
@@ -197,8 +212,13 @@ const runSmoke = async () =>
           if (!mapSession) {
             throw new Error("Map binding did not open battle_session");
           }
-          if (mapSession.sourceTab !== "map" || mapSession.returnTab !== "map") {
-            throw new Error("Map-opened battle session stored incorrect source/return tabs");
+          if (
+            mapSession.sourceTab !== "map" ||
+            mapSession.returnTab !== "map"
+          ) {
+            throw new Error(
+              "Map-opened battle session stored incorrect source/return tabs",
+            );
           }
 
           await conn.reducers.closeBattleMode({
@@ -228,10 +248,14 @@ const runSmoke = async () =>
             throw new Error("VN effect did not open battle_session");
           }
           if (vnSession.sourceTab !== "vn" || vnSession.returnTab !== "vn") {
-            throw new Error("VN-opened battle session stored incorrect source/return tabs");
+            throw new Error(
+              "VN-opened battle session stored incorrect source/return tabs",
+            );
           }
           if (vnSession.sourceScenarioId !== ids.scenarioVn) {
-            throw new Error("VN-opened battle session did not retain sourceScenarioId");
+            throw new Error(
+              "VN-opened battle session did not retain sourceScenarioId",
+            );
           }
 
           const resolvedSession = await playOutBattle(
@@ -241,10 +265,17 @@ const runSmoke = async () =>
             "victory",
           );
           if (Number(resolvedSession.turnCount) < 2) {
-            throw new Error("Battle authority smoke expected at least one enemy turn");
+            throw new Error(
+              "Battle authority smoke expected at least one enemy turn",
+            );
           }
-          if (resolvedSession.status !== "resolved" || resolvedSession.phase !== "result") {
-            throw new Error("Resolved battle session did not enter result phase");
+          if (
+            resolvedSession.status !== "resolved" ||
+            resolvedSession.phase !== "result"
+          ) {
+            throw new Error(
+              "Resolved battle session did not enter result phase",
+            );
           }
           if (!getPlayerFlagValue(conn, playerHex, "son_duel_done")) {
             throw new Error("Battle outcome did not set son_duel_done");
@@ -255,7 +286,10 @@ const runSmoke = async () =>
           if (getPlayerFlagValue(conn, playerHex, "son_duel_lost")) {
             throw new Error("Victory outcome should clear son_duel_lost");
           }
-          if (getPlayerVarValue(conn, playerHex, "xp_total") !== xpBefore + 50) {
+          if (
+            getPlayerVarValue(conn, playerHex, "xp_total") !==
+            xpBefore + 50
+          ) {
             throw new Error("Battle outcome did not apply XP exactly once");
           }
 
@@ -278,7 +312,9 @@ const runSmoke = async () =>
           });
 
           if (!getPlayerFlagValue(conn, playerHex, ids.flagVnResolved)) {
-            throw new Error("VN wrapper fallout did not complete after battle return");
+            throw new Error(
+              "VN wrapper fallout did not complete after battle return",
+            );
           }
 
           finished = true;

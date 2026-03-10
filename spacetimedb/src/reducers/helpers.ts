@@ -2,6 +2,7 @@
 export * from "./helpers/parsers";
 export * from "./helpers/keys";
 export * from "./helpers/player";
+export * from "./helpers/auth";
 export * from "./helpers/telemetry";
 export * from "./helpers/idempotency";
 export * from "./helpers/snapshot";

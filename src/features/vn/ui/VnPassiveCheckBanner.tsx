@@ -4,6 +4,8 @@ import "./VnSkillCheckFeedback.css";
 export interface PassiveCheckDisplay {
   checkId: string;
   voiceLabel: string;
+  personaLabel?: string;
+  interventionSummary?: string;
   passed: boolean;
   difficulty: number;
   roll: number;
@@ -43,6 +45,14 @@ export const VnPassiveCheckBanner = ({ items }: VnPassiveCheckBannerProps) => {
                   {entry.passed ? "Success" : "Fail"}
                 </p>
               </div>
+              {entry.personaLabel ? (
+                <p className="vn-passive-card__formula">{entry.personaLabel}</p>
+              ) : null}
+              {entry.interventionSummary ? (
+                <p className="vn-passive-card__formula">
+                  {entry.interventionSummary}
+                </p>
+              ) : null}
               <p className="vn-passive-card__formula">
                 {`${total} vs DC ${entry.difficulty}`}
               </p>

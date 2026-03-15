@@ -235,6 +235,40 @@
   color: rgba(226, 154, 165, 0.96);
 }
 
+.vn-check-resolve__ai {
+  margin-top: 0.9rem;
+  padding: 0.8rem 0.85rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(226, 186, 109, 0.18);
+  background: rgba(255, 248, 220, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.vn-check-resolve__ai-eyebrow {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(226, 186, 109, 0.72);
+}
+
+.vn-check-resolve__ai-title {
+  margin: 0.35rem 0 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245, 240, 232, 0.88);
+}
+
+.vn-check-resolve__ai-text {
+  margin: 0.45rem 0 0;
+  color: rgba(235, 228, 216, 0.82);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
 .vn-skill-toast {
   position: absolute;
   top: max(0.9rem, env(safe-area-inset-top));

@@ -18,6 +18,8 @@ import type {
   MindCaseContent,
   MindFactContent,
   MindHypothesisContent,
+  MindThoughtContent,
+  MindThoughtState,
   MindRequiredVar,
   QuestCatalogEntry,
   QuestStageContent,
@@ -33,6 +35,11 @@ import type {
   VnScenario,
   VnSnapshot,
 } from "./types";
+import {
+  createMindThoughtInternalizedFlagKey,
+  createMindThoughtResearchingFlagKey,
+  createMindThoughtUnlockedFlagKey,
+} from "../mindpalace/thoughtCabinet";
 import {
   MIN_VN_SCHEMA_WITH_MAP,
   MIN_VN_SCHEMA_WITH_MAP_EXPANSIONS,
@@ -81,6 +88,19 @@ const isCondition = (value: unknown): value is VnCondition => {
     return (
       typeof value.rumorId === "string" &&
       (value.status === "registered" || value.status === "verified")
+    );
+  }
+  if (value.type === "hypothesis_focus_is") {
+    return (
+      typeof value.caseId === "string" && typeof value.hypothesisId === "string"
+    );
+  }
+  if (value.type === "thought_state_is") {
+    return (
+      typeof value.thoughtId === "string" &&
+      (value.state === "available" ||
+        value.state === "researching" ||
+        value.state === "internalized")
     );
   }
   if (value.type === "career_rank_gte") {
@@ -139,6 +159,9 @@ const isEffect = (value: unknown): value is VnEffect => {
   }
   if (value.type === "discover_fact") {
     return typeof value.caseId === "string" && typeof value.factId === "string";
+  }
+  if (value.type === "unlock_mind_thought") {
+    return typeof value.thoughtId === "string";
   }
   if (value.type === "grant_xp") {
     return typeof value.amount === "number";
@@ -398,12 +421,35 @@ const isMindHypothesis = (value: unknown): value is MindHypothesisContent =>
   Array.isArray(value.rewardEffects) &&
   value.rewardEffects.every(isEffect);
 
+const isMindThoughtState = (value: unknown): value is MindThoughtState =>
+  value === "available" ||
+  value === "researching" ||
+  value === "internalized";
+
+const isMindThought = (value: unknown): value is MindThoughtContent =>
+  isObject(value) &&
+  typeof value.id === "string" &&
+  typeof value.promptText === "string" &&
+  typeof value.researchTime === "number" &&
+  Number.isFinite(value.researchTime) &&
+  value.researchTime >= 1 &&
+  Array.isArray(value.duringResearchEffects) &&
+  value.duringResearchEffects.every(isEffect) &&
+  Array.isArray(value.onInternalizedEffects) &&
+  value.onInternalizedEffects.every(isEffect) &&
+  Array.isArray(value.contradictsThoughtIds) &&
+  value.contradictsThoughtIds.every((entry) => typeof entry === "string") &&
+  typeof value.purgeCost === "number" &&
+  Number.isFinite(value.purgeCost) &&
+  value.purgeCost >= 0;
+
 const parseMindPalace = (value: unknown): VnSnapshot["mindPalace"] | null => {
   if (value === undefined) {
     return {
       cases: [],
       facts: [],
       hypotheses: [],
+      thoughts: [],
     };
   }
 
@@ -423,11 +469,18 @@ const parseMindPalace = (value: unknown): VnSnapshot["mindPalace"] | null => {
   ) {
     return null;
   }
+  if (
+    value.thoughts !== undefined &&
+    (!Array.isArray(value.thoughts) || !value.thoughts.every(isMindThought))
+  ) {
+    return null;
+  }
 
   return {
     cases: value.cases,
     facts: value.facts,
     hypotheses: value.hypotheses,
+    thoughts: value.thoughts ?? [],
   };
 };
 
@@ -666,6 +719,16 @@ const isMapCondition = (value: unknown): value is MapCondition => {
       (value.status === "registered" || value.status === "verified")
     );
   }
+  if (value.type === "hypothesis_focus_is") {
+    return (
+      typeof value.caseId === "string" && typeof value.hypothesisId === "string"
+    );
+  }
+  if (value.type === "thought_state_is") {
+    return (
+      typeof value.thoughtId === "string" && isMindThoughtState(value.state)
+    );
+  }
   if (value.type === "career_rank_gte") {
     return typeof value.rankId === "string";
   }
@@ -734,6 +797,9 @@ const isMapAction = (value: unknown): value is MapAction => {
     return typeof value.evidenceId === "string";
   }
   if (value.type === "grant_xp") {
+    return typeof value.amount === "number";
+  }
+  if (value.type === "grant_influence") {
     return typeof value.amount === "number";
   }
   if (value.type === "change_relationship") {
@@ -1570,6 +1636,25 @@ const evaluateChoiceCondition = (
       readMappedString(context?.rumorStates, condition.rumorId) ===
       condition.status
     );
+  }
+  if (condition.type === "hypothesis_focus_is") {
+    return (
+      (flags[`mind_focus::${condition.caseId}::${condition.hypothesisId}`] ??
+        false) === true
+    );
+  }
+  if (condition.type === "thought_state_is") {
+    if (condition.state === "internalized") {
+      return (
+        flags[createMindThoughtInternalizedFlagKey(condition.thoughtId)] ?? false
+      );
+    }
+    if (condition.state === "researching") {
+      return (
+        flags[createMindThoughtResearchingFlagKey(condition.thoughtId)] ?? false
+      );
+    }
+    return flags[createMindThoughtUnlockedFlagKey(condition.thoughtId)] ?? false;
   }
   if (condition.type === "career_rank_gte") {
     const currentRankId = context?.careerRankId;

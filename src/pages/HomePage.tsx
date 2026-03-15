@@ -1,8 +1,14 @@
 import { useMemo, useRef, useState } from "react";
 import { useReducer, useTable } from "spacetimedb/react";
 import { Building2, Landmark, Map as MapIcon, QrCode } from "lucide-react";
-import { getOriginProfileById, originProfiles } from "../features/character/originProfiles";
-import { OriginSelectionScreen } from "../features/origin/ui/OriginSelectionScreen";
+import {
+  getOriginProfileById,
+  originProfiles,
+} from "../features/character/originProfiles";
+import {
+  OriginSelectionScreen,
+  type OriginSelectionDraft,
+} from "../features/origin/ui/OriginSelectionScreen";
 import {
   resolveFreiburgEntryTarget,
   type FreiburgEntryTarget,
@@ -75,7 +81,9 @@ const hasFreiburgProgressHeuristic = (
     return false;
   }
 
-  if (sessions.some((session) => session.playerId.toHexString() === identityHex)) {
+  if (
+    sessions.some((session) => session.playerId.toHexString() === identityHex)
+  ) {
     return true;
   }
 
@@ -90,14 +98,35 @@ const hasFreiburgProgressHeuristic = (
   );
 };
 
+const unwrapOptionalString = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  if (typeof value === "object" && value !== null && "tag" in value) {
+    const tagged = value as { tag?: string; value?: unknown };
+    if (tagged.tag === "some" && typeof tagged.value === "string") {
+      return tagged.value;
+    }
+  }
+
+  return null;
+};
+
 export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const { identityHex, isConnected, connectionError } = useIdentity();
   const beginFreiburgOrigin = useReducer(reducers.beginFreiburgOrigin);
+  const setNickname = useReducer(reducers.setNickname);
 
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
   const [sessions, sessionsReady] = useTable(tables.vnSession);
   const [flagsRows, flagsReady] = useTable(tables.playerFlag);
+  const [playerProfiles] = useTable(tables.playerProfile);
 
   const [flowState, setFlowState] = useState<FreiburgFlowState>("idle");
   const [flowStatus, setFlowStatus] = useState<string | null>(null);
@@ -134,6 +163,14 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const playerFlags = useMemo(
     () => buildPlayerFlags(identityHex, flagsRows),
     [flagsRows, identityHex],
+  );
+  const currentNickname = useMemo(
+    () =>
+      unwrapOptionalString(
+        playerProfiles.find((row) => row.playerId.toHexString() === identityHex)
+          ?.nickname,
+      ) ?? "",
+    [identityHex, playerProfiles],
   );
   const hasAnyPlayerProgress = useMemo(
     () => hasFreiburgProgressHeuristic(identityHex, sessions, playerFlags),
@@ -200,6 +237,11 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
       return;
     }
 
+    if (entryTarget.kind === "freeplay") {
+      onNavigate("map");
+      return;
+    }
+
     if (entryTarget.kind === "resume" || entryTarget.kind === "start") {
       handleOpenScenario(entryTarget.scenarioId);
       return;
@@ -228,8 +270,8 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     openOriginSelection(false);
   };
 
-  const handleOriginConfirm = async (profileId: string) => {
-    const profile = getOriginProfileById(profileId);
+  const handleOriginConfirm = async (draft: OriginSelectionDraft) => {
+    const profile = getOriginProfileById(draft.profileId);
     if (launchInFlightRef.current || !profile) {
       return;
     }
@@ -244,9 +286,14 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     setFlowStatus(null);
 
     try {
+      const trimmedNickname = draft.nickname.trim();
+      if (trimmedNickname !== currentNickname.trim()) {
+        await setNickname({ nickname: trimmedNickname });
+      }
       await beginFreiburgOrigin({
         requestId: `home_begin_freiburg_${Date.now()}`,
         profileId: profile.id,
+        selectedTrackId: draft.selectedTrackId,
         resetProgress: pendingResetOnBegin,
       });
       handleOpenScenario(profile.scenarioId);
@@ -379,7 +426,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
           disabled={isEntryBlocked || isLaunching}
           status={isEntryBlocked ? syncStatus : flowStatus}
           onCancel={closeOriginFlow}
-          onConfirmOrigin={(profileId) => void handleOriginConfirm(profileId)}
+          onConfirmOrigin={(draft) => void handleOriginConfirm(draft)}
         />
       ) : null}
     </div>

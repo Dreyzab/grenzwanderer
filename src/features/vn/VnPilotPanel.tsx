@@ -6,6 +6,10 @@ import { ENABLE_AI, ENABLE_DEBUG_CONTENT_SEED } from "../../config";
 import { reducers, tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
 import {
+  AI_DIALOGUE_SOURCE_SKILL_CHECK,
+  AI_GENERATE_DIALOGUE_KIND,
+} from "../ai/contracts";
+import {
   getNodeById,
   getScenarioById,
   isChoiceAvailable,
@@ -110,6 +114,11 @@ export const VnPilotPanel = () => {
     return getScenarioById(snapshot, selectedScenarioId);
   }, [selectedScenarioId, snapshot]);
 
+  const probeSkillChoice = useMemo(
+    () => currentNode?.choices.find((choice) => choice.skillCheck) ?? null,
+    [currentNode],
+  );
+
   const runAction = async (label: string, action: () => Promise<unknown>) => {
     setError(null);
     setIsBusy(true);
@@ -186,19 +195,38 @@ export const VnPilotPanel = () => {
   };
 
   const handleAiProbe = async () => {
-    if (!ENABLE_AI || !selectedScenarioId || !currentNode) {
+    const probeSkill = probeSkillChoice?.skillCheck ?? null;
+    if (
+      !ENABLE_AI ||
+      !selectedScenarioId ||
+      !currentNode ||
+      !probeSkillChoice ||
+      !probeSkill
+    ) {
       return;
     }
+
+    const voiceLevel = Math.max(0, Math.round(myVars[probeSkill.voiceId] ?? 0));
+    const difficulty = Math.max(1, probeSkill.difficulty);
 
     await runAction("AI request enqueued", async () => {
       await enqueueAiRequest({
         requestId: createRequestId(),
-        kind: "thought",
+        kind: AI_GENERATE_DIALOGUE_KIND,
         payloadJson: JSON.stringify({
+          source: AI_DIALOGUE_SOURCE_SKILL_CHECK,
           scenarioId: selectedScenarioId,
           nodeId: currentNode.id,
-          vars: myVars,
-          flags: myFlags,
+          checkId: probeSkill.id,
+          choiceId: probeSkillChoice.id,
+          voiceId: probeSkill.voiceId,
+          choiceText: probeSkillChoice.text,
+          passed: true,
+          roll: difficulty,
+          difficulty,
+          voiceLevel,
+          locationName: selectedScenario?.title ?? selectedScenarioId,
+          narrativeText: currentNode.body,
         }),
       });
     });
@@ -222,11 +250,13 @@ export const VnPilotPanel = () => {
           )}
           <button
             onClick={handleAiProbe}
-            disabled={!ENABLE_AI || !activeVersion || isBusy}
+            disabled={!ENABLE_AI || !activeVersion || isBusy || !probeSkillChoice}
             title={
-              ENABLE_AI
-                ? "Enqueue AI thought request"
-                : "AI is disabled by feature flag"
+              !ENABLE_AI
+                ? "AI is disabled by feature flag"
+                : probeSkillChoice
+                  ? "Enqueue supported generate_dialogue debug request"
+                  : "Current node has no active skill-check choice for AI probe"
             }
           >
             AI Probe

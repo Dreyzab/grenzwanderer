@@ -1,6 +1,16 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { VnScreen } from "./VnScreen";
+import {
+  AI_DIALOGUE_SOURCE_SKILL_CHECK,
+  AI_GENERATE_DIALOGUE_KIND,
+} from "../../ai/contracts";
 
 const mocks = vi.hoisted(() => {
   const tables = {
@@ -8,11 +18,13 @@ const mocks = vi.hoisted(() => {
     contentSnapshot: Symbol("contentSnapshot"),
     vnSession: Symbol("vnSession"),
     vnSkillCheckResult: Symbol("vnSkillCheckResult"),
+    aiRequest: Symbol("aiRequest"),
   };
   const reducers = {
     startScenario: Symbol("startScenario"),
     recordChoice: Symbol("recordChoice"),
     performSkillCheck: Symbol("performSkillCheck"),
+    enqueueAiRequest: Symbol("enqueueAiRequest"),
   };
 
   return {
@@ -23,6 +35,7 @@ const mocks = vi.hoisted(() => {
     startScenarioMock: vi.fn(),
     recordChoiceMock: vi.fn(),
     performSkillCheckMock: vi.fn(),
+    enqueueAiRequestMock: vi.fn(),
     useIdentityMock: vi.fn(),
     usePlayerFlagsMock: vi.fn(),
     usePlayerVarsMock: vi.fn(),
@@ -100,6 +113,10 @@ vi.mock("../../../entities/player/hooks/usePlayerVars", () => ({
   usePlayerVars: () => mocks.usePlayerVarsMock(),
 }));
 
+vi.mock("../../../config", () => ({
+  ENABLE_AI: true,
+}));
+
 vi.mock("../../../widgets/vn-overlay/VnNarrativePanel", () => ({
   VnNarrativePanel: ({
     children,
@@ -124,8 +141,7 @@ vi.mock("./vnSkillCheckAudio", () => ({
   playVnSkillCheckSfx: (...args: unknown[]) =>
     mocks.playVnSkillCheckSfxMock(...args),
   readVnSfxMuted: () => mocks.readVnSfxMutedMock(),
-  writeVnSfxMuted: (...args: unknown[]) =>
-    mocks.writeVnSfxMutedMock(...args),
+  writeVnSfxMuted: (...args: unknown[]) => mocks.writeVnSfxMutedMock(...args),
 }));
 
 const identity = (hex: string) => ({
@@ -144,9 +160,14 @@ type TestState = {
   sessionRows: any[];
   sessionReady: boolean;
   skillResultRows: any[];
+  aiRequestRows: any[];
 };
 
-const makeSnapshotPayload = (scenarios: unknown[], nodes: unknown[]): string =>
+const makeSnapshotPayload = (
+  scenarios: unknown[],
+  nodes: unknown[],
+  overrides: Record<string, unknown> = {},
+): string =>
   JSON.stringify({
     schemaVersion: 2,
     scenarios,
@@ -155,11 +176,12 @@ const makeSnapshotPayload = (scenarios: unknown[], nodes: unknown[]): string =>
       skillCheckDice: "d20",
       defaultEntryScenarioId: "sandbox_case01_pilot",
     },
-    mindPalace: {
+    mindPalace: overrides.mindPalace ?? {
       cases: [],
       facts: [],
       hypotheses: [],
     },
+    ...overrides,
   });
 
 describe("VnScreen critical behavior", () => {
@@ -185,6 +207,7 @@ describe("VnScreen critical behavior", () => {
       sessionRows: [],
       sessionReady: true,
       skillResultRows: [],
+      aiRequestRows: [],
     };
 
     mocks.useIdentityMock.mockReturnValue({
@@ -200,6 +223,7 @@ describe("VnScreen critical behavior", () => {
     mocks.startScenarioMock.mockResolvedValue(undefined);
     mocks.recordChoiceMock.mockResolvedValue(undefined);
     mocks.performSkillCheckMock.mockResolvedValue(undefined);
+    mocks.enqueueAiRequestMock.mockResolvedValue(undefined);
 
     mocks.useReducerMock.mockImplementation((reducer: symbol) => {
       if (reducer === mocks.reducers.startScenario) {
@@ -210,6 +234,9 @@ describe("VnScreen critical behavior", () => {
       }
       if (reducer === mocks.reducers.performSkillCheck) {
         return mocks.performSkillCheckMock;
+      }
+      if (reducer === mocks.reducers.enqueueAiRequest) {
+        return mocks.enqueueAiRequestMock;
       }
       return vi.fn();
     });
@@ -227,6 +254,9 @@ describe("VnScreen critical behavior", () => {
       if (table === mocks.tables.vnSkillCheckResult) {
         return [state.skillResultRows, true];
       }
+      if (table === mocks.tables.aiRequest) {
+        return [state.aiRequestRows, true];
+      }
       return [[], true];
     });
   });
@@ -238,7 +268,7 @@ describe("VnScreen critical behavior", () => {
           id: "sandbox_case01_pilot",
           title: "Case01",
           startNodeId: "node_start",
-          nodeIds: ["node_start"],
+          nodeIds: ["node_start", "node_next"],
         },
       ],
       [
@@ -725,13 +755,17 @@ describe("VnScreen critical behavior", () => {
       await vi.advanceTimersByTimeAsync(2000);
     });
 
-    expect(screen.getByTestId("narrative-text")).toHaveTextContent("Old node body");
+    expect(screen.getByTestId("narrative-text")).toHaveTextContent(
+      "Old node body",
+    );
     expect(mocks.recordChoiceMock).not.toHaveBeenCalled();
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "surface-tap" }));
     });
-    expect(screen.getByTestId("narrative-text")).toHaveTextContent("New node body");
+    expect(screen.getByTestId("narrative-text")).toHaveTextContent(
+      "New node body",
+    );
     expect(mocks.recordChoiceMock).not.toHaveBeenCalled();
   });
 
@@ -902,6 +936,327 @@ describe("VnScreen critical behavior", () => {
     });
     expect(mocks.playVnSkillCheckSfxMock).not.toHaveBeenCalled();
     expect(mocks.writeVnSfxMutedMock).toHaveBeenCalledWith(true);
+  });
+
+  it("enqueues one supported AI request after an active skill check resolves", async () => {
+    mocks.usePlayerVarsMock.mockReturnValue({ attr_social: 4 });
+
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_case01_pilot",
+          title: "Case01",
+          startNodeId: "node_start",
+          nodeIds: ["node_start"],
+        },
+      ],
+      [
+        {
+          id: "node_start",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Start",
+          body: "Steam and tension hang over the tailor's counter.",
+          choices: [
+            {
+              id: "choice_probe",
+              text: "Lean in and make the tailor talk.",
+              nextNodeId: "node_next",
+              skillCheck: {
+                id: "check_probe",
+                voiceId: "attr_social",
+                difficulty: 8,
+                showChancePercent: true,
+              },
+            },
+          ],
+        },
+        {
+          id: "node_next",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Next",
+          body: "Body",
+          choices: [],
+        },
+      ],
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(8n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_case01_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_start",
+        updatedAt: timestamp(18n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    const view = render(<VnScreen />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Lean in and make/i }));
+
+    state.skillResultRows = [
+      {
+        resultKey: "result_probe",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_start",
+        checkId: "check_probe",
+        roll: 9,
+        voiceLevel: 4,
+        difficulty: 8,
+        passed: true,
+        nextNodeId: { tag: "none" },
+        createdAt: timestamp(19n),
+      },
+    ];
+
+    await act(async () => {
+      view.rerender(<VnScreen />);
+      await Promise.resolve();
+    });
+
+    expect(mocks.enqueueAiRequestMock).toHaveBeenCalledTimes(1);
+
+    const request = mocks.enqueueAiRequestMock.mock.calls[0]?.[0];
+    expect(request.kind).toBe(AI_GENERATE_DIALOGUE_KIND);
+
+    const payload = JSON.parse(request.payloadJson);
+    expect(payload).toMatchObject({
+      source: AI_DIALOGUE_SOURCE_SKILL_CHECK,
+      scenarioId: "sandbox_case01_pilot",
+      nodeId: "node_start",
+      checkId: "check_probe",
+      choiceId: "choice_probe",
+      voiceId: "attr_social",
+      choiceText: "Lean in and make the tailor talk.",
+      passed: true,
+      roll: 9,
+      difficulty: 8,
+      voiceLevel: 4,
+      locationName: "Case01",
+    });
+
+    await act(async () => {
+      view.rerender(<VnScreen />);
+    });
+
+    expect(mocks.enqueueAiRequestMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows AI thinking state and completed copy on the skill-check resolve surface", async () => {
+    mocks.usePlayerVarsMock.mockReturnValue({ attr_social: 4 });
+
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_case01_pilot",
+          title: "Case01",
+          startNodeId: "node_start",
+          nodeIds: ["node_start", "node_next"],
+        },
+      ],
+      [
+        {
+          id: "node_start",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Start",
+          body: "Steam and tension hang over the tailor's counter.",
+          choices: [
+            {
+              id: "choice_probe",
+              text: "Lean in and make the tailor talk.",
+              nextNodeId: "node_next",
+              skillCheck: {
+                id: "check_probe",
+                voiceId: "attr_social",
+                difficulty: 8,
+                showChancePercent: true,
+              },
+            },
+          ],
+        },
+        {
+          id: "node_next",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Next",
+          body: "Body",
+          choices: [],
+        },
+      ],
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(8n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_case01_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_start",
+        updatedAt: timestamp(18n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    const view = render(<VnScreen />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Lean in and make/i }));
+    state.skillResultRows = [
+      {
+        resultKey: "result_probe",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_start",
+        checkId: "check_probe",
+        roll: 9,
+        voiceLevel: 4,
+        difficulty: 8,
+        passed: true,
+        nextNodeId: { tag: "none" },
+        createdAt: timestamp(30n),
+      },
+    ];
+
+    await act(async () => {
+      view.rerender(<VnScreen />);
+    });
+
+    await waitFor(() => {
+      expect(mocks.enqueueAiRequestMock).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "surface-tap" }));
+
+    expect(screen.getByText("Inner Parliament")).toBeInTheDocument();
+    expect(
+      screen.getByText("Charisma is turning the result over..."),
+    ).toBeInTheDocument();
+
+    state.aiRequestRows = [
+      {
+        id: 1n,
+        playerId: identity("me"),
+        requestId: "ai-probe",
+        kind: AI_GENERATE_DIALOGUE_KIND,
+        payloadJson: mocks.enqueueAiRequestMock.mock.calls[0]?.[0].payloadJson,
+        status: "completed",
+        responseJson: {
+          tag: "some",
+          value: '{"text":"Push now. He is already leaning.","canonicalVoiceId":"charisma"}',
+        },
+        error: { tag: "none" },
+        createdAt: timestamp(31n),
+        updatedAt: timestamp(32n),
+      },
+    ];
+
+    await act(async () => {
+      view.rerender(<VnScreen />);
+    });
+
+    expect(
+      screen.getByText("Push now. He is already leaning."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the active lens badge when a focused hypothesis gates the current node", () => {
+    mocks.usePlayerFlagsMock.mockReturnValue({
+      "mind_focus::case_focus::hyp_focus": true,
+    });
+
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_case01_pilot",
+          title: "Case01",
+          startNodeId: "node_start",
+          nodeIds: ["node_start", "node_next"],
+        },
+      ],
+      [
+        {
+          id: "node_start",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Start",
+          body: "Body",
+          choices: [
+            {
+              id: "choice_focus",
+              text: "Follow the archive lead",
+              nextNodeId: "node_next",
+              requireAll: [
+                {
+                  type: "hypothesis_focus_is",
+                  caseId: "case_focus",
+                  hypothesisId: "hyp_focus",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "node_next",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Next",
+          body: "Body",
+          choices: [],
+        },
+      ],
+      {
+        mindPalace: {
+          cases: [{ id: "case_focus", title: "Focus Case" }],
+          facts: [],
+          hypotheses: [
+            {
+              id: "hyp_focus",
+              caseId: "case_focus",
+              key: "focus_key",
+              text: "Archive clerk runs the diversion.",
+              requiredFactIds: [],
+              requiredVars: [],
+              rewardEffects: [],
+            },
+          ],
+        },
+      },
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(9n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_case01_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_start",
+        updatedAt: timestamp(20n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    render(<VnScreen />);
+
+    expect(
+      screen.getByText("Active Lens: Archive clerk runs the diversion."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Follow the archive lead" }),
+    ).toBeInTheDocument();
   });
 
   it("enters handoff_failed and blocks repeated completion taps", async () => {

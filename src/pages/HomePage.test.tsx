@@ -8,12 +8,14 @@ const mocks = vi.hoisted(() => {
     contentSnapshot: Symbol("contentSnapshot"),
     vnSession: Symbol("vnSession"),
     playerFlag: Symbol("playerFlag"),
+    playerProfile: Symbol("playerProfile"),
   };
 
   return {
     tables,
     reducers: {
       beginFreiburgOrigin: Symbol("beginFreiburgOrigin"),
+      setNickname: Symbol("setNickname"),
     },
     useIdentityMock: vi.fn(),
     useTableMock: vi.fn(),
@@ -64,17 +66,51 @@ vi.mock("../features/origin/ui/OriginSelectionScreen", () => ({
     onCancel,
     status,
   }: {
-    onConfirmOrigin: (profileId: string) => void;
+    onConfirmOrigin: (draft: {
+      profileId: string;
+      nickname: string;
+      selectedTrackId: string;
+    }) => void;
     onCancel: () => void;
     status?: string | null;
   }) => (
     <div data-testid="origin-selection">
       <p>{status ?? ""}</p>
-      <button type="button" onClick={() => onConfirmOrigin("journalist")}>
+      <button
+        type="button"
+        onClick={() =>
+          onConfirmOrigin({
+            profileId: "journalist",
+            nickname: "Operator Anna",
+            selectedTrackId: "journalist_whistleblower",
+          })
+        }
+      >
         confirm-journalist
       </button>
-      <button type="button" onClick={() => onConfirmOrigin("aristocrat")}>
+      <button
+        type="button"
+        onClick={() =>
+          onConfirmOrigin({
+            profileId: "aristocrat",
+            nickname: "Baroness Login",
+            selectedTrackId: "aristocrat_duelist",
+          })
+        }
+      >
         confirm-aristocrat
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onConfirmOrigin({
+            profileId: "archivist",
+            nickname: "",
+            selectedTrackId: "archivist_dust_cartographer",
+          })
+        }
+      >
+        confirm-archivist-empty-nickname
       </button>
       <button type="button" onClick={onCancel}>
         selection-cancel
@@ -110,6 +146,19 @@ const snapshotPayload = JSON.stringify({
       title: "Journalist Intro",
       startNodeId: "scene_journalist_intro",
       nodeIds: ["scene_journalist_intro"],
+    },
+    {
+      id: "journalist_agency_wakeup",
+      title: "Journalist Wakeup",
+      startNodeId: "scene_journalist_agency_wakeup",
+      nodeIds: [
+        "scene_journalist_agency_wakeup",
+        "scene_journalist_memory_gap",
+        "scene_journalist_cellar_valve",
+        "scene_journalist_cellar_ledger",
+        "scene_journalist_cellar_uniform",
+        "scene_journalist_recruitment_pitch",
+      ],
     },
     {
       id: "intro_aristocrat",
@@ -156,11 +205,13 @@ type TestState = {
   sessionReady: boolean;
   flagRows: any[];
   flagsReady: boolean;
+  playerProfileRows: any[];
 };
 
 describe("HomePage Freiburg flow", () => {
   let state: TestState;
   let beginFreiburgOriginReducerMock: ReturnType<typeof vi.fn>;
+  let setNicknameReducerMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -188,6 +239,7 @@ describe("HomePage Freiburg flow", () => {
       sessionReady: true,
       flagRows: [],
       flagsReady: true,
+      playerProfileRows: [],
     };
 
     mocks.useIdentityMock.mockReturnValue({
@@ -196,9 +248,13 @@ describe("HomePage Freiburg flow", () => {
       connectionError: undefined,
     });
     beginFreiburgOriginReducerMock = vi.fn().mockResolvedValue(undefined);
+    setNicknameReducerMock = vi.fn().mockResolvedValue(undefined);
     mocks.useReducerMock.mockImplementation((reducer: symbol) => {
       if (reducer === mocks.reducers.beginFreiburgOrigin) {
         return beginFreiburgOriginReducerMock;
+      }
+      if (reducer === mocks.reducers.setNickname) {
+        return setNicknameReducerMock;
       }
       return vi.fn();
     });
@@ -215,6 +271,9 @@ describe("HomePage Freiburg flow", () => {
       }
       if (table === mocks.tables.playerFlag) {
         return [state.flagRows, state.flagsReady];
+      }
+      if (table === mocks.tables.playerProfile) {
+        return [state.playerProfileRows, true];
       }
       return [[], true];
     });
@@ -237,7 +296,9 @@ describe("HomePage Freiburg flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     expect(screen.getByTestId("origin-selection")).toBeInTheDocument();
-    expect(screen.queryByText(/Syncing content snapshot/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Syncing content snapshot/i),
+    ).not.toBeInTheDocument();
   });
 
   it("does not block Freiburg entry when player-state ready flags lag", () => {
@@ -279,14 +340,21 @@ describe("HomePage Freiburg flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "confirm-aristocrat" }));
 
     await waitFor(() => {
+      expect(setNicknameReducerMock).toHaveBeenCalledWith({
+        nickname: "Baroness Login",
+      });
       expect(beginFreiburgOriginReducerMock).toHaveBeenCalledWith(
         expect.objectContaining({
           profileId: "aristocrat",
+          selectedTrackId: "aristocrat_duelist",
           resetProgress: true,
         }),
       );
       expect(onOpenVnScenario).toHaveBeenCalledWith("intro_aristocrat");
     });
+    expect(setNicknameReducerMock.mock.invocationCallOrder[0]).toBeLessThan(
+      beginFreiburgOriginReducerMock.mock.invocationCallOrder[0],
+    );
   });
 
   it("cancels reset confirmation without starting a new game", () => {
@@ -350,6 +418,33 @@ describe("HomePage Freiburg flow", () => {
     expect(screen.queryByTestId("origin-selection")).not.toBeInTheDocument();
   });
 
+  it("routes journalist continuation into the wakeup scenario instead of map freeplay", async () => {
+    const onOpenVnScenario = vi.fn();
+
+    state.flagRows = [
+      {
+        playerId: identity("me"),
+        key: "origin_journalist",
+        value: true,
+      },
+      {
+        playerId: identity("me"),
+        key: "journalist_intro_complete",
+        value: true,
+      },
+    ];
+
+    render(
+      <HomePage onNavigate={vi.fn()} onOpenVnScenario={onOpenVnScenario} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+
+    await waitFor(() => {
+      expect(onOpenVnScenario).toHaveBeenCalledWith("journalist_agency_wakeup");
+    });
+  });
+
   it("keeps actions clickable while content sync is incomplete", () => {
     state.contentVersionRows = [];
     state.contentSnapshotRows = [];
@@ -371,5 +466,39 @@ describe("HomePage Freiburg flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Scan Start Code" }));
 
     expect(onNavigate).toHaveBeenCalledWith("map", { mapPanel: "qr" });
+  });
+
+  it("starts an origin without calling setNickname when the trimmed nickname is unchanged", async () => {
+    const onOpenVnScenario = vi.fn();
+
+    state.playerProfileRows = [
+      {
+        playerId: identity("me"),
+        nickname: { tag: "some", value: "" },
+      },
+    ];
+
+    render(
+      <HomePage onNavigate={vi.fn()} onOpenVnScenario={onOpenVnScenario} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "confirm-archivist-empty-nickname",
+      }),
+    );
+
+    await waitFor(() => {
+      expect(setNicknameReducerMock).not.toHaveBeenCalled();
+      expect(beginFreiburgOriginReducerMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          profileId: "archivist",
+          selectedTrackId: "archivist_dust_cartographer",
+          resetProgress: false,
+        }),
+      );
+      expect(onOpenVnScenario).toHaveBeenCalledWith("intro_archivist");
+    });
   });
 });

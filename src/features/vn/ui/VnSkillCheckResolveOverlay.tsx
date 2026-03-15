@@ -46,8 +46,13 @@ export interface VnSkillCheckResolveState {
   frozen: FrozenSkillCheckPresentation;
 }
 
+type SkillCheckAiStatus = "pending" | "processing" | "completed" | "failed";
+
 interface VnSkillCheckResolveOverlayProps {
   state: VnSkillCheckResolveState | null;
+  aiStatus?: SkillCheckAiStatus | null;
+  aiThoughtText?: string | null;
+  aiThoughtVoiceLabel?: string | null;
   onInteract: () => void;
 }
 
@@ -140,6 +145,9 @@ const ResolveFallbackDie = ({
 
 export const VnSkillCheckResolveOverlay = ({
   state,
+  aiStatus = null,
+  aiThoughtText = null,
+  aiThoughtVoiceLabel = null,
   onInteract,
 }: VnSkillCheckResolveOverlayProps) => {
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -273,6 +281,23 @@ export const VnSkillCheckResolveOverlay = ({
                 <p className="vn-check-resolve__result">
                   {state.passed ? "Success" : "Fail"}
                 </p>
+                {aiStatus && aiStatus !== "failed" ? (
+                  <div className="vn-check-resolve__ai">
+                    <p className="vn-check-resolve__ai-eyebrow">
+                      Inner Parliament
+                    </p>
+                    <p className="vn-check-resolve__ai-title">
+                      {aiStatus === "completed"
+                        ? aiThoughtVoiceLabel ?? "Thought"
+                        : "Thinking"}
+                    </p>
+                    <p className="vn-check-resolve__ai-text">
+                      {aiStatus === "completed" && aiThoughtText
+                        ? aiThoughtText
+                        : `${aiThoughtVoiceLabel ?? state.voiceLabel} is turning the result over...`}
+                    </p>
+                  </div>
+                ) : null}
                 <p className="vn-check-resolve__hint">Tap to continue</p>
               </>
             ) : (

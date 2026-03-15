@@ -20,6 +20,12 @@ output*.log
 publish*.log
 error.log
 
+# openviking
+scripts/openviking/.venv/
+scripts/openviking/ov.conf
+scripts/openviking/ovcli.conf
+scripts/openviking/data/
+
 # editor/system
 .DS_Store
 Thumbs.db

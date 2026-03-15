@@ -11,8 +11,12 @@ import {
 } from "spacetimedb";
 
 export default {
-  requestId: __t.string(),
-  profileId: __t.string(),
-  selectedTrackId: __t.string(),
-  resetProgress: __t.bool(),
+  metricKey: __t.string(),
+  label: __t.string(),
+  source: __t.string(),
+  status: __t.string(),
+  summary: __t.string(),
+  value: __t.option(__t.f64()),
+  unit: __t.option(__t.string()),
+  linkUrl: __t.option(__t.string()),
 };

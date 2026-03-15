@@ -11,8 +11,7 @@ import {
 } from "spacetimedb";
 
 export default {
-  requestId: __t.string(),
-  profileId: __t.string(),
-  selectedTrackId: __t.string(),
-  resetProgress: __t.bool(),
+  currentTab: __t.string(),
+  appVersion: __t.string(),
+  buildCommit: __t.string(),
 };

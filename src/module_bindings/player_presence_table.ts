@@ -10,9 +10,10 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default {
-  requestId: __t.string(),
-  profileId: __t.string(),
-  selectedTrackId: __t.string(),
-  resetProgress: __t.bool(),
-};
+export default __t.row({
+  playerId: __t.identity().primaryKey().name("player_id"),
+  currentTab: __t.string().name("current_tab"),
+  appVersion: __t.string().name("app_version"),
+  buildCommit: __t.string().name("build_commit"),
+  lastSeenAt: __t.timestamp().name("last_seen_at"),
+});

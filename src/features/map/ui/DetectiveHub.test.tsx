@@ -213,6 +213,9 @@ describe("DetectiveHub", () => {
       screen.getByText(/first briefing is still pending/i),
     ).toBeInTheDocument();
     expect(screen.getByText("Стажёр")).toBeInTheDocument();
+    expect(screen.getByText("Duty Roster")).toBeInTheDocument();
+    expect(screen.getByText("Lotte Weber")).toBeInTheDocument();
+    expect(screen.getByText("Marta Klein")).toBeInTheDocument();
     expect(screen.getByText("1 contacts")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Inventory" }));

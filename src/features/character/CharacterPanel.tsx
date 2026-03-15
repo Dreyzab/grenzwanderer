@@ -37,7 +37,9 @@ import {
 } from "./characterScreenModel";
 import {
   getOriginProfileByFlags,
+  getSelectedOriginTrack,
   type OriginProfileDefinition,
+  type OriginTrackDefinition,
 } from "./originProfiles";
 import { buildPsycheProfile, type PsycheProfileData } from "./psycheProfile";
 import {
@@ -131,6 +133,25 @@ const toLocale = (value: number): string =>
 
 const normalizeNumber = (value: number | bigint): number =>
   typeof value === "bigint" ? Number(value) : value;
+
+const unwrapOptionalString = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  if (typeof value === "object" && value !== null && "tag" in value) {
+    const tagged = value as { tag?: string; value?: unknown };
+    if (tagged.tag === "some" && typeof tagged.value === "string") {
+      return tagged.value;
+    }
+  }
+
+  return null;
+};
 
 const getGenderLabel = (
   gender: OriginProfileDefinition["dossier"]["gender"],
@@ -368,7 +389,9 @@ const ProfileTab = ({
   contacts,
   debugEnabled,
   flags,
+  playerNickname,
   panelSubtitle,
+  selectedTrack,
   vars,
 }: {
   activeOrigin: OriginProfileDefinition | null;
@@ -377,7 +400,9 @@ const ProfileTab = ({
   contacts: CharacterContactEntry[];
   debugEnabled: boolean;
   flags: Record<string, boolean>;
+  playerNickname: string | null;
   panelSubtitle: string;
+  selectedTrack: OriginTrackDefinition | null;
   vars: Record<string, number>;
 }) => {
   const dossierAccent = activeOrigin?.dossier.accentColor ?? C.brass;
@@ -408,12 +433,20 @@ const ProfileTab = ({
                   value={activeOrigin.dossier.characterName}
                 />
                 <InfoBlock
+                  label="Nickname / Login"
+                  value={playerNickname?.trim() || "Unassigned"}
+                />
+                <InfoBlock
                   label="Biometrics"
                   value={`${getGenderLabel(activeOrigin.dossier.gender)} / ${activeOrigin.dossier.age}`}
                 />
                 <InfoBlock
                   label="Origin City"
                   value={activeOrigin.dossier.cityOrigin}
+                />
+                <InfoBlock
+                  label="Specialization"
+                  value={selectedTrack?.title ?? "Undeclared"}
                 />
                 <InfoBlock label="Scenario" value={activeOrigin.scenarioId} />
               </div>
@@ -1164,6 +1197,7 @@ export const CharacterPanel = () => {
   const { identityHex } = useIdentity();
   const myFlags = usePlayerFlags();
   const myVars = usePlayerVars();
+  const [playerProfileRows] = useTable(tables.playerProfile);
   const [questRows] = useTable(tables.playerQuest);
   const [npcStateRows] = useTable(tables.playerNpcState);
   const [npcFavorRows] = useTable(tables.playerNpcFavor);
@@ -1177,6 +1211,19 @@ export const CharacterPanel = () => {
   const activeOrigin = useMemo(
     () => getOriginProfileByFlags(myFlags),
     [myFlags],
+  );
+  const selectedTrack = useMemo(
+    () => (activeOrigin ? getSelectedOriginTrack(activeOrigin, myFlags) : null),
+    [activeOrigin, myFlags],
+  );
+  const playerNickname = useMemo(
+    () =>
+      unwrapOptionalString(
+        playerProfileRows.find(
+          (row) => row.playerId.toHexString() === identityHex,
+        )?.nickname,
+      ),
+    [identityHex, playerProfileRows],
   );
 
   const activeVersion = useMemo(
@@ -1291,6 +1338,17 @@ export const CharacterPanel = () => {
     }
 
     return (socialCatalog?.npcIdentities ?? [])
+      .filter((identity) => {
+        if (!identity.introFlag) {
+          return true;
+        }
+
+        return (
+          myFlags[identity.introFlag] === true ||
+          trustByNpcId.has(identity.id) ||
+          favorByNpcId.has(identity.id)
+        );
+      })
       .map((identity) => {
         const trustPresentation = getTrustBandPresentation(
           trustByNpcId.get(identity.id) ?? 0,
@@ -1314,6 +1372,7 @@ export const CharacterPanel = () => {
       .sort((left, right) => left.displayName.localeCompare(right.displayName));
   }, [
     identityHex,
+    myFlags,
     npcFavorRows,
     npcStateRows,
     socialCatalog?.npcIdentities,
@@ -1533,7 +1592,9 @@ export const CharacterPanel = () => {
                       contacts={contactEntries}
                       debugEnabled={ENABLE_DEBUG_CONTENT_SEED}
                       flags={myFlags}
+                      playerNickname={playerNickname}
                       panelSubtitle={t.panelSubtitle}
+                      selectedTrack={selectedTrack}
                       vars={myVars}
                     />
                   </div>

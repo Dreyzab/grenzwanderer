@@ -6,10 +6,19 @@ import {
   getFavorPresentation,
   getTrustBandPresentation,
 } from "../../../shared/game/socialPresentation";
+import { getLocationCastPresentation } from "../../../shared/game/locationCastPresentation";
 import { tables } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
+import { usePlayerFlags } from "../../../entities/player/hooks/usePlayerFlags";
+import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
 import { parseSnapshot } from "../../vn/vnContent";
 import type { RuntimeMapBinding, RuntimeMapPoint } from "../types";
+import {
+  collectCaseIdsFromMapConditions,
+  findActiveHypothesisLens,
+} from "../../mindpalace/focusLens";
+import { findPrimaryInternalizedThought } from "../../mindpalace/thoughtCabinet";
+import { derivePsychogeographicNote } from "../psychogeography";
 
 type HubTab = "briefing" | "inventory" | "partners";
 
@@ -39,6 +48,8 @@ export const DetectiveHub = ({
   onClose,
 }: DetectiveHubProps) => {
   const { identityHex } = useIdentity();
+  const myFlags = usePlayerFlags();
+  const myVars = usePlayerVars();
   const [activeTab, setActiveTab] = useState<HubTab>("briefing");
   const [pendingBindingId, setPendingBindingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +77,40 @@ export const DetectiveHub = ({
       null;
     return row ? parseSnapshot(row.payloadJson) : null;
   }, [activeVersion, snapshotRows]);
+  const activeLens = useMemo(
+    () =>
+      findActiveHypothesisLens(
+        snapshot,
+        myFlags,
+        point.availableBindings.flatMap((binding) =>
+          collectCaseIdsFromMapConditions(binding.conditions),
+        ),
+      ),
+    [myFlags, point.availableBindings, snapshot],
+  );
+  const internalizedThought = useMemo(
+    () => findPrimaryInternalizedThought(snapshot, myFlags, myVars),
+    [myFlags, myVars, snapshot],
+  );
+  const psychogeographicNote = useMemo(
+    () =>
+      derivePsychogeographicNote({
+        point,
+        activeLens,
+        internalizedThought,
+        heat: myVars.heat ?? 0,
+        tension: myVars.tension ?? 0,
+        isCurrentLocation: currentLocationId === point.locationId,
+      }),
+    [
+      activeLens,
+      currentLocationId,
+      internalizedThought,
+      myVars.heat,
+      myVars.tension,
+      point,
+    ],
+  );
 
   const introCompleted = useMemo(
     () =>
@@ -135,6 +180,10 @@ export const DetectiveHub = ({
     relationshipRows,
     snapshot?.socialCatalog?.npcIdentities,
   ]);
+  const locationCast = useMemo(
+    () => getLocationCastPresentation(point.locationId),
+    [point.locationId],
+  );
 
   const agencyCareer = useMemo(
     () =>
@@ -324,6 +373,58 @@ export const DetectiveHub = ({
             </span>
           </header>
 
+          {activeLens ? (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.45rem",
+                padding: "0.5rem 0.72rem",
+                borderRadius: "999px",
+                border: "1px solid rgba(55, 123, 174, 0.18)",
+                background: "rgba(110, 181, 230, 0.12)",
+                color: "#17405b",
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.72rem",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+              }}
+            >
+              Active Lens: {activeLens.hypothesisText}
+            </div>
+          ) : null}
+
+          <section
+            style={{
+              padding: "0.9rem 0.95rem",
+              borderRadius: "0.95rem",
+              border: "1px solid rgba(59, 37, 18, 0.1)",
+              background: "rgba(255, 247, 232, 0.46)",
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                color: "#6d5744",
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.68rem",
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+              }}
+            >
+              {psychogeographicNote.title}
+            </p>
+            <p
+              style={{
+                margin: "0.35rem 0 0",
+                color: "#3f2d1f",
+                lineHeight: 1.65,
+              }}
+            >
+              {psychogeographicNote.body}
+            </p>
+          </section>
+
           <nav className="gw-map-tabs" aria-label="Hub tabs">
             {TAB_CONFIG.map((tab) => (
               <button
@@ -365,6 +466,128 @@ export const DetectiveHub = ({
                   ? "The bureau is operational. Review the latest notes, then head back into the city."
                   : "Your first briefing is still pending. Open the desk file to begin the current assignment."}
               </p>
+
+              {locationCast ? (
+                <section
+                  style={{
+                    display: "grid",
+                    gap: "0.65rem",
+                    padding: "0.85rem 0.95rem",
+                    borderRadius: "0.95rem",
+                    border: "1px solid rgba(59, 37, 18, 0.1)",
+                    background: "rgba(255, 249, 237, 0.56)",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        marginBottom: "0.25rem",
+                        color: "#6d5744",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "0.68rem",
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Duty Roster
+                    </div>
+                    <p
+                      style={{ margin: 0, color: "#3f2d1f", lineHeight: 1.55 }}
+                    >
+                      {locationCast.tone}
+                    </p>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "0.65rem",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(13rem, 1fr))",
+                    }}
+                  >
+                    <article
+                      style={{
+                        padding: "0.8rem 0.9rem",
+                        borderRadius: "0.9rem",
+                        border: "1px solid rgba(59, 37, 18, 0.1)",
+                        background: "rgba(255, 250, 241, 0.56)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          marginBottom: "0.35rem",
+                          color: "#6d5744",
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.68rem",
+                          letterSpacing: "0.14em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Scene Owner
+                      </div>
+                      <strong
+                        style={{
+                          display: "block",
+                          color: "#2d1c12",
+                          fontSize: "0.98rem",
+                        }}
+                      >
+                        {locationCast.primaryNpc.displayName}
+                      </strong>
+                      <p style={{ margin: "0.18rem 0 0", color: "#5e4632" }}>
+                        {locationCast.primaryNpc.publicRole}
+                      </p>
+                    </article>
+
+                    <article
+                      style={{
+                        padding: "0.8rem 0.9rem",
+                        borderRadius: "0.9rem",
+                        border: "1px solid rgba(59, 37, 18, 0.1)",
+                        background: "rgba(255, 250, 241, 0.56)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          marginBottom: "0.35rem",
+                          color: "#6d5744",
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.68rem",
+                          letterSpacing: "0.14em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Support Desk
+                      </div>
+                      <div style={{ display: "grid", gap: "0.4rem" }}>
+                        {locationCast.supportNpcs.map((npc) => (
+                          <div key={npc.id}>
+                            <strong
+                              style={{
+                                display: "block",
+                                color: "#2d1c12",
+                                fontSize: "0.92rem",
+                              }}
+                            >
+                              {npc.displayName}
+                            </strong>
+                            <span
+                              style={{ color: "#5e4632", fontSize: "0.88rem" }}
+                            >
+                              {npc.publicRole}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </article>
+                  </div>
+
+                  <p style={{ margin: 0, color: "#3f2d1f", lineHeight: 1.55 }}>
+                    {locationCast.dramaticFunction}
+                  </p>
+                </section>
+              ) : null}
 
               <div
                 style={{

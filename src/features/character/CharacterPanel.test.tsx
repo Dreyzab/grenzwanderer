@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   usePlayerVarsMock: vi.fn(),
   debugEnabled: false,
   tablesMock: {
+    playerProfile: Symbol("playerProfile"),
     playerQuest: Symbol("playerQuest"),
     playerNpcState: Symbol("playerNpcState"),
     playerNpcFavor: Symbol("playerNpcFavor"),
@@ -160,6 +161,24 @@ const fullSnapshot = {
         locationId: "loc_freiburg_bank",
         bindings: [],
       },
+      {
+        id: "loc_rathaus",
+        title: "Rathaus",
+        regionId: "FREIBURG_1905",
+        lat: 47.991,
+        lng: 7.851,
+        locationId: "loc_rathaus",
+        bindings: [],
+      },
+      {
+        id: "loc_workers_pub",
+        title: "The Red Cog Tavern",
+        regionId: "FREIBURG_1905",
+        lat: 47.992,
+        lng: 7.852,
+        locationId: "loc_workers_pub",
+        bindings: [],
+      },
     ],
   },
   questCatalog: [
@@ -172,6 +191,30 @@ const fullSnapshot = {
           title: "Inspect the bank",
           objectiveHint: "Visit the crime scene",
           objectivePointIds: ["loc_freiburg_bank"],
+        },
+      ],
+    },
+    {
+      id: "quest_dog",
+      title: "Dog Trail",
+      stages: [
+        {
+          stage: 1,
+          title: "Open Dog Briefing",
+          objectiveHint: "Review the mayor's dog file",
+          objectivePointIds: ["loc_rathaus"],
+        },
+      ],
+    },
+    {
+      id: "quest_ghost",
+      title: "Ghost Dossier",
+      stages: [
+        {
+          stage: 1,
+          title: "Estate Survey",
+          objectiveHint: "Pick up the ghost file from the workers' tavern",
+          objectivePointIds: ["loc_workers_pub"],
         },
       ],
     },
@@ -193,6 +236,14 @@ const fullSnapshot = {
         publicRole: "Archive clerk",
         rosterTier: "functional",
         serviceIds: ["svc_otto_archives"],
+      },
+      {
+        id: "npc_banker_kessler",
+        displayName: "Johann Kessler",
+        factionId: "financial_bloc",
+        publicRole: "Bank director",
+        rosterTier: "major",
+        introFlag: "banker_intro_seen",
       },
     ],
     services: [
@@ -257,7 +308,10 @@ describe("CharacterPanel", () => {
 
     mocks.debugEnabled = false;
     mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
-    mocks.usePlayerFlagsMock.mockReturnValue({ origin_journalist: true });
+    mocks.usePlayerFlagsMock.mockReturnValue({
+      origin_journalist: true,
+      track_whistleblower_selected: true,
+    });
     mocks.usePlayerVarsMock.mockReturnValue({
       attr_intellect: 3,
       attr_encyclopedia: 4,
@@ -278,6 +332,17 @@ describe("CharacterPanel", () => {
     mocks.parseSnapshotMock.mockReturnValue(fullSnapshot);
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
+      if (table === mocks.tablesMock.playerProfile) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              nickname: { tag: "some", value: "Operator Anna" },
+            },
+          ],
+          true,
+        ];
+      }
       if (table === mocks.tablesMock.playerQuest) {
         return [
           [{ playerId: makeIdentity("me"), questId: "quest_banker", stage: 1 }],
@@ -368,6 +433,7 @@ describe("CharacterPanel", () => {
     expect(
       screen.getByText("Services: Information, Social Introduction"),
     ).toBeInTheDocument();
+    expect(screen.queryByText("Johann Kessler")).not.toBeInTheDocument();
     expect(screen.getByText("1/3 logged")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: /Development/i }));
@@ -414,6 +480,14 @@ describe("CharacterPanel", () => {
     expect(screen.getByText("Rational Buffer")).toBeInTheDocument();
   });
 
+  it("shows player nickname separately from dossier identity and surfaces the selected track", () => {
+    render(<CharacterPanel />);
+
+    expect(screen.getByText("Arthur Vance")).toBeInTheDocument();
+    expect(screen.getByText("Operator Anna")).toBeInTheDocument();
+    expect(screen.getByText("Whistleblower")).toBeInTheDocument();
+  });
+
   it("shows empty-state copy when no quest catalog is available", () => {
     mocks.parseSnapshotMock.mockReturnValue({
       ...fullSnapshot,
@@ -430,6 +504,107 @@ describe("CharacterPanel", () => {
     expect(
       screen.getByText("Objectives become available after content publish."),
     ).toBeInTheDocument();
+  });
+
+  it("renders all three briefing-seeded cases as active journal entries", () => {
+    mocks.useTableMock.mockImplementation((table: symbol) => {
+      if (table === mocks.tablesMock.playerProfile) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              nickname: { tag: "some", value: "Operator Anna" },
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerQuest) {
+        return [
+          [
+            { playerId: makeIdentity("me"), questId: "quest_banker", stage: 1 },
+            { playerId: makeIdentity("me"), questId: "quest_dog", stage: 1 },
+            { playerId: makeIdentity("me"), questId: "quest_ghost", stage: 1 },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerNpcState) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              npcId: "npc_anna_mahler",
+              trustScore: 32,
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerNpcFavor) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              npcId: "npc_anna_mahler",
+              balance: 1,
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerFactionSignal) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              factionId: "civic_order",
+              value: 22,
+              trend: "rising",
+            },
+            {
+              playerId: makeIdentity("me"),
+              factionId: "financial_bloc",
+              value: 6,
+              trend: "stable",
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.playerAgencyCareer) {
+        return [
+          [
+            {
+              playerId: makeIdentity("me"),
+              standingScore: 18,
+              standingTrend: "rising",
+              rankId: "trainee",
+              rumorCriterionComplete: true,
+              sourceCriterionComplete: false,
+              cleanClosureCriterionComplete: false,
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.contentVersion) {
+        return [[{ checksum: "abc", isActive: true }], true];
+      }
+      if (table === mocks.tablesMock.contentSnapshot) {
+        return [[{ checksum: "abc", payloadJson: "{}" }], true];
+      }
+      return [[], true];
+    });
+
+    render(<CharacterPanel />);
+    fireEvent.click(screen.getByRole("tab", { name: /Journal/i }));
+
+    expect(screen.getAllByText("Bank Case").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Dog Trail").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Ghost Dossier").length).toBeGreaterThan(0);
+    expect(screen.getByText("Rathaus")).toBeInTheDocument();
+    expect(screen.getByText("The Red Cog Tavern")).toBeInTheDocument();
   });
 
   it("shows debug blocks only when debug content seed mode is enabled", () => {

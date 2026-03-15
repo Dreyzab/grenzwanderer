@@ -6,10 +6,19 @@ import {
   getNpcDisplayName,
   getTrustBandPresentation,
 } from "../../../shared/game/socialPresentation";
+import { getLocationCastPresentation } from "../../../shared/game/locationCastPresentation";
 import { tables } from "../../../shared/spacetime/bindings";
+import { usePlayerFlags } from "../../../entities/player/hooks/usePlayerFlags";
+import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
 import { parseSnapshot } from "../../vn/vnContent";
 import type { SocialCatalogSnapshot } from "../../vn/types";
 import type { RuntimeMapBinding, RuntimeMapPoint } from "../types";
+import {
+  collectCaseIdsFromMapConditions,
+  findActiveHypothesisLens,
+} from "../../mindpalace/focusLens";
+import { findPrimaryInternalizedThought } from "../../mindpalace/thoughtCabinet";
+import { derivePsychogeographicNote } from "../psychogeography";
 
 interface CaseCardProps {
   point: RuntimeMapPoint;
@@ -117,6 +126,8 @@ export const CaseCard = ({
 }: CaseCardProps) => {
   const [versionRows] = useTable(tables.contentVersion);
   const [snapshotRows] = useTable(tables.contentSnapshot);
+  const myFlags = usePlayerFlags();
+  const myVars = usePlayerVars();
   const titleId = useId();
   const [pendingBindingId, setPendingBindingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -138,15 +149,31 @@ export const CaseCard = ({
     () => versionRows.find((row) => row.isActive) ?? null,
     [versionRows],
   );
-  const socialCatalog = useMemo(() => {
+  const activeSnapshot = useMemo(() => {
     if (!activeVersion) {
-      return undefined;
+      return null;
     }
     const row =
       snapshotRows.find((entry) => entry.checksum === activeVersion.checksum) ??
       null;
-    return row ? parseSnapshot(row.payloadJson)?.socialCatalog : undefined;
+    return row ? parseSnapshot(row.payloadJson) : null;
   }, [activeVersion, snapshotRows]);
+  const socialCatalog = activeSnapshot?.socialCatalog;
+  const activeLens = useMemo(
+    () =>
+      findActiveHypothesisLens(
+        activeSnapshot,
+        myFlags,
+        (point.availableBindings ?? []).flatMap((binding) =>
+          collectCaseIdsFromMapConditions(binding.conditions),
+        ),
+      ),
+    [activeSnapshot, myFlags, point.availableBindings],
+  );
+  const internalizedThought = useMemo(
+    () => findPrimaryInternalizedThought(activeSnapshot, myFlags, myVars),
+    [activeSnapshot, myFlags, myVars],
+  );
   const socialRequirements = useMemo(
     () =>
       (point.bindings ?? [])
@@ -159,6 +186,29 @@ export const CaseCard = ({
   const socialCost = useMemo(
     () => describeSocialCost(primaryBinding, socialCatalog),
     [primaryBinding, socialCatalog],
+  );
+  const psychogeographicNote = useMemo(
+    () =>
+      derivePsychogeographicNote({
+        point,
+        activeLens,
+        internalizedThought,
+        heat: myVars.heat ?? 0,
+        tension: myVars.tension ?? 0,
+        isCurrentLocation,
+      }),
+    [
+      activeLens,
+      internalizedThought,
+      isCurrentLocation,
+      myVars.heat,
+      myVars.tension,
+      point,
+    ],
+  );
+  const locationCast = useMemo(
+    () => getLocationCastPresentation(point.locationId),
+    [point.locationId],
   );
   const fallbackRoute =
     point.availableBindings.find((binding) => binding.id !== primaryBinding?.id)
@@ -311,6 +361,27 @@ export const CaseCard = ({
             </span>
           </header>
 
+          {activeLens ? (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.45rem",
+                padding: "0.5rem 0.72rem",
+                borderRadius: "999px",
+                border: "1px solid rgba(55, 123, 174, 0.18)",
+                background: "rgba(110, 181, 230, 0.12)",
+                color: "#17405b",
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.72rem",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+              }}
+            >
+              Active Lens: {activeLens.hypothesisText}
+            </div>
+          ) : null}
+
           <div
             style={{
               position: "relative",
@@ -376,6 +447,184 @@ export const CaseCard = ({
           <p style={{ margin: 0, color: "#3f2d1f", lineHeight: 1.7 }}>
             {point.description ?? "Awaiting updated field notes for this site."}
           </p>
+
+          {locationCast ? (
+            <section
+              style={{
+                display: "grid",
+                gap: "0.8rem",
+                padding: "0.9rem 0.95rem",
+                borderRadius: "0.95rem",
+                border: "1px solid rgba(59, 37, 18, 0.1)",
+                background: "rgba(255, 249, 237, 0.56)",
+              }}
+            >
+              <div>
+                <p
+                  style={{
+                    margin: 0,
+                    color: "#6d5744",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.68rem",
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Local Cast
+                </p>
+                <p
+                  style={{
+                    margin: "0.35rem 0 0",
+                    color: "#3f2d1f",
+                    lineHeight: 1.65,
+                  }}
+                >
+                  {locationCast.tone}
+                </p>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gap: "0.65rem",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(14rem, 1fr))",
+                }}
+              >
+                <article
+                  style={{
+                    padding: "0.82rem 0.9rem",
+                    borderRadius: "0.9rem",
+                    border: "1px solid rgba(59, 37, 18, 0.1)",
+                    background: "rgba(255, 250, 241, 0.56)",
+                  }}
+                >
+                  <div
+                    style={{
+                      marginBottom: "0.35rem",
+                      color: "#6d5744",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.68rem",
+                      letterSpacing: "0.14em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Scene Owner
+                  </div>
+                  <strong
+                    style={{
+                      display: "block",
+                      color: "#2d1c12",
+                      fontSize: "0.98rem",
+                    }}
+                  >
+                    {locationCast.primaryNpc.displayName}
+                  </strong>
+                  <p style={{ margin: "0.2rem 0 0", color: "#5e4632" }}>
+                    {locationCast.primaryNpc.publicRole}
+                  </p>
+                  <p
+                    style={{
+                      margin: "0.45rem 0 0",
+                      color: "#3f2d1f",
+                      lineHeight: 1.55,
+                      fontSize: "0.92rem",
+                    }}
+                  >
+                    {locationCast.primaryNpc.sceneNote}
+                  </p>
+                </article>
+
+                <article
+                  style={{
+                    padding: "0.82rem 0.9rem",
+                    borderRadius: "0.9rem",
+                    border: "1px solid rgba(59, 37, 18, 0.1)",
+                    background: "rgba(255, 250, 241, 0.56)",
+                  }}
+                >
+                  <div
+                    style={{
+                      marginBottom: "0.35rem",
+                      color: "#6d5744",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.68rem",
+                      letterSpacing: "0.14em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Supporting Contacts
+                  </div>
+                  <div style={{ display: "grid", gap: "0.55rem" }}>
+                    {locationCast.supportNpcs.map((npc) => (
+                      <div key={npc.id}>
+                        <strong
+                          style={{
+                            display: "block",
+                            color: "#2d1c12",
+                            fontSize: "0.94rem",
+                          }}
+                        >
+                          {npc.displayName}
+                        </strong>
+                        <p style={{ margin: "0.18rem 0 0", color: "#5e4632" }}>
+                          {npc.publicRole}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              </div>
+
+              <div>
+                <div
+                  style={{
+                    marginBottom: "0.25rem",
+                    color: "#6d5744",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.68rem",
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Dramatic Function
+                </div>
+                <p style={{ margin: 0, color: "#2d1c12", lineHeight: 1.55 }}>
+                  {locationCast.dramaticFunction}
+                </p>
+              </div>
+            </section>
+          ) : null}
+
+          <section
+            style={{
+              padding: "0.9rem 0.95rem",
+              borderRadius: "0.95rem",
+              border: "1px solid rgba(59, 37, 18, 0.1)",
+              background: "rgba(255, 247, 232, 0.46)",
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                color: "#6d5744",
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.68rem",
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+              }}
+            >
+              {psychogeographicNote.title}
+            </p>
+            <p
+              style={{
+                margin: "0.35rem 0 0",
+                color: "#3f2d1f",
+                lineHeight: 1.65,
+              }}
+            >
+              {psychogeographicNote.body}
+            </p>
+          </section>
 
           <dl
             style={{

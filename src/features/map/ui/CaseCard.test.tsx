@@ -7,6 +7,8 @@ import { CaseCard } from "./CaseCard";
 const mocks = vi.hoisted(() => ({
   useTableMock: vi.fn(),
   parseSnapshotMock: vi.fn(),
+  usePlayerFlagsMock: vi.fn(),
+  usePlayerVarsMock: vi.fn(),
   tablesMock: {
     contentVersion: Symbol("contentVersion"),
     contentSnapshot: Symbol("contentSnapshot"),
@@ -23,6 +25,14 @@ vi.mock("../../../shared/spacetime/bindings", () => ({
 
 vi.mock("../../vn/vnContent", () => ({
   parseSnapshot: (...args: unknown[]) => mocks.parseSnapshotMock(...args),
+}));
+
+vi.mock("../../../entities/player/hooks/usePlayerFlags", () => ({
+  usePlayerFlags: () => mocks.usePlayerFlagsMock(),
+}));
+
+vi.mock("../../../entities/player/hooks/usePlayerVars", () => ({
+  usePlayerVars: () => mocks.usePlayerVarsMock(),
 }));
 
 const basePoint: RuntimeMapPoint = {
@@ -174,6 +184,8 @@ describe("CaseCard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.parseSnapshotMock.mockReturnValue(socialSnapshot);
+    mocks.usePlayerFlagsMock.mockReturnValue({});
+    mocks.usePlayerVarsMock.mockReturnValue({});
     mocks.useTableMock.mockImplementation((table: symbol) => {
       if (table === mocks.tablesMock.contentVersion) {
         return [[{ checksum: "abc", isActive: true }], true];
@@ -213,6 +225,11 @@ describe("CaseCard", () => {
     expect(screen.getByText(/owe Baroness Elise a favor/i)).toBeInTheDocument();
     expect(screen.getByText("Fallback Route")).toBeInTheDocument();
     expect(screen.getByText("Archive route")).toBeInTheDocument();
+    expect(screen.getByText("Local Cast")).toBeInTheDocument();
+    expect(screen.getByText("Johann Kessler")).toBeInTheDocument();
+    expect(screen.getByText("Irmgard Vetter")).toBeInTheDocument();
+    expect(screen.getByText("Scene Owner")).toBeInTheDocument();
+    expect(screen.getByText("Supporting Contacts")).toBeInTheDocument();
   });
 
   it("shows reducer-derived error on failed action", async () => {

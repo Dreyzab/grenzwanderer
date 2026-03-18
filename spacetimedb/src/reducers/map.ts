@@ -497,6 +497,8 @@ export const redeem_map_code = spacetimedb.reducer(
         requestId,
         redeemedAt: ctx.timestamp,
         result: "already_redeemed",
+        attemptedFromLat: undefined,
+        attemptedFromLng: undefined,
       });
       emitTelemetry(ctx, "map_code_rejected", {
         requestId,
@@ -521,6 +523,8 @@ export const redeem_map_code = spacetimedb.reducer(
         requestId,
         redeemedAt: ctx.timestamp,
         result: "blocked_flags",
+        attemptedFromLat: undefined,
+        attemptedFromLng: undefined,
       });
       emitTelemetry(ctx, "map_code_rejected", {
         requestId,
@@ -560,6 +564,8 @@ export const redeem_map_code = spacetimedb.reducer(
       requestId,
       redeemedAt: ctx.timestamp,
       result: queuedAfterBriefing ? "queued_after_briefing" : "applied",
+      attemptedFromLat: undefined,
+      attemptedFromLng: undefined,
     });
 
     emitTelemetry(ctx, "map_code_redeemed", {

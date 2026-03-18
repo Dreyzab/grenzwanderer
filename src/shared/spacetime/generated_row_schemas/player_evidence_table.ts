@@ -10,8 +10,9 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default {
-  currentTab: __t.string(),
-  appVersion: __t.string(),
-  buildCommit: __t.string(),
-};
+export default __t.row({
+  evidenceKey: __t.string().primaryKey().name("evidence_key"),
+  playerId: __t.identity().name("player_id"),
+  evidenceId: __t.string().name("evidence_id"),
+  discoveredAt: __t.timestamp().name("discovered_at"),
+});

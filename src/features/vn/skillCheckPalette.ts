@@ -59,11 +59,13 @@ const PALETTE_BY_VOICE: Record<string, SkillCheckVoicePalette> = {
   },
 };
 
-export const formatSkillCheckVoiceLabel = (voiceId: string): string =>
-  voiceId
+export const formatSkillCheckVoiceLabel = (voiceId: string): string => {
+  if (voiceId === "attr_social") return "Charisma";
+  return voiceId
     .replace(/^attr_/, "")
     .replace(/_/g, " ")
     .replace(/\b\w/g, (entry) => entry.toUpperCase());
+};
 
 export const getSkillCheckVoicePalette = (
   voiceId: string,

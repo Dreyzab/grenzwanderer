@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type { DbConnection } from "../src/module_bindings";
+import { DbConnection } from "../src/shared/spacetime/bindings";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,8 +56,39 @@ export const persistOperatorToken = (
   writeFileSync(tokenPath, `${token}\n`, "utf8");
 };
 
+export const connectOperatorConnection = async (
+  host: string,
+  database: string,
+  token: string | undefined = getOperatorToken(host, database),
+): Promise<DbConnection> =>
+  new Promise<DbConnection>((resolve, reject) => {
+    let settled = false;
+    const builder = DbConnection.builder()
+      .withUri(host)
+      .withDatabaseName(database);
+    if (token) {
+      builder.withToken(token);
+    }
+
+    builder
+      .onConnect((conn, _identity, nextToken) => {
+        persistOperatorToken(host, database, nextToken);
+        settled = true;
+        resolve(conn);
+      })
+      .onConnectError((_ctx, error) => {
+        reject(error);
+      })
+      .onDisconnect((_ctx, error) => {
+        if (!settled && error) {
+          reject(error);
+        }
+      })
+      .build();
+  });
+
 export const ensureAdminAccess = async (conn: DbConnection): Promise<void> => {
-  await conn.reducers.bootstrapAdminIdentity({});
+  await conn.reducers.assertAdminAccess({});
 };
 
 export const ensureWorkerAccess = async (conn: DbConnection): Promise<void> => {

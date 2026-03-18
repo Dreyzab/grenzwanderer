@@ -10,7 +10,9 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default {
-  requestId: __t.string(),
-  thoughtId: __t.string(),
-};
+export default __t.row({
+  unlockKey: __t.string().primaryKey().name("unlock_key"),
+  playerId: __t.identity().name("player_id"),
+  groupId: __t.string().name("group_id"),
+  unlockedAt: __t.timestamp().name("unlocked_at"),
+});

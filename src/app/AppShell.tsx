@@ -4,17 +4,17 @@ import { APP_BUILD_TIMESTAMP, APP_COMMIT_SHA, APP_VERSION } from "../config";
 import { useFactDiscoveryToast } from "../features/mindpalace/useFactDiscoveryToast";
 import { useHypothesisRewardToast } from "../features/mindpalace/useHypothesisRewardToast";
 import { useMindPalaceReadiness } from "../features/mindpalace/useMindPalaceReadiness";
-import { CharacterPage } from "../pages/CharacterPage";
 import { BattlePage } from "../pages/BattlePage";
+import { CharacterPage } from "../pages/CharacterPage";
 import { CommandPage } from "../pages/CommandPage";
-import { DevPage } from "../pages/DevPage";
 import { HomePage } from "../pages/HomePage";
 import { MapPage } from "../pages/MapPage";
 import { MindPalacePage } from "../pages/MindPalacePage";
 import { VnPage } from "../pages/VnPage";
-import { tables } from "../shared/spacetime/bindings";
 import { ToastProvider } from "../shared/hooks/useToast";
+import { tables } from "../shared/spacetime/bindings";
 import { useIdentity } from "../shared/spacetime/useIdentity";
+import { usePresenceHeartbeat } from "../shared/spacetime/usePresenceHeartbeat";
 import { Toaster } from "../shared/ui/Toaster";
 import { Navbar } from "../widgets/navbar/Navbar";
 import "./AppShell.css";
@@ -25,7 +25,6 @@ type TabId =
   | "character"
   | "map"
   | "mind_palace"
-  | "dev"
   | "command"
   | "battle";
 type MapPanelId = "qr";
@@ -36,7 +35,6 @@ const allTabs: TabId[] = [
   "character",
   "map",
   "mind_palace",
-  "dev",
   "command",
   "battle",
 ];
@@ -48,7 +46,6 @@ const tabs: Array<{ id: TabId; label: string }> = [
   { id: "battle", label: "Duel" },
   { id: "character", label: "Dossier" },
   { id: "mind_palace", label: "Scan" },
-  { id: "dev", label: "Debug" },
 ];
 
 const isTabId = (value: string | null): value is TabId =>
@@ -170,7 +167,9 @@ const AppShell = () => {
       return;
     }
 
-    if (activeCommandSessionKeyRef.current === activeCommandSession.sessionKey) {
+    if (
+      activeCommandSessionKeyRef.current === activeCommandSession.sessionKey
+    ) {
       return;
     }
 
@@ -213,7 +212,10 @@ const AppShell = () => {
   const renderTab = (tab: TabId) => {
     if (tab === "home") {
       return (
-        <HomePage onNavigate={navigateToTab} onOpenVnScenario={openVnScenario} />
+        <HomePage
+          onNavigate={navigateToTab}
+          onOpenVnScenario={openVnScenario}
+        />
       );
     }
 
@@ -233,10 +235,7 @@ const AppShell = () => {
 
     if (tab === "map") {
       return (
-        <MapPage
-          onOpenVnScenario={openVnScenario}
-          initialPanel={mapPanel}
-        />
+        <MapPage onOpenVnScenario={openVnScenario} initialPanel={mapPanel} />
       );
     }
 
@@ -246,10 +245,6 @@ const AppShell = () => {
 
     if (tab === "battle") {
       return <BattlePage onNavigateTab={setActiveTab} />;
-    }
-
-    if (tab === "dev") {
-      return <DevPage />;
     }
 
     return <MindPalacePage />;
@@ -267,13 +262,10 @@ const AppShell = () => {
   return (
     <ToastProvider>
       <Toaster />
-        <AppShellInner
-          activeTab={activeTab}
-          setActiveTab={navigateToTab}
-          vnScenarioId={vnScenarioId}
-          setVnScenarioId={setVnScenarioId}
+      <AppShellInner
+        activeTab={activeTab}
+        setActiveTab={navigateToTab}
         statusText={statusText}
-        openVnScenario={openVnScenario}
         renderTab={renderTab}
       />
     </ToastProvider>
@@ -283,10 +275,7 @@ const AppShell = () => {
 interface AppShellInnerProps {
   activeTab: TabId;
   setActiveTab: (tab: TabId, options?: { mapPanel?: MapPanelId }) => void;
-  vnScenarioId: string | undefined;
-  setVnScenarioId: (id: string | undefined) => void;
   statusText: string;
-  openVnScenario: (scenarioId: string) => void;
   renderTab: (tab: TabId) => React.ReactNode;
 }
 
@@ -298,6 +287,7 @@ const AppShellInner = ({
 }: AppShellInnerProps) => {
   useFactDiscoveryToast();
   useHypothesisRewardToast();
+  usePresenceHeartbeat(activeTab);
   const { hasReadyHypotheses } = useMindPalaceReadiness();
   const isHomeTab = activeTab === "home";
   const isMapTab = activeTab === "map";

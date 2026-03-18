@@ -31,25 +31,6 @@ export const AiRequest = __t.object("AiRequest", {
 });
 export type AiRequest = __Infer<typeof AiRequest>;
 
-export const AuditCleanupSchedule = __t.object("AuditCleanupSchedule", {
-  scheduledId: __t.u64(),
-  scheduledAt: __t.scheduleAt(),
-});
-export type AuditCleanupSchedule = __Infer<typeof AuditCleanupSchedule>;
-
-export const AuditLog = __t.object("AuditLog", {
-  auditId: __t.u64(),
-  actorIdentity: __t.identity(),
-  actorRole: __t.string(),
-  action: __t.string(),
-  subjectType: __t.string(),
-  subjectId: __t.string(),
-  summary: __t.string(),
-  detailsJson: __t.string(),
-  createdAt: __t.timestamp(),
-});
-export type AuditLog = __Infer<typeof AuditLog>;
-
 export const BattleCardInstance = __t.object("BattleCardInstance", {
   cardInstanceKey: __t.string(),
   sessionKey: __t.string(),
@@ -253,21 +234,6 @@ export const MindHypothesis = __t.object("MindHypothesis", {
 });
 export type MindHypothesis = __Infer<typeof MindHypothesis>;
 
-export const OpsExternalMetric = __t.object("OpsExternalMetric", {
-  metricKey: __t.string(),
-  label: __t.string(),
-  source: __t.string(),
-  status: __t.string(),
-  summary: __t.string(),
-  value: __t.f64(),
-  hasValue: __t.bool(),
-  unit: __t.string(),
-  linkUrl: __t.string(),
-  observedAt: __t.timestamp(),
-  updatedAt: __t.timestamp(),
-});
-export type OpsExternalMetric = __Infer<typeof OpsExternalMetric>;
-
 export const PlayerAgencyCareer = __t.object("PlayerAgencyCareer", {
   playerId: __t.identity(),
   standingScore: __t.f64(),
@@ -391,15 +357,6 @@ export const PlayerNpcState = __t.object("PlayerNpcState", {
 });
 export type PlayerNpcState = __Infer<typeof PlayerNpcState>;
 
-export const PlayerPresence = __t.object("PlayerPresence", {
-  playerId: __t.identity(),
-  currentTab: __t.string(),
-  appVersion: __t.string(),
-  buildCommit: __t.string(),
-  lastSeenAt: __t.timestamp(),
-});
-export type PlayerPresence = __Infer<typeof PlayerPresence>;
-
 export const PlayerProfile = __t.object("PlayerProfile", {
   playerId: __t.identity(),
   nickname: __t.option(__t.string()),
@@ -466,12 +423,6 @@ export const PlayerVar = __t.object("PlayerVar", {
   updatedAt: __t.timestamp(),
 });
 export type PlayerVar = __Infer<typeof PlayerVar>;
-
-export const PresenceCleanupSchedule = __t.object("PresenceCleanupSchedule", {
-  scheduledId: __t.u64(),
-  scheduledAt: __t.scheduleAt(),
-});
-export type PresenceCleanupSchedule = __Infer<typeof PresenceCleanupSchedule>;
 
 export const TelemetryAggregate = __t.object("TelemetryAggregate", {
   aggregateKey: __t.string(),

@@ -10,13 +10,12 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default {
-  metricKey: __t.string(),
-  label: __t.string(),
-  source: __t.string(),
+export default __t.row({
+  playerCaseKey: __t.string().primaryKey().name("player_case_key"),
+  playerId: __t.identity().name("player_id"),
+  caseId: __t.string().name("case_id"),
   status: __t.string(),
-  summary: __t.string(),
-  value: __t.option(__t.f64()),
-  unit: __t.option(__t.string()),
-  linkUrl: __t.option(__t.string()),
-};
+  startedAt: __t.timestamp().name("started_at"),
+  completedAt: __t.option(__t.timestamp()).name("completed_at"),
+  updatedAt: __t.timestamp().name("updated_at"),
+});

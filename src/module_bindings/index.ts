@@ -53,7 +53,6 @@ import GrantAdminIdentityReducer from "./grant_admin_identity_reducer";
 import GrantEvidenceReducer from "./grant_evidence_reducer";
 import GrantItemReducer from "./grant_item_reducer";
 import GrantXpReducer from "./grant_xp_reducer";
-import HeartbeatPresenceReducer from "./heartbeat_presence_reducer";
 import IssueCommandReducer from "./issue_command_reducer";
 import MapInteractReducer from "./map_interact_reducer";
 import OpenBattleModeReducer from "./open_battle_mode_reducer";
@@ -61,7 +60,6 @@ import OpenCommandModeReducer from "./open_command_mode_reducer";
 import PerformSkillCheckReducer from "./perform_skill_check_reducer";
 import PlayBattleCardReducer from "./play_battle_card_reducer";
 import PublishContentReducer from "./publish_content_reducer";
-import PurgeMindThoughtReducer from "./purge_mind_thought_reducer";
 import RecordChoiceReducer from "./record_choice_reducer";
 import RecordServiceCriterionReducer from "./record_service_criterion_reducer";
 import RedeemMapCodeReducer from "./redeem_map_code_reducer";
@@ -75,12 +73,10 @@ import SetNicknameReducer from "./set_nickname_reducer";
 import SetQuestStageReducer from "./set_quest_stage_reducer";
 import SetVarReducer from "./set_var_reducer";
 import StartMindCaseReducer from "./start_mind_case_reducer";
-import StartMindThoughtResearchReducer from "./start_mind_thought_research_reducer";
 import StartScenarioReducer from "./start_scenario_reducer";
 import TrackEventReducer from "./track_event_reducer";
 import TravelToReducer from "./travel_to_reducer";
 import UnlockGroupReducer from "./unlock_group_reducer";
-import UpsertOpsExternalMetricReducer from "./upsert_ops_external_metric_reducer";
 import ValidateHypothesisReducer from "./validate_hypothesis_reducer";
 import VerifyRumorReducer from "./verify_rumor_reducer";
 
@@ -88,7 +84,6 @@ import VerifyRumorReducer from "./verify_rumor_reducer";
 
 // Import all table schema definitions
 import AiRequestRow from "./ai_request_table";
-import AuditLogRow from "./audit_log_table";
 import BattleCardInstanceRow from "./battle_card_instance_table";
 import BattleCombatantRow from "./battle_combatant_table";
 import BattleHistoryRow from "./battle_history_table";
@@ -102,7 +97,6 @@ import IdempotencyLogRow from "./idempotency_log_table";
 import MindCaseRow from "./mind_case_table";
 import MindFactRow from "./mind_fact_table";
 import MindHypothesisRow from "./mind_hypothesis_table";
-import OpsExternalMetricRow from "./ops_external_metric_table";
 import PlayerAgencyCareerRow from "./player_agency_career_table";
 import PlayerEvidenceRow from "./player_evidence_table";
 import PlayerFactionSignalRow from "./player_faction_signal_table";
@@ -115,7 +109,6 @@ import PlayerMindFactRow from "./player_mind_fact_table";
 import PlayerMindHypothesisRow from "./player_mind_hypothesis_table";
 import PlayerNpcFavorRow from "./player_npc_favor_table";
 import PlayerNpcStateRow from "./player_npc_state_table";
-import PlayerPresenceRow from "./player_presence_table";
 import PlayerProfileRow from "./player_profile_table";
 import PlayerQuestRow from "./player_quest_table";
 import PlayerRedeemedCodeRow from "./player_redeemed_code_table";
@@ -153,26 +146,6 @@ const tablesSchema = __schema({
       { name: 'ai_request_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, AiRequestRow),
-  auditLog: __table({
-    name: 'audit_log',
-    indexes: [
-      { name: 'audit_log_action', algorithm: 'btree', columns: [
-        'action',
-      ] },
-      { name: 'audit_log_actor_identity', algorithm: 'btree', columns: [
-        'actorIdentity',
-      ] },
-      { name: 'auditId', algorithm: 'btree', columns: [
-        'auditId',
-      ] },
-      { name: 'audit_log_created_at', algorithm: 'btree', columns: [
-        'createdAt',
-      ] },
-    ],
-    constraints: [
-      { name: 'audit_log_audit_id_key', constraint: 'unique', columns: ['auditId'] },
-    ],
-  }, AuditLogRow),
   battleCardInstance: __table({
     name: 'battle_card_instance',
     indexes: [
@@ -412,23 +385,6 @@ const tablesSchema = __schema({
       { name: 'mind_hypothesis_hypothesis_id_key', constraint: 'unique', columns: ['hypothesisId'] },
     ],
   }, MindHypothesisRow),
-  opsExternalMetric: __table({
-    name: 'ops_external_metric',
-    indexes: [
-      { name: 'metricKey', algorithm: 'btree', columns: [
-        'metricKey',
-      ] },
-      { name: 'ops_external_metric_status', algorithm: 'btree', columns: [
-        'status',
-      ] },
-      { name: 'ops_external_metric_updated_at', algorithm: 'btree', columns: [
-        'updatedAt',
-      ] },
-    ],
-    constraints: [
-      { name: 'ops_external_metric_metric_key_key', constraint: 'unique', columns: ['metricKey'] },
-    ],
-  }, OpsExternalMetricRow),
   playerAgencyCareer: __table({
     name: 'player_agency_career',
     indexes: [
@@ -642,23 +598,6 @@ const tablesSchema = __schema({
       { name: 'player_npc_state_npc_state_key_key', constraint: 'unique', columns: ['npcStateKey'] },
     ],
   }, PlayerNpcStateRow),
-  playerPresence: __table({
-    name: 'player_presence',
-    indexes: [
-      { name: 'player_presence_current_tab', algorithm: 'btree', columns: [
-        'currentTab',
-      ] },
-      { name: 'player_presence_last_seen_at', algorithm: 'btree', columns: [
-        'lastSeenAt',
-      ] },
-      { name: 'playerId', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-    ],
-    constraints: [
-      { name: 'player_presence_player_id_key', constraint: 'unique', columns: ['playerId'] },
-    ],
-  }, PlayerPresenceRow),
   playerProfile: __table({
     name: 'player_profile',
     indexes: [
@@ -889,7 +828,6 @@ const reducersSchema = __reducers(
   __reducerSchema("grant_evidence", GrantEvidenceReducer),
   __reducerSchema("grant_item", GrantItemReducer),
   __reducerSchema("grant_xp", GrantXpReducer),
-  __reducerSchema("heartbeat_presence", HeartbeatPresenceReducer),
   __reducerSchema("issue_command", IssueCommandReducer),
   __reducerSchema("map_interact", MapInteractReducer),
   __reducerSchema("open_battle_mode", OpenBattleModeReducer),
@@ -897,7 +835,6 @@ const reducersSchema = __reducers(
   __reducerSchema("perform_skill_check", PerformSkillCheckReducer),
   __reducerSchema("play_battle_card", PlayBattleCardReducer),
   __reducerSchema("publish_content", PublishContentReducer),
-  __reducerSchema("purge_mind_thought", PurgeMindThoughtReducer),
   __reducerSchema("record_choice", RecordChoiceReducer),
   __reducerSchema("record_service_criterion", RecordServiceCriterionReducer),
   __reducerSchema("redeem_map_code", RedeemMapCodeReducer),
@@ -911,12 +848,10 @@ const reducersSchema = __reducers(
   __reducerSchema("set_quest_stage", SetQuestStageReducer),
   __reducerSchema("set_var", SetVarReducer),
   __reducerSchema("start_mind_case", StartMindCaseReducer),
-  __reducerSchema("start_mind_thought_research", StartMindThoughtResearchReducer),
   __reducerSchema("start_scenario", StartScenarioReducer),
   __reducerSchema("track_event", TrackEventReducer),
   __reducerSchema("travel_to", TravelToReducer),
   __reducerSchema("unlock_group", UnlockGroupReducer),
-  __reducerSchema("upsert_ops_external_metric", UpsertOpsExternalMetricReducer),
   __reducerSchema("validate_hypothesis", ValidateHypothesisReducer),
   __reducerSchema("verify_rumor", VerifyRumorReducer),
 );
@@ -987,3 +922,14 @@ for (const [key, table] of Object.entries(REMOTE_MODULE.tables)) {
     (table as any).sourceName = toSnakeCase(key);
 }
 // -------------------------------------------------
+
+export {
+  __DbConnectionBuilder,
+  __DbConnectionImpl,
+  __SubscriptionBuilderImpl,
+  __convertToAccessorMap,
+  __makeQueryBuilder,
+  __schema,
+  __t,
+  __table,
+};

@@ -11,9 +11,9 @@ import {
 } from "spacetimedb";
 
 export default __t.row({
-  playerId: __t.identity().primaryKey().name("player_id"),
-  currentTab: __t.string().name("current_tab"),
-  appVersion: __t.string().name("app_version"),
-  buildCommit: __t.string().name("build_commit"),
-  lastSeenAt: __t.timestamp().name("last_seen_at"),
+  varId: __t.string().primaryKey().name("var_id"),
+  playerId: __t.identity().name("player_id"),
+  key: __t.string(),
+  floatValue: __t.f64().name("float_value"),
+  updatedAt: __t.timestamp().name("updated_at"),
 });

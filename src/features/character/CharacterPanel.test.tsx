@@ -85,6 +85,7 @@ vi.mock("recharts", async () => {
 
 vi.mock("spacetimedb/react", () => ({
   useTable: (...args: unknown[]) => mocks.useTableMock(...args),
+  useReducer: () => vi.fn(),
 }));
 
 vi.mock("../../shared/spacetime/useIdentity", () => ({
@@ -93,6 +94,9 @@ vi.mock("../../shared/spacetime/useIdentity", () => ({
 
 vi.mock("../../shared/spacetime/bindings", () => ({
   tables: mocks.tablesMock,
+  reducers: {
+    startScenario: Symbol("startScenario"),
+  },
 }));
 
 vi.mock("../vn/vnContent", () => ({
@@ -310,7 +314,7 @@ describe("CharacterPanel", () => {
     mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
     mocks.usePlayerFlagsMock.mockReturnValue({
       origin_journalist: true,
-      track_whistleblower_selected: true,
+      track_whistleblower_tier1: true,
     });
     mocks.usePlayerVarsMock.mockReturnValue({
       attr_intellect: 3,

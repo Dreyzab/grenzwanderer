@@ -1,4 +1,4 @@
-import type { DbConnection } from "../src/module_bindings";
+import { DbConnection } from "../src/shared/spacetime/bindings";
 
 const CARD_PRIORITY = new Map<string, number>([
   ["Press the Advantage", 0],
@@ -17,8 +17,8 @@ const toTimestampMicros = (value: unknown): number => {
     value &&
     typeof value === "object" &&
     "microsSinceUnixEpoch" in value &&
-    typeof (value as { microsSinceUnixEpoch?: unknown }).microsSinceUnixEpoch !==
-      "undefined"
+    typeof (value as { microsSinceUnixEpoch?: unknown })
+      .microsSinceUnixEpoch !== "undefined"
   ) {
     const micros = (value as { microsSinceUnixEpoch: number | bigint })
       .microsSinceUnixEpoch;
@@ -144,7 +144,8 @@ const selectBestPlayableHandCard = (
   }
 
   return playable.sort((left, right) => {
-    const leftPriority = CARD_PRIORITY.get(left.label) ?? Number.MAX_SAFE_INTEGER;
+    const leftPriority =
+      CARD_PRIORITY.get(left.label) ?? Number.MAX_SAFE_INTEGER;
     const rightPriority =
       CARD_PRIORITY.get(right.label) ?? Number.MAX_SAFE_INTEGER;
 

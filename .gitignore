@@ -4,6 +4,7 @@ node_modules/
 # build artifacts
 dist/
 spacetimedb/dist/
+spacetimedb/src/generated/
 
 # local env
 .env

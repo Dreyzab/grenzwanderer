@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type { DbConnection } from "../src/module_bindings";
+import { DbConnection } from "../src/shared/spacetime/bindings";
 import { ensureAdminAccess } from "./spacetime-operator";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -150,15 +150,15 @@ export const subscribeSocialTables = async (
       .subscriptionBuilder()
       .onApplied(() => resolve())
       .subscribe([
-        "SELECT * FROM player_flag",
-        "SELECT * FROM player_unlock_group",
-        "SELECT * FROM player_map_event",
-        "SELECT * FROM player_npc_favor",
-        "SELECT * FROM player_agency_career",
-        "SELECT * FROM player_rumor_state",
-        "SELECT * FROM player_quest",
-        "SELECT * FROM player_location",
-        "SELECT * FROM vn_session",
+        "SELECT * FROM my_player_flags",
+        "SELECT * FROM my_unlock_groups",
+        "SELECT * FROM my_map_events",
+        "SELECT * FROM my_npc_favors",
+        "SELECT * FROM my_agency_career",
+        "SELECT * FROM my_rumor_state",
+        "SELECT * FROM my_quests",
+        "SELECT * FROM my_player_location",
+        "SELECT * FROM my_vn_sessions",
       ]);
   });
 

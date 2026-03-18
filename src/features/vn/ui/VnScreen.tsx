@@ -36,10 +36,7 @@ import {
   type VnChoiceEvaluationContext,
 } from "../vnContent";
 import { formatSkillCheckVoiceLabel } from "../skillCheckPalette";
-import {
-  formatVoiceEnsembleRoles,
-  getVoiceProfile,
-} from "../voiceRegistry";
+import { formatVoiceEnsembleRoles, getVoiceProfile } from "../voiceRegistry";
 import type { VnChoice, VnScenario, VnSnapshot } from "../types";
 import { VnChoiceButton } from "./VnChoiceButton";
 import {
@@ -596,7 +593,7 @@ export const VnScreen = ({
         ) && timestampMicros(entry.createdAt) >= context.resultCreatedAtMicros
       );
     },
-    [aiRequests],
+    [],
   );
 
   const enqueueResolvedSkillAiThought = useCallback(
@@ -632,7 +629,9 @@ export const VnScreen = ({
         return;
       }
 
-      if (myAiRequests.some((entry) => aiRequestMatchesContext(entry, context))) {
+      if (
+        myAiRequests.some((entry) => aiRequestMatchesContext(entry, context))
+      ) {
         enqueuedAiThoughtKeysRef.current.add(thoughtKey);
         return;
       }
@@ -656,10 +655,9 @@ export const VnScreen = ({
             difficulty: matchedResult.difficulty,
             voiceLevel: matchedResult.voiceLevel,
             locationName: pending.frozen.locationName,
-            characterName:
-              targetNode?.characterId
-                ? formatSpeaker(targetNode.characterId, snapshot)
-                : pending.frozen.characterName,
+            characterName: targetNode?.characterId
+              ? formatSpeaker(targetNode.characterId, snapshot)
+              : pending.frozen.characterName,
             narrativeText: targetNode
               ? normalizeBody(targetNode.body)
               : pending.frozen.narrativeText,
@@ -1628,7 +1626,9 @@ export const VnScreen = ({
       ? activeAiThoughtStatus
       : null;
   const activeResolveAiText =
-    activeResolveAiStatus === "completed" ? activeAiThoughtResponse?.text : null;
+    activeResolveAiStatus === "completed"
+      ? activeAiThoughtResponse?.text
+      : null;
 
   const handleSurfaceTap = () => {
     if (handleActiveResolveInteraction()) {

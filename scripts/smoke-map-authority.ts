@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { DbConnection } from "../src/module_bindings";
+import { DbConnection } from "../src/shared/spacetime/bindings";
 import {
   ensureAdminAccess,
   getOperatorToken,
@@ -194,9 +194,9 @@ const runSmoke = async () =>
               .subscriptionBuilder()
               .onApplied(() => resolveSync())
               .subscribe([
-                "SELECT * FROM player_location",
-                "SELECT * FROM player_flag",
-                "SELECT * FROM vn_session",
+                "SELECT * FROM my_player_location",
+                "SELECT * FROM my_player_flags",
+                "SELECT * FROM my_vn_sessions",
               ]);
           });
 

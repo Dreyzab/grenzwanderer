@@ -1,4 +1,4 @@
-import { DbConnection } from "../src/module_bindings";
+import { DbConnection } from "../src/shared/spacetime/bindings";
 import {
   createRequestIdFactory,
   ensureBriefingReady,

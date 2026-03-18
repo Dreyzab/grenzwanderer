@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("spacetimedb/react", () => ({
   useTable: (...args: unknown[]) => mocks.useTableMock(...args),
+  useReducer: () => vi.fn(),
 }));
 
 vi.mock("../../../shared/spacetime/useIdentity", () => ({
@@ -30,6 +31,9 @@ vi.mock("../../../shared/spacetime/useIdentity", () => ({
 
 vi.mock("../../../shared/spacetime/bindings", () => ({
   tables: mocks.tablesMock,
+  reducers: {
+    startScenario: Symbol("startScenario"),
+  },
 }));
 
 vi.mock("../../vn/vnContent", () => ({

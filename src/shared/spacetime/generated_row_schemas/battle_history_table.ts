@@ -11,13 +11,11 @@ import {
 } from "spacetimedb";
 
 export default __t.row({
-  auditId: __t.u64().primaryKey().name("audit_id"),
-  actorIdentity: __t.identity().name("actor_identity"),
-  actorRole: __t.string().name("actor_role"),
-  action: __t.string(),
-  subjectType: __t.string().name("subject_type"),
-  subjectId: __t.string().name("subject_id"),
-  summary: __t.string(),
-  detailsJson: __t.string().name("details_json"),
+  historyKey: __t.string().primaryKey().name("history_key"),
+  sessionKey: __t.string().name("session_key"),
+  playerId: __t.identity().name("player_id"),
+  turnCount: __t.u32().name("turn_count"),
+  entryType: __t.string().name("entry_type"),
+  message: __t.string(),
   createdAt: __t.timestamp().name("created_at"),
 });

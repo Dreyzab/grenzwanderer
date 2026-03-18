@@ -422,9 +422,7 @@ const isMindHypothesis = (value: unknown): value is MindHypothesisContent =>
   value.rewardEffects.every(isEffect);
 
 const isMindThoughtState = (value: unknown): value is MindThoughtState =>
-  value === "available" ||
-  value === "researching" ||
-  value === "internalized";
+  value === "available" || value === "researching" || value === "internalized";
 
 const isMindThought = (value: unknown): value is MindThoughtContent =>
   isObject(value) &&
@@ -1646,7 +1644,8 @@ const evaluateChoiceCondition = (
   if (condition.type === "thought_state_is") {
     if (condition.state === "internalized") {
       return (
-        flags[createMindThoughtInternalizedFlagKey(condition.thoughtId)] ?? false
+        flags[createMindThoughtInternalizedFlagKey(condition.thoughtId)] ??
+        false
       );
     }
     if (condition.state === "researching") {
@@ -1654,7 +1653,9 @@ const evaluateChoiceCondition = (
         flags[createMindThoughtResearchingFlagKey(condition.thoughtId)] ?? false
       );
     }
-    return flags[createMindThoughtUnlockedFlagKey(condition.thoughtId)] ?? false;
+    return (
+      flags[createMindThoughtUnlockedFlagKey(condition.thoughtId)] ?? false
+    );
   }
   if (condition.type === "career_rank_gte") {
     const currentRankId = context?.careerRankId;

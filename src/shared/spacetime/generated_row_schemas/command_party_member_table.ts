@@ -11,15 +11,15 @@ import {
 } from "spacetimedb";
 
 export default __t.row({
-  metricKey: __t.string().primaryKey().name("metric_key"),
+  memberKey: __t.string().primaryKey().name("member_key"),
+  sessionKey: __t.string().name("session_key"),
+  playerId: __t.identity().name("player_id"),
+  actorId: __t.string().name("actor_id"),
   label: __t.string(),
-  source: __t.string(),
-  status: __t.string(),
-  summary: __t.string(),
-  value: __t.f64(),
-  hasValue: __t.bool().name("has_value"),
-  unit: __t.string(),
-  linkUrl: __t.string().name("link_url"),
-  observedAt: __t.timestamp().name("observed_at"),
+  role: __t.string(),
+  availability: __t.string(),
+  trust: __t.f64(),
+  notes: __t.option(__t.string()),
+  sortOrder: __t.u32().name("sort_order"),
   updatedAt: __t.timestamp().name("updated_at"),
 });

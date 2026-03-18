@@ -13,6 +13,5 @@ import {
 export default {
   requestId: __t.string(),
   profileId: __t.string(),
-  selectedTrackId: __t.string(),
   resetProgress: __t.bool(),
 };

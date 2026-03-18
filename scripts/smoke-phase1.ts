@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { DbConnection } from "../src/module_bindings";
+import { DbConnection } from "../src/shared/spacetime/bindings";
 import {
   ensureAdminAccess,
   ensureWorkerAccess,
@@ -160,7 +160,7 @@ const runSmoke = async () =>
             conn
               .subscriptionBuilder()
               .onApplied(() => resolveSync())
-              .subscribe(["SELECT * FROM ai_request"]);
+              .subscribe(["SELECT * FROM my_ai_requests"]);
           });
           await conn.reducers.publishContent({
             requestId: request("publish"),

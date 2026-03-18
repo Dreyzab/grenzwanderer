@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { DbConnection } from "../src/module_bindings";
+import { DbConnection } from "../src/shared/spacetime/bindings";
 import {
   ensureAdminAccess,
   getOperatorToken,
@@ -86,9 +86,9 @@ const runSmoke = async () =>
               .subscriptionBuilder()
               .onApplied(() => resolveSync())
               .subscribe([
-                "SELECT * FROM player_flag",
-                "SELECT * FROM player_mind_fact",
-                "SELECT * FROM player_mind_hypothesis",
+                "SELECT * FROM my_player_flags",
+                "SELECT * FROM my_mind_facts",
+                "SELECT * FROM my_mind_hypotheses",
               ]);
           });
 

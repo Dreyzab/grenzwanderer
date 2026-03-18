@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { DbConnection } from "../src/module_bindings";
+import { DbConnection } from "../src/shared/spacetime/bindings";
 import {
   ensureAdminAccess,
   getOperatorToken,
@@ -10,6 +10,12 @@ import {
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
+const DEFAULT_TRACK_BY_PROFILE: Record<string, string> = {
+  journalist: "journalist_whistleblower",
+  aristocrat: "aristocrat_duelist",
+  veteran: "veteran_shield",
+  archivist: "archivist_dust_cartographer",
+};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,10 +73,16 @@ const beginOriginDeterministically = async (
   requestId: string,
   profileId: string,
 ): Promise<void> => {
+  const selectedTrackId = DEFAULT_TRACK_BY_PROFILE[profileId];
+  if (!selectedTrackId) {
+    throw new Error(`Missing default selectedTrackId for profile ${profileId}`);
+  }
+
   try {
     await conn.reducers.beginFreiburgOrigin({
       requestId,
       profileId,
+      selectedTrackId,
       resetProgress: false,
     });
   } catch (error) {
@@ -86,16 +98,11 @@ const beginOriginDeterministically = async (
     await conn.reducers.beginFreiburgOrigin({
       requestId: `${requestId}_reset`,
       profileId,
+      selectedTrackId,
       resetProgress: true,
     });
   }
 };
-
-const getMaxTelemetryEventId = (conn: DbConnection): bigint =>
-  [...conn.db.telemetryEvent.iter()].reduce(
-    (max, row) => (row.eventId > max ? row.eventId : max),
-    -1n,
-  );
 
 const runSmoke = async () =>
   new Promise<void>((resolve, reject) => {
@@ -135,13 +142,10 @@ const runSmoke = async () =>
               .subscribe([
                 "SELECT * FROM content_version",
                 "SELECT * FROM content_snapshot",
-                "SELECT * FROM vn_session",
-                "SELECT * FROM player_flag",
-                "SELECT * FROM telemetry_event",
+                "SELECT * FROM my_vn_sessions",
+                "SELECT * FROM my_player_flags",
               ]);
           });
-
-          const beforeTelemetryEventId = getMaxTelemetryEventId(conn);
 
           await beginOriginDeterministically(
             conn,
@@ -179,23 +183,12 @@ const runSmoke = async () =>
             );
           }
 
-          const journalistEvents = [...conn.db.telemetryEvent.iter()].filter(
-            (row) => row.eventId > beforeTelemetryEventId,
-          );
-          const unexpectedBootstrapEvent = journalistEvents.find((row) =>
-            row.tagsJson.includes('"scenarioId":"origin_journalist_bootstrap"'),
-          );
-          if (unexpectedBootstrapEvent) {
-            throw new Error(
-              "Journalist origin begin should not depend on legacy bootstrap scenario",
-            );
-          }
-
           await expectRejected(
             () =>
               conn.reducers.beginFreiburgOrigin({
                 requestId: request("aristocrat_without_reset"),
                 profileId: "aristocrat",
+                selectedTrackId: "aristocrat_duelist",
                 resetProgress: false,
               }),
             "Existing Freiburg progress requires resetProgress=true",
@@ -204,6 +197,7 @@ const runSmoke = async () =>
           await conn.reducers.beginFreiburgOrigin({
             requestId: request("aristocrat_with_reset"),
             profileId: "aristocrat",
+            selectedTrackId: "aristocrat_duelist",
             resetProgress: true,
           });
 

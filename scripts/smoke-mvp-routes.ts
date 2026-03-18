@@ -1,8 +1,8 @@
-﻿import { createHash } from "node:crypto";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { DbConnection } from "../src/module_bindings";
+import { DbConnection } from "../src/shared/spacetime/bindings";
 import {
   closeBattleIfOpen,
   getCurrentBattleSession,
@@ -202,13 +202,13 @@ const runSmoke = async () =>
               .subscriptionBuilder()
               .onApplied(() => resolveSync())
               .subscribe([
-                "SELECT * FROM battle_session",
-                "SELECT * FROM battle_combatant",
-                "SELECT * FROM battle_card_instance",
-                "SELECT * FROM player_quest",
-                "SELECT * FROM player_flag",
-                "SELECT * FROM player_var",
-                "SELECT * FROM vn_session",
+                "SELECT * FROM my_battle_sessions",
+                "SELECT * FROM my_battle_combatants",
+                "SELECT * FROM my_battle_cards",
+                "SELECT * FROM my_quests",
+                "SELECT * FROM my_player_flags",
+                "SELECT * FROM my_player_vars",
+                "SELECT * FROM my_vn_sessions",
               ]);
           });
 

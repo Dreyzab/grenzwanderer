@@ -65,7 +65,11 @@ export const originProfiles: OriginProfileDefinition[] = [
     id: "journalist",
     choiceId: "BACKSTORY_JOURNALIST",
     originFlagKey: "origin_journalist",
-    handoffDoneFlagKeys: ["origin_journalist_handoff_done", "met_anna_intro"],
+    handoffDoneFlagKeys: [
+      "origin_journalist_handoff_done",
+      "met_anna_intro",
+      "journalist_intro_complete",
+    ],
     label: "Journalist Origin",
     summary: "Leaks, rumor networks, and pressure through publication.",
     scenarioId: "intro_journalist",
@@ -171,7 +175,8 @@ export const originProfiles: OriginProfileDefinition[] = [
       {
         id: "aristocrat_criminalist",
         title: "Criminalist",
-        description: "Reconstruct evidence and motive through cultivated perception.",
+        description:
+          "Reconstruct evidence and motive through cultivated perception.",
         progressVarKey: "track_criminalist_xp",
         tier1FlagKey: "track_criminalist_tier1",
         tier2FlagKey: "track_criminalist_tier2",
@@ -208,7 +213,8 @@ export const originProfiles: OriginProfileDefinition[] = [
       age: 25,
       gender: "female",
       cityOrigin: "Karlsruhe (Hochadel)",
-      quote: "I was taught to hold a rapier and hold a conversation. Now I learn to hold the truth.",
+      quote:
+        "I was taught to hold a rapier and hold a conversation. Now I learn to hold the truth.",
       avatarUrl: "/images/characters/aristocrat_portrait.png",
       accentColor: "#4E5D6C",
     },
@@ -247,7 +253,8 @@ export const originProfiles: OriginProfileDefinition[] = [
       {
         id: "veteran_shield",
         title: "Shield",
-        description: "Hold the line, anchor the squad, survive the worst minute.",
+        description:
+          "Hold the line, anchor the squad, survive the worst minute.",
         progressVarKey: "track_shield_xp",
         tier1FlagKey: "track_shield_tier1",
         tier2FlagKey: "track_shield_tier2",
@@ -264,7 +271,8 @@ export const originProfiles: OriginProfileDefinition[] = [
       {
         id: "veteran_hunter",
         title: "Hunter",
-        description: "Move first, vanish early, strike where the route is weakest.",
+        description:
+          "Move first, vanish early, strike where the route is weakest.",
         progressVarKey: "track_hunter_xp",
         tier1FlagKey: "track_hunter_tier1",
         tier2FlagKey: "track_hunter_tier2",
@@ -323,7 +331,8 @@ export const originProfiles: OriginProfileDefinition[] = [
       {
         id: "archivist_ledgerkeeper",
         title: "Ledgerkeeper",
-        description: "Turn civic paperwork into leverage, timing, and legal pressure.",
+        description:
+          "Turn civic paperwork into leverage, timing, and legal pressure.",
         progressVarKey: "track_ledgerkeeper_xp",
         tier1FlagKey: "track_ledgerkeeper_tier1",
         tier2FlagKey: "track_ledgerkeeper_tier2",
@@ -340,7 +349,8 @@ export const originProfiles: OriginProfileDefinition[] = [
       {
         id: "archivist_dust_cartographer",
         title: "Dust Cartographer",
-        description: "Map omissions, hidden shelves, and institutional blind spots.",
+        description:
+          "Map omissions, hidden shelves, and institutional blind spots.",
         progressVarKey: "track_dust_cartographer_xp",
         tier1FlagKey: "track_dust_cartographer_tier1",
         tier2FlagKey: "track_dust_cartographer_tier2",
@@ -410,3 +420,17 @@ export const buildOriginChoiceEffects = (
     tags: { origin: profile.id },
   },
 ];
+
+export const getSelectedOriginTrack = (
+  profile: OriginProfileDefinition,
+  flags: Record<string, boolean>,
+): OriginTrackDefinition | null =>
+  profile.tracks.find(
+    (track) => flags[track.tier1FlagKey] || flags[track.tier2FlagKey],
+  ) ?? null;
+
+export type OriginParliamentPresetId = string;
+
+export const getParliamentPresetForOrigin = (
+  profile: OriginProfileDefinition,
+): OriginParliamentPresetId => profile.id;

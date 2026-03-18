@@ -965,6 +965,16 @@ describe("vnContent runtime parsing", () => {
                 codeHash:
                   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 redeemPolicy: "once_per_player",
+                contentClass: "evidence_fragment",
+                policyTier: "once_per_player",
+                conditions: [
+                  {
+                    type: "geofence_within",
+                    lat: 47.996,
+                    lng: 7.852,
+                    radiusMeters: 60,
+                  },
+                ],
                 effects: [
                   { type: "unlock_group", groupId: "shadow_munster" },
                   { type: "spawn_map_event", templateId: "evt_whisper" },
@@ -1017,7 +1027,43 @@ describe("vnContent runtime parsing", () => {
               scenarioId: "scenario_a",
               title: "Node A",
               body: "Body",
-              choices: [],
+              voicePresenceMode: "parliament",
+              activeSpeakers: ["attr_logic", "attr_empathy"],
+              choices: [
+                {
+                  id: "choice_a",
+                  text: "Inspect the signal trace",
+                  nextNodeId: "node_a",
+                  skillCheck: {
+                    id: "check_trace",
+                    voiceId: "attr_logic",
+                    difficulty: 4,
+                    outcomeModel: "tiered",
+                    modifiers: [
+                      {
+                        source: "preparation",
+                        sourceId: "field_notes",
+                        delta: 2,
+                        condition: {
+                          type: "voice_level_gte",
+                          voiceId: "attr_logic",
+                          value: 1,
+                        },
+                      },
+                    ],
+                    onSuccessWithCost: {
+                      effects: [
+                        {
+                          type: "set_flag",
+                          key: "trace_locked",
+                          value: true,
+                        },
+                      ],
+                      costEffects: [{ type: "add_tension", amount: 1 }],
+                    },
+                  },
+                },
+              ],
             },
           ],
         }),
@@ -1027,10 +1073,28 @@ describe("vnContent runtime parsing", () => {
     expect(parsed).not.toBeNull();
     expect(parsed?.map?.shadowRoutes?.[0]?.id).toBe("route_shadow_munster");
     expect(parsed?.map?.qrCodeRegistry?.[0]?.codeId).toBe("qr_munster_gate");
+    expect(parsed?.map?.qrCodeRegistry?.[0]?.contentClass).toBe(
+      "evidence_fragment",
+    );
+    expect(parsed?.map?.qrCodeRegistry?.[0]?.policyTier).toBe(
+      "once_per_player",
+    );
+    expect(parsed?.map?.qrCodeRegistry?.[0]?.conditions?.[0]).toMatchObject({
+      type: "geofence_within",
+      radiusMeters: 60,
+    });
     expect(parsed?.map?.mapEventTemplates?.[0]?.point.category).toBe(
       "EPHEMERAL",
     );
     expect(parsed?.map?.testDefaults?.defaultEventTtlMinutes).toBe(0.02);
+    expect(parsed?.nodes[0]?.voicePresenceMode).toBe("parliament");
+    expect(parsed?.nodes[0]?.activeSpeakers).toEqual([
+      "attr_logic",
+      "attr_empathy",
+    ]);
+    expect(parsed?.nodes[0]?.choices[0]?.skillCheck?.outcomeModel).toBe(
+      "tiered",
+    );
   });
 
   it("parses mystic snapshot blocks, effects, and map metadata", () => {

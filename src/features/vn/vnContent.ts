@@ -23,17 +23,22 @@ import type {
   MindRequiredVar,
   QuestCatalogEntry,
   QuestStageContent,
+  QrContentClass,
+  QrPolicyTier,
   QrRedeemPolicy,
   RumorStateStatus,
   SightMode,
   VnChoice,
+  VnCheckModifierSource,
   VnCondition,
   VnDiceMode,
   VnEffect,
   VnNode,
+  VnOutcomeModel,
   VnScenarioCompletionRoute,
   VnScenario,
   VnSnapshot,
+  VoicePresenceMode,
 } from "./types";
 import {
   createMindThoughtInternalizedFlagKey,
@@ -52,6 +57,35 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 
 const isDiceMode = (value: unknown): value is VnDiceMode =>
   value === "d20" || value === "d10";
+
+const isVoicePresenceMode = (value: unknown): value is VoicePresenceMode =>
+  value === "text_variability" ||
+  value === "parliament" ||
+  value === "mechanical_voice";
+
+const isCheckModifierSource = (
+  value: unknown,
+): value is VnCheckModifierSource =>
+  value === "item" ||
+  value === "trait" ||
+  value === "voice_synergy" ||
+  value === "reputation" ||
+  value === "preparation";
+
+const isOutcomeModel = (value: unknown): value is VnOutcomeModel =>
+  value === "binary" || value === "tiered";
+
+const isQrContentClass = (value: unknown): value is QrContentClass =>
+  value === "full_scene" ||
+  value === "micro_event" ||
+  value === "evidence_fragment" ||
+  value === "repeatable_situation" ||
+  value === "social_node";
+
+const isQrPolicyTier = (value: unknown): value is QrPolicyTier =>
+  value === "static" ||
+  value === "once_per_player" ||
+  value === "timeboxed_otp";
 
 const isCondition = (value: unknown): value is VnCondition => {
   if (!isObject(value) || typeof value.type !== "string") {
@@ -105,6 +139,9 @@ const isCondition = (value: unknown): value is VnCondition => {
   }
   if (value.type === "career_rank_gte") {
     return typeof value.rankId === "string";
+  }
+  if (value.type === "voice_level_gte") {
+    return typeof value.voiceId === "string" && typeof value.value === "number";
   }
 
   return false;
@@ -268,13 +305,45 @@ const isSkillCheck = (value: unknown): boolean => {
   if (!isObject(value)) {
     return false;
   }
+
+  const hasModifiers =
+    value.modifiers === undefined ||
+    (Array.isArray(value.modifiers) &&
+      value.modifiers.every(
+        (modifier) =>
+          isObject(modifier) &&
+          isCheckModifierSource(modifier.source) &&
+          typeof modifier.sourceId === "string" &&
+          typeof modifier.delta === "number" &&
+          (modifier.condition === undefined || isCondition(modifier.condition)),
+      ));
+  const isOutcomeBranch = (branch: unknown): boolean =>
+    branch === undefined ||
+    (isObject(branch) &&
+      (branch.nextNodeId === undefined ||
+        typeof branch.nextNodeId === "string") &&
+      (branch.effects === undefined ||
+        (Array.isArray(branch.effects) && branch.effects.every(isEffect))));
+  const isCostBranch = (branch: unknown): boolean =>
+    isOutcomeBranch(branch) &&
+    (!isObject(branch) ||
+      branch.costEffects === undefined ||
+      (Array.isArray(branch.costEffects) &&
+        branch.costEffects.every(isEffect)));
+
   return (
     typeof value.id === "string" &&
     typeof value.voiceId === "string" &&
     typeof value.difficulty === "number" &&
     (value.isPassive === undefined || typeof value.isPassive === "boolean") &&
     (value.showChancePercent === undefined ||
-      typeof value.showChancePercent === "boolean")
+      typeof value.showChancePercent === "boolean") &&
+    hasModifiers &&
+    (value.outcomeModel === undefined || isOutcomeModel(value.outcomeModel)) &&
+    isOutcomeBranch(value.onSuccess) &&
+    isOutcomeBranch(value.onFail) &&
+    isOutcomeBranch(value.onCritical) &&
+    isCostBranch(value.onSuccessWithCost)
   );
 };
 
@@ -330,8 +399,26 @@ const isNode = (value: unknown): value is VnNode => {
     typeof value.scenarioId === "string" &&
     typeof value.title === "string" &&
     typeof value.body === "string" &&
+    (value.backgroundUrl === undefined ||
+      typeof value.backgroundUrl === "string") &&
+    (value.characterId === undefined ||
+      typeof value.characterId === "string") &&
+    (value.voicePresenceMode === undefined ||
+      isVoicePresenceMode(value.voicePresenceMode)) &&
+    (value.activeSpeakers === undefined ||
+      (Array.isArray(value.activeSpeakers) &&
+        value.activeSpeakers.every((entry) => typeof entry === "string"))) &&
+    (value.terminal === undefined || typeof value.terminal === "boolean") &&
     Array.isArray(value.choices) &&
-    value.choices.every(isChoice)
+    value.choices.every(isChoice) &&
+    (value.onEnter === undefined ||
+      (Array.isArray(value.onEnter) && value.onEnter.every(isEffect))) &&
+    (value.preconditions === undefined ||
+      (Array.isArray(value.preconditions) &&
+        value.preconditions.every(isCondition))) &&
+    (value.passiveChecks === undefined ||
+      (Array.isArray(value.passiveChecks) &&
+        value.passiveChecks.every(isSkillCheck)))
   );
 };
 
@@ -745,6 +832,13 @@ const isMapCondition = (value: unknown): value is MapCondition => {
   if (value.type === "logic_not") {
     return isMapCondition(value.condition);
   }
+  if (value.type === "geofence_within") {
+    return (
+      typeof value.lat === "number" &&
+      typeof value.lng === "number" &&
+      typeof value.radiusMeters === "number"
+    );
+  }
 
   return false;
 };
@@ -971,6 +1065,11 @@ const isMapQrCodeRegistryEntry = (
   typeof value.codeHash === "string" &&
   /^[a-f0-9]{64}$/.test(value.codeHash) &&
   isQrRedeemPolicy(value.redeemPolicy) &&
+  (value.contentClass === undefined || isQrContentClass(value.contentClass)) &&
+  (value.policyTier === undefined || isQrPolicyTier(value.policyTier)) &&
+  (value.conditions === undefined ||
+    (Array.isArray(value.conditions) &&
+      value.conditions.every((entry) => isMapCondition(entry)))) &&
   Array.isArray(value.effects) &&
   value.effects.every((entry) => isEffect(entry)) &&
   (value.requiresFlagsAll === undefined ||
@@ -1208,6 +1307,9 @@ const parseMap = (
         codeId: entry.codeId,
         codeHash: entry.codeHash,
         redeemPolicy: entry.redeemPolicy,
+        contentClass: entry.contentClass,
+        policyTier: entry.policyTier,
+        conditions: entry.conditions ? [...entry.conditions] : undefined,
         effects: entry.effects,
         requiresFlagsAll: entry.requiresFlagsAll
           ? [...entry.requiresFlagsAll]

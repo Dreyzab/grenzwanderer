@@ -905,6 +905,16 @@ const CASE_01_QR_CODE_REGISTRY: NonNullable<MapSnapshot["qrCodeRegistry"]> = [
     codeHash:
       "f910aaad92f4ffe866e78870e8ef623e8eb3fa9a0c6739d5cdf48ecf655e7a67",
     redeemPolicy: "once_per_player",
+    contentClass: "evidence_fragment",
+    policyTier: "once_per_player",
+    conditions: [
+      {
+        type: "geofence_within",
+        lat: 48.001,
+        lng: 7.838,
+        radiusMeters: 90,
+      },
+    ],
     effects: [{ type: "unlock_group", groupId: "loc_freiburg_warehouse" }],
     requiresFlagsAll: ["agency_briefing_complete"],
   },

@@ -28,6 +28,35 @@ const fixturePayload: GenerateDialoguePayload = {
   locationName: "Tailor Shop",
   characterName: "Tailor",
   narrativeText: "The room smells like steam, ink, and fear.",
+  outcomeGrade: "success",
+  voicePresenceMode: "text_variability",
+  activeSpeakers: ["attr_social"],
+  sceneResultEnvelope: {
+    source: "skill_check",
+    scenarioId: "dog_case_intro",
+    nodeId: "node_tailor_audit",
+    locationName: "Tailor Shop",
+    timestamp: 1_700_000_000_000,
+    playerState: {
+      flags: ["origin_journalist"],
+      activeQuests: [{ questId: "quest_dog", stage: 1 }],
+      voiceLevels: { attr_social: 3 },
+    },
+    checkResult: {
+      checkId: "check_tailor_pressure",
+      voiceId: "attr_social",
+      outcomeGrade: "critical",
+      margin: 5,
+      breakdown: [
+        { source: "voice", sourceId: "attr_social", delta: 3 },
+        { source: "preparation", sourceId: "tailor_dossier", delta: 2 },
+      ],
+    },
+    ensemble: {
+      presenceMode: "parliament",
+      activeSpeakers: ["attr_social", "attr_logic"],
+    },
+  },
 };
 
 const jsonResponse = (body: unknown): Response =>
@@ -226,8 +255,14 @@ describe("ai-context-builder", () => {
 
     expect(context.sceneSnapshot).toContain("Dog Case Intro");
     expect(context.sceneSnapshot).toContain("Tailor Audit");
+    expect(context.sceneSnapshot).toContain("Outcome: critical success");
+    expect(context.sceneSnapshot).toContain("Outcome margin: 5");
     expect(context.sceneSnapshot).toContain("Journalist Origin");
     expect(context.sceneSnapshot).toContain("Whistleblower");
+    expect(context.sceneSnapshot).toContain("Voice presence: parliament");
+    expect(context.sceneSnapshot).toContain(
+      "Active speakers: attr_social, attr_logic",
+    );
     expect(context.sceneSnapshot).toContain(
       "Hidden-layer status: archive verification pending",
     );

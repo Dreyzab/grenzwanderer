@@ -956,6 +956,8 @@ describe("VnScreen critical behavior", () => {
           scenarioId: "sandbox_case01_pilot",
           title: "Start",
           body: "Steam and tension hang over the tailor's counter.",
+          voicePresenceMode: "parliament",
+          activeSpeakers: ["attr_social", "attr_logic"],
           choices: [
             {
               id: "choice_probe",
@@ -1013,6 +1015,12 @@ describe("VnScreen critical behavior", () => {
         difficulty: 8,
         passed: true,
         nextNodeId: { tag: "none" },
+        breakdownJson: {
+          tag: "some",
+          value:
+            '[{"source":"voice","sourceId":"attr_social","delta":4},{"source":"preparation","sourceId":"tailor_dossier","delta":2}]',
+        },
+        outcomeGrade: { tag: "some", value: "critical" },
         createdAt: timestamp(19n),
       },
     ];
@@ -1041,6 +1049,45 @@ describe("VnScreen critical behavior", () => {
       difficulty: 8,
       voiceLevel: 4,
       locationName: "Case01",
+      outcomeGrade: "critical",
+      margin: 7,
+      voicePresenceMode: "parliament",
+      activeSpeakers: ["attr_social", "attr_logic"],
+    });
+    expect(payload.breakdown).toEqual([
+      { source: "voice", sourceId: "attr_social", delta: 4 },
+      { source: "preparation", sourceId: "tailor_dossier", delta: 2 },
+    ]);
+    expect(payload.sceneResultEnvelope).toMatchObject({
+      source: "skill_check",
+      scenarioId: "sandbox_case01_pilot",
+      nodeId: "node_start",
+      locationName: "Case01",
+      playerState: {
+        flags: [],
+        activeQuests: [],
+        voiceLevels: {
+          attr_social: 4,
+        },
+      },
+      checkResult: {
+        checkId: "check_probe",
+        voiceId: "attr_social",
+        outcomeGrade: "critical",
+        margin: 7,
+        breakdown: [
+          { source: "voice", sourceId: "attr_social", delta: 4 },
+          {
+            source: "preparation",
+            sourceId: "tailor_dossier",
+            delta: 2,
+          },
+        ],
+      },
+      ensemble: {
+        presenceMode: "parliament",
+        activeSpeakers: ["attr_social", "attr_logic"],
+      },
     });
 
     await act(async () => {
@@ -1153,7 +1200,8 @@ describe("VnScreen critical behavior", () => {
         status: "completed",
         responseJson: {
           tag: "some",
-          value: '{"text":"Push now. He is already leaning.","canonicalVoiceId":"charisma"}',
+          value:
+            '{"text":"Push now. He is already leaning.","canonicalVoiceId":"charisma"}',
         },
         error: { tag: "none" },
         createdAt: timestamp(31n),

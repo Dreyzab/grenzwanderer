@@ -1702,8 +1702,16 @@
           "skillCheck": {
             "id": "check_ghost_thermometer",
             "voiceId": "attr_intellect",
-            "difficulty": 8,
+            "difficulty": 4,
             "showChancePercent": true,
+            "outcomeModel": "tiered",
+            "modifiers": [
+              {
+                "source": "preparation",
+                "sourceId": "calibrated_thermometer",
+                "delta": 3
+              }
+            ],
             "onSuccess": {
               "effects": [
                 {
@@ -1719,6 +1727,59 @@
                 {
                   "type": "grant_evidence",
                   "evidenceId": "ev_cold_spot"
+                }
+              ]
+            },
+            "onCritical": {
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "ghost_cold_spot_confirmed",
+                  "value": true
+                },
+                {
+                  "type": "set_flag",
+                  "key": "ghost_thermometer_mastery",
+                  "value": true
+                },
+                {
+                  "type": "add_var",
+                  "key": "attr_spirit",
+                  "value": 1
+                },
+                {
+                  "type": "add_var",
+                  "key": "attr_intellect",
+                  "value": 1
+                },
+                {
+                  "type": "grant_evidence",
+                  "evidenceId": "ev_cold_spot"
+                }
+              ]
+            },
+            "onSuccessWithCost": {
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "ghost_cold_spot_confirmed",
+                  "value": true
+                },
+                {
+                  "type": "set_flag",
+                  "key": "ghost_thermometer_overreach",
+                  "value": true
+                },
+                {
+                  "type": "grant_evidence",
+                  "evidenceId": "ev_cold_spot"
+                }
+              ],
+              "costEffects": [
+                {
+                  "type": "add_var",
+                  "key": "attr_shadow",
+                  "value": 1
                 }
               ]
             },
@@ -1779,7 +1840,9 @@
           }
         }
       ],
-      "backgroundUrl": "/images/scenes/scene_evidence_collection.png"
+      "backgroundUrl": "/images/scenes/scene_evidence_collection.png",
+      "voicePresenceMode": "parliament",
+      "activeSpeakers": ["attr_intellect", "attr_perception", "attr_spirit"]
     },
     {
       "id": "scene_evidence_collection_beat1",
@@ -5202,6 +5265,16 @@
         "codeId": "qr_warehouse_dock",
         "codeHash": "f910aaad92f4ffe866e78870e8ef623e8eb3fa9a0c6739d5cdf48ecf655e7a67",
         "redeemPolicy": "once_per_player",
+        "contentClass": "evidence_fragment",
+        "policyTier": "once_per_player",
+        "conditions": [
+          {
+            "type": "geofence_within",
+            "lat": 48.001,
+            "lng": 7.838,
+            "radiusMeters": 90
+          }
+        ],
         "effects": [
           {
             "type": "unlock_group",
@@ -5446,6 +5519,6 @@
       }
     ]
   },
-  "checksum": "f660ef307fd7466bfad1da8409117e8e11d3b737615c08b21ccac50a8295c9ce",
-  "generatedAt": "2026-03-08T21:41:53.494Z"
+  "checksum": "8aa7fab79f12ac84a52758bfc1c085a22f7458fd9c9dcac86bfe147c9790e4e0",
+  "generatedAt": "2026-03-18T20:31:08.828Z"
 }

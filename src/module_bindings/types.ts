@@ -381,6 +381,8 @@ export const PlayerRedeemedCode = __t.object("PlayerRedeemedCode", {
   requestId: __t.string(),
   redeemedAt: __t.timestamp(),
   result: __t.string(),
+  attemptedFromLat: __t.option(__t.f64()),
+  attemptedFromLng: __t.option(__t.f64()),
 });
 export type PlayerRedeemedCode = __Infer<typeof PlayerRedeemedCode>;
 
@@ -478,6 +480,8 @@ export const VnSkillCheckResult = __t.object("VnSkillCheckResult", {
   difficulty: __t.u32(),
   passed: __t.bool(),
   nextNodeId: __t.option(__t.string()),
+  breakdownJson: __t.option(__t.string()),
+  outcomeGrade: __t.option(__t.string()),
   createdAt: __t.timestamp(),
 });
 export type VnSkillCheckResult = __Infer<typeof VnSkillCheckResult>;

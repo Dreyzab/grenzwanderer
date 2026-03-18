@@ -56,6 +56,8 @@ type NodeBlueprint = {
   passiveChecks?: VnSkillCheck[];
   backgroundUrl?: string;
   characterId?: string;
+  voicePresenceMode?: VnNode["voicePresenceMode"];
+  activeSpeakers?: string[];
   titleOverride?: string;
   bodyOverride?: string;
 };
@@ -1173,6 +1175,8 @@ const nodes: NodeBlueprint[] = [
     id: "scene_evidence_collection",
     backgroundUrl: "/images/scenes/scene_evidence_collection.png",
     scenarioId: "sandbox_ghost_pilot",
+    voicePresenceMode: "parliament",
+    activeSpeakers: ["attr_intellect", "attr_perception", "attr_spirit"],
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_evidence_collection.md",
     passiveChecks: [
@@ -1212,8 +1216,16 @@ const nodes: NodeBlueprint[] = [
         skillCheck: {
           id: "check_ghost_thermometer",
           voiceId: "attr_intellect",
-          difficulty: 8,
+          difficulty: 4,
           showChancePercent: true,
+          outcomeModel: "tiered",
+          modifiers: [
+            {
+              source: "preparation",
+              sourceId: "calibrated_thermometer",
+              delta: 3,
+            },
+          ],
           onSuccess: {
             effects: [
               {
@@ -1224,6 +1236,39 @@ const nodes: NodeBlueprint[] = [
               { type: "add_var", key: "attr_spirit", value: 1 },
               { type: "grant_evidence", evidenceId: "ev_cold_spot" },
             ],
+          },
+          onCritical: {
+            effects: [
+              {
+                type: "set_flag",
+                key: "ghost_cold_spot_confirmed",
+                value: true,
+              },
+              {
+                type: "set_flag",
+                key: "ghost_thermometer_mastery",
+                value: true,
+              },
+              { type: "add_var", key: "attr_spirit", value: 1 },
+              { type: "add_var", key: "attr_intellect", value: 1 },
+              { type: "grant_evidence", evidenceId: "ev_cold_spot" },
+            ],
+          },
+          onSuccessWithCost: {
+            effects: [
+              {
+                type: "set_flag",
+                key: "ghost_cold_spot_confirmed",
+                value: true,
+              },
+              {
+                type: "set_flag",
+                key: "ghost_thermometer_overreach",
+                value: true,
+              },
+              { type: "grant_evidence", evidenceId: "ev_cold_spot" },
+            ],
+            costEffects: [{ type: "add_var", key: "attr_shadow", value: 1 }],
           },
           onFail: {
             effects: [
@@ -3666,6 +3711,12 @@ const builtNodes: VnNode[] = nodesWithCase01.map((node) => {
   }
   if (node.characterId) {
     vnNode.characterId = node.characterId;
+  }
+  if (node.voicePresenceMode) {
+    vnNode.voicePresenceMode = node.voicePresenceMode;
+  }
+  if (node.activeSpeakers) {
+    vnNode.activeSpeakers = [...node.activeSpeakers];
   }
 
   return vnNode;

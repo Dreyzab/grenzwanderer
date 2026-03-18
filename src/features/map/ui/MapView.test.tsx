@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   useReducerMock: vi.fn(),
   useTableMock: vi.fn(),
   useIdentityMock: vi.fn(),
+  redeemMapCodeMock: vi.fn(),
   reducersMock: {
     mapInteract: Symbol("mapInteract"),
     redeemMapCode: Symbol("redeemMapCode"),
@@ -123,9 +124,18 @@ describe("MapView", () => {
     vi.clearAllMocks();
     setViewport(1280);
 
-    mocks.useReducerMock.mockImplementation(() =>
-      vi.fn().mockResolvedValue(undefined),
-    );
+    Object.defineProperty(window.navigator, "geolocation", {
+      configurable: true,
+      value: undefined,
+    });
+
+    mocks.redeemMapCodeMock.mockResolvedValue(undefined);
+    mocks.useReducerMock.mockImplementation((reducer: symbol) => {
+      if (reducer === mocks.reducersMock.redeemMapCode) {
+        return mocks.redeemMapCodeMock;
+      }
+      return vi.fn().mockResolvedValue(undefined);
+    });
     mocks.useTableMock.mockReturnValue([[], true]);
     mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
     mocks.useMapRuntimeStateMock.mockReturnValue({
@@ -210,5 +220,66 @@ describe("MapView", () => {
       "aria-expanded",
       "false",
     );
+  });
+
+  it("passes browser coordinates to redeemMapCode when geolocation resolves", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(window.navigator, "geolocation", {
+      configurable: true,
+      value: {
+        getCurrentPosition: vi.fn((success: PositionCallback) =>
+          success({
+            coords: {
+              latitude: 48.001,
+              longitude: 7.838,
+              accuracy: 1,
+              altitude: null,
+              altitudeAccuracy: null,
+              heading: null,
+              speed: null,
+              toJSON: () => ({}),
+            },
+            timestamp: Date.now(),
+            toJSON: () => ({}),
+          } as GeolocationPosition),
+        ),
+      },
+    });
+
+    render(<MapView initialPanel="qr" onOpenVnScenario={vi.fn()} />);
+
+    await user.type(
+      screen.getByPlaceholderText("Enter archived code"),
+      "warehouse-dock",
+    );
+    await user.click(screen.getByRole("button", { name: "Archive lead" }));
+
+    expect(mocks.redeemMapCodeMock).toHaveBeenCalledTimes(1);
+    expect(mocks.redeemMapCodeMock.mock.calls[0]?.[0]).toMatchObject({
+      code: "warehouse-dock",
+      attemptedFromLat: 48.001,
+      attemptedFromLng: 7.838,
+    });
+  });
+
+  it("shows location-required, distance, and cooldown QR errors", async () => {
+    const user = userEvent.setup();
+    render(<MapView initialPanel="qr" onOpenVnScenario={vi.fn()} />);
+
+    const input = screen.getByPlaceholderText("Enter archived code");
+    const submit = screen.getByRole("button", { name: "Archive lead" });
+    const rejections = [
+      ["code_location_required", "Location required to validate this lead."],
+      ["code_outside_geofence", "You are too far away from this lead."],
+      ["code_retry_later", "Try again shortly."],
+    ] as const;
+
+    for (const [errorMessage, expectedLabel] of rejections) {
+      mocks.redeemMapCodeMock.mockRejectedValueOnce(new Error(errorMessage));
+      await user.clear(input);
+      await user.type(input, "warehouse-dock");
+      await user.click(submit);
+      expect(await screen.findByText(expectedLabel)).toBeInTheDocument();
+    }
   });
 });

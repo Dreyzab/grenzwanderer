@@ -12,6 +12,7 @@ import {
   parseGenerateDialoguePayload,
   parseGenerateDialogueResponse,
 } from "../../ai/contracts";
+import type { SceneResultEnvelope } from "../../ai/sceneResultEnvelope";
 import {
   calculateSkillCheckSuccessPercent,
   resolveSkillCheckDiceMode,
@@ -22,10 +23,7 @@ import { resolveCompletionRoute } from "../completionRoute";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
 import { getNpcDisplayName } from "../../../shared/game/socialPresentation";
 import { reducers, tables } from "../../../shared/spacetime/bindings";
-import type {
-  VnSession,
-  VnSkillCheckResult,
-} from "../../../shared/spacetime/bindings";
+import type { VnSession } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
 import {
   getNodeById,
@@ -107,6 +105,22 @@ interface ActiveAiThoughtContext {
   choiceText: string;
   resultCreatedAtMicros: bigint;
 }
+
+type SkillCheckResultLike = {
+  resultKey: string;
+  playerId: unknown;
+  scenarioId: string;
+  nodeId: string;
+  checkId: string;
+  roll: number;
+  voiceLevel: number;
+  difficulty: number;
+  passed: boolean;
+  nextNodeId: unknown;
+  breakdownJson?: unknown;
+  outcomeGrade?: unknown;
+  createdAt: unknown;
+};
 
 type SkillCheckAiStatus = "pending" | "processing" | "completed" | "failed";
 
@@ -205,6 +219,66 @@ const hasOptionalValue = (value: unknown): boolean => {
   return true;
 };
 
+const isOutcomeGrade = (
+  value: unknown,
+): value is NonNullable<SceneResultEnvelope["checkResult"]>["outcomeGrade"] =>
+  value === "fail" ||
+  value === "success" ||
+  value === "critical" ||
+  value === "success_with_cost";
+
+const isBreakdownEntry = (
+  value: unknown,
+): value is NonNullable<
+  SceneResultEnvelope["checkResult"]
+>["breakdown"][number] => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const entry = value as Record<string, unknown>;
+  return (
+    typeof entry.source === "string" &&
+    typeof entry.sourceId === "string" &&
+    typeof entry.delta === "number" &&
+    Number.isFinite(entry.delta)
+  );
+};
+
+const resolveOutcomeGrade = (
+  value: unknown,
+  passed: boolean,
+): NonNullable<SceneResultEnvelope["checkResult"]>["outcomeGrade"] => {
+  const parsed = unwrapOptionalString(value);
+  return isOutcomeGrade(parsed) ? parsed : passed ? "success" : "fail";
+};
+
+const parseSkillCheckBreakdown = (
+  value: unknown,
+  voiceId: string,
+  voiceLevel: number,
+): NonNullable<SceneResultEnvelope["checkResult"]>["breakdown"] => {
+  const parsed = unwrapOptionalString(value);
+  if (!parsed) {
+    return [{ source: "voice", sourceId: voiceId, delta: voiceLevel }];
+  }
+
+  try {
+    const json = JSON.parse(parsed) as unknown;
+    if (Array.isArray(json) && json.every(isBreakdownEntry)) {
+      return json;
+    }
+  } catch {
+    // Fall through to the deterministic voice-only fallback.
+  }
+
+  return [{ source: "voice", sourceId: voiceId, delta: voiceLevel }];
+};
+
+const sumBreakdownDelta = (
+  breakdown: NonNullable<SceneResultEnvelope["checkResult"]>["breakdown"],
+): number => breakdown.reduce((sum, entry) => sum + entry.delta, 0);
+
 const normalizeNumeric = (value: number | bigint | null | undefined): number =>
   typeof value === "bigint" ? Number(value) : (value ?? 0);
 
@@ -245,7 +319,7 @@ const isCompletionRouteBlockedError = (message: string): boolean =>
   message.includes("Scenario start is blocked by completion route rules");
 
 const checkResultMatches = (
-  result: VnSkillCheckResult,
+  result: Pick<SkillCheckResultLike, "scenarioId" | "nodeId" | "checkId">,
   scenarioId: string,
   nodeId: string,
   checkId: string,
@@ -294,6 +368,7 @@ export const VnScreen = ({
   const [sessions, sessionsReady] = useTable(tables.vnSession);
   const [skillResults] = useTable(tables.vnSkillCheckResult);
   const [aiRequests] = useTable(tables.aiRequest);
+  const [questRows] = useTable(tables.playerQuest);
   const [npcFavorRows] = useTable(tables.playerNpcFavor);
   const [agencyCareerRows] = useTable(tables.playerAgencyCareer);
   const [rumorStateRows] = useTable(tables.playerRumorState);
@@ -566,7 +641,7 @@ export const VnScreen = ({
   const buildActiveAiThoughtContext = useCallback(
     (
       pending: AwaitingSkillChoice,
-      matchedResult: VnSkillCheckResult,
+      matchedResult: SkillCheckResultLike,
       targetNodeId: string,
     ): ActiveAiThoughtContext => ({
       scenarioId: pending.scenarioId,
@@ -597,7 +672,10 @@ export const VnScreen = ({
   );
 
   const enqueueResolvedSkillAiThought = useCallback(
-    async (pending: AwaitingSkillChoice, matchedResult: VnSkillCheckResult) => {
+    async (
+      pending: AwaitingSkillChoice,
+      matchedResult: SkillCheckResultLike,
+    ) => {
       if (!ENABLE_AI) {
         return;
       }
@@ -611,12 +689,74 @@ export const VnScreen = ({
         snapshot && targetNodeId !== pending.nodeId
           ? getNodeById(snapshot, targetNodeId)
           : currentNode;
+      const outcomeNode =
+        snapshot && nextNodeId ? getNodeById(snapshot, nextNodeId) : null;
+      const envelopeNode = outcomeNode ?? targetNode ?? currentNode;
+      const breakdown = parseSkillCheckBreakdown(
+        matchedResult.breakdownJson,
+        pending.voiceId,
+        matchedResult.voiceLevel,
+      );
+      const outcomeGrade = resolveOutcomeGrade(
+        matchedResult.outcomeGrade,
+        matchedResult.passed,
+      );
+      const margin =
+        matchedResult.roll +
+        sumBreakdownDelta(breakdown) -
+        matchedResult.difficulty;
+      const voicePresenceMode =
+        envelopeNode?.voicePresenceMode ?? "text_variability";
+      const activeSpeakers =
+        envelopeNode?.activeSpeakers && envelopeNode.activeSpeakers.length > 0
+          ? envelopeNode.activeSpeakers
+          : [pending.voiceId];
       const context = buildActiveAiThoughtContext(
         pending,
         matchedResult,
         targetNodeId,
       );
       setActiveAiThoughtContext(context);
+      const sceneResultEnvelope: SceneResultEnvelope = {
+        source: "skill_check",
+        scenarioId: pending.scenarioId,
+        nodeId: envelopeNode?.id ?? targetNodeId,
+        locationName: pending.frozen.locationName,
+        timestamp: Number(context.resultCreatedAtMicros),
+        playerState: {
+          flags: Object.entries(myFlags)
+            .filter(([, value]) => value)
+            .map(([key]) => key)
+            .sort(),
+          activeQuests: questRows
+            .map((row) => ({
+              questId: row.questId,
+              stage: normalizeNumeric(row.stage),
+            }))
+            .sort((left, right) => left.questId.localeCompare(right.questId)),
+          voiceLevels: Object.fromEntries(
+            Object.entries(myVars)
+              .filter(
+                ([key]) =>
+                  key.startsWith("attr_") ||
+                  key === pending.voiceId ||
+                  activeSpeakers.includes(key),
+              )
+              .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey)),
+          ),
+        },
+        checkResult: {
+          checkId: pending.checkId,
+          voiceId: pending.voiceId,
+          outcomeGrade,
+          margin,
+          breakdown,
+        },
+        ensemble: {
+          presenceMode: voicePresenceMode,
+          activeSpeakers,
+        },
+      };
 
       const thoughtKey = buildAiThoughtKey(
         context.scenarioId,
@@ -654,6 +794,11 @@ export const VnScreen = ({
             roll: matchedResult.roll,
             difficulty: matchedResult.difficulty,
             voiceLevel: matchedResult.voiceLevel,
+            outcomeGrade,
+            breakdown,
+            margin,
+            voicePresenceMode,
+            activeSpeakers,
             locationName: pending.frozen.locationName,
             characterName: targetNode?.characterId
               ? formatSpeaker(targetNode.characterId, snapshot)
@@ -661,6 +806,7 @@ export const VnScreen = ({
             narrativeText: targetNode
               ? normalizeBody(targetNode.body)
               : pending.frozen.narrativeText,
+            sceneResultEnvelope,
           }),
         });
       } catch (caughtError) {
@@ -681,7 +827,10 @@ export const VnScreen = ({
       buildActiveAiThoughtContext,
       currentNode,
       enqueueAiRequest,
+      myFlags,
       myAiRequests,
+      myVars,
+      questRows,
       snapshot,
     ],
   );
@@ -1080,7 +1229,7 @@ export const VnScreen = ({
   const buildResolvedSkillState = useCallback(
     (
       pending: AwaitingSkillChoice,
-      matchedResult: VnSkillCheckResult,
+      matchedResult: SkillCheckResultLike,
       phase: VnSkillCheckResolveState["phase"],
     ): VnSkillCheckResolveState => ({
       scenarioId: pending.scenarioId,
@@ -1106,7 +1255,7 @@ export const VnScreen = ({
   const hydrateExistingSkillState = useCallback(
     (
       base: VnSkillCheckResolveState,
-      matchedResult: VnSkillCheckResult,
+      matchedResult: SkillCheckResultLike,
       phase: VnSkillCheckResolveState["phase"],
     ): VnSkillCheckResolveState => ({
       ...base,
@@ -1201,7 +1350,7 @@ export const VnScreen = ({
   const runActiveSkillResolveSequence = useCallback(
     async (
       pending: AwaitingSkillChoice,
-      matchedResult: VnSkillCheckResult,
+      matchedResult: SkillCheckResultLike,
     ): Promise<void> => {
       const sequence =
         activeSkillSequenceRef.current ??
@@ -1781,7 +1930,7 @@ export const VnScreen = ({
             ) : null}
             {internalizedThought ? (
               <div className="rounded-full border border-amber-200/20 bg-amber-400/10 px-4 py-2 text-center text-[11px] uppercase tracking-[0.16em] text-amber-100">
-                Internalized Thought: {internalizedThought.promptText}
+                Internalized Thought: {internalizedThought.title}
               </div>
             ) : null}
             {showOriginCards && currentNode ? (

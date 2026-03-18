@@ -413,18 +413,46 @@ const buildSceneSnapshot = (
     activeHypothesisLabel?: string;
   },
 ): string => {
+  const envelope = payload.sceneResultEnvelope;
+  const envelopeCheckResult = envelope?.checkResult;
+  const effectiveNodeId = envelope?.nodeId ?? payload.nodeId;
   const scenario = snapshot
     ? getScenarioById(snapshot, payload.scenarioId)
     : null;
-  const node = snapshot ? getNodeById(snapshot, payload.nodeId) : null;
-  const outcome = payload.passed ? "success" : "failure";
+  const node = snapshot ? getNodeById(snapshot, effectiveNodeId) : null;
+  const outcomeGrade =
+    envelopeCheckResult?.outcomeGrade ?? payload.outcomeGrade;
+  const outcome =
+    outcomeGrade === "critical"
+      ? "critical success"
+      : outcomeGrade === "success_with_cost"
+        ? "success with cost"
+        : outcomeGrade === "fail"
+          ? "failure"
+          : payload.passed
+            ? "success"
+            : "failure";
+  const voicePresenceMode =
+    envelope?.ensemble?.presenceMode ?? payload.voicePresenceMode;
+  const activeSpeakers =
+    envelope?.ensemble?.activeSpeakers ?? payload.activeSpeakers;
   const parts = [
     `Scenario: ${scenario?.title ?? payload.scenarioId}`,
-    `Node: ${node?.title ?? payload.nodeId}`,
-    `Location: ${payload.locationName}`,
+    `Node: ${node?.title ?? effectiveNodeId}`,
+    `Location: ${envelope?.locationName ?? payload.locationName}`,
     `Speaker: ${payload.characterName?.trim() || "Narrator"}`,
     `Outcome: ${outcome}`,
   ];
+
+  if (envelopeCheckResult) {
+    parts.push(`Outcome margin: ${envelopeCheckResult.margin}`);
+  }
+  if (voicePresenceMode) {
+    parts.push(`Voice presence: ${voicePresenceMode}`);
+  }
+  if (activeSpeakers && activeSpeakers.length > 0) {
+    parts.push(`Active speakers: ${activeSpeakers.join(", ")}`);
+  }
 
   if (node?.characterId) {
     parts.push(`Character ID: ${node.characterId}`);

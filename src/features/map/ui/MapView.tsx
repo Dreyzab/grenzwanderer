@@ -37,6 +37,7 @@ interface MapViewProps {
 const MAP_VIEWPORT_HEIGHT = "calc(100dvh - env(safe-area-inset-bottom) - 4rem)";
 const COMPACT_HUD_QUERY = "(max-width: 960px)";
 const SEMANTIC_ZOOM_THRESHOLD = 14.5;
+const GEOLOCATION_TIMEOUT_MS = 2500;
 
 const createRequestId = (prefix: string, scope: string): string =>
   `${prefix}_${scope}_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`;
@@ -77,6 +78,15 @@ const mapCodeResultLabel = (result: string): string => {
   if (result === "blocked_flags") {
     return "This lead cannot be used yet.";
   }
+  if (result === "location_required") {
+    return "Location required to validate this lead.";
+  }
+  if (result === "outside_geofence") {
+    return "You are too far away from this lead.";
+  }
+  if (result === "cooldown") {
+    return "Try again shortly.";
+  }
   return "Code processed.";
 };
 
@@ -116,6 +126,60 @@ const getIsCompactHud = (): boolean => {
   }
   return window.matchMedia(COMPACT_HUD_QUERY).matches;
 };
+
+type MapCodeAttemptCoordinates = {
+  attemptedFromLat?: number;
+  attemptedFromLng?: number;
+};
+
+const resolveAttemptCoordinates =
+  async (): Promise<MapCodeAttemptCoordinates> => {
+    if (
+      typeof navigator === "undefined" ||
+      !("geolocation" in navigator) ||
+      !navigator.geolocation
+    ) {
+      return {};
+    }
+
+    return new Promise<MapCodeAttemptCoordinates>((resolve) => {
+      let settled = false;
+      const timeoutId = window.setTimeout(() => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        resolve({});
+      }, GEOLOCATION_TIMEOUT_MS);
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          window.clearTimeout(timeoutId);
+          resolve({
+            attemptedFromLat: position.coords.latitude,
+            attemptedFromLng: position.coords.longitude,
+          });
+        },
+        () => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          window.clearTimeout(timeoutId);
+          resolve({});
+        },
+        {
+          enableHighAccuracy: false,
+          maximumAge: 60_000,
+          timeout: GEOLOCATION_TIMEOUT_MS,
+        },
+      );
+    });
+  };
 
 export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
   const { identityHex } = useIdentity();
@@ -354,9 +418,12 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
     setCodeStatus(null);
 
     try {
+      const attemptCoordinates = await resolveAttemptCoordinates();
       await redeemMapCode({
         requestId,
         code: trimmedCode,
+        attemptedFromLat: attemptCoordinates.attemptedFromLat,
+        attemptedFromLng: attemptCoordinates.attemptedFromLng,
       });
       setCodeValue("");
     } catch (error) {
@@ -373,6 +440,18 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
       }
       if (message.includes("code_not_available")) {
         setCodeStatus("This lead cannot be used yet.");
+        return;
+      }
+      if (message.includes("code_location_required")) {
+        setCodeStatus("Location required to validate this lead.");
+        return;
+      }
+      if (message.includes("code_outside_geofence")) {
+        setCodeStatus("You are too far away from this lead.");
+        return;
+      }
+      if (message.includes("code_retry_later")) {
+        setCodeStatus("Try again shortly.");
         return;
       }
       setCodeStatus("Code submission failed.");

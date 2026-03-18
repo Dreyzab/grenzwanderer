@@ -157,6 +157,8 @@ export interface VnNode {
   body: string;
   backgroundUrl?: string;
   characterId?: string;
+  voicePresenceMode?: VoicePresenceMode;
+  activeSpeakers?: string[];
   terminal?: boolean;
   choices: VnChoice[];
   onEnter?: VnEffect[];
@@ -525,6 +527,7 @@ export interface MapQrCodeRegistryEntry {
   redeemPolicy: QrRedeemPolicy;
   contentClass?: QrContentClass;
   policyTier?: QrPolicyTier;
+  conditions?: MapCondition[];
   effects: VnEffect[];
   requiresFlagsAll?: string[];
   requiresBriefingBypass?: boolean;

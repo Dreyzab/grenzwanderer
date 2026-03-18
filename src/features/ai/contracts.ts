@@ -1,3 +1,8 @@
+import {
+  isValidSceneResultEnvelope,
+  type SceneResultEnvelope,
+} from "./sceneResultEnvelope";
+
 export const AI_GENERATE_DIALOGUE_KIND = "generate_dialogue";
 export const AI_GENERATE_CHARACTER_REACTION_KIND =
   "generate_character_reaction";
@@ -32,6 +37,7 @@ export interface GenerateDialoguePayload {
   margin?: number;
   voicePresenceMode?: "text_variability" | "parliament" | "mechanical_voice";
   activeSpeakers?: string[];
+  sceneResultEnvelope?: SceneResultEnvelope;
 }
 
 export interface GenerateDialogueResponse {
@@ -137,6 +143,36 @@ const isDialogueEnsemble = (value: unknown): value is DialogueEnsemble => {
   );
 };
 
+const isOutcomeGrade = (
+  value: unknown,
+): value is GenerateDialoguePayload["outcomeGrade"] =>
+  value === "fail" ||
+  value === "success" ||
+  value === "critical" ||
+  value === "success_with_cost";
+
+const isBreakdownEntry = (
+  value: unknown,
+): value is NonNullable<GenerateDialoguePayload["breakdown"]>[number] => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const entry = value as Record<string, unknown>;
+  return (
+    typeof entry.source === "string" &&
+    typeof entry.sourceId === "string" &&
+    isFiniteNumber(entry.delta)
+  );
+};
+
+const isVoicePresenceMode = (
+  value: unknown,
+): value is GenerateDialoguePayload["voicePresenceMode"] =>
+  value === "text_variability" ||
+  value === "parliament" ||
+  value === "mechanical_voice";
+
 const isSuggestedEffect = (value: unknown): value is SuggestedEffect => {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -222,7 +258,20 @@ export const isGenerateDialoguePayload = (
     (payload.characterName === undefined ||
       typeof payload.characterName === "string") &&
     typeof payload.narrativeText === "string" &&
-    (payload.ensemble === undefined || isDialogueEnsemble(payload.ensemble))
+    (payload.ensemble === undefined || isDialogueEnsemble(payload.ensemble)) &&
+    (payload.outcomeGrade === undefined ||
+      isOutcomeGrade(payload.outcomeGrade)) &&
+    (payload.breakdown === undefined ||
+      (Array.isArray(payload.breakdown) &&
+        payload.breakdown.every(isBreakdownEntry))) &&
+    (payload.margin === undefined || isFiniteNumber(payload.margin)) &&
+    (payload.voicePresenceMode === undefined ||
+      isVoicePresenceMode(payload.voicePresenceMode)) &&
+    (payload.activeSpeakers === undefined ||
+      (Array.isArray(payload.activeSpeakers) &&
+        payload.activeSpeakers.every((entry) => typeof entry === "string"))) &&
+    (payload.sceneResultEnvelope === undefined ||
+      isValidSceneResultEnvelope(payload.sceneResultEnvelope))
   );
 };
 

@@ -13,4 +13,6 @@ import {
 export default {
   requestId: __t.string(),
   code: __t.string(),
+  attemptedFromLat: __t.option(__t.f64()),
+  attemptedFromLng: __t.option(__t.f64()),
 };

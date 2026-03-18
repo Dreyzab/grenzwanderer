@@ -63,4 +63,5 @@ export type {
   VnSkillCheckCostBranch,
   VnSkillCheckOutcomeBranch,
   VnSnapshot,
+  VoicePresenceMode,
 } from "./all";

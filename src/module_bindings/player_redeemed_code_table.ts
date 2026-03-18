@@ -17,4 +17,6 @@ export default __t.row({
   requestId: __t.string().name("request_id"),
   redeemedAt: __t.timestamp().name("redeemed_at"),
   result: __t.string(),
+  attemptedFromLat: __t.option(__t.f64()).name("attempted_from_lat"),
+  attemptedFromLng: __t.option(__t.f64()).name("attempted_from_lng"),
 });

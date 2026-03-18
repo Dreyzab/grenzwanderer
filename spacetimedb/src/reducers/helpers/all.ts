@@ -148,6 +148,11 @@ export type VnOutcomeGrade =
 
 export type VnOutcomeModel = "binary" | "tiered";
 
+export type VoicePresenceMode =
+  | "text_variability"
+  | "parliament"
+  | "mechanical_voice";
+
 export interface VnSkillCheckOutcomeBranch {
   nextNodeId?: string;
   effects?: VnEffect[];
@@ -193,6 +198,8 @@ export interface VnNode {
   body: string;
   backgroundUrl?: string;
   characterId?: string;
+  voicePresenceMode?: VoicePresenceMode;
+  activeSpeakers?: string[];
   terminal?: boolean;
   choices: VnChoice[];
   onEnter?: VnEffect[];
@@ -707,6 +714,7 @@ export interface MapQrCodeRegistryEntry {
   redeemPolicy: QrRedeemPolicy;
   contentClass?: QrContentClass;
   policyTier?: QrPolicyTier;
+  conditions?: MapCondition[];
   effects: VnEffect[];
   requiresFlagsAll?: string[];
   requiresBriefingBypass?: boolean;
@@ -793,6 +801,11 @@ const asBoolean = (value: unknown, fieldName: string): boolean => {
 
 const isVnDiceMode = (value: unknown): value is VnDiceMode =>
   value === "d20" || value === "d10";
+
+const isVoicePresenceMode = (value: unknown): value is VoicePresenceMode =>
+  value === "text_variability" ||
+  value === "parliament" ||
+  value === "mechanical_voice";
 
 const isVnCondition = (value: unknown): value is VnCondition => {
   if (!value || typeof value !== "object") {
@@ -1066,10 +1079,67 @@ const isSkillCheck = (value: unknown): value is VnSkillCheck => {
   }
 
   const check = value as Record<string, unknown>;
+  const isModifierSource = (source: unknown): boolean =>
+    source === "item" ||
+    source === "trait" ||
+    source === "voice_synergy" ||
+    source === "reputation" ||
+    source === "preparation";
+  const isOutcomeModel = (model: unknown): boolean =>
+    model === "binary" || model === "tiered";
+  const isOutcomeBranch = (branch: unknown): boolean => {
+    if (branch === undefined) {
+      return true;
+    }
+    if (!branch || typeof branch !== "object") {
+      return false;
+    }
+
+    const candidate = branch as Record<string, unknown>;
+    return (
+      (candidate.nextNodeId === undefined ||
+        typeof candidate.nextNodeId === "string") &&
+      (candidate.effects === undefined ||
+        (Array.isArray(candidate.effects) &&
+          candidate.effects.every((entry: unknown) => isVnEffect(entry))))
+    );
+  };
+  const isCostBranch = (branch: unknown): boolean =>
+    isOutcomeBranch(branch) &&
+    (!branch ||
+      (() => {
+        const candidate = branch as Record<string, unknown>;
+        return (
+          candidate.costEffects === undefined ||
+          (Array.isArray(candidate.costEffects) &&
+            candidate.costEffects.every((entry: unknown) => isVnEffect(entry)))
+        );
+      })());
   return (
     typeof check.id === "string" &&
     typeof check.voiceId === "string" &&
-    typeof check.difficulty === "number"
+    typeof check.difficulty === "number" &&
+    (check.isPassive === undefined || typeof check.isPassive === "boolean") &&
+    (check.showChancePercent === undefined ||
+      typeof check.showChancePercent === "boolean") &&
+    (check.modifiers === undefined ||
+      (Array.isArray(check.modifiers) &&
+        check.modifiers.every(
+          (modifier) =>
+            !!modifier &&
+            typeof modifier === "object" &&
+            isModifierSource((modifier as Record<string, unknown>).source) &&
+            typeof (modifier as Record<string, unknown>).sourceId ===
+              "string" &&
+            typeof (modifier as Record<string, unknown>).delta === "number" &&
+            ((modifier as Record<string, unknown>).condition === undefined ||
+              isVnCondition((modifier as Record<string, unknown>).condition)),
+        ))) &&
+    (check.outcomeModel === undefined || isOutcomeModel(check.outcomeModel)) &&
+    isOutcomeBranch(check.onSuccess) &&
+    isOutcomeBranch(check.onFail) &&
+    isOutcomeBranch(check.onCritical) &&
+    isCostBranch(check.onSuccessWithCost)
   );
 };
 
@@ -1153,8 +1223,26 @@ const isNode = (value: unknown): value is VnNode => {
     typeof node.scenarioId === "string" &&
     typeof node.title === "string" &&
     typeof node.body === "string" &&
+    (node.backgroundUrl === undefined ||
+      typeof node.backgroundUrl === "string") &&
+    (node.characterId === undefined || typeof node.characterId === "string") &&
+    (node.voicePresenceMode === undefined ||
+      isVoicePresenceMode(node.voicePresenceMode)) &&
+    (node.activeSpeakers === undefined ||
+      (Array.isArray(node.activeSpeakers) &&
+        node.activeSpeakers.every((entry) => typeof entry === "string"))) &&
+    (node.terminal === undefined || typeof node.terminal === "boolean") &&
     Array.isArray(node.choices) &&
-    node.choices.every((entry) => isChoice(entry))
+    node.choices.every((entry) => isChoice(entry)) &&
+    (node.onEnter === undefined ||
+      (Array.isArray(node.onEnter) &&
+        node.onEnter.every((entry) => isVnEffect(entry)))) &&
+    (node.preconditions === undefined ||
+      (Array.isArray(node.preconditions) &&
+        node.preconditions.every((entry) => isVnCondition(entry)))) &&
+    (node.passiveChecks === undefined ||
+      (Array.isArray(node.passiveChecks) &&
+        node.passiveChecks.every((entry) => isSkillCheck(entry))))
   );
 };
 
@@ -1372,6 +1460,13 @@ const isMapCondition = (value: unknown): value is MapCondition => {
   }
   if (condition.type === "logic_not") {
     return isMapCondition(condition.condition);
+  }
+  if (condition.type === "geofence_within") {
+    return (
+      typeof condition.lat === "number" &&
+      typeof condition.lng === "number" &&
+      typeof condition.radiusMeters === "number"
+    );
   }
 
   return false;
@@ -1664,6 +1759,19 @@ const isMapQrCodeRegistryEntry = (
     typeof entry.codeHash === "string" &&
     /^[a-f0-9]{64}$/.test(entry.codeHash) &&
     isQrRedeemPolicy(entry.redeemPolicy) &&
+    (entry.contentClass === undefined ||
+      entry.contentClass === "full_scene" ||
+      entry.contentClass === "micro_event" ||
+      entry.contentClass === "evidence_fragment" ||
+      entry.contentClass === "repeatable_situation" ||
+      entry.contentClass === "social_node") &&
+    (entry.policyTier === undefined ||
+      entry.policyTier === "static" ||
+      entry.policyTier === "once_per_player" ||
+      entry.policyTier === "timeboxed_otp") &&
+    (entry.conditions === undefined ||
+      (Array.isArray(entry.conditions) &&
+        entry.conditions.every((condition) => isMapCondition(condition)))) &&
     Array.isArray(entry.effects) &&
     entry.effects.every((effect) => isVnEffect(effect)) &&
     (entry.requiresFlagsAll === undefined ||

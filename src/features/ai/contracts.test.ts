@@ -28,15 +28,86 @@ describe("ai contracts", () => {
         locationName: "Tailor Shop",
         characterName: "Tailor",
         narrativeText: "The room smells like steam, ink, and fear.",
+        outcomeGrade: "critical",
+        breakdown: [
+          { source: "voice", sourceId: "attr_social", delta: 3 },
+          { source: "preparation", sourceId: "tailor_dossier", delta: 2 },
+        ],
+        margin: 7,
+        voicePresenceMode: "parliament",
+        activeSpeakers: ["attr_social", "attr_logic"],
         ensemble: {
           mode: "duet",
           peerVoiceIds: ["attr_logic", "attr_empathy", "attr_perception"],
+        },
+        sceneResultEnvelope: {
+          source: "skill_check",
+          scenarioId: "dog_case_intro",
+          nodeId: "node_tailor_audit",
+          locationName: "Tailor Shop",
+          timestamp: 1_700_000_000_000,
+          playerState: {
+            flags: ["origin_journalist"],
+            activeQuests: [{ questId: "quest_dog", stage: 1 }],
+            voiceLevels: { attr_social: 3 },
+          },
+          checkResult: {
+            checkId: "check_tailor_pressure",
+            voiceId: "attr_social",
+            outcomeGrade: "critical",
+            margin: 7,
+            breakdown: [{ source: "voice", sourceId: "attr_social", delta: 3 }],
+          },
+          ensemble: {
+            presenceMode: "parliament",
+            activeSpeakers: ["attr_social", "attr_logic"],
+          },
         },
       }),
     );
 
     expect(payload?.ensemble?.mode).toBe("duet");
     expect(payload?.ensemble?.peerVoiceIds).toHaveLength(3);
+    expect(payload?.sceneResultEnvelope?.ensemble?.presenceMode).toBe(
+      "parliament",
+    );
+  });
+
+  it("rejects malformed scene result envelopes in dialogue payloads", () => {
+    const payload = parseGenerateDialoguePayload(
+      JSON.stringify({
+        source: AI_DIALOGUE_SOURCE_SKILL_CHECK,
+        scenarioId: "dog_case_intro",
+        nodeId: "node_tailor_audit",
+        checkId: "check_tailor_pressure",
+        choiceId: "DOG_TAILOR_AUDIT_BOOKS",
+        voiceId: "attr_social",
+        choiceText: "Lean in and make the tailor talk.",
+        passed: true,
+        roll: 14,
+        difficulty: 12,
+        voiceLevel: 3,
+        locationName: "Tailor Shop",
+        narrativeText: "The room smells like steam, ink, and fear.",
+        sceneResultEnvelope: {
+          source: "skill_check",
+          scenarioId: "dog_case_intro",
+          locationName: "Tailor Shop",
+          timestamp: 1_700_000_000_000,
+          playerState: {
+            flags: [],
+            activeQuests: [],
+            voiceLevels: {},
+          },
+          ensemble: {
+            presenceMode: "parliament",
+            activeSpeakers: "attr_social",
+          },
+        },
+      }),
+    );
+
+    expect(payload).toBeNull();
   });
 
   it("parses envelopes while keeping the base dialogue parser compatible", () => {

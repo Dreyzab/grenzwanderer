@@ -23,6 +23,30 @@ const ids = {
   gateFlag: `gate_flag_${runId}`,
 };
 
+const qrCodes = {
+  locationRequired: {
+    codeId: `qr_require_location_${runId}`,
+    code: `warehouse-loc-${runId}`,
+  },
+  cooldown: {
+    codeId: `qr_geofence_cooldown_${runId}`,
+    code: `warehouse-cooldown-${runId}`,
+  },
+  success: {
+    codeId: `qr_geofence_success_${runId}`,
+    code: `warehouse-success-${runId}`,
+  },
+};
+
+const warehouseGeofence = {
+  lat: 47.9959,
+  lng: 7.8522,
+  radiusMeters: 80,
+};
+
+const hashCode = (code: string): string =>
+  createHash("sha256").update(code, "utf8").digest("hex");
+
 const payload = {
   schemaVersion: 3,
   scenarios: [
@@ -130,6 +154,50 @@ const payload = {
         ],
       },
     ],
+    qrCodeRegistry: [
+      {
+        codeId: qrCodes.locationRequired.codeId,
+        codeHash: hashCode(qrCodes.locationRequired.code),
+        redeemPolicy: "once_per_player",
+        contentClass: "evidence_fragment",
+        policyTier: "once_per_player",
+        conditions: [{ type: "geofence_within", ...warehouseGeofence }],
+        effects: [
+          {
+            type: "unlock_group",
+            groupId: `unlock_${qrCodes.locationRequired.codeId}`,
+          },
+        ],
+      },
+      {
+        codeId: qrCodes.cooldown.codeId,
+        codeHash: hashCode(qrCodes.cooldown.code),
+        redeemPolicy: "once_per_player",
+        contentClass: "evidence_fragment",
+        policyTier: "once_per_player",
+        conditions: [{ type: "geofence_within", ...warehouseGeofence }],
+        effects: [
+          {
+            type: "unlock_group",
+            groupId: `unlock_${qrCodes.cooldown.codeId}`,
+          },
+        ],
+      },
+      {
+        codeId: qrCodes.success.codeId,
+        codeHash: hashCode(qrCodes.success.code),
+        redeemPolicy: "once_per_player",
+        contentClass: "evidence_fragment",
+        policyTier: "once_per_player",
+        conditions: [{ type: "geofence_within", ...warehouseGeofence }],
+        effects: [
+          {
+            type: "unlock_group",
+            groupId: `unlock_${qrCodes.success.codeId}`,
+          },
+        ],
+      },
+    ],
   },
 };
 
@@ -164,6 +232,19 @@ const expectRejected = async (
   }
 };
 
+const findRedeemAttempt = (
+  conn: DbConnection,
+  playerHex: string,
+  codeId: string,
+  result: string,
+) =>
+  [...conn.db.playerRedeemedCode.iter()].find(
+    (row) =>
+      row.playerId.toHexString() === playerHex &&
+      row.codeId === codeId &&
+      row.result === result,
+  );
+
 const runSmoke = async () =>
   new Promise<void>((resolve, reject) => {
     let finished = false;
@@ -180,6 +261,7 @@ const runSmoke = async () =>
           if (!identity) {
             throw new Error("Missing connection identity");
           }
+          const playerHex = identity.toHexString();
 
           await conn.reducers.publishContent({
             requestId: nextRequestId("publish"),
@@ -196,6 +278,8 @@ const runSmoke = async () =>
               .subscribe([
                 "SELECT * FROM my_player_location",
                 "SELECT * FROM my_player_flags",
+                "SELECT * FROM my_redeemed_codes",
+                "SELECT * FROM my_unlock_groups",
                 "SELECT * FROM my_vn_sessions",
               ]);
           });
@@ -267,6 +351,113 @@ const runSmoke = async () =>
               }),
             "conditions_failed",
           );
+
+          await expectRejected(
+            () =>
+              conn.reducers.redeemMapCode({
+                requestId: nextRequestId("qr_location_required"),
+                code: qrCodes.locationRequired.code,
+                attemptedFromLat: undefined,
+                attemptedFromLng: undefined,
+              }),
+            "code_location_required",
+          );
+
+          const locationRequiredAttempt = findRedeemAttempt(
+            conn,
+            playerHex,
+            qrCodes.locationRequired.codeId,
+            "location_required",
+          );
+          if (
+            !locationRequiredAttempt ||
+            locationRequiredAttempt.attemptedFromLat !== undefined ||
+            locationRequiredAttempt.attemptedFromLng !== undefined
+          ) {
+            throw new Error(
+              "redeem_map_code did not record a location_required attempt",
+            );
+          }
+
+          await expectRejected(
+            () =>
+              conn.reducers.redeemMapCode({
+                requestId: nextRequestId("qr_outside_geofence"),
+                code: qrCodes.cooldown.code,
+                attemptedFromLat: warehouseGeofence.lat + 0.02,
+                attemptedFromLng: warehouseGeofence.lng + 0.02,
+              }),
+            "code_outside_geofence",
+          );
+
+          const outsideAttempt = findRedeemAttempt(
+            conn,
+            playerHex,
+            qrCodes.cooldown.codeId,
+            "outside_geofence",
+          );
+          if (
+            !outsideAttempt ||
+            outsideAttempt.attemptedFromLat === undefined ||
+            outsideAttempt.attemptedFromLng === undefined
+          ) {
+            throw new Error(
+              "redeem_map_code did not record an outside_geofence attempt",
+            );
+          }
+
+          await expectRejected(
+            () =>
+              conn.reducers.redeemMapCode({
+                requestId: nextRequestId("qr_cooldown"),
+                code: qrCodes.cooldown.code,
+                attemptedFromLat: warehouseGeofence.lat,
+                attemptedFromLng: warehouseGeofence.lng,
+              }),
+            "code_retry_later",
+          );
+
+          const cooldownAttempt = findRedeemAttempt(
+            conn,
+            playerHex,
+            qrCodes.cooldown.codeId,
+            "cooldown",
+          );
+          if (!cooldownAttempt) {
+            throw new Error(
+              "redeem_map_code did not record a cooldown attempt",
+            );
+          }
+
+          await conn.reducers.redeemMapCode({
+            requestId: nextRequestId("qr_success"),
+            code: qrCodes.success.code,
+            attemptedFromLat: warehouseGeofence.lat,
+            attemptedFromLng: warehouseGeofence.lng,
+          });
+
+          const successAttempt = findRedeemAttempt(
+            conn,
+            playerHex,
+            qrCodes.success.codeId,
+            "applied",
+          );
+          if (!successAttempt) {
+            throw new Error(
+              "redeem_map_code did not persist the applied result",
+            );
+          }
+
+          const unlockedGroup = [...conn.db.playerUnlockGroup.iter()].find(
+            (row) =>
+              row.playerId.toHexString() === playerHex &&
+              row.groupId === `unlock_${qrCodes.success.codeId}`,
+          );
+          if (!unlockedGroup) {
+            throw new Error(
+              "redeem_map_code did not apply unlock_group after in-range redemption",
+            );
+          }
 
           finished = true;
           conn.disconnect();

@@ -21,5 +21,7 @@ export default __t.row({
   difficulty: __t.u32(),
   passed: __t.bool(),
   nextNodeId: __t.option(__t.string()).name("next_node_id"),
+  breakdownJson: __t.option(__t.string()).name("breakdown_json"),
+  outcomeGrade: __t.option(__t.string()).name("outcome_grade"),
   createdAt: __t.timestamp().name("created_at"),
 });

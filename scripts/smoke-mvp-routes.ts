@@ -108,6 +108,7 @@ type ScenarioStep = {
   nodeId: string;
   choiceId: string;
   passiveChecks?: string[];
+  activeChecks?: string[];
 };
 
 const runScenarioPath = async (
@@ -125,6 +126,15 @@ const runScenarioPath = async (
       for (const checkId of step.passiveChecks) {
         await conn.reducers.performSkillCheck({
           requestId: nextRequestId(`check_${scenarioId}_${checkId}`),
+          scenarioId,
+          checkId,
+        });
+      }
+    }
+    if (step.activeChecks) {
+      for (const checkId of step.activeChecks) {
+        await conn.reducers.performSkillCheck({
+          requestId: nextRequestId(`active_check_${scenarioId}_${checkId}`),
           scenarioId,
           checkId,
         });
@@ -172,6 +182,19 @@ const assertFlagTrue = (
   }
 };
 
+const unwrapOptionalString = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value && typeof value === "object" && "tag" in value) {
+    const tagged = value as { tag?: string; value?: unknown };
+    if (tagged.tag === "some" && typeof tagged.value === "string") {
+      return tagged.value;
+    }
+  }
+  return null;
+};
+
 const runSmoke = async () =>
   new Promise<void>((resolve, reject) => {
     let finished = false;
@@ -208,6 +231,7 @@ const runSmoke = async () =>
                 "SELECT * FROM my_quests",
                 "SELECT * FROM my_player_flags",
                 "SELECT * FROM my_player_vars",
+                "SELECT * FROM my_vn_skill_results",
                 "SELECT * FROM my_vn_sessions",
               ]);
           });
@@ -325,6 +349,15 @@ const runSmoke = async () =>
             {
               nodeId: "scene_evidence_collection",
               passiveChecks: ["check_ghost_cold_draft"],
+              activeChecks: ["check_ghost_thermometer"],
+              choiceId: "GHOST_EVIDENCE_THERMOMETER",
+            },
+            {
+              nodeId: "scene_evidence_collection_beat1",
+              choiceId: "GHOST_COLLECT_MORE",
+            },
+            {
+              nodeId: "scene_evidence_collection",
               choiceId: "GHOST_EVIDENCE_BOOKSHELF",
             },
             {
@@ -340,6 +373,42 @@ const runSmoke = async () =>
               choiceId: "GHOST_CONCLUSION_TRUE",
             },
           ]);
+
+          const ghostThermometerResult = [
+            ...conn.db.vnSkillCheckResult.iter(),
+          ].find(
+            (row) =>
+              row.playerId.toHexString() === playerHex &&
+              row.scenarioId === "sandbox_ghost_pilot" &&
+              row.checkId === "check_ghost_thermometer",
+          );
+          if (!ghostThermometerResult) {
+            throw new Error(
+              "Ghost route did not persist thermometer skill result",
+            );
+          }
+
+          const ghostOutcomeGrade = unwrapOptionalString(
+            ghostThermometerResult.outcomeGrade,
+          );
+          if (
+            ghostOutcomeGrade !== "success" &&
+            ghostOutcomeGrade !== "critical" &&
+            ghostOutcomeGrade !== "success_with_cost"
+          ) {
+            throw new Error(
+              `Unexpected ghost thermometer outcome grade: ${ghostOutcomeGrade ?? "null"}`,
+            );
+          }
+
+          const ghostBreakdownJson = unwrapOptionalString(
+            ghostThermometerResult.breakdownJson,
+          );
+          if (!ghostBreakdownJson || !ghostBreakdownJson.includes("voice")) {
+            throw new Error(
+              "Ghost thermometer result is missing deterministic breakdownJson",
+            );
+          }
 
           assertQuestStageAtLeast(conn, playerHex, "quest_banker", 3);
           assertQuestStageAtLeast(conn, playerHex, "quest_dog", 2);

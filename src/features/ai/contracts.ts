@@ -27,6 +27,11 @@ export interface GenerateDialoguePayload {
   characterName?: string;
   narrativeText: string;
   ensemble?: DialogueEnsemble;
+  outcomeGrade?: "fail" | "success" | "critical" | "success_with_cost";
+  breakdown?: { source: string; sourceId: string; delta: number }[];
+  margin?: number;
+  voicePresenceMode?: "text_variability" | "parliament" | "mechanical_voice";
+  activeSpeakers?: string[];
 }
 
 export interface GenerateDialogueResponse {

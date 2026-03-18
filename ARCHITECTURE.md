@@ -92,6 +92,18 @@ Current scope intentionally excludes production hosting and permanent preview UR
 - Runtime and governance are independent in Grenzwanderer.
 - Only the documentation bridge remains in `docs/MIGRATION_BRIDGE_DETECTIV0.md`.
 
+## Design Invariants
+
+Four architectural laws govern all content, reducers, and AI contracts.
+Full specification with violation examples and compliance checklist: `docs/INVARIANTS.md`.
+
+1. **Deterministic outcomes** – all state mutations are server-authoritative and reproducible.
+2. **Fail-forward** – no dead-ends on the critical path; failure adds cost, never a wall.
+3. **Core / presentation separation** – reducer logic and AI rendering are independent layers.
+4. **AI without agency** – AI suggests, never applies; `suggestedEffects` are display-only.
+
+PRs that touch reducers, content nodes, or AI contracts must pass the invariant compliance checklist.
+
 ## Non-Goals In This Phase
 
 - No GitHub Pages deployment.

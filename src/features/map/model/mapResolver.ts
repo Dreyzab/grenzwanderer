@@ -46,7 +46,9 @@ export const evaluateMapCondition = (
       context.careerRankId === null
         ? -1
         : (context.careerRankOrder.get(context.careerRankId) ?? -1);
-    return currentRankOrder >= (context.careerRankOrder.get(condition.rankId) ?? -1);
+    return (
+      currentRankOrder >= (context.careerRankOrder.get(condition.rankId) ?? -1)
+    );
   }
   if (condition.type === "unlock_group_has") {
     return context.unlockGroupIds.has(condition.groupId);
@@ -63,6 +65,9 @@ export const evaluateMapCondition = (
     return condition.conditions.some((entry) =>
       evaluateMapCondition(context, entry),
     );
+  }
+  if (condition.type === "geofence_within") {
+    return false;
   }
 
   return !evaluateMapCondition(context, condition.condition);

@@ -9,3 +9,4 @@ export {
   rollD20,
   rollSkillDie,
 } from "./all";
+export { resolveSkillCheckOutcome } from "./skillCheckOutcome";

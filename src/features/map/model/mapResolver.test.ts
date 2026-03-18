@@ -105,6 +105,17 @@ describe("mapResolver", () => {
     ).toBe(false);
   });
 
+  it("treats geofence conditions as false until runtime location evaluation exists", () => {
+    expect(
+      evaluateMapCondition(baseContext, {
+        type: "geofence_within",
+        lat: 47.99,
+        lng: 7.85,
+        radiusMeters: 30,
+      }),
+    ).toBe(false);
+  });
+
   it("resolves enabled bindings by priority and marks action capabilities", () => {
     const bindings = resolveAvailableBindings(
       [

@@ -175,6 +175,8 @@ export const vnSkillCheckResult = table(
     difficulty: t.u32(),
     passed: t.bool(),
     nextNodeId: t.string().optional(),
+    breakdownJson: t.string().optional(),
+    outcomeGrade: t.string().optional(),
     createdAt: t.timestamp(),
   },
 );
@@ -1171,6 +1173,8 @@ export const playerRedeemedCode = table(
     requestId: t.string(),
     redeemedAt: t.timestamp(),
     result: t.string(),
+    attemptedFromLat: t.f64().optional(),
+    attemptedFromLng: t.f64().optional(),
   },
 );
 

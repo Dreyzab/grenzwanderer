@@ -1,7 +1,8 @@
-﻿import { SenderError, t } from "spacetimedb/server";
+import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
 import {
   applyEffects,
+  areConditionsSatisfied,
   arePassiveChecksResolved,
   createSessionKey,
   createSkillCheckResultKey,
@@ -15,6 +16,7 @@ import {
   getVar,
   isChoiceAllowed,
   isNodeEntryAllowed,
+  resolveSkillCheckOutcome,
   resolveDiceMode,
   rollSkillDie,
   type VnSkillCheck,
@@ -243,10 +245,7 @@ export const perform_skill_check = spacetimedb.reducer(
       throw new SenderError("Skill check already performed");
     }
 
-    if (
-      checkOwnerChoice &&
-      !isChoiceAllowed(ctx, checkOwnerChoice)
-    ) {
+    if (checkOwnerChoice && !isChoiceAllowed(ctx, checkOwnerChoice)) {
       emitTelemetry(ctx, "transition_rejected", {
         scenarioId,
         nodeId: currentNode.id,
@@ -262,11 +261,38 @@ export const perform_skill_check = spacetimedb.reducer(
     const diceMode = resolveDiceMode(snapshot, scenarioId);
     const roll = rollSkillDie(ctx.timestamp, ctx.sender, checkId, diceMode);
     const voiceLevel = Math.floor(getVar(ctx, check.voiceId));
-    const total = roll + voiceLevel;
-    const passed = total >= check.difficulty;
 
-    // Pick outcome branch
-    const outcome = passed ? check.onSuccess : check.onFail;
+    // Resolve modifiers deterministically from player state
+    const breakdown: { source: string; sourceId: string; delta: number }[] = [
+      { source: "voice", sourceId: check.voiceId, delta: voiceLevel },
+    ];
+    let modifierTotal = 0;
+    if (check.modifiers) {
+      for (const mod of check.modifiers) {
+        const conditionsMet =
+          !mod.condition || areConditionsSatisfied(ctx, [mod.condition]);
+        if (conditionsMet) {
+          modifierTotal += mod.delta;
+          breakdown.push({
+            source: mod.source,
+            sourceId: mod.sourceId,
+            delta: mod.delta,
+          });
+        }
+      }
+    }
+
+    const total = roll + voiceLevel + modifierTotal;
+    const passed = total >= check.difficulty;
+    const margin = total - check.difficulty;
+
+    // Determine outcome grade and branch.
+    const { outcomeGrade, outcome, costEffects } = resolveSkillCheckOutcome({
+      check,
+      passed,
+      margin,
+    });
+
     const nextNodeId = outcome?.nextNodeId;
     let nextNode: ReturnType<typeof getNode> | null = null;
     if (nextNodeId) {
@@ -289,7 +315,7 @@ export const perform_skill_check = spacetimedb.reducer(
       nextNode = candidate;
     }
 
-    // Record result
+    // Record result with breakdown and outcome grade
     ctx.db.vnSkillCheckResult.insert({
       resultKey,
       playerId: ctx.sender,
@@ -301,6 +327,8 @@ export const perform_skill_check = spacetimedb.reducer(
       difficulty: check.difficulty,
       passed,
       nextNodeId,
+      breakdownJson: JSON.stringify(breakdown),
+      outcomeGrade,
       createdAt: ctx.timestamp,
     });
 
@@ -308,6 +336,14 @@ export const perform_skill_check = spacetimedb.reducer(
     if (outcome?.effects) {
       applyEffects(ctx, outcome.effects, {
         sourceType: "vn_skill_check",
+        sourceId: `${scenarioId}::${currentNode.id}::${checkId}`,
+      });
+    }
+
+    // Apply cost effects for success_with_cost
+    if (costEffects) {
+      applyEffects(ctx, costEffects, {
+        sourceType: "vn_skill_check_cost",
         sourceId: `${scenarioId}::${currentNode.id}::${checkId}`,
       });
     }
@@ -334,8 +370,11 @@ export const perform_skill_check = spacetimedb.reducer(
       voiceId: check.voiceId,
       roll,
       voiceLevel,
+      modifierTotal,
       difficulty: check.difficulty,
       passed,
+      outcomeGrade,
+      margin,
       nextNodeId: nextNodeId ?? null,
       diceMode,
       contentVersion: activeVersion.version,

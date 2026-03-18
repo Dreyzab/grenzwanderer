@@ -50,7 +50,8 @@ export type VnCondition =
   | { type: "favor_balance_gte"; npcId: string; value: number }
   | { type: "agency_standing_gte"; value: number }
   | { type: "rumor_state_is"; rumorId: string; status: RumorStateStatus }
-  | { type: "career_rank_gte"; rankId: string };
+  | { type: "career_rank_gte"; rankId: string }
+  | { type: "voice_level_gte"; voiceId: string; value: number };
 
 export type VnEffect =
   | { type: "set_flag"; key: string; value: boolean }
@@ -125,14 +126,49 @@ export type VnEffect =
 
 export type VnDiceMode = "d20" | "d10";
 
+export type VnCheckModifierSource =
+  | "item"
+  | "trait"
+  | "voice_synergy"
+  | "reputation"
+  | "preparation";
+
+export interface VnCheckModifier {
+  source: VnCheckModifierSource;
+  sourceId: string;
+  delta: number;
+  condition?: VnCondition;
+}
+
+export type VnOutcomeGrade =
+  | "fail"
+  | "success"
+  | "critical"
+  | "success_with_cost";
+
+export type VnOutcomeModel = "binary" | "tiered";
+
+export interface VnSkillCheckOutcomeBranch {
+  nextNodeId?: string;
+  effects?: VnEffect[];
+}
+
+export interface VnSkillCheckCostBranch extends VnSkillCheckOutcomeBranch {
+  costEffects?: VnEffect[];
+}
+
 export interface VnSkillCheck {
   id: string;
   voiceId: string;
   difficulty: number;
   isPassive?: boolean;
   showChancePercent?: boolean;
-  onSuccess?: { nextNodeId?: string; effects?: VnEffect[] };
-  onFail?: { nextNodeId?: string; effects?: VnEffect[] };
+  modifiers?: VnCheckModifier[];
+  outcomeModel?: VnOutcomeModel;
+  onSuccess?: VnSkillCheckOutcomeBranch;
+  onFail?: VnSkillCheckOutcomeBranch;
+  onCritical?: VnSkillCheckOutcomeBranch;
+  onSuccessWithCost?: VnSkillCheckCostBranch;
 }
 
 export interface VnChoice {
@@ -344,6 +380,13 @@ export type MapBindingTrigger =
   | "auto";
 export type MapBindingIntent = "objective" | "interaction" | "travel";
 export type QrRedeemPolicy = "once_per_player" | "repeatable";
+export type QrContentClass =
+  | "full_scene"
+  | "micro_event"
+  | "evidence_fragment"
+  | "repeatable_situation"
+  | "social_node";
+export type QrPolicyTier = "static" | "once_per_player" | "timeboxed_otp";
 
 export type MapCondition =
   | { type: "flag_is"; key: string; value: boolean }
@@ -361,7 +404,8 @@ export type MapCondition =
   | { type: "point_state_is"; state: MapPointState }
   | { type: "logic_and"; conditions: MapCondition[] }
   | { type: "logic_or"; conditions: MapCondition[] }
-  | { type: "logic_not"; condition: MapCondition };
+  | { type: "logic_not"; condition: MapCondition }
+  | { type: "geofence_within"; lat: number; lng: number; radiusMeters: number };
 
 export type MapAction =
   | { type: "start_scenario"; scenarioId: string }
@@ -661,6 +705,8 @@ export interface MapQrCodeRegistryEntry {
   codeId: string;
   codeHash: string;
   redeemPolicy: QrRedeemPolicy;
+  contentClass?: QrContentClass;
+  policyTier?: QrPolicyTier;
   effects: VnEffect[];
   requiresFlagsAll?: string[];
   requiresBriefingBypass?: boolean;
@@ -803,6 +849,12 @@ const isVnCondition = (value: unknown): value is VnCondition => {
   }
   if (condition.type === "career_rank_gte") {
     return typeof condition.rankId === "string";
+  }
+  if (condition.type === "voice_level_gte") {
+    return (
+      typeof condition.voiceId === "string" &&
+      typeof condition.value === "number"
+    );
   }
 
   return false;
@@ -3442,6 +3494,9 @@ export const areConditionsSatisfied = (
         ensureAgencyCareerRow(ctx).rankId,
       );
       return currentRankOrder >= getCareerRankOrder(ctx, condition.rankId);
+    }
+    if (condition.type === "voice_level_gte") {
+      return Math.floor(getVar(ctx, condition.voiceId)) >= condition.value;
     }
     return false;
   });

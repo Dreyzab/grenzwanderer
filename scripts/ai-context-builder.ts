@@ -829,7 +829,7 @@ export const buildSceneContext = async (
     ? getSelectedOriginTrack(activeOrigin, flags)
     : null;
   const parliamentPresetId = activeOrigin
-    ? getParliamentPresetForOrigin(activeOrigin.id)
+    ? getParliamentPresetForOrigin(activeOrigin, selectedTrack)
     : undefined;
   const occultRouteStatus = summarizeOccultRouteStatus(flags);
   const routeStep = summarizeRouteStep(payload, flags);

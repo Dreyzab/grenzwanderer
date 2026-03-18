@@ -2,7 +2,7 @@ export const findActiveHypothesisLens = (
   snapshot: any,
   flags: Record<string, boolean>,
   caseIds: string[],
-): { hypothesisText: string } | null => {
+): { caseTitle: string; hypothesisText: string } | null => {
   if (!snapshot?.mindPalace?.hypotheses) {
     return null;
   }
@@ -13,7 +13,13 @@ export const findActiveHypothesisLens = (
     }
     const flagKey = `mind_focus::${hypothesis.caseId}::${hypothesis.id}`;
     if (flags[flagKey]) {
-      return { hypothesisText: hypothesis.text };
+      const caseEntry = snapshot.mindPalace.cases?.find(
+        (c: any) => c.id === hypothesis.caseId,
+      );
+      return {
+        caseTitle: caseEntry?.title ?? hypothesis.caseId,
+        hypothesisText: hypothesis.text,
+      };
     }
   }
 

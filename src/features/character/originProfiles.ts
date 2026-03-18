@@ -12,6 +12,8 @@ export interface OriginTrackDefinition {
   progressVarKey: string;
   tier1FlagKey: string;
   tier2FlagKey: string;
+  selectedFlagKey?: string;
+  parliamentPresetId?: string;
   focus: string;
   steps: OriginTrackStepDefinition[];
   finalAbilityTitle: string;
@@ -48,6 +50,8 @@ export interface OriginProfileDefinition {
   choiceId: string;
   originFlagKey: string;
   handoffDoneFlagKeys: string[];
+  wakeupScenarioId?: string;
+  wakeupTriggerFlagKeys?: string[];
   label: string;
   summary: string;
   scenarioId: string;
@@ -65,11 +69,9 @@ export const originProfiles: OriginProfileDefinition[] = [
     id: "journalist",
     choiceId: "BACKSTORY_JOURNALIST",
     originFlagKey: "origin_journalist",
-    handoffDoneFlagKeys: [
-      "origin_journalist_handoff_done",
-      "met_anna_intro",
-      "journalist_intro_complete",
-    ],
+    handoffDoneFlagKeys: ["origin_journalist_handoff_done", "met_anna_intro"],
+    wakeupScenarioId: "journalist_agency_wakeup",
+    wakeupTriggerFlagKeys: ["journalist_intro_complete"],
     label: "Journalist Origin",
     summary: "Leaks, rumor networks, and pressure through publication.",
     scenarioId: "intro_journalist",
@@ -103,6 +105,8 @@ export const originProfiles: OriginProfileDefinition[] = [
         progressVarKey: "track_whistleblower_xp",
         tier1FlagKey: "track_whistleblower_tier1",
         tier2FlagKey: "track_whistleblower_tier2",
+        selectedFlagKey: "track_whistleblower_selected",
+        parliamentPresetId: "journalist_cityroom",
         focus: "Logic + Intrusion",
         steps: [
           { voice: "logic", requiredXp: 100 },
@@ -426,11 +430,16 @@ export const getSelectedOriginTrack = (
   flags: Record<string, boolean>,
 ): OriginTrackDefinition | null =>
   profile.tracks.find(
-    (track) => flags[track.tier1FlagKey] || flags[track.tier2FlagKey],
+    (track) =>
+      flags[track.tier1FlagKey] ||
+      flags[track.tier2FlagKey] ||
+      (track.selectedFlagKey !== undefined &&
+        Boolean(flags[track.selectedFlagKey])),
   ) ?? null;
 
 export type OriginParliamentPresetId = string;
 
 export const getParliamentPresetForOrigin = (
   profile: OriginProfileDefinition,
-): OriginParliamentPresetId => profile.id;
+  selectedTrack?: OriginTrackDefinition | null,
+): OriginParliamentPresetId => selectedTrack?.parliamentPresetId ?? profile.id;

@@ -139,6 +139,10 @@ const collectFreiburgScenarioIds = (
       scenarioIds.add(bootstrapScenario.id);
     }
 
+    if (profile.wakeupScenarioId) {
+      scenarioIds.add(profile.wakeupScenarioId);
+    }
+
     for (const scenarioId of collectDownstreamScenarioIds(
       snapshot,
       profile.scenarioId,
@@ -216,11 +220,25 @@ export const resolveFreiburgEntryTarget = (
     return { kind: "select_origin" };
   }
 
-  const handoffDone = selectedProfile.handoffDoneFlagKeys.some(
-    (flagKey) => Boolean(flags[flagKey]),
+  const handoffDone = selectedProfile.handoffDoneFlagKeys.some((flagKey) =>
+    Boolean(flags[flagKey]),
   );
   if (handoffDone) {
     return { kind: "start", scenarioId: defaultEntryScenarioId };
+  }
+
+  const wakeupTriggered =
+    selectedProfile.wakeupTriggerFlagKeys?.some((flagKey) =>
+      Boolean(flags[flagKey]),
+    ) ?? false;
+  if (wakeupTriggered && selectedProfile.wakeupScenarioId) {
+    const wakeupScenario = getScenarioById(
+      snapshot,
+      selectedProfile.wakeupScenarioId,
+    );
+    if (wakeupScenario) {
+      return { kind: "start", scenarioId: selectedProfile.wakeupScenarioId };
+    }
   }
 
   return { kind: "start", scenarioId: selectedProfile.scenarioId };

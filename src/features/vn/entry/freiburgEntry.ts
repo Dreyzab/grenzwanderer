@@ -68,8 +68,8 @@ const resolveBootstrapScenario = (
   snapshot: VnSnapshot,
   originScenarioId: string,
   originFlagKey: string,
-): VnScenario | null => {
-  const inbound = snapshot.scenarios
+): VnScenario[] =>
+  snapshot.scenarios
     .filter(
       (scenario) =>
         scenario.completionRoute?.nextScenarioId === originScenarioId,
@@ -80,9 +80,6 @@ const resolveBootstrapScenario = (
       ),
     )
     .sort((left, right) => left.id.localeCompare(right.id));
-
-  return inbound[0] ?? null;
-};
 
 const collectDownstreamScenarioIds = (
   snapshot: VnSnapshot,
@@ -113,6 +110,14 @@ const collectDownstreamScenarioIds = (
 const isOpenSession = (session: { completedAt?: unknown }): boolean =>
   !hasOptionalValue(session.completedAt);
 
+const findScenarioSession = (
+  sessions: readonly {
+    scenarioId: string;
+    completedAt?: unknown;
+  }[],
+  scenarioId: string,
+) => sessions.find((session) => session.scenarioId === scenarioId);
+
 const resolveDefaultEntryScenarioId = (snapshot: VnSnapshot): string | null => {
   const scenarioId = snapshot.vnRuntime?.defaultEntryScenarioId;
   if (!scenarioId) {
@@ -120,6 +125,8 @@ const resolveDefaultEntryScenarioId = (snapshot: VnSnapshot): string | null => {
   }
   return getScenarioById(snapshot, scenarioId) ? scenarioId : null;
 };
+
+const LEGACY_FREIBURG_SCENARIO_IDS = ["intro_journalist"] as const;
 
 const collectFreiburgScenarioIds = (
   snapshot: VnSnapshot,
@@ -130,17 +137,13 @@ const collectFreiburgScenarioIds = (
   for (const profile of originProfiles) {
     scenarioIds.add(profile.scenarioId);
 
-    const bootstrapScenario = resolveBootstrapScenario(
+    const bootstrapScenarios = resolveBootstrapScenario(
       snapshot,
       profile.scenarioId,
       profile.originFlagKey,
     );
-    if (bootstrapScenario) {
+    for (const bootstrapScenario of bootstrapScenarios) {
       scenarioIds.add(bootstrapScenario.id);
-    }
-
-    if (profile.wakeupScenarioId) {
-      scenarioIds.add(profile.wakeupScenarioId);
     }
 
     for (const scenarioId of collectDownstreamScenarioIds(
@@ -158,7 +161,59 @@ const collectFreiburgScenarioIds = (
     scenarioIds.add(scenarioId);
   }
 
+  for (const scenarioId of LEGACY_FREIBURG_SCENARIO_IDS) {
+    if (getScenarioById(snapshot, scenarioId)) {
+      scenarioIds.add(scenarioId);
+    }
+  }
+
   return scenarioIds;
+};
+
+const resolvePendingCompletionRouteScenarioId = (
+  snapshot: VnSnapshot,
+  startScenarioId: string,
+  flags: Record<string, boolean>,
+  sessions: readonly {
+    scenarioId: string;
+    completedAt?: unknown;
+  }[],
+): string | null => {
+  const visited = new Set<string>();
+  let currentScenarioId = startScenarioId;
+
+  while (!visited.has(currentScenarioId)) {
+    visited.add(currentScenarioId);
+    const scenario = getScenarioById(snapshot, currentScenarioId);
+    const route = scenario?.completionRoute;
+    if (!route) {
+      return null;
+    }
+
+    const requirementsMet = (route.requiredFlagsAll ?? []).every((flagKey) =>
+      Boolean(flags[flagKey]),
+    );
+    if (!requirementsMet) {
+      return null;
+    }
+
+    const blocked = (route.blockedIfFlagsAny ?? []).some((flagKey) =>
+      Boolean(flags[flagKey]),
+    );
+    if (blocked) {
+      return null;
+    }
+
+    const nextScenarioId = route.nextScenarioId;
+    const nextSession = findScenarioSession(sessions, nextScenarioId);
+    if (!nextSession || isOpenSession(nextSession)) {
+      return nextScenarioId;
+    }
+
+    currentScenarioId = nextScenarioId;
+  }
+
+  return null;
 };
 
 export const resolveFreiburgEntryTarget = (
@@ -196,8 +251,10 @@ export const resolveFreiburgEntryTarget = (
     snapshot,
     defaultEntryScenarioId,
   );
-  const activeSessions = sessions
-    .filter((session) => session.playerId.toHexString() === identityHex)
+  const playerSessions = sessions.filter(
+    (session) => session.playerId.toHexString() === identityHex,
+  );
+  const activeSessions = playerSessions
     .filter((session) => candidateScenarioIds.has(session.scenarioId))
     .filter((session) => isOpenSession(session))
     .sort((left, right) => {
@@ -220,25 +277,27 @@ export const resolveFreiburgEntryTarget = (
     return { kind: "select_origin" };
   }
 
+  const canonicalStartSession = findScenarioSession(
+    playerSessions,
+    selectedProfile.scenarioId,
+  );
+  if (canonicalStartSession && !isOpenSession(canonicalStartSession)) {
+    const continuationScenarioId = resolvePendingCompletionRouteScenarioId(
+      snapshot,
+      selectedProfile.scenarioId,
+      flags,
+      playerSessions,
+    );
+    if (continuationScenarioId) {
+      return { kind: "start", scenarioId: continuationScenarioId };
+    }
+  }
+
   const handoffDone = selectedProfile.handoffDoneFlagKeys.some((flagKey) =>
     Boolean(flags[flagKey]),
   );
   if (handoffDone) {
     return { kind: "start", scenarioId: defaultEntryScenarioId };
-  }
-
-  const wakeupTriggered =
-    selectedProfile.wakeupTriggerFlagKeys?.some((flagKey) =>
-      Boolean(flags[flagKey]),
-    ) ?? false;
-  if (wakeupTriggered && selectedProfile.wakeupScenarioId) {
-    const wakeupScenario = getScenarioById(
-      snapshot,
-      selectedProfile.wakeupScenarioId,
-    );
-    if (wakeupScenario) {
-      return { kind: "start", scenarioId: selectedProfile.wakeupScenarioId };
-    }
   }
 
   return { kind: "start", scenarioId: selectedProfile.scenarioId };

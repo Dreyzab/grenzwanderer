@@ -3,6 +3,11 @@ import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  isAllowedFactionId,
+  isCanonicalFactionId,
+  isFactionDefinition,
+} from "../data/factionContract";
 import type {
   MindCaseContent,
   MindFactContent,
@@ -117,9 +122,9 @@ const scenarios: ScenarioBlueprint[] = [
     mode: "fullscreen",
     packId: "freiburg_intro",
     completionRoute: {
-      nextScenarioId: "intro_journalist",
+      nextScenarioId: "journalist_agency_wakeup",
       requiredFlagsAll: ["origin_journalist"],
-      blockedIfFlagsAny: ["met_anna_intro", "origin_journalist_handoff_done"],
+      blockedIfFlagsAny: ["origin_journalist_handoff_done"],
     },
     nodeIds: [
       "scene_start",
@@ -262,11 +267,31 @@ const scenarios: ScenarioBlueprint[] = [
     mode: "fullscreen",
     packId: "system_origin_bootstrap",
     completionRoute: {
-      nextScenarioId: "intro_journalist",
+      nextScenarioId: "journalist_agency_wakeup",
       requiredFlagsAll: ["origin_journalist"],
-      blockedIfFlagsAny: ["origin_journalist_handoff_done", "met_anna_intro"],
+      blockedIfFlagsAny: ["origin_journalist_handoff_done"],
     },
     nodeIds: ["scene_origin_journalist_bootstrap"],
+  },
+  {
+    id: "journalist_agency_wakeup",
+    title: "Immersion Bath Wakeup",
+    startNodeId: "scene_journalist_agency_wakeup",
+    mode: "fullscreen",
+    packId: "journalist_origin",
+    completionRoute: {
+      nextScenarioId: "sandbox_agency_briefing",
+      requiredFlagsAll: ["origin_journalist"],
+      blockedIfFlagsAny: ["agency_briefing_complete"],
+    },
+    nodeIds: [
+      "scene_journalist_agency_wakeup",
+      "scene_journalist_memory_gap",
+      "scene_journalist_cellar_valve",
+      "scene_journalist_cellar_ledger",
+      "scene_journalist_cellar_uniform",
+      "scene_journalist_recruitment_pitch",
+    ],
   },
   {
     id: "intro_journalist",
@@ -1383,7 +1408,139 @@ const nodes: NodeBlueprint[] = [
     ],
     choices: [],
   },
-  // ---- Journalist Origin Intro ----
+  // ---- Journalist Origin Wakeup ----
+  {
+    id: "scene_journalist_agency_wakeup",
+    scenarioId: "journalist_agency_wakeup",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_agency_wakeup.md",
+    characterId: "npc_weber_dispatcher",
+    choices: [
+      {
+        id: "JOURNALIST_WAKEUP_SURFACE",
+        text: "Grip the tub rim and force yourself upright.",
+        nextNodeId: "scene_journalist_memory_gap",
+        effects: [
+          {
+            type: "track_event",
+            eventName: "journalist_wakeup_surfaced",
+            tags: { route: "journalist_wakeup" },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_journalist_memory_gap",
+    scenarioId: "journalist_agency_wakeup",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_memory_gap.md",
+    characterId: "npc_weber_dispatcher",
+    choices: [
+      {
+        id: "JOURNALIST_WAKEUP_ORIENT",
+        text: "Ask Lotte where you are and why your notes are gone.",
+        nextNodeId: "scene_journalist_recruitment_pitch",
+      },
+      {
+        id: "JOURNALIST_WAKEUP_INSPECT_VALVE",
+        text: "Ignore the answer for a second and inspect the steam valve.",
+        choiceType: "inquiry",
+        nextNodeId: "scene_journalist_cellar_valve",
+      },
+    ],
+  },
+  {
+    id: "scene_journalist_cellar_valve",
+    scenarioId: "journalist_agency_wakeup",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_cellar_valve.md",
+    characterId: "inspector",
+    choices: [
+      {
+        id: "JOURNALIST_VALVE_TO_LEDGER",
+        text: "Trace the wet pipe to the ledger crate by the wall.",
+        nextNodeId: "scene_journalist_cellar_ledger",
+        effects: [
+          {
+            type: "track_event",
+            eventName: "journalist_wakeup_valve_checked",
+            tags: { route: "journalist_wakeup" },
+          },
+        ],
+      },
+      {
+        id: "JOURNALIST_VALVE_CONTINUE",
+        text: "Leave the hardware alone and face Lotte properly.",
+        nextNodeId: "scene_journalist_recruitment_pitch",
+      },
+    ],
+  },
+  {
+    id: "scene_journalist_cellar_ledger",
+    scenarioId: "journalist_agency_wakeup",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_cellar_ledger.md",
+    characterId: "inspector",
+    choices: [
+      {
+        id: "JOURNALIST_LEDGER_TO_UNIFORM",
+        text: "Set the ledger down and inspect the drying uniform.",
+        nextNodeId: "scene_journalist_cellar_uniform",
+        effects: [
+          {
+            type: "track_event",
+            eventName: "journalist_wakeup_ledger_checked",
+            tags: { route: "journalist_wakeup" },
+          },
+        ],
+      },
+      {
+        id: "JOURNALIST_LEDGER_CONTINUE",
+        text: "Keep the page numbers in mind and hear the offer out.",
+        nextNodeId: "scene_journalist_recruitment_pitch",
+      },
+    ],
+  },
+  {
+    id: "scene_journalist_cellar_uniform",
+    scenarioId: "journalist_agency_wakeup",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_cellar_uniform.md",
+    characterId: "inspector",
+    choices: [
+      {
+        id: "JOURNALIST_UNIFORM_CONTINUE",
+        text: "Pull the coat on and demand the short version.",
+        nextNodeId: "scene_journalist_recruitment_pitch",
+        effects: [
+          {
+            type: "track_event",
+            eventName: "journalist_wakeup_uniform_checked",
+            tags: { route: "journalist_wakeup" },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_journalist_recruitment_pitch",
+    scenarioId: "journalist_agency_wakeup",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_recruitment_pitch.md",
+    characterId: "npc_weber_dispatcher",
+    terminal: true,
+    onEnter: [
+      { type: "set_flag", key: "origin_journalist_handoff_done", value: true },
+      {
+        type: "track_event",
+        eventName: "journalist_wakeup_completed",
+        tags: { route: "journalist_wakeup" },
+      },
+    ],
+    choices: [],
+  },
+  // ---- Journalist Origin Intro (legacy/debug) ----
   {
     id: "scene_journalist_intro",
     scenarioId: "intro_journalist",
@@ -2278,12 +2435,6 @@ const nodes: NodeBlueprint[] = [
             reason: "student_house_entry_logged",
           },
           {
-            type: "change_faction_signal",
-            factionId: "underworld",
-            delta: 4,
-            reason: "student_house_entry",
-          },
-          {
             type: "track_event",
             eventName: "student_house_access_opened",
             tags: { pointId: "loc_student_house" },
@@ -2942,6 +3093,11 @@ const validateEffectBlueprint = (effect: VnEffect, context: string): void => {
   }
   if ("factionId" in effect) {
     assertAscii(effect.factionId, `effect.factionId in ${context}`);
+    if (!isAllowedFactionId(effect.factionId)) {
+      throw new Error(
+        `effect.factionId in ${context} must use a canonical or compatibility faction id`,
+      );
+    }
   }
   if ("evidenceId" in effect) {
     assertAscii(effect.evidenceId, `effect.evidenceId in ${context}`);
@@ -3311,6 +3467,11 @@ const validateMapAction = (action: MapAction, context: string): void => {
   }
   if ("factionId" in action) {
     assertAscii(action.factionId, `${context}.factionId`);
+    if (!isAllowedFactionId(action.factionId)) {
+      throw new Error(
+        `${context}.factionId must use a canonical or compatibility faction id`,
+      );
+    }
   }
   if ("eventName" in action) {
     assertAscii(action.eventName, `${context}.eventName`);
@@ -3956,6 +4117,24 @@ if (pointsWithRichBindings < 5) {
   contentContractWarnings.push(
     `Map contract warning: expected >=5 points with >2 bindings, got ${pointsWithRichBindings}`,
   );
+}
+
+if (
+  !Array.isArray(FREIBURG_SOCIAL_CATALOG.factions) ||
+  FREIBURG_SOCIAL_CATALOG.factions.length === 0 ||
+  !FREIBURG_SOCIAL_CATALOG.factions.every(isFactionDefinition)
+) {
+  throw new Error(
+    "FREIBURG_SOCIAL_CATALOG.factions must contain valid definitions",
+  );
+}
+
+for (const npcIdentity of FREIBURG_SOCIAL_CATALOG.npcIdentities) {
+  if (!isCanonicalFactionId(npcIdentity.factionId)) {
+    throw new Error(
+      `FREIBURG_SOCIAL_CATALOG npc ${npcIdentity.id} must use a canonical faction id`,
+    );
+  }
 }
 
 const snapshotPayload: VnSnapshot = {

@@ -129,6 +129,7 @@ bun run smoke:all
 
 `smoke:all` is derived from the acceptance matrix. Synthetic contract flows in the matrix explicitly mark extract/manifest/drift gates as `n/a`.
 The Freiburg social loop is covered through `smoke:social-access`, `smoke:rumor-verification`, `smoke:agency-career`, and `smoke:service-unlock`.
+The canonical journalist onboarding path is now wakeup-first: `journalist_agency_wakeup -> sandbox_agency_briefing`. `intro_journalist` remains in the snapshot for legacy/debug coverage only.
 
 ## SpacetimeDB Visibility Matrix
 
@@ -150,6 +151,7 @@ bun run governance:visibility:check
 ```
 
 This inventory classifies every current `public: true` table as `public-by-design`, `player-scoped`, or `operational-private` and records the required replacement read path before any visibility flip.
+The visibility matrix is already landed. The next governance follow-up is CI supply-chain hardening, not another reducer-auth baseline pass.
 
 ## Git And PR Flow
 

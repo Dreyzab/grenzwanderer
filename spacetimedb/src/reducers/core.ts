@@ -28,12 +28,13 @@ import {
   upsertVar,
   verifyRumorInternal,
 } from "./helpers";
+import { getFactionIdValidationError } from "./helpers/factionSignalGuard";
 import { startScenarioInternal } from "./vn";
 
 const FREIBURG_ORIGIN_ALLOWLIST = {
   journalist: {
     choiceId: "BACKSTORY_JOURNALIST",
-    scenarioId: "intro_journalist",
+    scenarioId: "journalist_agency_wakeup",
   },
   aristocrat: {
     choiceId: "BACKSTORY_ARISTOCRAT",
@@ -57,7 +58,9 @@ const isFreiburgOriginProfileId = (
   Object.prototype.hasOwnProperty.call(FREIBURG_ORIGIN_ALLOWLIST, value);
 
 const resolveOriginChoiceEffects = (
-  snapshot: { nodes: Array<{ choices: Array<{ id: string; effects?: VnEffect[] }> }> },
+  snapshot: {
+    nodes: Array<{ choices: Array<{ id: string; effects?: VnEffect[] }> }>;
+  },
   choiceId: string,
 ): VnEffect[] => {
   for (const node of snapshot.nodes) {
@@ -145,11 +148,15 @@ export const begin_freiburg_origin = spacetimedb.reducer(
     ensurePlayerProfile(ctx);
 
     if (!isFreiburgOriginProfileId(profileId)) {
-      throw new SenderError("profileId must reference a supported Freiburg origin");
+      throw new SenderError(
+        "profileId must reference a supported Freiburg origin",
+      );
     }
 
     if (!resetProgress && hasPlayerGameplayProgress(ctx)) {
-      throw new SenderError("Existing Freiburg progress requires resetProgress=true");
+      throw new SenderError(
+        "Existing Freiburg progress requires resetProgress=true",
+      );
     }
 
     if (resetProgress) {
@@ -160,14 +167,10 @@ export const begin_freiburg_origin = spacetimedb.reducer(
     const profile = FREIBURG_ORIGIN_ALLOWLIST[profileId];
     getScenario(snapshot, profile.scenarioId);
 
-    applyEffects(
-      ctx,
-      resolveOriginChoiceEffects(snapshot, profile.choiceId),
-      {
-        sourceType: "home_begin_freiburg_origin",
-        sourceId: `home::${profileId}`,
-      },
-    );
+    applyEffects(ctx, resolveOriginChoiceEffects(snapshot, profile.choiceId), {
+      sourceType: "home_begin_freiburg_origin",
+      sourceId: `home::${profileId}`,
+    });
 
     startScenarioInternal(ctx, profile.scenarioId, {
       skipInboundRouteValidation: true,
@@ -390,12 +393,26 @@ export const change_faction_signal = spacetimedb.reducer(
     if (!factionId || factionId.trim().length === 0) {
       throw new SenderError("factionId must not be empty");
     }
+    const factionIdError = getFactionIdValidationError(factionId);
+    if (factionIdError) {
+      throw new SenderError(factionIdError);
+    }
 
     ensureIdempotent(ctx, requestId, "change_faction_signal");
     ensurePlayerProfile(ctx);
 
-    const nextValue = changeFactionSignalInternal(ctx, factionId, delta, reason);
-    emitTelemetry(ctx, "faction_signal_changed", { factionId, reason }, nextValue);
+    const nextValue = changeFactionSignalInternal(
+      ctx,
+      factionId,
+      delta,
+      reason,
+    );
+    emitTelemetry(
+      ctx,
+      "faction_signal_changed",
+      { factionId, reason },
+      nextValue,
+    );
   },
 );
 

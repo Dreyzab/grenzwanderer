@@ -43,6 +43,7 @@ This document defines runtime architecture, content release lifecycle, and repos
   - whether `content:extract`, `content:manifest:check`, and `content:drift:check` are required.
 - `scripts/smoke-all.ts` is derived from the acceptance matrix instead of maintaining its own list.
 - Snapshot-backed acceptance flows currently cover Freiburg entry/handoff, Freiburg case slice, Freiburg dog deduction closure, and the Freiburg social loop.
+- The canonical journalist handoff contract is `journalist_agency_wakeup -> sandbox_agency_briefing`; `intro_journalist` remains snapshot-backed legacy/debug content rather than supported onboarding.
 - Synthetic contract flows cover reducer/runtime authority checks where extracted content is intentionally not required.
 - Freiburg is the only supported city in the current player-facing path. Karlsruhe remains explicitly unavailable.
 
@@ -56,6 +57,7 @@ This document defines runtime architecture, content release lifecycle, and repos
   - one replacement read path or explicit retain-public rationale;
   - one ordered migration wave.
 - No raw player-scoped or operational table should flip to private before the replacement read path exists for current supported UI and smoke consumers.
+- The visibility decision matrix is already repository-backed and checked in CI/local gates; the next governance follow-up is CI supply-chain hardening.
 
 ## Content Release Lifecycle
 

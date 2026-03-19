@@ -136,7 +136,7 @@ const snapshotPayload = JSON.stringify({
       startNodeId: "scene_origin_journalist_bootstrap",
       nodeIds: ["scene_origin_journalist_bootstrap"],
       completionRoute: {
-        nextScenarioId: "intro_journalist",
+        nextScenarioId: "journalist_agency_wakeup",
         requiredFlagsAll: ["origin_journalist"],
       },
       packId: "system_origin_bootstrap",
@@ -159,6 +159,17 @@ const snapshotPayload = JSON.stringify({
         "scene_journalist_cellar_uniform",
         "scene_journalist_recruitment_pitch",
       ],
+      completionRoute: {
+        nextScenarioId: "sandbox_agency_briefing",
+        requiredFlagsAll: ["origin_journalist"],
+        blockedIfFlagsAny: ["agency_briefing_complete"],
+      },
+    },
+    {
+      id: "sandbox_agency_briefing",
+      title: "Agency Briefing",
+      startNodeId: "scene_agency_briefing_intro",
+      nodeIds: ["scene_agency_briefing_intro"],
     },
     {
       id: "intro_aristocrat",
@@ -418,9 +429,19 @@ describe("HomePage Freiburg flow", () => {
     expect(screen.queryByTestId("origin-selection")).not.toBeInTheDocument();
   });
 
-  it("routes journalist continuation into the wakeup scenario instead of map freeplay", async () => {
+  it("routes completed journalist wakeup into the agency briefing before freeplay", async () => {
     const onOpenVnScenario = vi.fn();
 
+    state.sessionRows = [
+      {
+        sessionKey: "me::journalist_agency_wakeup",
+        playerId: identity("me"),
+        scenarioId: "journalist_agency_wakeup",
+        nodeId: "scene_journalist_recruitment_pitch",
+        updatedAt: timestamp(12n),
+        completedAt: { tag: "some", value: "2026-03-14T00:00:00Z" },
+      },
+    ];
     state.flagRows = [
       {
         playerId: identity("me"),
@@ -429,7 +450,7 @@ describe("HomePage Freiburg flow", () => {
       },
       {
         playerId: identity("me"),
-        key: "journalist_intro_complete",
+        key: "origin_journalist_handoff_done",
         value: true,
       },
     ];
@@ -441,7 +462,7 @@ describe("HomePage Freiburg flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     await waitFor(() => {
-      expect(onOpenVnScenario).toHaveBeenCalledWith("journalist_agency_wakeup");
+      expect(onOpenVnScenario).toHaveBeenCalledWith("sandbox_agency_briefing");
     });
   });
 

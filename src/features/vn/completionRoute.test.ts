@@ -5,10 +5,10 @@ import type { VnScenario } from "./types";
 describe("completionRoute resolver", () => {
   it("returns null when scenario has no completion route", () => {
     const scenario: VnScenario = {
-      id: "sandbox_intro_pilot",
-      title: "Intro",
-      startNodeId: "scene_start",
-      nodeIds: ["scene_start"],
+      id: "journalist_agency_wakeup",
+      title: "Wakeup",
+      startNodeId: "scene_journalist_agency_wakeup",
+      nodeIds: ["scene_journalist_agency_wakeup"],
     };
 
     const resolved = resolveCompletionRoute(scenario, {}, []);
@@ -17,12 +17,12 @@ describe("completionRoute resolver", () => {
 
   it("resolves route when required flags are satisfied", () => {
     const scenario: VnScenario = {
-      id: "sandbox_intro_pilot",
-      title: "Intro",
-      startNodeId: "scene_start",
-      nodeIds: ["scene_start"],
+      id: "journalist_agency_wakeup",
+      title: "Wakeup",
+      startNodeId: "scene_journalist_agency_wakeup",
+      nodeIds: ["scene_journalist_agency_wakeup"],
       completionRoute: {
-        nextScenarioId: "intro_journalist",
+        nextScenarioId: "sandbox_agency_briefing",
         requiredFlagsAll: ["origin_journalist"],
       },
     };
@@ -34,7 +34,7 @@ describe("completionRoute resolver", () => {
     );
 
     expect(resolved).toEqual({
-      nextScenarioId: "intro_journalist",
+      nextScenarioId: "sandbox_agency_briefing",
       hasExistingSession: false,
       isExistingSessionCompleted: false,
     });
@@ -42,20 +42,20 @@ describe("completionRoute resolver", () => {
 
   it("returns null when blocked flag is set", () => {
     const scenario: VnScenario = {
-      id: "sandbox_intro_pilot",
-      title: "Intro",
-      startNodeId: "scene_start",
-      nodeIds: ["scene_start"],
+      id: "journalist_agency_wakeup",
+      title: "Wakeup",
+      startNodeId: "scene_journalist_agency_wakeup",
+      nodeIds: ["scene_journalist_agency_wakeup"],
       completionRoute: {
-        nextScenarioId: "intro_journalist",
+        nextScenarioId: "sandbox_agency_briefing",
         requiredFlagsAll: ["origin_journalist"],
-        blockedIfFlagsAny: ["met_anna_intro"],
+        blockedIfFlagsAny: ["agency_briefing_complete"],
       },
     };
 
     const resolved = resolveCompletionRoute(
       scenario,
-      { origin_journalist: true, met_anna_intro: true },
+      { origin_journalist: true, agency_briefing_complete: true },
       [],
     );
 
@@ -64,24 +64,24 @@ describe("completionRoute resolver", () => {
 
   it("recognizes existing completed session", () => {
     const scenario: VnScenario = {
-      id: "sandbox_intro_pilot",
-      title: "Intro",
-      startNodeId: "scene_start",
-      nodeIds: ["scene_start"],
+      id: "journalist_agency_wakeup",
+      title: "Wakeup",
+      startNodeId: "scene_journalist_agency_wakeup",
+      nodeIds: ["scene_journalist_agency_wakeup"],
       completionRoute: {
-        nextScenarioId: "intro_journalist",
+        nextScenarioId: "sandbox_agency_briefing",
       },
     };
 
     const resolved = resolveCompletionRoute(scenario, {}, [
       {
-        scenarioId: "intro_journalist",
+        scenarioId: "sandbox_agency_briefing",
         completedAt: { tag: "some", value: "2026-02-27T00:00:00Z" },
       },
     ]);
 
     expect(resolved).toEqual({
-      nextScenarioId: "intro_journalist",
+      nextScenarioId: "sandbox_agency_briefing",
       hasExistingSession: true,
       isExistingSessionCompleted: true,
     });

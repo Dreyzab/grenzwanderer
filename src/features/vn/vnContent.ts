@@ -1,3 +1,7 @@
+import {
+  isAllowedFactionId,
+  isFactionDefinition,
+} from "../../../data/factionContract";
 import type {
   MapAction,
   MapBinding,
@@ -50,6 +54,7 @@ import {
   MIN_VN_SCHEMA_WITH_MAP_EXPANSIONS,
   MIN_VN_SCHEMA_WITH_MIND_PALACE,
   MIN_VN_SCHEMA_WITH_QUEST_CATALOG,
+  MIN_VN_SCHEMA_WITH_SOCIAL_FACTIONS,
 } from "./snapshotSchema";
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -1373,6 +1378,7 @@ const parseMap = (
 
 const parseSocialCatalog = (
   value: unknown,
+  schemaVersion: number,
 ): VnSnapshot["socialCatalog"] | undefined | null => {
   if (value === undefined) {
     return undefined;
@@ -1388,13 +1394,29 @@ const parseSocialCatalog = (
   ) {
     return null;
   }
+  if (
+    schemaVersion >= MIN_VN_SCHEMA_WITH_SOCIAL_FACTIONS &&
+    !Array.isArray(value.factions)
+  ) {
+    return null;
+  }
+
+  const parsedFactions =
+    Array.isArray(value.factions) && value.factions.every(isFactionDefinition)
+      ? value.factions
+      : value.factions === undefined
+        ? undefined
+        : null;
+  if (parsedFactions === null) {
+    return null;
+  }
 
   const parsedNpcIdentities = value.npcIdentities.map((entry) => {
     if (
       !isObject(entry) ||
       typeof entry.id !== "string" ||
       typeof entry.displayName !== "string" ||
-      typeof entry.factionId !== "string" ||
+      !isAllowedFactionId(entry.factionId) ||
       typeof entry.publicRole !== "string" ||
       (entry.rosterTier !== "archetype" &&
         entry.rosterTier !== "functional" &&
@@ -1575,6 +1597,7 @@ const parseSocialCatalog = (
   }
 
   return {
+    factions: parsedFactions,
     npcIdentities: validNpcIdentities,
     services: validServices,
     rumors: validRumors,
@@ -1629,7 +1652,10 @@ export const parseSnapshot = (payloadJson: string): VnSnapshot | null => {
   if (questCatalog === null) {
     return null;
   }
-  const socialCatalog = parseSocialCatalog(parsed.socialCatalog);
+  const socialCatalog = parseSocialCatalog(
+    parsed.socialCatalog,
+    parsed.schemaVersion,
+  );
   if (socialCatalog === null) {
     return null;
   }

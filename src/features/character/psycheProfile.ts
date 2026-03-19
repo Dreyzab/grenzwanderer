@@ -1,4 +1,14 @@
 import {
+  LEGACY_LAYER_BY_FACTION_ID,
+  LEGACY_REPUTATION_VAR_BY_FACTION_ID,
+  MAX_ALIGNMENT_CONTRIBUTION,
+  MAX_ALIGNMENT_FACTIONS_PER_LAYER,
+  getFactionCatalog,
+  type FactionDefinition,
+  type FactionLayer,
+  type FactionRevealReason,
+} from "../../../data/factionContract";
+import {
   buildMysticStateSummary,
   formatSightModeLabel,
 } from "../mysticism/model/mysticism";
@@ -7,18 +17,21 @@ import { getFactionSignalPresentation } from "../../shared/game/socialPresentati
 export interface PsycheProfileInput {
   flags: Record<string, boolean>;
   vars: Record<string, number>;
+  factionCatalog?: FactionDefinition[];
   factionSignals?: Array<{
     factionId: string;
     value: number;
     trend?: string;
   }>;
+  revealedFactionIds?: string[];
+  revealedFactionReasons?: Partial<Record<string, FactionRevealReason>>;
 }
 
 type AlignmentTier =
   | "unaligned"
-  | "civic_order"
-  | "underworld"
-  | "financial"
+  | "daylight"
+  | "political"
+  | "shadow"
   | "contested";
 
 export interface PsycheAlignmentSummary {
@@ -34,6 +47,8 @@ export interface PsycheFactionSignal {
   trendLabel: string;
   intensityPercent: number;
   color: string;
+  revealReason?: FactionRevealReason;
+  provenanceNote?: string;
 }
 
 export interface PsycheSecretState {
@@ -78,63 +93,123 @@ export interface PsycheProfileData {
   mysticism: PsycheMysticismSummary;
 }
 
+const LAYERS: FactionLayer[] = ["daylight", "political", "shadow"];
+const LEGACY_FACTION_IDS = Object.keys(LEGACY_LAYER_BY_FACTION_ID) as Array<
+  keyof typeof LEGACY_LAYER_BY_FACTION_ID
+>;
+
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
-const factionMeta: Array<{ factionId: string; fallbackVarKey: string }> = [
-  { factionId: "civic_order", fallbackVarKey: "rep_civic" },
-  { factionId: "underworld", fallbackVarKey: "rep_underworld" },
-  { factionId: "financial_bloc", fallbackVarKey: "rep_finance" },
-];
+const getAlignmentCopy = (
+  tier: Exclude<AlignmentTier, "contested" | "unaligned">,
+) => {
+  if (tier === "daylight") {
+    return {
+      label: "Daylight Current",
+      description:
+        "Workshops, care, study, and civic routines are now the clearest social current around your case.",
+    };
+  }
+  if (tier === "political") {
+    return {
+      label: "Political Current",
+      description:
+        "Elite leverage and institutional bargaining are shaping the strongest pressure around your investigation.",
+    };
+  }
+  return {
+    label: "Shadow Current",
+    description:
+      "Informal networks and off-ledger city pressure now define the strongest pull around your investigation.",
+  };
+};
 
-const resolveAlignment = (
-  signals: Array<{ factionId: string; value: number }>,
-): PsycheAlignmentSummary => {
-  const ranked = [...signals].sort((left, right) => right.value - left.value);
-  const leader = ranked[0];
-  const runnerUp = ranked[1];
+const resolveAlignment = ({
+  factionCatalog,
+  factionSignals,
+  vars,
+}: {
+  factionCatalog: FactionDefinition[];
+  factionSignals: Array<{
+    factionId: string;
+    value: number;
+    trend?: string;
+  }>;
+  vars: Record<string, number>;
+}): PsycheAlignmentSummary => {
+  const signalById = new Map(
+    factionSignals.map((entry) => [entry.factionId, entry] as const),
+  );
+  const layerScores = LAYERS.map((layer) => {
+    const canonicalContributions = factionCatalog
+      .filter(
+        (entry) =>
+          entry.visibility === "public" &&
+          entry.layer === layer &&
+          entry.id !== "the_returned",
+      )
+      .map((entry) => {
+        const value = signalById.get(entry.id)?.value ?? 0;
+        return clamp(Math.max(value, 0), 0, MAX_ALIGNMENT_CONTRIBUTION);
+      })
+      .filter((value) => value > 0)
+      .sort((left, right) => right - left)
+      .slice(0, MAX_ALIGNMENT_FACTIONS_PER_LAYER);
 
-  if (!leader || leader.value < 1) {
+    const canonicalScore = canonicalContributions.reduce(
+      (sum, value) => sum + value,
+      0,
+    );
+    if (canonicalScore > 0) {
+      return { layer, score: canonicalScore };
+    }
+
+    const legacyFactionId = LEGACY_FACTION_IDS.find(
+      (entry) => LEGACY_LAYER_BY_FACTION_ID[entry] === layer,
+    );
+    if (!legacyFactionId) {
+      return { layer, score: 0 };
+    }
+
+    const legacyRow = signalById.get(legacyFactionId);
+    const legacyValue =
+      legacyRow?.value ??
+      vars[LEGACY_REPUTATION_VAR_BY_FACTION_ID[legacyFactionId]] ??
+      0;
+
+    return {
+      layer,
+      score: clamp(Math.max(legacyValue, 0), 0, MAX_ALIGNMENT_CONTRIBUTION),
+    };
+  }).sort((left, right) => right.score - left.score);
+
+  const leader = layerScores[0];
+  const runnerUp = layerScores[1];
+
+  if (!leader || leader.score < 1) {
     return {
       tier: "unaligned",
       label: "Unaligned Observer",
       description:
-        "You are still collecting leverage without committing to a bloc.",
+        "You are still moving between Freiburg's social layers without belonging clearly to any one current.",
     };
   }
 
-  if (runnerUp && Math.abs(leader.value - runnerUp.value) <= 5) {
+  if (runnerUp && Math.abs(leader.score - runnerUp.score) <= 5) {
     return {
       tier: "contested",
-      label: "Contested Alignment",
+      label: "Contested Pressure",
       description:
-        "Multiple factions are close in influence. Pressure is volatile.",
+        "Daylight, political, and shadow pressures are close enough that your position still feels volatile.",
     };
   }
 
-  if (leader.factionId === "civic_order") {
-    return {
-      tier: "civic_order",
-      label: "Civic Order",
-      description:
-        "Procedure and institutions are shaping your investigation path.",
-    };
-  }
-
-  if (leader.factionId === "underworld") {
-    return {
-      tier: "underworld",
-      label: "Underworld Sympathizer",
-      description:
-        "Tunnel channels and unofficial actors now trust your methods.",
-    };
-  }
-
+  const alignmentCopy = getAlignmentCopy(leader.layer);
   return {
-    tier: "financial",
-    label: "Financial Compact",
-    description:
-      "Elite financial interests are now the strongest current in your case.",
+    tier: leader.layer,
+    label: alignmentCopy.label,
+    description: alignmentCopy.description,
   };
 };
 
@@ -248,23 +323,51 @@ const resolveMysticism = (
 export const buildPsycheProfile = (
   input: PsycheProfileInput,
 ): PsycheProfileData => {
-  const signalValues = factionMeta.map((meta) => {
-    const canonicalRow = input.factionSignals?.find(
-      (entry) => entry.factionId === meta.factionId,
-    );
-    return {
-      factionId: meta.factionId,
-      value: canonicalRow?.value ?? input.vars[meta.fallbackVarKey] ?? 0,
-      trend: canonicalRow?.trend ?? "stable",
-    };
-  });
-
-  const factionSignals: PsycheFactionSignal[] = signalValues.map((entry) =>
-    getFactionSignalPresentation(entry.factionId, entry.value, entry.trend),
+  const factionCatalog = input.factionCatalog
+    ? [...input.factionCatalog].sort((left, right) => left.order - right.order)
+    : getFactionCatalog();
+  const signalById = new Map(
+    (input.factionSignals ?? []).map(
+      (entry) => [entry.factionId, entry] as const,
+    ),
+  );
+  const revealedFactionIds = new Set(
+    input.revealedFactionIds ??
+      factionCatalog
+        .filter((entry) => entry.visibility === "public")
+        .filter((entry) => signalById.has(entry.id))
+        .map((entry) => entry.id),
   );
 
+  const factionSignals: PsycheFactionSignal[] = factionCatalog
+    .filter((entry) => entry.visibility === "public")
+    .filter((entry) => revealedFactionIds.has(entry.id))
+    .map((entry) => {
+      const signal = signalById.get(entry.id);
+      const presentation = getFactionSignalPresentation(
+        entry.id,
+        signal?.value ?? 0,
+        signal?.trend,
+        { factions: factionCatalog },
+      );
+      const revealReason = input.revealedFactionReasons?.[entry.id];
+
+      return {
+        ...presentation,
+        revealReason,
+        provenanceNote:
+          revealReason === "pressure"
+            ? "You have already felt this milieu pressing on the case."
+            : undefined,
+      };
+    });
+
   return {
-    alignment: resolveAlignment(signalValues),
+    alignment: resolveAlignment({
+      factionCatalog,
+      factionSignals: input.factionSignals ?? [],
+      vars: input.vars,
+    }),
     factionSignals,
     secrets: resolveSecrets(input.flags),
     evolutionTracks: resolveTracks(input.vars),

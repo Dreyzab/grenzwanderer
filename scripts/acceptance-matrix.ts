@@ -82,7 +82,7 @@ export const acceptanceFlows: AcceptanceFlow[] = [
     label: "Freiburg origin entry",
     kind: "player_flow",
     entryPath:
-      "HomePage -> Freiburg 1905 -> OriginSelectionScreen -> beginFreiburgOrigin -> intro_*",
+      "HomePage -> Freiburg 1905 -> OriginSelectionScreen -> beginFreiburgOrigin -> canonical origin scenario (journalist_agency_wakeup for journalist)",
     smokeCommand: "smoke:origin-entry",
     smokeLabel: "Origin entry",
     includeInSmokeAll: true,
@@ -97,8 +97,7 @@ export const acceptanceFlows: AcceptanceFlow[] = [
     id: "freiburg_origin_handoff",
     label: "Freiburg intro handoff",
     kind: "player_flow",
-    entryPath:
-      "sandbox_intro_pilot -> language/origin choices -> intro_journalist completion route",
+    entryPath: "journalist_agency_wakeup -> sandbox_agency_briefing",
     smokeCommand: "smoke:origin-handoff",
     smokeLabel: "Origin handoff",
     includeInSmokeAll: true,
@@ -108,7 +107,7 @@ export const acceptanceFlows: AcceptanceFlow[] = [
       drift: true,
     },
     notes:
-      "Locks the onboarding-to-origin handoff contract and completion-route blockers.",
+      "Locks the wakeup-first journalist handoff contract and keeps briefing entry tied to canonical completion-route state.",
   },
   {
     id: "freiburg_case_slice",

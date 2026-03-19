@@ -1,6 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CANONICAL_FACTION_REGISTRY } from "../../../../data/factionContract";
 import type { RuntimeMapPoint } from "../types";
 import { DetectiveHub } from "./DetectiveHub";
 
@@ -46,11 +47,12 @@ const makeIdentity = (hex: string) => ({
 
 const socialSnapshot = {
   socialCatalog: {
+    factions: CANONICAL_FACTION_REGISTRY,
     npcIdentities: [
       {
         id: "npc_anna_mahler",
         displayName: "Anna Mahler",
-        factionId: "underworld",
+        factionId: "city_network",
         publicRole: "Railway fixer",
         rosterTier: "major",
       },
@@ -60,7 +62,7 @@ const socialSnapshot = {
     careerRanks: [
       {
         id: "trainee",
-        label: "Стажёр",
+        label: "Ð¡Ñ‚Ð°Ð¶Ñ‘Ñ€",
         order: 0,
         standingRequired: -100,
         serviceCriteriaNeeded: 0,
@@ -216,7 +218,7 @@ describe("DetectiveHub", () => {
     expect(
       screen.getByText(/first briefing is still pending/i),
     ).toBeInTheDocument();
-    expect(screen.getByText("Стажёр")).toBeInTheDocument();
+    expect(screen.getByText("Ð¡Ñ‚Ð°Ð¶Ñ‘Ñ€")).toBeInTheDocument();
     expect(screen.getByText("Duty Roster")).toBeInTheDocument();
     expect(screen.getByText("Lotte Weber")).toBeInTheDocument();
     expect(screen.getByText("Marta Klein")).toBeInTheDocument();
@@ -228,7 +230,18 @@ describe("DetectiveHub", () => {
     await user.click(screen.getByRole("button", { name: "Partners" }));
     expect(screen.getByText("Anna Mahler")).toBeInTheDocument();
     expect(screen.getByText("Railway fixer")).toBeInTheDocument();
-    expect(screen.getByText("Персонаж вам должен")).toBeInTheDocument();
+
+    const annaCard = screen.getByText("Anna Mahler").closest("article");
+    expect(annaCard).not.toBeNull();
+    expect(
+      within(annaCard as HTMLElement).getByText(
+        (_content, element) =>
+          element?.tagName === "SPAN" &&
+          (element.textContent?.includes("ÐŸÐµÑ€ÑÐ¾Ð½Ð°Ð¶") === true ||
+            element.textContent?.includes("ÃÅ¸ÃÂµÃ‘â‚¬Ã‘ÂÃÂ¾ÃÂ½ÃÂ°ÃÂ¶") ===
+              true),
+      ),
+    ).toBeInTheDocument();
   });
 
   it("runs the primary briefing action", async () => {

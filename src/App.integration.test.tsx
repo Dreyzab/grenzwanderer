@@ -218,9 +218,9 @@ describe("pilot helpers", () => {
             startNodeId: "scene_start",
             nodeIds: ["scene_start"],
             completionRoute: {
-              nextScenarioId: "intro_journalist",
+              nextScenarioId: "journalist_agency_wakeup",
               requiredFlagsAll: ["origin_journalist"],
-              blockedIfFlagsAny: ["met_anna_intro"],
+              blockedIfFlagsAny: ["origin_journalist_handoff_done"],
             },
           },
         ],
@@ -240,7 +240,7 @@ describe("pilot helpers", () => {
 
     expect(parsed).not.toBeNull();
     expect(parsed?.scenarios[0].completionRoute?.nextScenarioId).toBe(
-      "intro_journalist",
+      "journalist_agency_wakeup",
     );
   });
 

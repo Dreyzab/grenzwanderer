@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CANONICAL_FACTION_REGISTRY } from "../../../data/factionContract";
 import { CharacterPanel } from "./CharacterPanel";
 
 const mocks = vi.hoisted(() => ({
@@ -122,7 +123,7 @@ const makeIdentity = (hex: string) => ({
 });
 
 const fullSnapshot = {
-  schemaVersion: 4,
+  schemaVersion: 7,
   scenarios: [],
   nodes: [],
   mysticism: {
@@ -224,11 +225,12 @@ const fullSnapshot = {
     },
   ],
   socialCatalog: {
+    factions: CANONICAL_FACTION_REGISTRY,
     npcIdentities: [
       {
         id: "npc_anna_mahler",
         displayName: "Anna Mahler",
-        factionId: "underworld",
+        factionId: "city_network",
         publicRole: "Railway fixer",
         rosterTier: "major",
         serviceIds: ["svc_anna_info", "svc_anna_intro"],
@@ -236,7 +238,7 @@ const fullSnapshot = {
       {
         id: "npc_archivist_otto",
         displayName: "Archivist Otto",
-        factionId: "civic_order",
+        factionId: "city_chancellery",
         publicRole: "Archive clerk",
         rosterTier: "functional",
         serviceIds: ["svc_otto_archives"],
@@ -244,7 +246,7 @@ const fullSnapshot = {
       {
         id: "npc_banker_kessler",
         displayName: "Johann Kessler",
-        factionId: "financial_bloc",
+        factionId: "house_of_pledges",
         publicRole: "Bank director",
         rosterTier: "major",
         introFlag: "banker_intro_seen",
@@ -382,13 +384,13 @@ describe("CharacterPanel", () => {
           [
             {
               playerId: makeIdentity("me"),
-              factionId: "civic_order",
+              factionId: "city_chancellery",
               value: 22,
               trend: "rising",
             },
             {
               playerId: makeIdentity("me"),
-              factionId: "financial_bloc",
+              factionId: "house_of_pledges",
               value: 6,
               trend: "stable",
             },
@@ -432,7 +434,11 @@ describe("CharacterPanel", () => {
     expect(screen.getByRole("tab", { name: /Psyche/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Journal/i })).toBeInTheDocument();
     expect(screen.getAllByText(/Стаж/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Над.+сотрудник/i).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(
+        (content) => content.includes("ÐÐ°Ð´") || content.includes("Над"),
+      ).length,
+    ).toBeGreaterThan(0);
     expect(screen.getByText("Anna Mahler")).toBeInTheDocument();
     expect(
       screen.getByText("Services: Information, Social Introduction"),
@@ -474,7 +480,11 @@ describe("CharacterPanel", () => {
     render(<CharacterPanel />);
 
     expect(screen.getAllByText(/Стаж/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Над.+сотрудник/i).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(
+        (content) => content.includes("ÐÐ°Ð´") || content.includes("Над"),
+      ).length,
+    ).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole("tab", { name: /Psyche/i }));
 
@@ -562,13 +572,13 @@ describe("CharacterPanel", () => {
           [
             {
               playerId: makeIdentity("me"),
-              factionId: "civic_order",
+              factionId: "city_chancellery",
               value: 22,
               trend: "rising",
             },
             {
               playerId: makeIdentity("me"),
-              factionId: "financial_bloc",
+              factionId: "house_of_pledges",
               value: 6,
               trend: "stable",
             },

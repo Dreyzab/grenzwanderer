@@ -1,11 +1,23 @@
+import { CANONICAL_FACTION_REGISTRY } from "../../data/factionContract";
 import type { SocialCatalogSnapshot } from "../../src/features/vn/types";
 
 export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
+  factions: CANONICAL_FACTION_REGISTRY,
   npcIdentities: [
+    {
+      id: "npc_weber_dispatcher",
+      displayName: "Lotte Weber",
+      factionId: "city_chancellery",
+      publicRole: "Bureau dispatcher",
+      rosterTier: "functional",
+      homePointId: "loc_agency",
+      workPointId: "loc_agency",
+      serviceIds: [],
+    },
     {
       id: "npc_anna_mahler",
       displayName: "Anna Mahler",
-      factionId: "underworld",
+      factionId: "city_network",
       publicRole: "Railway fixer",
       rosterTier: "major",
       introFlag: "met_anna_intro",
@@ -16,7 +28,7 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
     {
       id: "npc_archivist_otto",
       displayName: "Archivist Otto",
-      factionId: "civic_order",
+      factionId: "city_chancellery",
       publicRole: "Records specialist",
       rosterTier: "functional",
       introFlag: "met_archivist_intro",
@@ -130,6 +142,10 @@ export const FREIBURG_SOCIAL_RUMOR_IDS = new Set(
 
 export const FREIBURG_SOCIAL_CAREER_RANK_IDS = new Set(
   FREIBURG_SOCIAL_CATALOG.careerRanks.map((entry) => entry.id),
+);
+
+export const FREIBURG_SOCIAL_FACTION_IDS = new Set(
+  (FREIBURG_SOCIAL_CATALOG.factions ?? []).map((entry) => entry.id),
 );
 
 export const AGENCY_SERVICE_CRITERION_IDS = new Set([

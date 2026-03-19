@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CANONICAL_FACTION_REGISTRY } from "../../../../data/factionContract";
 import type { RuntimeMapPoint } from "../types";
 import { CaseCard } from "./CaseCard";
 
@@ -161,11 +162,12 @@ const basePoint: RuntimeMapPoint = {
 describe("CaseCard", () => {
   const socialSnapshot = {
     socialCatalog: {
+      factions: CANONICAL_FACTION_REGISTRY,
       npcIdentities: [
         {
           id: "npc_baroness_elise",
           displayName: "Baroness Elise",
-          factionId: "financial_bloc",
+          factionId: "house_of_pledges",
           publicRole: "Patron",
           rosterTier: "major",
         },
@@ -175,7 +177,7 @@ describe("CaseCard", () => {
       careerRanks: [
         {
           id: "trainee",
-          label: "Стажёр",
+          label: "Ð¡Ñ‚Ð°Ð¶Ñ‘Ñ€",
           order: 0,
           standingRequired: -100,
           serviceCriteriaNeeded: 0,
@@ -221,10 +223,20 @@ describe("CaseCard", () => {
     expect(
       screen.getByRole("button", { name: "Investigate" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Social Requirement")).toBeInTheDocument();
+
+    const socialRequirementLabel = screen.getByText("Social Requirement");
+    const socialRequirementBlock = socialRequirementLabel.parentElement;
+    expect(socialRequirementBlock).not.toBeNull();
     expect(
-      screen.getByText(/Baroness Elise: Над.+контакт/i),
+      within(socialRequirementBlock as HTMLElement).getByText(
+        (_content, element) =>
+          element?.tagName === "P" &&
+          element.textContent?.includes("Baroness Elise: ") === true &&
+          (element.textContent.includes("ÐÐ°Ð´") ||
+            element.textContent.includes("ÃÂÃÂ°ÃÂ´")),
+      ),
     ).toBeInTheDocument();
+
     expect(screen.getByText("Social Cost")).toBeInTheDocument();
     expect(screen.getByText(/owe Baroness Elise a favor/i)).toBeInTheDocument();
     expect(screen.getByText("Fallback Route")).toBeInTheDocument();

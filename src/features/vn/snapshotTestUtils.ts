@@ -1,3 +1,4 @@
+import { CANONICAL_FACTION_REGISTRY } from "../../../data/factionContract";
 import {
   CURRENT_VN_SNAPSHOT_SCHEMA_VERSION,
   MIN_VN_SCHEMA_WITH_MAP,
@@ -18,7 +19,32 @@ const mergeSnapshot = (
         : undefined,
   mindPalace: overrides.mindPalace ?? base.mindPalace,
   socialCatalog:
-    "socialCatalog" in overrides ? overrides.socialCatalog : base.socialCatalog,
+    "socialCatalog" in overrides
+      ? overrides.socialCatalog === undefined
+        ? undefined
+        : {
+            ...base.socialCatalog,
+            ...overrides.socialCatalog,
+            factions:
+              overrides.socialCatalog.factions ?? base.socialCatalog?.factions,
+            npcIdentities:
+              overrides.socialCatalog.npcIdentities ??
+              base.socialCatalog?.npcIdentities ??
+              [],
+            services:
+              overrides.socialCatalog.services ??
+              base.socialCatalog?.services ??
+              [],
+            rumors:
+              overrides.socialCatalog.rumors ??
+              base.socialCatalog?.rumors ??
+              [],
+            careerRanks:
+              overrides.socialCatalog.careerRanks ??
+              base.socialCatalog?.careerRanks ??
+              [],
+          }
+      : base.socialCatalog,
   mysticism:
     "mysticism" in overrides
       ? overrides.mysticism
@@ -105,6 +131,7 @@ export const createTestSnapshot = (
       },
       questCatalog: [],
       socialCatalog: {
+        factions: CANONICAL_FACTION_REGISTRY,
         npcIdentities: [],
         services: [],
         rumors: [],

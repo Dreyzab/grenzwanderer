@@ -158,10 +158,10 @@ const runSmoke = async () =>
           );
           if (
             journalistSessions.length !== 1 ||
-            journalistSessions[0].scenarioId !== "intro_journalist"
+            journalistSessions[0].scenarioId !== "journalist_agency_wakeup"
           ) {
             throw new Error(
-              `Expected single intro_journalist session, got ${JSON.stringify(
+              `Expected single journalist_agency_wakeup session, got ${JSON.stringify(
                 journalistSessions.map((row) => ({
                   scenarioId: row.scenarioId,
                   nodeId: row.nodeId,
@@ -180,6 +180,15 @@ const runSmoke = async () =>
           ) {
             throw new Error(
               "Expected journalist origin flag after begin reducer",
+            );
+          }
+          if (
+            journalistFlags.some(
+              (row) => row.key === "met_anna_intro" && row.value,
+            )
+          ) {
+            throw new Error(
+              "Expected met_anna_intro to remain false after journalist wakeup start",
             );
           }
 

@@ -1,6 +1,13 @@
 import { Timestamp } from "spacetimedb";
 import { SenderError } from "spacetimedb/server";
 import {
+  LEGACY_REPUTATION_VAR_BY_FACTION_ID,
+  isAllowedFactionId,
+  isFactionDefinition,
+  type FactionDefinition,
+} from "../../../../data/factionContract";
+import { getFactionIdValidationError } from "./factionSignalGuard";
+import {
   getBattleCard,
   getBattleScenario,
   type BattleCardDefinition,
@@ -371,6 +378,7 @@ export interface CareerRankDefinition {
 }
 
 export interface SocialCatalogSnapshot {
+  factions?: FactionDefinition[];
   npcIdentities: NpcRuntimeIdentity[];
   services: NpcServiceDefinition[];
   rumors: RumorTemplate[];
@@ -2088,12 +2096,14 @@ const parseQuestCatalog = (
 
 const parseSocialCatalog = (
   payloadSocialCatalog: unknown,
+  schemaVersion: number,
 ): SocialCatalogSnapshot | undefined => {
   if (payloadSocialCatalog === undefined) {
     return undefined;
   }
 
   const catalog = asRecord(payloadSocialCatalog, "payloadJson.socialCatalog");
+  const factions = Array.isArray(catalog.factions) ? catalog.factions : null;
   const npcIdentities = Array.isArray(catalog.npcIdentities)
     ? catalog.npcIdentities
     : null;
@@ -2103,9 +2113,27 @@ const parseSocialCatalog = (
     ? catalog.careerRanks
     : null;
 
-  if (!npcIdentities || !services || !rumors || !careerRanks) {
+  if (
+    !npcIdentities ||
+    !services ||
+    !rumors ||
+    !careerRanks ||
+    (schemaVersion >= 7 && !factions)
+  ) {
     throw new SenderError("payloadJson.socialCatalog has invalid shape");
   }
+
+  const parsedFactions =
+    factions === null
+      ? undefined
+      : factions.map((entry, index) => {
+          if (!isFactionDefinition(entry)) {
+            throw new SenderError(
+              `payloadJson.socialCatalog.factions[${index}] has invalid shape`,
+            );
+          }
+          return entry;
+        });
 
   const parsedNpcIdentities: NpcRuntimeIdentity[] = npcIdentities.map(
     (entry, index) => {
@@ -2119,6 +2147,9 @@ const parseSocialCatalog = (
         rosterTier !== "functional" &&
         rosterTier !== "major"
       ) {
+        throw new SenderError("payloadJson.socialCatalog has invalid shape");
+      }
+      if (!isAllowedFactionId(record.factionId)) {
         throw new SenderError("payloadJson.socialCatalog has invalid shape");
       }
 
@@ -2299,6 +2330,7 @@ const parseSocialCatalog = (
   assertUniqueIds(parsedCareerRanks, "payloadJson.socialCatalog.careerRanks");
 
   return {
+    factions: parsedFactions,
     npcIdentities: parsedNpcIdentities,
     services: parsedServices,
     rumors: parsedRumors,
@@ -2344,7 +2376,10 @@ export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
     payload.vnRuntime === undefined ? undefined : payload.vnRuntime;
   const map = parseMapSnapshot(payload.map, schemaVersion, payload.scenarios);
   const questCatalog = parseQuestCatalog(payload.questCatalog, schemaVersion);
-  const socialCatalog = parseSocialCatalog(payload.socialCatalog);
+  const socialCatalog = parseSocialCatalog(
+    payload.socialCatalog,
+    schemaVersion,
+  );
 
   if (payload.mindPalace === undefined) {
     if (schemaVersion >= 2) {
@@ -2973,11 +3008,8 @@ const DEFAULT_CAREER_RANKS: CareerRankDefinition[] = [
   },
 ];
 
-const FACTION_SIGNAL_VAR_BY_ID: Record<string, string> = {
-  civic_order: "rep_civic",
-  underworld: "rep_underworld",
-  financial_bloc: "rep_finance",
-};
+const FACTION_SIGNAL_VAR_BY_ID: Record<string, string> =
+  LEGACY_REPUTATION_VAR_BY_FACTION_ID;
 
 const resolveTrend = (delta: number): FactionSignalTrend => {
   if (delta > 0) {
@@ -3141,6 +3173,10 @@ export const changeFavorBalanceInternal = (
 };
 
 export const getFactionSignalValue = (ctx: any, factionId: string): number => {
+  if (!isAllowedFactionId(factionId)) {
+    return 0;
+  }
+
   const row = ctx.db.playerFactionSignal.signalKey.find(
     createFactionSignalKey(ctx.sender, factionId),
   );
@@ -3159,6 +3195,10 @@ export const changeFactionSignalInternal = (
   reason?: string,
 ): number => {
   assertNonEmpty(factionId, "factionId");
+  const factionIdError = getFactionIdValidationError(factionId);
+  if (factionIdError) {
+    throw new SenderError(factionIdError);
+  }
   ensurePlayerProfile(ctx);
 
   const signalKey = createFactionSignalKey(ctx.sender, factionId);

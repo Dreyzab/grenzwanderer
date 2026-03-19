@@ -1,3 +1,5 @@
+import type { FactionDefinition } from "../../../data/factionContract";
+
 export type VnCondition =
   | { type: "flag_equals"; key: string; value: boolean }
   | { type: "var_gte"; key: string; value: number }
@@ -356,6 +358,7 @@ export interface CareerRankDefinition {
 }
 
 export interface SocialCatalogSnapshot {
+  factions?: FactionDefinition[];
   npcIdentities: NpcRuntimeIdentity[];
   services: NpcServiceDefinition[];
   rumors: RumorTemplate[];

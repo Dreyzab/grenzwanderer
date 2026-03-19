@@ -10,6 +10,12 @@ import {
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
+const DEFAULT_TRACK_BY_PROFILE: Record<string, string> = {
+  journalist: "journalist_whistleblower",
+  aristocrat: "aristocrat_duelist",
+  veteran: "veteran_shield",
+  archivist: "archivist_dust_cartographer",
+};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,22 +30,12 @@ const snapshotPath = path.join(
 type SnapshotPayload = {
   checksum: string;
   schemaVersion: number;
-  scenarios: Array<{
-    id: string;
-    startNodeId: string;
-  }>;
-  nodes: Array<{
-    id: string;
-    scenarioId: string;
-    choices: Array<{ id: string }>;
-  }>;
 };
 
 const loadSnapshot = (): {
   checksum: string;
   schemaVersion: number;
   payloadJson: string;
-  payload: SnapshotPayload;
 } => {
   const raw = readFileSync(snapshotPath, "utf8");
   const parsed = JSON.parse(raw) as SnapshotPayload;
@@ -47,51 +43,43 @@ const loadSnapshot = (): {
     checksum: parsed.checksum,
     schemaVersion: parsed.schemaVersion,
     payloadJson: raw,
-    payload: parsed,
   };
 };
 
-const resolveIntroStartChoiceId = (payload: SnapshotPayload): string => {
-  const introScenario = payload.scenarios.find(
-    (entry) => entry.id === "sandbox_intro_pilot",
-  );
-  if (!introScenario) {
-    throw new Error("sandbox_intro_pilot scenario is missing from snapshot");
+const beginOriginDeterministically = async (
+  conn: DbConnection,
+  requestId: string,
+  profileId: string,
+): Promise<void> => {
+  const selectedTrackId = DEFAULT_TRACK_BY_PROFILE[profileId];
+  if (!selectedTrackId) {
+    throw new Error(`Missing default selectedTrackId for profile ${profileId}`);
   }
 
-  const startNode = payload.nodes.find(
-    (entry) =>
-      entry.id === introScenario.startNodeId &&
-      entry.scenarioId === introScenario.id,
-  );
-  if (!startNode) {
-    throw new Error(
-      `Start node '${introScenario.startNodeId}' for sandbox_intro_pilot is missing from snapshot`,
-    );
-  }
+  try {
+    await conn.reducers.beginFreiburgOrigin({
+      requestId,
+      profileId,
+      selectedTrackId,
+      resetProgress: false,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (
+      !message.includes(
+        "Existing Freiburg progress requires resetProgress=true",
+      )
+    ) {
+      throw error;
+    }
 
-  const preferred = startNode.choices.find(
-    (choice) => choice.id === "START_CONTINUE",
-  );
-  if (preferred) {
-    return preferred.id;
+    await conn.reducers.beginFreiburgOrigin({
+      requestId: `${requestId}_reset`,
+      profileId,
+      selectedTrackId,
+      resetProgress: true,
+    });
   }
-
-  const autoContinue = startNode.choices.find((choice) =>
-    choice.id.startsWith("AUTO_CONTINUE_"),
-  );
-  if (autoContinue) {
-    return autoContinue.id;
-  }
-
-  const fallback = startNode.choices[0];
-  if (!fallback) {
-    throw new Error(
-      `Start node '${startNode.id}' does not define any outbound choices`,
-    );
-  }
-
-  return fallback.id;
 };
 
 const runSmoke = async () =>
@@ -107,20 +95,24 @@ const runSmoke = async () =>
           persistOperatorToken(host, database, token);
           await ensureAdminAccess(conn);
           const snapshot = loadSnapshot();
-          const introStartChoiceId = resolveIntroStartChoiceId(
-            snapshot.payload,
-          );
-          const version = `smoke_origin_${Date.now()}`;
+          const runId = Date.now();
+          const request = (suffix: string) =>
+            `smoke_origin_handoff_${suffix}_${runId}`;
+          const playerHex = conn.identity?.toHexString();
+          if (!playerHex) {
+            throw new Error(
+              "Smoke connection did not expose a player identity",
+            );
+          }
 
           await conn.reducers.publishContent({
-            requestId: `smoke_origin_publish_${Date.now()}`,
-            version,
+            requestId: request("publish"),
+            version: `smoke_origin_handoff_${runId}`,
             checksum: snapshot.checksum,
             schemaVersion: snapshot.schemaVersion,
             payloadJson: snapshot.payloadJson,
           });
 
-          // Keep smoke deterministic on shared local DB: clear route blockers first.
           await conn.reducers.setFlag({
             key: "met_anna_intro",
             value: false,
@@ -129,83 +121,102 @@ const runSmoke = async () =>
             key: "origin_journalist_handoff_done",
             value: false,
           });
-
-          await conn.reducers.startScenario({
-            requestId: `smoke_origin_start_intro_${Date.now()}`,
-            scenarioId: "sandbox_intro_pilot",
+          await conn.reducers.setFlag({
+            key: "agency_briefing_complete",
+            value: false,
           });
 
-          await conn.reducers.recordChoice({
-            requestId: `smoke_origin_choice_start_${Date.now()}`,
-            scenarioId: "sandbox_intro_pilot",
-            choiceId: introStartChoiceId,
-          });
-          await conn.reducers.recordChoice({
-            requestId: `smoke_origin_choice_lang_${Date.now()}`,
-            scenarioId: "sandbox_intro_pilot",
-            choiceId: "LANG_EN",
-          });
-          await conn.reducers.recordChoice({
-            requestId: `smoke_origin_choice_origin_${Date.now()}`,
-            scenarioId: "sandbox_intro_pilot",
-            choiceId: "BACKSTORY_JOURNALIST",
-          });
-
-          // Guarantee success branch so completion-route blockers remain deterministic.
-          await conn.reducers.setVar({
-            key: "attr_deception",
-            floatValue: 20,
-          });
-
-          await conn.reducers.startScenario({
-            requestId: `smoke_origin_start_journalist_${Date.now()}`,
-            scenarioId: "intro_journalist",
-          });
-          await conn.reducers.recordChoice({
-            requestId: `smoke_origin_j_choice_1_${Date.now()}`,
-            scenarioId: "intro_journalist",
-            choiceId: "JOURNALIST_SELECTIVE_EXCAVATION",
-          });
-          await conn.reducers.recordChoice({
-            requestId: `smoke_origin_j_choice_2_${Date.now()}`,
-            scenarioId: "intro_journalist",
-            choiceId: "JOURNALIST_KEY_SECRET_CONTINUE",
-          });
-          await conn.reducers.performSkillCheck({
-            requestId: `smoke_origin_j_skill_${Date.now()}`,
-            scenarioId: "intro_journalist",
-            checkId: "check_journalist_show_seal",
-          });
-          await conn.reducers.recordChoice({
-            requestId: `smoke_origin_j_choice_3_${Date.now()}`,
-            scenarioId: "intro_journalist",
-            choiceId: "JOURNALIST_TELEGRAM_CONTINUE",
-          });
-          await conn.reducers.recordChoice({
-            requestId: `smoke_origin_j_choice_4_${Date.now()}`,
-            scenarioId: "intro_journalist",
-            choiceId: "JOURNALIST_TIP_CONTINUE",
-          });
-
-          // After completing intro_journalist once, completion route blockers should
-          // prevent re-entering it directly from sandbox intro.
-          let blockedAsExpected = false;
+          let blockedBriefingStart = false;
           try {
             await conn.reducers.startScenario({
-              requestId: `smoke_origin_start_journalist_block_check_${Date.now()}`,
-              scenarioId: "intro_journalist",
+              requestId: request("briefing_before_wakeup"),
+              scenarioId: "sandbox_agency_briefing",
             });
           } catch (error) {
             const message =
               error instanceof Error ? error.message : String(error);
-            blockedAsExpected = message.includes(
+            blockedBriefingStart = message.includes(
               "Scenario start is blocked by completion route rules",
             );
           }
 
-          if (!blockedAsExpected) {
+          if (!blockedBriefingStart) {
             throw new Error(
-              "Expected intro_journalist to be blocked by completion route rules after completion",
+              "Expected sandbox_agency_briefing to be blocked before journalist wakeup completion",
+            );
+          }
+
+          await beginOriginDeterministically(
+            conn,
+            request("journalist"),
+            "journalist",
+          );
+
+          await conn.reducers.recordChoice({
+            requestId: request("wake_surface"),
+            scenarioId: "journalist_agency_wakeup",
+            choiceId: "JOURNALIST_WAKEUP_SURFACE",
+          });
+          await conn.reducers.recordChoice({
+            requestId: request("wake_orient"),
+            scenarioId: "journalist_agency_wakeup",
+            choiceId: "JOURNALIST_WAKEUP_ORIENT",
+          });
+
+          const flags = [...conn.db.playerFlag.iter()].filter(
+            (row) => row.playerId.toHexString() === playerHex,
+          );
+          const hasHandoffFlag = flags.some(
+            (row) => row.key === "origin_journalist_handoff_done" && row.value,
+          );
+          const annaIntroSet = flags.some(
+            (row) => row.key === "met_anna_intro" && row.value,
+          );
+          if (!hasHandoffFlag) {
+            throw new Error(
+              "Expected origin_journalist_handoff_done after wakeup completion",
+            );
+          }
+          if (annaIntroSet) {
+            throw new Error(
+              "Expected met_anna_intro to remain false after wakeup completion",
+            );
+          }
+
+          await conn.reducers.startScenario({
+            requestId: request("briefing_after_wakeup"),
+            scenarioId: "sandbox_agency_briefing",
+          });
+
+          const sessions = [...conn.db.vnSession.iter()].filter(
+            (row) => row.playerId.toHexString() === playerHex,
+          );
+          const briefingSession = sessions.find(
+            (row) => row.scenarioId === "sandbox_agency_briefing",
+          );
+          if (!briefingSession) {
+            throw new Error(
+              "Expected sandbox_agency_briefing session after wakeup handoff",
+            );
+          }
+
+          let blockedWakeupRestart = false;
+          try {
+            await conn.reducers.startScenario({
+              requestId: request("wakeup_restart"),
+              scenarioId: "journalist_agency_wakeup",
+            });
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : String(error);
+            blockedWakeupRestart = message.includes(
+              "Scenario start is blocked by completion route rules",
+            );
+          }
+
+          if (!blockedWakeupRestart) {
+            throw new Error(
+              "Expected journalist_agency_wakeup to be blocked after canonical handoff",
             );
           }
 

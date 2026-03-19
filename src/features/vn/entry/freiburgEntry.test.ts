@@ -18,14 +18,45 @@ const snapshot: any = {
       startNodeId: "scene_origin_journalist_bootstrap",
       nodeIds: ["scene_origin_journalist_bootstrap"],
       completionRoute: {
-        nextScenarioId: "intro_journalist",
+        nextScenarioId: "journalist_agency_wakeup",
         requiredFlagsAll: ["origin_journalist"],
       },
       packId: "system_origin_bootstrap",
     },
     {
+      id: "sandbox_intro_pilot",
+      title: "Sandbox Intro",
+      startNodeId: "scene_start",
+      nodeIds: ["scene_start"],
+      completionRoute: {
+        nextScenarioId: "journalist_agency_wakeup",
+        requiredFlagsAll: ["origin_journalist"],
+      },
+    },
+    {
+      id: "journalist_agency_wakeup",
+      title: "Journalist Wakeup",
+      startNodeId: "scene_journalist_agency_wakeup",
+      nodeIds: [
+        "scene_journalist_agency_wakeup",
+        "scene_journalist_memory_gap",
+        "scene_journalist_recruitment_pitch",
+      ],
+      completionRoute: {
+        nextScenarioId: "sandbox_agency_briefing",
+        requiredFlagsAll: ["origin_journalist"],
+        blockedIfFlagsAny: ["agency_briefing_complete"],
+      },
+    },
+    {
+      id: "sandbox_agency_briefing",
+      title: "Agency Briefing",
+      startNodeId: "scene_agency_briefing_intro",
+      nodeIds: ["scene_agency_briefing_intro"],
+    },
+    {
       id: "intro_journalist",
-      title: "Journalist Intro",
+      title: "Legacy Journalist Intro",
       startNodeId: "scene_journalist_intro",
       nodeIds: ["scene_journalist_intro"],
     },
@@ -120,10 +151,10 @@ describe("resolveFreiburgEntryTarget", () => {
       snapshot,
       sessions: [
         {
-          sessionKey: "me::origin_journalist_bootstrap",
+          sessionKey: "me::sandbox_intro_pilot",
           playerId: identity("me"),
-          scenarioId: "origin_journalist_bootstrap",
-          nodeId: "scene_origin_journalist_bootstrap",
+          scenarioId: "sandbox_intro_pilot",
+          nodeId: "scene_start",
           updatedAt: timestamp(10n),
           completedAt: { tag: "none" },
         },
@@ -175,7 +206,7 @@ describe("resolveFreiburgEntryTarget", () => {
     });
   });
 
-  it("routes selected origin with handoff done to the default entry scenario", () => {
+  it("routes completed journalist wakeup into the agency briefing before freeplay", () => {
     const result = resolveFreiburgEntryTarget({
       isConnected: true,
       contentReady: true,
@@ -183,10 +214,58 @@ describe("resolveFreiburgEntryTarget", () => {
       flagsReady: true,
       identityHex: "me",
       snapshot,
-      sessions: [],
+      sessions: [
+        {
+          sessionKey: "me::journalist_agency_wakeup",
+          playerId: identity("me"),
+          scenarioId: "journalist_agency_wakeup",
+          nodeId: "scene_journalist_recruitment_pitch",
+          updatedAt: timestamp(30n),
+          completedAt: { tag: "some", value: "2026-03-14T00:00:00Z" },
+        },
+      ],
       flags: {
-        origin_aristocrat: true,
-        origin_aristocrat_handoff_done: true,
+        origin_journalist: true,
+        origin_journalist_handoff_done: true,
+      },
+    });
+
+    expect(result).toEqual({
+      kind: "start",
+      scenarioId: "sandbox_agency_briefing",
+    });
+  });
+
+  it("routes selected origin with completed briefing to the default entry scenario", () => {
+    const result = resolveFreiburgEntryTarget({
+      isConnected: true,
+      contentReady: true,
+      sessionReady: true,
+      flagsReady: true,
+      identityHex: "me",
+      snapshot,
+      sessions: [
+        {
+          sessionKey: "me::journalist_agency_wakeup",
+          playerId: identity("me"),
+          scenarioId: "journalist_agency_wakeup",
+          nodeId: "scene_journalist_recruitment_pitch",
+          updatedAt: timestamp(30n),
+          completedAt: { tag: "some", value: "2026-03-14T00:00:00Z" },
+        },
+        {
+          sessionKey: "me::sandbox_agency_briefing",
+          playerId: identity("me"),
+          scenarioId: "sandbox_agency_briefing",
+          nodeId: "scene_agency_briefing_intro",
+          updatedAt: timestamp(40n),
+          completedAt: { tag: "some", value: "2026-03-14T00:10:00Z" },
+        },
+      ],
+      flags: {
+        origin_journalist: true,
+        origin_journalist_handoff_done: true,
+        agency_briefing_complete: true,
       },
     });
 

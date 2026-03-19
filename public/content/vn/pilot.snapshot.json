@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 6,
+  "schemaVersion": 7,
   "scenarios": [
     {
       "id": "sandbox_loop_demo",
@@ -21,12 +21,9 @@
       ],
       "mode": "fullscreen",
       "completionRoute": {
-        "nextScenarioId": "intro_journalist",
+        "nextScenarioId": "journalist_agency_wakeup",
         "requiredFlagsAll": ["origin_journalist"],
-        "blockedIfFlagsAny": [
-          "met_anna_intro",
-          "origin_journalist_handoff_done"
-        ]
+        "blockedIfFlagsAny": ["origin_journalist_handoff_done"]
       },
       "packId": "freiburg_intro"
     },
@@ -170,14 +167,31 @@
       "nodeIds": ["scene_origin_journalist_bootstrap"],
       "mode": "fullscreen",
       "completionRoute": {
-        "nextScenarioId": "intro_journalist",
+        "nextScenarioId": "journalist_agency_wakeup",
         "requiredFlagsAll": ["origin_journalist"],
-        "blockedIfFlagsAny": [
-          "origin_journalist_handoff_done",
-          "met_anna_intro"
-        ]
+        "blockedIfFlagsAny": ["origin_journalist_handoff_done"]
       },
       "packId": "system_origin_bootstrap"
+    },
+    {
+      "id": "journalist_agency_wakeup",
+      "title": "Immersion Bath Wakeup",
+      "startNodeId": "scene_journalist_agency_wakeup",
+      "nodeIds": [
+        "scene_journalist_agency_wakeup",
+        "scene_journalist_memory_gap",
+        "scene_journalist_cellar_valve",
+        "scene_journalist_cellar_ledger",
+        "scene_journalist_cellar_uniform",
+        "scene_journalist_recruitment_pitch"
+      ],
+      "mode": "fullscreen",
+      "completionRoute": {
+        "nextScenarioId": "sandbox_agency_briefing",
+        "requiredFlagsAll": ["origin_journalist"],
+        "blockedIfFlagsAny": ["agency_briefing_complete"]
+      },
+      "packId": "journalist_origin"
     },
     {
       "id": "intro_journalist",
@@ -2015,6 +2029,151 @@
       ]
     },
     {
+      "id": "scene_journalist_agency_wakeup",
+      "scenarioId": "journalist_agency_wakeup",
+      "title": "Scene: Immersion Bath Wakeup",
+      "body": "Cold stone presses against your shoulders. The bath is not luxury. It is a recovery trough sunk into a cellar floor, ringed with copper pipe, steam, and the bitter medicinal smell of whatever the Bureau poured into the water to drag you back. A woman's voice reaches you before...",
+      "choices": [
+        {
+          "id": "JOURNALIST_WAKEUP_SURFACE",
+          "text": "Grip the tub rim and force yourself upright.",
+          "nextNodeId": "scene_journalist_memory_gap",
+          "effects": [
+            {
+              "type": "track_event",
+              "eventName": "journalist_wakeup_surfaced",
+              "tags": {
+                "route": "journalist_wakeup"
+              }
+            }
+          ]
+        }
+      ],
+      "characterId": "npc_weber_dispatcher"
+    },
+    {
+      "id": "scene_journalist_memory_gap",
+      "scenarioId": "journalist_agency_wakeup",
+      "title": "Scene: Memory Gap",
+      "body": "Fragments return in the wrong order: rain on cobbles, a telegraph office door, the taste of metal, then nothing. The woman introduces herself as Lotte Weber, dispatcher for the Freiburg bureau, and gives you just enough fact to stand on. You are in an agency cellar. You were p...",
+      "choices": [
+        {
+          "id": "JOURNALIST_WAKEUP_ORIENT",
+          "text": "Ask Lotte where you are and why your notes are gone.",
+          "nextNodeId": "scene_journalist_recruitment_pitch"
+        },
+        {
+          "id": "JOURNALIST_WAKEUP_INSPECT_VALVE",
+          "text": "Ignore the answer for a second and inspect the steam valve.",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_journalist_cellar_valve"
+        }
+      ],
+      "characterId": "npc_weber_dispatcher"
+    },
+    {
+      "id": "scene_journalist_cellar_valve",
+      "scenarioId": "journalist_agency_wakeup",
+      "title": "Scene: Steam Valve",
+      "body": "The brass valve is scored by fresh wrench marks. Someone adjusted the temperature in a hurry and with purpose. The pipe hums under your fingers like a telegraph line trapped inside the wall. Whatever this room is for, it sees more broken investigators than patients. Behind you...",
+      "choices": [
+        {
+          "id": "JOURNALIST_VALVE_TO_LEDGER",
+          "text": "Trace the wet pipe to the ledger crate by the wall.",
+          "nextNodeId": "scene_journalist_cellar_ledger",
+          "effects": [
+            {
+              "type": "track_event",
+              "eventName": "journalist_wakeup_valve_checked",
+              "tags": {
+                "route": "journalist_wakeup"
+              }
+            }
+          ]
+        },
+        {
+          "id": "JOURNALIST_VALVE_CONTINUE",
+          "text": "Leave the hardware alone and face Lotte properly.",
+          "nextNodeId": "scene_journalist_recruitment_pitch"
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_journalist_cellar_ledger",
+      "scenarioId": "journalist_agency_wakeup",
+      "title": "Scene: Ledger Crate",
+      "body": "The crate beside the wall is not supply storage. It is intake. Damp ledgers, tagged personal effects, transfer slips, names crossed out too neatly. Your own surname appears on the top page with the time of arrival and a blank where cause should be. That blank chills you more t...",
+      "choices": [
+        {
+          "id": "JOURNALIST_LEDGER_TO_UNIFORM",
+          "text": "Set the ledger down and inspect the drying uniform.",
+          "nextNodeId": "scene_journalist_cellar_uniform",
+          "effects": [
+            {
+              "type": "track_event",
+              "eventName": "journalist_wakeup_ledger_checked",
+              "tags": {
+                "route": "journalist_wakeup"
+              }
+            }
+          ]
+        },
+        {
+          "id": "JOURNALIST_LEDGER_CONTINUE",
+          "text": "Keep the page numbers in mind and hear the offer out.",
+          "nextNodeId": "scene_journalist_recruitment_pitch"
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_journalist_cellar_uniform",
+      "scenarioId": "journalist_agency_wakeup",
+      "title": "Scene: Drying Uniform",
+      "body": "Your coat hangs from a line beside a regulation bureau jacket. The contrast is insulting. Ink-stained wool beside disciplined gray. Someone has already emptied your pockets, dried the important pages, and decided that your habits can be folded into procedure if the right press...",
+      "choices": [
+        {
+          "id": "JOURNALIST_UNIFORM_CONTINUE",
+          "text": "Pull the coat on and demand the short version.",
+          "nextNodeId": "scene_journalist_recruitment_pitch",
+          "effects": [
+            {
+              "type": "track_event",
+              "eventName": "journalist_wakeup_uniform_checked",
+              "tags": {
+                "route": "journalist_wakeup"
+              }
+            }
+          ]
+        }
+      ],
+      "characterId": "inspector"
+    },
+    {
+      "id": "scene_journalist_recruitment_pitch",
+      "scenarioId": "journalist_agency_wakeup",
+      "title": "Scene: Recruitment Pitch",
+      "body": "Only after you stop shaking does Lotte give you the real offer. Freiburg is choking on sealed files, missing ledgers, and people who would rather bribe a reporter than face an investigator. The Bureau wants someone who can smell a lie before it reaches print. You want the miss...",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "origin_journalist_handoff_done",
+          "value": true
+        },
+        {
+          "type": "track_event",
+          "eventName": "journalist_wakeup_completed",
+          "tags": {
+            "route": "journalist_wakeup"
+          }
+        }
+      ],
+      "characterId": "npc_weber_dispatcher"
+    },
+    {
       "id": "scene_journalist_intro",
       "scenarioId": "intro_journalist",
       "title": "Сцена: Cafe Riegler",
@@ -3207,12 +3366,6 @@
               "type": "change_agency_standing",
               "delta": 3,
               "reason": "student_house_entry_logged"
-            },
-            {
-              "type": "change_faction_signal",
-              "factionId": "underworld",
-              "delta": 4,
-              "reason": "student_house_entry"
             },
             {
               "type": "track_event",
@@ -5410,11 +5563,123 @@
     }
   ],
   "socialCatalog": {
+    "factions": [
+      {
+        "id": "city_chancellery",
+        "label": "City Chancellery",
+        "order": 10,
+        "color": "#4B6CB7",
+        "layer": "daylight",
+        "visibility": "public",
+        "signalStateLabels": [
+          "Cold reception",
+          "Working contact",
+          "Trusted source"
+        ]
+      },
+      {
+        "id": "masters_union",
+        "label": "Masters Union",
+        "order": 20,
+        "color": "#92400E",
+        "layer": "daylight",
+        "visibility": "public",
+        "signalStateLabels": [
+          "Outside the guild",
+          "Known craft hand",
+          "Shop-floor ally"
+        ]
+      },
+      {
+        "id": "college_of_reason",
+        "label": "College of Reason",
+        "order": 30,
+        "color": "#0F766E",
+        "layer": "daylight",
+        "visibility": "public",
+        "signalStateLabels": [
+          "Outsider",
+          "Recognized listener",
+          "Trusted colleague"
+        ]
+      },
+      {
+        "id": "chapter_of_mercy",
+        "label": "Chapter of Mercy",
+        "order": 40,
+        "color": "#B45309",
+        "layer": "daylight",
+        "visibility": "public",
+        "signalStateLabels": [
+          "Unknown petitioner",
+          "Under shelter",
+          "Trusted in the ward"
+        ]
+      },
+      {
+        "id": "house_of_pledges",
+        "label": "House of Pledges",
+        "order": 50,
+        "color": "#CA8A04",
+        "layer": "political",
+        "visibility": "public",
+        "signalStateLabels": [
+          "Measured response",
+          "Working courtesy",
+          "Doors held open"
+        ]
+      },
+      {
+        "id": "city_network",
+        "label": "City Network",
+        "order": 60,
+        "color": "#7C3AED",
+        "layer": "shadow",
+        "visibility": "public",
+        "signalStateLabels": [
+          "Unknown face",
+          "Recognized regular",
+          "One of ours"
+        ]
+      },
+      {
+        "id": "free_yards",
+        "label": "Free Yards",
+        "order": 70,
+        "color": "#DC2626",
+        "layer": "shadow",
+        "visibility": "public",
+        "signalStateLabels": [
+          "From the street",
+          "Marked by the yards",
+          "Claimed by the yards"
+        ]
+      },
+      {
+        "id": "the_returned",
+        "label": "The Returned",
+        "order": 80,
+        "color": "#374151",
+        "layer": "shadow",
+        "visibility": "hidden",
+        "signalStateLabels": ["Unseen", "Marked", "Recognized"]
+      }
+    ],
     "npcIdentities": [
+      {
+        "id": "npc_weber_dispatcher",
+        "displayName": "Lotte Weber",
+        "factionId": "city_chancellery",
+        "publicRole": "Bureau dispatcher",
+        "rosterTier": "functional",
+        "homePointId": "loc_agency",
+        "workPointId": "loc_agency",
+        "serviceIds": []
+      },
       {
         "id": "npc_anna_mahler",
         "displayName": "Anna Mahler",
-        "factionId": "underworld",
+        "factionId": "city_network",
         "publicRole": "Railway fixer",
         "rosterTier": "major",
         "introFlag": "met_anna_intro",
@@ -5425,7 +5690,7 @@
       {
         "id": "npc_archivist_otto",
         "displayName": "Archivist Otto",
-        "factionId": "civic_order",
+        "factionId": "city_chancellery",
         "publicRole": "Records specialist",
         "rosterTier": "functional",
         "introFlag": "met_archivist_intro",
@@ -5519,6 +5784,6 @@
       }
     ]
   },
-  "checksum": "8aa7fab79f12ac84a52758bfc1c085a22f7458fd9c9dcac86bfe147c9790e4e0",
-  "generatedAt": "2026-03-18T20:31:08.828Z"
+  "checksum": "6e15214943742061c8c03d86a57c653edb0aa578df1d938426661c296fb22c6e",
+  "generatedAt": "2026-03-19T18:56:05.975Z"
 }

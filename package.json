@@ -52,7 +52,16 @@
     "content:obsidian:coverage:check": "bun run scripts/content-obsidian-coverage-check.ts",
     "content:map:metrics:check": "bun run scripts/content-map-metrics-check.ts",
     "content:map:metrics:update": "bun run scripts/content-map-metrics-update.ts",
-    "content:drift:check": "bun run content:extract && bun run content:obsidian:coverage:check && bun run content:map:metrics:check && bun run scripts/content-drift-check.ts"
+    "content:drift:check": "bun run content:extract && bun run content:obsidian:coverage:check && bun run content:map:metrics:check && bun run scripts/content-drift-check.ts",
+    "openviking:start": "powershell -ExecutionPolicy Bypass -File scripts/openviking/start-mcp.ps1",
+    "openviking:setup": "powershell -ExecutionPolicy Bypass -File scripts/openviking/start-mcp.ps1 -Transport stdio",
+    "openviking:restart": "powershell -ExecutionPolicy Bypass -File scripts/openviking/start-mcp.ps1",
+    "openviking:validate": "powershell -ExecutionPolicy Bypass -Command \"& { . scripts/openviking/start-mcp.ps1; Test-OpenVikingHealth -Url http://127.0.0.1:1933 }\"",
+    "openviking:index": "powershell -ExecutionPolicy Bypass -File scripts/openviking/index-profiles.ps1",
+    "openviking:index:core": "powershell -ExecutionPolicy Bypass -File scripts/openviking/index-profiles.ps1 -ProfileName core",
+    "openviking:index:rules": "powershell -ExecutionPolicy Bypass -File scripts/openviking/index-profiles.ps1 -ProfileName rules",
+    "openviking:index:backend": "powershell -ExecutionPolicy Bypass -File scripts/openviking/index-profiles.ps1 -ProfileName backend",
+    "openviking:index:data": "powershell -ExecutionPolicy Bypass -File scripts/openviking/index-profiles.ps1 -ProfileName data"
   },
   "dependencies": {
     "@react-three/fiber": "^8.18.0",

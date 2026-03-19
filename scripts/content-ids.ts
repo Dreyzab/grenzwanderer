@@ -27,6 +27,7 @@ export const CONTENT_IDS = {
     "npc_baroness_elise",
     "npc_major_falk",
     "npc_archivist_otto",
+    "npc_weber_dispatcher",
     "inspector",
   ]),
   questIds: new Set<string>([

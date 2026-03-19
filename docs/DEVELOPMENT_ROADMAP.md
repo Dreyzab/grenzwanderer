@@ -2,6 +2,15 @@
 
 _Актуально на 2026-03-10_
 
+## Status Refresh (2026-03-18)
+
+This note supersedes older roadmap bullets where they disagree with the current repository state.
+
+- Canonical journalist onboarding is now `journalist_agency_wakeup -> sandbox_agency_briefing`. `intro_journalist` remains legacy/debug-only content.
+- Auth hardening for `register_worker_identity`, `publish_content`, and `rollback_content` is already landed in repo state.
+- The visibility decision matrix is already landed and currently covers the full set of `public: true` tables.
+- The immediate governance follow-up is CI supply-chain hardening: full SHA pinning, installer-step review, and Dependabot. It is not another reducer-auth baseline PR.
+
 ## Цель документа
 
 Этот roadmap фиксирует порядок развития проекта `Grenzwanderer` на основе текущего состояния репозитория.

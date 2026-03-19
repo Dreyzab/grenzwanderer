@@ -14,9 +14,12 @@ import { ENABLE_DEBUG_CONTENT_SEED } from "../../config";
 import {
   getAgencyStandingPresentation,
   getCareerRankLabel,
+  getFactionCatalogForUi,
   getFavorPresentation,
+  getRevealedFactionState,
   getTrendLabel,
   getTrustBandPresentation,
+  isNpcIdentityRevealed,
 } from "../../shared/game/socialPresentation";
 import { useUiLanguage } from "../../shared/hooks/useUiLanguage";
 import { tables } from "../../shared/spacetime/bindings";
@@ -812,6 +815,11 @@ const PsycheTab = ({ profile }: { profile: PsycheProfileData }) => {
                     />
                   </div>
                   <p className="text-xs text-stone-500">{signal.trendLabel}</p>
+                  {signal.provenanceNote ? (
+                    <p className="text-[11px] leading-relaxed text-stone-500">
+                      {signal.provenanceNote}
+                    </p>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -1247,6 +1255,10 @@ export const CharacterPanel = () => {
   }, [activeVersion, snapshots]);
 
   const socialCatalog = activeSnapshot?.socialCatalog;
+  const factionCatalog = useMemo(
+    () => getFactionCatalogForUi(socialCatalog),
+    [socialCatalog],
+  );
 
   const factionSignalState = useMemo(
     () =>
@@ -1260,14 +1272,52 @@ export const CharacterPanel = () => {
     [factionSignalRows, identityHex],
   );
 
+  const socialRelationshipState = useMemo(() => {
+    const trustByNpcId = new Map<string, number>();
+    for (const row of npcStateRows) {
+      if (row.playerId.toHexString() !== identityHex) {
+        continue;
+      }
+      trustByNpcId.set(row.npcId, row.trustScore);
+    }
+
+    const favorByNpcId = new Map<string, number>();
+    for (const row of npcFavorRows) {
+      if (row.playerId.toHexString() !== identityHex) {
+        continue;
+      }
+      favorByNpcId.set(row.npcId, normalizeNumber(row.balance));
+    }
+
+    return {
+      trustByNpcId,
+      favorByNpcId,
+    };
+  }, [identityHex, npcFavorRows, npcStateRows]);
+
+  const revealedFactionState = useMemo(
+    () =>
+      getRevealedFactionState({
+        socialCatalog,
+        flags: myFlags,
+        trustByNpcId: socialRelationshipState.trustByNpcId,
+        favorByNpcId: socialRelationshipState.favorByNpcId,
+        factionSignals: factionSignalState,
+      }),
+    [factionSignalState, myFlags, socialCatalog, socialRelationshipState],
+  );
+
   const profile = useMemo(
     () =>
       buildPsycheProfile({
         flags: myFlags,
         vars: myVars,
+        factionCatalog,
         factionSignals: factionSignalState,
+        revealedFactionIds: revealedFactionState.revealedFactionIds,
+        revealedFactionReasons: revealedFactionState.revealReasons,
       }),
-    [factionSignalState, myFlags, myVars],
+    [factionCatalog, factionSignalState, myFlags, myVars, revealedFactionState],
   );
 
   const agencyCareerRow = useMemo(
@@ -1316,45 +1366,26 @@ export const CharacterPanel = () => {
   }, [activeSnapshot?.map?.points]);
 
   const contactEntries = useMemo<CharacterContactEntry[]>(() => {
-    const trustByNpcId = new Map<string, number>();
-    for (const row of npcStateRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
-      trustByNpcId.set(row.npcId, row.trustScore);
-    }
-
-    const favorByNpcId = new Map<string, number>();
-    for (const row of npcFavorRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
-      favorByNpcId.set(row.npcId, normalizeNumber(row.balance));
-    }
-
     const serviceLabelById = new Map<string, string>();
     for (const service of socialCatalog?.services ?? []) {
       serviceLabelById.set(service.id, service.label);
     }
 
     return (socialCatalog?.npcIdentities ?? [])
-      .filter((identity) => {
-        if (!identity.introFlag) {
-          return true;
-        }
-
-        return (
-          myFlags[identity.introFlag] === true ||
-          trustByNpcId.has(identity.id) ||
-          favorByNpcId.has(identity.id)
-        );
-      })
+      .filter((identity) =>
+        isNpcIdentityRevealed(
+          identity,
+          myFlags,
+          socialRelationshipState.trustByNpcId,
+          socialRelationshipState.favorByNpcId,
+        ),
+      )
       .map((identity) => {
         const trustPresentation = getTrustBandPresentation(
-          trustByNpcId.get(identity.id) ?? 0,
+          socialRelationshipState.trustByNpcId.get(identity.id) ?? 0,
         );
         const favorPresentation = getFavorPresentation(
-          favorByNpcId.get(identity.id) ?? 0,
+          socialRelationshipState.favorByNpcId.get(identity.id) ?? 0,
         );
         return {
           id: identity.id,
@@ -1371,10 +1402,8 @@ export const CharacterPanel = () => {
       })
       .sort((left, right) => left.displayName.localeCompare(right.displayName));
   }, [
-    identityHex,
     myFlags,
-    npcFavorRows,
-    npcStateRows,
+    socialRelationshipState,
     socialCatalog?.npcIdentities,
     socialCatalog?.services,
   ]);

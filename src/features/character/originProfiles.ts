@@ -50,8 +50,6 @@ export interface OriginProfileDefinition {
   choiceId: string;
   originFlagKey: string;
   handoffDoneFlagKeys: string[];
-  wakeupScenarioId?: string;
-  wakeupTriggerFlagKeys?: string[];
   label: string;
   summary: string;
   scenarioId: string;
@@ -69,12 +67,10 @@ export const originProfiles: OriginProfileDefinition[] = [
     id: "journalist",
     choiceId: "BACKSTORY_JOURNALIST",
     originFlagKey: "origin_journalist",
-    handoffDoneFlagKeys: ["origin_journalist_handoff_done", "met_anna_intro"],
-    wakeupScenarioId: "journalist_agency_wakeup",
-    wakeupTriggerFlagKeys: ["journalist_intro_complete"],
+    handoffDoneFlagKeys: ["origin_journalist_handoff_done"],
     label: "Journalist Origin",
     summary: "Leaks, rumor networks, and pressure through publication.",
-    scenarioId: "intro_journalist",
+    scenarioId: "journalist_agency_wakeup",
     flawFlagKey: "flaw_gambling_addiction",
     signatureAbilityFlagKey: "ability_nose_for_story",
     statEffects: [

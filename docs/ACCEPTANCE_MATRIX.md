@@ -27,3 +27,9 @@ Current Freiburg social flows in the matrix:
 - `freiburg_rumor_verification`
 - `freiburg_agency_career_progression`
 - `freiburg_service_unlock`
+
+Current journalist onboarding contract in the matrix:
+
+- canonical start: `journalist_agency_wakeup`
+- supported handoff: `journalist_agency_wakeup -> sandbox_agency_briefing`
+- `intro_journalist` is retained for legacy/debug coverage only and is not the supported wakeup path

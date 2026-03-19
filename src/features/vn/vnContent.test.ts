@@ -4,6 +4,7 @@ import {
   MIN_VN_SCHEMA_WITH_MAP_EXPANSIONS,
   MIN_VN_SCHEMA_WITH_MIND_PALACE,
   MIN_VN_SCHEMA_WITH_QUEST_CATALOG,
+  MIN_VN_SCHEMA_WITH_SOCIAL_FACTIONS,
 } from "./snapshotSchema";
 import {
   createLegacyMaplessSnapshot,
@@ -1281,5 +1282,42 @@ describe("vnContent runtime parsing", () => {
 
     expect(parsed).not.toBeNull();
     expect(parsed?.map).toBeUndefined();
+  });
+
+  it("requires socialCatalog.factions for schema v7 snapshots", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify({
+        ...createTestSnapshot({
+          schemaVersion: MIN_VN_SCHEMA_WITH_SOCIAL_FACTIONS,
+        }),
+        socialCatalog: {
+          npcIdentities: [],
+          services: [],
+          rumors: [],
+          careerRanks: [],
+        },
+      }),
+    );
+
+    expect(parsed).toBeNull();
+  });
+
+  it("keeps parsing schema v6 social catalogs without faction registry", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify({
+        ...createTestSnapshot({
+          schemaVersion: MIN_VN_SCHEMA_WITH_MAP_EXPANSIONS,
+        }),
+        socialCatalog: {
+          npcIdentities: [],
+          services: [],
+          rumors: [],
+          careerRanks: [],
+        },
+      }),
+    );
+
+    expect(parsed).not.toBeNull();
+    expect(parsed?.socialCatalog?.factions).toBeUndefined();
   });
 });

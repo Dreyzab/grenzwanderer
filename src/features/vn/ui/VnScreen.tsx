@@ -6,12 +6,19 @@ import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
 import { ENABLE_AI } from "../../../config";
 import { getVnStrings } from "../../i18n/uiStrings";
 import {
+  AI_CHARACTER_REACTION_SOURCE_VN_SCENE,
   AI_DIALOGUE_SOURCE_SKILL_CHECK,
+  AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
   matchesSkillCheckThought,
+  parseCharacterReactionProposal,
+  parseGenerateCharacterReactionPayload,
+  parseGenerateDialogueEnvelope,
   parseGenerateDialoguePayload,
   parseGenerateDialogueResponse,
+  trustToDisposition,
 } from "../../ai/contracts";
+import { canonicalVoiceIdFor } from "../../ai/voiceCanonicalization";
 import type { SceneResultEnvelope } from "../../ai/sceneResultEnvelope";
 import {
   calculateSkillCheckSuccessPercent,
@@ -72,7 +79,6 @@ interface VnScreenProps {
       | "character"
       | "map"
       | "mind_palace"
-      | "dev"
       | "command"
       | "battle",
   ) => void;
@@ -104,6 +110,15 @@ interface ActiveAiThoughtContext {
   voiceId: string;
   choiceText: string;
   resultCreatedAtMicros: bigint;
+}
+
+interface ActiveReactionContext {
+  scenarioId: string;
+  nodeId: string;
+  characterId: string;
+  sessionPointer: string;
+  sessionUpdatedAtMicros: bigint;
+  reactionKey: string;
 }
 
 type SkillCheckResultLike = {
@@ -191,6 +206,13 @@ const buildAiThoughtKey = (
   resultCreatedAtMicros: bigint,
 ): string =>
   `${scenarioId}::${nodeId}::${checkId}::${choiceId}::${resultCreatedAtMicros.toString()}`;
+
+const buildReactionKey = (
+  scenarioId: string,
+  nodeId: string,
+  characterId: string,
+  sessionPointerValue: string,
+): string => `${scenarioId}::${nodeId}::${characterId}::${sessionPointerValue}`;
 
 const unwrapOptionalString = (value: unknown): string | null => {
   if (typeof value === "string") {
@@ -315,6 +337,29 @@ const timestampMicros = (value: unknown): bigint => {
   return 0n;
 };
 
+const parseStoredDialogueResponse = (value: unknown) => {
+  const envelope = parseGenerateDialogueEnvelope(value);
+  if (envelope) {
+    return {
+      ...envelope,
+      canonicalVoiceId: canonicalVoiceIdFor(envelope.canonicalVoiceId),
+    };
+  }
+
+  const legacyResponse = parseGenerateDialogueResponse(value);
+  if (!legacyResponse) {
+    return null;
+  }
+
+  return {
+    ...legacyResponse,
+    canonicalVoiceId: canonicalVoiceIdFor(legacyResponse.canonicalVoiceId),
+  };
+};
+
+const parseStoredCharacterReactionResponse = (value: unknown) =>
+  parseCharacterReactionProposal(value);
+
 const isCompletionRouteBlockedError = (message: string): boolean =>
   message.includes("Scenario start is blocked by completion route rules");
 
@@ -367,9 +412,14 @@ export const VnScreen = ({
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
   const [sessions, sessionsReady] = useTable(tables.vnSession);
   const [skillResults] = useTable(tables.vnSkillCheckResult);
-  const [aiRequests] = useTable(tables.aiRequest);
+  const [aiRequests] = useTable(tables.myDialogueRequests);
+  const [reactionRequests] = useTable(tables.myReactionRequests);
   const [questRows] = useTable(tables.playerQuest);
+  const [npcStateRows, npcStateReady] = useTable(tables.playerNpcState);
   const [npcFavorRows] = useTable(tables.playerNpcFavor);
+  const [characterRevealRows, characterRevealReady] = useTable(
+    tables.playerCharacterReveal,
+  );
   const [agencyCareerRows] = useTable(tables.playerAgencyCareer);
   const [rumorStateRows] = useTable(tables.playerRumorState);
 
@@ -398,6 +448,9 @@ export const VnScreen = ({
     useState<VnSkillCheckResolveState | null>(null);
   const [activeAiThoughtContext, setActiveAiThoughtContext] =
     useState<ActiveAiThoughtContext | null>(null);
+  const [activeReactionKey, setActiveReactionKey] = useState<string | null>(
+    null,
+  );
 
   const typedTextRef = useRef<TypedTextHandle>(null);
   const passiveInFlightRef = useRef<Set<string>>(new Set());
@@ -411,6 +464,7 @@ export const VnScreen = ({
   const activeSkillSkipTokenRef = useRef(0);
   const activeSkillSfxTokenRef = useRef(0);
   const enqueuedAiThoughtKeysRef = useRef<Set<string>>(new Set());
+  const enqueuedReactionKeysRef = useRef<Set<string>>(new Set());
 
   const myFlags = usePlayerFlags();
   const myVars = usePlayerVars();
@@ -481,6 +535,75 @@ export const VnScreen = ({
     rumorStateRows,
     snapshot?.socialCatalog?.careerRanks,
   ]);
+  const trustByNpcId = useMemo(() => {
+    const trust = new Map<string, number>();
+    for (const row of npcStateRows) {
+      if (row.playerId.toHexString() !== identityHex) {
+        continue;
+      }
+      trust.set(row.npcId, row.trustScore);
+    }
+    return trust;
+  }, [identityHex, npcStateRows]);
+  const visibleFactsByCharacterId = useMemo(() => {
+    const factById = new Map(
+      (snapshot?.socialCatalog?.characterRevealFacts ?? []).map((fact) => [
+        fact.id,
+        fact,
+      ]),
+    );
+    const tierOrder = {
+      hidden: 0,
+      hinted: 1,
+      surface: 2,
+    } as const;
+    const factsByCharacterId = new Map<
+      string,
+      Array<{ factId: string; summary: string; tier: number }>
+    >();
+
+    for (const row of characterRevealRows) {
+      if (row.playerId.toHexString() !== identityHex) {
+        continue;
+      }
+
+      const fact = factById.get(row.factId);
+      if (!fact) {
+        continue;
+      }
+
+      const current = factsByCharacterId.get(row.characterId) ?? [];
+      if (current.some((entry) => entry.factId === row.factId)) {
+        continue;
+      }
+
+      current.push({
+        factId: row.factId,
+        summary: fact.summary,
+        tier: tierOrder[fact.tier],
+      });
+      factsByCharacterId.set(row.characterId, current);
+    }
+
+    const summaries = new Map<string, string[]>();
+    for (const [characterId, facts] of factsByCharacterId) {
+      summaries.set(
+        characterId,
+        facts
+          .sort(
+            (left, right) =>
+              left.tier - right.tier || left.factId.localeCompare(right.factId),
+          )
+          .map((entry) => entry.summary),
+      );
+    }
+
+    return summaries;
+  }, [
+    characterRevealRows,
+    identityHex,
+    snapshot?.socialCatalog?.characterRevealFacts,
+  ]);
   const contentReady =
     (versionsReady && snapshotsReady) || Boolean(activeVersion && snapshot);
 
@@ -542,6 +665,7 @@ export const VnScreen = ({
     setError(null);
     setActiveSkillResolve(null);
     setActiveAiThoughtContext(null);
+    setActiveReactionKey(null);
     choiceSessionPointerRef.current = null;
     activeSkillTokenRef.current += 1;
     activeSkillSequenceRef.current = null;
@@ -578,6 +702,30 @@ export const VnScreen = ({
     () => sessionPointer(mySession),
     [mySession],
   );
+  const currentReactionContext = useMemo<ActiveReactionContext | null>(() => {
+    if (
+      !selectedScenarioId ||
+      !currentNode?.characterId ||
+      !currentSessionPointer ||
+      !mySession
+    ) {
+      return null;
+    }
+
+    return {
+      scenarioId: selectedScenarioId,
+      nodeId: currentNode.id,
+      characterId: currentNode.characterId,
+      sessionPointer: currentSessionPointer,
+      sessionUpdatedAtMicros: timestampMicros(mySession.updatedAt),
+      reactionKey: buildReactionKey(
+        selectedScenarioId,
+        currentNode.id,
+        currentNode.characterId,
+        currentSessionPointer,
+      ),
+    };
+  }, [currentNode, currentSessionPointer, mySession, selectedScenarioId]);
 
   useEffect(() => {
     if (!activeAiThoughtContext || !currentNode) {
@@ -629,6 +777,45 @@ export const VnScreen = ({
         ),
     [aiRequests, identityHex],
   );
+  const myReactionRequests = useMemo(
+    () =>
+      reactionRequests
+        .filter((entry) => entry.playerId.toHexString() === identityHex)
+        .sort((left, right) =>
+          timestampMicros(right.updatedAt) > timestampMicros(left.updatedAt)
+            ? 1
+            : -1,
+        ),
+    [identityHex, reactionRequests],
+  );
+
+  useEffect(() => {
+    if (!currentReactionContext) {
+      setActiveReactionKey(null);
+      return;
+    }
+
+    const hasExistingRequest = myReactionRequests.some((entry) => {
+      const payload = parseGenerateCharacterReactionPayload(entry.payloadJson);
+      return (
+        payload?.source === AI_CHARACTER_REACTION_SOURCE_VN_SCENE &&
+        payload.characterId === currentReactionContext.characterId &&
+        payload.scenarioId === currentReactionContext.scenarioId &&
+        payload.nodeId === currentReactionContext.nodeId &&
+        timestampMicros(entry.createdAt) >=
+          currentReactionContext.sessionUpdatedAtMicros
+      );
+    });
+
+    if (
+      hasExistingRequest ||
+      enqueuedReactionKeysRef.current.has(currentReactionContext.reactionKey)
+    ) {
+      setActiveReactionKey(currentReactionContext.reactionKey);
+    } else {
+      setActiveReactionKey(null);
+    }
+  }, [currentReactionContext, myReactionRequests]);
 
   const currentDiceMode = useMemo(
     () =>
@@ -666,6 +853,22 @@ export const VnScreen = ({
           context.checkId,
           context.choiceId,
         ) && timestampMicros(entry.createdAt) >= context.resultCreatedAtMicros
+      );
+    },
+    [],
+  );
+  const reactionRequestMatchesContext = useCallback(
+    (
+      entry: (typeof reactionRequests)[number],
+      context: ActiveReactionContext,
+    ) => {
+      const payload = parseGenerateCharacterReactionPayload(entry.payloadJson);
+      return (
+        payload?.source === AI_CHARACTER_REACTION_SOURCE_VN_SCENE &&
+        payload.characterId === context.characterId &&
+        payload.scenarioId === context.scenarioId &&
+        payload.nodeId === context.nodeId &&
+        timestampMicros(entry.createdAt) >= context.sessionUpdatedAtMicros
       );
     },
     [],
@@ -1451,6 +1654,80 @@ export const VnScreen = ({
     runActiveSkillResolveSequence,
   ]);
 
+  useEffect(() => {
+    if (
+      !ENABLE_AI ||
+      !contentReady ||
+      !sessionReady ||
+      !npcStateReady ||
+      !characterRevealReady ||
+      !currentReactionContext
+    ) {
+      return;
+    }
+
+    const { characterId, nodeId, reactionKey, scenarioId } =
+      currentReactionContext;
+    if (enqueuedReactionKeysRef.current.has(reactionKey)) {
+      return;
+    }
+
+    if (
+      myReactionRequests.some((entry) =>
+        reactionRequestMatchesContext(entry, currentReactionContext),
+      )
+    ) {
+      enqueuedReactionKeysRef.current.add(reactionKey);
+      setActiveReactionKey(reactionKey);
+      return;
+    }
+
+    enqueuedReactionKeysRef.current.add(reactionKey);
+    setActiveReactionKey(reactionKey);
+
+    const visibleFacts = visibleFactsByCharacterId.get(characterId) ?? [];
+    const trustScore = trustByNpcId.get(characterId) ?? 0;
+
+    void enqueueAiRequest({
+      requestId: createRequestId(),
+      kind: AI_GENERATE_CHARACTER_REACTION_KIND,
+      payloadJson: JSON.stringify({
+        source: AI_CHARACTER_REACTION_SOURCE_VN_SCENE,
+        characterId,
+        scenarioId,
+        nodeId,
+        eventText: normalizeBody(currentNode?.body ?? ""),
+        visibleFacts,
+        relationshipState: {
+          trust: trustScore,
+          disposition: trustToDisposition(trustScore),
+        },
+      }),
+    }).catch((caughtError) => {
+      enqueuedReactionKeysRef.current.delete(reactionKey);
+      setActiveReactionKey((current) =>
+        current === reactionKey ? null : current,
+      );
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Character reaction request failed",
+      );
+    });
+  }, [
+    characterRevealReady,
+    contentReady,
+    currentNode?.body,
+    currentReactionContext,
+    enqueueAiRequest,
+    myReactionRequests,
+    npcStateReady,
+    reactionRequestMatchesContext,
+    sessionReady,
+    trustByNpcId,
+    visibleFactsByCharacterId,
+  ]);
+
   const handleStartScenario = async () => {
     if (!selectedScenarioId) {
       return;
@@ -1710,12 +1987,36 @@ export const VnScreen = ({
       ) ?? null
     );
   }, [activeAiThoughtContext, aiRequestMatchesContext, myAiRequests]);
+  const activeReactionRequest = useMemo(() => {
+    if (!currentReactionContext) {
+      return null;
+    }
+
+    return (
+      myReactionRequests.find((entry) =>
+        reactionRequestMatchesContext(entry, currentReactionContext),
+      ) ?? null
+    );
+  }, [
+    currentReactionContext,
+    myReactionRequests,
+    reactionRequestMatchesContext,
+  ]);
   const activeAiThoughtResponse = useMemo(
     () =>
       activeAiThoughtRequest
-        ? parseGenerateDialogueResponse(activeAiThoughtRequest.responseJson)
+        ? parseStoredDialogueResponse(activeAiThoughtRequest.responseJson)
         : null,
     [activeAiThoughtRequest],
+  );
+  const activeReactionResponse = useMemo(
+    () =>
+      activeReactionRequest
+        ? parseStoredCharacterReactionResponse(
+            activeReactionRequest.responseJson,
+          )
+        : null,
+    [activeReactionRequest],
   );
   const activeAiThoughtVoiceLabel = useMemo(() => {
     if (activeAiThoughtResponse) {
@@ -1737,6 +2038,26 @@ export const VnScreen = ({
       ? status
       : "pending";
   }, [activeAiThoughtContext, activeAiThoughtRequest?.status]);
+  const activeReactionStatus = useMemo<SkillCheckAiStatus | null>(() => {
+    if (
+      !ENABLE_AI ||
+      !currentReactionContext ||
+      activeReactionKey !== currentReactionContext.reactionKey
+    ) {
+      return null;
+    }
+
+    const status = activeReactionRequest?.status;
+    return status === "processing" ||
+      status === "completed" ||
+      status === "failed"
+      ? status
+      : "pending";
+  }, [
+    activeReactionKey,
+    activeReactionRequest?.status,
+    currentReactionContext,
+  ]);
   const showInlineAiThoughtCard =
     !activeSkillResolve &&
     Boolean(activeAiThoughtContext) &&
@@ -1744,6 +2065,19 @@ export const VnScreen = ({
     activeAiThoughtContext?.nodeId === currentNode?.id &&
     activeAiThoughtStatus !== null &&
     activeAiThoughtStatus !== "failed";
+  const showInlineReactionCard =
+    !activeSkillResolve &&
+    Boolean(currentReactionContext) &&
+    activeReactionStatus !== null;
+  const activeReactionLabel =
+    currentReactionContext && currentNode?.characterId
+      ? formatSpeaker(currentNode.characterId, snapshot)
+      : "Unknown Contact";
+  const activeReactionFailureMessage =
+    activeReactionStatus === "failed"
+      ? (unwrapOptionalString(activeReactionRequest?.error) ??
+        "Reaction unavailable right now.")
+      : null;
 
   const displayedPresentation = activeSkillResolve?.frozen;
   const visibleChoices =
@@ -1905,6 +2239,24 @@ export const VnScreen = ({
         onSurfaceTap={handleSurfaceTap}
         choicesSlot={
           <div className="flex flex-col gap-3 px-6 py-8 w-full max-w-[480px] mx-auto">
+            {showInlineReactionCard ? (
+              <div className="rounded-[1.4rem] border border-sky-200/20 bg-slate-950/55 px-4 py-4 text-left shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-sky-100/70">
+                  Character Reaction
+                </p>
+                <p className="mt-2 text-xs uppercase tracking-[0.14em] text-sky-50/85">
+                  {activeReactionLabel}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-100/88">
+                  {activeReactionStatus === "completed" &&
+                  activeReactionResponse?.text
+                    ? activeReactionResponse.text
+                    : activeReactionStatus === "failed"
+                      ? activeReactionFailureMessage
+                      : `${activeReactionLabel} is reading the room...`}
+                </p>
+              </div>
+            ) : null}
             {showInlineAiThoughtCard ? (
               <div className="rounded-[1.4rem] border border-amber-200/20 bg-black/40 px-4 py-4 text-left shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-amber-200/70">
@@ -1948,51 +2300,53 @@ export const VnScreen = ({
                 }}
               />
             ) : !showOriginCards && hasExplicitChoices && currentNode ? (
-              visibleChoices.map((choice, index) => {
-                const choiceKey = buildChoiceKey(
-                  selectedScenarioId,
-                  currentNode.id,
-                  choice.id,
-                );
-                const isAvailable = isChoiceAvailable(
-                  choice,
-                  myFlags,
-                  myVars,
-                  choiceEvaluationContext,
-                );
-                const chancePercent = getChoiceChancePercent(choice);
-                const skillCheckState =
-                  activeSkillResolve?.choiceId === choice.id
-                    ? activeSkillResolve.phase === "arming"
-                      ? "arming"
-                      : activeSkillResolve.phase === "rolling"
-                        ? "rolling"
-                        : activeSkillResolve.phase === "impact"
-                          ? activeSkillResolve.passed
-                            ? "impact_success"
-                            : "impact_fail"
-                          : activeSkillResolve.passed
-                            ? "result_success"
-                            : "result_fail"
-                    : "idle";
-                return (
-                  <VnChoiceButton
-                    key={choice.id}
-                    choice={choice}
-                    index={index}
-                    chancePercent={chancePercent}
-                    skillCheckState={skillCheckState}
-                    isVisited={Boolean(visitedChoiceKeys[choiceKey])}
-                    isLocked={!isAvailable || !mySession}
-                    isPending={pendingChoiceId === choice.id}
-                    hasFailedCheck={Boolean(failedChoiceKeys[choiceKey])}
-                    disabled={isInteractionLocked}
-                    onClick={() =>
-                      handleChoiceClick(choice, !isAvailable || !mySession)
-                    }
-                  />
-                );
-              })
+              <>
+                {visibleChoices.map((choice, index) => {
+                  const choiceKey = buildChoiceKey(
+                    selectedScenarioId,
+                    currentNode.id,
+                    choice.id,
+                  );
+                  const isAvailable = isChoiceAvailable(
+                    choice,
+                    myFlags,
+                    myVars,
+                    choiceEvaluationContext,
+                  );
+                  const chancePercent = getChoiceChancePercent(choice);
+                  const skillCheckState =
+                    activeSkillResolve?.choiceId === choice.id
+                      ? activeSkillResolve.phase === "arming"
+                        ? "arming"
+                        : activeSkillResolve.phase === "rolling"
+                          ? "rolling"
+                          : activeSkillResolve.phase === "impact"
+                            ? activeSkillResolve.passed
+                              ? "impact_success"
+                              : "impact_fail"
+                            : activeSkillResolve.passed
+                              ? "result_success"
+                              : "result_fail"
+                      : "idle";
+                  return (
+                    <VnChoiceButton
+                      key={choice.id}
+                      choice={choice}
+                      index={index}
+                      chancePercent={chancePercent}
+                      skillCheckState={skillCheckState}
+                      isVisited={Boolean(visitedChoiceKeys[choiceKey])}
+                      isLocked={!isAvailable || !mySession}
+                      isPending={pendingChoiceId === choice.id}
+                      hasFailedCheck={Boolean(failedChoiceKeys[choiceKey])}
+                      disabled={isInteractionLocked}
+                      onClick={() =>
+                        handleChoiceClick(choice, !isAvailable || !mySession)
+                      }
+                    />
+                  );
+                })}
+              </>
             ) : displayedScenarioCompleted ? (
               <div className="flex flex-col gap-3">
                 <p className="opacity-70 italic text-sm text-center">

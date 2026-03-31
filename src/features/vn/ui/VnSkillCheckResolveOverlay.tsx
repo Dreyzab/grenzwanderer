@@ -8,7 +8,8 @@ import {
 import type { VnChoice, VnDiceMode } from "../types";
 import "./VnSkillCheckFeedback.css";
 
-type DiceSceneComponent = typeof import("./VnSkillCheckDiceScene").VnSkillCheckDiceScene;
+type DiceSceneComponent =
+  typeof import("./VnSkillCheckDiceScene").VnSkillCheckDiceScene;
 
 export type VnSkillCheckResolvePhase =
   | "arming"
@@ -60,7 +61,10 @@ const usePrefersReducedMotion = (): boolean => {
   const [reduced, setReduced] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    if (
+      typeof window === "undefined" ||
+      typeof window.matchMedia !== "function"
+    ) {
       return;
     }
 
@@ -88,7 +92,7 @@ const detectWebGlSupport = (): boolean => {
     const canvas = document.createElement("canvas");
     return Boolean(
       window.WebGLRenderingContext &&
-        (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")),
+      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")),
     );
   } catch {
     return false;
@@ -160,7 +164,13 @@ export const VnSkillCheckResolveOverlay = ({
   }, []);
 
   useEffect(() => {
-    if (!state || prefersReducedMotion || !hasWebGl || diceLoadFailed || DiceScene) {
+    if (
+      !state ||
+      prefersReducedMotion ||
+      !hasWebGl ||
+      diceLoadFailed ||
+      DiceScene
+    ) {
       return;
     }
 
@@ -252,12 +262,7 @@ export const VnSkillCheckResolveOverlay = ({
             initial={{
               opacity: 0,
               scale: 0.96,
-              y:
-                state.phase === "result"
-                  ? state.passed
-                    ? 22
-                    : -18
-                  : 14,
+              y: state.phase === "result" ? (state.passed ? 22 : -18) : 14,
             }}
             animate={{
               opacity: 1,
@@ -288,7 +293,7 @@ export const VnSkillCheckResolveOverlay = ({
                     </p>
                     <p className="vn-check-resolve__ai-title">
                       {aiStatus === "completed"
-                        ? aiThoughtVoiceLabel ?? "Thought"
+                        ? (aiThoughtVoiceLabel ?? "Thought")
                         : "Thinking"}
                     </p>
                     <p className="vn-check-resolve__ai-text">

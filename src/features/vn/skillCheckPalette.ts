@@ -67,6 +67,16 @@ export const formatSkillCheckVoiceLabel = (voiceId: string): string => {
     .replace(/\b\w/g, (entry) => entry.toUpperCase());
 };
 
+export const formatSkillCheckDifficulty = (val: number): string => {
+  if (val <= 3) return "Trivial";
+  if (val <= 6) return "Simple";
+  if (val <= 9) return "Normal";
+  if (val <= 12) return "Demanding";
+  if (val <= 15) return "Hard";
+  if (val <= 18) return "Legendary";
+  return "Impossible";
+};
+
 export const getSkillCheckVoicePalette = (
   voiceId: string,
 ): SkillCheckVoicePalette => PALETTE_BY_VOICE[voiceId] ?? FALLBACK_PALETTE;

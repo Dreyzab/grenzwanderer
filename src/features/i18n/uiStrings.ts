@@ -30,6 +30,16 @@ const vnStrings = {
     vnContentBody:
       "Publish or seed a snapshot in debug mode first, then return to VN screen.",
     openDebugPanel: "Open VN Debug Panel",
+    reactionTitle: "Character Reaction",
+    reactionPending: "is reading the room...",
+    reactionUnavailable: "Reaction unavailable right now.",
+    innerThoughtTitle: "Inner Parliament",
+    innerThoughtThinking: "Thinking",
+    innerThoughtPending: "is turning the result over...",
+    activeLensLabel: "Active Lens",
+    internalizedThoughtLabel: "Internalized Thought",
+    muteSkillCheckAudio: "Mute skill check audio",
+    unmuteSkillCheckAudio: "Unmute skill check audio",
   },
   ru: {
     scenario: "Scenario",
@@ -59,6 +69,16 @@ const vnStrings = {
     vnContentBody:
       "Publish or seed a snapshot in debug mode first, then return to VN screen.",
     openDebugPanel: "Open VN Debug Panel",
+    reactionTitle: "Character Reaction",
+    reactionPending: "is reading the room...",
+    reactionUnavailable: "Reaction unavailable right now.",
+    innerThoughtTitle: "Inner Parliament",
+    innerThoughtThinking: "Thinking",
+    innerThoughtPending: "is turning the result over...",
+    activeLensLabel: "Active Lens",
+    internalizedThoughtLabel: "Internalized Thought",
+    muteSkillCheckAudio: "Mute skill check audio",
+    unmuteSkillCheckAudio: "Unmute skill check audio",
   },
   de: {
     scenario: "Scenario",
@@ -88,6 +108,16 @@ const vnStrings = {
     vnContentBody:
       "Publish or seed a snapshot in debug mode first, then return to VN screen.",
     openDebugPanel: "Open VN Debug Panel",
+    reactionTitle: "Character Reaction",
+    reactionPending: "is reading the room...",
+    reactionUnavailable: "Reaction unavailable right now.",
+    innerThoughtTitle: "Inner Parliament",
+    innerThoughtThinking: "Thinking",
+    innerThoughtPending: "is turning the result over...",
+    activeLensLabel: "Active Lens",
+    internalizedThoughtLabel: "Internalized Thought",
+    muteSkillCheckAudio: "Mute skill check audio",
+    unmuteSkillCheckAudio: "Unmute skill check audio",
   },
 } as const;
 
@@ -121,6 +151,9 @@ const characterStrings = {
   },
 } as const;
 
-export const getVnStrings = (language: UiLanguage) => vnStrings[language];
+export type VnStrings = (typeof vnStrings)["en"];
+
+export const getVnStrings = (language: UiLanguage): VnStrings =>
+  vnStrings[language];
 export const getCharacterStrings = (language: UiLanguage) =>
   characterStrings[language];

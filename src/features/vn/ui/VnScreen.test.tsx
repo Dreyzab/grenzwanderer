@@ -1213,9 +1213,11 @@ describe("VnScreen critical behavior", () => {
       view.rerender(<VnScreen />);
     });
 
-    expect(
-      screen.getByText("Push now. He is already leaning."),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByText("Push now. He is already leaning."),
+      ).toBeInTheDocument();
+    });
   });
 
   it("shows the active lens badge when a focused hypothesis gates the current node", () => {

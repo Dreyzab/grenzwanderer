@@ -105,10 +105,10 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
-      "eslint --max-warnings=0 --no-warn-ignored"
+      "node --max-old-space-size=4096 ./node_modules/eslint/bin/eslint.js --max-warnings=0 --no-warn-ignored"
     ],
     "*.{ts,tsx,js,jsx,json,md,yml,yaml,css}": [
-      "prettier --write"
+      "node --max-old-space-size=4096 ./node_modules/prettier/bin/prettier.cjs --write"
     ]
   }
 }

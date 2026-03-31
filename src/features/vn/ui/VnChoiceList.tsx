@@ -1,29 +1,56 @@
 import React from "react";
-import { VnChoice } from "../types";
-import { NoirButton } from "../../../shared/ui/NoirButton";
+import type { VnChoice } from "../types";
+import {
+  formatSkillCheckVoiceLabel,
+  formatSkillCheckDifficulty,
+  getSkillCheckVoicePalette,
+} from "../skillCheckPalette";
 
 interface VnChoiceListProps {
   choices: VnChoice[];
-  onSelect: (choiceId: string) => void;
-  className?: string;
+  onChoiceSelect: (choice: VnChoice) => void;
+  disabled?: boolean;
 }
 
 export const VnChoiceList: React.FC<VnChoiceListProps> = ({
   choices,
-  onSelect,
-  className = "",
+  onChoiceSelect,
+  disabled,
 }) => {
   return (
-    <div className={`flex flex-col gap-3 px-6 py-8 w-full ${className}`}>
-      {choices.map((choice) => (
-        <NoirButton
-          key={choice.id}
-          variant={choice.choiceType === "action" ? "highlighted" : "default"}
-          label={choice.choiceType === "action" ? "Action" : undefined}
-          actionText={choice.text}
-          onClick={() => onSelect(choice.id)}
-        />
-      ))}
+    <div className="vn-choices">
+      {choices.map((choice) => {
+        const check = choice.skillCheck;
+        const palette = check ? getSkillCheckVoicePalette(check.voiceId) : null;
+
+        return (
+          <button
+            key={choice.id}
+            onClick={() => onChoiceSelect(choice)}
+            disabled={disabled}
+            className={`vn-choice-item ${check ? "is-skill-check" : ""}`}
+            style={
+              palette
+                ? ({
+                    "--accent": palette.accent,
+                    "--accent-soft": palette.accentSoft,
+                    "--glow": palette.glow,
+                    "--glow-strong": palette.glowStrong,
+                    "--text-color": palette.text,
+                  } as React.CSSProperties)
+                : undefined
+            }
+          >
+            {check && (
+              <span className="skill-badge">
+                [{formatSkillCheckVoiceLabel(check.voiceId)}:{" "}
+                {formatSkillCheckDifficulty(check.difficulty)}]
+              </span>
+            )}
+            <span className="choice-text">{choice.text}</span>
+          </button>
+        );
+      })}
     </div>
   );
 };

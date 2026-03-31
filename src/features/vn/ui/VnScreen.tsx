@@ -10,27 +10,15 @@ import {
   AI_DIALOGUE_SOURCE_SKILL_CHECK,
   AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
-  matchesSkillCheckThought,
-  parseCharacterReactionProposal,
-  parseGenerateCharacterReactionPayload,
-  parseGenerateDialogueEnvelope,
-  parseGenerateDialoguePayload,
-  parseGenerateDialogueResponse,
   trustToDisposition,
 } from "../../ai/contracts";
-import { canonicalVoiceIdFor } from "../../ai/voiceCanonicalization";
 import type { SceneResultEnvelope } from "../../ai/sceneResultEnvelope";
-import {
-  calculateSkillCheckSuccessPercent,
-  resolveSkillCheckDiceMode,
-} from "../checkChance";
+import { useVnDerivedState } from "../hooks/useVnDerivedState";
+import { useVnDisplayMapping } from "../hooks/useVnDisplayMapping";
 import { useCurrentNode } from "../hooks/useCurrentNode";
 import { useVnSession } from "../hooks/useVnSession";
-import { resolveCompletionRoute } from "../completionRoute";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
-import { getNpcDisplayName } from "../../../shared/game/socialPresentation";
 import { reducers, tables } from "../../../shared/spacetime/bindings";
-import type { VnSession } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
 import {
   getNodeById,
@@ -38,17 +26,11 @@ import {
   isChoiceAvailable,
   isChoiceVisible,
   parseSnapshot,
-  type VnChoiceEvaluationContext,
 } from "../vnContent";
-import { formatSkillCheckVoiceLabel } from "../skillCheckPalette";
-import { formatVoiceEnsembleRoles, getVoiceProfile } from "../voiceRegistry";
 import type { VnChoice, VnScenario, VnSnapshot } from "../types";
-import { VnChoiceButton } from "./VnChoiceButton";
-import {
-  VnPassiveCheckBanner,
-  type PassiveCheckDisplay,
-} from "./VnPassiveCheckBanner";
-import { OriginChoiceCards } from "./OriginChoiceCards";
+import { VnPassiveCheckBanner } from "./VnPassiveCheckBanner";
+import { VnChoicesRenderer } from "./VnChoicesRenderer";
+import { VnScreenHeader } from "./VnScreenHeader";
 import {
   VnSkillCheckResolveOverlay,
   type FrozenSkillCheckPresentation,
@@ -63,10 +45,40 @@ import {
 } from "./vnSkillCheckAudio";
 import { VnNarrativePanel } from "../../../widgets/vn-overlay/VnNarrativePanel";
 import {
-  collectCaseIdsFromVnConditions,
-  findActiveHypothesisLens,
-} from "../../mindpalace/focusLens";
-import { findPrimaryInternalizedThought } from "../../mindpalace/thoughtCabinet";
+  ACTIVE_SKILL_ARMING_MS,
+  ACTIVE_SKILL_IMPACT_MS,
+  ACTIVE_SKILL_ROLLING_MS,
+  AI_FOCUS_INTERLUDE_NODE_ID,
+  aiRequestMatchesContext,
+  buildAiThoughtKey,
+  buildCheckKey,
+  buildChoiceKey,
+  checkResultMatches,
+  createRequestId,
+  formatVoiceLabel,
+  formatSpeaker,
+  hasOptionalValue,
+  isAutoContinueChoice,
+  isCompletionRouteBlockedError,
+  nowMs,
+  normalizeBody,
+  normalizeNumeric,
+  parseSkillCheckBreakdown,
+  reactionRequestMatchesContext,
+  resolveOutcomeGrade,
+  sumBreakdownDelta,
+  TAP_CONTINUE_COOLDOWN_MS,
+  timestampMicros,
+  unwrapOptionalString,
+  waitMs,
+} from "../vnScreenUtils";
+import type {
+  ActiveAiThoughtContext,
+  ActiveReactionContext,
+  AwaitingSkillChoice,
+  SkillCheckResultLike,
+  TransitionState,
+} from "../vnScreenTypes";
 
 interface VnScreenProps {
   onOpenDebug?: () => void;
@@ -84,321 +96,10 @@ interface VnScreenProps {
   ) => void;
 }
 
-interface AwaitingSkillChoice {
-  scenarioId: string;
-  nodeId: string;
-  choiceId: string;
-  checkId: string;
-  choiceText: string;
-  voiceId: string;
-  voiceLabel: string;
-  diceMode: "d20" | "d10";
-  chancePercent?: number;
-  frozen: FrozenSkillCheckPresentation;
-}
-
 interface ActiveSkillSequence {
   startedAt: number;
   token: number;
 }
-
-interface ActiveAiThoughtContext {
-  scenarioId: string;
-  nodeId: string;
-  checkId: string;
-  choiceId: string;
-  voiceId: string;
-  choiceText: string;
-  resultCreatedAtMicros: bigint;
-}
-
-interface ActiveReactionContext {
-  scenarioId: string;
-  nodeId: string;
-  characterId: string;
-  sessionPointer: string;
-  sessionUpdatedAtMicros: bigint;
-  reactionKey: string;
-}
-
-type SkillCheckResultLike = {
-  resultKey: string;
-  playerId: unknown;
-  scenarioId: string;
-  nodeId: string;
-  checkId: string;
-  roll: number;
-  voiceLevel: number;
-  difficulty: number;
-  passed: boolean;
-  nextNodeId: unknown;
-  breakdownJson?: unknown;
-  outcomeGrade?: unknown;
-  createdAt: unknown;
-};
-
-type SkillCheckAiStatus = "pending" | "processing" | "completed" | "failed";
-
-type TransitionState =
-  | "idle"
-  | "autostarting"
-  | "choice_pending"
-  | "handoff_in_flight"
-  | "handoff_failed";
-
-const AUTO_CONTINUE_PREFIX = "AUTO_CONTINUE_";
-const TAP_CONTINUE_COOLDOWN_MS = 220;
-const ACTIVE_SKILL_ARMING_MS = 300;
-const ACTIVE_SKILL_ROLLING_MS = 1200;
-const ACTIVE_SKILL_IMPACT_MS = 500;
-const AI_FOCUS_INTERLUDE_NODE_ID = "scene_case01_occult_bank_interlude";
-
-const createRequestId = (): string => {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
-
-  return `req-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
-};
-
-const normalizeBody = (body: string): string =>
-  body.replace(/\s+/g, " ").replace(/\|/g, " ").trim();
-
-const formatSpeaker = (
-  characterId?: string,
-  snapshot?: VnSnapshot | null,
-): string => {
-  if (!characterId) {
-    return "Narrator";
-  }
-
-  return getNpcDisplayName(snapshot?.socialCatalog, characterId);
-};
-
-const formatVoiceLabel = (voiceId: string): string =>
-  formatSkillCheckVoiceLabel(voiceId);
-
-const collectChoiceLensCaseIds = (choice: VnChoice): string[] => [
-  ...collectCaseIdsFromVnConditions(choice.visibleIfAll),
-  ...collectCaseIdsFromVnConditions(choice.visibleIfAny),
-  ...collectCaseIdsFromVnConditions(choice.requireAll),
-  ...collectCaseIdsFromVnConditions(choice.requireAny),
-  ...collectCaseIdsFromVnConditions(choice.conditions),
-];
-
-const buildCheckKey = (
-  scenarioId: string,
-  nodeId: string,
-  checkId: string,
-): string => `${scenarioId}::${nodeId}::${checkId}`;
-
-const buildChoiceKey = (
-  scenarioId: string,
-  nodeId: string,
-  choiceId: string,
-): string => `${scenarioId}::${nodeId}::${choiceId}`;
-
-const buildAiThoughtKey = (
-  scenarioId: string,
-  nodeId: string,
-  checkId: string,
-  choiceId: string,
-  resultCreatedAtMicros: bigint,
-): string =>
-  `${scenarioId}::${nodeId}::${checkId}::${choiceId}::${resultCreatedAtMicros.toString()}`;
-
-const buildReactionKey = (
-  scenarioId: string,
-  nodeId: string,
-  characterId: string,
-  sessionPointerValue: string,
-): string => `${scenarioId}::${nodeId}::${characterId}::${sessionPointerValue}`;
-
-const unwrapOptionalString = (value: unknown): string | null => {
-  if (typeof value === "string") {
-    return value;
-  }
-  if (value === undefined || value === null) {
-    return null;
-  }
-  if (typeof value === "object" && value !== null && "tag" in value) {
-    const tagged = value as { tag?: string; value?: unknown };
-    if (tagged.tag === "some" && typeof tagged.value === "string") {
-      return tagged.value;
-    }
-  }
-  return null;
-};
-
-const hasOptionalValue = (value: unknown): boolean => {
-  if (value === undefined || value === null) {
-    return false;
-  }
-  if (typeof value === "object" && value !== null && "tag" in value) {
-    const tagged = value as { tag?: string };
-    return tagged.tag === "some";
-  }
-  return true;
-};
-
-const isOutcomeGrade = (
-  value: unknown,
-): value is NonNullable<SceneResultEnvelope["checkResult"]>["outcomeGrade"] =>
-  value === "fail" ||
-  value === "success" ||
-  value === "critical" ||
-  value === "success_with_cost";
-
-const isBreakdownEntry = (
-  value: unknown,
-): value is NonNullable<
-  SceneResultEnvelope["checkResult"]
->["breakdown"][number] => {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const entry = value as Record<string, unknown>;
-  return (
-    typeof entry.source === "string" &&
-    typeof entry.sourceId === "string" &&
-    typeof entry.delta === "number" &&
-    Number.isFinite(entry.delta)
-  );
-};
-
-const resolveOutcomeGrade = (
-  value: unknown,
-  passed: boolean,
-): NonNullable<SceneResultEnvelope["checkResult"]>["outcomeGrade"] => {
-  const parsed = unwrapOptionalString(value);
-  return isOutcomeGrade(parsed) ? parsed : passed ? "success" : "fail";
-};
-
-const parseSkillCheckBreakdown = (
-  value: unknown,
-  voiceId: string,
-  voiceLevel: number,
-): NonNullable<SceneResultEnvelope["checkResult"]>["breakdown"] => {
-  const parsed = unwrapOptionalString(value);
-  if (!parsed) {
-    return [{ source: "voice", sourceId: voiceId, delta: voiceLevel }];
-  }
-
-  try {
-    const json = JSON.parse(parsed) as unknown;
-    if (Array.isArray(json) && json.every(isBreakdownEntry)) {
-      return json;
-    }
-  } catch {
-    // Fall through to the deterministic voice-only fallback.
-  }
-
-  return [{ source: "voice", sourceId: voiceId, delta: voiceLevel }];
-};
-
-const sumBreakdownDelta = (
-  breakdown: NonNullable<SceneResultEnvelope["checkResult"]>["breakdown"],
-): number => breakdown.reduce((sum, entry) => sum + entry.delta, 0);
-
-const normalizeNumeric = (value: number | bigint | null | undefined): number =>
-  typeof value === "bigint" ? Number(value) : (value ?? 0);
-
-const timestampMicros = (value: unknown): bigint => {
-  if (
-    typeof value === "object" &&
-    value !== null &&
-    "microsSinceUnixEpoch" in value
-  ) {
-    const micros = (
-      value as { microsSinceUnixEpoch?: number | bigint | string }
-    ).microsSinceUnixEpoch;
-    if (typeof micros === "bigint") {
-      return micros;
-    }
-    if (typeof micros === "number" && Number.isFinite(micros)) {
-      return BigInt(Math.trunc(micros));
-    }
-    if (typeof micros === "string" && micros.trim().length > 0) {
-      return BigInt(micros);
-    }
-  }
-
-  if (typeof value === "bigint") {
-    return value;
-  }
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return BigInt(Math.trunc(value));
-  }
-  if (typeof value === "string" && value.trim().length > 0) {
-    return BigInt(value);
-  }
-
-  return 0n;
-};
-
-const parseStoredDialogueResponse = (value: unknown) => {
-  const envelope = parseGenerateDialogueEnvelope(value);
-  if (envelope) {
-    return {
-      ...envelope,
-      canonicalVoiceId: canonicalVoiceIdFor(envelope.canonicalVoiceId),
-    };
-  }
-
-  const legacyResponse = parseGenerateDialogueResponse(value);
-  if (!legacyResponse) {
-    return null;
-  }
-
-  return {
-    ...legacyResponse,
-    canonicalVoiceId: canonicalVoiceIdFor(legacyResponse.canonicalVoiceId),
-  };
-};
-
-const parseStoredCharacterReactionResponse = (value: unknown) =>
-  parseCharacterReactionProposal(value);
-
-const isCompletionRouteBlockedError = (message: string): boolean =>
-  message.includes("Scenario start is blocked by completion route rules");
-
-const checkResultMatches = (
-  result: Pick<SkillCheckResultLike, "scenarioId" | "nodeId" | "checkId">,
-  scenarioId: string,
-  nodeId: string,
-  checkId: string,
-): boolean =>
-  result.scenarioId === scenarioId &&
-  result.nodeId === nodeId &&
-  result.checkId === checkId;
-
-const isAutoContinueChoice = (choice: VnChoice): boolean =>
-  choice.id.startsWith(AUTO_CONTINUE_PREFIX);
-
-const sessionPointer = (session: VnSession | null): string | null => {
-  if (!session) {
-    return null;
-  }
-
-  const updatedAt = session.updatedAt as
-    | { microsSinceUnixEpoch?: unknown }
-    | undefined;
-  const updatedToken =
-    updatedAt && "microsSinceUnixEpoch" in updatedAt
-      ? String(updatedAt.microsSinceUnixEpoch)
-      : String(session.updatedAt);
-
-  return `${session.nodeId}::${updatedToken}`;
-};
-
-const waitMs = (time: number): Promise<void> =>
-  new Promise((resolve) => {
-    window.setTimeout(resolve, time);
-  });
-
-const nowMs = (): number =>
-  typeof performance !== "undefined" ? performance.now() : Date.now();
 
 export const VnScreen = ({
   onOpenDebug,
@@ -412,8 +113,7 @@ export const VnScreen = ({
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
   const [sessions, sessionsReady] = useTable(tables.vnSession);
   const [skillResults] = useTable(tables.vnSkillCheckResult);
-  const [aiRequests] = useTable(tables.myDialogueRequests);
-  const [reactionRequests] = useTable(tables.myReactionRequests);
+  const [aiRequests] = useTable(tables.aiRequest);
   const [questRows] = useTable(tables.playerQuest);
   const [npcStateRows, npcStateReady] = useTable(tables.playerNpcState);
   const [npcFavorRows] = useTable(tables.playerNpcFavor);
@@ -494,116 +194,6 @@ export const VnScreen = ({
 
     return parseSnapshot(snapshotRow.payloadJson);
   }, [activeVersion, snapshots]);
-  const choiceEvaluationContext = useMemo<VnChoiceEvaluationContext>(() => {
-    const favorBalances = new Map<string, number>();
-    for (const row of npcFavorRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
-      favorBalances.set(row.npcId, normalizeNumeric(row.balance));
-    }
-
-    const rumorStates = new Map<string, "registered" | "verified">();
-    for (const row of rumorStateRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
-      rumorStates.set(row.rumorId, row.status as "registered" | "verified");
-    }
-
-    const agencyCareer =
-      agencyCareerRows.find(
-        (row) => row.playerId.toHexString() === identityHex,
-      ) ?? null;
-
-    return {
-      favorBalances,
-      agencyStanding: normalizeNumeric(agencyCareer?.standingScore),
-      rumorStates,
-      careerRankId: agencyCareer?.rankId ?? null,
-      careerRankOrder: new Map<string, number>(
-        (snapshot?.socialCatalog?.careerRanks ?? []).map((rank) => [
-          rank.id,
-          rank.order,
-        ]),
-      ),
-    };
-  }, [
-    agencyCareerRows,
-    identityHex,
-    npcFavorRows,
-    rumorStateRows,
-    snapshot?.socialCatalog?.careerRanks,
-  ]);
-  const trustByNpcId = useMemo(() => {
-    const trust = new Map<string, number>();
-    for (const row of npcStateRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
-      trust.set(row.npcId, row.trustScore);
-    }
-    return trust;
-  }, [identityHex, npcStateRows]);
-  const visibleFactsByCharacterId = useMemo(() => {
-    const factById = new Map(
-      (snapshot?.socialCatalog?.characterRevealFacts ?? []).map((fact) => [
-        fact.id,
-        fact,
-      ]),
-    );
-    const tierOrder = {
-      hidden: 0,
-      hinted: 1,
-      surface: 2,
-    } as const;
-    const factsByCharacterId = new Map<
-      string,
-      Array<{ factId: string; summary: string; tier: number }>
-    >();
-
-    for (const row of characterRevealRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
-
-      const fact = factById.get(row.factId);
-      if (!fact) {
-        continue;
-      }
-
-      const current = factsByCharacterId.get(row.characterId) ?? [];
-      if (current.some((entry) => entry.factId === row.factId)) {
-        continue;
-      }
-
-      current.push({
-        factId: row.factId,
-        summary: fact.summary,
-        tier: tierOrder[fact.tier],
-      });
-      factsByCharacterId.set(row.characterId, current);
-    }
-
-    const summaries = new Map<string, string[]>();
-    for (const [characterId, facts] of factsByCharacterId) {
-      summaries.set(
-        characterId,
-        facts
-          .sort(
-            (left, right) =>
-              left.tier - right.tier || left.factId.localeCompare(right.factId),
-          )
-          .map((entry) => entry.summary),
-      );
-    }
-
-    return summaries;
-  }, [
-    characterRevealRows,
-    identityHex,
-    snapshot?.socialCatalog?.characterRevealFacts,
-  ]);
   const contentReady =
     (versionsReady && snapshotsReady) || Boolean(activeVersion && snapshot);
 
@@ -683,12 +273,6 @@ export const VnScreen = ({
     return getScenarioById(snapshot, selectedScenarioId);
   }, [selectedScenarioId, snapshot]);
 
-  const mySessions = useMemo(
-    () =>
-      sessions.filter((entry) => entry.playerId.toHexString() === identityHex),
-    [identityHex, sessions],
-  );
-
   const { session: mySession, isReady: sessionReady } =
     useVnSession(selectedScenarioId);
   const currentNode = useCurrentNode(
@@ -697,35 +281,64 @@ export const VnScreen = ({
     mySession,
     sessionReady,
   );
-
-  const currentSessionPointer = useMemo(
-    () => sessionPointer(mySession),
-    [mySession],
-  );
-  const currentReactionContext = useMemo<ActiveReactionContext | null>(() => {
-    if (
-      !selectedScenarioId ||
-      !currentNode?.characterId ||
-      !currentSessionPointer ||
-      !mySession
-    ) {
-      return null;
-    }
-
-    return {
-      scenarioId: selectedScenarioId,
-      nodeId: currentNode.id,
-      characterId: currentNode.characterId,
-      sessionPointer: currentSessionPointer,
-      sessionUpdatedAtMicros: timestampMicros(mySession.updatedAt),
-      reactionKey: buildReactionKey(
-        selectedScenarioId,
-        currentNode.id,
-        currentNode.characterId,
-        currentSessionPointer,
-      ),
-    };
-  }, [currentNode, currentSessionPointer, mySession, selectedScenarioId]);
+  const {
+    choiceEvaluationContext,
+    trustByNpcId,
+    visibleFactsByCharacterId,
+    mySessions,
+    currentSessionPointer,
+    currentReactionContext,
+    mySkillResults,
+    myAiRequests,
+    myReactionRequests,
+    currentDiceMode,
+    completionRoute,
+    isScenarioCompleted,
+    completionTargetLabel,
+    passiveCheckItems,
+    currentVisibleChoices,
+    currentAutoContinueChoice,
+    hasPendingPassiveChecks,
+    currentNarrativeText,
+    currentResolvedBgUrl,
+    currentSpeakerLabel,
+    currentShowOriginCards,
+    activeLens,
+    internalizedThought,
+    activeAiThoughtRequest,
+    activeReactionRequest,
+    activeAiThoughtResponse,
+    activeReactionResponse,
+    activeAiThoughtVoiceLabel,
+    activeAiThoughtStatus,
+    activeReactionStatus,
+    getChoiceChancePercent,
+  } = useVnDerivedState({
+    identityHex,
+    sessions,
+    sessionsReady,
+    skillResults,
+    aiRequests,
+    questRows,
+    npcStateRows,
+    npcFavorRows,
+    characterRevealRows,
+    agencyCareerRows,
+    rumorStateRows,
+    selectedScenarioId,
+    snapshot,
+    selectedScenario,
+    contentReady,
+    myFlags,
+    myVars,
+    mySession,
+    sessionReady,
+    currentNode,
+    activeAiThoughtContext,
+    activeReactionKey,
+    activeSkillResolve,
+    tSessionHydrating: t.sessionHydrating,
+  });
 
   useEffect(() => {
     if (!activeAiThoughtContext || !currentNode) {
@@ -756,56 +369,15 @@ export const VnScreen = ({
     }
   }, [currentSessionPointer, transitionState]);
 
-  const mySkillResults = useMemo(
-    () =>
-      skillResults.filter(
-        (entry) =>
-          entry.playerId.toHexString() === identityHex &&
-          entry.scenarioId === selectedScenarioId,
-      ),
-    [identityHex, selectedScenarioId, skillResults],
-  );
-
-  const myAiRequests = useMemo(
-    () =>
-      aiRequests
-        .filter((entry) => entry.playerId.toHexString() === identityHex)
-        .sort((left, right) =>
-          timestampMicros(right.updatedAt) > timestampMicros(left.updatedAt)
-            ? 1
-            : -1,
-        ),
-    [aiRequests, identityHex],
-  );
-  const myReactionRequests = useMemo(
-    () =>
-      reactionRequests
-        .filter((entry) => entry.playerId.toHexString() === identityHex)
-        .sort((left, right) =>
-          timestampMicros(right.updatedAt) > timestampMicros(left.updatedAt)
-            ? 1
-            : -1,
-        ),
-    [identityHex, reactionRequests],
-  );
-
   useEffect(() => {
     if (!currentReactionContext) {
       setActiveReactionKey(null);
       return;
     }
 
-    const hasExistingRequest = myReactionRequests.some((entry) => {
-      const payload = parseGenerateCharacterReactionPayload(entry.payloadJson);
-      return (
-        payload?.source === AI_CHARACTER_REACTION_SOURCE_VN_SCENE &&
-        payload.characterId === currentReactionContext.characterId &&
-        payload.scenarioId === currentReactionContext.scenarioId &&
-        payload.nodeId === currentReactionContext.nodeId &&
-        timestampMicros(entry.createdAt) >=
-          currentReactionContext.sessionUpdatedAtMicros
-      );
-    });
+    const hasExistingRequest = myReactionRequests.some((entry) =>
+      reactionRequestMatchesContext(entry, currentReactionContext),
+    );
 
     if (
       hasExistingRequest ||
@@ -816,14 +388,6 @@ export const VnScreen = ({
       setActiveReactionKey(null);
     }
   }, [currentReactionContext, myReactionRequests]);
-
-  const currentDiceMode = useMemo(
-    () =>
-      snapshot && selectedScenarioId
-        ? resolveSkillCheckDiceMode(snapshot, selectedScenarioId)
-        : "d20",
-    [selectedScenarioId, snapshot],
-  );
 
   const buildActiveAiThoughtContext = useCallback(
     (
@@ -839,38 +403,6 @@ export const VnScreen = ({
       choiceText: pending.choiceText,
       resultCreatedAtMicros: timestampMicros(matchedResult.createdAt),
     }),
-    [],
-  );
-
-  const aiRequestMatchesContext = useCallback(
-    (entry: (typeof aiRequests)[number], context: ActiveAiThoughtContext) => {
-      const payload = parseGenerateDialoguePayload(entry.payloadJson);
-      return (
-        matchesSkillCheckThought(
-          payload,
-          context.scenarioId,
-          context.nodeId,
-          context.checkId,
-          context.choiceId,
-        ) && timestampMicros(entry.createdAt) >= context.resultCreatedAtMicros
-      );
-    },
-    [],
-  );
-  const reactionRequestMatchesContext = useCallback(
-    (
-      entry: (typeof reactionRequests)[number],
-      context: ActiveReactionContext,
-    ) => {
-      const payload = parseGenerateCharacterReactionPayload(entry.payloadJson);
-      return (
-        payload?.source === AI_CHARACTER_REACTION_SOURCE_VN_SCENE &&
-        payload.characterId === context.characterId &&
-        payload.scenarioId === context.scenarioId &&
-        payload.nodeId === context.nodeId &&
-        timestampMicros(entry.createdAt) >= context.sessionUpdatedAtMicros
-      );
-    },
     [],
   );
 
@@ -1026,7 +558,6 @@ export const VnScreen = ({
       }
     },
     [
-      aiRequestMatchesContext,
       buildActiveAiThoughtContext,
       currentNode,
       enqueueAiRequest,
@@ -1037,43 +568,6 @@ export const VnScreen = ({
       snapshot,
     ],
   );
-
-  const getChoiceChancePercent = useCallback(
-    (choice: VnChoice): number | undefined => {
-      if (!choice.skillCheck?.showChancePercent) {
-        return undefined;
-      }
-
-      return calculateSkillCheckSuccessPercent({
-        diceMode: currentDiceMode,
-        difficulty: choice.skillCheck.difficulty,
-        voiceLevel: myVars[choice.skillCheck.voiceId] ?? 0,
-      });
-    },
-    [currentDiceMode, myVars],
-  );
-
-  const completionRoute = useMemo(() => {
-    if (!sessionsReady) {
-      return null;
-    }
-    return resolveCompletionRoute(selectedScenario, myFlags, mySessions);
-  }, [myFlags, mySessions, selectedScenario, sessionsReady]);
-
-  const isScenarioCompleted = Boolean(
-    mySession &&
-    currentNode &&
-    currentNode.terminal &&
-    hasOptionalValue(mySession.completedAt),
-  );
-
-  const completionTargetLabel = useMemo(() => {
-    if (!snapshot || !completionRoute) {
-      return null;
-    }
-    const target = getScenarioById(snapshot, completionRoute.nextScenarioId);
-    return target?.title ?? completionRoute.nextScenarioId;
-  }, [completionRoute, snapshot]);
 
   const runCompletionTransition = useCallback(async () => {
     if (!selectedScenarioId) {
@@ -1223,39 +717,6 @@ export const VnScreen = ({
     setStatusLine(t.sceneCompleted);
     void runCompletionTransition();
   }, [isScenarioCompleted, runCompletionTransition, t.sceneCompleted]);
-
-  const passiveCheckItems = useMemo<PassiveCheckDisplay[]>(() => {
-    if (!currentNode) {
-      return [];
-    }
-
-    const items: PassiveCheckDisplay[] = [];
-    for (const check of currentNode.passiveChecks ?? []) {
-      const result = mySkillResults.find((entry) =>
-        checkResultMatches(entry, selectedScenarioId, currentNode.id, check.id),
-      );
-
-      if (!result) {
-        continue;
-      }
-
-      const voiceProfile = getVoiceProfile(check.voiceId);
-      items.push({
-        checkId: check.id,
-        voiceLabel: formatVoiceLabel(check.voiceId),
-        personaLabel: voiceProfile.personaLabel,
-        interventionSummary: formatVoiceEnsembleRoles(
-          voiceProfile.ensembleRoles,
-        ),
-        passed: result.passed,
-        difficulty: result.difficulty,
-        roll: result.roll,
-        voiceLevel: result.voiceLevel,
-      });
-    }
-
-    return items;
-  }, [currentNode, mySkillResults, selectedScenarioId]);
 
   useEffect(() => {
     if (
@@ -1722,7 +1183,6 @@ export const VnScreen = ({
     enqueueAiRequest,
     myReactionRequests,
     npcStateReady,
-    reactionRequestMatchesContext,
     sessionReady,
     trustByNpcId,
     visibleFactsByCharacterId,
@@ -1894,224 +1354,59 @@ export const VnScreen = ({
       typingFinishedAtRef.current = Date.now();
     }
   }, []);
-
-  const currentVisibleChoices = useMemo(
-    () =>
-      currentNode?.choices.filter(
-        (choice) =>
-          !isAutoContinueChoice(choice) &&
-          isChoiceVisible(choice, myFlags, myVars, choiceEvaluationContext),
-      ) ?? [],
-    [choiceEvaluationContext, currentNode, myFlags, myVars],
-  );
-  const currentAutoContinueChoice = useMemo(
-    () =>
-      currentNode?.choices.find(
-        (choice) =>
-          isAutoContinueChoice(choice) &&
-          isChoiceVisible(choice, myFlags, myVars, choiceEvaluationContext),
-      ) ?? null,
-    [choiceEvaluationContext, currentNode, myFlags, myVars],
-  );
-  const hasPendingPassiveChecks = useMemo(() => {
-    if (!selectedScenarioId || !currentNode) {
-      return false;
-    }
-    const checks = currentNode.passiveChecks ?? [];
-    if (checks.length === 0) {
-      return false;
-    }
-    return checks.some(
-      (check) =>
-        !mySkillResults.some((entry) =>
-          checkResultMatches(
-            entry,
-            selectedScenarioId,
-            currentNode.id,
-            check.id,
-          ),
-        ),
-    );
-  }, [currentNode, mySkillResults, selectedScenarioId]);
-  const currentNarrativeText = useMemo(() => {
-    if (!currentNode) {
-      return sessionReady ? "" : t.sessionHydrating;
-    }
-    return normalizeBody(currentNode.body);
-  }, [currentNode, sessionReady, t.sessionHydrating]);
-  const currentResolvedBgUrl = useMemo(
-    () =>
-      resolveBackgroundUrl(
-        currentNode?.backgroundUrl,
-        selectedScenario?.defaultBackgroundUrl,
-      ),
-    [currentNode, selectedScenario],
-  );
-  const currentSpeakerLabel = useMemo(
-    () => formatSpeaker(currentNode?.characterId, snapshot),
-    [currentNode?.characterId, snapshot],
-  );
-  const currentShowOriginCards =
-    selectedScenarioId === "sandbox_intro_pilot" &&
-    currentNode?.id === "scene_backstory_select";
-  const activeLensCaseIds = useMemo(() => {
-    const caseIds = new Set<string>();
-    for (const caseId of collectCaseIdsFromVnConditions(
-      currentNode?.preconditions,
-    )) {
-      caseIds.add(caseId);
-    }
-    for (const choice of currentNode?.choices ?? []) {
-      for (const caseId of collectChoiceLensCaseIds(choice)) {
-        caseIds.add(caseId);
-      }
-    }
-    return [...caseIds];
-  }, [currentNode]);
-  const activeLens = useMemo(
-    () => findActiveHypothesisLens(snapshot, myFlags, activeLensCaseIds),
-    [activeLensCaseIds, myFlags, snapshot],
-  );
-  const internalizedThought = useMemo(
-    () => findPrimaryInternalizedThought(snapshot, myFlags, myVars),
-    [myFlags, myVars, snapshot],
-  );
-  const activeAiThoughtRequest = useMemo(() => {
-    if (!activeAiThoughtContext) {
-      return null;
-    }
-
-    return (
-      myAiRequests.find((entry) =>
-        aiRequestMatchesContext(entry, activeAiThoughtContext),
-      ) ?? null
-    );
-  }, [activeAiThoughtContext, aiRequestMatchesContext, myAiRequests]);
-  const activeReactionRequest = useMemo(() => {
-    if (!currentReactionContext) {
-      return null;
-    }
-
-    return (
-      myReactionRequests.find((entry) =>
-        reactionRequestMatchesContext(entry, currentReactionContext),
-      ) ?? null
-    );
-  }, [
-    currentReactionContext,
-    myReactionRequests,
-    reactionRequestMatchesContext,
-  ]);
-  const activeAiThoughtResponse = useMemo(
-    () =>
-      activeAiThoughtRequest
-        ? parseStoredDialogueResponse(activeAiThoughtRequest.responseJson)
-        : null,
-    [activeAiThoughtRequest],
-  );
-  const activeReactionResponse = useMemo(
-    () =>
-      activeReactionRequest
-        ? parseStoredCharacterReactionResponse(
-            activeReactionRequest.responseJson,
-          )
-        : null,
-    [activeReactionRequest],
-  );
-  const activeAiThoughtVoiceLabel = useMemo(() => {
-    if (activeAiThoughtResponse) {
-      return getVoiceProfile(activeAiThoughtResponse.canonicalVoiceId).label;
-    }
-    if (activeAiThoughtContext) {
-      return formatVoiceLabel(activeAiThoughtContext.voiceId);
-    }
-    return null;
-  }, [activeAiThoughtContext, activeAiThoughtResponse]);
-  const activeAiThoughtStatus = useMemo<SkillCheckAiStatus | null>(() => {
-    if (!ENABLE_AI || !activeAiThoughtContext) {
-      return null;
-    }
-    const status = activeAiThoughtRequest?.status;
-    return status === "processing" ||
-      status === "completed" ||
-      status === "failed"
-      ? status
-      : "pending";
-  }, [activeAiThoughtContext, activeAiThoughtRequest?.status]);
-  const activeReactionStatus = useMemo<SkillCheckAiStatus | null>(() => {
-    if (
-      !ENABLE_AI ||
-      !currentReactionContext ||
-      activeReactionKey !== currentReactionContext.reactionKey
-    ) {
-      return null;
-    }
-
-    const status = activeReactionRequest?.status;
-    return status === "processing" ||
-      status === "completed" ||
-      status === "failed"
-      ? status
-      : "pending";
-  }, [
-    activeReactionKey,
-    activeReactionRequest?.status,
-    currentReactionContext,
-  ]);
-  const showInlineAiThoughtCard =
-    !activeSkillResolve &&
-    Boolean(activeAiThoughtContext) &&
-    Boolean(currentNode) &&
-    activeAiThoughtContext?.nodeId === currentNode?.id &&
-    activeAiThoughtStatus !== null &&
-    activeAiThoughtStatus !== "failed";
-  const showInlineReactionCard =
-    !activeSkillResolve &&
-    Boolean(currentReactionContext) &&
-    activeReactionStatus !== null;
-  const activeReactionLabel =
-    currentReactionContext && currentNode?.characterId
-      ? formatSpeaker(currentNode.characterId, snapshot)
-      : "Unknown Contact";
-  const activeReactionFailureMessage =
-    activeReactionStatus === "failed"
-      ? (unwrapOptionalString(activeReactionRequest?.error) ??
-        "Reaction unavailable right now.")
-      : null;
-
-  const displayedPresentation = activeSkillResolve?.frozen;
-  const visibleChoices =
-    displayedPresentation?.visibleChoices ?? currentVisibleChoices;
-  const autoContinueChoice =
-    displayedPresentation?.autoContinueChoice ?? currentAutoContinueChoice;
-  const narrativeText =
-    displayedPresentation?.narrativeText ?? currentNarrativeText;
-  const resolvedBgUrl =
-    displayedPresentation?.backgroundImageUrl ?? currentResolvedBgUrl;
-  const speakerLabel = displayedPresentation
-    ? (displayedPresentation.characterName ?? "Narrator")
-    : currentSpeakerLabel;
-  const displayLocationName =
-    displayedPresentation?.locationName ??
-    selectedScenario?.title ??
-    t.unknownScenario;
-  const showOriginCards =
-    displayedPresentation?.showOriginCards ?? currentShowOriginCards;
-  const displayedScenarioCompleted =
-    displayedPresentation?.isScenarioCompleted ?? isScenarioCompleted;
-  const activeResolveAiStatus =
-    activeSkillResolve &&
-    activeAiThoughtContext &&
-    activeSkillResolve.scenarioId === activeAiThoughtContext.scenarioId &&
-    activeSkillResolve.nodeId === activeAiThoughtContext.nodeId &&
-    activeSkillResolve.checkId === activeAiThoughtContext.checkId &&
-    activeSkillResolve.choiceId === activeAiThoughtContext.choiceId
-      ? activeAiThoughtStatus
-      : null;
-  const activeResolveAiText =
-    activeResolveAiStatus === "completed"
-      ? activeAiThoughtResponse?.text
-      : null;
+  const {
+    reactionCard,
+    thoughtCard,
+    visibleChoices,
+    autoContinueChoice,
+    narrativeText,
+    resolvedBgUrl,
+    speakerLabel,
+    displayLocationName,
+    showOriginCards,
+    displayedScenarioCompleted,
+    activeResolveAiStatus,
+    activeResolveAiText,
+    activeLensBadgeText,
+    internalizedThoughtBadgeText,
+    choiceDisplayItems,
+    hasExplicitChoices,
+    hasAutoContinueChoice,
+  } = useVnDisplayMapping({
+    t,
+    selectedScenarioId,
+    selectedScenario,
+    snapshot,
+    sessionReady,
+    currentNode,
+    mySession,
+    myFlags,
+    myVars,
+    choiceEvaluationContext,
+    currentVisibleChoices,
+    currentAutoContinueChoice,
+    currentNarrativeText,
+    currentResolvedBgUrl,
+    currentSpeakerLabel,
+    currentShowOriginCards,
+    isScenarioCompleted,
+    activeLens,
+    internalizedThought,
+    activeSkillResolve,
+    activeAiThoughtContext,
+    activeReactionContext: currentReactionContext,
+    activeAiThoughtStatus,
+    activeReactionStatus,
+    activeAiThoughtVoiceLabel,
+    activeAiThoughtResponse,
+    activeReactionResponse,
+    activeReactionRequest,
+    completionTargetLabel,
+    visitedChoiceKeys,
+    failedChoiceKeys,
+    pendingChoiceId,
+    getChoiceChancePercent,
+  });
 
   const handleSurfaceTap = () => {
     if (handleActiveResolveInteraction()) {
@@ -2192,41 +1487,18 @@ export const VnScreen = ({
   const canTriggerCompletion =
     transitionState !== "handoff_in_flight" &&
     transitionState !== "handoff_failed";
-  const hasExplicitChoices = visibleChoices.length > 0;
-  const hasAutoContinueChoice = Boolean(autoContinueChoice);
 
   return (
     <section className="vn-screen-root">
-      <header className="vn-screen-toolbar card compact">
-        <label className="field">
-          {t.scenario}
-          <select
-            value={selectedScenarioId}
-            onChange={(event) => setSelectedScenarioId(event.target.value)}
-          >
-            {snapshot.scenarios.map((scenario) => (
-              <option key={scenario.id} value={scenario.id}>
-                {scenario.title}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="button-row">
-          <button
-            type="button"
-            onClick={handleStartScenario}
-            disabled={!selectedScenarioId || isInteractionLocked}
-          >
-            {t.startScenario}
-          </button>
-          {onOpenDebug ? (
-            <button type="button" onClick={onOpenDebug}>
-              {t.openDebug}
-            </button>
-          ) : null}
-        </div>
-      </header>
+      <VnScreenHeader
+        t={t}
+        selectedScenarioId={selectedScenarioId}
+        scenarios={snapshot.scenarios}
+        isInteractionLocked={isInteractionLocked}
+        onScenarioChange={setSelectedScenarioId}
+        onStartScenario={handleStartScenario}
+        onOpenDebug={onOpenDebug}
+      />
 
       <VnNarrativePanel
         locationName={displayLocationName}
@@ -2238,151 +1510,36 @@ export const VnScreen = ({
         typedTextRef={typedTextRef}
         onSurfaceTap={handleSurfaceTap}
         choicesSlot={
-          <div className="flex flex-col gap-3 px-6 py-8 w-full max-w-[480px] mx-auto">
-            {showInlineReactionCard ? (
-              <div className="rounded-[1.4rem] border border-sky-200/20 bg-slate-950/55 px-4 py-4 text-left shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-sky-100/70">
-                  Character Reaction
-                </p>
-                <p className="mt-2 text-xs uppercase tracking-[0.14em] text-sky-50/85">
-                  {activeReactionLabel}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-100/88">
-                  {activeReactionStatus === "completed" &&
-                  activeReactionResponse?.text
-                    ? activeReactionResponse.text
-                    : activeReactionStatus === "failed"
-                      ? activeReactionFailureMessage
-                      : `${activeReactionLabel} is reading the room...`}
-                </p>
-              </div>
-            ) : null}
-            {showInlineAiThoughtCard ? (
-              <div className="rounded-[1.4rem] border border-amber-200/20 bg-black/40 px-4 py-4 text-left shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-amber-200/70">
-                  Inner Parliament
-                </p>
-                <p className="mt-2 text-xs uppercase tracking-[0.14em] text-amber-100/85">
-                  {activeAiThoughtStatus === "completed"
-                    ? activeAiThoughtVoiceLabel
-                    : "Thinking"}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-stone-100/88">
-                  {activeAiThoughtStatus === "completed" &&
-                  activeAiThoughtResponse?.text
-                    ? activeAiThoughtResponse.text
-                    : `${activeAiThoughtVoiceLabel ?? "Inner Parliament"} is turning the result over...`}
-                </p>
-              </div>
-            ) : null}
-            {activeLens ? (
-              <div className="rounded-full border border-sky-200/20 bg-sky-400/10 px-4 py-2 text-center text-[11px] uppercase tracking-[0.16em] text-sky-100">
-                Active Lens: {activeLens.hypothesisText}
-              </div>
-            ) : null}
-            {internalizedThought ? (
-              <div className="rounded-full border border-amber-200/20 bg-amber-400/10 px-4 py-2 text-center text-[11px] uppercase tracking-[0.16em] text-amber-100">
-                Internalized Thought: {internalizedThought.title}
-              </div>
-            ) : null}
-            {showOriginCards && currentNode ? (
-              <OriginChoiceCards
-                choices={visibleChoices}
-                disabled={isInteractionLocked}
-                onPick={(choice) => {
-                  const isAvailable = isChoiceAvailable(
-                    choice,
-                    myFlags,
-                    myVars,
-                    choiceEvaluationContext,
-                  );
-                  void handleChoiceClick(choice, !isAvailable || !mySession);
-                }}
-              />
-            ) : !showOriginCards && hasExplicitChoices && currentNode ? (
-              <>
-                {visibleChoices.map((choice, index) => {
-                  const choiceKey = buildChoiceKey(
-                    selectedScenarioId,
-                    currentNode.id,
-                    choice.id,
-                  );
-                  const isAvailable = isChoiceAvailable(
-                    choice,
-                    myFlags,
-                    myVars,
-                    choiceEvaluationContext,
-                  );
-                  const chancePercent = getChoiceChancePercent(choice);
-                  const skillCheckState =
-                    activeSkillResolve?.choiceId === choice.id
-                      ? activeSkillResolve.phase === "arming"
-                        ? "arming"
-                        : activeSkillResolve.phase === "rolling"
-                          ? "rolling"
-                          : activeSkillResolve.phase === "impact"
-                            ? activeSkillResolve.passed
-                              ? "impact_success"
-                              : "impact_fail"
-                            : activeSkillResolve.passed
-                              ? "result_success"
-                              : "result_fail"
-                      : "idle";
-                  return (
-                    <VnChoiceButton
-                      key={choice.id}
-                      choice={choice}
-                      index={index}
-                      chancePercent={chancePercent}
-                      skillCheckState={skillCheckState}
-                      isVisited={Boolean(visitedChoiceKeys[choiceKey])}
-                      isLocked={!isAvailable || !mySession}
-                      isPending={pendingChoiceId === choice.id}
-                      hasFailedCheck={Boolean(failedChoiceKeys[choiceKey])}
-                      disabled={isInteractionLocked}
-                      onClick={() =>
-                        handleChoiceClick(choice, !isAvailable || !mySession)
-                      }
-                    />
-                  );
-                })}
-              </>
-            ) : displayedScenarioCompleted ? (
-              <div className="flex flex-col gap-3">
-                <p className="opacity-70 italic text-sm text-center">
-                  {t.terminalNoChoices}
-                </p>
-                {completionRoute && canTriggerCompletion ? (
-                  <button
-                    type="button"
-                    className="px-4 py-3 rounded-md border border-amber-600/60 bg-amber-800/20 text-amber-100 hover:bg-amber-700/30 transition-colors"
-                    onClick={() => void runCompletionTransition()}
-                    disabled={isInteractionLocked}
-                  >
-                    {completionRoute.hasExistingSession
-                      ? t.openNextScene
-                      : t.continueScene}
-                    {completionTargetLabel ? `: ${completionTargetLabel}` : ""}
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  className="px-4 py-3 rounded-md border border-white/20 bg-black/20 text-white hover:bg-black/35 transition-colors"
-                  onClick={() => void handleStartScenario()}
-                  disabled={isInteractionLocked}
-                >
-                  {t.restartScene}
-                </button>
-              </div>
-            ) : !showOriginCards &&
-              (!sessionReady || !currentNode || !hasAutoContinueChoice) ? (
-              <p className="opacity-60 italic text-sm text-center">
-                {!sessionReady || !currentNode
-                  ? t.sessionHydrating
-                  : t.noChoices}
-              </p>
-            ) : null}
-          </div>
+          <VnChoicesRenderer
+            t={t}
+            reactionCard={reactionCard}
+            thoughtCard={thoughtCard}
+            activeLensBadgeText={activeLensBadgeText}
+            internalizedThoughtBadgeText={internalizedThoughtBadgeText}
+            showOriginCards={showOriginCards}
+            visibleChoices={visibleChoices}
+            choiceDisplayItems={choiceDisplayItems}
+            isInteractionLocked={isInteractionLocked}
+            currentNodePresent={Boolean(currentNode)}
+            displayedScenarioCompleted={displayedScenarioCompleted}
+            canTriggerCompletion={canTriggerCompletion}
+            completionRoute={completionRoute}
+            completionTargetLabel={completionTargetLabel}
+            hasAutoContinueChoice={hasAutoContinueChoice}
+            sessionReady={sessionReady}
+            onOriginPick={(choice) => {
+              const isAvailable = isChoiceAvailable(
+                choice,
+                myFlags,
+                myVars,
+                choiceEvaluationContext,
+              );
+              void handleChoiceClick(choice, !isAvailable || !mySession);
+            }}
+            onChoiceClick={(choice) => void handleChoiceClick(choice, false)}
+            onCompletionTransition={() => void runCompletionTransition()}
+            onRestartScene={() => void handleStartScenario()}
+          />
         }
       >
         <VnSkillCheckResolveOverlay
@@ -2399,7 +1556,7 @@ export const VnScreen = ({
           type="button"
           className={["vn-sfx-toggle", isSfxMuted ? "is-muted" : ""].join(" ")}
           aria-label={
-            isSfxMuted ? "Unmute skill check audio" : "Mute skill check audio"
+            isSfxMuted ? t.unmuteSkillCheckAudio : t.muteSkillCheckAudio
           }
           onClick={(event) => {
             event.stopPropagation();

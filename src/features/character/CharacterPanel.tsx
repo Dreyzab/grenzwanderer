@@ -788,6 +788,145 @@ const PsycheTab = ({ profile }: { profile: PsycheProfileData }) => {
     >
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_300px]">
         <SectionCard
+          accent={C.amber}
+          eyebrow="Inner Compass"
+          title={profile.innerCompass.quadrantLabel}
+        >
+          <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
+            <div className="flex items-center justify-center">
+              <div
+                className="relative h-[220px] w-[220px] rounded-[1.2rem] border border-white/10 bg-black/25"
+                data-testid="inner-compass"
+              >
+                <div className="absolute inset-x-4 top-1/2 h-px -translate-y-1/2 bg-white/12" />
+                <div className="absolute inset-y-4 left-1/2 w-px -translate-x-1/2 bg-white/12" />
+                <div className="absolute left-4 top-3 text-[10px] uppercase tracking-[0.24em] text-stone-500">
+                  Individualist
+                </div>
+                <div className="absolute right-4 top-3 text-[10px] uppercase tracking-[0.24em] text-stone-500">
+                  Collective
+                </div>
+                <div className="absolute bottom-3 left-4 text-[10px] uppercase tracking-[0.24em] text-stone-500">
+                  Machiavellian
+                </div>
+                <div className="absolute bottom-3 right-4 text-[10px] uppercase tracking-[0.24em] text-stone-500">
+                  Altruist
+                </div>
+                <div
+                  className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-amber-100 shadow-[0_0_18px_rgba(212,167,79,0.5)]"
+                  style={{
+                    left: `${profile.innerCompass.axisXPercent}%`,
+                    top: `${100 - profile.innerCompass.axisYPercent}%`,
+                    backgroundColor: C.amber,
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <InfoBlock
+                  label="Axis X"
+                  value={profile.innerCompass.axisXLabel}
+                />
+                <InfoBlock
+                  label="Axis Y"
+                  value={profile.innerCompass.axisYLabel}
+                />
+                <InfoBlock
+                  label="Approach"
+                  value={profile.innerCompass.approachLabel}
+                />
+              </div>
+
+              <div className="rounded-[1rem] border border-white/8 bg-black/20 px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <strong className="text-stone-100">Approach Drift</strong>
+                  <span
+                    className="text-[10px] uppercase tracking-[0.3em]"
+                    style={{ color: C.amber, fontFamily: "var(--font-mono)" }}
+                  >
+                    {profile.innerCompass.approachLabel}
+                  </span>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full border border-white/8 bg-black/25">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-sky-500 via-amber-400 to-emerald-400"
+                    style={{
+                      width: `${profile.innerCompass.approachPercent}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {profile.innerCompass.voices.map((voice) => (
+                  <div
+                    key={`${voice.role}-${voice.voiceId}`}
+                    className="rounded-[1rem] border border-white/8 bg-black/20 px-4 py-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <strong
+                        className="text-stone-100"
+                        style={{ color: voice.accent }}
+                      >
+                        {voice.label}
+                      </strong>
+                      <span
+                        className="text-[10px] uppercase tracking-[0.3em]"
+                        style={{
+                          color: voice.accent,
+                          fontFamily: "var(--font-mono)",
+                        }}
+                      >
+                        {voice.role}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-stone-300">
+                      {voice.worldview}
+                    </p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.24em] text-stone-500">
+                      {voice.toneDescriptor}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          accent={C.brass}
+          eyebrow="Field Check Reliability"
+          title="Check Snapshot"
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <MetricBox
+              label="Passed"
+              tone="success"
+              value={profile.checks.passed}
+            />
+            <MetricBox
+              label="Failed"
+              tone="danger"
+              value={profile.checks.failed}
+            />
+            <MetricBox
+              label="Locked"
+              tone="neutral"
+              value={profile.checks.locked}
+            />
+            <MetricBox
+              label="Confidence"
+              tone="warning"
+              value={`${profile.checks.confidencePercent}%`}
+            />
+          </div>
+        </SectionCard>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_300px]">
+        <SectionCard
           accent={C.crimson}
           eyebrow="Alignment"
           title={profile.alignment.label}
@@ -828,30 +967,28 @@ const PsycheTab = ({ profile }: { profile: PsycheProfileData }) => {
 
         <SectionCard
           accent={C.brass}
-          eyebrow="Field Check Reliability"
-          title="Check Snapshot"
+          eyebrow="Inner Balance"
+          title={profile.innerCompass.approachLabel}
         >
-          <div className="grid gap-3 sm:grid-cols-2">
-            <MetricBox
-              label="Passed"
-              tone="success"
-              value={profile.checks.passed}
-            />
-            <MetricBox
-              label="Failed"
-              tone="danger"
-              value={profile.checks.failed}
-            />
-            <MetricBox
-              label="Locked"
-              tone="neutral"
-              value={profile.checks.locked}
-            />
-            <MetricBox
-              label="Confidence"
-              tone="warning"
-              value={`${profile.checks.confidencePercent}%`}
-            />
+          <div className="space-y-4 text-sm text-stone-300">
+            <p className="leading-relaxed text-stone-400">
+              Your current moral vector is described qualitatively rather than
+              numerically. The compass shows direction, not a score to min-max.
+            </p>
+            <div className="grid gap-3">
+              <InfoBlock
+                label="Dominant Voice"
+                value={profile.innerCompass.voices[0]?.label ?? "Quiet"}
+              />
+              <InfoBlock
+                label="Support Voice"
+                value={profile.innerCompass.voices[1]?.label ?? "None"}
+              />
+              <InfoBlock
+                label="Counter Voice"
+                value={profile.innerCompass.voices[2]?.label ?? "None"}
+              />
+            </div>
           </div>
         </SectionCard>
       </div>

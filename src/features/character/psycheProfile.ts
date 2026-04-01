@@ -1,4 +1,17 @@
 import {
+  INNER_VOICE_DEFINITIONS,
+  type InnerVoiceRole,
+} from "../../../data/innerVoiceContract";
+import {
+  describeApproach,
+  describeAxisX,
+  describeAxisY,
+  describeQuadrant,
+  readPsycheState,
+  resolveOverallInnerVoiceSelection,
+  toCompassPercent,
+} from "../../shared/game/innerVoiceModel";
+import {
   LEGACY_LAYER_BY_FACTION_ID,
   LEGACY_REPUTATION_VAR_BY_FACTION_ID,
   MAX_ALIGNMENT_CONTRIBUTION,
@@ -84,6 +97,26 @@ export interface PsycheMysticismSummary {
   sightModeLabel: string;
 }
 
+export interface PsycheInnerCompassVoice {
+  voiceId: string;
+  label: string;
+  role: InnerVoiceRole;
+  worldview: string;
+  toneDescriptor: string;
+  accent: string;
+}
+
+export interface PsycheInnerCompassSummary {
+  quadrantLabel: string;
+  axisXLabel: string;
+  axisYLabel: string;
+  approachLabel: string;
+  axisXPercent: number;
+  axisYPercent: number;
+  approachPercent: number;
+  voices: PsycheInnerCompassVoice[];
+}
+
 export interface PsycheProfileData {
   alignment: PsycheAlignmentSummary;
   factionSignals: PsycheFactionSignal[];
@@ -91,6 +124,7 @@ export interface PsycheProfileData {
   evolutionTracks: PsycheEvolutionTrack[];
   checks: PsycheChecksSummary;
   mysticism: PsycheMysticismSummary;
+  innerCompass: PsycheInnerCompassSummary;
 }
 
 const LAYERS: FactionLayer[] = ["daylight", "political", "shadow"];
@@ -320,6 +354,34 @@ const resolveMysticism = (
   };
 };
 
+const resolveInnerCompass = (
+  vars: Record<string, number>,
+): PsycheInnerCompassSummary => {
+  const state = readPsycheState(vars);
+  const selection = resolveOverallInnerVoiceSelection(vars);
+
+  return {
+    quadrantLabel: describeQuadrant(state),
+    axisXLabel: describeAxisX(state.axisX),
+    axisYLabel: describeAxisY(state.axisY),
+    approachLabel: describeApproach(state.approach),
+    axisXPercent: toCompassPercent(state.axisX),
+    axisYPercent: toCompassPercent(state.axisY),
+    approachPercent: toCompassPercent(state.approach),
+    voices: selection.ordered.map((entry) => {
+      const definition = INNER_VOICE_DEFINITIONS[entry.voiceId];
+      return {
+        voiceId: entry.voiceId,
+        label: definition.label,
+        role: entry.role,
+        worldview: definition.worldview,
+        toneDescriptor: definition.toneDescriptor,
+        accent: definition.palette.accent,
+      };
+    }),
+  };
+};
+
 export const buildPsycheProfile = (
   input: PsycheProfileInput,
 ): PsycheProfileData => {
@@ -373,5 +435,6 @@ export const buildPsycheProfile = (
     evolutionTracks: resolveTracks(input.vars),
     checks: resolveChecks(input.vars),
     mysticism: resolveMysticism(input.vars),
+    innerCompass: resolveInnerCompass(input.vars),
   };
 };

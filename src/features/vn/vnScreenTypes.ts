@@ -1,3 +1,8 @@
+import type {
+  InnerVoiceRole,
+  InnerVoiceStance,
+} from "../../../data/innerVoiceContract";
+import type { SkillCheckVoicePalette } from "./skillCheckPalette";
 import type { VnChoice } from "./types";
 import type { FrozenSkillCheckPresentation } from "./ui/VnSkillCheckResolveOverlay";
 
@@ -80,6 +85,7 @@ export interface ChoiceDisplayItem {
   isLocked: boolean;
   isPending: boolean;
   hasFailedCheck: boolean;
+  innerVoiceHints: ChoiceInnerVoiceHintDisplay[];
 }
 
 export interface InlineStatusCard {
@@ -87,4 +93,22 @@ export interface InlineStatusCard {
   eyebrow: string;
   body: string;
   tone: "reaction" | "thought";
+}
+
+export interface InnerVoiceCardDisplay {
+  voiceId: string;
+  label: string;
+  text: string;
+  role: InnerVoiceRole;
+  stance: InnerVoiceStance;
+  resonance: number;
+  palette: SkillCheckVoicePalette;
+}
+
+export interface ChoiceInnerVoiceHintDisplay {
+  voiceId: string;
+  label: string;
+  text: string;
+  stance: InnerVoiceStance;
+  palette: SkillCheckVoicePalette;
 }

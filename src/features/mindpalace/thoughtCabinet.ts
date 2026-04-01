@@ -1,7 +1,7 @@
 export const findPrimaryInternalizedThought = (
   snapshot: any,
   flags: Record<string, boolean>,
-  vars: Record<string, number>,
+  _vars: Record<string, number>,
 ): { title: string; internalized: boolean } | null => {
   if (!snapshot?.mindPalace?.hypotheses) {
     return null;
@@ -18,6 +18,17 @@ export const findPrimaryInternalizedThought = (
 
   return null;
 };
+
+export const createMindThoughtUnlockedFlagKey = (thoughtId: string): string =>
+  `mind_unlocked::${thoughtId}`;
+
+export const createMindThoughtResearchingFlagKey = (
+  thoughtId: string,
+): string => `mind_researching::${thoughtId}`;
+
+export const createMindThoughtInternalizedFlagKey = (
+  thoughtId: string,
+): string => `mind_internalized::${thoughtId}`;
 
 export const createMindThought = (id: string) => {
   return { id, internalized: false };

@@ -2,8 +2,8 @@
 id: char_student_leader
 tags: [character, functional]
 tier: functional
-runtime_character_id: socialist
-faction: fct_workers
+runtime_character_id: student_leader
+faction: fct_free_yards
 aliases: ["Student Leader"]
 ---
 
@@ -11,7 +11,7 @@ aliases: ["Student Leader"]
 
 ## Dossier
 
-- **Role**: Political catalyst linking worker grievances to city-scale instability.
+- **Role**: Secondary agitator who amplifies worker sentiment but does not control the covert route.
 - **Age / Appearance**: Early 30s, worn coat, pamphlets in satchel, intense cadence.
 - **Archetype**: The Ideological Agitator
 - **Origin**: Working-class district education circles and union press.
@@ -28,10 +28,11 @@ aliases: ["Student Leader"]
 
 - **Surface**: Organizes worker meetings and political messaging.
 - **Hidden**: Possesses pamphlet drafts naming protected financial actors.
-- **Core**: Only Volition check reveals he is tempted to weaponize false evidence for momentum.
+- **Core**: Only Volition check reveals a temptation to weaponize false evidence for momentum.
 
 ## Relationships
 
+- [[30_World_Intel/Characters/char_socialist|char_socialist]] - louder strategist who outranks the room when the covert route opens.
 - [[30_World_Intel/Characters/char_pub_owner|char_pub_owner]] - platform provider.
 - [[30_World_Intel/Characters/char_inspector|char_inspector]] - ideological conflict and tactical overlap.
 - Factions: [[00_Map_Room/MOC_Factions|MOC_Factions]]
@@ -39,7 +40,7 @@ aliases: ["Student Leader"]
 ## Evolution
 
 - **Stage 1** (start): Suspicious and rhetorical.
-- **Stage 2** (after clue unlock): Shares logistics clues if treated as stakeholder, not suspect.
+- **Stage 2** (after clue unlock): Amplifies or cools crowd sentiment once Karl Brenner chooses a line.
 - **Stage 3** (finale): Either de-escalates conflict with evidence or escalates unrest.
 
 ## Scenes & Quests

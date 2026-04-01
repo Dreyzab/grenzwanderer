@@ -6,6 +6,15 @@ import {
   isFactionDefinition,
   type FactionDefinition,
 } from "../../../../data/factionContract";
+import {
+  hasMixedSpeakerPool,
+  isInnerVoiceId,
+  isSpeakerId,
+  isSkillVoiceId,
+  PSYCHE_VAR_KEYS,
+  resolvePsycheVarKey,
+  type PsycheAxis,
+} from "../../../../data/innerVoiceContract";
 import { getFactionIdValidationError } from "./factionSignalGuard";
 import {
   getBattleCard,
@@ -129,7 +138,8 @@ export type VnEffect =
   | { type: "unlock_distortion_point"; pointId: string }
   | { type: "set_sight_mode"; mode: SightMode }
   | { type: "apply_rationalist_buffer"; amount: number }
-  | { type: "tag_entity_signature"; signatureId: string };
+  | { type: "tag_entity_signature"; signatureId: string }
+  | { type: "change_psyche_axis"; axis: PsycheAxis; delta: number };
 
 export type VnDiceMode = "d20" | "d10";
 
@@ -874,6 +884,7 @@ const isVnCondition = (value: unknown): value is VnCondition => {
   if (condition.type === "voice_level_gte") {
     return (
       typeof condition.voiceId === "string" &&
+      isSkillVoiceId(condition.voiceId) &&
       typeof condition.value === "number"
     );
   }
@@ -1029,6 +1040,14 @@ const isVnEffect = (value: unknown): value is VnEffect => {
   if (effect.type === "tag_entity_signature") {
     return typeof effect.signatureId === "string";
   }
+  if (effect.type === "change_psyche_axis") {
+    return (
+      (effect.axis === "x" ||
+        effect.axis === "y" ||
+        effect.axis === "approach") &&
+      typeof effect.delta === "number"
+    );
+  }
 
   return false;
 };
@@ -1126,6 +1145,7 @@ const isSkillCheck = (value: unknown): value is VnSkillCheck => {
   return (
     typeof check.id === "string" &&
     typeof check.voiceId === "string" &&
+    isSkillVoiceId(check.voiceId) &&
     typeof check.difficulty === "number" &&
     (check.isPassive === undefined || typeof check.isPassive === "boolean") &&
     (check.showChancePercent === undefined ||
@@ -1216,6 +1236,26 @@ const isChoice = (value: unknown): value is VnChoice => {
   if (choice.skillCheck !== undefined && !isSkillCheck(choice.skillCheck)) {
     return false;
   }
+  if (
+    choice.innerVoiceHints !== undefined &&
+    (!Array.isArray(choice.innerVoiceHints) ||
+      !choice.innerVoiceHints.every(
+        (entry) =>
+          !!entry &&
+          typeof entry === "object" &&
+          typeof (entry as Record<string, unknown>).voiceId === "string" &&
+          isInnerVoiceId(
+            (entry as Record<string, unknown>).voiceId as string,
+          ) &&
+          (((entry as Record<string, unknown>).stance as unknown) ===
+            "supports" ||
+            ((entry as Record<string, unknown>).stance as unknown) ===
+              "opposes") &&
+          typeof (entry as Record<string, unknown>).text === "string",
+      ))
+  ) {
+    return false;
+  }
 
   return true;
 };
@@ -1238,7 +1278,10 @@ const isNode = (value: unknown): value is VnNode => {
       isVoicePresenceMode(node.voicePresenceMode)) &&
     (node.activeSpeakers === undefined ||
       (Array.isArray(node.activeSpeakers) &&
-        node.activeSpeakers.every((entry) => typeof entry === "string"))) &&
+        node.activeSpeakers.every(
+          (entry) => typeof entry === "string" && isSpeakerId(entry),
+        ) &&
+        !hasMixedSpeakerPool(node.activeSpeakers))) &&
     (node.terminal === undefined || typeof node.terminal === "boolean") &&
     Array.isArray(node.choices) &&
     node.choices.every((entry) => isChoice(entry)) &&
@@ -2937,13 +2980,16 @@ export const upsertVar = (ctx: any, key: string, floatValue: number): void => {
   }
 
   ensurePlayerProfile(ctx);
+  const normalizedFloatValue = PSYCHE_VAR_KEYS.includes(key as any)
+    ? clampNumber(floatValue, -100, 100)
+    : floatValue;
 
   const varId = createVarKey(ctx.sender, key);
   const existing = ctx.db.playerVar.varId.find(varId);
   if (existing) {
     ctx.db.playerVar.varId.update({
       ...existing,
-      floatValue,
+      floatValue: normalizedFloatValue,
       updatedAt: ctx.timestamp,
     });
     return;
@@ -2953,7 +2999,7 @@ export const upsertVar = (ctx: any, key: string, floatValue: number): void => {
     varId,
     playerId: ctx.sender,
     key,
-    floatValue,
+    floatValue: normalizedFloatValue,
     updatedAt: ctx.timestamp,
   });
 };
@@ -5297,6 +5343,10 @@ export const applyEffects = (
     }
     if (effect.type === "tag_entity_signature") {
       upsertFlag(ctx, `mystic_signature_${effect.signatureId}`, true);
+      continue;
+    }
+    if (effect.type === "change_psyche_axis") {
+      addToVar(ctx, resolvePsycheVarKey(effect.axis), effect.delta);
       continue;
     }
 

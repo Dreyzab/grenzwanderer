@@ -1,4 +1,8 @@
 import type { FactionDefinition } from "../../../data/factionContract";
+import type {
+  InnerVoiceId,
+  PsycheAxis,
+} from "../../../data/innerVoiceContract";
 
 export type VnCondition =
   | { type: "flag_equals"; key: string; value: boolean }
@@ -11,6 +15,8 @@ export type VnCondition =
   | { type: "favor_balance_gte"; npcId: string; value: number }
   | { type: "agency_standing_gte"; value: number }
   | { type: "rumor_state_is"; rumorId: string; status: RumorStateStatus }
+  | { type: "hypothesis_focus_is"; caseId: string; hypothesisId: string }
+  | { type: "thought_state_is"; thoughtId: string; state: MindThoughtState }
   | { type: "career_rank_gte"; rankId: string }
   | { type: "voice_level_gte"; voiceId: string; value: number };
 
@@ -41,6 +47,7 @@ export type VnEffect =
       caseId: string;
       factId: string;
     }
+  | { type: "unlock_mind_thought"; thoughtId: string }
   | { type: "grant_xp"; amount: number }
   | { type: "unlock_group"; groupId: string }
   | { type: "set_quest_stage"; questId: string; stage: number }
@@ -83,7 +90,8 @@ export type VnEffect =
   | { type: "unlock_distortion_point"; pointId: string }
   | { type: "set_sight_mode"; mode: SightMode }
   | { type: "apply_rationalist_buffer"; amount: number }
-  | { type: "tag_entity_signature"; signatureId: string };
+  | { type: "tag_entity_signature"; signatureId: string }
+  | { type: "change_psyche_axis"; axis: PsycheAxis; delta: number };
 
 export type VnDiceMode = "d20" | "d10";
 
@@ -150,6 +158,11 @@ export interface VnChoice {
   conditions?: VnCondition[];
   effects?: VnEffect[];
   skillCheck?: VnSkillCheck;
+  innerVoiceHints?: Array<{
+    voiceId: InnerVoiceId;
+    stance: "supports" | "opposes";
+    text: string;
+  }>;
 }
 
 export interface VnNode {
@@ -219,10 +232,23 @@ export interface MindHypothesisContent {
   rewardEffects: VnEffect[];
 }
 
+export type MindThoughtState = "available" | "researching" | "internalized";
+
+export interface MindThoughtContent {
+  id: string;
+  promptText: string;
+  researchTime: number;
+  duringResearchEffects: VnEffect[];
+  onInternalizedEffects: VnEffect[];
+  contradictsThoughtIds: string[];
+  purgeCost: number;
+}
+
 export interface MindPalaceSnapshot {
   cases: MindCaseContent[];
   facts: MindFactContent[];
   hypotheses: MindHypothesisContent[];
+  thoughts?: MindThoughtContent[];
 }
 
 export type MysticAwakeningBand =
@@ -399,6 +425,8 @@ export type MapCondition =
   | { type: "favor_balance_gte"; npcId: string; value: number }
   | { type: "agency_standing_gte"; value: number }
   | { type: "rumor_state_is"; rumorId: string; status: RumorStateStatus }
+  | { type: "hypothesis_focus_is"; caseId: string; hypothesisId: string }
+  | { type: "thought_state_is"; thoughtId: string; state: MindThoughtState }
   | { type: "career_rank_gte"; rankId: string }
   | { type: "unlock_group_has"; groupId: string }
   | { type: "point_state_is"; state: MapPointState }

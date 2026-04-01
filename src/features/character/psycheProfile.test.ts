@@ -67,4 +67,22 @@ describe("buildPsycheProfile", () => {
       "You have already felt this milieu pressing on the case.",
     );
   });
+
+  it("builds an inner compass summary from psyche axes", () => {
+    const profile = buildPsycheProfile({
+      flags: {},
+      vars: {
+        psyche_axis_x: 72,
+        psyche_axis_y: 64,
+        psyche_approach: 58,
+      },
+      factionCatalog: CANONICAL_FACTION_REGISTRY,
+      factionSignals: [],
+    });
+
+    expect(profile.innerCompass.axisXLabel).toBe("Strong Collectivist");
+    expect(profile.innerCompass.axisYLabel).toBe("Altruistic");
+    expect(profile.innerCompass.approachLabel).toBe("Initiating");
+    expect(profile.innerCompass.voices[0]?.label).toBe("Leader");
+  });
 });

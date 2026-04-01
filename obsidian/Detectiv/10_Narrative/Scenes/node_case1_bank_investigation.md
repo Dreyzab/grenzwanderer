@@ -1,4 +1,4 @@
-﻿---
+---
 id: node_case1_bank_investigation
 aliases:
   - Node: Case 1 Bank Investigation
@@ -29,6 +29,17 @@ tags:
 - Recovery route if missing requirements:
   - return to [[10_Narrative/Scenes/node_case1_qr_scan_bank|Node: Case 1 QR Scan Bank]].
 
+## Named Cast
+
+- [[30_World_Intel/Characters/char_inspector|char_inspector]] - lead investigator.
+- [[30_World_Intel/Characters/char_bank_manager|char_bank_manager]] - sponsor-facing client and principal suspect.
+- [[30_World_Intel/Characters/char_clerk|char_clerk]] - frightened internal witness.
+- [[30_World_Intel/Characters/char_clara_altenburg|char_clara_altenburg]] - civic pressure and family-record motive.
+- [[30_World_Intel/Characters/char_assistant|char_assistant]] - technical corroboration through Victoria Sterling.
+- [[30_World_Intel/Characters/char_coroner|char_coroner]] - medical skepticism and body-state framing.
+- [[30_World_Intel/Characters/char_stationmaster|char_stationmaster]] - logistics cross-check at the rail edge.
+- [[30_World_Intel/Characters/char_priest|char_priest]] - Chapter of Mercy referral and witness-shelter contact.
+
 ## Designer View
 
 - Dramatic function: reveal hub with layered ambiguity.
@@ -49,6 +60,8 @@ tags:
   - `triage_witnesses` (symptoms + witness reliability).
   - `inspect_vault_forensics` (breach method + extraction pattern).
   - `run_reconstruction` (imagination/logic/empathy synthesis).
+- Supporting social frame:
+  - triage aftermath can invoke Pater Johannes as witness-shelter context; this adds moral framing and bounded testimony, not a new route gate.
 - Skill checks:
   - `empathy` (clerk fear read).
   - `logic` (sleep-wave analysis, lock analysis, sender-chain compare, timeline pressure).
@@ -119,6 +132,7 @@ tags:
 - Confirm no check failure blocks node completion.
 - Confirm `compare_chemical_sender` appears only with `clue_chemical_sender` and resolves once.
 - Confirm new clue flags can be produced through branch actions or token interaction.
+- Confirm the Chapter of Mercy is represented through Pater Johannes as witness-shelter context before later route splits.
 - Confirm conclusion still unlocks 3 lead points and sets `case01` to `leads_open`.
 - Test anchor:
   - `apps/web/src/entities/visual-novel/scenarios/detective/case_01_bank/main/02_bank/case1_bank.logic.ts`

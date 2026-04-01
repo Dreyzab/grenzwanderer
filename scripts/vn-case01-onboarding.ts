@@ -11,8 +11,8 @@ import {
   CONDITION_OPERATORS,
   EFFECT_OPERATORS,
   FLAG_KEYS,
+  SKILL_VOICE_IDS,
   VAR_KEYS,
-  VOICE_IDS,
   suggestClosest,
 } from "./content-vocabulary";
 
@@ -315,7 +315,9 @@ const parseFunctionCall = (
       doc,
       line,
       column,
-      kind === "condition" ? "INVALID_CONDITION_SYNTAX" : "INVALID_EFFECT_SYNTAX",
+      kind === "condition"
+        ? "INVALID_CONDITION_SYNTAX"
+        : "INVALID_EFFECT_SYNTAX",
       `Invalid ${kind} syntax: '${raw}'`,
     );
   }
@@ -323,7 +325,8 @@ const parseFunctionCall = (
   const operator = match[1].trim().toLowerCase();
   const args = splitArgs(match[2] ?? "");
 
-  const registry = kind === "condition" ? CONDITION_OPERATORS : EFFECT_OPERATORS;
+  const registry =
+    kind === "condition" ? CONDITION_OPERATORS : EFFECT_OPERATORS;
   if (!registry.has(operator)) {
     const suggestion = suggestClosest(operator, registry);
     throw makeParserError(
@@ -346,7 +349,13 @@ const parseConditionExpression = (
   line: number,
   column: number,
 ): VnCondition => {
-  const { operator, args } = parseFunctionCall(raw, doc, line, column, "condition");
+  const { operator, args } = parseFunctionCall(
+    raw,
+    doc,
+    line,
+    column,
+    "condition",
+  );
 
   if (operator === "flag_equals") {
     if (args.length !== 2) {
@@ -483,7 +492,13 @@ const parseEffectExpression = (
   line: number,
   column: number,
 ): VnEffect => {
-  const { operator, args } = parseFunctionCall(raw, doc, line, column, "effect");
+  const { operator, args } = parseFunctionCall(
+    raw,
+    doc,
+    line,
+    column,
+    "effect",
+  );
 
   if (operator === "set_flag") {
     if (args.length !== 2) {
@@ -726,8 +741,8 @@ const parseCheckHeader = (
       "Check requires id=..., voice=..., dc=...",
     );
   }
-  if (!VOICE_IDS.has(voiceId)) {
-    const suggestion = suggestClosest(voiceId, VOICE_IDS);
+  if (!SKILL_VOICE_IDS.has(voiceId)) {
+    const suggestion = suggestClosest(voiceId, SKILL_VOICE_IDS);
     throw makeParserError(
       doc,
       line,
@@ -748,13 +763,7 @@ const parseCheckHeader = (
     showChancePercent:
       showChanceRaw === undefined
         ? undefined
-        : parseBooleanToken(
-            showChanceRaw,
-            doc,
-            line,
-            column,
-            "showchance",
-          ),
+        : parseBooleanToken(showChanceRaw, doc, line, column, "showchance"),
   };
 };
 
@@ -793,7 +802,7 @@ const parseChoicesSection = (doc: ParsedDoc): ParsedChoiceDraft[] => {
     }
     const hasCheckBranches = Boolean(
       currentChoice.skillCheck?.onSuccess?.nextNodeId &&
-        currentChoice.skillCheck?.onFail?.nextNodeId,
+      currentChoice.skillCheck?.onFail?.nextNodeId,
     );
     if (!currentChoice.nextRaw && !hasCheckBranches) {
       throw makeParserError(
@@ -932,7 +941,12 @@ const parseChoicesSection = (doc: ParsedDoc): ParsedChoiceDraft[] => {
       }
       if (directive.name === "effect") {
         currentChoice.effects.push(
-          parseEffectExpression(directive.value, doc, absoluteLine, absoluteColumn),
+          parseEffectExpression(
+            directive.value,
+            doc,
+            absoluteLine,
+            absoluteColumn,
+          ),
         );
         continue;
       }
@@ -1083,7 +1097,9 @@ const parseChoicesSection = (doc: ParsedDoc): ParsedChoiceDraft[] => {
   return choices;
 };
 
-const parsePassiveChecksSection = (doc: ParsedDoc): ParsedPassiveCheckDraft[] => {
+const parsePassiveChecksSection = (
+  doc: ParsedDoc,
+): ParsedPassiveCheckDraft[] => {
   if (doc.type !== "vn_checks") {
     return [];
   }
@@ -1140,7 +1156,12 @@ const parsePassiveChecksSection = (doc: ParsedDoc): ParsedPassiveCheckDraft[] =>
         ...(current.onSuccess ?? {}),
         effects: [
           ...(current.onSuccess?.effects ?? []),
-          parseEffectExpression(directive.value, doc, absoluteLine, absoluteColumn),
+          parseEffectExpression(
+            directive.value,
+            doc,
+            absoluteLine,
+            absoluteColumn,
+          ),
         ],
       };
       continue;
@@ -1182,7 +1203,12 @@ const parsePassiveChecksSection = (doc: ParsedDoc): ParsedPassiveCheckDraft[] =>
         ...(current.onFail ?? {}),
         effects: [
           ...(current.onFail?.effects ?? []),
-          parseEffectExpression(directive.value, doc, absoluteLine, absoluteColumn),
+          parseEffectExpression(
+            directive.value,
+            doc,
+            absoluteLine,
+            absoluteColumn,
+          ),
         ],
       };
       continue;
@@ -1253,7 +1279,12 @@ const parseConditionsSection = (
     }
 
     conditions.push(
-      parseConditionExpression(directive.value, doc, absoluteLine, absoluteColumn),
+      parseConditionExpression(
+        directive.value,
+        doc,
+        absoluteLine,
+        absoluteColumn,
+      ),
     );
   }
 
@@ -1695,8 +1726,10 @@ export const parseCase01Onboarding = (
             draft.visibleIfAll.length > 0 ? draft.visibleIfAll : undefined,
           visibleIfAny:
             draft.visibleIfAny.length > 0 ? draft.visibleIfAny : undefined,
-          requireAll: draft.requireAll.length > 0 ? draft.requireAll : undefined,
-          requireAny: draft.requireAny.length > 0 ? draft.requireAny : undefined,
+          requireAll:
+            draft.requireAll.length > 0 ? draft.requireAll : undefined,
+          requireAny:
+            draft.requireAny.length > 0 ? draft.requireAny : undefined,
           skillCheck,
           choiceType,
         };

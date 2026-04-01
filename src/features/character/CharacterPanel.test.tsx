@@ -329,6 +329,9 @@ describe("CharacterPanel", () => {
       attr_psyche: 2,
       attr_spirit: 1,
       checks_passed: 3,
+      psyche_axis_x: 70,
+      psyche_axis_y: 62,
+      psyche_approach: 64,
       mystic_awakening: 42,
       mystic_exposure: 2,
       mystic_rationalist_buffer: 6,
@@ -492,6 +495,18 @@ describe("CharacterPanel", () => {
     expect(screen.getByText("Fracture")).toBeInTheDocument();
     expect(screen.getByText("Sensitive")).toBeInTheDocument();
     expect(screen.getByText("Rational Buffer")).toBeInTheDocument();
+  });
+
+  it("renders the inner compass with dominant and support voices", () => {
+    render(<CharacterPanel />);
+
+    fireEvent.click(screen.getByRole("tab", { name: /Psyche/i }));
+
+    expect(screen.getByText("Inner Compass")).toBeInTheDocument();
+    expect(screen.getByTestId("inner-compass")).toBeInTheDocument();
+    expect(screen.getAllByText("Leader").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Guide").length).toBeGreaterThan(0);
+    expect(screen.getByText("Strong Collectivist")).toBeInTheDocument();
   });
 
   it("shows player nickname separately from dossier identity and surfaces the selected track", () => {

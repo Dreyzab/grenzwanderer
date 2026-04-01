@@ -1,6 +1,7 @@
 ﻿import { useRef } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import type { ChoiceInnerVoiceHintDisplay } from "../vnScreenTypes";
 import type { VnChoice } from "../types";
 import { resolveBackgroundUrl } from "./VnBackgroundResolver";
 import { VnChoiceButton } from "./VnChoiceButton";
@@ -114,5 +115,50 @@ describe("VnChoiceButton", () => {
     expect(button).toHaveClass("opacity-30");
     expect(button).toHaveClass("cursor-not-allowed");
     expect(button).toHaveClass("pointer-events-none");
+  });
+
+  it("renders compact inner voice hint chips", () => {
+    const innerVoiceHints: ChoiceInnerVoiceHintDisplay[] = [
+      {
+        voiceId: "inner_leader",
+        label: "Leader",
+        text: "Protect the courier.",
+        stance: "supports",
+        palette: {
+          accent: "#34d399",
+          accentSoft: "rgba(52, 211, 153, 0.16)",
+          glow: "rgba(52, 211, 153, 0.24)",
+          glowStrong: "rgba(110, 231, 183, 0.5)",
+          text: "#d1fae5",
+        },
+      },
+      {
+        voiceId: "inner_cynic",
+        label: "Cynic",
+        text: "Do not give leverage away.",
+        stance: "opposes",
+        palette: {
+          accent: "#f87171",
+          accentSoft: "rgba(248, 113, 113, 0.16)",
+          glow: "rgba(248, 113, 113, 0.24)",
+          glowStrong: "rgba(252, 165, 165, 0.5)",
+          text: "#fee2e2",
+        },
+      },
+    ];
+
+    render(
+      <VnChoiceButton
+        choice={baseChoice}
+        index={0}
+        innerVoiceHints={innerVoiceHints}
+        onClick={() => undefined}
+      />,
+    );
+
+    expect(screen.getByText("Leader")).toBeInTheDocument();
+    expect(screen.getByText("supports")).toBeInTheDocument();
+    expect(screen.getByText("Cynic")).toBeInTheDocument();
+    expect(screen.getByText("opposes")).toBeInTheDocument();
   });
 });

@@ -1,5 +1,9 @@
 import type { VnStrings } from "../../i18n/uiStrings";
-import type { ChoiceDisplayItem, InlineStatusCard } from "../vnScreenTypes";
+import type {
+  ChoiceDisplayItem,
+  InlineStatusCard,
+  InnerVoiceCardDisplay,
+} from "../vnScreenTypes";
 import type { VnChoice } from "../types";
 import { OriginChoiceCards } from "./OriginChoiceCards";
 import { VnChoiceButton } from "./VnChoiceButton";
@@ -8,6 +12,7 @@ interface VnChoicesRendererProps {
   t: VnStrings;
   reactionCard: InlineStatusCard | null;
   thoughtCard: InlineStatusCard | null;
+  innerVoiceCards: InnerVoiceCardDisplay[];
   activeLensBadgeText: string | null;
   internalizedThoughtBadgeText: string | null;
   showOriginCards: boolean;
@@ -67,10 +72,44 @@ const StatusCard = ({ card }: { card: InlineStatusCard }) => (
   </div>
 );
 
+const InnerVoiceCard = ({ card }: { card: InnerVoiceCardDisplay }) => (
+  <div
+    className="rounded-[1.2rem] border px-4 py-4 text-left shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md"
+    style={{
+      borderColor: card.palette.glow,
+      backgroundColor: card.palette.accentSoft,
+      boxShadow: `0 18px 44px rgba(0,0,0,0.32), 0 0 0 1px ${card.palette.glow}`,
+    }}
+  >
+    <div className="flex items-center justify-between gap-3">
+      <p
+        className="text-[10px] uppercase tracking-[0.18em]"
+        style={{ color: card.palette.accent }}
+      >
+        {card.role}
+      </p>
+      <span
+        className="rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.18em]"
+        style={{
+          borderColor: card.palette.glowStrong,
+          color: card.palette.text,
+          backgroundColor: "rgba(0,0,0,0.18)",
+        }}
+      >
+        {card.label}
+      </span>
+    </div>
+    <p className="mt-3 text-sm leading-6" style={{ color: card.palette.text }}>
+      {card.text}
+    </p>
+  </div>
+);
+
 export const VnChoicesRenderer = ({
   t,
   reactionCard,
   thoughtCard,
+  innerVoiceCards,
   activeLensBadgeText,
   internalizedThoughtBadgeText,
   showOriginCards,
@@ -92,6 +131,9 @@ export const VnChoicesRenderer = ({
   <div className="flex flex-col gap-3 px-6 py-8 w-full max-w-[480px] mx-auto">
     {reactionCard ? <StatusCard card={reactionCard} /> : null}
     {thoughtCard ? <StatusCard card={thoughtCard} /> : null}
+    {innerVoiceCards.map((card) => (
+      <InnerVoiceCard key={`${card.role}-${card.voiceId}`} card={card} />
+    ))}
     {activeLensBadgeText ? (
       <div className="rounded-full border border-sky-200/20 bg-sky-400/10 px-4 py-2 text-center text-[11px] uppercase tracking-[0.16em] text-sky-100">
         {activeLensBadgeText}
@@ -123,6 +165,7 @@ export const VnChoicesRenderer = ({
             isLocked={item.isLocked}
             isPending={item.isPending}
             hasFailedCheck={item.hasFailedCheck}
+            innerVoiceHints={item.innerVoiceHints}
             disabled={isInteractionLocked}
             onClick={() => onChoiceClick(item.choice)}
           />

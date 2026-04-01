@@ -32,8 +32,11 @@ import {
   CONDITION_OPERATORS,
   EFFECT_OPERATORS,
   FLAG_KEYS,
+  INNER_VOICE_IDS,
+  PSYCHE_VAR_KEYS,
+  SKILL_VOICE_IDS,
+  SPEAKER_IDS,
   VAR_KEYS,
-  VOICE_IDS,
   suggestClosest,
 } from "./content-vocabulary";
 import { buildCase01MapSnapshot } from "./data/case_01_points";
@@ -114,6 +117,19 @@ const scenarios: ScenarioBlueprint[] = [
     mode: "overlay",
     packId: "system_loop_demo",
     nodeIds: ["scene_loop_demo_intro", "scene_loop_demo_end"],
+  },
+  {
+    id: "sandbox_inner_voice_demo",
+    title: "Inner Voices Demo",
+    startNodeId: "scene_inner_voice_demo_intro",
+    mode: "overlay",
+    packId: "system_inner_voice_demo",
+    nodeIds: [
+      "scene_inner_voice_demo_intro",
+      "scene_inner_voice_demo_reflection",
+      "scene_inner_voice_demo_leader",
+      "scene_inner_voice_demo_cynic",
+    ],
   },
   {
     id: "sandbox_intro_pilot",
@@ -407,6 +423,120 @@ const nodes: NodeBlueprint[] = [
     titleOverride: "Loop Demo End",
     bodyOverride:
       "You have discovered the fact. Please check your Mind Palace.",
+    terminal: true,
+    choices: [],
+  },
+  {
+    id: "scene_inner_voice_demo_intro",
+    scenarioId: "sandbox_inner_voice_demo",
+    sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_start.md",
+    titleOverride: "Inner Voices Demo",
+    bodyOverride:
+      "A frightened courier offers you a ledger and begs for safe passage before the city closes around him.",
+    voicePresenceMode: "parliament",
+    activeSpeakers: ["inner_leader", "inner_guide", "inner_cynic"],
+    choices: [
+      {
+        id: "INNER_VOICE_HELP",
+        text: "Hide the courier and slow the pursuit.",
+        nextNodeId: "scene_inner_voice_demo_reflection",
+        innerVoiceHints: [
+          {
+            voiceId: "inner_leader",
+            stance: "supports",
+            text: "Keep him alive, even if it costs initiative.",
+          },
+          {
+            voiceId: "inner_cynic",
+            stance: "opposes",
+            text: "Mercy spends leverage and buys you no guarantee.",
+          },
+        ],
+        effects: [
+          { type: "change_psyche_axis", axis: "x", delta: 5 },
+          { type: "change_psyche_axis", axis: "y", delta: 12 },
+          { type: "change_psyche_axis", axis: "approach", delta: -5 },
+        ],
+      },
+      {
+        id: "INNER_VOICE_LEVERAGE",
+        text: "Take the ledger and make the courier owe you.",
+        nextNodeId: "scene_inner_voice_demo_reflection",
+        innerVoiceHints: [
+          {
+            voiceId: "inner_cynic",
+            stance: "supports",
+            text: "Take the asset first and keep the debt in your pocket.",
+          },
+          {
+            voiceId: "inner_leader",
+            stance: "opposes",
+            text: "Do not turn fear into tribute when trust is still possible.",
+          },
+        ],
+        effects: [
+          { type: "change_psyche_axis", axis: "x", delta: -5 },
+          { type: "change_psyche_axis", axis: "y", delta: -12 },
+          { type: "change_psyche_axis", axis: "approach", delta: 5 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_inner_voice_demo_reflection",
+    scenarioId: "sandbox_inner_voice_demo",
+    sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_start.md",
+    titleOverride: "Afterimage",
+    bodyOverride:
+      "The room quiets, but the argument inside you sharpens into two clear routes.",
+    voicePresenceMode: "parliament",
+    activeSpeakers: ["inner_leader", "inner_guide", "inner_cynic"],
+    choices: [
+      {
+        id: "INNER_VOICE_FOLLOW_LIGHT",
+        text: "Stay with the generous instinct.",
+        nextNodeId: "scene_inner_voice_demo_leader",
+        visibleIfAll: [{ type: "var_gte", key: "psyche_axis_y", value: 10 }],
+        innerVoiceHints: [
+          {
+            voiceId: "inner_leader",
+            stance: "supports",
+            text: "You already chose to protect someone. Finish the line cleanly.",
+          },
+        ],
+      },
+      {
+        id: "INNER_VOICE_FOLLOW_EDGE",
+        text: "Press the hard edge while it still holds.",
+        nextNodeId: "scene_inner_voice_demo_cynic",
+        visibleIfAll: [{ type: "var_lte", key: "psyche_axis_y", value: -10 }],
+        innerVoiceHints: [
+          {
+            voiceId: "inner_cynic",
+            stance: "supports",
+            text: "You have the leverage now. Use it before the city shifts again.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_inner_voice_demo_leader",
+    scenarioId: "sandbox_inner_voice_demo",
+    sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_start.md",
+    titleOverride: "Shared Burden",
+    bodyOverride:
+      "You move slower, but the courier leaves alive and the city owes you a different kind of memory.",
+    terminal: true,
+    choices: [],
+  },
+  {
+    id: "scene_inner_voice_demo_cynic",
+    scenarioId: "sandbox_inner_voice_demo",
+    sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_start.md",
+    titleOverride: "Cold Leverage",
+    bodyOverride:
+      "You leave with the ledger, the advantage, and a silence that will not forgive you soon.",
     terminal: true,
     choices: [],
   },
@@ -1414,6 +1544,9 @@ const nodes: NodeBlueprint[] = [
     scenarioId: "journalist_agency_wakeup",
     sourcePath:
       "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_agency_wakeup.md",
+    titleOverride: "Immersion Bath",
+    bodyOverride:
+      "Steam claws at your lungs as Lotte Weber orders you upright from the Agency immersion tub before the memory fog can settle.",
     characterId: "npc_weber_dispatcher",
     choices: [
       {
@@ -1435,6 +1568,9 @@ const nodes: NodeBlueprint[] = [
     scenarioId: "journalist_agency_wakeup",
     sourcePath:
       "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_memory_gap.md",
+    titleOverride: "Missing Notes",
+    bodyOverride:
+      "Your satchel is empty, your notes are gone, and Weber refuses to explain until you prove you can still think on your feet.",
     characterId: "npc_weber_dispatcher",
     choices: [
       {
@@ -1455,6 +1591,9 @@ const nodes: NodeBlueprint[] = [
     scenarioId: "journalist_agency_wakeup",
     sourcePath:
       "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_cellar_valve.md",
+    titleOverride: "Steam Valve",
+    bodyOverride:
+      "The valve hisses beside the tub, wet metal and rushed maintenance turning the cellar into a machine room that never quite cools.",
     characterId: "inspector",
     choices: [
       {
@@ -1481,6 +1620,9 @@ const nodes: NodeBlueprint[] = [
     scenarioId: "journalist_agency_wakeup",
     sourcePath:
       "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_cellar_ledger.md",
+    titleOverride: "Ledger Crate",
+    bodyOverride:
+      "A swollen ledger lies beside the wall, its page edges marked by recent handling and the kind of haste that leaves trails.",
     characterId: "inspector",
     choices: [
       {
@@ -1507,6 +1649,9 @@ const nodes: NodeBlueprint[] = [
     scenarioId: "journalist_agency_wakeup",
     sourcePath:
       "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_cellar_uniform.md",
+    titleOverride: "Drying Uniform",
+    bodyOverride:
+      "A fresh inspector's coat hangs above the boiler, still damp from the bath heat and already waiting to become your cover.",
     characterId: "inspector",
     choices: [
       {
@@ -1528,6 +1673,9 @@ const nodes: NodeBlueprint[] = [
     scenarioId: "journalist_agency_wakeup",
     sourcePath:
       "40_GameViewer/Sandbox_KA/04_Journalist/scene_journalist_recruitment_pitch.md",
+    titleOverride: "Weber's Pitch",
+    bodyOverride:
+      "Weber drops the performance at last: the Agency needs a journalist who can wear a badge, follow the money, and survive the city long enough to report back.",
     characterId: "npc_weber_dispatcher",
     terminal: true,
     onEnter: [
@@ -2915,6 +3063,17 @@ const assertKnownVocabularyKey = (
   throw new Error(`${fieldName} references unknown key: ${value}`);
 };
 
+const assertKnownVarKey = (value: string, fieldName: string): void => {
+  if (value.startsWith("psyche_")) {
+    assertKnownVocabularyKey(PSYCHE_VAR_KEYS, value, fieldName);
+  }
+  assertKnownVocabularyKey(VAR_KEYS, value, fieldName);
+};
+
+const hasMixedSpeakerPool = (speakerIds: readonly string[]): boolean =>
+  speakerIds.some((speakerId) => SKILL_VOICE_IDS.has(speakerId)) &&
+  speakerIds.some((speakerId) => INNER_VOICE_IDS.has(speakerId));
+
 const validateConditionOperator = (condition: VnCondition, context: string) => {
   if (!CONDITION_OPERATORS.has(condition.type)) {
     throw new Error(
@@ -2940,7 +3099,7 @@ const validateConditionBlueprint = (
       assertKnownVocabularyKey(FLAG_KEYS, condition.key, `${context}.key`);
     }
     if (condition.type === "var_gte" || condition.type === "var_lte") {
-      assertKnownVocabularyKey(VAR_KEYS, condition.key, `${context}.key`);
+      assertKnownVarKey(condition.key, `${context}.key`);
     }
   }
   if ("evidenceId" in condition) {
@@ -2992,10 +3151,17 @@ const validateEffectBlueprint = (effect: VnEffect, context: string): void => {
       );
     }
     if (effect.type === "set_var" || effect.type === "add_var") {
-      assertKnownVocabularyKey(
-        VAR_KEYS,
-        effect.key,
-        `effect.key in ${context}`,
+      assertKnownVarKey(effect.key, `effect.key in ${context}`);
+    }
+  }
+  if (effect.type === "change_psyche_axis") {
+    if (
+      effect.axis !== "x" &&
+      effect.axis !== "y" &&
+      effect.axis !== "approach"
+    ) {
+      throw new Error(
+        `effect.axis in ${context} is unsupported: ${effect.axis}`,
       );
     }
   }
@@ -3116,7 +3282,7 @@ const validateSkillCheck = (check: VnSkillCheck, context: string): void => {
   assertAscii(check.id, `skillCheck.id in ${context}`);
   assertAscii(check.voiceId, `skillCheck.voiceId in ${context}`);
   assertKnownVocabularyKey(
-    VOICE_IDS,
+    SKILL_VOICE_IDS,
     check.voiceId,
     `skillCheck.voiceId in ${context}`,
   );
@@ -3196,6 +3362,14 @@ const validateChoiceBlueprint = (
   if (choice.skillCheck) {
     validateSkillCheck(choice.skillCheck, `choice ${choice.id}`);
   }
+  for (const hint of choice.innerVoiceHints ?? []) {
+    assertAscii(hint.voiceId, `choice.innerVoiceHints.voiceId at ${nodeId}`);
+    assertKnownVocabularyKey(
+      INNER_VOICE_IDS,
+      hint.voiceId,
+      `choice.innerVoiceHints.voiceId at ${nodeId}`,
+    );
+  }
 };
 
 const validateNodeBlueprint = (node: NodeBlueprint): void => {
@@ -3212,6 +3386,21 @@ const validateNodeBlueprint = (node: NodeBlueprint): void => {
   if (node.sourcePathByLocale) {
     for (const locale of Object.keys(node.sourcePathByLocale)) {
       assertAscii(locale, `node(${node.id}).sourcePathByLocale.locale`);
+    }
+  }
+  if (node.activeSpeakers) {
+    for (const speakerId of node.activeSpeakers) {
+      assertAscii(speakerId, `node(${node.id}).activeSpeakers`);
+      assertKnownVocabularyKey(
+        SPEAKER_IDS,
+        speakerId,
+        `node(${node.id}).activeSpeakers`,
+      );
+    }
+    if (hasMixedSpeakerPool(node.activeSpeakers)) {
+      throw new Error(
+        `node(${node.id}).activeSpeakers must not mix skill and inner voices`,
+      );
     }
   }
 
@@ -3364,7 +3553,7 @@ const validateMapCondition = (
       assertKnownVocabularyKey(FLAG_KEYS, condition.key, `${context}.key`);
     }
     if (condition.type === "var_gte" || condition.type === "var_lte") {
-      assertKnownVocabularyKey(VAR_KEYS, condition.key, `${context}.key`);
+      assertKnownVarKey(condition.key, `${context}.key`);
     }
   }
   if ("evidenceId" in condition) {
@@ -3843,7 +4032,10 @@ for (const quest of questCatalog) {
 
 const builtNodes: VnNode[] = nodesWithCase01.map((node) => {
   const resolvedSourcePath = resolveNodeSourcePath(node);
-  const markdown = readMarkdown(resolvedSourcePath);
+  const markdown =
+    node.titleOverride && node.bodyOverride
+      ? ""
+      : readMarkdown(resolvedSourcePath);
   const title = node.titleOverride ?? extractTitle(markdown, node.id);
   const body =
     node.bodyOverride ??

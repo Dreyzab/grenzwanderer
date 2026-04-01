@@ -16,7 +16,7 @@ tags:
 
 - Runtime route: `/vn/detective_case1_archive_search`.
 - Map source: `loc_freiburg_archive` binding in `apps/server/src/scripts/data/case_01_points.ts`.
-- Narrative source: post-lead hub (tailor/apothecary/pub) as the first converging dossier step.
+- Narrative source: post-lead hub dossier step after the official route has turned evidence into access.
 - Runtime anchors:
   - `apps/web/src/entities/visual-novel/scenarios/detective/case_01_bank/main/03_archive/case1_archive.logic.ts`
   - `apps/web/src/entities/visual-novel/scenarios/detective/case_01_bank/main/03_archive/case1_archive.en.ts`
@@ -32,6 +32,12 @@ tags:
   - if lead set is incomplete, node routes to an archive refusal/hint scene and returns control to map (no lockout).
 - Critical-path safety:
   - no hard fail without recovery; player is redirected to unresolved lead work.
+
+## Named Cast
+
+- [[30_World_Intel/Characters/char_inspector|char_inspector]] - tries to turn bundle logic into document access.
+- [[30_World_Intel/Characters/char_archive_keeper|char_archive_keeper]] - record custodian and procedural gate.
+- [[30_World_Intel/Characters/char_official|char_official]] - Dr. Emil Hegenauer, political minder ensuring the wrong file does not surface.
 
 ## Designer View
 
@@ -54,7 +60,7 @@ tags:
   - `chk_case1_archive_tradition_charter` (`tradition`, diff 11)
 - Resolution rule:
   - 2+ successful checks -> strong packet.
-  - otherwise -> partial packet.
+  - otherwise -> partial packet shaped by Hegenauer-limited access.
 - Rewards:
   - new archive evidence items;
   - quest stage progression;
@@ -98,6 +104,7 @@ tags:
   - [x] Includes required node contract sections.
   - [x] Keeps critical path recoverable.
   - [x] Syncs map binding and runtime flags in same cycle.
+  - [x] Uses a named archive custodian plus named political minder rather than anonymous friction.
 - Checklist status:
   - [x] Narrative_Gameplay_Protocol reviewed.
   - [x] Narrative_Gameplay_Checklist constraints applied.

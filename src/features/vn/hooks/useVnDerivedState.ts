@@ -1,5 +1,14 @@
 import { useMemo } from "react";
 import { ENABLE_AI } from "../../../config";
+import type {
+  AiRequest,
+  PlayerAgencyCareer,
+  PlayerNpcFavor,
+  PlayerNpcState,
+  PlayerQuest,
+  PlayerRumorState,
+  VnSession,
+} from "../../../shared/spacetime/bindings";
 import {
   AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
@@ -42,35 +51,40 @@ import {
 } from "../../mindpalace/focusLens";
 import { findPrimaryInternalizedThought } from "../../mindpalace/thoughtCabinet";
 import { formatVoiceEnsembleRoles, getVoiceProfile } from "../voiceRegistry";
-import type { VnScenario, VnSnapshot } from "../types";
+import type {
+  VnChoice,
+  VnNode,
+  VnScenario,
+  VnSkillCheck,
+  VnSnapshot,
+} from "../types";
 import type { PassiveCheckDisplay } from "../ui/VnPassiveCheckBanner";
 import { resolveBackgroundUrl } from "../ui/VnBackgroundResolver";
-import type { VnSkillCheckResolveState } from "../ui/VnSkillCheckResolveOverlay";
 
 interface UseVnDerivedStateParams {
   identityHex: string;
-  sessions: any[];
+  sessions: readonly VnSession[];
   sessionsReady: boolean;
-  skillResults: any[];
-  aiRequests: any[];
-  questRows: any[];
-  npcStateRows: any[];
-  npcFavorRows: any[];
-  characterRevealRows: any[];
-  agencyCareerRows: any[];
-  rumorStateRows: any[];
+  skillResults: readonly (SkillCheckResultLike & {
+    playerId: { toHexString(): string };
+  })[];
+  aiRequests: readonly AiRequest[];
+  questRows: readonly PlayerQuest[];
+  npcStateRows: readonly PlayerNpcState[];
+  npcFavorRows: readonly PlayerNpcFavor[];
+  agencyCareerRows: readonly PlayerAgencyCareer[];
+  rumorStateRows: readonly PlayerRumorState[];
   selectedScenarioId: string;
   snapshot: VnSnapshot | null;
   selectedScenario: VnScenario | null;
   contentReady: boolean;
   myFlags: Record<string, boolean>;
   myVars: Record<string, number>;
-  mySession: any;
+  mySession: VnSession | null;
   sessionReady: boolean;
-  currentNode: any;
+  currentNode: VnNode | null;
   activeAiThoughtContext: ActiveAiThoughtContext | null;
   activeReactionKey: string | null;
-  activeSkillResolve: VnSkillCheckResolveState | null;
   tSessionHydrating: string;
 }
 
@@ -83,7 +97,6 @@ export function useVnDerivedState({
   questRows,
   npcStateRows,
   npcFavorRows,
-  characterRevealRows,
   agencyCareerRows,
   rumorStateRows,
   selectedScenarioId,
@@ -97,7 +110,6 @@ export function useVnDerivedState({
   currentNode,
   activeAiThoughtContext,
   activeReactionKey,
-  activeSkillResolve,
   tSessionHydrating,
 }: UseVnDerivedStateParams) {
   const choiceEvaluationContext = useMemo<VnChoiceEvaluationContext>(() => {
@@ -154,64 +166,17 @@ export function useVnDerivedState({
   }, [identityHex, npcStateRows]);
 
   const visibleFactsByCharacterId = useMemo(() => {
-    const factById = new Map(
-      (snapshot?.socialCatalog?.characterRevealFacts ?? []).map((fact) => [
-        fact.id,
-        fact,
-      ]),
-    );
-    const tierOrder = {
-      hidden: 0,
-      hinted: 1,
-      surface: 2,
-    } as const;
-    const factsByCharacterId = new Map<
-      string,
-      Array<{ factId: string; summary: string; tier: number }>
-    >();
-
-    for (const row of characterRevealRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
-
-      const fact = factById.get(row.factId);
-      if (!fact) {
-        continue;
-      }
-
-      const current = factsByCharacterId.get(row.characterId) ?? [];
-      if (current.some((entry) => entry.factId === row.factId)) {
-        continue;
-      }
-
-      current.push({
-        factId: row.factId,
-        summary: fact.summary,
-        tier: tierOrder[fact.tier],
-      });
-      factsByCharacterId.set(row.characterId, current);
-    }
-
     const summaries = new Map<string, string[]>();
-    for (const [characterId, facts] of factsByCharacterId) {
-      summaries.set(
-        characterId,
-        facts
-          .sort(
-            (left, right) =>
-              left.tier - right.tier || left.factId.localeCompare(right.factId),
-          )
-          .map((entry) => entry.summary),
+    for (const identity of snapshot?.socialCatalog?.npcIdentities ?? []) {
+      const facts = [identity.publicRole].filter(
+        (entry): entry is string =>
+          typeof entry === "string" && entry.length > 0,
       );
+      summaries.set(identity.id, facts);
     }
 
     return summaries;
-  }, [
-    characterRevealRows,
-    identityHex,
-    snapshot?.socialCatalog?.characterRevealFacts,
-  ]);
+  }, [snapshot?.socialCatalog?.npcIdentities]);
 
   const mySessions = useMemo(
     () =>
@@ -249,7 +214,7 @@ export function useVnDerivedState({
       skillResults
         .filter((entry) => entry.playerId.toHexString() === identityHex)
         .sort((left, right) =>
-          timestampMicros(right.createdAt) > timestampMicros(left.updatedAt)
+          timestampMicros(right.createdAt) > timestampMicros(left.createdAt)
             ? 1
             : -1,
         ),
@@ -354,7 +319,7 @@ export function useVnDerivedState({
   const currentVisibleChoices = useMemo(
     () =>
       currentNode?.choices.filter(
-        (choice) =>
+        (choice: VnChoice) =>
           !isAutoContinueChoice(choice) &&
           isChoiceVisible(choice, myFlags, myVars, choiceEvaluationContext),
       ) ?? [],
@@ -364,7 +329,7 @@ export function useVnDerivedState({
   const currentAutoContinueChoice = useMemo(
     () =>
       currentNode?.choices.find(
-        (choice) =>
+        (choice: VnChoice) =>
           isAutoContinueChoice(choice) &&
           isChoiceVisible(choice, myFlags, myVars, choiceEvaluationContext),
       ) ?? null,
@@ -380,7 +345,7 @@ export function useVnDerivedState({
       return false;
     }
     return checks.some(
-      (check) =>
+      (check: VnSkillCheck) =>
         !mySkillResults.some((entry) =>
           checkResultMatches(
             entry,

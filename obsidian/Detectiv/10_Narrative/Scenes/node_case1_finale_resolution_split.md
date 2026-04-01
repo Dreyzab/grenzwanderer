@@ -31,11 +31,18 @@ tags:
 - Fallback if missing requirements:
   - return to [[10_Narrative/Scenes/node_case1_warehouse_entry_plan|Node: Case 1 Warehouse Entry Plan]].
 
+## Named Cast
+
+- [[30_World_Intel/Characters/char_inspector|char_inspector]] - carries the final accusation and its moral cost.
+- [[30_World_Intel/Characters/char_bank_manager|char_bank_manager]] - Heinrich Galdermann, the explicit confrontation target.
+- [[30_World_Intel/Characters/char_warehouse_guard|char_warehouse_guard]] - subordinate muscle and pressure, not the real face of the ending.
+- Offstage only: [[30_World_Intel/Characters/char_mastermind|char_mastermind]] remains unseen and unresolved.
+
 ## Designer View
 
 - Player intent: close the case with chosen investigative identity.
 - Dramatic function: consequence.
-- Narrative function: pay off route strategy and clue synthesis in distinct ending tones.
+- Narrative function: pay off route strategy and clue synthesis in a direct confrontation with Galdermann while preserving the broader network mystery.
 - Emotional tone: high pressure, moral cost, hard closure.
 - Stakes: resolution style affects trust network and next-case entry context.
 
@@ -96,7 +103,8 @@ tags:
   - planned finale outcome assertions in `case1_finale.logic.ts`.
 - Done criteria:
   - both lawful and compromise outcomes close the case and enable next-case hook;
-  - no ending branch leaves quest unresolved.
+  - no ending branch leaves quest unresolved;
+  - Galdermann is the direct finale face and the mastermind remains offstage.
 - Checklist status:
   - [ ] Narrative_Consistency_Checklist
   - [ ] Narrative_Gameplay_Checklist

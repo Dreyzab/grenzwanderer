@@ -2,8 +2,8 @@
 id: char_bank_teller
 tags: [character, functional]
 tier: functional
-runtime_character_id: clerk
-faction: fct_bankers
+runtime_character_id: bank_teller
+faction: fct_house_of_pledges
 aliases: ["Bank Teller"]
 ---
 
@@ -11,7 +11,7 @@ aliases: ["Bank Teller"]
 
 ## Dossier
 
-- **Role**: Primary witness with operational access to floor routines.
+- **Role**: Secondary bank-floor witness and compatibility anchor for teller-facing scenes.
 - **Age / Appearance**: Late 20s, ink on fingers, brittle posture, insomnia signs.
 - **Archetype**: The Fragile Witness
 - **Origin**: Lower-middle clerk household in Freiburg.
@@ -33,6 +33,7 @@ aliases: ["Bank Teller"]
 ## Relationships
 
 - [[30_World_Intel/Characters/char_bank_manager|char_bank_manager]] - intimidated subordinate.
+- [[30_World_Intel/Characters/char_clerk|char_clerk]] - Case 01 uses the reconciliation clerk as the sharper witness.
 - [[30_World_Intel/Characters/char_inspector|char_inspector]] - nervous truth source.
 - Factions: [[00_Map_Room/MOC_Factions|MOC_Factions]]
 
@@ -40,7 +41,7 @@ aliases: ["Bank Teller"]
 
 - **Stage 1** (start): Defensive testimony and omissions.
 - **Stage 2** (after clue unlock): Discloses partial timeline correction.
-- **Stage 3** (finale): Provides decisive corroboration if protected.
+- **Stage 3** (finale): Supports corroboration if a future bank-floor pass needs a second witness.
 
 ## Scenes & Quests
 

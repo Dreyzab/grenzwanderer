@@ -2,8 +2,8 @@
 id: char_tailor_master
 tags: [character, major]
 tier: major
-runtime_character_id: tailor
-faction: fct_artisans
+runtime_character_id: tailor_master
+faction: fct_masters_union
 aliases: ["Tailor Master"]
 ---
 
@@ -46,5 +46,4 @@ aliases: ["Tailor Master"]
 ## Scenes & Quests
 
 - Appears in: [[10_Narrative/Scenes/node_case1_lead_tailor|node_case1_lead_tailor]]
-- Appears in: [[10_Narrative/Scenes/node_case1_first_lead_selection|node_case1_first_lead_selection]]
 - Linked quest: [[00_Map_Room/qst_main_case_01|qst_main_case_01]]

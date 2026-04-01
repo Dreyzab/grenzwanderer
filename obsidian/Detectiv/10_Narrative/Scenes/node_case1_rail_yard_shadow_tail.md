@@ -32,6 +32,11 @@ tags:
 - Fallback if missing requirements:
   - return to [[10_Narrative/Scenes/node_case1_archive_warrant_run|Node: Case 1 Archive Warrant Run]].
 
+## Named Cast
+
+- [[30_World_Intel/Characters/char_inspector|char_inspector]] - shadows the last visible movement before the warehouse.
+- [[30_World_Intel/Characters/char_dock_worker|char_dock_worker]] - Jakob Moser, the night-shift lookout whose timing governs the covert window.
+
 ## Designer View
 
 - Player intent: identify and exploit the safe timing window to approach the warehouse.
@@ -42,7 +47,7 @@ tags:
 
 ## Mechanics View
 
-- Player verb: shadow, position, and breach timing.
+- Player verb: shadow Jakob Moser, position, and breach timing.
 - Node type: decision.
 - Mechanics used:
   - map movement timing;
@@ -96,7 +101,8 @@ tags:
   - planned map interaction tests for spotted/unseen branch outcomes.
 - Done criteria:
   - both check outcomes keep player moving to warehouse entry plan;
-  - no hard fail even when both checks fail.
+  - no hard fail even when both checks fail;
+  - Jakob Moser is the named lookout mediating the stealth obstacle.
 - Checklist status:
   - [ ] Narrative_Consistency_Checklist
   - [ ] Narrative_Gameplay_Checklist

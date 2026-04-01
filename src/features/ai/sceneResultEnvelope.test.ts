@@ -15,6 +15,13 @@ describe("sceneResultEnvelope", () => {
           flags: ["met_butler"],
           activeQuests: [{ questId: "quest_manor", stage: 2 }],
           voiceLevels: { attr_logic: 4 },
+          psyche: {
+            axisX: 48,
+            axisY: -12,
+            approach: 60,
+            dominantInnerVoiceId: "inner_analyst",
+            activeInnerVoiceIds: ["inner_analyst", "inner_cynic"],
+          },
         },
         checkResult: {
           checkId: "check_hidden_latch",
@@ -72,6 +79,29 @@ describe("sceneResultEnvelope", () => {
         ensemble: {
           presenceMode: "mechanical_voice",
           activeSpeakers: "attr_logic",
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects malformed psyche payloads", () => {
+    expect(
+      isValidSceneResultEnvelope({
+        source: "scene_result",
+        scenarioId: "haunted_manor",
+        locationName: "Cellar",
+        timestamp: 1742324400,
+        playerState: {
+          flags: [],
+          activeQuests: [],
+          voiceLevels: {},
+          psyche: {
+            axisX: 12,
+            axisY: 18,
+            approach: "bad",
+            dominantInnerVoiceId: "inner_guide",
+            activeInnerVoiceIds: [],
+          },
         },
       }),
     ).toBe(false);

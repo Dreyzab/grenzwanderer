@@ -108,6 +108,7 @@ export const createTestSnapshot = (
         cases: [],
         facts: [],
         hypotheses: [],
+        thoughts: [],
       },
       mysticism: {
         entityArchetypes: [],
@@ -153,6 +154,7 @@ export const createLegacyMaplessSnapshot = (
         cases: [],
         facts: [],
         hypotheses: [],
+        thoughts: [],
       },
       vnRuntime: {},
     },

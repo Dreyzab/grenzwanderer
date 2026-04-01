@@ -26,6 +26,10 @@ tags:
 - [[30_World_Intel/Characters/char_archive_keeper|char_archive_keeper]]
 - [[30_World_Intel/Characters/char_warehouse_guard|char_warehouse_guard]]
 - [[30_World_Intel/Characters/char_dock_worker|char_dock_worker]]
+- [[30_World_Intel/Characters/char_gustav_brandt|char_gustav_brandt]]
+- [[30_World_Intel/Characters/char_official|char_official]]
+- [[30_World_Intel/Characters/char_priest|char_priest]]
+- [[30_World_Intel/Characters/char_socialist|char_socialist]]
 - [[30_World_Intel/Characters/char_student_leader|char_student_leader]]
 - [[30_World_Intel/Characters/char_fortune_teller|char_fortune_teller]]
 
@@ -37,7 +41,6 @@ tags:
 - [[30_World_Intel/Characters/char_gardener|char_gardener]]
 - [[30_World_Intel/Characters/char_narrator|char_narrator]]
 - [[30_World_Intel/Characters/char_neighbor|char_neighbor]]
-- [[30_World_Intel/Characters/char_official|char_official]]
 - [[30_World_Intel/Characters/char_paperboy|char_paperboy]]
 - [[30_World_Intel/Characters/char_partner|char_partner]]
 

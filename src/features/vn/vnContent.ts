@@ -2,6 +2,12 @@ import {
   isAllowedFactionId,
   isFactionDefinition,
 } from "../../../data/factionContract";
+import {
+  hasMixedSpeakerPool,
+  isInnerVoiceId,
+  isSpeakerId,
+  isSkillVoiceId,
+} from "../../../data/innerVoiceContract";
 import type {
   MapAction,
   MapBinding,
@@ -146,7 +152,11 @@ const isCondition = (value: unknown): value is VnCondition => {
     return typeof value.rankId === "string";
   }
   if (value.type === "voice_level_gte") {
-    return typeof value.voiceId === "string" && typeof value.value === "number";
+    return (
+      typeof value.voiceId === "string" &&
+      isSkillVoiceId(value.voiceId) &&
+      typeof value.value === "number"
+    );
   }
 
   return false;
@@ -302,6 +312,12 @@ const isEffect = (value: unknown): value is VnEffect => {
   if (value.type === "tag_entity_signature") {
     return typeof value.signatureId === "string";
   }
+  if (value.type === "change_psyche_axis") {
+    return (
+      (value.axis === "x" || value.axis === "y" || value.axis === "approach") &&
+      typeof value.delta === "number"
+    );
+  }
 
   return false;
 };
@@ -379,6 +395,17 @@ const isChoice = (value: unknown): value is VnChoice => {
     (Array.isArray(value.effects) && value.effects.every(isEffect));
   const hasSkillCheck =
     value.skillCheck === undefined || isSkillCheck(value.skillCheck);
+  const hasInnerVoiceHints =
+    value.innerVoiceHints === undefined ||
+    (Array.isArray(value.innerVoiceHints) &&
+      value.innerVoiceHints.every(
+        (entry) =>
+          isObject(entry) &&
+          typeof entry.voiceId === "string" &&
+          isInnerVoiceId(entry.voiceId) &&
+          (entry.stance === "supports" || entry.stance === "opposes") &&
+          typeof entry.text === "string",
+      ));
 
   return (
     typeof value.id === "string" &&
@@ -390,7 +417,8 @@ const isChoice = (value: unknown): value is VnChoice => {
     hasRequireAll &&
     hasRequireAny &&
     hasEffects &&
-    hasSkillCheck
+    hasSkillCheck &&
+    hasInnerVoiceHints
   );
 };
 
@@ -412,7 +440,10 @@ const isNode = (value: unknown): value is VnNode => {
       isVoicePresenceMode(value.voicePresenceMode)) &&
     (value.activeSpeakers === undefined ||
       (Array.isArray(value.activeSpeakers) &&
-        value.activeSpeakers.every((entry) => typeof entry === "string"))) &&
+        value.activeSpeakers.every(
+          (entry) => typeof entry === "string" && isSpeakerId(entry),
+        ) &&
+        !hasMixedSpeakerPool(value.activeSpeakers))) &&
     (value.terminal === undefined || typeof value.terminal === "boolean") &&
     Array.isArray(value.choices) &&
     value.choices.every(isChoice) &&

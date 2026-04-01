@@ -436,6 +436,7 @@ const buildSceneSnapshot = (
     envelope?.ensemble?.presenceMode ?? payload.voicePresenceMode;
   const activeSpeakers =
     envelope?.ensemble?.activeSpeakers ?? payload.activeSpeakers;
+  const psyche = envelope?.playerState.psyche ?? payload.psycheProfile;
   const parts = [
     `Scenario: ${scenario?.title ?? payload.scenarioId}`,
     `Node: ${node?.title ?? effectiveNodeId}`,
@@ -452,6 +453,19 @@ const buildSceneSnapshot = (
   }
   if (activeSpeakers && activeSpeakers.length > 0) {
     parts.push(`Active speakers: ${activeSpeakers.join(", ")}`);
+  }
+  if (psyche) {
+    parts.push(
+      `Psyche: x=${psyche.axisX}, y=${psyche.axisY}, approach=${psyche.approach}`,
+    );
+    if (psyche.dominantInnerVoiceId) {
+      parts.push(`Dominant inner voice: ${psyche.dominantInnerVoiceId}`);
+    }
+    if (psyche.activeInnerVoiceIds.length > 0) {
+      parts.push(
+        `Inner voice parliament: ${psyche.activeInnerVoiceIds.join(", ")}`,
+      );
+    }
   }
 
   if (node?.characterId) {

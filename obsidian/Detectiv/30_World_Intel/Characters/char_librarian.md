@@ -1,9 +1,9 @@
-﻿---
+---
 id: char_librarian
 tags: [character, functional]
 tier: functional
 runtime_character_id: librarian
-faction: fct_civil_service
+faction: fct_college_of_reason
 aliases: ["Dr. Margarethe Voss"]
 ---
 
@@ -11,28 +11,28 @@ aliases: ["Dr. Margarethe Voss"]
 
 ## Dossier
 
-- **Role**: Archive specialist and provenance gatekeeper.
+- **Role**: Generic librarian and provenance specialist for non-Case-01 research scenes.
 - **Age / Appearance**: 42, archival gloves, exact diction.
 - **Archetype**: The Quiet Index
-- **Origin**: University archival science
+- **Origin**: University archival science.
 
 ## Psyche Profile (Parliament Perception)
 
 | Voice      | Reaction                                  | Threshold |
 | ---------- | ----------------------------------------- | --------- |
-| Logic      | "Cross-links obscure entries rapidly"     | 8         |
-| Empathy    | "Emotionless until credibility is proven" | 7         |
-| Perception | "Detects forged citation patterns"        | 8         |
+| Logic      | "Cross-links obscure entries rapidly."    | 8         |
+| Empathy    | "Emotionless until credibility is proven."| 7         |
+| Perception | "Detects forged citation patterns."       | 8         |
 
 ## Secrets
 
-- **Surface**: Provides lawful archive access
-- **Hidden**: Maintains private sensitivity index
-- **Core**: Intrusion reveals concealed annex shelf
+- **Surface**: Provides lawful archive access.
+- **Hidden**: Maintains private sensitivity index.
+- **Core**: Intrusion reveals concealed annex shelf.
 
 ## Relationships
 
-- [[30_World_Intel/Characters/char_archive_keeper|char_archive_keeper]] - abstraction anchor.
+- [[30_World_Intel/Characters/char_archive_keeper|char_archive_keeper]] - Case 01 should use the archive keeper note instead of this broader archetype.
 - [[30_World_Intel/Characters/char_inspector|char_inspector]] - key investigation axis.
 - Factions: [[00_Map_Room/MOC_Factions|MOC_Factions]]
 
@@ -40,10 +40,8 @@ aliases: ["Dr. Margarethe Voss"]
 
 - **Stage 1** (start): Formal gatekeeping.
 - **Stage 2** (after clue unlock): Shares metadata after reciprocity.
-- **Stage 3** (finale): Enables breakthrough or enforces closure.
+- **Stage 3** (finale): Remains a compatibility anchor rather than an active Case 01 blocker.
 
 ## Scenes & Quests
 
-- Appears in: [[10_Narrative/Scenes/node_case1_first_lead_selection|node_case1_first_lead_selection]]
-- Appears in: [[10_Narrative/Scenes/node_case1_bank_investigation|node_case1_bank_investigation]]
-- Linked quest: [[00_Map_Room/qst_inspector_vienna|qst_inspector_vienna]]
+- Compatibility anchor for future library and provenance scenes.

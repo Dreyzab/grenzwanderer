@@ -1,15 +1,24 @@
 import { useMemo } from "react";
 import type { VnStrings } from "../../i18n/uiStrings";
+import {
+  buildInnerVoiceFallbackText,
+  readPsycheState,
+  resolveInnerVoiceSelection,
+} from "../../../shared/game/innerVoiceModel";
+import { isInnerVoiceId } from "../../../../data/innerVoiceContract";
 import { isChoiceAvailable } from "../vnContent";
 import {
   buildChoiceKey,
   formatSpeaker,
   unwrapOptionalString,
 } from "../vnScreenUtils";
+import { getVoicePalette, getVoicePresentation } from "../voicePresentation";
 import type {
   ActiveAiThoughtContext,
   ActiveReactionContext,
   ChoiceDisplayItem,
+  ChoiceInnerVoiceHintDisplay,
+  InnerVoiceCardDisplay,
   InlineStatusCard,
   SkillCheckAiStatus,
 } from "../vnScreenTypes";
@@ -145,6 +154,41 @@ export function useVnDisplayMapping({
       ? activeAiThoughtResponse?.text
       : null;
 
+  const innerVoiceCards = useMemo<InnerVoiceCardDisplay[]>(() => {
+    if (
+      currentNode?.voicePresenceMode !== "parliament" ||
+      !Array.isArray(currentNode.activeSpeakers)
+    ) {
+      return [];
+    }
+
+    const pool = currentNode.activeSpeakers.filter(isInnerVoiceId);
+    if (pool.length === 0) {
+      return [];
+    }
+
+    const selection = resolveInnerVoiceSelection(
+      readPsycheState(myVars),
+      pool,
+      {
+        includeCounter: pool.length >= 3,
+      },
+    );
+
+    return selection.ordered.map((entry) => {
+      const presentation = getVoicePresentation(entry.voiceId);
+      return {
+        voiceId: entry.voiceId,
+        label: presentation.label,
+        text: buildInnerVoiceFallbackText(entry.voiceId, entry.stance),
+        role: entry.role,
+        stance: entry.stance,
+        resonance: entry.resonance,
+        palette: presentation.palette,
+      };
+    });
+  }, [currentNode?.activeSpeakers, currentNode?.voicePresenceMode, myVars]);
+
   const reactionCard = useMemo<InlineStatusCard | null>(() => {
     if (!showInlineReactionCard) {
       return null;
@@ -224,6 +268,18 @@ export function useVnDisplayMapping({
                     ? "result_success"
                     : "result_fail"
             : "idle";
+        const innerVoiceHints: ChoiceInnerVoiceHintDisplay[] = (
+          choice.innerVoiceHints ?? []
+        ).map((hint) => {
+          const presentation = getVoicePresentation(hint.voiceId);
+          return {
+            voiceId: hint.voiceId,
+            label: presentation.label,
+            text: hint.text,
+            stance: hint.stance,
+            palette: getVoicePalette(hint.voiceId),
+          };
+        });
 
         return {
           choice,
@@ -234,6 +290,7 @@ export function useVnDisplayMapping({
           isLocked: !isAvailable || !mySession,
           isPending: pendingChoiceId === choice.id,
           hasFailedCheck: Boolean(failedChoiceKeys[choiceKey]),
+          innerVoiceHints,
         };
       }),
     [
@@ -265,6 +322,7 @@ export function useVnDisplayMapping({
     displayedScenarioCompleted,
     activeResolveAiStatus,
     activeResolveAiText,
+    innerVoiceCards,
     activeLensBadgeText: activeLens
       ? `${t.activeLensLabel}: ${activeLens.hypothesisText}`
       : null,

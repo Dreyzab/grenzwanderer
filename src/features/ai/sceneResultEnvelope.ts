@@ -45,6 +45,13 @@ export interface SceneResultPlayerState {
   flags: string[];
   activeQuests: { questId: string; stage: number }[];
   voiceLevels: Record<string, number>;
+  psyche?: {
+    axisX: number;
+    axisY: number;
+    approach: number;
+    dominantInnerVoiceId: string | null;
+    activeInnerVoiceIds: string[];
+  };
 }
 
 export interface SceneResultEnvelope {
@@ -97,6 +104,34 @@ export const isValidSceneResultEnvelope = (
   if (typeof env.locationName !== "string") return false;
   if (typeof env.timestamp !== "number") return false;
   if (!env.playerState || typeof env.playerState !== "object") return false;
+  const playerState = env.playerState as Record<string, unknown>;
+  if (playerState.psyche !== undefined) {
+    if (!playerState.psyche || typeof playerState.psyche !== "object") {
+      return false;
+    }
+    const psyche = playerState.psyche as Record<string, unknown>;
+    if (
+      typeof psyche.axisX !== "number" ||
+      typeof psyche.axisY !== "number" ||
+      typeof psyche.approach !== "number"
+    ) {
+      return false;
+    }
+    if (
+      !(
+        psyche.dominantInnerVoiceId === null ||
+        typeof psyche.dominantInnerVoiceId === "string"
+      )
+    ) {
+      return false;
+    }
+    if (
+      !Array.isArray(psyche.activeInnerVoiceIds) ||
+      !psyche.activeInnerVoiceIds.every((entry) => typeof entry === "string")
+    ) {
+      return false;
+    }
+  }
 
   if (env.checkResult) {
     const cr = env.checkResult as Record<string, unknown>;

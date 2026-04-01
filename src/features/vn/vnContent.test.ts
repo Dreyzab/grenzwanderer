@@ -1098,6 +1098,136 @@ describe("vnContent runtime parsing", () => {
     );
   });
 
+  it("parses inner voice speaker pools and authored choice hints", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          scenarios: [
+            {
+              id: "scenario_inner",
+              title: "Inner",
+              startNodeId: "node_inner",
+              nodeIds: ["node_inner"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_inner",
+              scenarioId: "scenario_inner",
+              title: "Node Inner",
+              body: "Body",
+              voicePresenceMode: "parliament",
+              activeSpeakers: ["inner_leader", "inner_guide", "inner_cynic"],
+              choices: [
+                {
+                  id: "choice_inner",
+                  text: "Choose the generous line",
+                  nextNodeId: "node_inner",
+                  innerVoiceHints: [
+                    {
+                      voiceId: "inner_leader",
+                      stance: "supports",
+                      text: "Protect the courier.",
+                    },
+                  ],
+                  effects: [
+                    { type: "change_psyche_axis", axis: "y", delta: 12 },
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(parsed).not.toBeNull();
+    expect(parsed?.nodes[0]?.activeSpeakers).toEqual([
+      "inner_leader",
+      "inner_guide",
+      "inner_cynic",
+    ]);
+    expect(parsed?.nodes[0]?.choices[0]?.innerVoiceHints?.[0]).toMatchObject({
+      voiceId: "inner_leader",
+      stance: "supports",
+    });
+    expect(parsed?.nodes[0]?.choices[0]?.effects?.[0]).toMatchObject({
+      type: "change_psyche_axis",
+      axis: "y",
+    });
+  });
+
+  it("rejects mixed skill and inner speaker pools", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          scenarios: [
+            {
+              id: "scenario_inner",
+              title: "Inner",
+              startNodeId: "node_inner",
+              nodeIds: ["node_inner"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_inner",
+              scenarioId: "scenario_inner",
+              title: "Node Inner",
+              body: "Body",
+              voicePresenceMode: "parliament",
+              activeSpeakers: ["attr_logic", "inner_leader"],
+              choices: [],
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(parsed).toBeNull();
+  });
+
+  it("rejects inner voices in voice_level_gte conditions", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          scenarios: [
+            {
+              id: "scenario_inner",
+              title: "Inner",
+              startNodeId: "node_inner",
+              nodeIds: ["node_inner"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_inner",
+              scenarioId: "scenario_inner",
+              title: "Node Inner",
+              body: "Body",
+              choices: [
+                {
+                  id: "choice_inner",
+                  text: "Choose",
+                  nextNodeId: "node_inner",
+                  conditions: [
+                    {
+                      type: "voice_level_gte",
+                      voiceId: "inner_cynic",
+                      value: 2,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(parsed).toBeNull();
+  });
+
   it("parses mystic snapshot blocks, effects, and map metadata", () => {
     const parsed = parseSnapshot(
       JSON.stringify(

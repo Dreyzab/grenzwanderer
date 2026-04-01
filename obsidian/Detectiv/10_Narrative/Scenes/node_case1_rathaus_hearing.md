@@ -31,6 +31,13 @@ tags:
 - Fallback if missing requirements:
   - reroute to [[10_Narrative/Scenes/node_case1_workers_backchannel|Node: Case 1 Workers Backchannel]].
 
+## Named Cast
+
+- [[30_World_Intel/Characters/char_inspector|char_inspector]] - seeks formal leverage without losing pace.
+- [[30_World_Intel/Characters/char_mayor|char_mayor]] - political arbiter worried about scandal.
+- [[30_World_Intel/Characters/char_clara_altenburg|char_clara_altenburg]] - allied pressure with a personal records stake.
+- [[30_World_Intel/Characters/char_official|char_official]] - Dr. Emil Hegenauer, the procedural shield and opposition voice.
+
 ## Designer View
 
 - Player intent: secure legal leverage without losing operational tempo.
@@ -41,7 +48,7 @@ tags:
 
 ## Mechanics View
 
-- Player verb: persuade, pressure, and cross-check contradictions.
+- Player verb: persuade, pressure, and cross-check contradictions against Hegenauer's shield.
 - Node type: decision.
 - Mechanics used:
   - branching dialogue;
@@ -58,6 +65,8 @@ tags:
     - Difficulty: 11
     - On pass: `hearing_contradiction_logged=true`
     - On fail: `hearing_contradiction_missed=true`
+- Procedural resistance:
+  - Hegenauer carries the immediate legal obstruction while the Mayor arbitrates political cost.
 - Resources: optional social cost (`heat` or relation loss in fail branches).
 - Rewards:
   - legal archive run unlocked with stronger evidence context.
@@ -94,7 +103,8 @@ tags:
   - planned VN route and flag outcomes in `case1_rathaus_hearing.logic.ts`.
 - Done criteria:
   - hearing always yields a forward route (full warrant or limited archive access);
-  - no dialogue branch hard-locks progression.
+  - no dialogue branch hard-locks progression;
+  - the opposition voice is explicit and non-placeholder.
 - Checklist status:
   - [ ] Narrative_Consistency_Checklist
   - [ ] Narrative_Gameplay_Checklist

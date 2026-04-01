@@ -1,4 +1,4 @@
-﻿---
+---
 id: node_case1_lead_pub
 aliases:
   - Node: Case 1 Lead - Pub
@@ -27,6 +27,13 @@ tags:
 - Recovery route if missing requirements:
   - return to [[10_Narrative/Scenes/node_case1_first_lead_selection|Node: Case 1 First Lead Selection]].
 
+## Named Cast
+
+- [[30_World_Intel/Characters/char_inspector|char_inspector]] - investigator driving the social extraction.
+- [[30_World_Intel/Characters/char_pub_owner|char_pub_owner]] - room controller who decides whether Gustav can be reached.
+- [[30_World_Intel/Characters/char_gustav_brandt|char_gustav_brandt]] - named witness who carries the logistics testimony.
+- [[30_World_Intel/Characters/char_priest|char_priest]] - optional witness-shelter fallback once Gustav talks.
+
 ## Designer View
 
 - Dramatic function: witness extraction under social friction.
@@ -37,7 +44,9 @@ tags:
 
 - Node type: social witness branch.
 - Core path:
-  - approach Gustav -> charisma/authority checks -> testimony -> logistics direction.
+  - approach Pub Owner -> gain access to Gustav -> charisma/authority checks -> testimony -> logistics direction.
+- Optional moral stabilizer:
+  - Pater Johannes can take Gustav into bounded shelter after testimony; this changes interpretation and protection tone, not route availability.
 - Legacy clue-payoff branches (kept):
   - `follow_night_guard_rumor` (requires `rumor_night_guard`) -> `clue_night_guard_pub_confirmed`.
   - `ask_previous_investigator` (requires `clue_previous_investigator`) -> `clue_previous_investigator_last_seen_pub`.
@@ -84,7 +93,7 @@ tags:
 ## Validation
 
 - Confirm new clue-gated options appear only when corresponding flags exist.
-- Confirm Gustav testimony remains reachable by at least one success route.
+- Confirm Gustav Brandt testimony remains reachable by at least one success route.
 - Confirm END sets `pub_lead_complete` and unlocks `loc_telephone`.
 - Test anchors:
   - `apps/web/src/entities/visual-novel/scenarios/detective/case_01_bank/leads/pub/lead_pub.logic.ts`

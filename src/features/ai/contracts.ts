@@ -16,6 +16,14 @@ export interface DialogueEnsemble {
   peerVoiceIds?: string[];
 }
 
+export interface DialoguePsycheProfile {
+  axisX: number;
+  axisY: number;
+  approach: number;
+  dominantInnerVoiceId: string | null;
+  activeInnerVoiceIds: string[];
+}
+
 export interface GenerateDialoguePayload {
   source: typeof AI_DIALOGUE_SOURCE_SKILL_CHECK;
   scenarioId: string;
@@ -37,6 +45,7 @@ export interface GenerateDialoguePayload {
   margin?: number;
   voicePresenceMode?: "text_variability" | "parliament" | "mechanical_voice";
   activeSpeakers?: string[];
+  psycheProfile?: DialoguePsycheProfile;
   sceneResultEnvelope?: SceneResultEnvelope;
 }
 
@@ -79,6 +88,22 @@ export interface CharacterRelationshipState {
   trust: number;
   disposition: CharacterDisposition;
 }
+
+export const trustToDisposition = (trust: number): CharacterDisposition => {
+  if (trust >= 60) {
+    return "devoted";
+  }
+  if (trust >= 25) {
+    return "warm";
+  }
+  if (trust >= -9) {
+    return "neutral";
+  }
+  if (trust >= -39) {
+    return "guarded";
+  }
+  return "hostile";
+};
 
 export interface GenerateCharacterReactionPayload {
   source: CharacterReactionSource;
@@ -189,6 +214,25 @@ const isSuggestedEffect = (value: unknown): value is SuggestedEffect => {
   );
 };
 
+const isDialoguePsycheProfile = (
+  value: unknown,
+): value is DialoguePsycheProfile => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const profile = value as Record<string, unknown>;
+  return (
+    isFiniteNumber(profile.axisX) &&
+    isFiniteNumber(profile.axisY) &&
+    isFiniteNumber(profile.approach) &&
+    (profile.dominantInnerVoiceId === null ||
+      typeof profile.dominantInnerVoiceId === "string") &&
+    Array.isArray(profile.activeInnerVoiceIds) &&
+    profile.activeInnerVoiceIds.every((entry) => typeof entry === "string")
+  );
+};
+
 const isDialogueMetadata = (value: unknown): value is DialogueMetadata => {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -270,6 +314,8 @@ export const isGenerateDialoguePayload = (
     (payload.activeSpeakers === undefined ||
       (Array.isArray(payload.activeSpeakers) &&
         payload.activeSpeakers.every((entry) => typeof entry === "string"))) &&
+    (payload.psycheProfile === undefined ||
+      isDialoguePsycheProfile(payload.psycheProfile)) &&
     (payload.sceneResultEnvelope === undefined ||
       isValidSceneResultEnvelope(payload.sceneResultEnvelope))
   );

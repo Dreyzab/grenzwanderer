@@ -1,14 +1,12 @@
+import { getVoicePresentation } from "./voicePresentation";
+
 export const getVoiceProfile = (id: string): any => {
-  const label = id
-    .replace(/^attr_/, "")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-
-  if (id === "attr_social") {
-    return { label: "Charisma", personaLabel: "Charisma", ensembleRoles: [] };
-  }
-
-  return { label, personaLabel: label, ensembleRoles: [] };
+  const presentation = getVoicePresentation(id);
+  return {
+    label: presentation.label,
+    personaLabel: presentation.personaLabel,
+    ensembleRoles: presentation.ensembleRoles,
+  };
 };
 
 export const formatVoiceEnsembleRoles = (roles: string[]) => {

@@ -452,7 +452,12 @@ describe("VnScreen critical behavior", () => {
 
   it("runs cinematic success resolve and commits only after dismiss", async () => {
     vi.useFakeTimers();
-    mocks.usePlayerVarsMock.mockReturnValue({ attr_social: 4 });
+    mocks.usePlayerVarsMock.mockReturnValue({
+      attr_social: 4,
+      psyche_axis_x: 58,
+      psyche_axis_y: -22,
+      psyche_approach: 44,
+    });
 
     const payloadJson = makeSnapshotPayload(
       [
@@ -752,7 +757,13 @@ describe("VnScreen critical behavior", () => {
     });
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(2000);
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1200);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
     });
 
     expect(screen.getByTestId("narrative-text")).toHaveTextContent(
@@ -939,7 +950,12 @@ describe("VnScreen critical behavior", () => {
   });
 
   it("enqueues one supported AI request after an active skill check resolves", async () => {
-    mocks.usePlayerVarsMock.mockReturnValue({ attr_social: 4 });
+    mocks.usePlayerVarsMock.mockReturnValue({
+      attr_social: 4,
+      psyche_axis_x: 58,
+      psyche_axis_y: -22,
+      psyche_approach: 44,
+    });
 
     const payloadJson = makeSnapshotPayload(
       [
@@ -1053,6 +1069,13 @@ describe("VnScreen critical behavior", () => {
       margin: 7,
       voicePresenceMode: "parliament",
       activeSpeakers: ["attr_social", "attr_logic"],
+      psycheProfile: {
+        axisX: 58,
+        axisY: -22,
+        approach: 44,
+        dominantInnerVoiceId: "inner_manipulator",
+        activeInnerVoiceIds: [],
+      },
     });
     expect(payload.breakdown).toEqual([
       { source: "voice", sourceId: "attr_social", delta: 4 },
@@ -1068,6 +1091,13 @@ describe("VnScreen critical behavior", () => {
         activeQuests: [],
         voiceLevels: {
           attr_social: 4,
+        },
+        psyche: {
+          axisX: 58,
+          axisY: -22,
+          approach: 44,
+          dominantInnerVoiceId: "inner_manipulator",
+          activeInnerVoiceIds: [],
         },
       },
       checkResult: {
@@ -1095,6 +1125,80 @@ describe("VnScreen critical behavior", () => {
     });
 
     expect(mocks.enqueueAiRequestMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders inner voice cards and authored choice chips for inner parliament scenes", () => {
+    mocks.usePlayerVarsMock.mockReturnValue({
+      psyche_axis_x: 72,
+      psyche_axis_y: 64,
+      psyche_approach: 60,
+    });
+
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_case01_pilot",
+          title: "Case01",
+          startNodeId: "node_start",
+          nodeIds: ["node_start"],
+        },
+      ],
+      [
+        {
+          id: "node_start",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Start",
+          body: "A courier trembles in the doorway.",
+          voicePresenceMode: "parliament",
+          activeSpeakers: ["inner_leader", "inner_guide", "inner_cynic"],
+          choices: [
+            {
+              id: "choice_help",
+              text: "Hide the courier.",
+              nextNodeId: "node_start",
+              innerVoiceHints: [
+                {
+                  voiceId: "inner_leader",
+                  stance: "supports",
+                  text: "Protect him before the room turns.",
+                },
+                {
+                  voiceId: "inner_cynic",
+                  stance: "opposes",
+                  text: "Mercy spends leverage.",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    );
+
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(8n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_case01_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_start",
+        updatedAt: timestamp(18n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    render(<VnScreen />);
+
+    expect(screen.getAllByText("Leader").length).toBeGreaterThan(0);
+    expect(screen.getByText("Guide")).toBeInTheDocument();
+    expect(screen.getAllByText("Cynic").length).toBeGreaterThan(0);
+    expect(screen.getByText("supports")).toBeInTheDocument();
+    expect(screen.getByText("opposes")).toBeInTheDocument();
   });
 
   it("shows AI thinking state and completed copy on the skill-check resolve surface", async () => {

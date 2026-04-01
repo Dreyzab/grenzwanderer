@@ -1,6 +1,7 @@
 import { ArrowRight, Check, Eye, Lock, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { getSkillCheckChanceTone } from "../checkChance";
+import type { ChoiceInnerVoiceHintDisplay } from "../vnScreenTypes";
 import {
   formatSkillCheckVoiceLabel,
   getSkillCheckVoicePalette,
@@ -16,6 +17,7 @@ export interface VnChoiceButtonProps {
   isPending?: boolean;
   hasFailedCheck?: boolean;
   chancePercent?: number;
+  innerVoiceHints?: ChoiceInnerVoiceHintDisplay[];
   skillCheckState?:
     | "idle"
     | "arming"
@@ -95,6 +97,7 @@ export function VnChoiceButton({
   isPending = false,
   hasFailedCheck = false,
   chancePercent,
+  innerVoiceHints = [],
   skillCheckState = "idle",
   onClick,
 }: VnChoiceButtonProps) {
@@ -125,7 +128,7 @@ export function VnChoiceButton({
           : skillCheckState === "impact_fail" ||
               skillCheckState === "result_fail"
             ? "shadow-[0_0_0_1px_rgba(251,113,133,0.18),0_18px_46px_rgba(30,7,10,0.36)] border-l-rose-400/60"
-          : "";
+            : "";
 
   if (isLocked) {
     return (
@@ -156,7 +159,9 @@ export function VnChoiceButton({
             ) : null}
           </div>
         ) : null}
-        <span className="flex-1 text-stone-600 line-through">{choice.text}</span>
+        <span className="flex-1 text-stone-600 line-through">
+          {choice.text}
+        </span>
       </div>
     );
   }
@@ -181,14 +186,14 @@ export function VnChoiceButton({
       transition={toneMotion.transition}
     >
       <div className="mt-1 flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity">
-        {isAction ? (
-          <ArrowRight size={18} className="text-amber-500" />
+        {isAction ? <ArrowRight size={18} className="text-amber-500" /> : null}
+        {isInquiry ? (
+          isVisited ? (
+            <Check size={18} className="text-stone-500" />
+          ) : (
+            <MessageCircle size={18} className="text-stone-400" />
+          )
         ) : null}
-        {isInquiry
-          ? isVisited
-            ? <Check size={18} className="text-stone-500" />
-            : <MessageCircle size={18} className="text-stone-400" />
-          : null}
         {isFlavor ? <Eye size={18} className="text-blue-300/70" /> : null}
       </div>
 
@@ -217,6 +222,28 @@ export function VnChoiceButton({
                 {`${chancePercent}%`}
               </span>
             ) : null}
+          </div>
+        ) : null}
+
+        {innerVoiceHints.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-2 mt-0.5">
+            {innerVoiceHints.map((hint) => (
+              <span
+                key={`${hint.voiceId}-${hint.stance}`}
+                className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.16em]"
+                style={{
+                  borderColor: hint.palette.glowStrong,
+                  backgroundColor: hint.palette.accentSoft,
+                  color: hint.palette.text,
+                }}
+                title={hint.text}
+              >
+                <span>{hint.label}</span>
+                <span className="opacity-70">
+                  {hint.stance === "supports" ? "supports" : "opposes"}
+                </span>
+              </span>
+            ))}
           </div>
         ) : null}
 

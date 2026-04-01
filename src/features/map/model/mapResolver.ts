@@ -4,6 +4,12 @@ import type {
   MapResolverContext,
   RuntimeMapBinding,
 } from "../types";
+import { createHypothesisFocusFlagKey } from "../../mindpalace/focusLens";
+import {
+  createMindThoughtInternalizedFlagKey,
+  createMindThoughtResearchingFlagKey,
+  createMindThoughtUnlockedFlagKey,
+} from "../../mindpalace/thoughtCabinet";
 
 export const evaluateMapCondition = (
   context: MapResolverContext,
@@ -41,6 +47,26 @@ export const evaluateMapCondition = (
   if (condition.type === "rumor_state_is") {
     return context.rumorStates.get(condition.rumorId) === condition.status;
   }
+  if (condition.type === "hypothesis_focus_is") {
+    return context.flags.has(
+      createHypothesisFocusFlagKey(condition.caseId, condition.hypothesisId),
+    );
+  }
+  if (condition.type === "thought_state_is") {
+    if (condition.state === "internalized") {
+      return context.flags.has(
+        createMindThoughtInternalizedFlagKey(condition.thoughtId),
+      );
+    }
+    if (condition.state === "researching") {
+      return context.flags.has(
+        createMindThoughtResearchingFlagKey(condition.thoughtId),
+      );
+    }
+    return context.flags.has(
+      createMindThoughtUnlockedFlagKey(condition.thoughtId),
+    );
+  }
   if (condition.type === "career_rank_gte") {
     const currentRankOrder =
       context.careerRankId === null
@@ -69,8 +95,11 @@ export const evaluateMapCondition = (
   if (condition.type === "geofence_within") {
     return false;
   }
+  if (condition.type === "logic_not") {
+    return !evaluateMapCondition(context, condition.condition);
+  }
 
-  return !evaluateMapCondition(context, condition.condition);
+  return false;
 };
 
 const normalizeBinding = (binding: MapBinding): RuntimeMapBinding => ({

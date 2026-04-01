@@ -36,6 +36,13 @@ describe("ai contracts", () => {
         margin: 7,
         voicePresenceMode: "parliament",
         activeSpeakers: ["attr_social", "attr_logic"],
+        psycheProfile: {
+          axisX: 62,
+          axisY: -18,
+          approach: 44,
+          dominantInnerVoiceId: "inner_analyst",
+          activeInnerVoiceIds: ["inner_analyst", "inner_cynic"],
+        },
         ensemble: {
           mode: "duet",
           peerVoiceIds: ["attr_logic", "attr_empathy", "attr_perception"],
@@ -68,9 +75,39 @@ describe("ai contracts", () => {
 
     expect(payload?.ensemble?.mode).toBe("duet");
     expect(payload?.ensemble?.peerVoiceIds).toHaveLength(3);
+    expect(payload?.psycheProfile?.dominantInnerVoiceId).toBe("inner_analyst");
     expect(payload?.sceneResultEnvelope?.ensemble?.presenceMode).toBe(
       "parliament",
     );
+  });
+
+  it("rejects malformed psyche profiles in dialogue payloads", () => {
+    const payload = parseGenerateDialoguePayload(
+      JSON.stringify({
+        source: AI_DIALOGUE_SOURCE_SKILL_CHECK,
+        scenarioId: "dog_case_intro",
+        nodeId: "node_tailor_audit",
+        checkId: "check_tailor_pressure",
+        choiceId: "DOG_TAILOR_AUDIT_BOOKS",
+        voiceId: "attr_social",
+        choiceText: "Lean in and make the tailor talk.",
+        passed: true,
+        roll: 14,
+        difficulty: 12,
+        voiceLevel: 3,
+        locationName: "Tailor Shop",
+        narrativeText: "The room smells like steam, ink, and fear.",
+        psycheProfile: {
+          axisX: 20,
+          axisY: "bad",
+          approach: 12,
+          dominantInnerVoiceId: "inner_guide",
+          activeInnerVoiceIds: ["inner_guide"],
+        },
+      }),
+    );
+
+    expect(payload).toBeNull();
   });
 
   it("rejects malformed scene result envelopes in dialogue payloads", () => {

@@ -10,6 +10,19 @@
       "packId": "system_loop_demo"
     },
     {
+      "id": "sandbox_inner_voice_demo",
+      "title": "Inner Voices Demo",
+      "startNodeId": "scene_inner_voice_demo_intro",
+      "nodeIds": [
+        "scene_inner_voice_demo_intro",
+        "scene_inner_voice_demo_reflection",
+        "scene_inner_voice_demo_leader",
+        "scene_inner_voice_demo_cynic"
+      ],
+      "mode": "overlay",
+      "packId": "system_inner_voice_demo"
+    },
+    {
       "id": "sandbox_intro_pilot",
       "title": "Sandbox Intro Pilot",
       "startNodeId": "scene_start",
@@ -311,6 +324,148 @@
       "scenarioId": "sandbox_loop_demo",
       "title": "Loop Demo End",
       "body": "You have discovered the fact. Please check your Mind Palace.",
+      "terminal": true,
+      "choices": []
+    },
+    {
+      "id": "scene_inner_voice_demo_intro",
+      "scenarioId": "sandbox_inner_voice_demo",
+      "title": "Inner Voices Demo",
+      "body": "A frightened courier offers you a ledger and begs for safe passage before the city closes around him.",
+      "choices": [
+        {
+          "id": "INNER_VOICE_HELP",
+          "text": "Hide the courier and slow the pursuit.",
+          "nextNodeId": "scene_inner_voice_demo_reflection",
+          "innerVoiceHints": [
+            {
+              "voiceId": "inner_leader",
+              "stance": "supports",
+              "text": "Keep him alive, even if it costs initiative."
+            },
+            {
+              "voiceId": "inner_cynic",
+              "stance": "opposes",
+              "text": "Mercy spends leverage and buys you no guarantee."
+            }
+          ],
+          "effects": [
+            {
+              "type": "change_psyche_axis",
+              "axis": "x",
+              "delta": 5
+            },
+            {
+              "type": "change_psyche_axis",
+              "axis": "y",
+              "delta": 12
+            },
+            {
+              "type": "change_psyche_axis",
+              "axis": "approach",
+              "delta": -5
+            }
+          ]
+        },
+        {
+          "id": "INNER_VOICE_LEVERAGE",
+          "text": "Take the ledger and make the courier owe you.",
+          "nextNodeId": "scene_inner_voice_demo_reflection",
+          "innerVoiceHints": [
+            {
+              "voiceId": "inner_cynic",
+              "stance": "supports",
+              "text": "Take the asset first and keep the debt in your pocket."
+            },
+            {
+              "voiceId": "inner_leader",
+              "stance": "opposes",
+              "text": "Do not turn fear into tribute when trust is still possible."
+            }
+          ],
+          "effects": [
+            {
+              "type": "change_psyche_axis",
+              "axis": "x",
+              "delta": -5
+            },
+            {
+              "type": "change_psyche_axis",
+              "axis": "y",
+              "delta": -12
+            },
+            {
+              "type": "change_psyche_axis",
+              "axis": "approach",
+              "delta": 5
+            }
+          ]
+        }
+      ],
+      "voicePresenceMode": "parliament",
+      "activeSpeakers": ["inner_leader", "inner_guide", "inner_cynic"]
+    },
+    {
+      "id": "scene_inner_voice_demo_reflection",
+      "scenarioId": "sandbox_inner_voice_demo",
+      "title": "Afterimage",
+      "body": "The room quiets, but the argument inside you sharpens into two clear routes.",
+      "choices": [
+        {
+          "id": "INNER_VOICE_FOLLOW_LIGHT",
+          "text": "Stay with the generous instinct.",
+          "nextNodeId": "scene_inner_voice_demo_leader",
+          "visibleIfAll": [
+            {
+              "type": "var_gte",
+              "key": "psyche_axis_y",
+              "value": 10
+            }
+          ],
+          "innerVoiceHints": [
+            {
+              "voiceId": "inner_leader",
+              "stance": "supports",
+              "text": "You already chose to protect someone. Finish the line cleanly."
+            }
+          ]
+        },
+        {
+          "id": "INNER_VOICE_FOLLOW_EDGE",
+          "text": "Press the hard edge while it still holds.",
+          "nextNodeId": "scene_inner_voice_demo_cynic",
+          "visibleIfAll": [
+            {
+              "type": "var_lte",
+              "key": "psyche_axis_y",
+              "value": -10
+            }
+          ],
+          "innerVoiceHints": [
+            {
+              "voiceId": "inner_cynic",
+              "stance": "supports",
+              "text": "You have the leverage now. Use it before the city shifts again."
+            }
+          ]
+        }
+      ],
+      "voicePresenceMode": "parliament",
+      "activeSpeakers": ["inner_leader", "inner_guide", "inner_cynic"]
+    },
+    {
+      "id": "scene_inner_voice_demo_leader",
+      "scenarioId": "sandbox_inner_voice_demo",
+      "title": "Shared Burden",
+      "body": "You move slower, but the courier leaves alive and the city owes you a different kind of memory.",
+      "terminal": true,
+      "choices": []
+    },
+    {
+      "id": "scene_inner_voice_demo_cynic",
+      "scenarioId": "sandbox_inner_voice_demo",
+      "title": "Cold Leverage",
+      "body": "You leave with the ledger, the advantage, and a silence that will not forgive you soon.",
       "terminal": true,
       "choices": []
     },
@@ -2031,8 +2186,8 @@
     {
       "id": "scene_journalist_agency_wakeup",
       "scenarioId": "journalist_agency_wakeup",
-      "title": "Scene: Immersion Bath Wakeup",
-      "body": "Cold stone presses against your shoulders. The bath is not luxury. It is a recovery trough sunk into a cellar floor, ringed with copper pipe, steam, and the bitter medicinal smell of whatever the Bureau poured into the water to drag you back. A woman's voice reaches you before...",
+      "title": "Immersion Bath",
+      "body": "Steam claws at your lungs as Lotte Weber orders you upright from the Agency immersion tub before the memory fog can settle.",
       "choices": [
         {
           "id": "JOURNALIST_WAKEUP_SURFACE",
@@ -2054,8 +2209,8 @@
     {
       "id": "scene_journalist_memory_gap",
       "scenarioId": "journalist_agency_wakeup",
-      "title": "Scene: Memory Gap",
-      "body": "Fragments return in the wrong order: rain on cobbles, a telegraph office door, the taste of metal, then nothing. The woman introduces herself as Lotte Weber, dispatcher for the Freiburg bureau, and gives you just enough fact to stand on. You are in an agency cellar. You were p...",
+      "title": "Missing Notes",
+      "body": "Your satchel is empty, your notes are gone, and Weber refuses to explain until you prove you can still think on your feet.",
       "choices": [
         {
           "id": "JOURNALIST_WAKEUP_ORIENT",
@@ -2074,8 +2229,8 @@
     {
       "id": "scene_journalist_cellar_valve",
       "scenarioId": "journalist_agency_wakeup",
-      "title": "Scene: Steam Valve",
-      "body": "The brass valve is scored by fresh wrench marks. Someone adjusted the temperature in a hurry and with purpose. The pipe hums under your fingers like a telegraph line trapped inside the wall. Whatever this room is for, it sees more broken investigators than patients. Behind you...",
+      "title": "Steam Valve",
+      "body": "The valve hisses beside the tub, wet metal and rushed maintenance turning the cellar into a machine room that never quite cools.",
       "choices": [
         {
           "id": "JOURNALIST_VALVE_TO_LEDGER",
@@ -2102,8 +2257,8 @@
     {
       "id": "scene_journalist_cellar_ledger",
       "scenarioId": "journalist_agency_wakeup",
-      "title": "Scene: Ledger Crate",
-      "body": "The crate beside the wall is not supply storage. It is intake. Damp ledgers, tagged personal effects, transfer slips, names crossed out too neatly. Your own surname appears on the top page with the time of arrival and a blank where cause should be. That blank chills you more t...",
+      "title": "Ledger Crate",
+      "body": "A swollen ledger lies beside the wall, its page edges marked by recent handling and the kind of haste that leaves trails.",
       "choices": [
         {
           "id": "JOURNALIST_LEDGER_TO_UNIFORM",
@@ -2130,8 +2285,8 @@
     {
       "id": "scene_journalist_cellar_uniform",
       "scenarioId": "journalist_agency_wakeup",
-      "title": "Scene: Drying Uniform",
-      "body": "Your coat hangs from a line beside a regulation bureau jacket. The contrast is insulting. Ink-stained wool beside disciplined gray. Someone has already emptied your pockets, dried the important pages, and decided that your habits can be folded into procedure if the right press...",
+      "title": "Drying Uniform",
+      "body": "A fresh inspector's coat hangs above the boiler, still damp from the bath heat and already waiting to become your cover.",
       "choices": [
         {
           "id": "JOURNALIST_UNIFORM_CONTINUE",
@@ -2153,8 +2308,8 @@
     {
       "id": "scene_journalist_recruitment_pitch",
       "scenarioId": "journalist_agency_wakeup",
-      "title": "Scene: Recruitment Pitch",
-      "body": "Only after you stop shaking does Lotte give you the real offer. Freiburg is choking on sealed files, missing ledgers, and people who would rather bribe a reporter than face an investigator. The Bureau wants someone who can smell a lie before it reaches print. You want the miss...",
+      "title": "Weber's Pitch",
+      "body": "Weber drops the performance at last: the Agency needs a journalist who can wear a badge, follow the money, and survive the city long enough to report back.",
       "terminal": true,
       "choices": [],
       "onEnter": [
@@ -5784,6 +5939,6 @@
       }
     ]
   },
-  "checksum": "6e15214943742061c8c03d86a57c653edb0aa578df1d938426661c296fb22c6e",
-  "generatedAt": "2026-03-19T18:56:05.975Z"
+  "checksum": "3212f146cd5ee94aad26b9e5d207d252a8964ffddde35494d007949f28de48fc",
+  "generatedAt": "2026-03-31T20:27:44.118Z"
 }

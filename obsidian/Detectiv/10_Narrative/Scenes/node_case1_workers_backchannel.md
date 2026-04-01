@@ -31,6 +31,12 @@ tags:
 - Fallback if missing requirements:
   - reroute to [[10_Narrative/Scenes/node_case1_rathaus_hearing|Node: Case 1 Rathaus Hearing]].
 
+## Named Cast
+
+- [[30_World_Intel/Characters/char_inspector|char_inspector]] - enters the covert route as negotiator, not enforcer.
+- [[30_World_Intel/Characters/char_socialist|char_socialist]] - Karl Brenner, the only onstage backchannel broker.
+- Off-screen pressure only: [[30_World_Intel/Characters/char_corrupt_cop|char_corrupt_cop]] is rumor and consequence, not a scene partner.
+
 ## Designer View
 
 - Player intent: obtain hidden access without institutional approval.
@@ -41,7 +47,7 @@ tags:
 
 ## Mechanics View
 
-- Player verb: negotiate, bluff, and secure shadow cooperation.
+- Player verb: negotiate, bluff, and secure shadow cooperation from Karl Brenner.
 - Node type: decision.
 - Mechanics used:
   - social branch dialogue with faction gate;
@@ -95,7 +101,8 @@ tags:
   - planned branch outcome tests in `case1_workers_backchannel.logic.ts`.
 - Done criteria:
   - covert route always progresses to rail yard path;
-  - failed persuasion converts into cost, never dead-end.
+  - failed persuasion converts into cost, never dead-end;
+  - the named backchannel contact is Karl Brenner, not a placeholder witness.
 - Checklist status:
   - [ ] Narrative_Consistency_Checklist
   - [ ] Narrative_Gameplay_Checklist

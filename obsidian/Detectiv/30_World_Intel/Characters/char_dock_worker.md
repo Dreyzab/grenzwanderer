@@ -2,47 +2,48 @@
 id: char_dock_worker
 tags: [character, functional]
 tier: functional
-runtime_character_id: worker
-faction: fct_workers
-aliases: ["Dock Worker"]
+runtime_character_id: rail_yard_lookout
+faction: fct_free_yards
+aliases: ["Jakob Moser", "Dock Worker"]
 ---
 
-# Dock Worker
+# Jakob Moser
 
 ## Dossier
 
-- **Role**: Logistics witness for freight movement and unofficial loading orders.
-- **Age / Appearance**: 40s, coal-dusted coat, calloused hands, cautious speech.
-- **Archetype**: The Practical Observer
+- **Role**: Rail-yard lookout who becomes the human obstacle in the covert warehouse approach.
+- **Age / Appearance**: 44, coal-dusted coat, hooded lantern, one damaged ear from rail work.
+- **Archetype**: The Night Shift Lookout
 - **Origin**: Stuehlinger freight labor pool.
 
 ## Psyche Profile (Parliament Perception)
 
-| Voice      | Reaction                                           | Threshold |
-| ---------- | -------------------------------------------------- | --------- |
-| Perception | "Remembers unusual crates by weight and handling." | 7         |
-| Empathy    | "Will talk if family safety is guaranteed."        | 6         |
-| Tradition  | "Protects labor codes before external authority."  | 7         |
+| Voice      | Reaction                                        | Threshold |
+| ---------- | ----------------------------------------------- | --------- |
+| Perception | "Maps blind spots and shift changes from habit."| 8         |
+| Empathy    | "Will talk if family safety is guaranteed."     | 6         |
+| Stealth    | "Knows exactly when a yard goes too quiet."     | 8         |
 
 ## Secrets
 
-- **Surface**: Saw late-night loading under non-standard guard pattern.
-- **Hidden**: Can identify one disguised supervisor by gait and accent.
-- **Core**: Only Charisma path reveals union-ledger note proving false manifests.
+- **Surface**: Watches late-night loading under non-standard guard pattern.
+- **Hidden**: Recognizes the disguised supervisor by gait and timing, not by face.
+- **Core**: Can be baited, bypassed, or quietly flipped depending on how the rail-yard tail is framed.
 
 ## Relationships
 
 - [[30_World_Intel/Characters/char_pub_owner|char_pub_owner]] - rumor and protection channel.
-- [[30_World_Intel/Characters/char_student_leader|char_student_leader]] - agitation contact.
+- [[30_World_Intel/Characters/char_socialist|char_socialist]] - yard pressure arrives through his network.
+- [[30_World_Intel/Characters/char_inspector|char_inspector]] - night-route adversary or reluctant source.
 - Factions: [[00_Map_Room/MOC_Factions|MOC_Factions]]
 
 ## Evolution
 
-- **Stage 1** (start): Reluctant and risk-averse testimony.
-- **Stage 2** (after clue unlock): Provides route timings after trust/reputation gain.
-- **Stage 3** (finale): Supports public testimony or disappears under pressure.
+- **Stage 1** (start): Keeps the yard sealed by routine and silence.
+- **Stage 2** (after clue unlock): Becomes the stealth obstacle or reluctant guide, depending on route state.
+- **Stage 3** (finale): Falls back once the warehouse approach is broken open.
 
 ## Scenes & Quests
 
-- Appears in: [[10_Narrative/Scenes/node_case1_first_lead_selection|node_case1_first_lead_selection]]
+- Appears in: [[10_Narrative/Scenes/node_case1_rail_yard_shadow_tail|node_case1_rail_yard_shadow_tail]]
 - Linked quest: [[00_Map_Room/qst_lotte_wires|qst_lotte_wires]]

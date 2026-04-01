@@ -55,6 +55,7 @@
     "content:drift:check": "bun run content:extract && bun run content:obsidian:coverage:check && bun run content:map:metrics:check && bun run scripts/content-drift-check.ts",
     "openviking:start": "powershell -ExecutionPolicy Bypass -File scripts/openviking/start-mcp.ps1",
     "openviking:setup": "powershell -ExecutionPolicy Bypass -File scripts/openviking/start-mcp.ps1 -Transport stdio",
+    "openviking:mcp:stdio": "powershell -ExecutionPolicy Bypass -File scripts/openviking/start-mcp.ps1 -Transport stdio",
     "openviking:restart": "powershell -ExecutionPolicy Bypass -File scripts/openviking/start-mcp.ps1",
     "openviking:validate": "powershell -ExecutionPolicy Bypass -Command \"& { . scripts/openviking/start-mcp.ps1; Test-OpenVikingHealth -Url http://127.0.0.1:1933 }\"",
     "openviking:index": "powershell -ExecutionPolicy Bypass -File scripts/openviking/index-profiles.ps1",

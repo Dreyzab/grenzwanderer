@@ -1,9 +1,9 @@
-﻿---
+---
 id: char_cleaner
 tags: [character, generic]
 tier: generic
 runtime_character_id: cleaner
-faction: fct_workers
+faction: fct_free_yards
 aliases: ["Old Gustav"]
 ---
 
@@ -14,21 +14,22 @@ aliases: ["Old Gustav"]
 - **Role**: Street-cleaner archetype with high incidental evidence access.
 - **Age / Appearance**: 60, weathered gear, quiet movement.
 - **Archetype**: The Invisible Collector
-- **Origin**: Baechle maintenance routes
+- **Origin**: Baechle maintenance routes.
+- **Compatibility Note**: Separate from [[30_World_Intel/Characters/char_gustav_brandt|char_gustav_brandt]], the named pub witness in Case 01.
 
 ## Psyche Profile (Parliament Perception)
 
 | Voice      | Reaction                                 | Threshold |
 | ---------- | ---------------------------------------- | --------- |
-| Logic      | "Finds objects others ignore"            | 8         |
-| Empathy    | "Responds to respect over payment"       | 7         |
-| Perception | "Distinguishes fresh residue from noise" | 8         |
+| Logic      | "Finds objects others ignore."           | 8         |
+| Empathy    | "Responds to respect over payment."      | 7         |
+| Perception | "Distinguishes fresh residue from noise."| 8         |
 
 ## Secrets
 
-- **Surface**: Collects debris from critical zones
-- **Hidden**: Recovered clue linked to disguise route
-- **Core**: Charisma reveals exact pickup timeline
+- **Surface**: Collects debris from critical zones.
+- **Hidden**: Recovered clue linked to disguise route.
+- **Core**: Charisma reveals exact pickup timeline.
 
 ## Relationships
 

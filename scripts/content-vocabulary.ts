@@ -1,3 +1,9 @@
+import {
+  INNER_VOICE_IDS as BASE_INNER_VOICE_IDS,
+  PSYCHE_VAR_KEYS as BASE_PSYCHE_VAR_KEYS_ARRAY,
+  SKILL_VOICE_IDS as BASE_SKILL_VOICE_IDS,
+  SPEAKER_IDS as BASE_SPEAKER_IDS,
+} from "../data/innerVoiceContract";
 import { originProfiles } from "./origins.manifest";
 
 export const CONDITION_OPERATORS = new Set<string>([
@@ -39,6 +45,7 @@ export const EFFECT_OPERATORS = new Set<string>([
   "add_heat",
   "add_tension",
   "grant_influence",
+  "change_psyche_axis",
 ]);
 
 const BASE_FLAG_KEYS = new Set<string>([
@@ -145,6 +152,7 @@ const BASE_VAR_KEYS = new Set<string>([
   "influence_points",
   "rep_civic",
   "rep_finance",
+  ...BASE_PSYCHE_VAR_KEYS_ARRAY,
   "stress_index",
   "tension",
   "track_mythologist_xp",
@@ -154,32 +162,10 @@ const BASE_VAR_KEYS = new Set<string>([
   "loop_demo_solved",
 ]);
 
-const BASE_VOICE_IDS = new Set<string>([
-  "attr_agility",
-  "attr_authority",
-  "attr_charisma",
-  "attr_composure",
-  "attr_deception",
-  "attr_empathy",
-  "attr_encyclopedia",
-  "attr_endurance",
-  "attr_forensics",
-  "attr_imagination",
-  "attr_intellect",
-  "attr_intrusion",
-  "attr_intuition",
-  "attr_logic",
-  "attr_occultism",
-  "attr_perception",
-  "attr_physical",
-  "attr_poetics",
-  "attr_psyche",
-  "attr_shadow",
-  "attr_social",
-  "attr_spirit",
-  "attr_stealth",
-  "attr_tradition",
-]);
+const BASE_VOICE_IDS = new Set<string>(BASE_SKILL_VOICE_IDS);
+const BASE_PSYCHE_VAR_KEY_SET = new Set<string>(BASE_PSYCHE_VAR_KEYS_ARRAY);
+const BASE_INNER_SPEAKER_IDS = new Set<string>(BASE_INNER_VOICE_IDS);
+const BASE_SPEAKER_POOL_IDS = new Set<string>(BASE_SPEAKER_IDS);
 
 for (const profile of originProfiles) {
   BASE_FLAG_KEYS.add(profile.originFlagKey);
@@ -193,12 +179,17 @@ for (const profile of originProfiles) {
   for (const stat of profile.statEffects) {
     BASE_VAR_KEYS.add(stat.key);
     BASE_VOICE_IDS.add(stat.key);
+    BASE_SPEAKER_POOL_IDS.add(stat.key);
   }
 }
 
 export const FLAG_KEYS = BASE_FLAG_KEYS;
 export const VAR_KEYS = BASE_VAR_KEYS;
-export const VOICE_IDS = BASE_VOICE_IDS;
+export const PSYCHE_VAR_KEYS = BASE_PSYCHE_VAR_KEY_SET;
+export const SKILL_VOICE_IDS = BASE_VOICE_IDS;
+export const INNER_VOICE_IDS = BASE_INNER_SPEAKER_IDS;
+export const SPEAKER_IDS = BASE_SPEAKER_POOL_IDS;
+export const VOICE_IDS = SKILL_VOICE_IDS;
 
 const levenshtein = (left: string, right: string): number => {
   if (left === right) {

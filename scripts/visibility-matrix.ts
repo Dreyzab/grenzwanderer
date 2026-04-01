@@ -42,6 +42,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 const schemaPath = path.join(repoRoot, "spacetimedb", "src", "schema.ts");
+const ignoredDirectoryNames = new Set([
+  ".git",
+  ".venv",
+  "__pycache__",
+  "dist",
+  "node_modules",
+  "site-packages",
+]);
+const fileListCache = new Map<string, string[]>();
+const fileSourceCache = new Map<string, string>();
+let publicSchemaTablesCache: PublicSchemaTable[] | null = null;
+let visibilityInventoryCache: VisibilityInventoryRow[] | null = null;
 
 const entry = (
   tableName: string,
@@ -366,11 +378,27 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
   ),
 ];
 
+const readCachedUtf8 = (filePath: string): string => {
+  const cached = fileSourceCache.get(filePath);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const source = readFileSync(filePath, "utf8");
+  fileSourceCache.set(filePath, source);
+  return source;
+};
+
 const walkFiles = (rootDir: string): string[] => {
+  const cached = fileListCache.get(rootDir);
+  if (cached) {
+    return cached;
+  }
+
   const entries: string[] = [];
 
   for (const name of readdirSync(rootDir)) {
-    if (name === "node_modules" || name === "dist" || name === ".git") {
+    if (ignoredDirectoryNames.has(name)) {
       continue;
     }
 
@@ -388,6 +416,7 @@ const walkFiles = (rootDir: string): string[] => {
     entries.push(fullPath);
   }
 
+  fileListCache.set(rootDir, entries);
   return entries;
 };
 
@@ -415,7 +444,7 @@ const collectUiRefs = (): {
   );
 
   for (const filePath of files) {
-    const source = readFileSync(filePath, "utf8");
+    const source = readCachedUtf8(filePath);
     const refs = source.matchAll(/useTable\s*\(\s*tables\.(\w+)/g);
     const isOperatorDebug = /(VnPilotPanel|DevPage)\.tsx$/i.test(filePath);
     for (const match of refs) {
@@ -437,7 +466,7 @@ const collectSmokeRefs = (): Map<string, Set<string>> => {
   );
 
   for (const filePath of files) {
-    const source = readFileSync(filePath, "utf8");
+    const source = readCachedUtf8(filePath);
     for (const match of source.matchAll(/SELECT \* FROM ([a-z0-9_]+)/g)) {
       addRef(smokeRefs, match[1], filePath);
     }
@@ -453,7 +482,7 @@ const collectRuntimeRefs = (): Map<string, Set<string>> => {
   );
 
   for (const filePath of files) {
-    const source = readFileSync(filePath, "utf8");
+    const source = readCachedUtf8(filePath);
     for (const match of source.matchAll(/\bctx\.db\.(\w+)/g)) {
       addRef(runtimeRefs, match[1], filePath);
     }
@@ -462,9 +491,7 @@ const collectRuntimeRefs = (): Map<string, Set<string>> => {
   return runtimeRefs;
 };
 
-export const extractPublicSchemaTables = (
-  schemaSource = readFileSync(schemaPath, "utf8"),
-): PublicSchemaTable[] => {
+const parsePublicSchemaTables = (schemaSource: string): PublicSchemaTable[] => {
   const tables: PublicSchemaTable[] = [];
   const tablePattern =
     /export const (\w+) = table\(\s*\{([\s\S]*?)\}\s*,\s*\{/g;
@@ -486,12 +513,31 @@ export const extractPublicSchemaTables = (
   return tables;
 };
 
+export const extractPublicSchemaTables = (
+  schemaSource?: string,
+): PublicSchemaTable[] => {
+  if (schemaSource !== undefined) {
+    return parsePublicSchemaTables(schemaSource);
+  }
+
+  if (publicSchemaTablesCache) {
+    return publicSchemaTablesCache;
+  }
+
+  publicSchemaTablesCache = parsePublicSchemaTables(readCachedUtf8(schemaPath));
+  return publicSchemaTablesCache;
+};
+
 export const buildVisibilityInventory = (): VisibilityInventoryRow[] => {
+  if (visibilityInventoryCache) {
+    return visibilityInventoryCache;
+  }
+
   const { playerUiRefs, operatorDebugRefs } = collectUiRefs();
   const smokeRefs = collectSmokeRefs();
   const runtimeRefs = collectRuntimeRefs();
 
-  return visibilityMatrix.map((entryValue) => ({
+  visibilityInventoryCache = visibilityMatrix.map((entryValue) => ({
     ...entryValue,
     consumers: {
       playerUiFiles: [
@@ -506,6 +552,8 @@ export const buildVisibilityInventory = (): VisibilityInventoryRow[] => {
       ].sort(),
     },
   }));
+
+  return visibilityInventoryCache;
 };
 
 const countsByClass = (

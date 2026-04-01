@@ -56,6 +56,14 @@ vi.mock("@react-three/fiber", () => ({
   useFrame: () => undefined,
 }));
 
+vi.mock("./VnSkillCheckDiceScene", () => ({
+  VnSkillCheckDiceScene: () => (
+    <div data-testid="vn-skill-dice-scene">
+      <div data-testid="mock-r3f-canvas" />
+    </div>
+  ),
+}));
+
 const baseState: VnSkillCheckResolveState = {
   scenarioId: "sandbox_case01_pilot",
   nodeId: "node_start",
@@ -91,8 +99,9 @@ describe("VnSkillCheckResolveOverlay", () => {
     vi.clearAllMocks();
     delete (window as Window & { WebGLRenderingContext?: unknown })
       .WebGLRenderingContext;
-    HTMLCanvasElement.prototype.getContext =
-      vi.fn(() => null) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = vi.fn(
+      () => null,
+    ) as unknown as typeof HTMLCanvasElement.prototype.getContext;
   });
 
   afterEach(() => {
@@ -100,15 +109,19 @@ describe("VnSkillCheckResolveOverlay", () => {
       delete (window as Window & { WebGLRenderingContext?: unknown })
         .WebGLRenderingContext;
     } else {
-      (window as Window & { WebGLRenderingContext?: unknown })
-        .WebGLRenderingContext = originalWebGl;
+      (
+        window as Window & { WebGLRenderingContext?: unknown }
+      ).WebGLRenderingContext = originalWebGl;
     }
     HTMLCanvasElement.prototype.getContext = originalGetContext;
   });
 
   it("renders the 2D fallback when WebGL is unavailable", () => {
     render(
-      <VnSkillCheckResolveOverlay state={baseState} onInteract={() => undefined} />,
+      <VnSkillCheckResolveOverlay
+        state={baseState}
+        onInteract={() => undefined}
+      />,
     );
 
     expect(screen.getByTestId("vn-skill-dice-fallback")).toBeInTheDocument();
@@ -116,15 +129,18 @@ describe("VnSkillCheckResolveOverlay", () => {
   });
 
   it("loads the WebGL dice scene when WebGL is available", async () => {
-    (window as Window & { WebGLRenderingContext?: unknown })
-      .WebGLRenderingContext = function WebGLRenderingContextMock() {};
-    HTMLCanvasElement.prototype.getContext =
-      vi.fn(
-        () => ({} as WebGLRenderingContext),
-      ) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+    (
+      window as Window & { WebGLRenderingContext?: unknown }
+    ).WebGLRenderingContext = function WebGLRenderingContextMock() {};
+    HTMLCanvasElement.prototype.getContext = vi.fn(
+      () => ({}) as WebGLRenderingContext,
+    ) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 
     render(
-      <VnSkillCheckResolveOverlay state={baseState} onInteract={() => undefined} />,
+      <VnSkillCheckResolveOverlay
+        state={baseState}
+        onInteract={() => undefined}
+      />,
     );
 
     await waitFor(() => {

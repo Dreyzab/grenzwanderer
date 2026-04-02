@@ -1,68 +1,21 @@
-export type CanonicalFactionId =
-  | "city_chancellery"
-  | "masters_union"
-  | "college_of_reason"
-  | "chapter_of_mercy"
-  | "house_of_pledges"
-  | "city_network"
-  | "free_yards"
-  | "the_returned";
-
-export type CompatibilityFactionId =
-  | "civic_order"
-  | "financial_bloc"
-  | "underworld";
-
-export type AllowedFactionId = CanonicalFactionId | CompatibilityFactionId;
 export type FactionLayer = "daylight" | "political" | "shadow";
 export type FactionVisibility = "public" | "hidden";
-export type FactionRevealReason = "contact" | "pressure";
 
 export interface FactionDefinition {
-  id: CanonicalFactionId;
+  id: string;
   label: string;
   order: number;
   color: string;
   layer: FactionLayer;
   visibility: FactionVisibility;
-  signalStateLabels: [string, string, string];
+  signalStateLabels: readonly [string, string, string];
 }
 
-type FactionCatalogCarrier =
-  | {
-      factions?: FactionDefinition[] | null;
-    }
-  | {
-      socialCatalog?: {
-        factions?: FactionDefinition[] | null;
-      } | null;
-    }
-  | null
-  | undefined;
-
-export type FactionCatalogSource = FactionCatalogCarrier;
-
-export const MIN_FACTION_PRESSURE_REVEAL = 15;
-export const MAX_ALIGNMENT_CONTRIBUTION = 40;
-export const MAX_ALIGNMENT_FACTIONS_PER_LAYER = 2;
-
-export const LEGACY_LAYER_BY_FACTION_ID: Record<
-  CompatibilityFactionId,
-  FactionLayer
-> = {
-  civic_order: "daylight",
-  financial_bloc: "political",
-  underworld: "shadow",
-};
-
-export const LEGACY_REPUTATION_VAR_BY_FACTION_ID: Record<
-  CompatibilityFactionId,
-  string
-> = {
+export const LEGACY_REPUTATION_VAR_BY_FACTION_ID = {
   civic_order: "rep_civic",
   financial_bloc: "rep_finance",
   underworld: "rep_underworld",
-};
+} as const;
 
 export const CANONICAL_FACTION_REGISTRY: FactionDefinition[] = [
   {
@@ -153,73 +106,43 @@ export const CANONICAL_FACTION_REGISTRY: FactionDefinition[] = [
     visibility: "hidden",
     signalStateLabels: ["Unseen", "Marked", "Recognized"],
   },
-] as const;
+];
 
-const cloneFactionDefinition = (
-  definition: FactionDefinition,
-): FactionDefinition => ({
-  ...definition,
-  signalStateLabels: [...definition.signalStateLabels] as [
-    string,
-    string,
-    string,
-  ],
-});
-
-const sortFactionCatalog = (
-  catalog: readonly FactionDefinition[],
-): FactionDefinition[] =>
-  [...catalog]
-    .sort((left, right) => left.order - right.order)
-    .map(cloneFactionDefinition);
-
-export const COMPATIBILITY_FACTION_IDS: CompatibilityFactionId[] = [
+export const COMPATIBILITY_FACTION_IDS = [
   "civic_order",
   "financial_bloc",
   "underworld",
-];
+] as const;
 
-export const CANONICAL_FACTION_IDS = new Set<CanonicalFactionId>(
+export const CANONICAL_FACTION_IDS = new Set(
   CANONICAL_FACTION_REGISTRY.map((entry) => entry.id),
 );
-
-export const ALLOWED_FACTION_IDS = new Set<AllowedFactionId>([
+export const ALLOWED_FACTION_IDS = new Set([
   ...CANONICAL_FACTION_REGISTRY.map((entry) => entry.id),
   ...COMPATIBILITY_FACTION_IDS,
 ]);
 
-export const isFactionLayer = (value: unknown): value is FactionLayer =>
-  value === "daylight" || value === "political" || value === "shadow";
+function isFactionLayer(value: unknown): value is FactionLayer {
+  return value === "daylight" || value === "political" || value === "shadow";
+}
 
-export const isFactionVisibility = (
+function isFactionVisibility(value: unknown): value is FactionVisibility {
+  return value === "public" || value === "hidden";
+}
+
+export function isCanonicalFactionId(value: unknown): value is string {
+  return typeof value === "string" && CANONICAL_FACTION_IDS.has(value);
+}
+
+export function isAllowedFactionId(value: unknown): value is string {
+  return typeof value === "string" && ALLOWED_FACTION_IDS.has(value);
+}
+
+export function isFactionDefinition(
   value: unknown,
-): value is FactionVisibility => value === "public" || value === "hidden";
-
-export const isCanonicalFactionId = (
-  value: unknown,
-): value is CanonicalFactionId =>
-  typeof value === "string" &&
-  CANONICAL_FACTION_IDS.has(value as CanonicalFactionId);
-
-export const isCompatibilityFactionId = (
-  value: unknown,
-): value is CompatibilityFactionId =>
-  value === "civic_order" ||
-  value === "financial_bloc" ||
-  value === "underworld";
-
-export const isAllowedFactionId = (value: unknown): value is AllowedFactionId =>
-  typeof value === "string" &&
-  ALLOWED_FACTION_IDS.has(value as AllowedFactionId);
-
-export const isFactionDefinition = (
-  value: unknown,
-): value is FactionDefinition => {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-
-  const entry = value as Partial<FactionDefinition>;
+): value is FactionDefinition {
+  if (typeof value !== "object" || value === null) return false;
+  const entry = value as Record<string, unknown>;
   return (
     isCanonicalFactionId(entry.id) &&
     typeof entry.label === "string" &&
@@ -232,43 +155,4 @@ export const isFactionDefinition = (
     entry.signalStateLabels.length === 3 &&
     entry.signalStateLabels.every((label) => typeof label === "string")
   );
-};
-
-export const getFactionCatalog = (
-  source?: FactionCatalogCarrier,
-): FactionDefinition[] => {
-  const catalog =
-    source && "socialCatalog" in source
-      ? source.socialCatalog?.factions
-      : source && "factions" in source
-        ? source.factions
-        : undefined;
-
-  if (Array.isArray(catalog) && catalog.length > 0) {
-    return sortFactionCatalog(catalog);
-  }
-
-  return sortFactionCatalog(CANONICAL_FACTION_REGISTRY);
-};
-
-export const getFactionDefinition = (
-  factionId: string,
-  source?: FactionCatalogCarrier,
-): FactionDefinition | undefined =>
-  getFactionCatalog(source).find((entry) => entry.id === factionId);
-
-export const getPublicFactionCatalog = (
-  source?: FactionCatalogCarrier,
-): FactionDefinition[] =>
-  getFactionCatalog(source).filter((entry) => entry.visibility === "public");
-
-export const getFactionLayerForId = (
-  factionId: string,
-  source?: FactionCatalogCarrier,
-): FactionLayer | undefined => {
-  if (isCompatibilityFactionId(factionId)) {
-    return LEGACY_LAYER_BY_FACTION_ID[factionId];
-  }
-
-  return getFactionDefinition(factionId, source)?.layer;
-};
+}

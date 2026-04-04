@@ -113,6 +113,14 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "Inventory is player-private state used in map and detective hub surfaces.",
   ),
   entry(
+    "player_spirit_state",
+    "playerSpiritState",
+    "player-scoped",
+    "my_spirit_state",
+    "wave3-core-progression",
+    "Spirit states (hostile/controlled) are player-specific progression state.",
+  ),
+  entry(
     "vn_session",
     "vnSession",
     "player-scoped",
@@ -174,7 +182,7 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "operational-private",
     "my_ai_requests",
     "wave1-operational",
-    "AI request rows mix player-facing thought history with backend processing state, so they need a scoped projection before closure.",
+    "AI request rows currently stay raw-public for the MVP worker loop, but they still mix player-facing thought history with backend processing state and should ultimately collapse behind a scoped projection.",
   ),
   entry(
     "worker_identity",

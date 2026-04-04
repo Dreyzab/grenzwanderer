@@ -303,7 +303,6 @@ export const reducers = {
   changeRelationship: generatedReducers.changeRelationship,
   closeBattleMode: generatedReducers.closeBattleMode,
   closeCommandMode: generatedReducers.closeCommandMode,
-  deliverThought: generatedReducers.deliverThought,
   discoverFact: generatedReducers.discoverFact,
   endBattleTurn: generatedReducers.endBattleTurn,
   enqueueAiRequest: generatedReducers.enqueueAiRequest,

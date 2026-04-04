@@ -2,7 +2,7 @@
 
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { DialogueNode } from "@/entities/visual-novel/model/types";
+import type { DialogueNode } from "../../features/vn/types";
 import { useCurrentSceneTranscript } from "./useCurrentSceneTranscript";
 
 describe("useCurrentSceneTranscript", () => {

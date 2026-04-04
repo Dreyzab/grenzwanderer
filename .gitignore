@@ -24,8 +24,17 @@ error.log
 # openviking
 scripts/openviking/.venv/
 scripts/openviking/ov.conf
+scripts/openviking/ov.runtime.conf
 scripts/openviking/ovcli.conf
 scripts/openviking/data/
+
+# local database and analysis data
+data/vectordb/
+data/viking/
+reports/
+
+# build cache
+tsconfig.tsbuildinfo
 
 # editor/system
 .DS_Store

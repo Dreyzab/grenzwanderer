@@ -67,7 +67,9 @@ export type VnCondition =
   | { type: "agency_standing_gte"; value: number }
   | { type: "rumor_state_is"; rumorId: string; status: RumorStateStatus }
   | { type: "career_rank_gte"; rankId: string }
-  | { type: "voice_level_gte"; voiceId: string; value: number };
+  | { type: "voice_level_gte"; voiceId: string; value: number }
+  | { type: "spirit_state_is"; spiritId: string; state: string }
+  | { type: "has_controlled_spirit"; entityArchetypeId: string };
 
 export type VnEffect =
   | { type: "set_flag"; key: string; value: boolean }
@@ -139,7 +141,11 @@ export type VnEffect =
   | { type: "set_sight_mode"; mode: SightMode }
   | { type: "apply_rationalist_buffer"; amount: number }
   | { type: "tag_entity_signature"; signatureId: string }
-  | { type: "change_psyche_axis"; axis: PsycheAxis; delta: number };
+  | { type: "change_psyche_axis"; axis: PsycheAxis; delta: number }
+  | { type: "subjugate_spirit"; spiritId: string }
+  | { type: "destroy_spirit"; spiritId: string }
+  | { type: "imprison_spirit"; spiritId: string; requiredItemId?: string }
+  | { type: "release_spirit"; spiritId: string };
 
 export type VnDiceMode = "d20" | "d10";
 
@@ -5223,6 +5229,60 @@ export const closeBattleModeInternal = (ctx: any): void => {
   });
 };
 
+const SPIRIT_VALID_STATES = [
+  "hostile",
+  "imprisoned",
+  "controlled",
+  "destroyed",
+];
+
+const upsertSpiritStateInternal = (
+  ctx: any,
+  spiritId: string,
+  state: string,
+  method?: string,
+  imprisonmentItemId?: string,
+): void => {
+  const key = `${identityKey(ctx.sender)}::spirit::${spiritId}`;
+  const existing = ctx.db.playerSpiritState.spiritStateKey.find(key);
+
+  if (existing) {
+    ctx.db.playerSpiritState.spiritStateKey.update({
+      ...existing,
+      state,
+      method: method ?? existing.method,
+      imprisonmentItemId: imprisonmentItemId ?? existing.imprisonmentItemId,
+      capturedAt: state !== "hostile" ? ctx.timestamp : existing.capturedAt,
+      updatedAt: ctx.timestamp,
+    });
+  } else {
+    ctx.db.playerSpiritState.insert({
+      spiritStateKey: key,
+      playerId: ctx.sender,
+      spiritId,
+      state,
+      method,
+      imprisonmentItemId,
+      capturedAt: state !== "hostile" ? ctx.timestamp : undefined,
+      updatedAt: ctx.timestamp,
+    });
+  }
+
+  const statePrefix = `spirit_state_${spiritId}`;
+  for (const s of SPIRIT_VALID_STATES) {
+    upsertFlag(ctx, `${statePrefix}::${s}`, s === state);
+  }
+  if (method) {
+    const methodPrefix = `spirit_method_${spiritId}`;
+    const validMethods = ["dialogue", "battle", "ritual"];
+    for (const m of validMethods) {
+      upsertFlag(ctx, `${methodPrefix}::${m}`, m === method);
+    }
+  }
+
+  emitTelemetry(ctx, `spirit_state_changed`, { spiritId, state, method });
+};
+
 export const applyEffects = (
   ctx: any,
   effects: VnEffect[] | undefined,
@@ -5487,6 +5547,32 @@ export const applyEffects = (
 
     if (effect.type === "grant_influence") {
       addToVar(ctx, "influence_points", effect.amount);
+      continue;
+    }
+
+    if (effect.type === "subjugate_spirit") {
+      upsertSpiritStateInternal(ctx, effect.spiritId, "controlled", "dialogue");
+      continue;
+    }
+
+    if (effect.type === "destroy_spirit") {
+      upsertSpiritStateInternal(ctx, effect.spiritId, "destroyed");
+      continue;
+    }
+
+    if (effect.type === "imprison_spirit") {
+      upsertSpiritStateInternal(
+        ctx,
+        effect.spiritId,
+        "imprisoned",
+        "ritual",
+        effect.requiredItemId,
+      );
+      continue;
+    }
+
+    if (effect.type === "release_spirit") {
+      upsertSpiritStateInternal(ctx, effect.spiritId, "hostile");
       continue;
     }
   }

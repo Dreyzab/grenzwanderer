@@ -1,6 +1,8 @@
+import { canonicalSkillVoiceIdFor } from "../../../data/voiceBridge";
+
 /**
  * Canonicalize a voice ID returned by the AI layer.
- * Currently a pass-through; extend with alias mapping when needed.
+ * Bridges legacy runtime ids onto the lore voice registry.
  */
 export const canonicalVoiceIdFor = (raw: string): string =>
-  raw?.trim().toLowerCase() ?? "";
+  typeof raw === "string" ? canonicalSkillVoiceIdFor(raw) : "";

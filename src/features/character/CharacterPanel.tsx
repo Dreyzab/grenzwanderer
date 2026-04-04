@@ -8,6 +8,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTable } from "spacetimedb/react";
+import {
+  canonicalSkillVoiceIdFor,
+  getCanonicalVoiceLabel,
+  getCanonicalVoicePromptProfile,
+  type CanonicalVoicePromptProfile,
+} from "../../../data/voiceBridge";
 import { usePlayerFlags } from "../../entities/player/hooks/usePlayerFlags";
 import { usePlayerVars } from "../../entities/player/hooks/usePlayerVars";
 import { ENABLE_DEBUG_CONTENT_SEED } from "../../config";
@@ -118,9 +124,32 @@ interface AgencyCareerSummary {
   criteriaSummary: string;
 }
 
+interface AttributeVoiceBridgeSummary {
+  legacyVoiceId: string;
+  canonicalVoiceId: string;
+  canonicalLabel: string;
+  iconName: string;
+  promptProfile: CanonicalVoicePromptProfile | null;
+}
+
+interface CharacterSpecializedAttributeCard extends CharacterAttributeDefinition {
+  value: number;
+  voiceBridge: AttributeVoiceBridgeSummary | null;
+}
+
 interface CharacterAttributeCard extends CharacterAttributeDefinition {
   value: number;
-  specialized: Array<CharacterAttributeDefinition & { value: number }>;
+  voiceBridge: AttributeVoiceBridgeSummary | null;
+  specialized: CharacterSpecializedAttributeCard[];
+}
+
+interface CharacterVoiceBridgeRegistryEntry {
+  sourceLabel: string;
+  currentValue: number;
+  accent: string;
+  bridge: AttributeVoiceBridgeSummary & {
+    promptProfile: CanonicalVoicePromptProfile;
+  };
 }
 
 interface SectionCardProps {
@@ -385,6 +414,29 @@ const MetricBox = ({
   );
 };
 
+const buildAttributeVoiceBridge = (
+  attribute: CharacterAttributeDefinition,
+): AttributeVoiceBridgeSummary | null => {
+  const canonicalVoiceId = canonicalSkillVoiceIdFor(attribute.key);
+  const promptProfile = getCanonicalVoicePromptProfile(attribute.key);
+
+  if (canonicalVoiceId === attribute.key && !promptProfile) {
+    return null;
+  }
+
+  return {
+    legacyVoiceId: attribute.key,
+    canonicalVoiceId,
+    canonicalLabel: getCanonicalVoiceLabel(attribute.key),
+    iconName:
+      canonicalVoiceId.startsWith("attr_") ||
+      canonicalVoiceId.startsWith("inner_")
+        ? attribute.icon
+        : canonicalVoiceId,
+    promptProfile,
+  };
+};
+
 const ProfileTab = ({
   activeOrigin,
   alignment,
@@ -615,10 +667,19 @@ const ProfileTab = ({
 
 const DevelopmentTab = ({
   attributes,
+  primaryVoiceBridgeEntries,
   radarData,
+  secondaryVoiceBridgeEntries,
 }: {
   attributes: CharacterAttributeCard[];
+  primaryVoiceBridgeEntries: CharacterVoiceBridgeRegistryEntry[];
   radarData: CharacterRadarDatum[];
+  secondaryVoiceBridgeEntries: Array<{
+    accent: string;
+    sourceLabel: string;
+    currentValue: number;
+    bridge: AttributeVoiceBridgeSummary;
+  }>;
 }) => (
   <motion.div
     animate={{ opacity: 1, y: 0 }}
@@ -679,6 +740,151 @@ const DevelopmentTab = ({
       </SectionCard>
     </div>
 
+    <SectionCard
+      accent={C.crimson}
+      eyebrow="Voice Bridge"
+      title="Legacy Attributes -> Canonical Voices"
+    >
+      <div className="space-y-4">
+        <p className="max-w-3xl text-sm leading-relaxed text-stone-400">
+          AI prompts and passive voice presentation now normalize legacy runtime
+          attributes into the canon Inner Parliament registry. The first-wave
+          lore masks below are the prompt source of truth for the player's
+          voice-driven reads.
+        </p>
+
+        {primaryVoiceBridgeEntries.length > 0 ? (
+          <div className="grid gap-4 xl:grid-cols-3">
+            {primaryVoiceBridgeEntries.map((entry) => (
+              <article
+                key={entry.bridge.canonicalVoiceId}
+                className="rounded-[1rem] border border-white/8 bg-black/20 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <span
+                      className="flex h-11 w-11 items-center justify-center rounded-[0.9rem] border"
+                      style={{
+                        borderColor: `${entry.accent}55`,
+                        backgroundColor: `${entry.accent}14`,
+                      }}
+                    >
+                      <GameIcon
+                        name={entry.bridge.iconName}
+                        size={22}
+                        style={{ color: entry.accent }}
+                      />
+                    </span>
+                    <div>
+                      <p
+                        className="text-[10px] uppercase tracking-[0.3em]"
+                        style={{
+                          color: entry.accent,
+                          fontFamily: "var(--font-mono)",
+                        }}
+                      >
+                        {entry.bridge.promptProfile.department}
+                      </p>
+                      <h4 className="mt-1 text-lg font-semibold text-stone-100">
+                        {entry.bridge.canonicalLabel}
+                      </h4>
+                    </div>
+                  </div>
+                  <strong
+                    className="text-2xl font-black"
+                    style={{
+                      color: entry.accent,
+                      fontFamily: "var(--font-display)",
+                    }}
+                  >
+                    {toLocale(entry.currentValue)}
+                  </strong>
+                </div>
+
+                <p
+                  className="mt-3 text-[10px] uppercase tracking-[0.28em]"
+                  style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
+                >
+                  {`${entry.bridge.legacyVoiceId} -> ${entry.bridge.canonicalVoiceId}`}
+                </p>
+                <blockquote className="mt-3 border-l-2 border-white/10 pl-3 text-sm italic text-stone-200">
+                  "{entry.bridge.promptProfile.motto}"
+                </blockquote>
+                <p className="mt-3 text-sm leading-relaxed text-stone-300">
+                  {entry.bridge.promptProfile.manners}
+                </p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <InfoBlock
+                    label="Speech"
+                    value={entry.bridge.promptProfile.speechPattern}
+                  />
+                  <InfoBlock
+                    label="Vocabulary"
+                    value={entry.bridge.promptProfile.vocabulary}
+                  />
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-stone-400">
+                  {entry.bridge.promptProfile.philosophy}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-stone-500">
+                  Blind spot: {entry.bridge.promptProfile.blindSpot}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-stone-500">
+                  Stress pattern: {entry.bridge.promptProfile.stressPattern}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {entry.bridge.promptProfile.checkRoles.map((role) => (
+                    <span
+                      key={role}
+                      className="rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.24em]"
+                      style={{
+                        borderColor: `${entry.accent}44`,
+                        color: entry.accent,
+                        backgroundColor: `${entry.accent}12`,
+                        fontFamily: "var(--font-mono)",
+                      }}
+                    >
+                      {role.replace(/_/g, " ")}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm leading-relaxed text-stone-500">
+            No canonical voice bridges are active for the current character.
+          </p>
+        )}
+
+        {secondaryVoiceBridgeEntries.length > 0 ? (
+          <div className="space-y-2">
+            <p
+              className="text-[10px] uppercase tracking-[0.3em]"
+              style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
+            >
+              Additional normalized branches
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {secondaryVoiceBridgeEntries.map((entry) => (
+                <span
+                  key={entry.bridge.legacyVoiceId}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-black/20 px-3 py-1.5 text-xs text-stone-300"
+                >
+                  <GameIcon
+                    name={entry.bridge.iconName}
+                    size={14}
+                    style={{ color: entry.accent || C.slate }}
+                  />
+                  {`${entry.bridge.legacyVoiceId} -> ${entry.bridge.canonicalLabel} (${toLocale(entry.currentValue)})`}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </SectionCard>
+
     <div className="grid gap-4 xl:grid-cols-2">
       {attributes.map((attribute) => (
         <article
@@ -732,6 +938,44 @@ const DevelopmentTab = ({
             {attribute.description}
           </p>
 
+          {attribute.voiceBridge ? (
+            <div className="mt-4 rounded-[1rem] border border-white/8 bg-black/20 px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm text-stone-200">
+                  <GameIcon
+                    name={attribute.voiceBridge.iconName}
+                    size={16}
+                    style={{ color: attribute.accent }}
+                  />
+                  <strong>{attribute.voiceBridge.canonicalLabel}</strong>
+                </div>
+                <span
+                  className="text-[10px] uppercase tracking-[0.3em]"
+                  style={{
+                    color: attribute.accent,
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  Voice Bridge
+                </span>
+              </div>
+              <p className="mt-2 text-xs uppercase tracking-[0.24em] text-stone-500">
+                {`${attribute.voiceBridge.legacyVoiceId} -> ${attribute.voiceBridge.canonicalVoiceId}`}
+              </p>
+              {attribute.voiceBridge.promptProfile ? (
+                <>
+                  <p className="mt-2 text-sm leading-relaxed text-stone-300">
+                    {attribute.voiceBridge.promptProfile.motto}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-stone-500">
+                    {attribute.voiceBridge.promptProfile.speechPattern};{" "}
+                    {attribute.voiceBridge.promptProfile.vocabulary}
+                  </p>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+
           {attribute.specialized.length > 0 ? (
             <div className="mt-5 space-y-2">
               <p
@@ -758,6 +1002,11 @@ const DevelopmentTab = ({
                       <div className="text-xs text-stone-500">
                         {specialized.description}
                       </div>
+                      {specialized.voiceBridge ? (
+                        <div className="mt-1 text-[11px] text-stone-400">
+                          {`Canonical voice: ${specialized.voiceBridge.canonicalLabel}`}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                   <strong
@@ -1613,14 +1862,56 @@ export const CharacterPanel = () => {
       CORE_CHARACTERISTICS.map((attribute) => ({
         ...attribute,
         value: myVars[attribute.key] ?? 0,
+        voiceBridge: buildAttributeVoiceBridge(attribute),
         specialized: (SPECIALIZED_BY_CORE[attribute.key] ?? []).map(
           (specialized) => ({
             ...specialized,
             value: myVars[specialized.key] ?? 0,
+            voiceBridge: buildAttributeVoiceBridge(specialized),
           }),
         ),
       })),
     [myVars],
+  );
+
+  const primaryVoiceBridgeEntries = useMemo<
+    CharacterVoiceBridgeRegistryEntry[]
+  >(
+    () =>
+      attributeCards
+        .filter(
+          (
+            attribute,
+          ): attribute is CharacterAttributeCard & {
+            voiceBridge: AttributeVoiceBridgeSummary & {
+              promptProfile: CanonicalVoicePromptProfile;
+            };
+          } =>
+            attribute.voiceBridge !== null &&
+            attribute.voiceBridge.promptProfile !== null,
+        )
+        .map((attribute) => ({
+          sourceLabel: attribute.label,
+          currentValue: attribute.value,
+          accent: attribute.accent,
+          bridge: attribute.voiceBridge,
+        })),
+    [attributeCards],
+  );
+
+  const secondaryVoiceBridgeEntries = useMemo(
+    () =>
+      attributeCards.flatMap((attribute) =>
+        attribute.specialized
+          .filter((specialized) => specialized.voiceBridge !== null)
+          .map((specialized) => ({
+            sourceLabel: specialized.label,
+            currentValue: specialized.value,
+            bridge: specialized.voiceBridge!,
+            accent: specialized.accent,
+          })),
+      ),
+    [attributeCards],
   );
 
   const radarData = useMemo<CharacterRadarDatum[]>(
@@ -1774,7 +2065,9 @@ export const CharacterPanel = () => {
                   >
                     <DevelopmentTab
                       attributes={attributeCards}
+                      primaryVoiceBridgeEntries={primaryVoiceBridgeEntries}
                       radarData={radarData}
+                      secondaryVoiceBridgeEntries={secondaryVoiceBridgeEntries}
                     />
                   </div>
                 ) : null}

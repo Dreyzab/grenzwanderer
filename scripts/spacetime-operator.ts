@@ -88,7 +88,13 @@ export const connectOperatorConnection = async (
   });
 
 export const ensureAdminAccess = async (conn: DbConnection): Promise<void> => {
-  await conn.reducers.assertAdminAccess({});
+  const identity = conn.identity;
+  if (!identity) {
+    throw new Error("Connection identity is not available");
+  }
+
+  // `grant_admin_identity` is admin-gated and idempotent for an existing admin.
+  await conn.reducers.grantAdminIdentity({ identity });
 };
 
 export const ensureWorkerAccess = async (conn: DbConnection): Promise<void> => {

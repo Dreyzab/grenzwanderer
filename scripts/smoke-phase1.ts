@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto";
 import { DbConnection } from "../src/shared/spacetime/bindings";
 import {
+  AI_DIALOGUE_SOURCE_SKILL_CHECK,
+  AI_GENERATE_DIALOGUE_KIND,
+  type GenerateDialoguePayload,
+} from "../src/features/ai/contracts";
+import {
   ensureAdminAccess,
   ensureWorkerAccess,
   getOperatorToken,
@@ -66,7 +71,7 @@ const checksum = createHash("sha256").update(payloadJson, "utf8").digest("hex");
 const waitForAiRequest = async (
   conn: DbConnection,
   requestId: string,
-): Promise<{ id: bigint; requestId: string }> => {
+): Promise<{ id: bigint; requestId: string; status: string }> => {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const row = [...conn.db.aiRequest.iter()].find(
       (entry) => entry.requestId === requestId,
@@ -79,6 +84,23 @@ const waitForAiRequest = async (
 
   throw new Error("AI smoke failed: queued request was not persisted");
 };
+
+const buildSmokeDialoguePayload = (): GenerateDialoguePayload => ({
+  source: AI_DIALOGUE_SOURCE_SKILL_CHECK,
+  scenarioId: "smoke_scenario",
+  nodeId: "smoke_node_2",
+  checkId: "smoke_check",
+  choiceId: "choice_b",
+  voiceId: "attr_social",
+  choiceText: "Finish",
+  passed: true,
+  roll: 15,
+  difficulty: 10,
+  voiceLevel: 2,
+  locationName: "Smoke Scenario",
+  characterName: "Narrator",
+  narrativeText: "The smoke test needs a valid generate_dialogue payload.",
+});
 
 const runUnauthorizedWorkerChecks = async (
   request: (suffix: string) => string,
@@ -104,22 +126,21 @@ const runUnauthorizedWorkerChecks = async (
             );
           }
 
-          let unauthorizedDeliverRejected = false;
+          let unauthorizedClaimRejected = false;
           try {
-            await conn.reducers.deliverThought({
-              requestId: request("ai_deliver_denied"),
-              aiRequestId: 0n,
-              status: "processing",
-              responseJson: undefined,
-              error: undefined,
+            await conn.reducers.claimNextAiRequest({
+              requestId: request("ai_claim_denied"),
+              kind: AI_GENERATE_DIALOGUE_KIND,
+              leaseMs: 1_000,
+              claimToken: request("claim_denied"),
             });
           } catch (_error) {
-            unauthorizedDeliverRejected = true;
+            unauthorizedClaimRejected = true;
           }
 
-          if (!unauthorizedDeliverRejected) {
+          if (!unauthorizedClaimRejected) {
             throw new Error(
-              "AI smoke failed: unauthorized deliver_thought was accepted",
+              "AI smoke failed: unauthorized claim_next_ai_request was accepted",
             );
           }
 
@@ -160,7 +181,7 @@ const runSmoke = async () =>
             conn
               .subscriptionBuilder()
               .onApplied(() => resolveSync())
-              .subscribe(["SELECT * FROM my_ai_requests"]);
+              .subscribe(["SELECT * FROM ai_request"]);
           });
           await conn.reducers.publishContent({
             requestId: request("publish"),
@@ -225,20 +246,33 @@ const runSmoke = async () =>
 
           await conn.reducers.enqueueAiRequest({
             requestId: request("ai"),
-            kind: "summary",
-            payloadJson: '{"prompt":"smoke"}',
+            kind: AI_GENERATE_DIALOGUE_KIND,
+            payloadJson: JSON.stringify(buildSmokeDialoguePayload()),
           });
           const aiRequest = await waitForAiRequest(conn, request("ai"));
           await runUnauthorizedWorkerChecks(request);
 
           await ensureWorkerAccess(conn);
 
-          await conn.reducers.deliverThought({
-            requestId: request("ai_deliver_ok"),
+          await conn.reducers.claimNextAiRequest({
+            requestId: request("ai_claim_ok"),
+            kind: AI_GENERATE_DIALOGUE_KIND,
+            leaseMs: 1_000,
+            claimToken: request("claim_ok"),
+          });
+
+          const claimedAiRequest = await waitForAiRequest(conn, request("ai"));
+          if (claimedAiRequest.status !== "processing") {
+            throw new Error(
+              `AI smoke failed: expected claimed ai_request to be processing, got ${claimedAiRequest.status}`,
+            );
+          }
+
+          await conn.reducers.completeAiRequest({
+            requestId: request("ai_complete_ok"),
             aiRequestId: aiRequest.id,
-            status: "completed",
-            responseJson: '{"result":"ok"}',
-            error: undefined,
+            responseJson:
+              '{"text":"Smoke worker completed the job.","canonicalVoiceId":"charisma","metadata":{"modelId":"smoke-worker","latencyMs":1}}',
           });
 
           await conn.reducers.trackEvent({

@@ -26,6 +26,12 @@ export const AiRequest = __t.object("AiRequest", {
   status: __t.string(),
   responseJson: __t.option(__t.string()),
   error: __t.option(__t.string()),
+  attemptCount: __t.u32(),
+  claimedBy: __t.option(__t.identity()),
+  claimToken: __t.option(__t.string()),
+  claimedAt: __t.option(__t.timestamp()),
+  leaseExpiresAt: __t.option(__t.timestamp()),
+  nextRetryAt: __t.option(__t.timestamp()),
   createdAt: __t.timestamp(),
   updatedAt: __t.timestamp(),
 });

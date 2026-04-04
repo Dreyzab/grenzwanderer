@@ -38,6 +38,7 @@ import type {
   QrRedeemPolicy,
   RumorStateStatus,
   SightMode,
+  SpiritEncounterDefinition,
   VnChoice,
   VnCheckModifierSource,
   VnCondition,
@@ -157,6 +158,18 @@ const isCondition = (value: unknown): value is VnCondition => {
       isSkillVoiceId(value.voiceId) &&
       typeof value.value === "number"
     );
+  }
+  if (value.type === "spirit_state_is") {
+    return (
+      typeof value.spiritId === "string" &&
+      (value.state === "hostile" ||
+        value.state === "imprisoned" ||
+        value.state === "controlled" ||
+        value.state === "destroyed")
+    );
+  }
+  if (value.type === "has_controlled_spirit") {
+    return typeof value.entityArchetypeId === "string";
   }
 
   return false;
@@ -316,6 +329,20 @@ const isEffect = (value: unknown): value is VnEffect => {
     return (
       (value.axis === "x" || value.axis === "y" || value.axis === "approach") &&
       typeof value.delta === "number"
+    );
+  }
+  if (
+    value.type === "subjugate_spirit" ||
+    value.type === "destroy_spirit" ||
+    value.type === "release_spirit"
+  ) {
+    return typeof value.spiritId === "string";
+  }
+  if (value.type === "imprison_spirit") {
+    return (
+      typeof value.spiritId === "string" &&
+      (value.requiredItemId === undefined ||
+        typeof value.requiredItemId === "string")
     );
   }
 
@@ -679,11 +706,53 @@ const parseMysticism = (
     return null;
   }
 
+  let spiritEncounters: SpiritEncounterDefinition[] | undefined = undefined;
+  if (value.spiritEncounters !== undefined) {
+    if (
+      !Array.isArray(value.spiritEncounters) ||
+      !value.spiritEncounters.every((entry) =>
+        isSpiritEncounterDefinition(entry),
+      )
+    ) {
+      return null;
+    }
+    spiritEncounters = value.spiritEncounters;
+  }
+
   return {
     entityArchetypes: value.entityArchetypes,
     observations: value.observations ?? [],
+    spiritEncounters,
   };
 };
+
+const isSpiritControlledBonus = (value: unknown): boolean =>
+  isObject(value) &&
+  (value.type === "skill_modifier" ||
+    value.type === "sight_mode_unlock" ||
+    value.type === "psyche_read") &&
+  (value.voiceId === undefined || typeof value.voiceId === "string") &&
+  (value.delta === undefined || typeof value.delta === "number") &&
+  (value.targetNpcId === undefined || typeof value.targetNpcId === "string");
+
+const isSpiritEncounterDefinition = (value: unknown): boolean =>
+  isObject(value) &&
+  typeof value.id === "string" &&
+  typeof value.entityArchetypeId === "string" &&
+  typeof value.displayName === "string" &&
+  typeof value.subjugationDifficulty === "number" &&
+  typeof value.observationBonusPerSignature === "number" &&
+  typeof value.battleScenarioId === "string" &&
+  (value.onSubjugateEffects === undefined ||
+    (Array.isArray(value.onSubjugateEffects) &&
+      value.onSubjugateEffects.every((entry) => isEffect(entry)))) &&
+  (value.onDestroyEffects === undefined ||
+    (Array.isArray(value.onDestroyEffects) &&
+      value.onDestroyEffects.every((entry) => isEffect(entry)))) &&
+  (value.imprisonmentItemId === undefined ||
+    typeof value.imprisonmentItemId === "string") &&
+  Array.isArray(value.controlledBonuses) &&
+  value.controlledBonuses.every((entry) => isSpiritControlledBonus(entry));
 
 const parseVnRuntime = (value: unknown): VnSnapshot["vnRuntime"] | null => {
   if (value === undefined) {

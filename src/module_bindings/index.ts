@@ -43,12 +43,14 @@ import ChangeAgencyStandingReducer from "./change_agency_standing_reducer";
 import ChangeFactionSignalReducer from "./change_faction_signal_reducer";
 import ChangeFavorBalanceReducer from "./change_favor_balance_reducer";
 import ChangeRelationshipReducer from "./change_relationship_reducer";
+import ClaimNextAiRequestReducer from "./claim_next_ai_request_reducer";
 import CloseBattleModeReducer from "./close_battle_mode_reducer";
 import CloseCommandModeReducer from "./close_command_mode_reducer";
-import DeliverThoughtReducer from "./deliver_thought_reducer";
+import CompleteAiRequestReducer from "./complete_ai_request_reducer";
 import DiscoverFactReducer from "./discover_fact_reducer";
 import EndBattleTurnReducer from "./end_battle_turn_reducer";
 import EnqueueAiRequestReducer from "./enqueue_ai_request_reducer";
+import FailAiRequestReducer from "./fail_ai_request_reducer";
 import GrantAdminIdentityReducer from "./grant_admin_identity_reducer";
 import GrantEvidenceReducer from "./grant_evidence_reducer";
 import GrantItemReducer from "./grant_item_reducer";
@@ -65,6 +67,8 @@ import RecordServiceCriterionReducer from "./record_service_criterion_reducer";
 import RedeemMapCodeReducer from "./redeem_map_code_reducer";
 import RegisterRumorReducer from "./register_rumor_reducer";
 import RegisterWorkerIdentityReducer from "./register_worker_identity_reducer";
+import RenewAiRequestLeaseReducer from "./renew_ai_request_lease_reducer";
+import RequeueAiRequestReducer from "./requeue_ai_request_reducer";
 import ResolveCommandReducer from "./resolve_command_reducer";
 import RollbackContentReducer from "./rollback_content_reducer";
 import SetFlagReducer from "./set_flag_reducer";
@@ -129,8 +133,20 @@ const tablesSchema = __schema({
   aiRequest: __table({
     name: 'ai_request',
     indexes: [
+      { name: 'ai_request_claim_token', algorithm: 'btree', columns: [
+        'claimToken',
+      ] },
+      { name: 'ai_request_claimed_by_status', algorithm: 'btree', columns: [
+        'claimedBy',
+        'status',
+      ] },
       { name: 'id', algorithm: 'btree', columns: [
         'id',
+      ] },
+      { name: 'ai_request_kind_status_created_at', algorithm: 'btree', columns: [
+        'kind',
+        'status',
+        'createdAt',
       ] },
       { name: 'ai_request_player_id', algorithm: 'btree', columns: [
         'playerId',
@@ -818,12 +834,14 @@ const reducersSchema = __reducers(
   __reducerSchema("change_faction_signal", ChangeFactionSignalReducer),
   __reducerSchema("change_favor_balance", ChangeFavorBalanceReducer),
   __reducerSchema("change_relationship", ChangeRelationshipReducer),
+  __reducerSchema("claim_next_ai_request", ClaimNextAiRequestReducer),
   __reducerSchema("close_battle_mode", CloseBattleModeReducer),
   __reducerSchema("close_command_mode", CloseCommandModeReducer),
-  __reducerSchema("deliver_thought", DeliverThoughtReducer),
+  __reducerSchema("complete_ai_request", CompleteAiRequestReducer),
   __reducerSchema("discover_fact", DiscoverFactReducer),
   __reducerSchema("end_battle_turn", EndBattleTurnReducer),
   __reducerSchema("enqueue_ai_request", EnqueueAiRequestReducer),
+  __reducerSchema("fail_ai_request", FailAiRequestReducer),
   __reducerSchema("grant_admin_identity", GrantAdminIdentityReducer),
   __reducerSchema("grant_evidence", GrantEvidenceReducer),
   __reducerSchema("grant_item", GrantItemReducer),
@@ -840,6 +858,8 @@ const reducersSchema = __reducers(
   __reducerSchema("redeem_map_code", RedeemMapCodeReducer),
   __reducerSchema("register_rumor", RegisterRumorReducer),
   __reducerSchema("register_worker_identity", RegisterWorkerIdentityReducer),
+  __reducerSchema("renew_ai_request_lease", RenewAiRequestLeaseReducer),
+  __reducerSchema("requeue_ai_request", RequeueAiRequestReducer),
   __reducerSchema("resolve_command", ResolveCommandReducer),
   __reducerSchema("rollback_content", RollbackContentReducer),
   __reducerSchema("set_flag", SetFlagReducer),

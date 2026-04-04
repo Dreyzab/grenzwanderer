@@ -343,6 +343,21 @@ export const aiRequest = table(
         algorithm: "btree",
         columns: ["status"],
       },
+      {
+        accessor: "ai_request_kind_status_created_at",
+        algorithm: "btree",
+        columns: ["kind", "status", "createdAt"],
+      },
+      {
+        accessor: "ai_request_claim_token",
+        algorithm: "btree",
+        columns: ["claimToken"],
+      },
+      {
+        accessor: "ai_request_claimed_by_status",
+        algorithm: "btree",
+        columns: ["claimedBy", "status"],
+      },
     ],
   },
   {
@@ -354,6 +369,12 @@ export const aiRequest = table(
     status: t.string(),
     responseJson: t.string().optional(),
     error: t.string().optional(),
+    attemptCount: t.u32(),
+    claimedBy: t.identity().optional(),
+    claimToken: t.string().optional(),
+    claimedAt: t.timestamp().optional(),
+    leaseExpiresAt: t.timestamp().optional(),
+    nextRetryAt: t.timestamp().optional(),
     createdAt: t.timestamp(),
     updatedAt: t.timestamp(),
   },
@@ -1178,6 +1199,40 @@ export const playerRedeemedCode = table(
   },
 );
 
+export const playerSpiritState = table(
+  {
+    name: "player_spirit_state",
+    public: true,
+    indexes: [
+      {
+        accessor: "player_spirit_state_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "player_spirit_state_spirit_id",
+        algorithm: "btree",
+        columns: ["spiritId"],
+      },
+      {
+        accessor: "player_spirit_state_state",
+        algorithm: "btree",
+        columns: ["state"],
+      },
+    ],
+  },
+  {
+    spiritStateKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    spiritId: t.string(),
+    state: t.string(),
+    method: t.string().optional(),
+    imprisonmentItemId: t.string().optional(),
+    capturedAt: t.timestamp().optional(),
+    updatedAt: t.timestamp(),
+  },
+);
+
 const spacetimedb = schema({
   playerProfile,
   playerFlag,
@@ -1222,6 +1277,7 @@ const spacetimedb = schema({
   playerUnlockGroup,
   playerMapEvent,
   playerRedeemedCode,
+  playerSpiritState,
 });
 
 export default spacetimedb;

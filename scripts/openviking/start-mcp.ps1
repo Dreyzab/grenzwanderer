@@ -15,11 +15,100 @@ function Write-TransportInfo {
     }
 }
 
+function Import-DotEnvFile {
+    param([string]$Path)
+
+    if (-not (Test-Path $Path)) {
+        return
+    }
+
+    foreach ($line in Get-Content $Path) {
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+
+        $trimmed = $line.Trim()
+        if ($trimmed.StartsWith("#")) {
+            continue
+        }
+
+        $separatorIndex = $trimmed.IndexOf("=")
+        if ($separatorIndex -lt 1) {
+            continue
+        }
+
+        $name = $trimmed.Substring(0, $separatorIndex).Trim()
+        $value = $trimmed.Substring($separatorIndex + 1)
+
+        if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+
+        if ([string]::IsNullOrWhiteSpace($name)) {
+            continue
+        }
+
+        if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name, "Process"))) {
+            [Environment]::SetEnvironmentVariable($name, $value, "Process")
+        }
+    }
+}
+
+function Get-OpenVikingApiKey {
+    $candidates = @(
+        $env:OPENVIKING_GOOGLE_API_KEY,
+        $env:GOOGLE_API_KEY,
+        $env:GEMINI_API_KEY
+    )
+
+    foreach ($candidate in $candidates) {
+        if (-not [string]::IsNullOrWhiteSpace($candidate)) {
+            return $candidate.Trim()
+        }
+    }
+
+    return $null
+}
+
+function Get-OpenVikingConfigSourcePath {
+    param(
+        [string]$PrimaryPath,
+        [string]$FallbackPath
+    )
+
+    if (Test-Path $PrimaryPath) {
+        return $PrimaryPath
+    }
+
+    if (Test-Path $FallbackPath) {
+        return $FallbackPath
+    }
+
+    throw "OpenViking config not found. Expected either '$PrimaryPath' or '$FallbackPath'."
+}
+
+function Resolve-ExistingPath {
+    param(
+        [string[]]$CandidatePaths,
+        [string]$Description
+    )
+
+    foreach ($candidate in $CandidatePaths) {
+        if (-not [string]::IsNullOrWhiteSpace($candidate) -and (Test-Path $candidate)) {
+            return (Get-Item $candidate).FullName
+        }
+    }
+
+    $joinedCandidates = $CandidatePaths -join "', '"
+    throw "Unable to resolve $Description. Checked: '$joinedCandidates'."
+}
+
 function Resolve-OpenVikingRuntimeConfig {
     param(
         [string]$SourcePath,
         [string]$WorkspacePath,
-        [string]$TargetPath
+        [string]$TargetPath,
+        [string]$ApiKey
     )
 
     $config = Get-Content $SourcePath -Raw | ConvertFrom-Json
@@ -30,6 +119,32 @@ function Resolve-OpenVikingRuntimeConfig {
 
     $resolvedWorkspace = [System.IO.Path]::GetFullPath($WorkspacePath)
     $config.storage.workspace = $resolvedWorkspace
+
+    $apiKeyTargets = @(
+        @{ Label = "embedding.dense"; Node = $config.embedding.dense },
+        @{ Label = "vlm"; Node = $config.vlm },
+        @{ Label = "bot.agents"; Node = $config.bot.agents }
+    )
+    $missingApiKeyTargets = New-Object System.Collections.Generic.List[string]
+
+    foreach ($target in $apiKeyTargets) {
+        if ($null -eq $target.Node) {
+            continue
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($ApiKey)) {
+            $target.Node.api_key = $ApiKey
+        }
+
+        if ([string]::IsNullOrWhiteSpace([string]$target.Node.api_key)) {
+            $missingApiKeyTargets.Add($target.Label)
+        }
+    }
+
+    if ($missingApiKeyTargets.Count -gt 0) {
+        $missingLabels = ($missingApiKeyTargets | Sort-Object) -join ", "
+        throw "Missing Google API key for OpenViking config sections: $missingLabels. Set OPENVIKING_GOOGLE_API_KEY, GOOGLE_API_KEY, or GEMINI_API_KEY in your shell or in repo .env/.env.local."
+    }
 
     $json = $config | ConvertTo-Json -Depth 32
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
@@ -63,14 +178,44 @@ function Test-OpenVikingHealth {
 }
 
 # Root paths
-$rootDir = (Get-Item $PSScriptRoot).Parent.Parent.Parent.FullName
-$ovVenv = Join-Path $rootDir "ov_venv"
-$serverExe = Join-Path $ovVenv "Scripts\openviking-server.exe"
+$repoRoot = (Get-Item $PSScriptRoot).Parent.Parent.FullName
+$workspaceRoot = Split-Path $repoRoot -Parent
+$serverExe = Resolve-ExistingPath -Description "OpenViking server executable" -CandidatePaths @(
+    (Join-Path $PSScriptRoot ".venv\Scripts\openviking-server.exe"),
+    (Join-Path $repoRoot "ov_venv\Scripts\openviking-server.exe"),
+    (Join-Path $workspaceRoot "ov_venv\Scripts\openviking-server.exe")
+)
 $ovConf = Join-Path $PSScriptRoot "ov.conf"
+$ovConfExample = Join-Path $PSScriptRoot "ov.conf.example"
 $runtimeConf = Join-Path $PSScriptRoot "ov.runtime.conf"
-$workspaceDir = Join-Path $rootDir "data"
+$workspaceDir = Resolve-ExistingPath -Description "OpenViking workspace directory" -CandidatePaths @(
+    (Join-Path $repoRoot "data"),
+    (Join-Path $workspaceRoot "data")
+)
 $log = Join-Path $PSScriptRoot "server.stdout.log"
 $errLog = Join-Path $PSScriptRoot "server.stderr.log"
+
+Import-DotEnvFile -Path (Join-Path $repoRoot ".env")
+Import-DotEnvFile -Path (Join-Path $repoRoot ".env.local")
+$apiKey = Get-OpenVikingApiKey
+
+# Custom injection for Google Service Account (OAuth2)
+if ($env:OPENVIKING_GOOGLE_CREDENTIALS -and (Test-Path $env:OPENVIKING_GOOGLE_CREDENTIALS)) {
+    Write-TransportInfo "Generating Google OAuth token from Service Account..."
+    $pythonExe = Join-Path (Split-Path $serverExe -Parent) "python.exe"
+    $tokenScript = Join-Path $PSScriptRoot "get_google_token.py"
+    
+    # Run the script and capture output
+    $tokenOutput = & $pythonExe $tokenScript $env:OPENVIKING_GOOGLE_CREDENTIALS
+    if ($LASTEXITCODE -eq 0 -and $tokenOutput.StartsWith("ya29.")) {
+        $apiKey = $tokenOutput.Trim()
+        Write-TransportInfo "Success: Using OAuth2 Access Token for Google APIs."
+    } else {
+        Write-Warning "Failed to generate OAuth token ($tokenOutput). Falling back to standard API key."
+    }
+}
+
+$configSource = Get-OpenVikingConfigSourcePath -PrimaryPath $ovConf -FallbackPath $ovConfExample
 
 # 1. Check if server is running
 $isRunning = $false
@@ -86,7 +231,7 @@ if ($portCheck) {
 if (-not $isRunning) {
     Write-TransportInfo "Starting OpenViking Server in background..."
     try {
-        $resolvedConfig = Resolve-OpenVikingRuntimeConfig -SourcePath $ovConf -WorkspacePath $workspaceDir -TargetPath $runtimeConf
+        $resolvedConfig = Resolve-OpenVikingRuntimeConfig -SourcePath $configSource -WorkspacePath $workspaceDir -TargetPath $runtimeConf -ApiKey $apiKey
         Start-Process -FilePath $serverExe -ArgumentList "--config `"$resolvedConfig`"" -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError $errLog
         Start-Sleep -Seconds 2 # Wait for boot
     } catch {

@@ -1,3 +1,8 @@
+import {
+  canonicalSkillVoiceIdFor,
+  getCanonicalVoiceLabel,
+} from "../../../data/voiceBridge";
+
 export interface SkillCheckVoicePalette {
   accent: string;
   accentSoft: string;
@@ -15,21 +20,28 @@ const FALLBACK_PALETTE: SkillCheckVoicePalette = {
 };
 
 const PALETTE_BY_VOICE: Record<string, SkillCheckVoicePalette> = {
-  attr_perception: {
+  logic: {
+    accent: "#60a5fa",
+    accentSoft: "rgba(96, 165, 250, 0.16)",
+    glow: "rgba(96, 165, 250, 0.24)",
+    glowStrong: "rgba(147, 197, 253, 0.5)",
+    text: "#dbeafe",
+  },
+  perception: {
     accent: "#3b82f6",
     accentSoft: "rgba(59, 130, 246, 0.16)",
     glow: "rgba(59, 130, 246, 0.24)",
     glowStrong: "rgba(96, 165, 250, 0.5)",
     text: "#dbeafe",
   },
-  attr_encyclopedia: {
+  encyclopedia: {
     accent: "#8b5cf6",
     accentSoft: "rgba(139, 92, 246, 0.16)",
     glow: "rgba(139, 92, 246, 0.24)",
     glowStrong: "rgba(196, 181, 253, 0.5)",
     text: "#ede9fe",
   },
-  attr_deception: {
+  deception: {
     accent: "#f59e0b",
     accentSoft: "rgba(245, 158, 11, 0.16)",
     glow: "rgba(245, 158, 11, 0.24)",
@@ -43,14 +55,14 @@ const PALETTE_BY_VOICE: Record<string, SkillCheckVoicePalette> = {
     glowStrong: "rgba(110, 231, 183, 0.5)",
     text: "#d1fae5",
   },
-  attr_social: {
+  charisma: {
     accent: "#14b8a6",
     accentSoft: "rgba(20, 184, 166, 0.16)",
     glow: "rgba(20, 184, 166, 0.24)",
     glowStrong: "rgba(94, 234, 212, 0.5)",
     text: "#ccfbf1",
   },
-  attr_spirit: {
+  occultism: {
     accent: "#fbbf24",
     accentSoft: "rgba(251, 191, 36, 0.16)",
     glow: "rgba(251, 191, 36, 0.24)",
@@ -59,13 +71,8 @@ const PALETTE_BY_VOICE: Record<string, SkillCheckVoicePalette> = {
   },
 };
 
-export const formatSkillCheckVoiceLabel = (voiceId: string): string => {
-  if (voiceId === "attr_social") return "Charisma";
-  return voiceId
-    .replace(/^attr_/, "")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (entry) => entry.toUpperCase());
-};
+export const formatSkillCheckVoiceLabel = (voiceId: string): string =>
+  getCanonicalVoiceLabel(voiceId);
 
 export const formatSkillCheckDifficulty = (val: number): string => {
   if (val <= 3) return "Trivial";
@@ -79,4 +86,11 @@ export const formatSkillCheckDifficulty = (val: number): string => {
 
 export const getSkillCheckVoicePalette = (
   voiceId: string,
-): SkillCheckVoicePalette => PALETTE_BY_VOICE[voiceId] ?? FALLBACK_PALETTE;
+): SkillCheckVoicePalette => {
+  const canonicalVoiceId = canonicalSkillVoiceIdFor(voiceId);
+  return (
+    PALETTE_BY_VOICE[canonicalVoiceId] ??
+    PALETTE_BY_VOICE[voiceId] ??
+    FALLBACK_PALETTE
+  );
+};

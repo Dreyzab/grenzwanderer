@@ -1,6 +1,3 @@
-import { createInterface } from "node:readline/promises";
-import { stdin as input, stdout as output } from "node:process";
-
 import {
   connectOperatorConnection,
   getOperatorToken,
@@ -11,7 +8,7 @@ const DEFAULT_DATABASE = "grezwandererdata";
 
 const usage = () => {
   console.error(
-    "Usage: bun run bootstrap:admin -- [--host <uri>] [--db <name>] [--code <bootstrap-code>]",
+    "Usage: bun run bootstrap:admin -- [--host <uri>] [--db <name>]",
   );
 };
 
@@ -22,29 +19,6 @@ const readArg = (args: string[], name: string): string | null => {
   }
 
   return args[index + 1];
-};
-
-const resolveBootstrapCode = async (args: string[]): Promise<string> => {
-  const cliCode = readArg(args, "--code")?.trim();
-  if (cliCode) {
-    return cliCode;
-  }
-
-  const envCode = process.env.ADMIN_BOOTSTRAP_CODE?.trim();
-  if (envCode) {
-    return envCode;
-  }
-
-  const rl = createInterface({ input, output });
-  try {
-    const value = (await rl.question("Admin bootstrap code: ")).trim();
-    if (!value) {
-      throw new Error("Admin bootstrap code must not be empty");
-    }
-    return value;
-  } finally {
-    rl.close();
-  }
 };
 
 const main = async (): Promise<void> => {
@@ -66,12 +40,11 @@ const main = async (): Promise<void> => {
     process.env.SPACETIMEDB_DB_NAME ??
     process.env.VITE_SPACETIMEDB_DB_NAME ??
     DEFAULT_DATABASE;
-  const bootstrapCode = await resolveBootstrapCode(args);
   const existingToken = getOperatorToken(host, database);
   const conn = await connectOperatorConnection(host, database, existingToken);
 
   try {
-    await conn.reducers.bootstrapAdminIdentity({ bootstrapCode });
+    await conn.reducers.bootstrapAdminIdentity();
     const identityHex = conn.identity?.toHexString() ?? "unknown";
     console.log(
       `Bootstrapped admin identity ${identityHex} for ${host}/${database}.`,

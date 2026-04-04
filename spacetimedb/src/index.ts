@@ -51,8 +51,12 @@ export {
   validate_hypothesis,
 } from "./reducers/mindpalace";
 export {
-  deliver_thought,
+  claim_next_ai_request,
+  complete_ai_request,
   enqueue_ai_request,
+  fail_ai_request,
+  renew_ai_request_lease,
+  requeue_ai_request,
   register_worker_identity,
 } from "./reducers/ai";
 export {

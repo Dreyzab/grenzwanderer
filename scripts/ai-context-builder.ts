@@ -5,6 +5,13 @@ import {
   type GenerateDialoguePayload,
 } from "../src/features/ai/contracts";
 import {
+  buildCanonicalVoicePromptBrief,
+  buildParliamentPromptStack,
+  canonicalSkillVoiceIdFor,
+  canonicalizeSpeakerIds,
+  getCanonicalVoiceLabel,
+} from "../data/voiceBridge";
+import {
   getOriginProfileByFlags,
   getParliamentPresetForOrigin,
   getSelectedOriginTrack,
@@ -18,8 +25,11 @@ import {
 } from "../src/features/vn/vnContent";
 import { findActiveHypothesisLens } from "../src/features/mindpalace/focusLens";
 import type { QuestCatalogEntry, VnSnapshot } from "../src/features/vn/types";
-
-type FetchLike = typeof fetch;
+import {
+  escapeSqlLiteral,
+  runSpacetimeSql,
+  type FetchLike,
+} from "./spacetime-sql";
 
 const DEFAULT_RECENT_DIALOGUE_FETCH_LIMIT = 12;
 const DEFAULT_MAX_RECENT_DIALOGUE_LINES = 4;
@@ -76,8 +86,6 @@ interface ActiveSnapshotRow {
   payloadJson: string;
 }
 
-const escapeSqlLiteral = (value: string): string => value.replace(/'/g, "''");
-
 const coerceString = (value: unknown, fieldName: string): string => {
   if (typeof value === "string") {
     return value;
@@ -132,43 +140,12 @@ const coerceBoolean = (value: unknown, fieldName: string): boolean => {
   throw new Error(`Invalid ${fieldName}`);
 };
 
-const httpHostFromWorkerHost = (host: string): string =>
-  host.replace("ws://", "http://").replace("wss://", "https://");
-
-const fetchSqlRows = async (
-  host: string,
-  database: string,
-  token: string,
-  query: string,
-  fetchImpl: FetchLike,
-): Promise<unknown[]> => {
-  const response = await fetchImpl(
-    `${httpHostFromWorkerHost(host)}/v1/database/${database}/sql`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "text/plain",
-      },
-      body: query,
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed SQL request: ${response.status} ${response.statusText}`,
-    );
-  }
-
-  const rows = (await response.json()) as unknown;
-  return Array.isArray(rows) ? rows : [];
-};
-
 export const buildRecentDialogueQuery = (
   playerId: string,
   limit: number = DEFAULT_RECENT_DIALOGUE_FETCH_LIMIT,
 ): string => {
   const escapedPlayerId = escapeSqlLiteral(playerId);
+  void limit;
   return [
     "SELECT",
     "  payload_json,",
@@ -178,8 +155,6 @@ export const buildRecentDialogueQuery = (
     `WHERE player_id = '${escapedPlayerId}'`,
     `  AND kind = '${AI_GENERATE_DIALOGUE_KIND}'`,
     "  AND status = 'completed'",
-    "ORDER BY updated_at DESC",
-    `LIMIT ${limit}`,
   ].join("\n");
 };
 
@@ -191,7 +166,6 @@ export const buildPlayerQuestQuery = (playerId: string): string => {
     "  stage",
     "FROM player_quest",
     `WHERE player_id = '${escapedPlayerId}'`,
-    "ORDER BY updated_at DESC",
   ].join("\n");
 };
 
@@ -203,7 +177,6 @@ export const buildPlayerFlagQuery = (playerId: string): string => {
     "  value",
     "FROM player_flag",
     `WHERE player_id = '${escapedPlayerId}'`,
-    "ORDER BY updated_at DESC",
   ].join("\n");
 };
 
@@ -215,7 +188,6 @@ export const buildPlayerVarQuery = (playerId: string): string => {
     "  float_value",
     "FROM player_var",
     `WHERE player_id = '${escapedPlayerId}'`,
-    "ORDER BY updated_at DESC",
   ].join("\n");
 };
 
@@ -227,7 +199,6 @@ export const buildActiveSnapshotQuery = (): string =>
     "FROM content_snapshot cs",
     "JOIN content_version cv ON cv.checksum = cs.checksum",
     "WHERE cv.is_active = true",
-    "LIMIT 1",
   ].join("\n");
 
 const parseRecentDialogueRow = (row: unknown): RecentDialogueRow => {
@@ -436,6 +407,10 @@ const buildSceneSnapshot = (
     envelope?.ensemble?.presenceMode ?? payload.voicePresenceMode;
   const activeSpeakers =
     envelope?.ensemble?.activeSpeakers ?? payload.activeSpeakers;
+  const canonicalVoiceId = canonicalSkillVoiceIdFor(payload.voiceId);
+  const canonicalActiveSpeakers = activeSpeakers
+    ? canonicalizeSpeakerIds(activeSpeakers)
+    : [];
   const psyche = envelope?.playerState.psyche ?? payload.psycheProfile;
   const parts = [
     `Scenario: ${scenario?.title ?? payload.scenarioId}`,
@@ -448,11 +423,32 @@ const buildSceneSnapshot = (
   if (envelopeCheckResult) {
     parts.push(`Outcome margin: ${envelopeCheckResult.margin}`);
   }
+  if (payload.voiceId !== canonicalVoiceId) {
+    parts.push(`Voice bridge: ${payload.voiceId} -> ${canonicalVoiceId}`);
+  }
+  parts.push(
+    `Canonical voice: ${getCanonicalVoiceLabel(canonicalVoiceId)} (${canonicalVoiceId})`,
+  );
+  const canonicalVoicePromptBrief = buildCanonicalVoicePromptBrief(
+    payload.voiceId,
+  );
+  if (canonicalVoicePromptBrief) {
+    parts.push(`Voice style guide: ${canonicalVoicePromptBrief}`);
+  }
   if (voicePresenceMode) {
     parts.push(`Voice presence: ${voicePresenceMode}`);
   }
   if (activeSpeakers && activeSpeakers.length > 0) {
     parts.push(`Active speakers: ${activeSpeakers.join(", ")}`);
+  }
+  if (canonicalActiveSpeakers.length > 0) {
+    parts.push(`Canonical speakers: ${canonicalActiveSpeakers.join(", ")}`);
+  }
+  const parliamentPromptStack = activeSpeakers
+    ? buildParliamentPromptStack(activeSpeakers)
+    : null;
+  if (parliamentPromptStack) {
+    parts.push(`Parliament style stack: ${parliamentPromptStack}`);
   }
   if (psyche) {
     parts.push(
@@ -630,8 +626,11 @@ const selectRecentDialogue = (
   staleThresholdHours: number,
 ): string[] => {
   const recentDialogue: string[] = [];
+  const sortedRows = [...rows].sort(
+    (left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt),
+  );
 
-  for (const row of rows) {
+  for (const row of sortedRows) {
     if (!isFreshEnough(row.updatedAt, staleThresholdHours)) {
       continue;
     }
@@ -740,13 +739,13 @@ const fetchRecentDialogueRows = async (
   playerId: string,
   options: BuildSceneContextOptions,
 ): Promise<RecentDialogueRow[]> => {
-  const rows = await fetchSqlRows(
-    options.host,
-    options.database,
-    options.token,
-    buildRecentDialogueQuery(playerId),
-    options.fetchImpl ?? fetch,
-  );
+  const rows = await runSpacetimeSql({
+    host: options.host,
+    database: options.database,
+    token: options.token,
+    query: buildRecentDialogueQuery(playerId),
+    fetchImpl: options.fetchImpl,
+  });
   return rows.map(parseRecentDialogueRow);
 };
 
@@ -754,13 +753,13 @@ const fetchPlayerQuestRows = async (
   playerId: string,
   options: BuildSceneContextOptions,
 ): Promise<PlayerQuestRow[]> => {
-  const rows = await fetchSqlRows(
-    options.host,
-    options.database,
-    options.token,
-    buildPlayerQuestQuery(playerId),
-    options.fetchImpl ?? fetch,
-  );
+  const rows = await runSpacetimeSql({
+    host: options.host,
+    database: options.database,
+    token: options.token,
+    query: buildPlayerQuestQuery(playerId),
+    fetchImpl: options.fetchImpl,
+  });
   return rows.map(parsePlayerQuestRow);
 };
 
@@ -768,13 +767,13 @@ const fetchPlayerFlagRows = async (
   playerId: string,
   options: BuildSceneContextOptions,
 ): Promise<PlayerFlagRow[]> => {
-  const rows = await fetchSqlRows(
-    options.host,
-    options.database,
-    options.token,
-    buildPlayerFlagQuery(playerId),
-    options.fetchImpl ?? fetch,
-  );
+  const rows = await runSpacetimeSql({
+    host: options.host,
+    database: options.database,
+    token: options.token,
+    query: buildPlayerFlagQuery(playerId),
+    fetchImpl: options.fetchImpl,
+  });
   return rows.map(parsePlayerFlagRow);
 };
 
@@ -782,26 +781,26 @@ const fetchPlayerVarRows = async (
   playerId: string,
   options: BuildSceneContextOptions,
 ): Promise<PlayerVarRow[]> => {
-  const rows = await fetchSqlRows(
-    options.host,
-    options.database,
-    options.token,
-    buildPlayerVarQuery(playerId),
-    options.fetchImpl ?? fetch,
-  );
+  const rows = await runSpacetimeSql({
+    host: options.host,
+    database: options.database,
+    token: options.token,
+    query: buildPlayerVarQuery(playerId),
+    fetchImpl: options.fetchImpl,
+  });
   return rows.map(parsePlayerVarRow);
 };
 
 const fetchActiveSnapshot = async (
   options: BuildSceneContextOptions,
 ): Promise<VnSnapshot | null> => {
-  const rows = await fetchSqlRows(
-    options.host,
-    options.database,
-    options.token,
-    buildActiveSnapshotQuery(),
-    options.fetchImpl ?? fetch,
-  );
+  const rows = await runSpacetimeSql({
+    host: options.host,
+    database: options.database,
+    token: options.token,
+    query: buildActiveSnapshotQuery(),
+    fetchImpl: options.fetchImpl,
+  });
   const firstRow = rows[0];
   if (!firstRow) {
     return null;

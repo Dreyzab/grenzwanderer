@@ -1,0 +1,50 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 1933,
+    "root_api_key": "",
+    "cors_origins": [
+      "*"
+    ]
+  },
+  "storage": {
+    "workspace": "../../../data",
+    "agfs": {
+      "backend": "local"
+    },
+    "vectordb": {
+      "backend": "local",
+      "name": "context",
+      "project": "default"
+    }
+  },
+  "code": {
+    "code_summary_mode": "ast"
+  },
+  "embedding": {
+    "max_concurrent": 1,
+    "dense": {
+      "api_base": "https://generativelanguage.googleapis.com/v1beta/openai/",
+      "api_key": "",
+      "provider": "openai",
+      "dimension": 768,
+      "model": "gemini-embedding-2-preview",
+      "input": "text"
+    }
+  },
+  "vlm": {
+    "api_base": "https://generativelanguage.googleapis.com/v1beta/openai/",
+    "api_key": "",
+    "provider": "openai",
+    "max_retries": 2,
+    "model": "gemini-3-flash-preview"
+  },
+  "bot": {
+    "agents": {
+      "model": "gemini/gemini-2.5-flash",
+      "provider": "gemini",
+      "api_key": "",
+      "api_base": ""
+    }
+  }
+}

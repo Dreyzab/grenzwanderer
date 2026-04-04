@@ -19,6 +19,12 @@ export default __t.row({
   status: __t.string(),
   responseJson: __t.option(__t.string()).name("response_json"),
   error: __t.option(__t.string()),
+  attemptCount: __t.u32().name("attempt_count"),
+  claimedBy: __t.option(__t.identity()).name("claimed_by"),
+  claimToken: __t.option(__t.string()).name("claim_token"),
+  claimedAt: __t.option(__t.timestamp()).name("claimed_at"),
+  leaseExpiresAt: __t.option(__t.timestamp()).name("lease_expires_at"),
+  nextRetryAt: __t.option(__t.timestamp()).name("next_retry_at"),
   createdAt: __t.timestamp().name("created_at"),
   updatedAt: __t.timestamp().name("updated_at"),
 });

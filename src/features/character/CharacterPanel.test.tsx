@@ -453,13 +453,35 @@ describe("CharacterPanel", () => {
 
     expect(screen.getByText("Core Characteristic Radar")).toBeInTheDocument();
     expect(screen.getByTestId("character-radar")).toBeInTheDocument();
+    expect(
+      screen.getByText("Legacy Attributes -> Canonical Voices"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText("attr_intellect -> logic").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getByText("The world is a machine. Find the fault line."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Make them enjoy telling you what hurts them."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Meaning hides in patterns the rational eye refuses."),
+    ).toBeInTheDocument();
 
     const intellectCard = screen.getByTestId("core-attr-attr_intellect");
     expect(within(intellectCard).getByText("Encyclopedia")).toBeInTheDocument();
     expect(within(intellectCard).getByText("Perception")).toBeInTheDocument();
+    expect(
+      within(intellectCard).getByText("Canonical voice: Encyclopedia"),
+    ).toBeInTheDocument();
+    expect(within(intellectCard).getByText("Voice Bridge")).toBeInTheDocument();
 
     const shadowCard = screen.getByTestId("core-attr-attr_shadow");
     expect(within(shadowCard).getByText("Deception")).toBeInTheDocument();
+    expect(
+      within(shadowCard).getByText("Canonical voice: Deception"),
+    ).toBeInTheDocument();
   });
 
   it("renders quest titles and resolved objective point names in the journal tab", () => {

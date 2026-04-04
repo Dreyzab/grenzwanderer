@@ -6,6 +6,7 @@ import type {
   SightMode,
   VnSnapshot,
 } from "../../vn/types";
+import { buildSpiritRoster as buildSpiritRosterFn } from "./spiritState";
 
 export const MYSTIC_AWAKENING_VAR = "mystic_awakening";
 export const MYSTIC_EXPOSURE_VAR = "mystic_exposure";
@@ -67,9 +68,7 @@ export const deriveAwakeningBand = (
   return "suppressed";
 };
 
-export const formatAwakeningBandLabel = (
-  band: MysticAwakeningBand,
-): string => {
+export const formatAwakeningBandLabel = (band: MysticAwakeningBand): string => {
   if (band === "suppressed") {
     return "Containment";
   }
@@ -82,9 +81,7 @@ export const formatAwakeningBandLabel = (
   return "Piercing";
 };
 
-export const describeAwakeningBand = (
-  band: MysticAwakeningBand,
-): string => {
+export const describeAwakeningBand = (band: MysticAwakeningBand): string => {
   if (band === "suppressed") {
     return "The unseen still reads as noise, coincidence, or fatigue.";
   }
@@ -134,7 +131,10 @@ export const buildMysticStateSummary = (
   vars: Record<string, number>,
 ): MysticStateSummary => {
   const awakeningLevel = clamp(vars[MYSTIC_AWAKENING_VAR] ?? 0, 0, 100);
-  const mysticExposure = Math.max(0, Math.round(vars[MYSTIC_EXPOSURE_VAR] ?? 0));
+  const mysticExposure = Math.max(
+    0,
+    Math.round(vars[MYSTIC_EXPOSURE_VAR] ?? 0),
+  );
   const rationalistBuffer = Math.max(
     0,
     Math.round(vars[MYSTIC_RATIONALIST_BUFFER_VAR] ?? 0),
@@ -155,8 +155,7 @@ export const buildMysticStateSummary = (
 
 export const formatObservationKindLabel = (
   kind: MysticObservationKind,
-): string =>
-  kind.replace(/\b\w/g, (entry) => entry.toUpperCase());
+): string => kind.replace(/\b\w/g, (entry) => entry.toUpperCase());
 
 export const resolveUnlockedObservationEntries = (
   snapshot: VnSnapshot | null,
@@ -166,7 +165,8 @@ export const resolveUnlockedObservationEntries = (
 
   return entries.filter(
     (entry) =>
-      entry.unlockedByDefault || Boolean(flags[mysticObservationFlagKey(entry.id)]),
+      entry.unlockedByDefault ||
+      Boolean(flags[mysticObservationFlagKey(entry.id)]),
   );
 };
 
@@ -208,4 +208,40 @@ export const buildEntityKnowledge = (
     }
     return right.observationCount - left.observationCount;
   });
+};
+
+export {
+  buildSpiritRoster,
+  deriveSpiritStateFromFlags,
+  deriveSpiritMethod,
+  hasControlledSpiritOfArchetype,
+  resolveControlledSpiritModifiers,
+  resolveObservationSignatureBonus,
+  type SpiritRosterEntry,
+} from "./spiritState";
+
+export interface MysticFullSummary extends MysticStateSummary {
+  spiritRoster: import("./spiritState").SpiritRosterEntry[];
+  entityKnowledge: MysticEntityKnowledgeEntry[];
+  unlockedObservations: MysticObservationDefinition[];
+}
+
+export const buildMysticFullSummary = (
+  snapshot: VnSnapshot | null,
+  vars: Record<string, number>,
+  flags: Record<string, boolean>,
+): MysticFullSummary => {
+  const base = buildMysticStateSummary(vars);
+  const observations = resolveUnlockedObservationEntries(snapshot, flags);
+  const spiritRoster = buildSpiritRosterFn(snapshot, flags);
+
+  return {
+    ...base,
+    spiritRoster,
+    entityKnowledge: buildEntityKnowledge(
+      snapshot?.mysticism?.entityArchetypes,
+      observations,
+    ),
+    unlockedObservations: observations,
+  };
 };

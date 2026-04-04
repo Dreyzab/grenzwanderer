@@ -13,7 +13,5 @@ import {
 export default {
   requestId: __t.string(),
   aiRequestId: __t.u64(),
-  status: __t.string(),
-  responseJson: __t.option(__t.string()),
-  error: __t.option(__t.string()),
+  responseJson: __t.string(),
 };

@@ -9,6 +9,7 @@ import { CharacterPage } from "../pages/CharacterPage";
 import { CommandPage } from "../pages/CommandPage";
 import { HomePage } from "../pages/HomePage";
 import { MapPage } from "../pages/MapPage";
+import { AdminPage } from "../pages/AdminPage";
 import { MindPalacePage } from "../pages/MindPalacePage";
 import { VnPage } from "../pages/VnPage";
 import { ToastProvider } from "../shared/hooks/useToast";
@@ -26,7 +27,8 @@ type TabId =
   | "map"
   | "mind_palace"
   | "command"
-  | "battle";
+  | "battle"
+  | "dev";
 type MapPanelId = "qr";
 
 const allTabs: TabId[] = [
@@ -37,6 +39,7 @@ const allTabs: TabId[] = [
   "mind_palace",
   "command",
   "battle",
+  "dev",
 ];
 
 const tabs: Array<{ id: TabId; label: string }> = [
@@ -46,6 +49,7 @@ const tabs: Array<{ id: TabId; label: string }> = [
   { id: "battle", label: "Duel" },
   { id: "character", label: "Dossier" },
   { id: "mind_palace", label: "Scan" },
+  { id: "dev", label: "Dev" },
 ];
 
 const isTabId = (value: string | null): value is TabId =>
@@ -224,7 +228,7 @@ const AppShell = () => {
         <VnPage
           initialScenarioId={vnScenarioId}
           onScenarioChange={setVnScenarioId}
-          onNavigateTab={setActiveTab}
+          onNavigateTab={(tab) => navigateToTab(tab as TabId)}
         />
       );
     }
@@ -240,11 +244,15 @@ const AppShell = () => {
     }
 
     if (tab === "command") {
-      return <CommandPage onNavigateTab={setActiveTab} />;
+      return <CommandPage onNavigateTab={(t) => navigateToTab(t as TabId)} />;
     }
 
     if (tab === "battle") {
-      return <BattlePage onNavigateTab={setActiveTab} />;
+      return <BattlePage onNavigateTab={(t) => navigateToTab(t as TabId)} />;
+    }
+
+    if (tab === "dev") {
+      return <AdminPage />;
     }
 
     return <MindPalacePage />;

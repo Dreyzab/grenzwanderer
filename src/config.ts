@@ -24,3 +24,17 @@ export const APP_VERSION = __APP_VERSION__;
 export const APP_COMMIT_SHA = __APP_COMMIT_SHA__;
 
 export const APP_BUILD_TIMESTAMP = __APP_BUILD_TIMESTAMP__;
+
+export const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN ?? "";
+
+export const SENTRY_ENABLED =
+  String(import.meta.env.VITE_SENTRY_ENABLED ?? "false").toLowerCase() ===
+  "true";
+
+export const SENTRY_ENVIRONMENT =
+  import.meta.env.VITE_SENTRY_ENVIRONMENT ??
+  (import.meta.env.PROD ? "production" : "development");
+
+export const SENTRY_TRACES_SAMPLE_RATE = Number(
+  import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE ?? "0",
+);

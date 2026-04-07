@@ -22,7 +22,7 @@ import type {
   InlineStatusCard,
   SkillCheckAiStatus,
 } from "../vnScreenTypes";
-import type { VnScenario, VnSnapshot } from "../types";
+import type { VnChoice, VnScenario, VnSnapshot } from "../types";
 import type { VnSkillCheckResolveState } from "../ui/VnSkillCheckResolveOverlay";
 
 interface UseVnDisplayMappingParams {
@@ -254,23 +254,24 @@ export function useVnDisplayMapping({
           myVars,
           choiceEvaluationContext,
         );
+        const resolve = activeSkillResolve;
         const skillCheckState =
-          activeSkillResolve?.choiceId === choice.id
-            ? activeSkillResolve.phase === "arming"
+          resolve && resolve.choiceId === choice.id
+            ? resolve.phase === "arming"
               ? "arming"
-              : activeSkillResolve.phase === "rolling"
+              : resolve.phase === "rolling"
                 ? "rolling"
-                : activeSkillResolve.phase === "impact"
-                  ? activeSkillResolve.passed
+                : resolve.phase === "impact"
+                  ? resolve.passed
                     ? "impact_success"
                     : "impact_fail"
-                  : activeSkillResolve.passed
+                  : resolve.passed
                     ? "result_success"
                     : "result_fail"
             : "idle";
         const innerVoiceHints: ChoiceInnerVoiceHintDisplay[] = (
           choice.innerVoiceHints ?? []
-        ).map((hint) => {
+        ).map((hint: NonNullable<VnChoice["innerVoiceHints"]>[number]) => {
           const presentation = getVoicePresentation(hint.voiceId);
           return {
             voiceId: hint.voiceId,

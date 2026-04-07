@@ -6,11 +6,11 @@ import type { SkillCheckResultLike, TransitionState } from "../vnScreenTypes";
 
 const t = {
   choiceApplied: "Choice applied",
-  sessionHydrating: "Hydrating",
-  skillFailed: "Skill failed",
-  skillResolved: "Skill resolved",
+  sessionHydrating: "Syncing session...",
+  skillFailed: "Skill check failed",
+  skillResolved: "Skill check resolved on server",
   syncing: "Syncing...",
-  unknownScenario: "Unknown",
+  unknownScenario: "Unknown Scenario",
 } as const;
 
 const timestamp = (micros: bigint) => ({
@@ -124,7 +124,7 @@ describe("useVnSkillChecks", () => {
   });
 
   it("enqueues passive checks once while the request is in flight", async () => {
-    let resolvePerform: (() => void) | null = null;
+    let resolvePerform: ((value?: void) => void) | undefined;
     const performSkillCheck = vi.fn(
       () =>
         new Promise<void>((resolve) => {
@@ -157,7 +157,7 @@ describe("useVnSkillChecks", () => {
     rerender({
       currentNode,
       performSkillCheck,
-    });
+    } as any);
 
     expect(performSkillCheck).toHaveBeenCalledTimes(1);
 
@@ -184,7 +184,7 @@ describe("useVnSkillChecks", () => {
           createdAt: timestamp(10n),
         },
       ],
-    });
+    } as any);
 
     expect(performSkillCheck).toHaveBeenCalledTimes(1);
   });
@@ -232,7 +232,7 @@ describe("useVnSkillChecks", () => {
         performSkillCheck,
         handleResolvedSkillCheck,
         mySkillResults: [matchedResult],
-      });
+      } as any);
       await Promise.resolve();
     });
 
@@ -295,7 +295,7 @@ describe("useVnSkillChecks", () => {
       rerender({
         playImpactSfx,
         mySkillResults: [matchedResult],
-      });
+      } as any);
       await Promise.resolve();
     });
 
@@ -356,7 +356,7 @@ describe("useVnSkillChecks", () => {
           createdAt: timestamp(32n),
         },
       ],
-    });
+    } as any);
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(300);
@@ -528,7 +528,7 @@ describe("useVnSkillChecks", () => {
     await act(async () => {
       rerender({
         selectedScenarioId: "scenario_beta",
-      });
+      } as any);
       await Promise.resolve();
     });
 
@@ -555,7 +555,7 @@ describe("useVnSkillChecks", () => {
             createdAt: timestamp(36n),
           },
         ],
-      });
+      } as any);
       await Promise.resolve();
     });
 
@@ -599,7 +599,7 @@ describe("useVnSkillChecks", () => {
         },
         currentSessionPointer: "session::beta",
         recordChoice,
-      });
+      } as any);
       await Promise.resolve();
     });
 
@@ -641,7 +641,7 @@ describe("useVnSkillChecks", () => {
             createdAt: timestamp(37n),
           },
         ],
-      });
+      } as any);
       await Promise.resolve();
     });
 

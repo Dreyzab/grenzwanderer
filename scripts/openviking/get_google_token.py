@@ -16,7 +16,7 @@ def get_access_token(json_path):
     now = int(time.time())
     payload = {
         'iss': client_email,
-        'scope': 'https://www.googleapis.com/auth/cloud-platform',
+        'scope': 'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/generative-language',
         'aud': token_uri,
         'exp': now + 3600,
         'iat': now

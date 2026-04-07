@@ -1,4 +1,4 @@
-﻿import { SenderError, t } from "spacetimedb/server";
+import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
 import {
   applyEffects,
@@ -47,6 +47,10 @@ const FREIBURG_ORIGIN_ALLOWLIST = {
   archivist: {
     choiceId: "BACKSTORY_ARCHIVIST",
     scenarioId: "intro_archivist",
+  },
+  detective: {
+    choiceId: "BACKSTORY_DETECTIVE",
+    scenarioId: "detective_case01_prologue",
   },
 } as const;
 

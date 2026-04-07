@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { resetPretextCaches } from "@/shared/lib/pretext";
+import { resetPretextCaches } from "../lib/pretext";
 
 export function usePretextFontVersion(fonts: string[] = []) {
   const [version, setVersion] = useState(0);

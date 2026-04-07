@@ -1,5 +1,5 @@
 import React from "react";
-import type { VnSkillCheckResolveState } from "../hooks/useVnSkillChecks";
+import type { VnSkillCheckResolveState } from "./VnSkillCheckResolveOverlay";
 
 export interface VnSkillCheckOverlayProps {
   resolve: VnSkillCheckResolveState;

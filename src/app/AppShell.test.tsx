@@ -32,7 +32,7 @@ vi.mock("../shared/spacetime/bindings", () => ({
   reducers: {
     startScenario: Symbol("startScenario"),
     setNickname: Symbol("setNickname"),
-    heartbeatPresence: Symbol("heartbeatPresence"),
+    beginFreiburgOrigin: Symbol("beginFreiburgOrigin"),
   },
 }));
 
@@ -83,6 +83,9 @@ vi.mock("../pages/MindPalacePage", () => ({
   MindPalacePage: () => <div>mind</div>,
 }));
 vi.mock("../pages/DevPage", () => ({ DevPage: () => <div>dev</div> }));
+vi.mock("../pages/AdminPage", () => ({
+  AdminPage: () => <div data-testid="admin-page">admin</div>,
+}));
 vi.mock("../features/mindpalace/useFactDiscoveryToast", () => ({
   useFactDiscoveryToast: () => {},
 }));

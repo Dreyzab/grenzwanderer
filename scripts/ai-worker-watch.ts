@@ -12,11 +12,7 @@ import {
   ensureWorkerAccess,
   getOperatorToken,
 } from "./spacetime-operator";
-import {
-  escapeSqlLiteral,
-  runSpacetimeSql,
-  type FetchLike,
-} from "./spacetime-sql";
+import { runSpacetimeSql, type FetchLike } from "./spacetime-sql";
 
 export interface AiWorkerLogger {
   info: (...args: unknown[]) => void;

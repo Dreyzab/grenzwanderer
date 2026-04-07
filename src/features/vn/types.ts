@@ -216,6 +216,7 @@ export interface VnScenario {
   startNodeId: string;
   nodeIds: string[];
   completionRoute?: VnScenarioCompletionRoute;
+  completionRoutes?: VnScenarioCompletionRoute[];
   skillCheckDice?: VnDiceMode;
   mode?: "overlay" | "fullscreen";
   packId?: string;

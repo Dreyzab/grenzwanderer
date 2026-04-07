@@ -251,7 +251,9 @@ export const aiRequestMatchesContext = (
   entry: { payloadJson: unknown; createdAt: unknown },
   context: ActiveAiThoughtContext,
 ): boolean => {
-  const payload = parseGenerateDialoguePayload(entry.payloadJson);
+  const payload = parseGenerateDialoguePayload(
+    typeof entry.payloadJson === "string" ? entry.payloadJson : null,
+  );
   if (
     matchesSkillCheckThought(
       payload,
@@ -281,7 +283,9 @@ export const reactionRequestMatchesContext = (
   entry: { payloadJson: unknown; createdAt: unknown },
   context: ActiveReactionContext,
 ): boolean => {
-  const payload = parseGenerateCharacterReactionPayload(entry.payloadJson);
+  const payload = parseGenerateCharacterReactionPayload(
+    typeof entry.payloadJson === "string" ? entry.payloadJson : null,
+  );
   return (
     payload?.characterId === context.characterId &&
     payload?.scenarioId === context.scenarioId &&

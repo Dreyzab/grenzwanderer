@@ -390,7 +390,8 @@ export function useVnSkillChecks({
       );
       setVisitedChoiceKeys((previous) => ({ ...previous, [choiceKey]: true }));
 
-      if (!choice.skillCheck) {
+      const skillCheck = choice.skillCheck;
+      if (!skillCheck) {
         await applyChoiceCommit(selectedScenarioId, choice.id);
         return;
       }
@@ -400,7 +401,7 @@ export function useVnSkillChecks({
           entry,
           selectedScenarioId,
           currentNode.id,
-          choice.skillCheck.id,
+          skillCheck.id,
         ),
       );
 
@@ -456,7 +457,7 @@ export function useVnSkillChecks({
         await performSkillCheck({
           requestId: createRequestId(),
           scenarioId: selectedScenarioId,
-          checkId: choice.skillCheck.id,
+          checkId: skillCheck.id,
         });
       } catch (caughtError) {
         setAwaitingSkillChoice(null);

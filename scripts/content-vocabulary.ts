@@ -96,6 +96,7 @@ const BASE_FLAG_KEYS = new Set<string>([
   "flag_paperboy_theft_seen",
   "flag_skipped_station_investigation",
   "flaw_battle_scar_trigger",
+  "flaw_cynic_mistrust",
   "flaw_gambling_addiction",
   "flaw_obsessive_archivist",
   "flaw_prideful_etiquette",
@@ -122,8 +123,11 @@ const BASE_FLAG_KEYS = new Set<string>([
   "origin_archivist_handoff_done",
   "origin_aristocrat_handoff_done",
   "origin_journalist",
+  "origin_detective",
+  "origin_detective_handoff_done",
   "origin_journalist_handoff_done",
   "origin_veteran_handoff_done",
+  "detective_prologue_done",
   "priority_bank_first",
   "priority_mayor_first",
   "service_anna_student_intro_unlocked",
@@ -136,6 +140,7 @@ const BASE_FLAG_KEYS = new Set<string>([
 
 const BASE_VAR_KEYS = new Set<string>([
   "attr_deception",
+  "attr_empathy",
   "attr_encyclopedia",
   "attr_intellect",
   "attr_perception",

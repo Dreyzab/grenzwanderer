@@ -167,18 +167,24 @@ describe("AdminPage", () => {
     });
   });
 
-  it("renders the ops summary from live tables", () => {
+  it("renders the admin summary from the currently available tables", () => {
     render(<AdminPage />);
 
     expect(screen.getByText("Control Room")).toBeInTheDocument();
     expect(screen.getByText("Online Now")).toBeInTheDocument();
     expect(screen.getByText("Active Content")).toBeInTheDocument();
     expect(screen.getByText("content-v1")).toBeInTheDocument();
-    expect(screen.getByText("Sentry Sync")).toBeInTheDocument();
-    expect(screen.getByText("Published content-v1")).toBeInTheDocument();
-    expect(screen.getByText("Operator Anna")).toBeInTheDocument();
     expect(screen.getByText("Scenarios started")).toBeInTheDocument();
     expect(screen.getByText("AI Enqueued 24h")).toBeInTheDocument();
     expect(screen.getByText("AI Delivered 24h")).toBeInTheDocument();
+    expect(
+      screen.getByText("No external metrics ingested yet."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("No active presence rows in the last 90 seconds."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("No audit events recorded yet."),
+    ).toBeInTheDocument();
   });
 });

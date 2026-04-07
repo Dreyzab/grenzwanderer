@@ -1,4 +1,4 @@
-import { appendFileSync } from "node:fs";
+import { appendFileSync, read, writeSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -171,12 +171,42 @@ function log(message, details) {
   }
 }
 
+/** When the host sends JSON-RPC without Content-Length (e.g. Cursor), stdout must match. Per MCP TS SDK, stdout is only for protocol — no console.log (use log() -> file). */
+let stdioFramingIsBareJson = false;
+
 function writeMessage(message) {
   const json = JSON.stringify(message);
+  if (stdioFramingIsBareJson) {
+    const payload = Buffer.from(`${json}\n`, "utf8");
+    try {
+      const fd = process.stdout.fd;
+      if (typeof fd === "number" && fd >= 0) {
+        writeSync(fd, payload);
+        return;
+      }
+    } catch {
+      /* fall through */
+    }
+    process.stdout.write(payload);
+    return;
+  }
+
   const byteLength = Buffer.byteLength(json, "utf8");
-  process.stdout.write(
-    `Content-Length: ${byteLength}\r\nContent-Type: application/json\r\n\r\n${json}`,
-  );
+  const header = `Content-Length: ${byteLength}\r\nContent-Type: application/json\r\n\r\n`;
+  const payload = Buffer.concat([
+    Buffer.from(header, "utf8"),
+    Buffer.from(json, "utf8"),
+  ]);
+  try {
+    const fd = process.stdout.fd;
+    if (typeof fd === "number" && fd >= 0) {
+      writeSync(fd, payload);
+      return;
+    }
+  } catch {
+    /* fall through */
+  }
+  process.stdout.write(payload);
 }
 
 function sendResult(id, result) {
@@ -564,8 +594,16 @@ async function dispatchRequest(message) {
 
   try {
     if (method === "initialize") {
+      if (id === undefined || id === null) {
+        log("initialize_missing_id", { keys: Object.keys(message) });
+        return;
+      }
+      const clientProto =
+        typeof params.protocolVersion === "string"
+          ? params.protocolVersion
+          : PROTOCOL_VERSION;
       sendResult(id, {
-        protocolVersion: PROTOCOL_VERSION,
+        protocolVersion: clientProto,
         capabilities: {
           tools: {
             listChanged: false,
@@ -578,6 +616,7 @@ async function dispatchRequest(message) {
         instructions:
           "Use OpenViking tools to search indexed project context and inspect matching content.",
       });
+      log("mcp_initialize_replied", { protocolVersion: clientProto });
       return;
     }
 
@@ -662,11 +701,57 @@ function findHeaderTerminator(buffer) {
 
 let inputBuffer = Buffer.alloc(0);
 let drainingInput = false;
+let loggedIncompleteFrame = false;
+let loggedNoCrlfHeader = false;
 
 async function drainInput() {
   while (true) {
+    if (
+      inputBuffer.length >= 3 &&
+      inputBuffer[0] === 0xef &&
+      inputBuffer[1] === 0xbb &&
+      inputBuffer[2] === 0xbf
+    ) {
+      inputBuffer = inputBuffer.subarray(3);
+      continue;
+    }
+
     const headerInfo = findHeaderTerminator(inputBuffer);
     if (!headerInfo) {
+      // Some MCP hosts send JSON-RPC without Content-Length / LSP headers.
+      if (inputBuffer.length > 0) {
+        const b0 = inputBuffer[0];
+        if (b0 === 0x7b || b0 === 0x5b) {
+          try {
+            const text = inputBuffer.toString("utf8").trim();
+            if (text.length === 0) {
+              return;
+            }
+            stdioFramingIsBareJson = true;
+            const message = JSON.parse(text);
+            inputBuffer = Buffer.alloc(0);
+            if (Array.isArray(message)) {
+              for (const entry of message) {
+                await dispatchRequest(entry);
+              }
+            } else {
+              await dispatchRequest(message);
+            }
+            continue;
+          } catch {
+            return;
+          }
+        }
+        if (!loggedNoCrlfHeader) {
+          loggedNoCrlfHeader = true;
+          log("mcp_no_crlf_header", {
+            len: inputBuffer.length,
+            head: inputBuffer
+              .subarray(0, Math.min(120, inputBuffer.length))
+              .toString("utf8"),
+          });
+        }
+      }
       return;
     }
 
@@ -685,6 +770,14 @@ async function drainInput() {
     const totalLength =
       headerInfo.headerEnd + headerInfo.separatorLength + contentLength;
     if (inputBuffer.length < totalLength) {
+      if (!loggedIncompleteFrame) {
+        loggedIncompleteFrame = true;
+        log("mcp_incomplete_frame", {
+          have: inputBuffer.length,
+          need: totalLength,
+          contentLength,
+        });
+      }
       return;
     }
 
@@ -704,6 +797,8 @@ async function drainInput() {
       });
       continue;
     }
+
+    loggedIncompleteFrame = false;
 
     if (Array.isArray(message)) {
       for (const entry of message) {
@@ -731,18 +826,79 @@ async function scheduleDrain() {
   }
 }
 
-process.stdin.on("data", (chunk) => {
-  inputBuffer = Buffer.concat([inputBuffer, chunk]);
-  void scheduleDrain();
-});
+function attachStdin() {
+  let loggedFirstChunk = false;
+  const onData = (chunk) => {
+    if (!loggedFirstChunk) {
+      loggedFirstChunk = true;
+      log("stdin_first_chunk", {
+        bytes: chunk.length,
+        head: chunk.subarray(0, Math.min(80, chunk.length)).toString("utf8"),
+      });
+    }
+    inputBuffer = Buffer.concat([inputBuffer, chunk]);
+    void scheduleDrain();
+  };
+  const onEnd = () => {
+    log("stdin_closed");
+  };
+  const onError = (error) => {
+    log("stdin_error", error instanceof Error ? error.message : String(error));
+  };
 
-process.stdin.on("end", () => {
-  log("stdin_closed");
-});
+  // Windows: do not use process.stdin readable and fs.read(0) together — both
+  // consume the same fd and Cursor never completes the MCP handshake.
+  if (process.platform === "win32") {
+    try {
+      process.stdin.pause();
+    } catch {
+      /* ignore */
+    }
+    const buf = Buffer.alloc(65536);
+    let pollStop = false;
+    const pollOne = () => {
+      if (pollStop) {
+        return;
+      }
+      read(0, buf, 0, buf.length, null, (err, nread) => {
+        if (pollStop) {
+          return;
+        }
+        if (err) {
+          if (err.code === "EAGAIN" || err.code === "EINTR") {
+            setImmediate(pollOne);
+            return;
+          }
+          log("stdin_fs_read_error", {
+            code: err.code,
+            message: err.message,
+          });
+          return;
+        }
+        if (nread === 0) {
+          pollStop = true;
+          onEnd();
+          return;
+        }
+        if (nread > 0) {
+          onData(Buffer.from(buf.subarray(0, nread)));
+        }
+        setImmediate(pollOne);
+      });
+    };
+    setImmediate(pollOne);
+    return;
+  }
 
-process.stdin.on("error", (error) => {
-  log("stdin_error", error instanceof Error ? error.message : String(error));
-});
+  process.stdin.on("data", onData);
+  process.stdin.on("end", onEnd);
+  process.stdin.on("error", onError);
+  if (typeof process.stdin.resume === "function") {
+    process.stdin.resume();
+  }
+}
+
+attachStdin();
 
 log("bridge_started", {
   serverUrl: SERVER_URL,

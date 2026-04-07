@@ -1,4 +1,4 @@
-﻿import { createHash } from "node:crypto";
+import { createHash } from "node:crypto";
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -374,6 +374,56 @@ const scenarios: ScenarioBlueprint[] = [
       "scene_archivist_exit",
     ],
   },
+  // ---- Detective Origin ----
+  {
+    id: "origin_detective_bootstrap",
+    title: "Origin Bootstrap - Detective",
+    startNodeId: "scene_origin_detective_bootstrap",
+    mode: "fullscreen",
+    packId: "system_origin_bootstrap",
+    completionRoute: {
+      nextScenarioId: "detective_case01_prologue",
+      requiredFlagsAll: ["origin_detective"],
+      blockedIfFlagsAny: ["detective_prologue_done"],
+    },
+    nodeIds: ["scene_origin_detective_bootstrap"],
+  },
+  {
+    id: "detective_case01_prologue",
+    title: "Bank Investigation Prologue",
+    startNodeId: "scene_detective_case01_arrival",
+    mode: "fullscreen",
+    packId: "detective_origin",
+    defaultBackgroundUrl: "/images/scenes/scene_bank_intro.png",
+    completionRoute: {
+      nextScenarioId: "detective_agency_wakeup",
+      requiredFlagsAll: ["origin_detective"],
+      blockedIfFlagsAny: ["detective_prologue_done"],
+    },
+    nodeIds: [
+      "scene_detective_case01_arrival",
+      "scene_detective_case01_investigation",
+      "scene_detective_case01_spirit_encounter",
+      "scene_detective_case01_knockout",
+    ],
+  },
+  {
+    id: "detective_agency_wakeup",
+    title: "Immersion Bath Wakeup (Detective)",
+    startNodeId: "scene_detective_agency_wakeup",
+    mode: "fullscreen",
+    packId: "detective_origin",
+    completionRoute: {
+      nextScenarioId: "sandbox_agency_briefing",
+      requiredFlagsAll: ["origin_detective"],
+      blockedIfFlagsAny: ["agency_briefing_complete"],
+    },
+    nodeIds: [
+      "scene_detective_agency_wakeup",
+      "scene_detective_agency_orientation",
+      "scene_detective_recruitment_pitch",
+    ],
+  },
 ];
 
 const journalistOriginProfile = originProfiles.find(
@@ -381,6 +431,13 @@ const journalistOriginProfile = originProfiles.find(
 );
 if (!journalistOriginProfile) {
   throw new Error("Journalist origin profile is missing from originProfiles");
+}
+
+const detectiveOriginProfile = originProfiles.find(
+  (profile) => profile.id === "detective",
+);
+if (!detectiveOriginProfile) {
+  throw new Error("Detective origin profile is missing from originProfiles");
 }
 
 const originBackstoryChoices: ChoiceBlueprint[] = originProfiles.map(
@@ -1684,6 +1741,243 @@ const nodes: NodeBlueprint[] = [
         type: "track_event",
         eventName: "journalist_wakeup_completed",
         tags: { route: "journalist_wakeup" },
+      },
+    ],
+    choices: [],
+  },
+  // ---- Detective Origin Bootstrap ----
+  {
+    id: "scene_origin_detective_bootstrap",
+    scenarioId: "origin_detective_bootstrap",
+    sourcePath: "40_GameViewer/Sandbox_KA/00_Entry/scene_backstory_select.md",
+    terminal: true,
+    bodyOverride: "Preparing investigation dossier...",
+    preconditions: [
+      {
+        type: "flag_equals",
+        key: "origin_detective",
+        value: false,
+      },
+    ],
+    onEnter: [
+      ...buildOriginChoiceEffects(detectiveOriginProfile),
+      {
+        type: "track_event",
+        eventName: "origin_bootstrap_applied",
+        tags: {
+          origin: "detective",
+          system_flow: "origin_bootstrap",
+        },
+      },
+    ],
+    choices: [],
+  },
+  // ---- Detective Origin Prologue ----
+  {
+    id: "scene_detective_case01_arrival",
+    scenarioId: "detective_case01_prologue",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_Detective/scene_detective_case01_arrival.md",
+    titleOverride: "Bankhaus J.A. Krebs",
+    bodyOverride:
+      "A grey morning. The Bankhaus sits behind its iron gates. Victoria Sterling waits by the door, a leather satchel pressed to her side.",
+    characterId: "assistant",
+    choices: [
+      {
+        id: "DETECTIVE_ARRIVAL_ENTER",
+        text: "Follow Sterling inside.",
+        nextNodeId: "scene_detective_case01_investigation",
+        effects: [
+          {
+            type: "track_event",
+            eventName: "detective_prologue_entered_bank",
+            tags: { route: "detective_prologue" },
+          },
+        ],
+      },
+      {
+        id: "DETECTIVE_ARRIVAL_INSPECT_EXTERIOR",
+        text: "Walk the perimeter first. Old habit.",
+        choiceType: "inquiry",
+        nextNodeId: "scene_detective_case01_investigation",
+        effects: [
+          {
+            type: "track_event",
+            eventName: "detective_prologue_inspected_exterior",
+            tags: { route: "detective_prologue" },
+          },
+          { type: "grant_xp", amount: 5 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_detective_case01_investigation",
+    scenarioId: "detective_case01_prologue",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_Detective/scene_detective_case01_investigation.md",
+    titleOverride: "Vault Corridor",
+    bodyOverride:
+      "The vault corridor stretches ahead. Victoria has already spread dust patterns across the tiles. A deposit box sits open — no forced entry.",
+    characterId: "assistant",
+    choices: [
+      {
+        id: "DETECTIVE_INVESTIGATE_LOCKBOX",
+        text: "Examine the lockbox mechanism up close.",
+        nextNodeId: "scene_detective_case01_spirit_encounter",
+        effects: [
+          {
+            type: "track_event",
+            eventName: "detective_prologue_examined_lockbox",
+            tags: { route: "detective_prologue" },
+          },
+          { type: "grant_xp", amount: 10 },
+        ],
+      },
+      {
+        id: "DETECTIVE_INVESTIGATE_CORRIDOR",
+        text: "Check the rest of the corridor before focusing.",
+        nextNodeId: "scene_detective_case01_spirit_encounter",
+        effects: [
+          {
+            type: "track_event",
+            eventName: "detective_prologue_checked_corridor",
+            tags: { route: "detective_prologue" },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_detective_case01_spirit_encounter",
+    scenarioId: "detective_case01_prologue",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_Detective/scene_detective_case01_spirit_encounter.md",
+    titleOverride: "Something Wrong",
+    bodyOverride:
+      "The air drops ten degrees. Victoria's hand freezes mid-notation. The gas lamps flicker — not a draught. A voice rises from inside the vault, a ledger being read backwards.",
+    choices: [
+      {
+        id: "DETECTIVE_SPIRIT_CONFRONT",
+        text: "Step towards the source.",
+        nextNodeId: "scene_detective_case01_knockout",
+        effects: [
+          {
+            type: "track_event",
+            eventName: "detective_prologue_confronted_spirit",
+            tags: { route: "detective_prologue" },
+          },
+        ],
+      },
+      {
+        id: "DETECTIVE_SPIRIT_SHIELD_VICTORIA",
+        text: "Pull Victoria behind you.",
+        nextNodeId: "scene_detective_case01_knockout",
+        effects: [
+          {
+            type: "change_relationship",
+            characterId: "assistant",
+            delta: 10,
+          },
+          {
+            type: "track_event",
+            eventName: "detective_prologue_shielded_victoria",
+            tags: { route: "detective_prologue" },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_detective_case01_knockout",
+    scenarioId: "detective_case01_prologue",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_Detective/scene_detective_case01_knockout.md",
+    titleOverride: "Blackout",
+    bodyOverride:
+      "Your training screams for an explanation. But your body is already moving backwards. The last thing you see is Victoria's face, illuminated by a light that has no source. Then the floor meets you.",
+    terminal: true,
+    onEnter: [
+      { type: "set_flag", key: "detective_prologue_done", value: true },
+      {
+        type: "track_event",
+        eventName: "detective_prologue_knockout",
+        tags: { route: "detective_prologue" },
+      },
+    ],
+    choices: [],
+  },
+  // ---- Detective Origin Wakeup ----
+  {
+    id: "scene_detective_agency_wakeup",
+    scenarioId: "detective_agency_wakeup",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_Detective/scene_detective_agency_wakeup.md",
+    titleOverride: "Immersion Bath",
+    bodyOverride:
+      "Steam. A ceramic edge under your fingers. Lotte Weber's voice cuts through the fog: 'Inspector. You are late, you are wet, and you are mine now.'",
+    characterId: "npc_weber_dispatcher",
+    choices: [
+      {
+        id: "DETECTIVE_WAKEUP_SURFACE",
+        text: "Grip the tub rim and sit up.",
+        nextNodeId: "scene_detective_agency_orientation",
+        effects: [
+          {
+            type: "track_event",
+            eventName: "detective_wakeup_surfaced",
+            tags: { route: "detective_wakeup" },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_detective_agency_orientation",
+    scenarioId: "detective_agency_wakeup",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_Detective/scene_detective_agency_orientation.md",
+    titleOverride: "Agency Corridor",
+    bodyOverride:
+      "Weber walks you down a corridor lined with locked doors. Every surface looks designed to be hosed down. 'You were an inspector. That is useful. Less useful: you have seen something you were not supposed to see.'",
+    characterId: "npc_weber_dispatcher",
+    choices: [
+      {
+        id: "DETECTIVE_ORIENTATION_ASK",
+        text: "Ask what the Agency wants from a detective.",
+        nextNodeId: "scene_detective_recruitment_pitch",
+      },
+      {
+        id: "DETECTIVE_ORIENTATION_DEMAND",
+        text: "Demand to know what happened in the vault.",
+        choiceType: "inquiry",
+        nextNodeId: "scene_detective_recruitment_pitch",
+        effects: [
+          {
+            type: "track_event",
+            eventName: "detective_wakeup_demanded_answers",
+            tags: { route: "detective_wakeup" },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_detective_recruitment_pitch",
+    scenarioId: "detective_agency_wakeup",
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_Detective/scene_detective_recruitment_pitch.md",
+    titleOverride: "Weber's Pitch",
+    bodyOverride:
+      "Weber drops a thin case file on the table. 'The bank was the beginning. Not the end. Welcome to the Grenzwanderer programme. Try not to die on the first day.'",
+    characterId: "npc_weber_dispatcher",
+    terminal: true,
+    onEnter: [
+      { type: "set_flag", key: "origin_detective_handoff_done", value: true },
+      {
+        type: "track_event",
+        eventName: "detective_wakeup_completed",
+        tags: { route: "detective_wakeup" },
       },
     ],
     choices: [],

@@ -44,7 +44,7 @@ const main = async (): Promise<void> => {
   const conn = await connectOperatorConnection(host, database, existingToken);
 
   try {
-    await conn.reducers.bootstrapAdminIdentity();
+    await conn.reducers.bootstrapAdminIdentity({});
     const identityHex = conn.identity?.toHexString() ?? "unknown";
     console.log(
       `Bootstrapped admin identity ${identityHex} for ${host}/${database}.`,

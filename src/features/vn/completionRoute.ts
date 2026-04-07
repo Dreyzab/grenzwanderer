@@ -1,4 +1,4 @@
-import type { VnScenario } from "./types";
+import type { VnScenario, VnScenarioCompletionRoute } from "./types";
 
 interface SessionLike {
   scenarioId: string;
@@ -27,33 +27,46 @@ export const resolveCompletionRoute = (
   flags: Record<string, boolean>,
   sessions: SessionLike[],
 ): CompletionRouteResolution | null => {
-  if (!scenario?.completionRoute) {
+  const routes: VnScenarioCompletionRoute[] = [];
+  if (scenario?.completionRoutes) {
+    routes.push(...scenario.completionRoutes);
+  }
+  if (scenario?.completionRoute) {
+    routes.push(scenario.completionRoute);
+  }
+
+  if (routes.length === 0) {
     return null;
   }
 
-  const { nextScenarioId, requiredFlagsAll, blockedIfFlagsAny } =
-    scenario.completionRoute;
+  for (const route of routes) {
+    const { nextScenarioId, requiredFlagsAll, blockedIfFlagsAny } = route;
 
-  const requirementsMet = (requiredFlagsAll ?? []).every(
-    (flag) => flags[flag] === true,
-  );
-  if (!requirementsMet) {
-    return null;
+    const requirementsMet = (requiredFlagsAll ?? []).every(
+      (flag: string) => flags[flag] === true,
+    );
+    if (!requirementsMet) {
+      continue;
+    }
+
+    const blocked = (blockedIfFlagsAny ?? []).some(
+      (flag: string) => flags[flag] === true,
+    );
+    if (blocked) {
+      continue;
+    }
+
+    const existingSession =
+      sessions.find((session) => session.scenarioId === nextScenarioId) ?? null;
+
+    return {
+      nextScenarioId,
+      hasExistingSession: existingSession !== null,
+      isExistingSessionCompleted: hasOptionalValue(
+        existingSession?.completedAt,
+      ),
+    };
   }
 
-  const blocked = (blockedIfFlagsAny ?? []).some(
-    (flag) => flags[flag] === true,
-  );
-  if (blocked) {
-    return null;
-  }
-
-  const existingSession =
-    sessions.find((session) => session.scenarioId === nextScenarioId) ?? null;
-
-  return {
-    nextScenarioId,
-    hasExistingSession: existingSession !== null,
-    isExistingSessionCompleted: hasOptionalValue(existingSession?.completedAt),
-  };
+  return null;
 };

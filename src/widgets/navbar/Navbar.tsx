@@ -15,8 +15,9 @@ type TabId =
   | "character"
   | "map"
   | "mind_palace"
-  | "dev"
-  | "battle";
+  | "command"
+  | "battle"
+  | "dev";
 
 type TabOption<TTab extends string> = {
   id: TTab;
@@ -66,10 +67,11 @@ export const Navbar = <TTab extends string>({
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors duration-200 border-none bg-transparent shadow-none hover:bg-transparent ${isActive
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors duration-200 border-none bg-transparent shadow-none hover:bg-transparent ${
+              isActive
                 ? "text-amber-500"
                 : "text-stone-500 hover:text-stone-300"
-              }`}
+            }`}
             type="button"
           >
             <div className="relative">

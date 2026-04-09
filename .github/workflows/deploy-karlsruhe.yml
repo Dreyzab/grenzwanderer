@@ -46,7 +46,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: karlsruhe-scene-gen
-          image: europe-west3-docker.pkg.dev/${PROJECT_ID}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }}
+          image: europe-west3-docker.pkg.dev/${{ env.PROJECT_ID }}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }}
           region: europe-west3
           project_id: ${{ env.PROJECT_ID }}
           flags: --allow-unauthenticated

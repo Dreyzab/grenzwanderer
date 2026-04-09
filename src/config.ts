@@ -1,6 +1,8 @@
 import {
   GENERATED_KARLSRUHE_ENTRY_TOKEN,
   GENERATED_RELEASE_PROFILE,
+  GENERATED_SPACETIMEDB_HOST,
+  GENERATED_SPACETIMEDB_DB_NAME,
 } from "./generated/release-config";
 import type { ReleaseProfile } from "./features/release/types";
 
@@ -18,10 +20,16 @@ const parseReleaseProfile = (
     : fallback;
 
 export const SPACETIMEDB_HOST =
-  import.meta.env.VITE_SPACETIMEDB_HOST ?? "ws://localhost:3000";
+  import.meta.env.VITE_SPACETIMEDB_HOST ??
+  (GENERATED_SPACETIMEDB_HOST.length > 0
+    ? GENERATED_SPACETIMEDB_HOST
+    : "ws://localhost:3000");
 
 export const SPACETIMEDB_DB_NAME =
-  import.meta.env.VITE_SPACETIMEDB_DB_NAME ?? "grezwandererdata";
+  import.meta.env.VITE_SPACETIMEDB_DB_NAME ??
+  (GENERATED_SPACETIMEDB_DB_NAME.length > 0
+    ? GENERATED_SPACETIMEDB_DB_NAME
+    : "grezwandererdata");
 
 export const RELEASE_PROFILE: ReleaseProfile = parseReleaseProfile(
   import.meta.env.VITE_RELEASE_PROFILE,

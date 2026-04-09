@@ -2,4 +2,6 @@
 // DO NOT COMMIT REAL EVENT TOKENS.
 
 export const GENERATED_RELEASE_PROFILE = "karlsruhe_event";
-export const GENERATED_KARLSRUHE_ENTRY_TOKEN = "";
+export const GENERATED_KARLSRUHE_ENTRY_TOKEN = "karlsruhe-start-2026";
+export const GENERATED_SPACETIMEDB_HOST = "https://maincloud.spacetimedb.com";
+export const GENERATED_SPACETIMEDB_DB_NAME = "grezwandererdata-karlsruhe";

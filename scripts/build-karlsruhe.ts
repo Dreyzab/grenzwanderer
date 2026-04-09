@@ -5,6 +5,8 @@ const env = {
   CONTENT_RELEASE_PROFILE: "karlsruhe_event",
   RELEASE_PROFILE: "karlsruhe_event",
   VITE_RELEASE_PROFILE: "karlsruhe_event",
+  VITE_SPACETIMEDB_HOST:
+    process.env.VITE_SPACETIMEDB_HOST ?? "https://maincloud.spacetimedb.com",
   VITE_SPACETIMEDB_DB_NAME:
     process.env.VITE_SPACETIMEDB_DB_NAME ?? "grezwandererdata-karlsruhe",
   VITE_SCENE_GEN_BASE_URL: process.env.VITE_SCENE_GEN_BASE_URL ?? "/api",

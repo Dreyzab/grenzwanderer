@@ -22,7 +22,7 @@ jobs:
       - name: Verify GCP Secrets
         run: |
           if [ -z "${{ secrets.GCP_CREDENTIALS }}" ]; then
-            echo "::error::GCP_CREDENTIALS secret is empty! Ensure it is set in Settings > Secrets and variables > Actions"
+            echo "::error::GCP_CREDENTIALS secret is empty!"
             exit 1
           fi
 
@@ -81,10 +81,8 @@ jobs:
           VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
           VITE_KARLSRUHE_ENTRY_TOKEN: ${{ secrets.KARLSRUHE_ENTRY_TOKEN }}
 
-      - name: Deploy to Firebase
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.GCP_CREDENTIALS }}
-          projectId: ${{ env.PROJECT_ID }}
-          target: karlsruhe-event
+      - name: Deploy to Firebase (Manual)
+        run: |
+          echo '${{ secrets.GCP_CREDENTIALS }}' > gcp-key.json
+          GOOGLE_APPLICATION_CREDENTIALS=gcp-key.json npx firebase-tools deploy --only hosting:karlsruhe-event --project ${PROJECT_ID} --non-interactive
+          rm gcp-key.json

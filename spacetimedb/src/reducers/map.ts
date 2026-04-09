@@ -57,6 +57,11 @@ type AttemptLocation = {
   lng: number;
 };
 
+type MapEvaluationCache = {
+  currentCareerRankOrder?: number;
+  careerRankOrderByRankId: Map<string, number>;
+};
+
 const normalizeAttemptCoordinate = (value: unknown): number | undefined =>
   typeof value === "number" && Number.isFinite(value) ? value : undefined;
 
@@ -123,10 +128,39 @@ const hasGeofenceCondition = (condition: MapCondition): boolean => {
   return false;
 };
 
+const getCareerRankOrderCached = (
+  ctx: any,
+  rankId: string,
+  cache: MapEvaluationCache,
+): number => {
+  const cached = cache.careerRankOrderByRankId.get(rankId);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const resolved = getCareerRankOrder(ctx, rankId);
+  cache.careerRankOrderByRankId.set(rankId, resolved);
+  return resolved;
+};
+
+const getCurrentPlayerCareerRankOrderCached = (
+  ctx: any,
+  cache: MapEvaluationCache,
+): number => {
+  if (cache.currentCareerRankOrder !== undefined) {
+    return cache.currentCareerRankOrder;
+  }
+  const rankId = ensureAgencyCareerRow(ctx).rankId;
+  const resolved = getCareerRankOrderCached(ctx, rankId, cache);
+  cache.currentCareerRankOrder = resolved;
+  return resolved;
+};
+
 const evaluateQrCodeCondition = (
   ctx: any,
   condition: MapCondition,
   attemptedLocation: AttemptLocation | null,
+  cache: MapEvaluationCache,
 ): boolean => {
   if (condition.type === "flag_is") {
     return getFlag(ctx, condition.key) === condition.value;
@@ -165,8 +199,8 @@ const evaluateQrCodeCondition = (
   }
   if (condition.type === "career_rank_gte") {
     return (
-      getCareerRankOrder(ctx, ensureAgencyCareerRow(ctx).rankId) >=
-      getCareerRankOrder(ctx, condition.rankId)
+      getCurrentPlayerCareerRankOrderCached(ctx, cache) >=
+      getCareerRankOrderCached(ctx, condition.rankId, cache)
     );
   }
   if (condition.type === "unlock_group_has") {
@@ -178,20 +212,16 @@ const evaluateQrCodeCondition = (
   }
   if (condition.type === "logic_and") {
     return condition.conditions.every((entry) =>
-      evaluateQrCodeCondition(ctx, entry, attemptedLocation),
+      evaluateQrCodeCondition(ctx, entry, attemptedLocation, cache),
     );
   }
   if (condition.type === "logic_or") {
     return condition.conditions.some((entry) =>
-      evaluateQrCodeCondition(ctx, entry, attemptedLocation),
+      evaluateQrCodeCondition(ctx, entry, attemptedLocation, cache),
     );
   }
   if (condition.type === "logic_not") {
-    return !evaluateQrCodeCondition(
-      ctx,
-      condition.condition,
-      attemptedLocation,
-    );
+    return !evaluateQrCodeCondition(ctx, condition.condition, attemptedLocation, cache);
   }
   if (condition.type === "geofence_within") {
     if (!attemptedLocation) {
@@ -274,6 +304,7 @@ const evaluateMapCondition = (
   ctx: any,
   point: MapPoint,
   condition: MapCondition,
+  cache: MapEvaluationCache,
 ): boolean => {
   if (condition.type === "flag_is") {
     return getFlag(ctx, condition.key) === condition.value;
@@ -312,8 +343,8 @@ const evaluateMapCondition = (
   }
   if (condition.type === "career_rank_gte") {
     return (
-      getCareerRankOrder(ctx, ensureAgencyCareerRow(ctx).rankId) >=
-      getCareerRankOrder(ctx, condition.rankId)
+      getCurrentPlayerCareerRankOrderCached(ctx, cache) >=
+      getCareerRankOrderCached(ctx, condition.rankId, cache)
     );
   }
   if (condition.type === "unlock_group_has") {
@@ -325,16 +356,16 @@ const evaluateMapCondition = (
   }
   if (condition.type === "logic_and") {
     return condition.conditions.every((entry) =>
-      evaluateMapCondition(ctx, point, entry),
+      evaluateMapCondition(ctx, point, entry, cache),
     );
   }
   if (condition.type === "logic_or") {
     return condition.conditions.some((entry) =>
-      evaluateMapCondition(ctx, point, entry),
+      evaluateMapCondition(ctx, point, entry, cache),
     );
   }
   if (condition.type === "logic_not") {
-    return !evaluateMapCondition(ctx, point, condition.condition);
+    return !evaluateMapCondition(ctx, point, condition.condition, cache);
   }
 
   return false;
@@ -500,6 +531,7 @@ const executeAction = (
     spawnMapEventInternal(ctx, action.templateId, {
       ttlMinutes: action.ttlMinutes,
       sourceLocationId: point.locationId,
+      skipCleanup: true,
     });
     return null;
   }
@@ -528,6 +560,46 @@ const normalizeMapActionError = (error: unknown): SenderError => {
     return error;
   }
   return new SenderError("map_interact_failed");
+};
+
+const iterateRedeemRowsByCodeForSender = (
+  ctx: any,
+  codeId: string,
+): Iterable<any> => {
+  const senderHex = ctx.sender.toHexString();
+  return [...ctx.db.playerRedeemedCode.player_redeemed_code_code_id.filter(codeId)].filter(
+    (row) => row.playerId.toHexString() === senderHex,
+  );
+};
+
+const hasPriorSuccessfulRedeem = (ctx: any, codeId: string): boolean => {
+  for (const row of iterateRedeemRowsByCodeForSender(ctx, codeId)) {
+    if (row.result === "applied" || row.result === "queued_after_briefing") {
+      return true;
+    }
+  }
+  return false;
+};
+
+const hasRecentRejectedRedeem = (
+  ctx: any,
+  codeId: string,
+  nowMicros: bigint,
+): boolean => {
+  for (const row of iterateRedeemRowsByCodeForSender(ctx, codeId)) {
+    if (
+      row.result !== "blocked_flags" &&
+      row.result !== "location_required" &&
+      row.result !== "outside_geofence"
+    ) {
+      continue;
+    }
+
+    if (timestampMicros(row.redeemedAt) + MAP_CODE_RETRY_COOLDOWN_MICROS > nowMicros) {
+      return true;
+    }
+  }
+  return false;
 };
 
 export const map_interact = spacetimedb.reducer(
@@ -593,8 +665,11 @@ export const map_interact = spacetimedb.reducer(
       return;
     }
 
+    const mapEvaluationCache: MapEvaluationCache = {
+      careerRankOrderByRankId: new Map<string, number>(),
+    };
     const conditionsMet = (binding.conditions ?? []).every((condition) =>
-      evaluateMapCondition(ctx, runtimePoint, condition),
+      evaluateMapCondition(ctx, runtimePoint, condition, mapEvaluationCache),
     );
     if (!conditionsMet) {
       rejectMapInteraction(ctx, telemetryBase, "conditions_failed");
@@ -673,12 +748,7 @@ export const redeem_map_code = spacetimedb.reducer(
     }
 
     const redemptionId = createRedeemedCodeKey(ctx.sender, requestId);
-    const priorSuccess = [...ctx.db.playerRedeemedCode.iter()].find(
-      (row) =>
-        row.playerId.toHexString() === ctx.sender.toHexString() &&
-        row.codeId === entry.codeId &&
-        (row.result === "applied" || row.result === "queued_after_briefing"),
-    );
+    const priorSuccess = hasPriorSuccessfulRedeem(ctx, entry.codeId);
 
     if (entry.redeemPolicy === "once_per_player" && priorSuccess) {
       insertRedeemAttempt(
@@ -699,15 +769,10 @@ export const redeem_map_code = spacetimedb.reducer(
       throw new SenderError("code_already_redeemed");
     }
 
-    const priorRejectedAttempt = [...ctx.db.playerRedeemedCode.iter()].find(
-      (row) =>
-        row.playerId.toHexString() === ctx.sender.toHexString() &&
-        row.codeId === entry.codeId &&
-        (row.result === "blocked_flags" ||
-          row.result === "location_required" ||
-          row.result === "outside_geofence") &&
-        timestampMicros(row.redeemedAt) + MAP_CODE_RETRY_COOLDOWN_MICROS >
-          ctx.timestamp.microsSinceUnixEpoch,
+    const priorRejectedAttempt = hasRecentRejectedRedeem(
+      ctx,
+      entry.codeId,
+      ctx.timestamp.microsSinceUnixEpoch,
     );
 
     if (priorRejectedAttempt) {
@@ -755,8 +820,12 @@ export const redeem_map_code = spacetimedb.reducer(
       throw new SenderError("code_not_available");
     }
 
-    const geofenceRequired = (entry.conditions ?? []).some((condition) =>
-      hasGeofenceCondition(condition),
+    const conditionChecks = (entry.conditions ?? []).map((condition) => ({
+      condition,
+      includesGeofence: hasGeofenceCondition(condition),
+    }));
+    const geofenceRequired = conditionChecks.some(
+      (check) => check.includesGeofence,
     );
     if (geofenceRequired && !attemptedLocation) {
       insertRedeemAttempt(
@@ -777,14 +846,25 @@ export const redeem_map_code = spacetimedb.reducer(
       throw new SenderError("code_location_required");
     }
 
-    const geofenceFailed = (entry.conditions ?? []).some(
-      (condition) =>
-        hasGeofenceCondition(condition) &&
-        !evaluateQrCodeCondition(ctx, condition, attemptedLocation),
-    );
-    const conditionsMet = (entry.conditions ?? []).every((condition) =>
-      evaluateQrCodeCondition(ctx, condition, attemptedLocation),
-    );
+    const evaluationCache: MapEvaluationCache = {
+      careerRankOrderByRankId: new Map<string, number>(),
+    };
+    let geofenceFailed = false;
+    let conditionsMet = true;
+    for (const check of conditionChecks) {
+      const conditionMet = evaluateQrCodeCondition(
+        ctx,
+        check.condition,
+        attemptedLocation,
+        evaluationCache,
+      );
+      if (!conditionMet) {
+        conditionsMet = false;
+        if (check.includesGeofence) {
+          geofenceFailed = true;
+        }
+      }
+    }
     if (!conditionsMet) {
       const rejectionResult = geofenceFailed
         ? "outside_geofence"
@@ -821,6 +901,7 @@ export const redeem_map_code = spacetimedb.reducer(
           sourceLocationId: "loc_agency",
           snapshot,
           snapshotChecksum: activeVersion.checksum,
+          skipCleanup: true,
         });
         continue;
       }

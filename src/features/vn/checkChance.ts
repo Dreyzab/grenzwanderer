@@ -1,4 +1,5 @@
 import type { VnDiceMode, VnSnapshot } from "./types";
+import { resolveKarmaDifficultyDelta } from "../../shared/game/narrativeResources";
 
 export type SkillCheckChanceTone = "confident" | "risky" | "critical";
 
@@ -6,6 +7,14 @@ export interface SkillCheckChanceInput {
   diceMode: VnDiceMode;
   difficulty: number;
   voiceLevel: number;
+}
+
+export interface EffectiveDifficultyInput {
+  baseDifficulty: number;
+  karmaSensitive?: boolean;
+  karma: number;
+  fortuneMod: number;
+  fortuneSpend?: number;
 }
 
 export const resolveSkillCheckDiceMode = (
@@ -34,6 +43,21 @@ export const calculateSkillCheckSuccessPercent = ({
   const successfulRolls = sides - threshold + 1;
   return Math.round((successfulRolls / sides) * 100);
 };
+
+export const resolveSkillCheckEffectiveDifficulty = ({
+  baseDifficulty,
+  karmaSensitive = false,
+  karma,
+  fortuneMod,
+  fortuneSpend = 0,
+}: EffectiveDifficultyInput): number =>
+  Math.max(
+    1,
+    Math.trunc(baseDifficulty) +
+      (karmaSensitive ? resolveKarmaDifficultyDelta(karma) : 0) +
+      Math.trunc(fortuneMod) -
+      Math.max(0, Math.min(2, Math.trunc(fortuneSpend))) * 2,
+  );
 
 export const getSkillCheckChanceTone = (
   percent: number,

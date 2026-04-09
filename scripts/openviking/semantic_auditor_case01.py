@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 """
-Семантический аудит сцен Case 01 (Narrative) через OpenViking.
+Semantic Case01 narrative audit via OpenViking HTTP API.
 
-Индексация (вариант A из плана): лор Obsidian входит в профиль `data`.
-Перед прогоном убедитесь, что сервер OpenViking запущен и индекс обновлён:
+Recommended preparation:
 
   bun run openviking:start
-  bun run openviking:index:data
+  bun run openviking:index:runtime
+  bun run openviking:index:case01
+  bun run openviking:index:design
+  bun run openviking:index:roadmap
 
-Поиск выполняется через HTTP API (`SyncHTTPClient.find`), чтобы запросы могли
-содержать пробелы (в отличие от некоторых сборок CLI `ov find` на Windows).
-
-LLM-шаг (сравнение сцены с найденным контекстом): задаётся переменной
-OPENAI_API_KEY. Модель — OPENAI_AUDIT_MODEL (по умолчанию gpt-4o-mini).
-С флагом --find-only отчёт содержит только результаты find без вызова OpenAI.
+Use --find-only to skip the OpenAI comparison step. OPENAI_API_KEY is required
+only when the LLM step is enabled.
 """
 
 from __future__ import annotations
@@ -32,7 +30,6 @@ from typing import Any, Iterable
 
 
 def _repo_root_from_script() -> Path:
-    # .../Grenzwanderer/scripts/openviking/thisfile.py -> repo root (parent of Grenzwanderer)
     return Path(__file__).resolve().parent.parent.parent.parent
 
 
@@ -55,11 +52,11 @@ def _scene_excerpt_for_query(body: str, max_len: int = 600) -> str:
     return body[:max_len] if body else "Case 01 narrative scene"
 
 
-def _normalize_rel_path(p: Path, project: Path) -> str:
+def _normalize_rel_path(path: Path, project: Path) -> str:
     try:
-        return str(p.resolve().relative_to(project.resolve()))
+        return str(path.resolve().relative_to(project.resolve()))
     except ValueError:
-        return str(p)
+        return str(path)
 
 
 def collect_scene_files(
@@ -72,49 +69,92 @@ def collect_scene_files(
             "node_case1_*.md"
         )
     )
-    sd_root = project / "obsidian" / "StoryDetective" / "40_GameViewer" / "Case01"
-    if storydetective_plot_only:
-        sd = sorted((sd_root / "Plot").rglob("*.md"))
-    else:
-        sd = sorted(sd_root.rglob("*.md"))
+    storydetective_root = (
+        project / "obsidian" / "StoryDetective" / "40_GameViewer" / "Case01"
+    )
+    storydetective = (
+        sorted((storydetective_root / "Plot").rglob("*.md"))
+        if storydetective_plot_only
+        else sorted(storydetective_root.rglob("*.md"))
+    )
     seen: set[Path] = set()
     out: list[Path] = []
-    for p in detectiv + sd:
-        rp = p.resolve()
-        if rp in seen:
+    for entry in detectiv + storydetective:
+        resolved = entry.resolve()
+        if resolved in seen or not entry.is_file():
             continue
-        seen.add(rp)
-        if p.is_file():
-            out.append(p)
+        seen.add(resolved)
+        out.append(entry)
     return out
 
 
-def contexts_to_payload(result: Any) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
-    for ctx in result:
-        rows.append(
-            {
-                "uri": getattr(ctx, "uri", "") or "",
-                "score": getattr(ctx, "score", 0.0),
-                "abstract": getattr(ctx, "abstract", "") or "",
-                "overview": getattr(ctx, "overview", None) or "",
-            }
-        )
-    return rows
-
-
 def filter_out_self(sources: list[dict[str, Any]], scene_rel: str) -> list[dict[str, Any]]:
-    """Исключить чанки, явно относящиеся к тому же файлу (по суффиксу пути)."""
     key = scene_rel.replace("\\", "/").lower()
-    out: list[dict[str, Any]] = []
-    for s in sources:
-        uri = (s.get("uri") or "").lower()
-        if key and uri.endswith(key.lower()):
+    filtered: list[dict[str, Any]] = []
+    for source in sources:
+        uri = str(source.get("uri") or "").replace("\\", "/").lower()
+        if key and (uri.endswith(key) or key in uri):
             continue
-        if key and key in uri.replace("\\", "/"):
+        filtered.append(source)
+    return filtered or sources
+
+
+def openviking_request(
+    base_url: str,
+    endpoint: str,
+    *,
+    payload: dict[str, Any] | None = None,
+    timeout_s: float = 45.0,
+) -> dict[str, Any]:
+    data = None if payload is None else json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        f"{base_url.rstrip('/')}{endpoint}",
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST" if payload is not None else "GET",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout_s) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        body = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"OpenViking HTTP {error.code}: {body}") from error
+
+
+def openviking_find(
+    base_url: str,
+    query: str,
+    *,
+    limit: int,
+    timeout_s: float,
+) -> list[dict[str, Any]]:
+    response = openviking_request(
+        base_url,
+        "/api/v1/search/find",
+        payload={"query": query, "limit": limit},
+        timeout_s=timeout_s,
+    )
+    result = response.get("result")
+    if not isinstance(result, dict):
+        return []
+
+    rows: list[dict[str, Any]] = []
+    for bucket_name in ("resources", "skills", "memories"):
+        bucket = result.get(bucket_name) or []
+        if not isinstance(bucket, list):
             continue
-        out.append(s)
-    return out if out else sources
+        for item in bucket:
+            if not isinstance(item, dict):
+                continue
+            rows.append(
+                {
+                    "uri": item.get("uri", "") or "",
+                    "score": item.get("score", 0.0),
+                    "abstract": item.get("abstract", "") or "",
+                    "overview": item.get("overview", None) or "",
+                }
+            )
+    return rows
 
 
 def openai_chat(
@@ -124,16 +164,15 @@ def openai_chat(
     model: str,
     timeout_s: float = 120.0,
 ) -> str:
-    url = "https://api.openai.com/v1/chat/completions"
-    payload = {
-        "model": model,
-        "messages": messages,
-        "temperature": 0.2,
-    }
-    data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        url,
-        data=data,
+    request = urllib.request.Request(
+        "https://api.openai.com/v1/chat/completions",
+        data=json.dumps(
+            {
+                "model": model,
+                "messages": messages,
+                "temperature": 0.2,
+            }
+        ).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",
@@ -141,16 +180,17 @@ def openai_chat(
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=timeout_s) as resp:
-            raw = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"OpenAI HTTP {e.code}: {body}") from e
+        with urllib.request.urlopen(request, timeout=timeout_s) as response:
+            raw = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        body = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"OpenAI HTTP {error.code}: {body}") from error
+
     choices = raw.get("choices") or []
     if not choices:
-        raise RuntimeError(f"OpenAI: пустой ответ: {raw!r}")
-    msg = choices[0].get("message") or {}
-    return (msg.get("content") or "").strip()
+        raise RuntimeError(f"OpenAI returned no choices: {raw!r}")
+    message = choices[0].get("message") or {}
+    return str(message.get("content") or "").strip()
 
 
 @dataclass
@@ -164,11 +204,13 @@ class AuditConfig:
     out_path: Path
     openai_model: str
     http_timeout_s: float
+    base_url: str
 
 
 def run_audit(cfg: AuditConfig) -> int:
     scenes = collect_scene_files(
-        cfg.project_dir, storydetective_plot_only=cfg.storydetective_plot_only
+        cfg.project_dir,
+        storydetective_plot_only=cfg.storydetective_plot_only,
     )
     if cfg.max_files is not None:
         scenes = scenes[: cfg.max_files]
@@ -176,169 +218,159 @@ def run_audit(cfg: AuditConfig) -> int:
     api_key = os.environ.get("OPENAI_API_KEY", "").strip()
     if not cfg.dry_run and not cfg.find_only and not api_key:
         print(
-            "OPENAI_API_KEY не задан — включён режим только find (как --find-only).",
+            "OPENAI_API_KEY is not set; switching to find-only mode.",
             file=sys.stderr,
         )
         cfg.find_only = True
 
-    client: Any = None
     if not cfg.dry_run:
         try:
-            from openviking_cli.client.sync_http import SyncHTTPClient
-        except ImportError:
+            openviking_request(cfg.base_url, "/health", timeout_s=cfg.http_timeout_s)
+        except Exception as error:
             print(
-                "Нужен пакет openviking_cli (запускайте через Python из ov_venv), например:\n"
-                "  ..\\..\\..\\ov_venv\\Scripts\\python.exe scripts/openviking/semantic_auditor_case01.py",
+                f"OpenViking health check failed for {cfg.base_url}: {error}",
                 file=sys.stderr,
             )
             return 2
-        client = SyncHTTPClient(timeout=cfg.http_timeout_s)
-        client.initialize()
-    try:
-        lines: list[str] = [
-            "# Семантический аудит Case 01",
-            "",
-            f"- Сгенерировано: {datetime.now(timezone.utc).isoformat()}",
-            f"- Профиль индексации лора: `data` (`bun run openviking:index:data`).",
-            f"- Файлов сцен: {len(scenes)}",
-            f"- find node_limit: {cfg.node_limit}",
-            f"- LLM: {'нет' if cfg.find_only else cfg.openai_model}",
-            "",
+
+    lines: list[str] = [
+        "# Semantic Case01 Audit",
+        "",
+        f"- generated_at: {datetime.now(timezone.utc).isoformat()}",
+        f"- openviking_base_url: `{cfg.base_url}`",
+        "- recommended_index_profiles: `runtime`, `case01`, `design`, `roadmap`",
+        f"- scene_files: {len(scenes)}",
+        f"- find_node_limit: {cfg.node_limit}",
+        f"- llm: {'disabled' if cfg.find_only else cfg.openai_model}",
+        "",
+    ]
+
+    for scene_path in scenes:
+        rel = _normalize_rel_path(scene_path, cfg.project_dir)
+        lines.append("---")
+        lines.append(f"## `{rel}`")
+        lines.append("")
+        try:
+            text = scene_path.read_text(encoding="utf-8-sig")
+        except OSError as error:
+            lines.append(f"_read_error_: {error}")
+            lines.append("")
+            continue
+
+        excerpt_query = _scene_excerpt_for_query(text)
+        queries = [
+            excerpt_query,
+            "Freiburg Case01 canon contradictions leads bureau finale",
+            "Lotte Weber Lotte Fischer Fritz Muller Fritz Mueller",
         ]
 
-        for path in scenes:
-            rel = _normalize_rel_path(path, cfg.project_dir)
-            lines.append("---")
-            lines.append(f"## `{rel}`")
+        if cfg.dry_run:
+            lines.append(f"_dry_run_queries_: {queries!r}")
             lines.append("")
+            continue
+
+        merged_sources: list[dict[str, Any]] = []
+        for query in queries:
             try:
-                text = path.read_text(encoding="utf-8-sig")
-            except OSError as e:
-                lines.append(f"_Ошибка чтения_: {e}")
-                lines.append("")
-                continue
-
-            q1 = _scene_excerpt_for_query(text)
-            queries = [
-                q1,
-                "противоречия канона Freiburg детектив улики персонажи",
-            ]
-
-            if cfg.dry_run:
-                lines.append(f"_dry-run_: запросы find: {queries!r}")
-                lines.append("")
-                continue
-
-            assert client is not None
-            all_sources: list[dict[str, Any]] = []
-            for q in queries:
-                try:
-                    fr = client.find(q, node_limit=max(3, cfg.node_limit // 2))
-                    all_sources.extend(contexts_to_payload(fr))
-                except Exception as e:
-                    lines.append(f"_Ошибка OpenViking find_: `{e}`")
-                    lines.append("")
-
-            # дедуп по uri
-            by_uri: dict[str, dict[str, Any]] = {}
-            for s in all_sources:
-                u = s.get("uri") or ""
-                if u and u not in by_uri:
-                    by_uri[u] = s
-                elif not u:
-                    by_uri[f"__nouri_{len(by_uri)}"] = s
-            merged = list(by_uri.values())
-            merged.sort(key=lambda x: float(x.get("score") or 0.0), reverse=True)
-            merged = merged[: cfg.node_limit]
-            merged = filter_out_self(merged, rel)
-
-            lines.append("### Контекст (OpenViking find)")
-            lines.append("")
-            lines.append("```json")
-            lines.append(json.dumps(merged, ensure_ascii=False, indent=2))
-            lines.append("```")
-            lines.append("")
-
-            if cfg.find_only:
-                lines.append("_LLM пропущен (--find-only или нет ключа)._")
-                lines.append("")
-                continue
-
-            prompt_user = (
-                "Ты редактор лора детективной игры. Ниже текст ОДНОЙ сцены и фрагменты из векторного "
-                "поиска по остальному лору (uri, abstract/overview).\n\n"
-                "Задача: есть ли в сцене противоречия с историей мира, фактами, уликами или другими "
-                "сценами, судя по приведённому контексту? Явные дыры или несостыковки?\n\n"
-                "Ответ структурируй по-русски:\n"
-                "1) Краткий вердикт (есть/нет существенных противоречий).\n"
-                "2) Список пунктов с указанием URI источника из контекста, если применимо.\n"
-                "3) Если данных мало — напиши «недостаточно контекста».\n\n"
-                f"### Сцена ({rel})\n\n{text[:12000]}\n\n"
-                f"### Контекст find (JSON)\n\n{json.dumps(merged, ensure_ascii=False)}"
-            )
-            try:
-                answer = openai_chat(
-                    [
-                        {
-                            "role": "system",
-                            "content": "Ты помощник по согласованности нарратива. Будь конкретен, без выдумывания фактов вне контекста.",
-                        },
-                        {"role": "user", "content": prompt_user},
-                    ],
-                    api_key=api_key,
-                    model=cfg.openai_model,
+                merged_sources.extend(
+                    openviking_find(
+                        cfg.base_url,
+                        query,
+                        limit=max(3, cfg.node_limit // 2),
+                        timeout_s=cfg.http_timeout_s,
+                    )
                 )
-                lines.append("### Вывод модели")
-                lines.append("")
-                lines.append(answer)
-                lines.append("")
-            except Exception as e:
-                lines.append(f"_Ошибка OpenAI_: `{e}`")
+            except Exception as error:
+                lines.append(f"_openviking_find_error_: `{error}`")
                 lines.append("")
 
-        cfg.out_path.parent.mkdir(parents=True, exist_ok=True)
-        cfg.out_path.write_text("\n".join(lines), encoding="utf-8")
-        msg = f"Отчёт записан: {cfg.out_path}"
+        deduped_by_uri: dict[str, dict[str, Any]] = {}
+        for source in merged_sources:
+            uri = str(source.get("uri") or "")
+            key = uri if uri else f"__nouri_{len(deduped_by_uri)}"
+            if key not in deduped_by_uri:
+                deduped_by_uri[key] = source
+
+        merged = list(deduped_by_uri.values())
+        merged.sort(key=lambda item: float(item.get("score") or 0.0), reverse=True)
+        merged = filter_out_self(merged[: cfg.node_limit], rel)
+
+        lines.append("### OpenViking Context")
+        lines.append("")
+        lines.append("```json")
+        lines.append(json.dumps(merged, ensure_ascii=False, indent=2))
+        lines.append("```")
+        lines.append("")
+
+        if cfg.find_only:
+            lines.append("_llm_step_skipped_")
+            lines.append("")
+            continue
+
+        prompt = (
+            "You are auditing narrative consistency for a detective game.\n\n"
+            "Task:\n"
+            "1. Say whether this scene has a meaningful contradiction with the provided canon context.\n"
+            "2. List the contradictions or holes with concrete URIs when possible.\n"
+            "3. If context is insufficient, say so explicitly.\n\n"
+            f"### Scene ({rel})\n\n{text[:12000]}\n\n"
+            f"### OpenViking context\n\n{json.dumps(merged, ensure_ascii=False)}"
+        )
+
         try:
-            print(msg)
-        except UnicodeEncodeError:
-            print(f"Report written: {cfg.out_path}")
-    finally:
-        if client is not None:
-            client.close()
+            answer = openai_chat(
+                [
+                    {
+                        "role": "system",
+                        "content": "Be concrete. Do not invent facts outside the provided context.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                api_key=api_key,
+                model=cfg.openai_model,
+            )
+            lines.append("### Model Verdict")
+            lines.append("")
+            lines.append(answer)
+            lines.append("")
+        except Exception as error:
+            lines.append(f"_openai_error_: `{error}`")
+            lines.append("")
+
+    cfg.out_path.parent.mkdir(parents=True, exist_ok=True)
+    cfg.out_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"Report written: {cfg.out_path}")
     return 0
 
 
 def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Семантический аудит Case 01 через OpenViking + OpenAI.")
-    p.add_argument(
+    parser = argparse.ArgumentParser(
+        description="Semantic Case01 audit via OpenViking HTTP + optional OpenAI review."
+    )
+    parser.add_argument(
+        "--base-url",
+        default="http://127.0.0.1:1933",
+        help="Base URL for the OpenViking HTTP API.",
+    )
+    parser.add_argument(
         "--project-dir",
         type=Path,
         default=None,
-        help="Корень Grenzwanderer (по умолчанию вычисляется из расположения скрипта).",
+        help="Grenzwanderer project directory.",
     )
-    p.add_argument("--node-limit", type=int, default=12, help="Лимит чанков find на сцену.")
-    p.add_argument("--max-files", type=int, default=None, help="Ограничить число файлов (смоук).")
-    p.add_argument(
-        "--storydetective-plot-only",
-        action="store_true",
-        help="Для StoryDetective учитывать только подпапку Plot/.",
-    )
-    p.add_argument("--find-only", action="store_true", help="Не вызывать OpenAI, только find.")
-    p.add_argument("--dry-run", action="store_true", help="Только список файлов и запросы.")
-    p.add_argument(
-        "--timeout",
-        type=float,
-        default=45.0,
-        help="Таймаут HTTP к OpenViking (сек), по умолчанию 45.",
-    )
-    p.add_argument(
+    parser.add_argument("--node-limit", type=int, default=12)
+    parser.add_argument("--max-files", type=int, default=None)
+    parser.add_argument("--storydetective-plot-only", action="store_true")
+    parser.add_argument("--find-only", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--timeout", type=float, default=45.0)
+    parser.add_argument(
         "--out",
         type=Path,
         default=None,
-        help="Путь отчёта Markdown (по умолчанию Grenzwanderer/reports/semantic_audit_case01.md).",
+        help="Output markdown path.",
     )
-    return p.parse_args(list(argv) if argv is not None else None)
+    return parser.parse_args(list(argv) if argv is not None else None)
 
 
 def main() -> int:
@@ -348,6 +380,7 @@ def main() -> int:
             sys.stderr.reconfigure(encoding="utf-8", errors="replace")
         except (AttributeError, OSError, ValueError):
             pass
+
     args = parse_args()
     project = args.project_dir or _project_dir()
     out = args.out or (project / "reports" / "semantic_audit_case01.md")
@@ -362,6 +395,7 @@ def main() -> int:
         out_path=out.resolve(),
         openai_model=model,
         http_timeout_s=max(5.0, float(args.timeout)),
+        base_url=str(args.base_url).strip() or "http://127.0.0.1:1933",
     )
     return run_audit(cfg)
 

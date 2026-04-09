@@ -1,7 +1,13 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import {
+  type ContentReleaseProfile,
+  contentSnapshotPath,
+  repoRoot,
+  resolveContentSnapshotPath,
+  resolveReleaseManifestPath,
+} from "./content-authoring-contract";
 
 export type ContentServer = "local" | "maincloud";
 
@@ -33,22 +39,8 @@ export interface ContentReleaseManifest {
   rollbacks: ContentRollbackEntry[];
 }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..");
-
-export const snapshotPath = path.join(
-  repoRoot,
-  "content",
-  "vn",
-  "pilot.snapshot.json",
-);
-export const manifestPath = path.join(
-  repoRoot,
-  "content",
-  "vn",
-  "releases.manifest.json",
-);
+export const snapshotPath = contentSnapshotPath;
+export const manifestPath = path.join(repoRoot, "content", "vn", "releases.manifest.json");
 
 const defaultManifest = (): ContentReleaseManifest => ({
   schemaVersion: 1,
@@ -212,12 +204,25 @@ export const readSnapshot = (): {
   payload: Record<string, unknown>;
   payloadJson: string;
 } => {
+  return readSnapshotForProfile("default");
+};
+
+export const readSnapshotForProfile = (
+  profile: ContentReleaseProfile = "default",
+): {
+  checksum: string;
+  schemaVersion: number;
+  generatedAt: string;
+  payload: Record<string, unknown>;
+  payloadJson: string;
+} => {
+  const effectiveSnapshotPath = resolveContentSnapshotPath(profile);
   assert(
-    existsSync(snapshotPath),
-    `Snapshot file is missing: ${snapshotPath}. Run 'bun run content:extract' first.`,
+    existsSync(effectiveSnapshotPath),
+    `Snapshot file is missing: ${effectiveSnapshotPath}. Run 'bun run content:extract' first.`,
   );
 
-  const parsed = JSON.parse(readFileSync(snapshotPath, "utf8")) as unknown;
+  const parsed = JSON.parse(readFileSync(effectiveSnapshotPath, "utf8")) as unknown;
   const raw = asRecord(parsed, "pilot.snapshot.json");
 
   const schemaVersion = asPositiveInteger(
@@ -251,14 +256,22 @@ export const readSnapshot = (): {
 };
 
 export const loadManifest = (): ContentReleaseManifest => {
-  if (!existsSync(manifestPath)) {
+  return loadManifestForProfile("default");
+};
+
+export const loadManifestForProfile = (
+  profile: ContentReleaseProfile = "default",
+): ContentReleaseManifest => {
+  const effectiveManifestPath = resolveReleaseManifestPath(profile);
+
+  if (!existsSync(effectiveManifestPath)) {
     return {
       ...defaultManifest(),
       updatedAt: new Date().toISOString(),
     };
   }
 
-  const parsed = JSON.parse(readFileSync(manifestPath, "utf8")) as unknown;
+  const parsed = JSON.parse(readFileSync(effectiveManifestPath, "utf8")) as unknown;
   const record = asRecord(parsed, "releases.manifest.json");
 
   const schemaVersion = asPositiveInteger(
@@ -290,9 +303,17 @@ export const loadManifest = (): ContentReleaseManifest => {
   };
 };
 
-export const saveManifest = (manifest: ContentReleaseManifest): void => {
-  mkdirSync(path.dirname(manifestPath), { recursive: true });
-  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+export const saveManifest = (
+  manifest: ContentReleaseManifest,
+  profile: ContentReleaseProfile = "default",
+): void => {
+  const effectiveManifestPath = resolveReleaseManifestPath(profile);
+  mkdirSync(path.dirname(effectiveManifestPath), { recursive: true });
+  writeFileSync(
+    effectiveManifestPath,
+    `${JSON.stringify(manifest, null, 2)}\n`,
+    "utf8",
+  );
 };
 
 export const upsertRelease = (

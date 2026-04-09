@@ -8,9 +8,7 @@ export const useHypothesisRewardToast = () => {
   const { identityHex } = useIdentity();
   const { showToast } = useToast();
 
-  const [playerMindHypotheses, hypothesesReady] = useTable(
-    tables.playerMindHypothesis,
-  );
+  const [playerMindHypotheses, hypothesesReady] = useTable(tables.myMindHypotheses);
 
   const knownValidatedIdsRef = useRef<Set<string>>(new Set());
   const initializedRef = useRef(false);
@@ -21,9 +19,7 @@ export const useHypothesisRewardToast = () => {
     }
 
     const myValidated = playerMindHypotheses.filter(
-      (row) =>
-        row.playerId.toHexString() === identityHex &&
-        row.status === "validated",
+      (row) => row.status === "validated",
     );
 
     const currentValidatedIds = new Set(

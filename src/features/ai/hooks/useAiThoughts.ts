@@ -5,12 +5,11 @@ import { useIdentity } from "../../../shared/spacetime/useIdentity";
 
 export const useAiThoughts = () => {
   const { identityHex } = useIdentity();
-  const [requests] = useTable(tables.aiRequest);
+  const [requests] = useTable(tables.myAiRequests);
 
   return useMemo(
     () =>
-      requests
-        .filter((entry) => entry.playerId.toHexString() === identityHex)
+      [...requests]
         .sort((left, right) =>
           left.updatedAt.microsSinceUnixEpoch >
           right.updatedAt.microsSinceUnixEpoch

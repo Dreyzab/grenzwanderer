@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import {
   isAllowedFactionId,
@@ -14,18 +13,27 @@ import type {
   MindHypothesisContent,
   MapAction,
   MapCondition,
-  VnDiceMode,
-  VnScenarioCompletionRoute,
+  MapSnapshot,
   VnChoice,
+  VnDiceMode,
   VnCondition,
   VnEffect,
-  VnNode,
   QuestCatalogEntry,
+  SocialCatalogSnapshot,
+  VnNode,
   VnScenario,
   VnSkillCheck,
   VnSnapshot,
 } from "../src/features/vn/types";
 import { CURRENT_VN_SNAPSHOT_SCHEMA_VERSION } from "../src/features/vn/snapshotSchema";
+import {
+  normalizeContentReleaseProfile,
+  repoRoot,
+  resolveContentSnapshotPath,
+  resolvePublicContentSnapshotPath,
+  storyRoot,
+  validateStoryRoot,
+} from "./content-authoring-contract";
 import { buildOriginChoiceEffects, originProfiles } from "./origins.manifest";
 import { CONTENT_IDS } from "./content-ids";
 import {
@@ -40,6 +48,7 @@ import {
   suggestClosest,
 } from "./content-vocabulary";
 import { buildCase01MapSnapshot } from "./data/case_01_points";
+import { buildKarlsruheEventMapSnapshot } from "./data/karlsruhe_event_points";
 import {
   AGENCY_SERVICE_CRITERION_IDS,
   FREIBURG_SOCIAL_CATALOG,
@@ -47,57 +56,56 @@ import {
   FREIBURG_SOCIAL_NPC_IDS,
   FREIBURG_SOCIAL_RUMOR_IDS,
 } from "./data/freiburg_social_catalog";
+import {
+  CASE01_CANON_NODES,
+  CASE01_CANON_SCENARIOS,
+} from "./data/case01_canon_runtime";
+import { CASE01_DEFAULT_ENTRY_SCENARIO_ID } from "../src/shared/case01Canon";
 import { parseCase01Onboarding } from "./vn-case01-onboarding";
+import { loadObsidianScenarioBundles } from "./vn-obsidian-parser";
+import type {
+  BlueprintDiagnostic,
+  ChoiceBlueprint,
+  NodeBlueprint,
+  ScenarioBlueprint,
+  ScenarioBlueprintBundle,
+  ScenarioBlueprintProviderResult,
+} from "./vn-blueprint-types";
 
-type ChoiceBlueprint = VnChoice;
-
-type NodeBlueprint = {
-  id: string;
-  scenarioId: string;
-  sourcePath: string;
-  sourcePathByLocale?: Record<string, string>;
-  terminal?: boolean;
-  choices: ChoiceBlueprint[];
-  fallbackBody?: string;
-  onEnter?: VnEffect[];
-  preconditions?: VnCondition[];
-  passiveChecks?: VnSkillCheck[];
-  backgroundUrl?: string;
-  characterId?: string;
-  voicePresenceMode?: VnNode["voicePresenceMode"];
-  activeSpeakers?: string[];
-  titleOverride?: string;
-  bodyOverride?: string;
-};
-
-type ScenarioBlueprint = {
-  id: string;
-  title: string;
-  startNodeId: string;
-  nodeIds: string[];
-  completionRoute?: VnScenarioCompletionRoute;
-  skillCheckDice?: VnDiceMode;
-  mode?: "overlay" | "fullscreen";
-  packId?: string;
-  musicUrl?: string;
-  defaultBackgroundUrl?: string;
-};
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..");
-const storyRoot = path.join(repoRoot, "obsidian", "StoryDetective");
 const narrativeLocale = process.env.VN_NARRATIVE_LOCALE ?? "en";
-const outputPath = path.join(repoRoot, "content", "vn", "pilot.snapshot.json");
-const publicOutputPath = path.join(
+const releaseProfile = normalizeContentReleaseProfile(
+  (() => {
+    const profileIndex = process.argv.indexOf("--profile");
+    if (profileIndex >= 0 && profileIndex + 1 < process.argv.length) {
+      return process.argv[profileIndex + 1];
+    }
+    return (
+      process.env.CONTENT_RELEASE_PROFILE ?? process.env.VITE_RELEASE_PROFILE
+    );
+  })(),
+);
+const isKarlsruheEventRelease = releaseProfile === "karlsruhe_event";
+const outputPath = resolveContentSnapshotPath(releaseProfile);
+const publicOutputPath = resolvePublicContentSnapshotPath(releaseProfile);
+const migrationReportPath = path.join(
   repoRoot,
-  "public",
-  "content",
-  "vn",
-  "pilot.snapshot.json",
+  "tmp",
+  "vn-obsidian-migration-report.json",
+);
+const generatedStaticMapPointsPath = path.join(
+  repoRoot,
+  "src",
+  "features",
+  "map",
+  "data",
+  "generated-static-points.ts",
 );
 const defaultSkillCheckDice: VnDiceMode = "d20";
-const defaultEntryScenarioId = "sandbox_case01_pilot";
+const KARLSRUHE_EVENT_ARRIVAL_SCENARIO_ID = "karlsruhe_event_arrival";
+const KARLSRUHE_MISSING_AROMA_SCENARIO_ID = "sandbox_missing_aroma_pilot";
+const defaultEntryScenarioId = isKarlsruheEventRelease
+  ? KARLSRUHE_EVENT_ARRIVAL_SCENARIO_ID
+  : CASE01_DEFAULT_ENTRY_SCENARIO_ID;
 const AUTO_CONTINUE_PREFIX = "AUTO_CONTINUE_";
 const SOCIAL_VERIFICATION_KINDS = new Set([
   "evidence",
@@ -108,6 +116,8 @@ const SOCIAL_VERIFICATION_KINDS = new Set([
 const RUMOR_TEMPLATE_BY_ID = new Map(
   FREIBURG_SOCIAL_CATALOG.rumors.map((entry) => [entry.id, entry]),
 );
+
+validateStoryRoot(storyRoot);
 
 const scenarios: ScenarioBlueprint[] = [
   {
@@ -196,6 +206,34 @@ const scenarios: ScenarioBlueprint[] = [
       "scene_dog_pub_beat2",
       "scene_park_reunion_beat1",
       "scene_park_reunion",
+    ],
+  },
+  {
+    id: KARLSRUHE_EVENT_ARRIVAL_SCENARIO_ID,
+    title: "Karlsruhe Event Arrival",
+    startNodeId: "scene_karlsruhe_event_arrival_platform",
+    mode: "fullscreen",
+    packId: "karlsruhe_event",
+    defaultBackgroundUrl: "/images/scenes/karlsruhe_event_arrival.png",
+    nodeIds: [
+      "scene_karlsruhe_event_arrival_platform",
+      "scene_karlsruhe_event_arrival_paperboy",
+      "scene_karlsruhe_event_arrival_briefing",
+      "scene_karlsruhe_event_arrival_unlock",
+    ],
+  },
+  {
+    id: KARLSRUHE_MISSING_AROMA_SCENARIO_ID,
+    title: "Missing Aroma",
+    startNodeId: "scene_missing_aroma_briefing",
+    mode: "fullscreen",
+    packId: "karlsruhe_event",
+    defaultBackgroundUrl: "/images/scenes/karlsruhe_missing_aroma.png",
+    nodeIds: [
+      "scene_missing_aroma_briefing",
+      "scene_missing_aroma_kitchen",
+      "scene_missing_aroma_alley",
+      "scene_missing_aroma_resolution",
     ],
   },
   {
@@ -424,6 +462,7 @@ const scenarios: ScenarioBlueprint[] = [
       "scene_detective_recruitment_pitch",
     ],
   },
+  ...CASE01_CANON_SCENARIOS,
 ];
 
 const journalistOriginProfile = originProfiles.find(
@@ -450,6 +489,7 @@ const originBackstoryChoices: ChoiceBlueprint[] = originProfiles.map(
 );
 
 const nodes: NodeBlueprint[] = [
+  ...CASE01_CANON_NODES,
   {
     id: "scene_loop_demo_intro",
     scenarioId: "sandbox_loop_demo",
@@ -1316,6 +1356,175 @@ const nodes: NodeBlueprint[] = [
         type: "discover_fact",
         caseId: "case_dog_trail",
         factId: "fact_dog_reunion_capstone",
+      },
+    ],
+  },
+  {
+    id: "scene_karlsruhe_event_arrival_platform",
+    scenarioId: KARLSRUHE_EVENT_ARRIVAL_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_Detective/scene_karlsruhe_event_arrival.md",
+    titleOverride: "Karlsruhe Hauptbahnhof",
+    bodyOverride:
+      "Steam from the first morning train hangs over the platform. Victoria Sterling spots you before the porters do, already carrying a folded dispatch case and a list of unfinished meetings.",
+    characterId: "assistant",
+    choices: [
+      {
+        id: "KA_EVENT_ARRIVAL_FOLLOW_VICTORIA",
+        text: "Take pace beside Victoria and ask for the situation.",
+        nextNodeId: "scene_karlsruhe_event_arrival_paperboy",
+      },
+      {
+        id: "KA_EVENT_ARRIVAL_SCAN_CROWD",
+        text: "Read the platform before speaking.",
+        choiceType: "inquiry",
+        nextNodeId: "scene_karlsruhe_event_arrival_paperboy",
+        effects: [{ type: "grant_xp", amount: 5 }],
+      },
+    ],
+  },
+  {
+    id: "scene_karlsruhe_event_arrival_paperboy",
+    scenarioId: KARLSRUHE_EVENT_ARRIVAL_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_Detective/scene_karlsruhe_event_arrival_paperboy.md",
+    titleOverride: "Morning Edition",
+    bodyOverride:
+      "Before Victoria can finish her briefing, a paperboy wedges himself between you with today's edition. The headline names three embarrassments before breakfast: the bank robbery, the mayor's vanished dog, and a bakery whose signature scent has disappeared overnight.",
+    characterId: "paperboy",
+    choices: [
+      {
+        id: "KA_EVENT_PAPERBOY_BUY",
+        text: "Buy the paper and keep him talking.",
+        nextNodeId: "scene_karlsruhe_event_arrival_briefing",
+        effects: [{ type: "grant_xp", amount: 5 }],
+      },
+      {
+        id: "KA_EVENT_PAPERBOY_GLANCE",
+        text: "Skim the front page and wave him on.",
+        nextNodeId: "scene_karlsruhe_event_arrival_briefing",
+      },
+    ],
+  },
+  {
+    id: "scene_karlsruhe_event_arrival_briefing",
+    scenarioId: KARLSRUHE_EVENT_ARRIVAL_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_Detective/scene_karlsruhe_event_arrival_briefing.md",
+    titleOverride: "Victoria's Briefing",
+    bodyOverride:
+      "Victoria taps the paper with one gloved finger. 'Three public fires, one morning. We do not have time for ceremony. Take the city as it is, not as Freiburg trained you to expect it.'",
+    characterId: "assistant",
+    choices: [
+      {
+        id: "KA_EVENT_BRIEFING_ACCEPT",
+        text: "Take the newspaper and move out.",
+        nextNodeId: "scene_karlsruhe_event_arrival_unlock",
+      },
+    ],
+  },
+  {
+    id: "scene_karlsruhe_event_arrival_unlock",
+    scenarioId: KARLSRUHE_EVENT_ARRIVAL_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/08_Detective/scene_karlsruhe_event_arrival_unlock.md",
+    titleOverride: "Case Ledger Opened",
+    bodyOverride:
+      "The folded newspaper becomes your first Karlsruhe lead sheet. Bank. Rathaus. Bakery. Three names, no ceremony, and the city already moving before you choose.",
+    terminal: true,
+    choices: [],
+    onEnter: [
+      { type: "grant_evidence", evidenceId: "ev_karlsruhe_newspaper" },
+      { type: "set_flag", key: "karlsruhe_arrival_complete", value: true },
+      { type: "unlock_group", groupId: "loc_ka_bank" },
+      { type: "unlock_group", groupId: "loc_ka_rathaus" },
+      { type: "unlock_group", groupId: "loc_ka_bakery" },
+      {
+        type: "track_event",
+        eventName: "karlsruhe_event_arrival_completed",
+        tags: { releaseProfile: "karlsruhe_event" },
+      },
+    ],
+  },
+  {
+    id: "scene_missing_aroma_briefing",
+    scenarioId: KARLSRUHE_MISSING_AROMA_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/04_Missing_Aroma/scene_missing_aroma_briefing.md",
+    titleOverride: "Bakery Counter",
+    bodyOverride:
+      "The baker does not talk about thefts. He talks about absences. This morning the ovens worked, the bread rose, and yet the cardamom signature that draws half the street simply never arrived.",
+    onEnter: [
+      { type: "set_quest_stage", questId: "quest_missing_aroma", stage: 1 },
+      { type: "set_flag", key: "missing_aroma_case_started", value: true },
+    ],
+    choices: [
+      {
+        id: "MISSING_AROMA_CHECK_KITCHEN",
+        text: "Inspect the ovens and spice shelf.",
+        nextNodeId: "scene_missing_aroma_kitchen",
+      },
+      {
+        id: "MISSING_AROMA_QUESTION_APPRENTICE",
+        text: "Question the apprentice about the missing scent.",
+        choiceType: "inquiry",
+        nextNodeId: "scene_missing_aroma_kitchen",
+        effects: [{ type: "grant_xp", amount: 5 }],
+      },
+    ],
+  },
+  {
+    id: "scene_missing_aroma_kitchen",
+    scenarioId: KARLSRUHE_MISSING_AROMA_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/04_Missing_Aroma/scene_missing_aroma_kitchen.md",
+    titleOverride: "Cooling Rack",
+    bodyOverride:
+      "The missing aroma was not stolen from the tray. It was intercepted before the dough reached the front room. A torn paper wrap and a wet footprint point toward the service alley.",
+    choices: [
+      {
+        id: "MISSING_AROMA_FOLLOW_TRAIL",
+        text: "Follow the service trail into the alley.",
+        nextNodeId: "scene_missing_aroma_alley",
+        effects: [
+          { type: "set_quest_stage", questId: "quest_missing_aroma", stage: 2 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_missing_aroma_alley",
+    scenarioId: KARLSRUHE_MISSING_AROMA_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/04_Missing_Aroma/scene_missing_aroma_alley.md",
+    titleOverride: "Service Alley",
+    bodyOverride:
+      "You find the missing spice packet where a courier tried to dry it over a boiler vent. The aroma was borrowed to fake a premium delivery, not to poison the batch. Sloppy, urgent, and easy to unwind.",
+    choices: [
+      {
+        id: "MISSING_AROMA_CLOSE_CASE",
+        text: "Recover the packet and close the file quietly.",
+        nextNodeId: "scene_missing_aroma_resolution",
+      },
+    ],
+  },
+  {
+    id: "scene_missing_aroma_resolution",
+    scenarioId: KARLSRUHE_MISSING_AROMA_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Sandbox_KA/Plot/04_Missing_Aroma/scene_missing_aroma_resolution.md",
+    titleOverride: "Aroma Restored",
+    bodyOverride:
+      "The baker relights the oven, the scent returns to the room, and the neighborhood never learns how close it came to panic over a missing spice packet.",
+    terminal: true,
+    choices: [],
+    onEnter: [
+      { type: "set_quest_stage", questId: "quest_missing_aroma", stage: 3 },
+      { type: "set_flag", key: "missing_aroma_case_closed", value: true },
+      {
+        type: "track_event",
+        eventName: "karlsruhe_missing_aroma_closed",
+        tags: { releaseProfile: "karlsruhe_event" },
       },
     ],
   },
@@ -2953,23 +3162,233 @@ const nodes: NodeBlueprint[] = [
   },
 ];
 
-const case01Onboarding = parseCase01Onboarding(storyRoot);
-for (const diagnostic of case01Onboarding.diagnostics) {
-  if (diagnostic.severity === "warning") {
-    console.warn(
-      `Case01 parser warning: ${diagnostic.relativePath}:${diagnostic.line}:${diagnostic.column} [${diagnostic.code}] ${diagnostic.message}`,
+const normalizeBundle = (
+  bundle: ScenarioBlueprintBundle,
+): ScenarioBlueprintBundle => ({
+  ...bundle,
+  nodes: bundle.nodes.map(normalizeNodeAutoContinue),
+});
+
+const buildLegacyTsProvider = (): ScenarioBlueprintProviderResult => ({
+  bundles: scenarios.map((scenario) =>
+    normalizeBundle({
+      providerName: "legacy-ts",
+      migrationMode: "legacy",
+      scenario,
+      nodes: nodes.filter((node) => node.scenarioId === scenario.id),
+    }),
+  ),
+  diagnostics: [],
+});
+
+const buildCase01LegacyProvider = (): ScenarioBlueprintProviderResult => {
+  const case01Onboarding = parseCase01Onboarding(storyRoot);
+  return {
+    bundles: [
+      normalizeBundle({
+        providerName: "case01-legacy",
+        migrationMode: "legacy",
+        scenario: case01Onboarding.scenarioBlueprint,
+        nodes: case01Onboarding.nodeBlueprints,
+      }),
+    ],
+    diagnostics: case01Onboarding.diagnostics.map((diagnostic) => ({
+      ...diagnostic,
+      providerName: "case01-legacy",
+      scenarioId: case01Onboarding.scenarioBlueprint.id,
+    })),
+  };
+};
+
+type ScenarioComparePair = {
+  mode: "compare" | "authoritative";
+  baseline: ScenarioBlueprintBundle;
+  candidate: ScenarioBlueprintBundle;
+};
+
+const resolveScenarioOwnership = (
+  providerResults: ScenarioBlueprintProviderResult[],
+): {
+  emittedBundles: ScenarioBlueprintBundle[];
+  comparePairs: ScenarioComparePair[];
+  diagnostics: BlueprintDiagnostic[];
+} => {
+  const diagnostics: BlueprintDiagnostic[] = providerResults.flatMap(
+    (result) => result.diagnostics,
+  );
+  const bundlesByScenario = new Map<string, ScenarioBlueprintBundle[]>();
+
+  for (const result of providerResults) {
+    for (const bundle of result.bundles) {
+      const current = bundlesByScenario.get(bundle.scenario.id) ?? [];
+      current.push(bundle);
+      bundlesByScenario.set(bundle.scenario.id, current);
+    }
+  }
+
+  const emittedBundles: ScenarioBlueprintBundle[] = [];
+  const comparePairs: ScenarioComparePair[] = [];
+
+  for (const [scenarioId, groupedBundles] of bundlesByScenario.entries()) {
+    const legacyBundles = groupedBundles.filter(
+      (bundle) => bundle.migrationMode === "legacy",
     );
+    const compareBundles = groupedBundles.filter(
+      (bundle) => bundle.migrationMode === "compare",
+    );
+    const authoritativeBundles = groupedBundles.filter(
+      (bundle) => bundle.migrationMode === "authoritative",
+    );
+
+    if (authoritativeBundles.length > 1) {
+      diagnostics.push({
+        code: "OWNERSHIP_CONFLICT",
+        message: `Scenario '${scenarioId}' has multiple authoritative providers`,
+        relativePath: scenarioId,
+        line: 1,
+        column: 1,
+        severity: "error",
+        providerName: "ownership",
+        scenarioId,
+      });
+      continue;
+    }
+
+    if (authoritativeBundles.length === 1) {
+      emittedBundles.push(authoritativeBundles[0]);
+      if (legacyBundles.length > 0) {
+        comparePairs.push({
+          mode: "authoritative",
+          baseline: legacyBundles[0],
+          candidate: authoritativeBundles[0],
+        });
+      }
+      if (compareBundles.length > 0) {
+        diagnostics.push({
+          code: "OWNERSHIP_CONFLICT",
+          message: `Scenario '${scenarioId}' must not mix authoritative and compare providers`,
+          relativePath: scenarioId,
+          line: 1,
+          column: 1,
+          severity: "error",
+          providerName: "ownership",
+          scenarioId,
+        });
+      }
+      continue;
+    }
+
+    if (compareBundles.length > 1) {
+      diagnostics.push({
+        code: "OWNERSHIP_CONFLICT",
+        message: `Scenario '${scenarioId}' has multiple compare providers`,
+        relativePath: scenarioId,
+        line: 1,
+        column: 1,
+        severity: "error",
+        providerName: "ownership",
+        scenarioId,
+      });
+      continue;
+    }
+
+    if (compareBundles.length === 1) {
+      if (legacyBundles.length === 0) {
+        diagnostics.push({
+          code: "OWNERSHIP_CONFLICT",
+          message: `Compare-mode scenario '${scenarioId}' is missing its legacy baseline`,
+          relativePath: scenarioId,
+          line: 1,
+          column: 1,
+          severity: "error",
+          providerName: "ownership",
+          scenarioId,
+        });
+        continue;
+      }
+      emittedBundles.push(legacyBundles[0]);
+      comparePairs.push({
+        mode: "compare",
+        baseline: legacyBundles[0],
+        candidate: compareBundles[0],
+      });
+      continue;
+    }
+
+    if (legacyBundles.length > 1) {
+      diagnostics.push({
+        code: "OWNERSHIP_CONFLICT",
+        message: `Scenario '${scenarioId}' has multiple legacy providers`,
+        relativePath: scenarioId,
+        line: 1,
+        column: 1,
+        severity: "error",
+        providerName: "ownership",
+        scenarioId,
+      });
+      continue;
+    }
+
+    if (legacyBundles.length === 1) {
+      emittedBundles.push(legacyBundles[0]);
+    }
+  }
+
+  emittedBundles.sort((left, right) =>
+    left.scenario.id.localeCompare(right.scenario.id),
+  );
+
+  return { emittedBundles, comparePairs, diagnostics };
+};
+
+const providerResults: ScenarioBlueprintProviderResult[] = [
+  buildLegacyTsProvider(),
+  buildCase01LegacyProvider(),
+  loadObsidianScenarioBundles(storyRoot),
+];
+const ownershipResolution = resolveScenarioOwnership(providerResults);
+const providerDiagnostics = ownershipResolution.diagnostics;
+const scenariosWithCase01: ScenarioBlueprint[] =
+  ownershipResolution.emittedBundles.map((bundle) => bundle.scenario);
+const nodesWithCase01: NodeBlueprint[] =
+  ownershipResolution.emittedBundles.flatMap((bundle) => bundle.nodes);
+const migrationDiagnostics: BlueprintDiagnostic[] = [...providerDiagnostics];
+
+const writeMigrationReport = (): void => {
+  mkdirSync(path.dirname(migrationReportPath), { recursive: true });
+  writeFileSync(
+    migrationReportPath,
+    JSON.stringify(
+      {
+        generatedAt: new Date().toISOString(),
+        narrativeLocale,
+        diagnostics: migrationDiagnostics,
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+};
+
+for (const diagnostic of providerDiagnostics) {
+  const logLine = `${diagnostic.relativePath}:${diagnostic.line}:${diagnostic.column} [${diagnostic.code}] ${diagnostic.message}`;
+  if (diagnostic.severity === "warning") {
+    console.warn(logLine);
+  } else {
+    console.error(logLine);
   }
 }
 
-const scenariosWithCase01: ScenarioBlueprint[] = [
-  ...scenarios,
-  case01Onboarding.scenarioBlueprint,
-];
-const nodesWithCase01: NodeBlueprint[] = [
-  ...nodes,
-  ...case01Onboarding.nodeBlueprints,
-].map(normalizeNodeAutoContinue);
+const providerErrors = providerDiagnostics.filter(
+  (diagnostic) => diagnostic.severity === "error",
+);
+if (providerErrors.length > 0) {
+  writeMigrationReport();
+  throw new Error(
+    `Obsidian content provider reported ${providerErrors.length} error(s). See ${migrationReportPath}`,
+  );
+}
 
 const mindCases: MindCaseContent[] = [
   {
@@ -3293,6 +3712,88 @@ const questCatalog: QuestCatalogEntry[] = [
   },
 ];
 
+const karlsruheEventQuestCatalog: QuestCatalogEntry[] = [
+  {
+    id: "quest_banker",
+    title: "Bank Robbery",
+    stages: [
+      {
+        stage: 1,
+        title: "Open Bank Robbery",
+        objectiveHint: "Start the banker file from the Karlsruhe bank.",
+        objectivePointIds: ["loc_ka_bank"],
+      },
+      {
+        stage: 2,
+        title: "Pressure the Banker",
+        objectiveHint: "Stay on the bank trail until the ledger breaks.",
+        objectivePointIds: ["loc_ka_bank"],
+      },
+      {
+        stage: 3,
+        title: "Case Closed",
+        objectiveHint: "Bank robbery archived.",
+        objectivePointIds: ["loc_ka_bank"],
+      },
+    ],
+  },
+  {
+    id: "quest_dog",
+    title: "Mayor's Dog",
+    stages: [
+      {
+        stage: 1,
+        title: "Open Dog Lead Board",
+        objectiveHint: "Open the mayor's dog file from Rathaus.",
+        objectivePointIds: ["loc_ka_rathaus"],
+      },
+      {
+        stage: 2,
+        title: "Follow the Route",
+        objectiveHint: "Push the witness chain until the reunion.",
+        objectivePointIds: ["loc_ka_rathaus"],
+      },
+      {
+        stage: 3,
+        title: "Case Closed",
+        objectiveHint: "Mayor's dog logged and sealed.",
+        objectivePointIds: ["loc_ka_rathaus"],
+      },
+    ],
+  },
+  {
+    id: "quest_missing_aroma",
+    title: "Missing Aroma",
+    stages: [
+      {
+        stage: 1,
+        title: "Bakery Briefing",
+        objectiveHint: "Open the bakery complaint from the Karlsruhe map.",
+        objectivePointIds: ["loc_ka_bakery"],
+      },
+      {
+        stage: 2,
+        title: "Trace the Scent",
+        objectiveHint: "Follow the missing spice trail behind the bakery.",
+        objectivePointIds: ["loc_ka_bakery"],
+      },
+      {
+        stage: 3,
+        title: "Case Closed",
+        objectiveHint: "Aroma restored and the bakery file archived.",
+        objectivePointIds: ["loc_ka_bakery"],
+      },
+    ],
+  },
+];
+
+const KARLSRUHE_EVENT_SCENARIO_IDS = new Set<string>([
+  KARLSRUHE_EVENT_ARRIVAL_SCENARIO_ID,
+  KARLSRUHE_MISSING_AROMA_SCENARIO_ID,
+  "sandbox_banker_pilot",
+  "sandbox_dog_pilot",
+]);
+
 const readMarkdown = (relativePath: string): string => {
   const absolutePath = path.join(storyRoot, relativePath);
   return readFileSync(absolutePath, "utf8")
@@ -3308,6 +3809,13 @@ const resolveNodeSourcePath = (node: NodeBlueprint): string => {
   const localizedPath = node.sourcePathByLocale[narrativeLocale];
   if (localizedPath) {
     return localizedPath;
+  }
+
+  if (node.defaultLocale) {
+    const defaultLocalePath = node.sourcePathByLocale[node.defaultLocale];
+    if (defaultLocalePath) {
+      return defaultLocalePath;
+    }
   }
 
   return node.sourcePathByLocale.en ?? node.sourcePath;
@@ -3387,6 +3895,19 @@ const validateConditionBlueprint = (
   context: string,
 ): void => {
   validateConditionOperator(condition, context);
+  if (condition.type === "logic_and" || condition.type === "logic_or") {
+    if (condition.conditions.length === 0) {
+      throw new Error(`${context}.${condition.type} must not be empty`);
+    }
+    for (const nested of condition.conditions) {
+      validateConditionBlueprint(nested, `${context}.${condition.type}`);
+    }
+    return;
+  }
+  if (condition.type === "logic_not") {
+    validateConditionBlueprint(condition.condition, `${context}.logic_not`);
+    return;
+  }
   if ("key" in condition) {
     assertAscii(condition.key, `${context}.key`);
     if (condition.type === "flag_equals") {
@@ -3606,21 +4127,25 @@ const validateScenarioBlueprint = (scenario: ScenarioBlueprint): void => {
   for (const nodeId of scenario.nodeIds) {
     assertAscii(nodeId, `scenario(${scenario.id}).nodeId`);
   }
-  if (scenario.completionRoute) {
+  const completionRoutes = [
+    ...(scenario.completionRoute ? [scenario.completionRoute] : []),
+    ...(scenario.completionRoutes ?? []),
+  ];
+  for (const [index, route] of completionRoutes.entries()) {
     assertAscii(
-      scenario.completionRoute.nextScenarioId,
-      `scenario(${scenario.id}).completionRoute.nextScenarioId`,
+      route.nextScenarioId,
+      `scenario(${scenario.id}).completionRoutes[${index}].nextScenarioId`,
     );
-    for (const flag of scenario.completionRoute.requiredFlagsAll ?? []) {
+    for (const flag of route.requiredFlagsAll ?? []) {
       assertAscii(
         flag,
-        `scenario(${scenario.id}).completionRoute.requiredFlagsAll`,
+        `scenario(${scenario.id}).completionRoutes[${index}].requiredFlagsAll`,
       );
     }
-    for (const flag of scenario.completionRoute.blockedIfFlagsAny ?? []) {
+    for (const flag of route.blockedIfFlagsAny ?? []) {
       assertAscii(
         flag,
-        `scenario(${scenario.id}).completionRoute.blockedIfFlagsAny`,
+        `scenario(${scenario.id}).completionRoutes[${index}].blockedIfFlagsAny`,
       );
     }
   }
@@ -3681,6 +4206,9 @@ const validateNodeBlueprint = (node: NodeBlueprint): void => {
     for (const locale of Object.keys(node.sourcePathByLocale)) {
       assertAscii(locale, `node(${node.id}).sourcePathByLocale.locale`);
     }
+  }
+  if (node.defaultLocale) {
+    assertAscii(node.defaultLocale, `node(${node.id}).defaultLocale`);
   }
   if (node.activeSpeakers) {
     for (const speakerId of node.activeSpeakers) {
@@ -3972,13 +4500,14 @@ const validateScenarioGraph = (
   const listedNodeIds = new Map<string, string>();
 
   for (const scenario of scenarioBlueprints) {
-    if (scenario.completionRoute) {
-      const nextScenario = scenarioById.get(
-        scenario.completionRoute.nextScenarioId,
-      );
+    for (const route of [
+      ...(scenario.completionRoute ? [scenario.completionRoute] : []),
+      ...(scenario.completionRoutes ?? []),
+    ]) {
+      const nextScenario = scenarioById.get(route.nextScenarioId);
       if (!nextScenario) {
         throw new Error(
-          `scenario(${scenario.id}) completionRoute points to unknown scenario ${scenario.completionRoute.nextScenarioId}`,
+          `scenario(${scenario.id}) completionRoute points to unknown scenario ${route.nextScenarioId}`,
         );
       }
     }
@@ -4197,7 +4726,41 @@ const extractTitle = (markdown: string, fallback: string): string => {
 
 const extractBody = (markdown: string, fallback: string): string => {
   const withoutFrontMatter = markdown.replace(/^---[\s\S]*?---\s*/, "");
-  const lines = withoutFrontMatter
+  const lines = withoutFrontMatter.split("\n");
+  const scriptSectionStart = lines.findIndex((line) =>
+    /^##\s+Script\s*$/i.test(line.trim()),
+  );
+  if (scriptSectionStart >= 0) {
+    let scriptSectionEnd = lines.length;
+    for (
+      let lineIndex = scriptSectionStart + 1;
+      lineIndex < lines.length;
+      lineIndex += 1
+    ) {
+      if (/^##\s+/.test(lines[lineIndex].trim())) {
+        scriptSectionEnd = lineIndex;
+        break;
+      }
+    }
+    const normalizedScript = lines
+      .slice(scriptSectionStart + 1, scriptSectionEnd)
+      .join("\n")
+      .replace(/```[\s\S]*?```/g, "")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (normalizedScript.length > 0) {
+      return normalizedScript.length > 280
+        ? `${normalizedScript.slice(0, 277)}...`
+        : normalizedScript;
+    }
+  }
+
+  const normalizedLines = withoutFrontMatter
+    .replace(/```[\s\S]*?```/g, "")
     .split("\n")
     .map((line) => line.trim())
     .filter(
@@ -4213,11 +4776,11 @@ const extractBody = (markdown: string, fallback: string): string => {
         !line.startsWith("tags:"),
     );
 
-  if (lines.length === 0) {
+  if (normalizedLines.length === 0) {
     return fallback;
   }
 
-  const joined = lines.slice(0, 3).join(" ");
+  const joined = normalizedLines.slice(0, 3).join(" ");
   const normalized = joined.replace(/\s+/g, " ").trim();
   if (normalized.length === 0) {
     return fallback;
@@ -4320,11 +4883,13 @@ for (const hypothesis of mindHypotheses) {
   validateMindHypothesis(hypothesis, knownCaseIds, knownFactIds);
 }
 
-for (const quest of questCatalog) {
+for (const quest of isKarlsruheEventRelease
+  ? karlsruheEventQuestCatalog
+  : questCatalog) {
   validateQuestCatalogEntry(quest);
 }
 
-const builtNodes: VnNode[] = nodesWithCase01.map((node) => {
+const buildRuntimeNode = (node: NodeBlueprint): VnNode => {
   const resolvedSourcePath = resolveNodeSourcePath(node);
   const markdown =
     node.titleOverride && node.bodyOverride
@@ -4367,9 +4932,9 @@ const builtNodes: VnNode[] = nodesWithCase01.map((node) => {
   }
 
   return vnNode;
-});
+};
 
-const builtScenarios: VnScenario[] = scenariosWithCase01.map((scenario) => {
+const buildRuntimeScenario = (scenario: ScenarioBlueprint): VnScenario => {
   const vnScenario: VnScenario = {
     id: scenario.id,
     title: scenario.title,
@@ -4382,6 +4947,9 @@ const builtScenarios: VnScenario[] = scenariosWithCase01.map((scenario) => {
   }
   if (scenario.completionRoute) {
     vnScenario.completionRoute = scenario.completionRoute;
+  }
+  if (scenario.completionRoutes) {
+    vnScenario.completionRoutes = scenario.completionRoutes;
   }
   if (scenario.skillCheckDice) {
     vnScenario.skillCheckDice = scenario.skillCheckDice;
@@ -4397,12 +4965,219 @@ const builtScenarios: VnScenario[] = scenariosWithCase01.map((scenario) => {
   }
 
   return vnScenario;
+};
+
+const stableSerialize = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableSerialize(entry)).join(",")}]`;
+  }
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableSerialize(record[key])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+};
+
+const compareScenarioBundles = (
+  left: ScenarioBlueprintBundle,
+  right: ScenarioBlueprintBundle,
+): BlueprintDiagnostic[] => {
+  const diagnostics: BlueprintDiagnostic[] = [];
+  const leftScenario = buildRuntimeScenario(left.scenario);
+  const rightScenario = buildRuntimeScenario(right.scenario);
+
+  if (stableSerialize(leftScenario) !== stableSerialize(rightScenario)) {
+    diagnostics.push({
+      code: "DUAL_RUN_DIFF",
+      message: `Scenario payload differs between ${left.providerName} and ${right.providerName}`,
+      relativePath: left.scenario.id,
+      line: 1,
+      column: 1,
+      severity: "warning",
+      providerName: right.providerName,
+      scenarioId: left.scenario.id,
+    });
+  }
+
+  const leftNodes = new Map(
+    left.nodes.map((node) => [node.id, buildRuntimeNode(node)]),
+  );
+  const rightNodes = new Map(
+    right.nodes.map((node) => [node.id, buildRuntimeNode(node)]),
+  );
+  const allNodeIds = new Set([...leftNodes.keys(), ...rightNodes.keys()]);
+
+  for (const nodeId of [...allNodeIds].sort()) {
+    const leftNode = leftNodes.get(nodeId);
+    const rightNode = rightNodes.get(nodeId);
+    if (!leftNode || !rightNode) {
+      diagnostics.push({
+        code: "DUAL_RUN_DIFF",
+        message: `Node '${nodeId}' exists only in ${leftNode ? left.providerName : right.providerName}`,
+        relativePath: left.scenario.id,
+        line: 1,
+        column: 1,
+        severity: "warning",
+        providerName: right.providerName,
+        scenarioId: left.scenario.id,
+        nodeId,
+      });
+      continue;
+    }
+    if (stableSerialize(leftNode) !== stableSerialize(rightNode)) {
+      diagnostics.push({
+        code: "DUAL_RUN_DIFF",
+        message: `Node payload differs for '${nodeId}' between ${left.providerName} and ${right.providerName}`,
+        relativePath: left.scenario.id,
+        line: 1,
+        column: 1,
+        severity: "warning",
+        providerName: right.providerName,
+        scenarioId: left.scenario.id,
+        nodeId,
+      });
+    }
+  }
+
+  return diagnostics;
+};
+
+for (const pair of ownershipResolution.comparePairs) {
+  migrationDiagnostics.push(
+    ...compareScenarioBundles(pair.baseline, pair.candidate),
+  );
+}
+
+const builtNodes: VnNode[] = nodesWithCase01.map(buildRuntimeNode);
+
+const builtScenarios: VnScenario[] =
+  scenariosWithCase01.map(buildRuntimeScenario);
+
+const isHiddenKarlsruheShellEffect = (effect: VnEffect): boolean =>
+  effect.type === "open_command_mode" || effect.type === "open_battle_mode";
+
+const sanitizeKarlsruheSkillCheck = (
+  skillCheck: VnSkillCheck,
+): VnSkillCheck => {
+  const sanitizeBranch = <T extends { effects?: VnEffect[] }>(
+    branch?: T,
+  ): T | undefined => {
+    if (!branch?.effects) {
+      return branch;
+    }
+
+    return {
+      ...branch,
+      effects: branch.effects.filter(
+        (effect) => !isHiddenKarlsruheShellEffect(effect),
+      ),
+    };
+  };
+
+  const onSuccessWithCost = skillCheck.onSuccessWithCost
+    ? {
+        ...sanitizeBranch(skillCheck.onSuccessWithCost),
+        costEffects: skillCheck.onSuccessWithCost.costEffects?.filter(
+          (effect) => !isHiddenKarlsruheShellEffect(effect),
+        ),
+      }
+    : undefined;
+
+  return {
+    ...skillCheck,
+    onSuccess: sanitizeBranch(skillCheck.onSuccess),
+    onFail: sanitizeBranch(skillCheck.onFail),
+    onCritical: sanitizeBranch(skillCheck.onCritical),
+    onSuccessWithCost,
+  };
+};
+
+const sanitizeKarlsruheChoice = (choice: VnChoice): VnChoice => ({
+  ...choice,
+  effects: choice.effects?.filter(
+    (effect) => !isHiddenKarlsruheShellEffect(effect),
+  ),
+  skillCheck: choice.skillCheck
+    ? sanitizeKarlsruheSkillCheck(choice.skillCheck)
+    : undefined,
 });
 
+const sanitizeKarlsruheNode = (node: VnNode): VnNode => ({
+  ...node,
+  onEnter: node.onEnter?.filter(
+    (effect) => !isHiddenKarlsruheShellEffect(effect),
+  ),
+  choices: node.choices.map(sanitizeKarlsruheChoice),
+  passiveChecks: node.passiveChecks?.map((check) =>
+    sanitizeKarlsruheSkillCheck(check),
+  ),
+});
+
+const isHiddenKarlsruheMapAction = (action: MapAction): boolean =>
+  action.type === "open_command_mode" || action.type === "open_battle_mode";
+
+const sanitizeKarlsruheMapSnapshot = (snapshot: MapSnapshot): MapSnapshot => {
+  const sanitizeBindings = (
+    bindings: MapSnapshot["points"][number]["bindings"],
+  ) =>
+    bindings
+      .map((binding) => ({
+        ...binding,
+        actions: binding.actions.filter(
+          (action) => !isHiddenKarlsruheMapAction(action),
+        ),
+      }))
+      .filter((binding) => binding.actions.length > 0);
+
+  return {
+    ...snapshot,
+    points: snapshot.points.map((point) => ({
+      ...point,
+      bindings: sanitizeBindings(point.bindings),
+    })),
+    mapEventTemplates: snapshot.mapEventTemplates?.map((template) => ({
+      ...template,
+      point: {
+        ...template.point,
+        bindings: sanitizeBindings(template.point.bindings),
+      },
+    })),
+  };
+};
+
+const releaseScenarios = isKarlsruheEventRelease
+  ? builtScenarios.filter((scenario) =>
+      KARLSRUHE_EVENT_SCENARIO_IDS.has(scenario.id),
+    )
+  : builtScenarios;
+const releaseNodes = isKarlsruheEventRelease
+  ? builtNodes
+      .filter((node) => KARLSRUHE_EVENT_SCENARIO_IDS.has(node.scenarioId ?? ""))
+      .map(sanitizeKarlsruheNode)
+  : builtNodes;
 const availableScenarioIds = new Set(
-  builtScenarios.map((scenario) => scenario.id),
+  releaseScenarios.map((scenario) => scenario.id),
 );
-const mapSnapshot = buildCase01MapSnapshot(availableScenarioIds);
+const mapSnapshot = isKarlsruheEventRelease
+  ? sanitizeKarlsruheMapSnapshot(
+      buildKarlsruheEventMapSnapshot(availableScenarioIds),
+    )
+  : buildCase01MapSnapshot(availableScenarioIds);
+const releaseQuestCatalog = isKarlsruheEventRelease
+  ? karlsruheEventQuestCatalog
+  : questCatalog;
+const releaseSocialCatalog: SocialCatalogSnapshot = isKarlsruheEventRelease
+  ? {
+      npcIdentities: [],
+      services: [],
+      rumors: [],
+      careerRanks: [],
+      factions: [],
+    }
+  : FREIBURG_SOCIAL_CATALOG;
 
 const seenPointIds = new Set<string>();
 const seenBindingIds = new Set<string>();
@@ -4582,7 +5357,7 @@ for (const template of mapSnapshot.mapEventTemplates ?? []) {
   }
 }
 
-for (const quest of questCatalog) {
+for (const quest of releaseQuestCatalog) {
   for (const stage of quest.stages) {
     for (const pointId of stage.objectivePointIds ?? []) {
       if (!seenPointIds.has(pointId)) {
@@ -4594,51 +5369,61 @@ for (const quest of questCatalog) {
   }
 }
 
-if (conditionDrivenBindingCount < 12) {
+if (!isKarlsruheEventRelease && conditionDrivenBindingCount < 12) {
   contentContractWarnings.push(
     `Map contract warning: expected >=12 condition-driven bindings, got ${conditionDrivenBindingCount}`,
   );
 }
-if (pointsWithRichBindings < 5) {
+if (!isKarlsruheEventRelease && pointsWithRichBindings < 5) {
   contentContractWarnings.push(
     `Map contract warning: expected >=5 points with >2 bindings, got ${pointsWithRichBindings}`,
   );
 }
 
 if (
-  !Array.isArray(FREIBURG_SOCIAL_CATALOG.factions) ||
-  FREIBURG_SOCIAL_CATALOG.factions.length === 0 ||
-  !FREIBURG_SOCIAL_CATALOG.factions.every(isFactionDefinition)
+  !isKarlsruheEventRelease &&
+  (!Array.isArray(FREIBURG_SOCIAL_CATALOG.factions) ||
+    FREIBURG_SOCIAL_CATALOG.factions.length === 0 ||
+    !FREIBURG_SOCIAL_CATALOG.factions.every(isFactionDefinition))
 ) {
   throw new Error(
     "FREIBURG_SOCIAL_CATALOG.factions must contain valid definitions",
   );
 }
 
-for (const npcIdentity of FREIBURG_SOCIAL_CATALOG.npcIdentities) {
-  if (!isCanonicalFactionId(npcIdentity.factionId)) {
-    throw new Error(
-      `FREIBURG_SOCIAL_CATALOG npc ${npcIdentity.id} must use a canonical faction id`,
-    );
+if (!isKarlsruheEventRelease) {
+  for (const npcIdentity of FREIBURG_SOCIAL_CATALOG.npcIdentities) {
+    if (!isCanonicalFactionId(npcIdentity.factionId)) {
+      throw new Error(
+        `FREIBURG_SOCIAL_CATALOG npc ${npcIdentity.id} must use a canonical faction id`,
+      );
+    }
   }
 }
 
 const snapshotPayload: VnSnapshot = {
   schemaVersion: CURRENT_VN_SNAPSHOT_SCHEMA_VERSION,
-  scenarios: builtScenarios,
-  nodes: builtNodes,
+  scenarios: releaseScenarios,
+  nodes: releaseNodes,
   vnRuntime: {
     skillCheckDice: defaultSkillCheckDice,
     defaultEntryScenarioId,
+    releaseProfile,
   },
-  mindPalace: {
-    cases: mindCases,
-    facts: mindFacts,
-    hypotheses: mindHypotheses,
-  },
+  mindPalace: isKarlsruheEventRelease
+    ? {
+        cases: [],
+        facts: [],
+        hypotheses: [],
+      }
+    : {
+        cases: mindCases,
+        facts: mindFacts,
+        hypotheses: mindHypotheses,
+      },
   map: mapSnapshot,
-  questCatalog,
-  socialCatalog: FREIBURG_SOCIAL_CATALOG,
+  questCatalog: releaseQuestCatalog,
+  socialCatalog: releaseSocialCatalog,
 };
 
 const payloadJson = JSON.stringify(snapshotPayload);
@@ -4649,6 +5434,15 @@ const output = {
   checksum,
   generatedAt: new Date().toISOString(),
 };
+const generatedStaticMapPointsModule = `/* auto-generated by scripts/extract-vn-content.ts; do not edit manually */
+import type { MapPoint } from "../types";
+
+export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = ${JSON.stringify(
+  mapSnapshot.points.filter((point) => point.regionId === "FREIBURG_1905"),
+  null,
+  2,
+)} as MapPoint[];
+`;
 
 mkdirSync(path.dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, "utf8");
@@ -4656,13 +5450,34 @@ writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, "utf8");
 mkdirSync(path.dirname(publicOutputPath), { recursive: true });
 copyFileSync(outputPath, publicOutputPath);
 
+if (!isKarlsruheEventRelease) {
+  mkdirSync(path.dirname(generatedStaticMapPointsPath), { recursive: true });
+  writeFileSync(
+    generatedStaticMapPointsPath,
+    `${generatedStaticMapPointsModule.trimEnd()}\n`,
+    "utf8",
+  );
+}
+
 console.log(`Snapshot written to ${outputPath}`);
 console.log(`Public copy written to ${publicOutputPath}`);
+if (!isKarlsruheEventRelease) {
+  console.log(
+    `Generated static map points written to ${generatedStaticMapPointsPath}`,
+  );
+} else {
+  console.log(
+    "Generated static Freiburg map points skipped for Karlsruhe profile.",
+  );
+}
 console.log(`Checksum: ${checksum}`);
+console.log(`Release profile: ${releaseProfile}`);
 console.log(`Narrative locale: ${narrativeLocale}`);
-console.log(`Scenarios: ${builtScenarios.length}, Nodes: ${builtNodes.length}`);
 console.log(
-  `MindPalace -> Cases: ${mindCases.length}, Facts: ${mindFacts.length}, Hypotheses: ${mindHypotheses.length}`,
+  `Scenarios: ${releaseScenarios.length}, Nodes: ${releaseNodes.length}`,
+);
+console.log(
+  `MindPalace -> Cases: ${snapshotPayload.mindPalace?.cases.length ?? 0}, Facts: ${snapshotPayload.mindPalace?.facts.length ?? 0}, Hypotheses: ${snapshotPayload.mindPalace?.hypotheses.length ?? 0}`,
 );
 console.log(
   `Map -> Points: ${mapSnapshot.points.length}, Bindings: ${mapSnapshot.points.reduce((total, point) => total + point.bindings.length, 0)}, Condition-driven: ${conditionDrivenBindingCount}`,
@@ -4671,6 +5486,18 @@ console.log(
 if (contentContractWarnings.length > 0) {
   console.warn("Content contract warnings:");
   for (const warning of contentContractWarnings) {
+    migrationDiagnostics.push({
+      code: "CONTENT_WARNING",
+      message: warning,
+      relativePath: "scripts/extract-vn-content.ts",
+      line: 1,
+      column: 1,
+      severity: "warning",
+      providerName: "extractor",
+    });
     console.warn(`  - ${warning}`);
   }
 }
+
+writeMigrationReport();
+console.log(`Migration report written to ${migrationReportPath}`);

@@ -251,9 +251,7 @@ export const resolveFreiburgEntryTarget = (
     snapshot,
     defaultEntryScenarioId,
   );
-  const playerSessions = sessions.filter(
-    (session) => session.playerId.toHexString() === identityHex,
-  );
+  const playerSessions = sessions;
   const activeSessions = playerSessions
     .filter((session) => candidateScenarioIds.has(session.scenarioId))
     .filter((session) => isOpenSession(session))

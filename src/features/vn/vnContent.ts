@@ -63,6 +63,7 @@ import {
   MIN_VN_SCHEMA_WITH_QUEST_CATALOG,
   MIN_VN_SCHEMA_WITH_SOCIAL_FACTIONS,
 } from "./snapshotSchema";
+import { isVnAiMode } from "../../shared/game/narrativeResources";
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -102,6 +103,17 @@ const isQrPolicyTier = (value: unknown): value is QrPolicyTier =>
 const isCondition = (value: unknown): value is VnCondition => {
   if (!isObject(value) || typeof value.type !== "string") {
     return false;
+  }
+
+  if (value.type === "logic_and" || value.type === "logic_or") {
+    return (
+      Array.isArray(value.conditions) &&
+      value.conditions.length > 0 &&
+      value.conditions.every((entry) => isCondition(entry))
+    );
+  }
+  if (value.type === "logic_not") {
+    return isCondition(value.condition);
   }
 
   if (value.type === "flag_equals") {
@@ -386,6 +398,8 @@ const isSkillCheck = (value: unknown): boolean => {
     (value.isPassive === undefined || typeof value.isPassive === "boolean") &&
     (value.showChancePercent === undefined ||
       typeof value.showChancePercent === "boolean") &&
+    (value.karmaSensitive === undefined ||
+      typeof value.karmaSensitive === "boolean") &&
     hasModifiers &&
     (value.outcomeModel === undefined || isOutcomeModel(value.outcomeModel)) &&
     isOutcomeBranch(value.onSuccess) &&
@@ -438,6 +452,9 @@ const isChoice = (value: unknown): value is VnChoice => {
     typeof value.id === "string" &&
     typeof value.text === "string" &&
     typeof value.nextNodeId === "string" &&
+    (value.aiMode === undefined || isVnAiMode(value.aiMode)) &&
+    (value.providenceCost === undefined ||
+      typeof value.providenceCost === "number") &&
     hasLegacyConditions &&
     hasVisibleIfAll &&
     hasVisibleIfAny &&
@@ -465,6 +482,9 @@ const isNode = (value: unknown): value is VnNode => {
       typeof value.characterId === "string") &&
     (value.voicePresenceMode === undefined ||
       isVoicePresenceMode(value.voicePresenceMode)) &&
+    (value.aiModeDefault === undefined || isVnAiMode(value.aiModeDefault)) &&
+    (value.providenceCostDefault === undefined ||
+      typeof value.providenceCostDefault === "number") &&
     (value.activeSpeakers === undefined ||
       (Array.isArray(value.activeSpeakers) &&
         value.activeSpeakers.every(
@@ -772,10 +792,18 @@ const parseVnRuntime = (value: unknown): VnSnapshot["vnRuntime"] | null => {
   ) {
     return null;
   }
+  if (
+    value.releaseProfile !== undefined &&
+    value.releaseProfile !== "default" &&
+    value.releaseProfile !== "karlsruhe_event"
+  ) {
+    return null;
+  }
 
   return {
     skillCheckDice: value.skillCheckDice,
     defaultEntryScenarioId: value.defaultEntryScenarioId,
+    releaseProfile: value.releaseProfile,
   };
 };
 
@@ -1833,7 +1861,7 @@ const readMappedString = <T extends string>(
   return (source as Readonly<Record<string, T>>)[key] ?? null;
 };
 
-const evaluateChoiceCondition = (
+const evaluateChoiceConditionLeaf = (
   condition: VnCondition,
   flags: Record<string, boolean>,
   vars: Record<string, number>,
@@ -1904,6 +1932,29 @@ const evaluateChoiceCondition = (
   // Client pre-check is advisory; leave server as authority for unsupported
   // local data sources (inventory/evidence/quest/relationship).
   return true;
+};
+
+const evaluateChoiceCondition = (
+  condition: VnCondition,
+  flags: Record<string, boolean>,
+  vars: Record<string, number>,
+  context?: VnChoiceEvaluationContext,
+): boolean => {
+  if (condition.type === "logic_and") {
+    return condition.conditions.every((entry) =>
+      evaluateChoiceCondition(entry, flags, vars, context),
+    );
+  }
+  if (condition.type === "logic_or") {
+    return condition.conditions.some((entry) =>
+      evaluateChoiceCondition(entry, flags, vars, context),
+    );
+  }
+  if (condition.type === "logic_not") {
+    return !evaluateChoiceCondition(condition.condition, flags, vars, context);
+  }
+
+  return evaluateChoiceConditionLeaf(condition, flags, vars, context);
 };
 
 const groupAll = (

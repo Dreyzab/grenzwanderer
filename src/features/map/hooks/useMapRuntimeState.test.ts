@@ -8,15 +8,15 @@ const mocks = vi.hoisted(() => ({
   useIdentityMock: vi.fn(),
   parseSnapshotMock: vi.fn(),
   tablesMock: {
-    playerLocation: Symbol("playerLocation"),
-    playerFlag: Symbol("playerFlag"),
-    playerUnlockGroup: Symbol("playerUnlockGroup"),
-    playerVar: Symbol("playerVar"),
-    playerInventory: Symbol("playerInventory"),
-    playerEvidence: Symbol("playerEvidence"),
-    playerQuest: Symbol("playerQuest"),
-    playerRelationship: Symbol("playerRelationship"),
-    playerMapEvent: Symbol("playerMapEvent"),
+    myPlayerLocation: Symbol("myPlayerLocation"),
+    myPlayerFlags: Symbol("myPlayerFlags"),
+    myUnlockGroups: Symbol("myUnlockGroups"),
+    myPlayerVars: Symbol("myPlayerVars"),
+    myPlayerInventory: Symbol("myPlayerInventory"),
+    myEvidence: Symbol("myEvidence"),
+    myQuests: Symbol("myQuests"),
+    myRelationships: Symbol("myRelationships"),
+    myMapEvents: Symbol("myMapEvents"),
     contentVersion: Symbol("contentVersion"),
     contentSnapshot: Symbol("contentSnapshot"),
   },
@@ -37,10 +37,6 @@ vi.mock("../../../shared/spacetime/bindings", () => ({
 vi.mock("../../vn/vnContent", () => ({
   parseSnapshot: (...args: unknown[]) => mocks.parseSnapshotMock(...args),
 }));
-
-const makeIdentity = (hex: string) => ({
-  toHexString: () => hex,
-});
 
 const testDataSource: MapDataSource = {
   getRegions: () => [
@@ -74,38 +70,35 @@ describe("useMapRuntimeState", () => {
     mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
     mocks.parseSnapshotMock.mockReturnValue({
       schemaVersion: 2,
-      scenarios: [{ id: "sandbox_case01_pilot" }],
+      scenarios: [{ id: "case01_bank_investigation" }],
       nodes: [],
       mindPalace: { cases: [], facts: [], hypotheses: [] },
     });
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tablesMock.playerLocation) {
+      if (table === mocks.tablesMock.myPlayerLocation) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               locationId: "loc_freiburg_bank",
             },
           ],
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerFlag) {
+      if (table === mocks.tablesMock.myPlayerFlags) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               key: "VISITED_loc_freiburg_bank",
               value: true,
             },
             {
-              playerId: makeIdentity("me"),
               key: "agency_briefing_complete",
               value: true,
             },
             {
-              playerId: makeIdentity("other"),
+              playerId: { toHexString: () => "other" },
               key: "VISITED_loc_other",
               value: true,
             },
@@ -113,45 +106,32 @@ describe("useMapRuntimeState", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerUnlockGroup) {
+      if (table === mocks.tablesMock.myUnlockGroups) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               groupId: "loc_freiburg_bank",
             },
           ],
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerVar) {
-        return [
-          [{ playerId: makeIdentity("me"), key: "progress", floatValue: 2 }],
-          true,
-        ];
+      if (table === mocks.tablesMock.myPlayerVars) {
+        return [[{ key: "progress", floatValue: 2 }], true];
       }
-      if (table === mocks.tablesMock.playerInventory) {
-        return [
-          [{ playerId: makeIdentity("me"), itemId: "item_a", quantity: 1 }],
-          true,
-        ];
+      if (table === mocks.tablesMock.myPlayerInventory) {
+        return [[{ itemId: "item_a", quantity: 1 }], true];
       }
-      if (table === mocks.tablesMock.playerEvidence) {
-        return [[{ playerId: makeIdentity("me"), evidenceId: "ev_a" }], true];
+      if (table === mocks.tablesMock.myEvidence) {
+        return [[{ evidenceId: "ev_a" }], true];
       }
-      if (table === mocks.tablesMock.playerQuest) {
-        return [
-          [{ playerId: makeIdentity("me"), questId: "quest_banker", stage: 1 }],
-          true,
-        ];
+      if (table === mocks.tablesMock.myQuests) {
+        return [[{ questId: "quest_banker", stage: 1 }], true];
       }
-      if (table === mocks.tablesMock.playerRelationship) {
-        return [
-          [{ playerId: makeIdentity("me"), characterId: "npc", value: 1 }],
-          true,
-        ];
+      if (table === mocks.tablesMock.myRelationships) {
+        return [[{ characterId: "npc", value: 1 }], true];
       }
-      if (table === mocks.tablesMock.playerMapEvent) {
+      if (table === mocks.tablesMock.myMapEvents) {
         return [[], true];
       }
       if (table === mocks.tablesMock.contentVersion) {
@@ -172,7 +152,7 @@ describe("useMapRuntimeState", () => {
     expect(result.current.source).toBe("legacy_v2");
     expect(result.current.currentLocationId).toBe("loc_freiburg_bank");
     expect(point?.state).toBe("visited");
-    expect(point?.resolvedScenarioId).toBe("sandbox_case01_pilot");
+    expect(point?.resolvedScenarioId).toBe("case01_bank_investigation");
     expect(point?.canStartScenario).toBe(true);
     expect(point?.primaryBinding?.id).toBe("legacy_start_loc_freiburg_bank");
     expect(result.current.isReady).toBe(true);
@@ -311,34 +291,31 @@ describe("useMapRuntimeState", () => {
 
   it("shows only the agency hub before the first briefing", () => {
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tablesMock.playerLocation) {
-        return [
-          [{ playerId: makeIdentity("me"), locationId: "loc_agency" }],
-          true,
-        ];
+      if (table === mocks.tablesMock.myPlayerLocation) {
+        return [[{ locationId: "loc_agency" }], true];
       }
-      if (table === mocks.tablesMock.playerFlag) {
+      if (table === mocks.tablesMock.myPlayerFlags) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerUnlockGroup) {
+      if (table === mocks.tablesMock.myUnlockGroups) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerVar) {
+      if (table === mocks.tablesMock.myPlayerVars) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerInventory) {
+      if (table === mocks.tablesMock.myPlayerInventory) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerEvidence) {
+      if (table === mocks.tablesMock.myEvidence) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerQuest) {
+      if (table === mocks.tablesMock.myQuests) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerRelationship) {
+      if (table === mocks.tablesMock.myRelationships) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerMapEvent) {
+      if (table === mocks.tablesMock.myMapEvents) {
         return [[], true];
       }
       if (table === mocks.tablesMock.contentVersion) {
@@ -447,22 +424,17 @@ describe("useMapRuntimeState", () => {
 
   it("gates distortion points behind sight mode and awakening thresholds", () => {
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tablesMock.playerLocation) {
-        return [
-          [{ playerId: makeIdentity("me"), locationId: "loc_agency" }],
-          true,
-        ];
+      if (table === mocks.tablesMock.myPlayerLocation) {
+        return [[{ locationId: "loc_agency" }], true];
       }
-      if (table === mocks.tablesMock.playerFlag) {
+      if (table === mocks.tablesMock.myPlayerFlags) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               key: "agency_briefing_complete",
               value: true,
             },
             {
-              playerId: makeIdentity("me"),
               key: "mystic_distortion_loc_hidden_platform",
               value: true,
             },
@@ -470,16 +442,14 @@ describe("useMapRuntimeState", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerVar) {
+      if (table === mocks.tablesMock.myPlayerVars) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               key: "mystic_awakening",
               floatValue: 42,
             },
             {
-              playerId: makeIdentity("me"),
               key: "mystic_sight_mode_tier",
               floatValue: 1,
             },
@@ -487,22 +457,22 @@ describe("useMapRuntimeState", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerUnlockGroup) {
+      if (table === mocks.tablesMock.myUnlockGroups) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerInventory) {
+      if (table === mocks.tablesMock.myPlayerInventory) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerEvidence) {
+      if (table === mocks.tablesMock.myEvidence) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerQuest) {
+      if (table === mocks.tablesMock.myQuests) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerRelationship) {
+      if (table === mocks.tablesMock.myRelationships) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerMapEvent) {
+      if (table === mocks.tablesMock.myMapEvents) {
         return [[], true];
       }
       if (table === mocks.tablesMock.contentVersion) {
@@ -571,17 +541,13 @@ describe("useMapRuntimeState", () => {
     const futureMicros = BigInt(Date.now() + 60_000) * 1000n;
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tablesMock.playerLocation) {
-        return [
-          [{ playerId: makeIdentity("me"), locationId: "loc_agency" }],
-          true,
-        ];
+      if (table === mocks.tablesMock.myPlayerLocation) {
+        return [[{ locationId: "loc_agency" }], true];
       }
-      if (table === mocks.tablesMock.playerFlag) {
+      if (table === mocks.tablesMock.myPlayerFlags) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               key: "agency_briefing_complete",
               value: true,
             },
@@ -589,30 +555,29 @@ describe("useMapRuntimeState", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerUnlockGroup) {
+      if (table === mocks.tablesMock.myUnlockGroups) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerVar) {
+      if (table === mocks.tablesMock.myPlayerVars) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerInventory) {
+      if (table === mocks.tablesMock.myPlayerInventory) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerEvidence) {
+      if (table === mocks.tablesMock.myEvidence) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerQuest) {
+      if (table === mocks.tablesMock.myQuests) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerRelationship) {
+      if (table === mocks.tablesMock.myRelationships) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerMapEvent) {
+      if (table === mocks.tablesMock.myMapEvents) {
         return [
           [
             {
               eventId: "me::event::evt_workers_pub_raid",
-              playerId: makeIdentity("me"),
               templateId: "evt_workers_pub_raid",
               snapshotChecksum: "abc",
               payloadJson: JSON.stringify({
@@ -698,5 +663,107 @@ describe("useMapRuntimeState", () => {
     expect(eventPoint?.category).toBe("EPHEMERAL");
     expect(eventPoint?.runtimeSource).toBe("ephemeral");
     expect(eventPoint?.resolvedScenarioId).toBe("sandbox_workers_pub_rumor");
+  });
+
+  it("shows public Case01 points after onboarding without requiring agency briefing", () => {
+    mocks.useTableMock.mockImplementation((table: symbol) => {
+      if (table === mocks.tablesMock.myPlayerLocation) {
+        return [[{ locationId: "loc_freiburg_bank" }], true];
+      }
+      if (table === mocks.tablesMock.myPlayerFlags) {
+        return [
+          [
+            {
+              key: "case01_onboarding_complete",
+              value: true,
+            },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.myUnlockGroups) {
+        return [[{ groupId: "loc_freiburg_bank" }], true];
+      }
+      if (table === mocks.tablesMock.myPlayerVars) {
+        return [[], true];
+      }
+      if (table === mocks.tablesMock.myPlayerInventory) {
+        return [[], true];
+      }
+      if (table === mocks.tablesMock.myEvidence) {
+        return [[], true];
+      }
+      if (table === mocks.tablesMock.myQuests) {
+        return [[], true];
+      }
+      if (table === mocks.tablesMock.myRelationships) {
+        return [[], true];
+      }
+      if (table === mocks.tablesMock.myMapEvents) {
+        return [[], true];
+      }
+      if (table === mocks.tablesMock.contentVersion) {
+        return [[{ checksum: "abc", isActive: true }], true];
+      }
+      if (table === mocks.tablesMock.contentSnapshot) {
+        return [[{ checksum: "abc", payloadJson: "{}" }], true];
+      }
+
+      return [[], true];
+    });
+
+    mocks.parseSnapshotMock.mockReturnValue({
+      schemaVersion: 6,
+      scenarios: [{ id: "case01_bank_investigation" }],
+      nodes: [],
+      mindPalace: { cases: [], facts: [], hypotheses: [] },
+      map: {
+        defaultRegionId: "FREIBURG_1905",
+        regions: [
+          {
+            id: "FREIBURG_1905",
+            name: "Freiburg",
+            geoCenterLat: 47.99,
+            geoCenterLng: 7.85,
+            zoom: 14,
+          },
+        ],
+        points: [
+          {
+            id: "loc_freiburg_bank",
+            regionId: "FREIBURG_1905",
+            title: "Bank",
+            lat: 47.99,
+            lng: 7.85,
+            locationId: "loc_freiburg_bank",
+            category: "PUBLIC",
+            bindings: [
+              {
+                id: "bind_bank_start",
+                trigger: "card_primary",
+                label: "Investigate the Bank",
+                priority: 100,
+                intent: "objective",
+                actions: [
+                  {
+                    type: "start_scenario",
+                    scenarioId: "case01_bank_investigation",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const { result } = renderHook(() => useMapRuntimeState(testDataSource));
+
+    expect(result.current.points.map((point) => point.id)).toEqual([
+      "loc_freiburg_bank",
+    ]);
+    expect(result.current.points[0]?.resolvedScenarioId).toBe(
+      "case01_bank_investigation",
+    );
   });
 });

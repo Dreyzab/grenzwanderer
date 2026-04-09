@@ -1,7 +1,7 @@
 import { VnScreen } from "../../features/vn/ui/VnScreen";
 
 interface VnOverlayProps {
-  onOpenDebug: () => void;
+  onOpenDebug?: () => void;
   initialScenarioId?: string;
   onScenarioChange?: (scenarioId: string) => void;
   onNavigateTab?: (
@@ -11,7 +11,6 @@ interface VnOverlayProps {
       | "character"
       | "map"
       | "mind_palace"
-      | "dev"
       | "command"
       | "battle",
   ) => void;

@@ -69,13 +69,11 @@ const payloadJson = JSON.stringify(payload);
 const checksum = createHash("sha256").update(payloadJson, "utf8").digest("hex");
 
 const waitForAiRequest = async (
-  conn: DbConnection,
+  readRows: () => Iterable<{ id: bigint; requestId: string; status: string }>,
   requestId: string,
 ): Promise<{ id: bigint; requestId: string; status: string }> => {
   for (let attempt = 0; attempt < 20; attempt += 1) {
-    const row = [...conn.db.aiRequest.iter()].find(
-      (entry) => entry.requestId === requestId,
-    );
+    const row = [...readRows()].find((entry) => entry.requestId === requestId);
     if (row) {
       return row;
     }
@@ -181,7 +179,7 @@ const runSmoke = async () =>
             conn
               .subscriptionBuilder()
               .onApplied(() => resolveSync())
-              .subscribe(["SELECT * FROM ai_request"]);
+              .subscribe(["SELECT * FROM my_ai_requests"]);
           });
           await conn.reducers.publishContent({
             requestId: request("publish"),
@@ -249,10 +247,19 @@ const runSmoke = async () =>
             kind: AI_GENERATE_DIALOGUE_KIND,
             payloadJson: JSON.stringify(buildSmokeDialoguePayload()),
           });
-          const aiRequest = await waitForAiRequest(conn, request("ai"));
+          const aiRequest = await waitForAiRequest(
+            () => conn.db.myAiRequests.iter(),
+            request("ai"),
+          );
           await runUnauthorizedWorkerChecks(request);
 
           await ensureWorkerAccess(conn);
+          await new Promise<void>((resolveSync) => {
+            conn
+              .subscriptionBuilder()
+              .onApplied(() => resolveSync())
+              .subscribe(["SELECT * FROM worker_ai_requests"]);
+          });
 
           await conn.reducers.claimNextAiRequest({
             requestId: request("ai_claim_ok"),
@@ -261,7 +268,10 @@ const runSmoke = async () =>
             claimToken: request("claim_ok"),
           });
 
-          const claimedAiRequest = await waitForAiRequest(conn, request("ai"));
+          const claimedAiRequest = await waitForAiRequest(
+            () => conn.db.workerAiRequests.iter(),
+            request("ai"),
+          );
           if (claimedAiRequest.status !== "processing") {
             throw new Error(
               `AI smoke failed: expected claimed ai_request to be processing, got ${claimedAiRequest.status}`,

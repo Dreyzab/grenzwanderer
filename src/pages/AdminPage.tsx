@@ -113,7 +113,7 @@ const metricTone = (status: string): string => {
 
 export const AdminPage = () => {
   const { identityHex } = useIdentity();
-  const [profiles, profilesReady] = useTable(tables.playerProfile);
+  const [profiles, profilesReady] = useTable(tables.myPlayerProfile);
   const [versions, versionsReady] = useTable(tables.contentVersion);
 
   const presenceRows = EMPTY_ROWS;

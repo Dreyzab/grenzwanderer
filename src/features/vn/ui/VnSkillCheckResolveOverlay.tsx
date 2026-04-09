@@ -40,9 +40,14 @@ export interface VnSkillCheckResolveState {
   phase: VnSkillCheckResolvePhase;
   passed?: boolean;
   chancePercent?: number;
+  baseDifficulty?: number;
   roll?: number;
   voiceLevel?: number;
   difficulty?: number;
+  fortuneSpend?: number;
+  fortuneBalance?: number;
+  effectiveFortune?: number;
+  difficultyBreakdown?: Array<{ source: string; sourceId: string; delta: number }>;
   nextNodeId?: string | null;
   frozen: FrozenSkillCheckPresentation;
 }
@@ -54,6 +59,9 @@ interface VnSkillCheckResolveOverlayProps {
   aiStatus?: SkillCheckAiStatus | null;
   aiThoughtText?: string | null;
   aiThoughtVoiceLabel?: string | null;
+  onFortuneSpendChange?: (fortuneSpend: number) => void;
+  onRoll?: () => void;
+  canRoll?: boolean;
   onInteract: () => void;
 }
 
@@ -152,6 +160,9 @@ export const VnSkillCheckResolveOverlay = ({
   aiStatus = null,
   aiThoughtText = null,
   aiThoughtVoiceLabel = null,
+  onFortuneSpendChange,
+  onRoll,
+  canRoll = false,
   onInteract,
 }: VnSkillCheckResolveOverlayProps) => {
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -208,9 +219,10 @@ export const VnSkillCheckResolveOverlay = ({
   return (
     <AnimatePresence>
       {state ? (
-        <motion.button
+        <motion.div
           key={`${state.choiceId}:${state.phase}:${state.passed ? "pass" : "fail"}`}
-          type="button"
+          role="button"
+          tabIndex={0}
           className={[
             "vn-check-resolve",
             state.phase === "result"
@@ -222,7 +234,18 @@ export const VnSkillCheckResolveOverlay = ({
           data-phase={state.phase}
           onClick={(event) => {
             event.stopPropagation();
-            onInteract();
+            if (state.phase !== "arming") {
+              onInteract();
+            }
+          }}
+          onKeyDown={(event) => {
+            if (
+              state.phase !== "arming" &&
+              (event.key === "Enter" || event.key === " ")
+            ) {
+              event.preventDefault();
+              onInteract();
+            }
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -278,7 +301,57 @@ export const VnSkillCheckResolveOverlay = ({
             {state.chancePercent !== undefined ? (
               <p className="vn-check-resolve__chance">{`${state.chancePercent}% predicted`}</p>
             ) : null}
-            {state.phase === "result" ? (
+            {state.phase === "arming" ? (
+              <>
+                <p className="vn-check-resolve__formula">
+                  {`Base DC ${state.baseDifficulty ?? state.difficulty ?? 0} -> Effective DC ${state.difficulty ?? 0}`}
+                </p>
+                <div
+                  className="vn-check-resolve__fortune"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <p className="vn-check-resolve__fortune-label">
+                    {`Fortune spend (${state.fortuneBalance ?? 0} reserve, ${state.effectiveFortune ?? 0} effective)`}
+                  </p>
+                  <div className="vn-check-resolve__fortune-options">
+                    {[0, 1, 2].map((option) => {
+                      const disabled =
+                        option > (state.fortuneBalance ?? 0) ||
+                        (option > 0 && (state.effectiveFortune ?? 0) <= 0);
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          className={[
+                            "vn-check-resolve__fortune-option",
+                            state.fortuneSpend === option ? "is-active" : "",
+                          ].join(" ")}
+                          disabled={disabled}
+                          onClick={() => onFortuneSpendChange?.(option)}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {state.difficultyBreakdown && state.difficultyBreakdown.length > 0 ? (
+                    <p className="vn-check-resolve__fortune-meta">
+                      {state.difficultyBreakdown
+                        .map((entry) => `${entry.source} ${entry.delta > 0 ? "+" : ""}${entry.delta}`)
+                        .join(" | ")}
+                    </p>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="vn-check-resolve__roll-button"
+                    disabled={!canRoll}
+                    onClick={() => onRoll?.()}
+                  >
+                    Roll
+                  </button>
+                </div>
+              </>
+            ) : state.phase === "result" ? (
               <>
                 <p className="vn-check-resolve__formula">
                   {`Roll ${state.roll ?? 0} + ${state.voiceLevel ?? 0} vs DC ${state.difficulty ?? 0}`}
@@ -309,7 +382,7 @@ export const VnSkillCheckResolveOverlay = ({
               <p className="vn-check-resolve__hint">Tap to skip</p>
             )}
           </motion.article>
-        </motion.button>
+        </motion.div>
       ) : null}
     </AnimatePresence>
   );

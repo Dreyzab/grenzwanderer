@@ -158,6 +158,8 @@ const resolveQuestObjectivePointIds = (
 const resolvePersistentVisibility = (
   point: RuntimeMapPoint,
   agencyBriefingComplete: boolean,
+  case01OnboardingComplete: boolean,
+  releaseProfile: string | undefined,
   resolverInputs: MapResolverInputs,
   mysticState: ReturnType<typeof buildMysticStateSummary>,
 ): boolean => {
@@ -165,11 +167,18 @@ const resolvePersistentVisibility = (
     point.visibilityModes || point.distortionWindow || point.revealConditions,
   );
 
+  if (releaseProfile === "karlsruhe_event") {
+    if (point.category === "HUB") {
+      return true;
+    }
+    return point.state !== "locked";
+  }
+
   const baseVisibility = (() => {
     if (point.category === "HUB") {
       return true;
     }
-    if (!agencyBriefingComplete) {
+    if (!agencyBriefingComplete && !case01OnboardingComplete) {
       return false;
     }
     if (point.category === "PUBLIC") {
@@ -222,29 +231,26 @@ export const useMapPersistentState = (
   regionId?: MapRegionId,
 ): UseMapPersistentStateResult => {
   const { identityHex } = useIdentity();
-  const [locations, locationsReady] = useTable(tables.playerLocation);
-  const [flags, flagsReady] = useTable(tables.playerFlag);
-  const [unlockGroups, unlockGroupsReady] = useTable(tables.playerUnlockGroup);
-  const [vars, varsReady] = useTable(tables.playerVar);
-  const [inventory, inventoryReady] = useTable(tables.playerInventory);
-  const [evidence, evidenceReady] = useTable(tables.playerEvidence);
-  const [quests, questsReady] = useTable(tables.playerQuest);
+  const [locations, locationsReady] = useTable(tables.myPlayerLocation);
+  const [flags, flagsReady] = useTable(tables.myPlayerFlags);
+  const [unlockGroups, unlockGroupsReady] = useTable(tables.myUnlockGroups);
+  const [vars, varsReady] = useTable(tables.myPlayerVars);
+  const [inventory, inventoryReady] = useTable(tables.myPlayerInventory);
+  const [evidence, evidenceReady] = useTable(tables.myEvidence);
+  const [quests, questsReady] = useTable(tables.myQuests);
   const [relationships, relationshipsReady] = useTable(
-    tables.playerRelationship,
+    tables.myRelationships,
   );
-  const [npcStates, npcStatesReady] = useTable(tables.playerNpcState);
-  const [npcFavors, npcFavorsReady] = useTable(tables.playerNpcFavor);
+  const [npcStates, npcStatesReady] = useTable(tables.myNpcState);
+  const [npcFavors, npcFavorsReady] = useTable(tables.myNpcFavors);
   const [agencyCareers, agencyCareersReady] = useTable(
-    tables.playerAgencyCareer,
+    tables.myAgencyCareer,
   );
-  const [rumorStates, rumorStatesReady] = useTable(tables.playerRumorState);
+  const [rumorStates, rumorStatesReady] = useTable(tables.myRumorState);
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
 
   return useMemo(() => {
-    const playerIdFilter = (playerId: { toHexString(): string }): boolean =>
-      identityHex.length > 0 && playerId.toHexString() === identityHex;
-
     const activeVersion = versions.find((entry) => entry.isActive) ?? null;
     const snapshotRow = activeVersion
       ? (snapshots.find((entry) => entry.checksum === activeVersion.checksum) ??
@@ -276,15 +282,14 @@ export const useMapPersistentState = (
 
     const currentLocationId =
       identityHex.length > 0
-        ? (locations.find((entry) => playerIdFilter(entry.playerId))
-            ?.locationId ?? null)
+        ? (locations[0]?.locationId ?? null)
         : null;
 
     const activeFlags = new Set<string>();
     const visitedFlags = new Set<string>();
     const completedFlags = new Set<string>();
     for (const row of flags) {
-      if (!playerIdFilter(row.playerId) || !row.value) {
+      if (!row.value) {
         continue;
       }
       activeFlags.add(row.key);
@@ -298,25 +303,16 @@ export const useMapPersistentState = (
 
     const unlockedGroups = new Set<string>();
     for (const row of unlockGroups) {
-      if (!playerIdFilter(row.playerId)) {
-        continue;
-      }
       unlockedGroups.add(row.groupId);
     }
 
     const varsByKey = new Map<string, number>();
     for (const row of vars) {
-      if (!playerIdFilter(row.playerId)) {
-        continue;
-      }
       varsByKey.set(row.key, row.floatValue);
     }
 
     const inventoryItemIds = new Set<string>();
     for (const row of inventory) {
-      if (!playerIdFilter(row.playerId)) {
-        continue;
-      }
       if (normalizeNumber(row.quantity) > 0) {
         inventoryItemIds.add(row.itemId);
       }
@@ -324,56 +320,37 @@ export const useMapPersistentState = (
 
     const evidenceIds = new Set<string>();
     for (const row of evidence) {
-      if (!playerIdFilter(row.playerId)) {
-        continue;
-      }
       evidenceIds.add(row.evidenceId);
     }
 
     const questStages = new Map<string, number>();
     for (const row of quests) {
-      if (!playerIdFilter(row.playerId)) {
-        continue;
-      }
       questStages.set(row.questId, normalizeNumber(row.stage));
     }
 
     const relationshipValues = new Map<string, number>();
     for (const row of relationships) {
-      if (!playerIdFilter(row.playerId)) {
-        continue;
-      }
       relationshipValues.set(row.characterId, row.value);
     }
 
     for (const row of npcStates) {
-      if (!playerIdFilter(row.playerId)) {
-        continue;
-      }
       relationshipValues.set(row.npcId, row.trustScore);
     }
 
     const favorBalances = new Map<string, number>();
     for (const row of npcFavors) {
-      if (!playerIdFilter(row.playerId)) {
-        continue;
-      }
       favorBalances.set(row.npcId, normalizeNumber(row.balance));
     }
 
     const agencyCareer =
       identityHex.length > 0
-        ? (agencyCareers.find((entry) => playerIdFilter(entry.playerId)) ??
-          null)
+        ? (agencyCareers[0] ?? null)
         : null;
     const agencyStanding = agencyCareer?.standingScore ?? 0;
     const careerRankId = agencyCareer?.rankId ?? null;
 
     const rumorStateById = new Map<string, string>();
     for (const row of rumorStates) {
-      if (!playerIdFilter(row.playerId)) {
-        continue;
-      }
       rumorStateById.set(row.rumorId, row.status);
     }
 
@@ -408,6 +385,9 @@ export const useMapPersistentState = (
       questStages,
     );
     const agencyBriefingComplete = activeFlags.has("agency_briefing_complete");
+    const case01OnboardingComplete = activeFlags.has(
+      "case01_onboarding_complete",
+    );
 
     const sourcePoints =
       source === "snapshot_v3" && snapshot?.map
@@ -467,6 +447,8 @@ export const useMapPersistentState = (
             isVisible: resolvePersistentVisibility(
               runtimePoint,
               agencyBriefingComplete,
+              case01OnboardingComplete,
+              snapshot?.vnRuntime?.releaseProfile,
               resolverInputs,
               mysticState,
             ),

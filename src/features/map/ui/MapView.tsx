@@ -16,7 +16,7 @@ import MapGL, {
 import { useReducer, useTable } from "spacetimedb/react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./mapExperience.css";
-import { MAPBOX_STYLE, MAPBOX_TOKEN } from "../../../config";
+import { MAPBOX_STYLE, MAPBOX_TOKEN, RELEASE_PROFILE } from "../../../config";
 import { reducers, tables } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
 import { useMapRuntimeState } from "../hooks/useMapRuntimeState";
@@ -191,7 +191,7 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
     currentLocationId,
     isReady,
   } = useMapRuntimeState();
-  const [codeRedemptions] = useTable(tables.playerRedeemedCode);
+  const [codeRedemptions] = useTable(tables.myRedeemedCodes);
   const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
   const [isCompactHud, setIsCompactHud] = useState<boolean>(() =>
     getIsCompactHud(),
@@ -257,9 +257,7 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
     }
 
     const redemption = codeRedemptions.find(
-      (row) =>
-        row.requestId === pendingCodeRequestId &&
-        row.playerId.toHexString() === identityHex,
+      (row) => row.requestId === pendingCodeRequestId,
     );
     if (!redemption) {
       return;
@@ -347,6 +345,9 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
           continue;
         }
         if (action.type === "open_command_mode") {
+          if (RELEASE_PROFILE === "karlsruhe_event") {
+            continue;
+          }
           await openCommandMode({
             requestId: createRequestId("map_command", point.id),
             scenarioId: action.scenarioId,
@@ -356,6 +357,9 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
           continue;
         }
         if (action.type === "open_battle_mode") {
+          if (RELEASE_PROFILE === "karlsruhe_event") {
+            continue;
+          }
           await openBattleMode({
             requestId: createRequestId("map_battle", point.id),
             scenarioId: action.scenarioId,

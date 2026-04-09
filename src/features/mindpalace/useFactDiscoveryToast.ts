@@ -8,7 +8,7 @@ export const useFactDiscoveryToast = () => {
   const { identityHex } = useIdentity();
   const { showToast } = useToast();
 
-  const [playerMindFacts, factsReady] = useTable(tables.playerMindFact);
+  const [playerMindFacts, factsReady] = useTable(tables.myMindFacts);
   const [mindFacts] = useTable(tables.mindFact);
 
   const knownFactIdsRef = useRef<Set<string>>(new Set());
@@ -19,10 +19,7 @@ export const useFactDiscoveryToast = () => {
       return;
     }
 
-    const myFacts = playerMindFacts.filter(
-      (row) => row.playerId.toHexString() === identityHex,
-    );
-    const currentFactIds = new Set(myFacts.map((row) => row.factId));
+    const currentFactIds = new Set(playerMindFacts.map((row) => row.factId));
 
     if (!initializedRef.current) {
       knownFactIdsRef.current = currentFactIds;

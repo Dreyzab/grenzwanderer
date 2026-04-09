@@ -240,6 +240,96 @@ export const MindHypothesis = __t.object("MindHypothesis", {
 });
 export type MindHypothesis = __Infer<typeof MindHypothesis>;
 
+export const MyAgencyCareer = __t.object("MyAgencyCareer", {});
+export type MyAgencyCareer = __Infer<typeof MyAgencyCareer>;
+
+export const MyAiRequests = __t.object("MyAiRequests", {});
+export type MyAiRequests = __Infer<typeof MyAiRequests>;
+
+export const MyBattleCards = __t.object("MyBattleCards", {});
+export type MyBattleCards = __Infer<typeof MyBattleCards>;
+
+export const MyBattleCombatants = __t.object("MyBattleCombatants", {});
+export type MyBattleCombatants = __Infer<typeof MyBattleCombatants>;
+
+export const MyBattleHistory = __t.object("MyBattleHistory", {});
+export type MyBattleHistory = __Infer<typeof MyBattleHistory>;
+
+export const MyBattleSessions = __t.object("MyBattleSessions", {});
+export type MyBattleSessions = __Infer<typeof MyBattleSessions>;
+
+export const MyCommandHistory = __t.object("MyCommandHistory", {});
+export type MyCommandHistory = __Infer<typeof MyCommandHistory>;
+
+export const MyCommandParty = __t.object("MyCommandParty", {});
+export type MyCommandParty = __Infer<typeof MyCommandParty>;
+
+export const MyCommandSessions = __t.object("MyCommandSessions", {});
+export type MyCommandSessions = __Infer<typeof MyCommandSessions>;
+
+export const MyEvidence = __t.object("MyEvidence", {});
+export type MyEvidence = __Infer<typeof MyEvidence>;
+
+export const MyFactionSignals = __t.object("MyFactionSignals", {});
+export type MyFactionSignals = __Infer<typeof MyFactionSignals>;
+
+export const MyMapEvents = __t.object("MyMapEvents", {});
+export type MyMapEvents = __Infer<typeof MyMapEvents>;
+
+export const MyMindCases = __t.object("MyMindCases", {});
+export type MyMindCases = __Infer<typeof MyMindCases>;
+
+export const MyMindFacts = __t.object("MyMindFacts", {});
+export type MyMindFacts = __Infer<typeof MyMindFacts>;
+
+export const MyMindHypotheses = __t.object("MyMindHypotheses", {});
+export type MyMindHypotheses = __Infer<typeof MyMindHypotheses>;
+
+export const MyNpcFavors = __t.object("MyNpcFavors", {});
+export type MyNpcFavors = __Infer<typeof MyNpcFavors>;
+
+export const MyNpcState = __t.object("MyNpcState", {});
+export type MyNpcState = __Infer<typeof MyNpcState>;
+
+export const MyPlayerFlags = __t.object("MyPlayerFlags", {});
+export type MyPlayerFlags = __Infer<typeof MyPlayerFlags>;
+
+export const MyPlayerInventory = __t.object("MyPlayerInventory", {});
+export type MyPlayerInventory = __Infer<typeof MyPlayerInventory>;
+
+export const MyPlayerLocation = __t.object("MyPlayerLocation", {});
+export type MyPlayerLocation = __Infer<typeof MyPlayerLocation>;
+
+export const MyPlayerProfile = __t.object("MyPlayerProfile", {});
+export type MyPlayerProfile = __Infer<typeof MyPlayerProfile>;
+
+export const MyPlayerVars = __t.object("MyPlayerVars", {});
+export type MyPlayerVars = __Infer<typeof MyPlayerVars>;
+
+export const MyQuests = __t.object("MyQuests", {});
+export type MyQuests = __Infer<typeof MyQuests>;
+
+export const MyRedeemedCodes = __t.object("MyRedeemedCodes", {});
+export type MyRedeemedCodes = __Infer<typeof MyRedeemedCodes>;
+
+export const MyRelationships = __t.object("MyRelationships", {});
+export type MyRelationships = __Infer<typeof MyRelationships>;
+
+export const MyRumorState = __t.object("MyRumorState", {});
+export type MyRumorState = __Infer<typeof MyRumorState>;
+
+export const MySpiritState = __t.object("MySpiritState", {});
+export type MySpiritState = __Infer<typeof MySpiritState>;
+
+export const MyUnlockGroups = __t.object("MyUnlockGroups", {});
+export type MyUnlockGroups = __Infer<typeof MyUnlockGroups>;
+
+export const MyVnSessions = __t.object("MyVnSessions", {});
+export type MyVnSessions = __Infer<typeof MyVnSessions>;
+
+export const MyVnSkillResults = __t.object("MyVnSkillResults", {});
+export type MyVnSkillResults = __Infer<typeof MyVnSkillResults>;
+
 export const PlayerAgencyCareer = __t.object("PlayerAgencyCareer", {
   playerId: __t.identity(),
   standingScore: __t.f64(),
@@ -415,6 +505,18 @@ export const PlayerRumorState = __t.object("PlayerRumorState", {
 });
 export type PlayerRumorState = __Infer<typeof PlayerRumorState>;
 
+export const PlayerSpiritState = __t.object("PlayerSpiritState", {
+  spiritStateKey: __t.string(),
+  playerId: __t.identity(),
+  spiritId: __t.string(),
+  state: __t.string(),
+  method: __t.option(__t.string()),
+  imprisonmentItemId: __t.option(__t.string()),
+  capturedAt: __t.option(__t.timestamp()),
+  updatedAt: __t.timestamp(),
+});
+export type PlayerSpiritState = __Infer<typeof PlayerSpiritState>;
+
 export const PlayerUnlockGroup = __t.object("PlayerUnlockGroup", {
   unlockKey: __t.string(),
   playerId: __t.identity(),
@@ -484,13 +586,19 @@ export const VnSkillCheckResult = __t.object("VnSkillCheckResult", {
   roll: __t.u32(),
   voiceLevel: __t.u32(),
   difficulty: __t.u32(),
+  baseDifficulty: __t.u32(),
+  fortuneSpent: __t.u32(),
   passed: __t.bool(),
   nextNodeId: __t.option(__t.string()),
   breakdownJson: __t.option(__t.string()),
+  difficultyBreakdownJson: __t.option(__t.string()),
   outcomeGrade: __t.option(__t.string()),
   createdAt: __t.timestamp(),
 });
 export type VnSkillCheckResult = __Infer<typeof VnSkillCheckResult>;
+
+export const WorkerAiRequests = __t.object("WorkerAiRequests", {});
+export type WorkerAiRequests = __Infer<typeof WorkerAiRequests>;
 
 export const WorkerAllowlist = __t.object("WorkerAllowlist", {
   identity: __t.identity(),

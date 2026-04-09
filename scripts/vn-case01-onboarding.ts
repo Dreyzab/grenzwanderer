@@ -15,8 +15,12 @@ import {
   VAR_KEYS,
   suggestClosest,
 } from "./content-vocabulary";
+import {
+  case01OnboardingRelativeRoot,
+  validateCase01OnboardingRoot,
+} from "./content-authoring-contract";
 
-const ONBOARDING_RELATIVE_ROOT = "40_GameViewer/Case01/Plot/01_Onboarding";
+const ONBOARDING_RELATIVE_ROOT = case01OnboardingRelativeRoot;
 const CASE01_SCENARIO_ID = "sandbox_case01_pilot";
 const CASE01_START_NODE_ID = "scene_intro_journey";
 const CASE01_HANDOFF_NODE_ID = "scene_case01_onboarding_handoff";
@@ -1460,7 +1464,19 @@ const toScenarioChoiceType = (
 };
 
 const parseOnboardingDocs = (storyRoot: string): ParsedDoc[] => {
-  const onboardingDir = path.join(storyRoot, ONBOARDING_RELATIVE_ROOT);
+  let onboardingDir: string;
+  try {
+    onboardingDir = validateCase01OnboardingRoot(storyRoot);
+  } catch (error) {
+    throw new Case01ParserError({
+      code: "MISSING_ONBOARDING_ROOT",
+      message: error instanceof Error ? error.message : String(error),
+      relativePath: `${ONBOARDING_RELATIVE_ROOT}/`,
+      line: 1,
+      column: 1,
+      severity: "error",
+    });
+  }
   const markdownFiles = readdirSync(onboardingDir)
     .filter((entry) => entry.endsWith(".md"))
     .sort((left, right) => left.localeCompare(right));

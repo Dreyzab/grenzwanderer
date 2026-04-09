@@ -19,8 +19,8 @@ export const useMindPalaceReadiness = (): MindPalaceReadiness => {
 
   const [mindCases] = useTable(tables.mindCase);
   const [mindHypotheses] = useTable(tables.mindHypothesis);
-  const [playerMindFacts] = useTable(tables.playerMindFact);
-  const [playerMindHypotheses] = useTable(tables.playerMindHypothesis);
+  const [playerMindFacts] = useTable(tables.myMindFacts);
+  const [playerMindHypotheses] = useTable(tables.myMindHypotheses);
 
   const varsByKey = usePlayerVars();
 
@@ -34,18 +34,12 @@ export const useMindPalaceReadiness = (): MindPalaceReadiness => {
     }
 
     const discoveredFactIds = new Set(
-      playerMindFacts
-        .filter((row) => row.playerId.toHexString() === identityHex)
-        .map((row) => row.factId),
+      playerMindFacts.map((row) => row.factId),
     );
 
     const validatedHypothesisIds = new Set(
       playerMindHypotheses
-        .filter(
-          (row) =>
-            row.playerId.toHexString() === identityHex &&
-            row.status === "validated",
-        )
+        .filter((row) => row.status === "validated")
         .map((row) => row.hypothesisId),
     );
 

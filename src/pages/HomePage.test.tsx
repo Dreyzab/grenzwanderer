@@ -6,8 +6,8 @@ const mocks = vi.hoisted(() => {
   const tables = {
     contentVersion: Symbol("contentVersion"),
     contentSnapshot: Symbol("contentSnapshot"),
-    vnSession: Symbol("vnSession"),
-    playerFlag: Symbol("playerFlag"),
+    myVnSessions: Symbol("myVnSessions"),
+    myPlayerFlags: Symbol("myPlayerFlags"),
   };
 
   return {
@@ -237,10 +237,10 @@ describe("HomePage Freiburg flow", () => {
       if (table === mocks.tables.contentSnapshot) {
         return [state.contentSnapshotRows, state.contentSnapshotReady];
       }
-      if (table === mocks.tables.vnSession) {
+      if (table === mocks.tables.myVnSessions) {
         return [state.sessionRows, state.sessionReady];
       }
-      if (table === mocks.tables.playerFlag) {
+      if (table === mocks.tables.myPlayerFlags) {
         return [state.flagRows, state.flagsReady];
       }
       return [[], true];

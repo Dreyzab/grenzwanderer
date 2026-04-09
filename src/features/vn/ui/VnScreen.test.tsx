@@ -16,9 +16,14 @@ const mocks = vi.hoisted(() => {
   const tables = {
     contentVersion: Symbol("contentVersion"),
     contentSnapshot: Symbol("contentSnapshot"),
-    vnSession: Symbol("vnSession"),
-    vnSkillCheckResult: Symbol("vnSkillCheckResult"),
-    aiRequest: Symbol("aiRequest"),
+    myVnSessions: Symbol("myVnSessions"),
+    myVnSkillResults: Symbol("myVnSkillResults"),
+    myAiRequests: Symbol("myAiRequests"),
+    myQuests: Symbol("myQuests"),
+    myNpcState: Symbol("myNpcState"),
+    myNpcFavors: Symbol("myNpcFavors"),
+    myAgencyCareer: Symbol("myAgencyCareer"),
+    myRumorState: Symbol("myRumorState"),
   };
   const reducers = {
     startScenario: Symbol("startScenario"),
@@ -248,13 +253,13 @@ describe("VnScreen critical behavior", () => {
       if (table === mocks.tables.contentSnapshot) {
         return [state.contentSnapshotRows, state.contentSnapshotReady];
       }
-      if (table === mocks.tables.vnSession) {
+      if (table === mocks.tables.myVnSessions) {
         return [state.sessionRows, state.sessionReady];
       }
-      if (table === mocks.tables.vnSkillCheckResult) {
+      if (table === mocks.tables.myVnSkillResults) {
         return [state.skillResultRows, true];
       }
-      if (table === mocks.tables.aiRequest) {
+      if (table === mocks.tables.myAiRequests) {
         return [state.aiRequestRows, true];
       }
       return [[], true];
@@ -518,8 +523,9 @@ describe("VnScreen critical behavior", () => {
     const view = render(<VnScreen />);
 
     fireEvent.click(screen.getByRole("button", { name: /Probe witness/i }));
-    expect(mocks.performSkillCheckMock).toHaveBeenCalledTimes(1);
     expect(screen.getByText("CHECK PRIMED")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Roll" }));
+    expect(mocks.performSkillCheckMock).toHaveBeenCalledTimes(1);
 
     state.skillResultRows = [
       {
@@ -629,6 +635,7 @@ describe("VnScreen critical behavior", () => {
     const view = render(<VnScreen />);
 
     fireEvent.click(screen.getByRole("button", { name: /Probe witness/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Roll" }));
     state.skillResultRows = [
       {
         resultKey: "result_skip",
@@ -647,6 +654,11 @@ describe("VnScreen critical behavior", () => {
     await act(async () => {
       view.rerender(<VnScreen />);
     });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    expect(screen.getByText("DICE IN MOTION")).toBeInTheDocument();
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "surface-tap" }));
@@ -726,6 +738,7 @@ describe("VnScreen critical behavior", () => {
     const view = render(<VnScreen />);
 
     fireEvent.click(screen.getByRole("button", { name: /Probe witness/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Roll" }));
 
     state.skillResultRows = [
       {
@@ -923,6 +936,7 @@ describe("VnScreen critical behavior", () => {
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Probe witness/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Roll" }));
     state.skillResultRows = [
       {
         resultKey: "result_b",
@@ -1018,6 +1032,7 @@ describe("VnScreen critical behavior", () => {
     const view = render(<VnScreen />);
 
     fireEvent.click(screen.getByRole("button", { name: /Lean in and make/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Roll" }));
 
     state.skillResultRows = [
       {
@@ -1202,6 +1217,7 @@ describe("VnScreen critical behavior", () => {
   });
 
   it("shows AI thinking state and completed copy on the skill-check resolve surface", async () => {
+    vi.useFakeTimers();
     mocks.usePlayerVarsMock.mockReturnValue({ attr_social: 4 });
 
     const payloadJson = makeSnapshotPayload(
@@ -1263,6 +1279,7 @@ describe("VnScreen critical behavior", () => {
     const view = render(<VnScreen />);
 
     fireEvent.click(screen.getByRole("button", { name: /Lean in and make/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Roll" }));
     state.skillResultRows = [
       {
         resultKey: "result_probe",
@@ -1283,8 +1300,13 @@ describe("VnScreen critical behavior", () => {
       view.rerender(<VnScreen />);
     });
 
-    await waitFor(() => {
-      expect(mocks.enqueueAiRequestMock).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mocks.enqueueAiRequestMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000);
     });
 
     fireEvent.click(screen.getByRole("button", { name: "surface-tap" }));
@@ -1317,11 +1339,12 @@ describe("VnScreen critical behavior", () => {
       view.rerender(<VnScreen />);
     });
 
-    await waitFor(() => {
-      expect(
-        screen.getByText("Push now. He is already leaning."),
-      ).toBeInTheDocument();
+    await act(async () => {
+      await Promise.resolve();
     });
+    expect(
+      screen.getByText("Push now. He is already leaning."),
+    ).toBeInTheDocument();
   });
 
   it("shows the active lens badge when a focused hypothesis gates the current node", () => {

@@ -88,12 +88,21 @@ export const connectOperatorConnection = async (
   });
 
 export const ensureAdminAccess = async (conn: DbConnection): Promise<void> => {
-  const identity = conn.identity;
+  const { identity } = conn;
   if (!identity) {
     throw new Error("Connection identity is not available");
   }
 
-  // `grant_admin_identity` is admin-gated and idempotent for an existing admin.
+  // First, try to bootstrap if the database has no admins yet.
+  // This will fail silently if admins already exist (it's gated in the reducer).
+  try {
+    await conn.reducers.bootstrapAdminIdentity({});
+  } catch (_error) {
+    // Ignore error if already bootstrapped.
+  }
+
+  // Then ensure this specific identity is an admin.
+  // This is idempotent for an existing admin.
   await conn.reducers.grantAdminIdentity({ identity });
 };
 

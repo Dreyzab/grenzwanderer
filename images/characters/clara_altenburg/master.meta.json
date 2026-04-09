@@ -1,0 +1,10 @@
+{
+  "characterId": "clara_altenburg",
+  "outfit": "Default",
+  "emotion": "Neutral",
+  "prompt": "Oil painting, Sargent-style broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Clara von Altenburg, 35-year-old European noblewoman, flawless aristocratic style, cold porcelain skin, sharp high cheekbones, deep-set eyes hiding despair, Gibson girl hairstyle, elegant dark velvet Victorian dress with high lace collar, natural diffused daylight, soft shadows, balanced tones, waist-up portrait, elegant posture, Neutral studio light, plain dark backdrop, no other figures, sprite-ready, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors.",
+  "promptHash": "5dba98629146",
+  "model": "gemini-2.1-flash-image",
+  "createdAt": "2026-04-09T09:06:00.000Z",
+  "masterAssetPath": "Grenzwanderer/images/characters/clara_altenburg/master.png"
+}

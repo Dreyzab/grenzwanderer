@@ -98,13 +98,14 @@ export const buildChoiceKey = (
 ): string => `${scenarioId}::${nodeId}::${choiceId}`;
 
 export const buildAiThoughtKey = (
+  dialogueLayer: ActiveAiThoughtContext["dialogueLayer"],
   scenarioId: string,
   nodeId: string,
   checkId: string,
   choiceId: string,
   resultCreatedAtMicros: bigint,
 ): string =>
-  `${scenarioId}::${nodeId}::${checkId}::${choiceId}::${resultCreatedAtMicros.toString()}`;
+  `${dialogueLayer}::${scenarioId}::${nodeId}::${checkId}::${choiceId}::${resultCreatedAtMicros.toString()}`;
 
 export const buildReactionKey = (
   scenarioId: string,
@@ -173,6 +174,26 @@ export const parseSkillCheckBreakdown = (
 export const sumBreakdownDelta = (
   breakdown: NonNullable<SceneResultEnvelope["checkResult"]>["breakdown"],
 ): number => breakdown.reduce((sum, entry) => sum + entry.delta, 0);
+
+export const parseDifficultyBreakdown = (
+  value: unknown,
+): Array<{ source: string; sourceId: string; delta: number }> => {
+  const parsed = unwrapOptionalString(value);
+  if (!parsed) {
+    return [];
+  }
+
+  try {
+    const json = JSON.parse(parsed) as unknown;
+    if (Array.isArray(json) && json.every(isBreakdownEntry)) {
+      return json;
+    }
+  } catch {
+    // Ignore malformed persisted rows and fall back to empty breakdown.
+  }
+
+  return [];
+};
 
 export const normalizeNumeric = (
   value: number | bigint | null | undefined,
@@ -261,6 +282,7 @@ export const aiRequestMatchesContext = (
       context.nodeId,
       context.checkId,
       context.choiceId,
+      context.dialogueLayer,
     )
   ) {
     return timestampMicros(entry.createdAt) >= context.resultCreatedAtMicros;
@@ -275,6 +297,7 @@ export const aiRequestMatchesContext = (
     entry.payloadJson.includes(`"nodeId":"${context.nodeId}"`) &&
     entry.payloadJson.includes(`"checkId":"${context.checkId}"`) &&
     entry.payloadJson.includes(`"choiceId":"${context.choiceId}"`) &&
+    entry.payloadJson.includes(`"dialogueLayer":"${context.dialogueLayer}"`) &&
     timestampMicros(entry.createdAt) >= context.resultCreatedAtMicros
   );
 };

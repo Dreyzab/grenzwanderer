@@ -1,0 +1,732 @@
+[
+  {
+    "locationId": "loc_agency",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_agency.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_agency"],
+    "expectedBasename": "loc_agency",
+    "expectedImagePath": "images/locations/loc_agency.webp",
+    "expectedMetaPath": "images/locations/loc_agency.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_apothecary",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "expectedBasename": "loc_apothecary",
+    "expectedImagePath": "images/locations/loc_apothecary.webp",
+    "expectedMetaPath": "images/locations/loc_apothecary.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_apothecary",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "expectedBasename": "loc_apothecary--investigation",
+    "expectedImagePath": "images/locations/loc_apothecary--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_apothecary--investigation.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_freiburg_bank",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "crime_scene",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_bankhaus.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
+    "expectedBasename": "loc_bankhaus--crime_scene",
+    "expectedImagePath": "images/locations/loc_bankhaus--crime_scene.webp",
+    "expectedMetaPath": "images/locations/loc_bankhaus--crime_scene.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "harsh magnesium flash lighting, chaotic shadow spill, brittle evidence glare, police-line tension",
+      "s6": "Empty exterior aftermath, no people visible, environmental traces only, wide establishing shot"
+    }
+  },
+  {
+    "locationId": "loc_freiburg_bank",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_bankhaus.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
+    "expectedBasename": "loc_bankhaus",
+    "expectedImagePath": "images/locations/loc_bankhaus.webp",
+    "expectedMetaPath": "images/locations/loc_bankhaus.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_freiburg_bank",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_bankhaus.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
+    "expectedBasename": "loc_bankhaus--investigation",
+    "expectedImagePath": "images/locations/loc_bankhaus--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_bankhaus--investigation.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_freiburg_estate",
+    "districtId": "wiehre",
+    "visualArchetype": "estate_noble",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_estate_noble_exterior",
+    "interiorPresetId": "preset_estate_noble_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "expectedBasename": "loc_freiburg_estate",
+    "expectedImagePath": "images/locations/loc_freiburg_estate.webp",
+    "expectedMetaPath": "images/locations/loc_freiburg_estate.meta.json",
+    "promptSlots": {
+      "s3": "Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_freiburg_estate",
+    "districtId": "wiehre",
+    "visualArchetype": "estate_noble",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_estate_noble_exterior",
+    "interiorPresetId": "preset_estate_noble_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "expectedBasename": "loc_freiburg_estate--investigation",
+    "expectedImagePath": "images/locations/loc_freiburg_estate--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_freiburg_estate--investigation.meta.json",
+    "promptSlots": {
+      "s3": "Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_freiburg_estate",
+    "districtId": "wiehre",
+    "visualArchetype": "estate_noble",
+    "assetKind": "exterior",
+    "variantId": "memory",
+    "masterRefId": "master_estate_noble_exterior",
+    "interiorPresetId": "preset_estate_noble_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "expectedBasename": "loc_freiburg_estate--memory",
+    "expectedImagePath": "images/locations/loc_freiburg_estate--memory.webp",
+    "expectedMetaPath": "images/locations/loc_freiburg_estate--memory.meta.json",
+    "promptSlots": {
+      "s3": "Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905",
+      "s4": "ethereal glow, soft atmospheric perspective, blurred edges, surreal gentle focus, memory-like haze",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_freiburg_warehouse",
+    "districtId": "stuhlinger",
+    "visualArchetype": "industrial_rail",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_industrial_rail_exterior",
+    "interiorPresetId": "preset_industrial_rail_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_stuhlinger_warehouse.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_warehouse"],
+    "expectedBasename": "loc_stuhlinger_warehouse",
+    "expectedImagePath": "images/locations/loc_stuhlinger_warehouse.webp",
+    "expectedMetaPath": "images/locations/loc_stuhlinger_warehouse.meta.json",
+    "promptSlots": {
+      "s3": "Industrial ironwork, soot-dark brick, rail sheds, freight platforms, steam-grime infrastructure, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_freiburg_warehouse",
+    "districtId": "stuhlinger",
+    "visualArchetype": "industrial_rail",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_industrial_rail_exterior",
+    "interiorPresetId": "preset_industrial_rail_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_stuhlinger_warehouse.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_warehouse"],
+    "expectedBasename": "loc_stuhlinger_warehouse--investigation",
+    "expectedImagePath": "images/locations/loc_stuhlinger_warehouse--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_stuhlinger_warehouse--investigation.meta.json",
+    "promptSlots": {
+      "s3": "Industrial ironwork, soot-dark brick, rail sheds, freight platforms, steam-grime infrastructure, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_hbf",
+    "districtId": "rail_hub",
+    "visualArchetype": "industrial_rail",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_industrial_rail_exterior",
+    "interiorPresetId": "preset_industrial_rail_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_hauptbahnhof.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_hbf"],
+    "expectedBasename": "loc_hauptbahnhof",
+    "expectedImagePath": "images/locations/loc_hauptbahnhof.webp",
+    "expectedMetaPath": "images/locations/loc_hauptbahnhof.meta.json",
+    "promptSlots": {
+      "s3": "Industrial ironwork, soot-dark brick, rail sheds, freight platforms, steam-grime infrastructure, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_hbf",
+    "districtId": "rail_hub",
+    "visualArchetype": "industrial_rail",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_industrial_rail_exterior",
+    "interiorPresetId": "preset_industrial_rail_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_hauptbahnhof.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_hbf"],
+    "expectedBasename": "loc_hauptbahnhof--investigation",
+    "expectedImagePath": "images/locations/loc_hauptbahnhof--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_hauptbahnhof--investigation.meta.json",
+    "promptSlots": {
+      "s3": "Industrial ironwork, soot-dark brick, rail sheds, freight platforms, steam-grime infrastructure, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_martinstor",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_munster.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_martinstor",
+      "loc_munster",
+      "loc_schwabentor"
+    ],
+    "expectedBasename": "loc_martinstor",
+    "expectedImagePath": "images/locations/loc_martinstor.webp",
+    "expectedMetaPath": "images/locations/loc_martinstor.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_munster",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_munster.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_martinstor",
+      "loc_munster",
+      "loc_schwabentor"
+    ],
+    "expectedBasename": "loc_munster",
+    "expectedImagePath": "images/locations/loc_munster.webp",
+    "expectedMetaPath": "images/locations/loc_munster.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_pub",
+    "districtId": "schneckenvorstadt",
+    "visualArchetype": "canal_tavern",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_canal_tavern_exterior",
+    "interiorPresetId": "preset_canal_tavern_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_ganter_brauerei.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_pub",
+      "loc_pub_deutsche",
+      "loc_workers_pub"
+    ],
+    "expectedBasename": "loc_pub",
+    "expectedImagePath": "images/locations/loc_pub.webp",
+    "expectedMetaPath": "images/locations/loc_pub.meta.json",
+    "promptSlots": {
+      "s3": "Timber-framed canal houses, damp plaster, waterside taverns, cramped service alleys, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_pub",
+    "districtId": "schneckenvorstadt",
+    "visualArchetype": "canal_tavern",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_canal_tavern_exterior",
+    "interiorPresetId": "preset_canal_tavern_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_ganter_brauerei.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_pub",
+      "loc_pub_deutsche",
+      "loc_workers_pub"
+    ],
+    "expectedBasename": "loc_pub--investigation",
+    "expectedImagePath": "images/locations/loc_pub--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_pub--investigation.meta.json",
+    "promptSlots": {
+      "s3": "Timber-framed canal houses, damp plaster, waterside taverns, cramped service alleys, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_pub_deutsche",
+    "districtId": "schneckenvorstadt",
+    "visualArchetype": "canal_tavern",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_canal_tavern_exterior",
+    "interiorPresetId": "preset_canal_tavern_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_ganter_brauerei.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_pub",
+      "loc_pub_deutsche",
+      "loc_workers_pub"
+    ],
+    "expectedBasename": "loc_pub_deutsche",
+    "expectedImagePath": "images/locations/loc_pub_deutsche.webp",
+    "expectedMetaPath": "images/locations/loc_pub_deutsche.meta.json",
+    "promptSlots": {
+      "s3": "Timber-framed canal houses, damp plaster, waterside taverns, cramped service alleys, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_rathaus",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_rathaus_archiv.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
+    "expectedBasename": "loc_rathaus",
+    "expectedImagePath": "images/locations/loc_rathaus.webp",
+    "expectedMetaPath": "images/locations/loc_rathaus.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_rathaus",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_rathaus_archiv.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
+    "expectedBasename": "loc_rathaus--investigation",
+    "expectedImagePath": "images/locations/loc_rathaus--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_rathaus--investigation.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_red_light",
+    "districtId": "schneckenvorstadt",
+    "visualArchetype": "canal_tavern",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_canal_tavern_exterior",
+    "interiorPresetId": "preset_canal_tavern_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_suburbs.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_red_light"],
+    "expectedBasename": "loc_suburbs",
+    "expectedImagePath": "images/locations/loc_suburbs.webp",
+    "expectedMetaPath": "images/locations/loc_suburbs.meta.json",
+    "promptSlots": {
+      "s3": "Timber-framed canal houses, damp plaster, waterside taverns, cramped service alleys, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_red_light",
+    "districtId": "schneckenvorstadt",
+    "visualArchetype": "canal_tavern",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_canal_tavern_exterior",
+    "interiorPresetId": "preset_canal_tavern_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_suburbs.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_red_light"],
+    "expectedBasename": "loc_suburbs--investigation",
+    "expectedImagePath": "images/locations/loc_suburbs--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_suburbs--investigation.meta.json",
+    "promptSlots": {
+      "s3": "Timber-framed canal houses, damp plaster, waterside taverns, cramped service alleys, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_schwabentor",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_munster.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_martinstor",
+      "loc_munster",
+      "loc_schwabentor"
+    ],
+    "expectedBasename": "loc_schwabentor",
+    "expectedImagePath": "images/locations/loc_schwabentor.webp",
+    "expectedMetaPath": "images/locations/loc_schwabentor.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_student_house",
+    "districtId": "wiehre",
+    "visualArchetype": "university_neogothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_university_neogothic_exterior",
+    "interiorPresetId": "preset_university_neogothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "expectedBasename": "loc_student_house",
+    "expectedImagePath": "images/locations/loc_student_house.webp",
+    "expectedMetaPath": "images/locations/loc_student_house.meta.json",
+    "promptSlots": {
+      "s3": "Neo-Gothic academic brickwork, disciplined facades, scholarly courtyards, tall lecture windows, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_student_house",
+    "districtId": "wiehre",
+    "visualArchetype": "university_neogothic",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_university_neogothic_exterior",
+    "interiorPresetId": "preset_university_neogothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "expectedBasename": "loc_student_house--investigation",
+    "expectedImagePath": "images/locations/loc_student_house--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_student_house--investigation.meta.json",
+    "promptSlots": {
+      "s3": "Neo-Gothic academic brickwork, disciplined facades, scholarly courtyards, tall lecture windows, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_tailor",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "expectedBasename": "loc_tailor",
+    "expectedImagePath": "images/locations/loc_tailor.webp",
+    "expectedMetaPath": "images/locations/loc_tailor.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_tailor",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "expectedBasename": "loc_tailor--investigation",
+    "expectedImagePath": "images/locations/loc_tailor--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_tailor--investigation.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_telephone",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_civic_gothic_exterior",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_rathaus_archiv.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
+    "expectedBasename": "loc_telephone",
+    "expectedImagePath": "images/locations/loc_telephone.webp",
+    "expectedMetaPath": "images/locations/loc_telephone.meta.json",
+    "promptSlots": {
+      "s3": "High-Gothic stone architecture, carved civic facades, narrow cobbled lanes, cathedral-scale massing, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_uni_chem",
+    "districtId": "wiehre",
+    "visualArchetype": "university_neogothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_university_neogothic_exterior",
+    "interiorPresetId": "preset_university_neogothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "expectedBasename": "loc_uni_chem",
+    "expectedImagePath": "images/locations/loc_uni_chem.webp",
+    "expectedMetaPath": "images/locations/loc_uni_chem.meta.json",
+    "promptSlots": {
+      "s3": "Neo-Gothic academic brickwork, disciplined facades, scholarly courtyards, tall lecture windows, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_uni_chem",
+    "districtId": "wiehre",
+    "visualArchetype": "university_neogothic",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_university_neogothic_exterior",
+    "interiorPresetId": "preset_university_neogothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "expectedBasename": "loc_uni_chem--investigation",
+    "expectedImagePath": "images/locations/loc_uni_chem--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_uni_chem--investigation.meta.json",
+    "promptSlots": {
+      "s3": "Neo-Gothic academic brickwork, disciplined facades, scholarly courtyards, tall lecture windows, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_uni_med",
+    "districtId": "wiehre",
+    "visualArchetype": "university_neogothic",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_university_neogothic_exterior",
+    "interiorPresetId": "preset_university_neogothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "expectedBasename": "loc_uni_med",
+    "expectedImagePath": "images/locations/loc_uni_med.webp",
+    "expectedMetaPath": "images/locations/loc_uni_med.meta.json",
+    "promptSlots": {
+      "s3": "Neo-Gothic academic brickwork, disciplined facades, scholarly courtyards, tall lecture windows, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_uni_med",
+    "districtId": "wiehre",
+    "visualArchetype": "university_neogothic",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_university_neogothic_exterior",
+    "interiorPresetId": "preset_university_neogothic_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "expectedBasename": "loc_uni_med--investigation",
+    "expectedImagePath": "images/locations/loc_uni_med--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_uni_med--investigation.meta.json",
+    "promptSlots": {
+      "s3": "Neo-Gothic academic brickwork, disciplined facades, scholarly courtyards, tall lecture windows, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_workers_pub",
+    "districtId": "stuhlinger",
+    "visualArchetype": "industrial_rail",
+    "assetKind": "exterior",
+    "variantId": "default",
+    "masterRefId": "master_industrial_rail_exterior",
+    "interiorPresetId": "preset_industrial_rail_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_ganter_brauerei.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_pub",
+      "loc_pub_deutsche",
+      "loc_workers_pub"
+    ],
+    "expectedBasename": "loc_workers_pub",
+    "expectedImagePath": "images/locations/loc_workers_pub.webp",
+    "expectedMetaPath": "images/locations/loc_workers_pub.meta.json",
+    "promptSlots": {
+      "s3": "Industrial ironwork, soot-dark brick, rail sheds, freight platforms, steam-grime infrastructure, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  },
+  {
+    "locationId": "loc_workers_pub",
+    "districtId": "stuhlinger",
+    "visualArchetype": "industrial_rail",
+    "assetKind": "exterior",
+    "variantId": "investigation",
+    "masterRefId": "master_industrial_rail_exterior",
+    "interiorPresetId": "preset_industrial_rail_interior_dialogue",
+    "runtimeImagePath": "/images/locations/loc_ganter_brauerei.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_pub",
+      "loc_pub_deutsche",
+      "loc_workers_pub"
+    ],
+    "expectedBasename": "loc_workers_pub--investigation",
+    "expectedImagePath": "images/locations/loc_workers_pub--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_workers_pub--investigation.meta.json",
+    "promptSlots": {
+      "s3": "Industrial ironwork, soot-dark brick, rail sheds, freight platforms, steam-grime infrastructure, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability"
+    }
+  }
+]

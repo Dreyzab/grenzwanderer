@@ -2,7 +2,7 @@
 import { useReducer, useTable } from "spacetimedb/react";
 import { usePlayerFlags } from "../../entities/player/hooks/usePlayerFlags";
 import { usePlayerVars } from "../../entities/player/hooks/usePlayerVars";
-import { ENABLE_AI, ENABLE_DEBUG_CONTENT_SEED } from "../../config";
+import { ENABLE_AI } from "../../config";
 import { reducers, tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
 import {
@@ -24,16 +24,12 @@ const createRequestId = (): string => {
   return `req-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 };
 
-const seedVersion = "pilot-2.0.0";
-
 export const VnPilotPanel = () => {
   const { identityHex } = useIdentity();
   const [versions] = useTable(tables.contentVersion);
   const [snapshots] = useTable(tables.contentSnapshot);
-  const [sessions] = useTable(tables.vnSession);
+  const [sessions] = useTable(tables.myVnSessions);
 
-  const bootstrapAdminIdentity = useReducer(reducers.bootstrapAdminIdentity);
-  const publishContent = useReducer(reducers.publishContent);
   const startScenario = useReducer(reducers.startScenario);
   const recordChoice = useReducer(reducers.recordChoice);
   const enqueueAiRequest = useReducer(reducers.enqueueAiRequest);
@@ -82,13 +78,9 @@ export const VnPilotPanel = () => {
     }
 
     return (
-      sessions.find(
-        (entry) =>
-          entry.playerId.toHexString() === identityHex &&
-          entry.scenarioId === selectedScenarioId,
-      ) ?? null
+      sessions.find((entry) => entry.scenarioId === selectedScenarioId) ?? null
     );
-  }, [identityHex, selectedScenarioId, sessions]);
+  }, [selectedScenarioId, sessions]);
 
   const currentNode = useMemo(() => {
     if (!snapshot || !selectedScenarioId) {
@@ -134,37 +126,6 @@ export const VnPilotPanel = () => {
     } finally {
       setIsBusy(false);
     }
-  };
-
-  const handleSeed = async () => {
-    if (!ENABLE_DEBUG_CONTENT_SEED) {
-      return;
-    }
-
-    await runAction("Pilot snapshot published", async () => {
-      const response = await fetch("/content/vn/pilot.snapshot.json", {
-        cache: "no-store",
-      });
-      if (!response.ok) {
-        throw new Error(
-          "Unable to load pilot snapshot from /content/vn/pilot.snapshot.json",
-        );
-      }
-
-      const payload = (await response.json()) as {
-        checksum: string;
-        schemaVersion: number;
-      };
-
-      await bootstrapAdminIdentity();
-      await publishContent({
-        requestId: createRequestId(),
-        version: seedVersion,
-        checksum: payload.checksum,
-        schemaVersion: payload.schemaVersion,
-        payloadJson: JSON.stringify(payload),
-      });
-    });
   };
 
   const handleStartScenario = async () => {
@@ -243,11 +204,6 @@ export const VnPilotPanel = () => {
           </p>
         </div>
         <div className="button-row">
-          {!activeVersion && ENABLE_DEBUG_CONTENT_SEED && (
-            <button onClick={handleSeed} disabled={isBusy}>
-              Seed Pilot Content
-            </button>
-          )}
           <button
             onClick={handleAiProbe}
             disabled={!ENABLE_AI || !activeVersion || isBusy || !probeSkillChoice}
@@ -294,9 +250,7 @@ export const VnPilotPanel = () => {
         <article className="card warning">
           <p>
             No active content snapshot is available.
-            {ENABLE_DEBUG_CONTENT_SEED
-              ? " Use Seed Pilot Content to publish the bundled scenario set in debug mode."
-              : " Publish via CLI with 'bun run content:release -- --version X.Y.Z'."}
+            {" Publish via CLI with 'bun run content:release -- --version X.Y.Z'."}
           </p>
         </article>
       )}

@@ -96,6 +96,7 @@ function useHarness(props: HarnessProps = {}) {
     playImpactSfx: props.playImpactSfx ?? vi.fn(),
     markInteractionHandled: props.markInteractionHandled ?? vi.fn(),
     getChoiceChancePercent: () => 85,
+    getChoiceEffectiveDifficulty: () => 8,
     handleResolvedSkillCheck: props.handleResolvedSkillCheck ?? vi.fn(),
     performSkillCheck:
       props.performSkillCheck ?? vi.fn().mockResolvedValue(undefined),
@@ -209,9 +210,25 @@ describe("useVnSkillChecks", () => {
     });
 
     expect(result.current.pendingChoiceId).toBe("choice_probe");
-    expect(result.current.awaitingSkillChoice?.checkId).toBe("check_probe");
+    expect(result.current.armedSkillChoice?.checkId).toBe("check_probe");
+    expect(result.current.awaitingSkillChoice).toBeNull();
     expect(result.current.activeSkillResolve?.phase).toBe("arming");
+    expect(performSkillCheck).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await result.current.confirmArmedSkillCheck();
+      await Promise.resolve();
+    });
+
+    expect(result.current.armedSkillChoice).toBeNull();
+    expect(result.current.awaitingSkillChoice?.checkId).toBe("check_probe");
     expect(performSkillCheck).toHaveBeenCalledTimes(1);
+    expect(performSkillCheck).toHaveBeenCalledWith({
+      requestId: expect.any(String),
+      scenarioId: "scenario_alpha",
+      checkId: "check_probe",
+      fortuneSpend: 0,
+    });
 
     const matchedResult: SkillCheckResultLike = {
       resultKey: "result_probe",
@@ -277,6 +294,11 @@ describe("useVnSkillChecks", () => {
       await result.current.handleChoiceClick(baseChoice as any, false);
     });
 
+    await act(async () => {
+      await result.current.confirmArmedSkillCheck();
+      await Promise.resolve();
+    });
+
     const matchedResult: SkillCheckResultLike = {
       resultKey: "result_probe",
       playerId: { toHexString: () => "me" },
@@ -300,6 +322,11 @@ describe("useVnSkillChecks", () => {
     });
 
     expect(result.current.awaitingSkillChoice).toBeNull();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    expect(result.current.activeSkillResolve?.phase).toBe("rolling");
 
     act(() => {
       expect(result.current.handleActiveResolveInteraction()).toBe(true);
@@ -336,6 +363,11 @@ describe("useVnSkillChecks", () => {
 
     await act(async () => {
       await result.current.handleChoiceClick(baseChoice as any, false);
+    });
+
+    await act(async () => {
+      await result.current.confirmArmedSkillCheck();
+      await Promise.resolve();
     });
 
     rerender({
@@ -621,6 +653,11 @@ describe("useVnSkillChecks", () => {
 
     await act(async () => {
       await result.current.handleChoiceClick(baseChoice as any, false);
+    });
+
+    await act(async () => {
+      await result.current.confirmArmedSkillCheck();
+      await Promise.resolve();
     });
 
     await act(async () => {

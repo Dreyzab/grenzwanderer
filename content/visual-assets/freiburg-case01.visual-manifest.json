@@ -1,0 +1,186 @@
+[
+  {
+    "locationId": "loc_agency",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_civic_gothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue"
+  },
+  {
+    "locationId": "loc_apothecary",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_civic_gothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "stateVariantIds": ["investigation"]
+  },
+  {
+    "locationId": "loc_freiburg_bank",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_civic_gothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "stateVariantIds": ["investigation", "crime_scene"]
+  },
+  {
+    "locationId": "loc_freiburg_estate",
+    "districtId": "wiehre",
+    "visualArchetype": "estate_noble",
+    "assetKind": "exterior",
+    "masterRefId": "master_estate_noble_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_estate_noble_interior_dialogue",
+    "stateVariantIds": ["investigation", "memory"]
+  },
+  {
+    "locationId": "loc_freiburg_warehouse",
+    "districtId": "stuhlinger",
+    "visualArchetype": "industrial_rail",
+    "assetKind": "exterior",
+    "masterRefId": "master_industrial_rail_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_industrial_rail_interior_dialogue",
+    "stateVariantIds": ["investigation"]
+  },
+  {
+    "locationId": "loc_hbf",
+    "districtId": "rail_hub",
+    "visualArchetype": "industrial_rail",
+    "assetKind": "exterior",
+    "masterRefId": "master_industrial_rail_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_industrial_rail_interior_dialogue",
+    "stateVariantIds": ["investigation"]
+  },
+  {
+    "locationId": "loc_martinstor",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_civic_gothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue"
+  },
+  {
+    "locationId": "loc_munster",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_civic_gothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue"
+  },
+  {
+    "locationId": "loc_pub",
+    "districtId": "schneckenvorstadt",
+    "visualArchetype": "canal_tavern",
+    "assetKind": "exterior",
+    "masterRefId": "master_canal_tavern_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_canal_tavern_interior_dialogue",
+    "stateVariantIds": ["investigation"]
+  },
+  {
+    "locationId": "loc_pub_deutsche",
+    "districtId": "schneckenvorstadt",
+    "visualArchetype": "canal_tavern",
+    "assetKind": "exterior",
+    "masterRefId": "master_canal_tavern_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_canal_tavern_interior_dialogue"
+  },
+  {
+    "locationId": "loc_rathaus",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_civic_gothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "stateVariantIds": ["investigation"]
+  },
+  {
+    "locationId": "loc_red_light",
+    "districtId": "schneckenvorstadt",
+    "visualArchetype": "canal_tavern",
+    "assetKind": "exterior",
+    "masterRefId": "master_canal_tavern_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_canal_tavern_interior_dialogue",
+    "stateVariantIds": ["investigation"]
+  },
+  {
+    "locationId": "loc_schwabentor",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_civic_gothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue"
+  },
+  {
+    "locationId": "loc_student_house",
+    "districtId": "wiehre",
+    "visualArchetype": "university_neogothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_university_neogothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_university_neogothic_interior_dialogue",
+    "stateVariantIds": ["investigation"]
+  },
+  {
+    "locationId": "loc_tailor",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_civic_gothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue",
+    "stateVariantIds": ["investigation"]
+  },
+  {
+    "locationId": "loc_telephone",
+    "districtId": "altstadt",
+    "visualArchetype": "civic_gothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_civic_gothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_civic_gothic_interior_dialogue"
+  },
+  {
+    "locationId": "loc_uni_chem",
+    "districtId": "wiehre",
+    "visualArchetype": "university_neogothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_university_neogothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_university_neogothic_interior_dialogue",
+    "stateVariantIds": ["investigation"]
+  },
+  {
+    "locationId": "loc_uni_med",
+    "districtId": "wiehre",
+    "visualArchetype": "university_neogothic",
+    "assetKind": "exterior",
+    "masterRefId": "master_university_neogothic_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_university_neogothic_interior_dialogue",
+    "stateVariantIds": ["investigation"]
+  },
+  {
+    "locationId": "loc_workers_pub",
+    "districtId": "stuhlinger",
+    "visualArchetype": "industrial_rail",
+    "assetKind": "exterior",
+    "masterRefId": "master_industrial_rail_exterior",
+    "defaultVariantId": "default",
+    "interiorPresetId": "preset_industrial_rail_interior_dialogue",
+    "stateVariantIds": ["investigation"]
+  }
+]

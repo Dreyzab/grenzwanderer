@@ -297,6 +297,7 @@ const runSmoke = async () =>
                 requestId: nextRequestId("conditional_check"),
                 scenarioId: ids.scenarioAuthority,
                 checkId: ids.checkConditional,
+                fortuneSpend: undefined,
               }),
             "Choice gating conditions are not satisfied for this skill check",
           );
@@ -305,6 +306,7 @@ const runSmoke = async () =>
             requestId: nextRequestId("skill_fail"),
             scenarioId: ids.scenarioAuthority,
             checkId: ids.checkFail,
+            fortuneSpend: undefined,
           });
 
           await expectRejected(
@@ -321,6 +323,7 @@ const runSmoke = async () =>
             requestId: nextRequestId("skill_pass"),
             scenarioId: ids.scenarioAuthority,
             checkId: ids.checkPass,
+            fortuneSpend: undefined,
           });
 
           await conn.reducers.recordChoice({

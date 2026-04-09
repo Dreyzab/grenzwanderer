@@ -15,6 +15,7 @@ import {
 } from "../../ai/contracts";
 import {
   calculateSkillCheckSuccessPercent,
+  resolveSkillCheckEffectiveDifficulty,
   resolveSkillCheckDiceMode,
 } from "../checkChance";
 import { resolveCompletionRoute } from "../completionRoute";
@@ -60,9 +61,15 @@ import type {
 } from "../types";
 import type { PassiveCheckDisplay } from "../ui/VnPassiveCheckBanner";
 import { resolveBackgroundUrl } from "../ui/VnBackgroundResolver";
+import {
+  RESOURCE_FORTUNE_MOD_VAR,
+  RESOURCE_FORTUNE_VAR,
+  RESOURCE_KARMA_VAR,
+  RESOURCE_PROVIDENCE_VAR,
+  resolveEffectiveFortune,
+} from "../../../shared/game/narrativeResources";
 
 interface UseVnDerivedStateParams {
-  identityHex: string;
   sessions: readonly VnSession[];
   sessionsReady: boolean;
   skillResults: readonly (SkillCheckResultLike & {
@@ -84,12 +91,12 @@ interface UseVnDerivedStateParams {
   sessionReady: boolean;
   currentNode: VnNode | null;
   activeAiThoughtContext: ActiveAiThoughtContext | null;
+  activeProvidenceThoughtContext: ActiveAiThoughtContext | null;
   activeReactionKey: string | null;
   tSessionHydrating: string;
 }
 
 export function useVnDerivedState({
-  identityHex,
   sessions,
   sessionsReady,
   skillResults,
@@ -109,30 +116,22 @@ export function useVnDerivedState({
   sessionReady,
   currentNode,
   activeAiThoughtContext,
+  activeProvidenceThoughtContext,
   activeReactionKey,
   tSessionHydrating,
 }: UseVnDerivedStateParams) {
   const choiceEvaluationContext = useMemo<VnChoiceEvaluationContext>(() => {
     const favorBalances = new Map<string, number>();
     for (const row of npcFavorRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
       favorBalances.set(row.npcId, normalizeNumeric(row.balance));
     }
 
     const rumorStates = new Map<string, "registered" | "verified">();
     for (const row of rumorStateRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
       rumorStates.set(row.rumorId, row.status as "registered" | "verified");
     }
 
-    const agencyCareer =
-      agencyCareerRows.find(
-        (row) => row.playerId.toHexString() === identityHex,
-      ) ?? null;
+    const agencyCareer = agencyCareerRows[0] ?? null;
 
     return {
       favorBalances,
@@ -148,7 +147,6 @@ export function useVnDerivedState({
     };
   }, [
     agencyCareerRows,
-    identityHex,
     npcFavorRows,
     rumorStateRows,
     snapshot?.socialCatalog?.careerRanks,
@@ -157,13 +155,10 @@ export function useVnDerivedState({
   const trustByNpcId = useMemo(() => {
     const trust = new Map<string, number>();
     for (const row of npcStateRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
       trust.set(row.npcId, row.trustScore);
     }
     return trust;
-  }, [identityHex, npcStateRows]);
+  }, [npcStateRows]);
 
   const visibleFactsByCharacterId = useMemo(() => {
     const summaries = new Map<string, string[]>();
@@ -179,9 +174,8 @@ export function useVnDerivedState({
   }, [snapshot?.socialCatalog?.npcIdentities]);
 
   const mySessions = useMemo(
-    () =>
-      sessions.filter((entry) => entry.playerId.toHexString() === identityHex),
-    [identityHex, sessions],
+    () => [...sessions],
+    [sessions],
   );
 
   const currentSessionPointer = useMemo(
@@ -211,46 +205,37 @@ export function useVnDerivedState({
 
   const mySkillResults = useMemo<SkillCheckResultLike[]>(
     () =>
-      skillResults
-        .filter((entry) => entry.playerId.toHexString() === identityHex)
+      [...skillResults]
         .sort((left, right) =>
           timestampMicros(right.createdAt) > timestampMicros(left.createdAt)
             ? 1
             : -1,
         ),
-    [identityHex, skillResults],
+    [skillResults],
   );
 
   const myAiRequests = useMemo(
     () =>
-      aiRequests
-        .filter(
-          (entry) =>
-            entry.playerId.toHexString() === identityHex &&
-            entry.kind === AI_GENERATE_DIALOGUE_KIND,
-        )
+      [...aiRequests]
+        .filter((entry) => entry.kind === AI_GENERATE_DIALOGUE_KIND)
         .sort((left, right) =>
           timestampMicros(right.updatedAt) > timestampMicros(left.updatedAt)
             ? 1
             : -1,
         ),
-    [aiRequests, identityHex],
+    [aiRequests],
   );
 
   const myReactionRequests = useMemo(
     () =>
-      aiRequests
-        .filter(
-          (entry) =>
-            entry.playerId.toHexString() === identityHex &&
-            entry.kind === AI_GENERATE_CHARACTER_REACTION_KIND,
-        )
+      [...aiRequests]
+        .filter((entry) => entry.kind === AI_GENERATE_CHARACTER_REACTION_KIND)
         .sort((left, right) =>
           timestampMicros(right.updatedAt) > timestampMicros(left.updatedAt)
             ? 1
             : -1,
         ),
-    [aiRequests, identityHex],
+    [aiRequests],
   );
 
   const currentDiceMode = useMemo(
@@ -407,6 +392,21 @@ export function useVnDerivedState({
     [myFlags, myVars, snapshot],
   );
 
+  const narrativeResources = useMemo(() => {
+    const providence = Math.trunc(myVars[RESOURCE_PROVIDENCE_VAR] ?? 0);
+    const fortune = Math.trunc(myVars[RESOURCE_FORTUNE_VAR] ?? 0);
+    const fortuneMod = Math.trunc(myVars[RESOURCE_FORTUNE_MOD_VAR] ?? 0);
+    const karma = Math.trunc(myVars[RESOURCE_KARMA_VAR] ?? 0);
+
+    return {
+      providence,
+      fortune,
+      fortuneMod,
+      karma,
+      effectiveFortune: resolveEffectiveFortune(fortune, fortuneMod),
+    };
+  }, [myVars]);
+
   const activeAiThoughtRequest = useMemo(() => {
     if (!activeAiThoughtContext) {
       return null;
@@ -415,15 +415,21 @@ export function useVnDerivedState({
     return (
       myAiRequests.find((entry) =>
         aiRequestMatchesContext(entry, activeAiThoughtContext),
-      ) ??
-      myAiRequests.find(
-        (entry) =>
-          timestampMicros(entry.createdAt) >=
-          activeAiThoughtContext.resultCreatedAtMicros,
-      ) ??
-      null
+      ) ?? null
     );
   }, [activeAiThoughtContext, myAiRequests]);
+
+  const activeProvidenceThoughtRequest = useMemo(() => {
+    if (!activeProvidenceThoughtContext) {
+      return null;
+    }
+
+    return (
+      myAiRequests.find((entry) =>
+        aiRequestMatchesContext(entry, activeProvidenceThoughtContext),
+      ) ?? null
+    );
+  }, [activeProvidenceThoughtContext, myAiRequests]);
 
   const activeReactionRequest = useMemo(() => {
     if (!currentReactionContext) {
@@ -455,6 +461,14 @@ export function useVnDerivedState({
     [activeReactionRequest],
   );
 
+  const activeProvidenceThoughtResponse = useMemo(
+    () =>
+      activeProvidenceThoughtRequest
+        ? parseStoredDialogueResponse(activeProvidenceThoughtRequest.responseJson)
+        : null,
+    [activeProvidenceThoughtRequest],
+  );
+
   const activeAiThoughtVoiceLabel = useMemo(() => {
     if (activeAiThoughtResponse) {
       return getVoiceProfile(activeAiThoughtResponse.canonicalVoiceId).label;
@@ -478,6 +492,22 @@ export function useVnDerivedState({
       : "pending";
   }, [activeAiThoughtContext, activeAiThoughtRequest?.status]);
 
+  const activeProvidenceThoughtStatus = useMemo<SkillCheckAiStatus | null>(
+    () => {
+      if (!ENABLE_AI || !activeProvidenceThoughtContext) {
+        return null;
+      }
+
+      const status = activeProvidenceThoughtRequest?.status;
+      return status === "processing" ||
+        status === "completed" ||
+        status === "failed"
+        ? status
+        : "pending";
+    },
+    [activeProvidenceThoughtContext, activeProvidenceThoughtRequest?.status],
+  );
+
   const activeReactionStatus = useMemo<SkillCheckAiStatus | null>(() => {
     if (
       !ENABLE_AI ||
@@ -499,14 +529,42 @@ export function useVnDerivedState({
     currentReactionContext,
   ]);
 
-  const getChoiceChancePercent = (choice: any): number | undefined => {
+  const getChoiceEffectiveDifficulty = (
+    choice: VnChoice,
+    fortuneSpend = 0,
+  ): number | undefined => {
+    if (!choice.skillCheck) {
+      return undefined;
+    }
+
+    return resolveSkillCheckEffectiveDifficulty({
+      baseDifficulty: choice.skillCheck.difficulty,
+      karmaSensitive: choice.skillCheck.karmaSensitive,
+      karma: narrativeResources.karma,
+      fortuneMod: narrativeResources.fortuneMod,
+      fortuneSpend,
+    });
+  };
+
+  const getChoiceChancePercent = (
+    choice: VnChoice,
+    fortuneSpend = 0,
+  ): number | undefined => {
     if (!choice.skillCheck?.showChancePercent) {
+      return undefined;
+    }
+
+    const effectiveDifficulty = getChoiceEffectiveDifficulty(
+      choice,
+      fortuneSpend,
+    );
+    if (effectiveDifficulty === undefined) {
       return undefined;
     }
 
     return calculateSkillCheckSuccessPercent({
       diceMode: currentDiceMode,
-      difficulty: choice.skillCheck.difficulty,
+      difficulty: effectiveDifficulty,
       voiceLevel: myVars[choice.skillCheck.voiceId] ?? 0,
     });
   };
@@ -537,12 +595,17 @@ export function useVnDerivedState({
     activeLens,
     internalizedThought,
     activeAiThoughtRequest,
+    activeProvidenceThoughtRequest,
     activeReactionRequest,
     activeAiThoughtResponse,
+    activeProvidenceThoughtResponse,
     activeReactionResponse,
     activeAiThoughtVoiceLabel,
     activeAiThoughtStatus,
+    activeProvidenceThoughtStatus,
     activeReactionStatus,
+    narrativeResources,
+    getChoiceEffectiveDifficulty,
     getChoiceChancePercent,
   };
 }

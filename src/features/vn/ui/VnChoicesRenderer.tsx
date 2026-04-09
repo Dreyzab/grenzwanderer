@@ -12,7 +12,10 @@ interface VnChoicesRendererProps {
   t: VnStrings;
   reactionCard: InlineStatusCard | null;
   thoughtCard: InlineStatusCard | null;
+  providenceThoughtCard: InlineStatusCard | null;
   innerVoiceCards: InnerVoiceCardDisplay[];
+  canExpandThoughtWithProvidence: boolean;
+  providenceCtaLabel: string | null;
   activeLensBadgeText: string | null;
   internalizedThoughtBadgeText: string | null;
   showOriginCards: boolean;
@@ -30,6 +33,7 @@ interface VnChoicesRendererProps {
   sessionReady: boolean;
   onOriginPick: (choice: VnChoice) => void;
   onChoiceClick: (choice: VnChoice) => void;
+  onProvidenceExpand: () => void;
   onCompletionTransition: () => void;
   onRestartScene: () => void;
 }
@@ -109,7 +113,10 @@ export const VnChoicesRenderer = ({
   t,
   reactionCard,
   thoughtCard,
+  providenceThoughtCard,
   innerVoiceCards,
+  canExpandThoughtWithProvidence,
+  providenceCtaLabel,
   activeLensBadgeText,
   internalizedThoughtBadgeText,
   showOriginCards,
@@ -125,12 +132,24 @@ export const VnChoicesRenderer = ({
   sessionReady,
   onOriginPick,
   onChoiceClick,
+  onProvidenceExpand,
   onCompletionTransition,
   onRestartScene,
 }: VnChoicesRendererProps) => (
   <div className="flex flex-col gap-3 px-6 py-8 w-full max-w-[480px] mx-auto">
     {reactionCard ? <StatusCard card={reactionCard} /> : null}
     {thoughtCard ? <StatusCard card={thoughtCard} /> : null}
+    {thoughtCard && providenceCtaLabel ? (
+      <button
+        type="button"
+        className="rounded-[1rem] border border-amber-200/20 bg-amber-300/10 px-4 py-3 text-left text-sm text-amber-50 transition-colors hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={!canExpandThoughtWithProvidence}
+        onClick={onProvidenceExpand}
+      >
+        {providenceCtaLabel}
+      </button>
+    ) : null}
+    {providenceThoughtCard ? <StatusCard card={providenceThoughtCard} /> : null}
     {innerVoiceCards.map((card) => (
       <InnerVoiceCard key={`${card.role}-${card.voiceId}`} card={card} />
     ))}

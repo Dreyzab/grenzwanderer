@@ -388,6 +388,22 @@ function Test-OpenVikingSemanticSearch {
     return $true
 }
 
+function Stop-StaleOpenVikingProcesses {
+    param([string]$ServerPath)
+
+    $serverProcesses = Get-Process -ErrorAction SilentlyContinue | Where-Object {
+        $_.ProcessName -eq "openviking-server" -and $_.Path -eq $ServerPath
+    }
+
+    foreach ($process in $serverProcesses) {
+        try {
+            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+        } catch {
+            Write-TransportWarning "Failed to stop stale OpenViking process $($process.Id): $_"
+        }
+    }
+}
+
 # Root paths
 $repoRoot = (Get-Item $PSScriptRoot).Parent.Parent.FullName
 $workspaceRoot = Split-Path $repoRoot -Parent
@@ -413,12 +429,20 @@ $configSource = Get-OpenVikingConfigSourcePath -PrimaryPath $ovConf -FallbackPat
 
 # 1. Check if server is running
 $isRunning = $false
-$portCheck = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
+$portCheck = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Where-Object {
+    $_.State -eq "Listen"
+}
 if ($portCheck) {
     $isRunning = $true
-} else {
-    $existing = Get-Process | Where-Object { $_.Path -like "*openviking-server*" } -ErrorAction SilentlyContinue
-    if ($existing) { $isRunning = $true }
+    try {
+        [void](Test-OpenVikingHealth -Url "http://127.0.0.1:$port" -TimeoutSeconds 2)
+    } catch {
+        $isRunning = $false
+    }
+}
+
+if (-not $isRunning) {
+    Stop-StaleOpenVikingProcesses -ServerPath $serverExe
 }
 
 # 2. Start the server if not running
@@ -428,8 +452,8 @@ if (-not $isRunning) {
         $apiKeyResolution = Resolve-OpenVikingApiKey
         $apiKey = Assert-OpenVikingApiKey -Resolution $apiKeyResolution
         $resolvedConfig = Resolve-OpenVikingRuntimeConfig -SourcePath $configSource -WorkspacePath $workspaceDir -TargetPath $runtimeConf -ApiKey $apiKey
-        Start-Process -FilePath $serverExe -ArgumentList "--config `"$resolvedConfig`"" -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError $errLog
-        Start-Sleep -Seconds 2 # Wait for boot
+        Start-Process -FilePath $serverExe -ArgumentList "--config `"$resolvedConfig`" --with-bot" -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError $errLog
+        [void](Test-OpenVikingHealth -Url "http://127.0.0.1:$port" -TimeoutSeconds 30)
     } catch {
         throw "Failed to start server: $_"
     }

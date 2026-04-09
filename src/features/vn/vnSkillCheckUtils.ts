@@ -54,6 +54,14 @@ interface CreateAwaitingSkillChoiceParams {
   choice: Pick<VnChoice, "id" | "text" | "skillCheck">;
   diceMode: VnDiceMode;
   chancePercent?: number;
+  effectiveDifficulty: number;
+  fortuneSpend: number;
+  fortuneBalance: number;
+  effectiveFortune: number;
+  aiMode?: AwaitingSkillChoice["aiMode"];
+  providenceCost: number;
+  karmaBand: AwaitingSkillChoice["karmaBand"];
+  difficultyBreakdown: NonNullable<AwaitingSkillChoice["difficultyBreakdown"]>;
   frozen: FrozenSkillCheckPresentation;
 }
 
@@ -121,6 +129,14 @@ export const createAwaitingSkillChoice = ({
   choice,
   diceMode,
   chancePercent,
+  effectiveDifficulty,
+  fortuneSpend,
+  fortuneBalance,
+  effectiveFortune,
+  aiMode,
+  providenceCost,
+  karmaBand,
+  difficultyBreakdown,
   frozen,
 }: CreateAwaitingSkillChoiceParams): AwaitingSkillChoice => ({
   scenarioId,
@@ -132,6 +148,15 @@ export const createAwaitingSkillChoice = ({
   voiceLabel: formatVoiceLabel(choice.skillCheck!.voiceId),
   diceMode,
   chancePercent,
+  baseDifficulty: choice.skillCheck!.difficulty,
+  effectiveDifficulty,
+  fortuneSpend,
+  fortuneBalance,
+  effectiveFortune,
+  aiMode,
+  providenceCost,
+  karmaBand,
+  difficultyBreakdown,
   frozen,
 });
 
@@ -149,11 +174,16 @@ export const buildActiveSkillResolveState = (
   voiceLabel: pending.voiceLabel,
   diceMode: pending.diceMode,
   chancePercent: pending.chancePercent,
+  baseDifficulty: pending.baseDifficulty,
+  difficulty: matchedResult?.difficulty ?? pending.effectiveDifficulty,
+  fortuneSpend: pending.fortuneSpend,
+  fortuneBalance: pending.fortuneBalance,
+  effectiveFortune: pending.effectiveFortune,
+  difficultyBreakdown: pending.difficultyBreakdown,
   phase,
   passed: matchedResult?.passed,
   roll: matchedResult?.roll,
   voiceLevel: matchedResult?.voiceLevel,
-  difficulty: matchedResult?.difficulty,
   nextNodeId: matchedResult
     ? unwrapOptionalString(matchedResult.nextNodeId)
     : undefined,
@@ -171,6 +201,8 @@ export const hydrateResolvedSkillState = (
   roll: matchedResult.roll,
   voiceLevel: matchedResult.voiceLevel,
   difficulty: matchedResult.difficulty,
+  baseDifficulty: matchedResult.baseDifficulty ?? base.baseDifficulty,
+  fortuneSpend: matchedResult.fortuneSpent ?? base.fortuneSpend,
   nextNodeId: unwrapOptionalString(matchedResult.nextNodeId),
 });
 

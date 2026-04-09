@@ -3,6 +3,7 @@ import type {
   InnerVoiceId,
   PsycheAxis,
 } from "../../../data/innerVoiceContract";
+import type { VnAiMode } from "../../shared/game/narrativeResources";
 
 export interface Speaker {
   id?: string;
@@ -27,7 +28,7 @@ export interface DialogueNode {
   nextNodeId?: string;
 }
 
-export type VnCondition =
+export type VnConditionLeaf =
   | { type: "flag_equals"; key: string; value: boolean }
   | { type: "var_gte"; key: string; value: number }
   | { type: "var_lte"; key: string; value: number }
@@ -44,6 +45,12 @@ export type VnCondition =
   | { type: "voice_level_gte"; voiceId: string; value: number }
   | { type: "spirit_state_is"; spiritId: string; state: SpiritState }
   | { type: "has_controlled_spirit"; entityArchetypeId: string };
+
+export type VnCondition =
+  | VnConditionLeaf
+  | { type: "logic_and"; conditions: VnCondition[] }
+  | { type: "logic_or"; conditions: VnCondition[] }
+  | { type: "logic_not"; condition: VnCondition };
 
 export type VnEffect =
   | { type: "set_flag"; key: string; value: boolean }
@@ -166,6 +173,7 @@ export interface VnSkillCheck {
   difficulty: number;
   isPassive?: boolean;
   showChancePercent?: boolean;
+  karmaSensitive?: boolean;
   modifiers?: VnCheckModifier[];
   outcomeModel?: VnOutcomeModel;
   onSuccess?: VnSkillCheckOutcomeBranch;
@@ -179,6 +187,8 @@ export interface VnChoice {
   text: string;
   nextNodeId: string;
   choiceType?: "action" | "inquiry" | "flavor";
+  aiMode?: VnAiMode;
+  providenceCost?: number;
   visibleIfAll?: VnCondition[];
   visibleIfAny?: VnCondition[];
   requireAll?: VnCondition[];
@@ -203,6 +213,8 @@ export interface VnNode {
   characterId?: string;
   voicePresenceMode?: VoicePresenceMode;
   activeSpeakers?: string[];
+  aiModeDefault?: VnAiMode;
+  providenceCostDefault?: number;
   terminal?: boolean;
   choices: VnChoice[];
   onEnter?: VnEffect[];
@@ -377,6 +389,7 @@ export interface MysticSnapshot {
 export interface VnRuntimeSettings {
   skillCheckDice?: VnDiceMode;
   defaultEntryScenarioId?: string;
+  releaseProfile?: "default" | "karlsruhe_event";
 }
 
 export interface QuestStageContent {

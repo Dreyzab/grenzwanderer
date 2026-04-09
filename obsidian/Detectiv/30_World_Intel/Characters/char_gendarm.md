@@ -5,9 +5,15 @@ tier: major
 runtime_character_id: gendarm
 faction: fct_police
 aliases: ["Fritz Mueller"]
+canon_status: design_reference_alias
+runtime_display_name: Fritz Muller
 ---
 
-# Fritz Mueller
+# Fritz Mueller (Design Alias)
+
+> Canon note: supported runtime and Case01 content use `Fritz Muller`.
+> `Fritz Mueller` is retained here as a Detectiv transliteration alias until
+> the document is fully migrated to runtime canon.
 
 ## Dossier
 

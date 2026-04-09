@@ -47,4 +47,6 @@ aliases: ["Dr. Emil Hegenauer", "Official"]
 
 - Appears in: [[10_Narrative/Scenes/node_case1_rathaus_hearing|node_case1_rathaus_hearing]]
 - Appears in: [[10_Narrative/Scenes/node_case1_archive_warrant_run|node_case1_archive_warrant_run]]
+- Appears in: [[10_Narrative/Scenes/node_dead_registry_archive|node_dead_registry_archive]]
 - Linked quest: [[00_Map_Room/qst_main_case_01|qst_main_case_01]]
+- Linked quest: [[00_Map_Room/qst_dead_registry|qst_dead_registry]]

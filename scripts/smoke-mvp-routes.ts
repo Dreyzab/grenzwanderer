@@ -128,6 +128,7 @@ const runScenarioPath = async (
           requestId: nextRequestId(`check_${scenarioId}_${checkId}`),
           scenarioId,
           checkId,
+          fortuneSpend: undefined,
         });
       }
     }
@@ -137,6 +138,7 @@ const runScenarioPath = async (
           requestId: nextRequestId(`active_check_${scenarioId}_${checkId}`),
           scenarioId,
           checkId,
+          fortuneSpend: undefined,
         });
       }
     }

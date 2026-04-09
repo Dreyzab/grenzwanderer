@@ -36,6 +36,13 @@ const vnStrings = {
     innerThoughtTitle: "Inner Parliament",
     innerThoughtThinking: "Thinking",
     innerThoughtPending: "is turning the result over...",
+    providenceLabel: "Providence",
+    fortuneLabel: "Fortune",
+    karmaLabel: "Karma",
+    providenceExpand: "Deepen for",
+    providenceThoughtTitle: "Providence Layer",
+    providenceThoughtEyebrow: "Deeper Line",
+    providenceThoughtPending: "The deeper reading is forming...",
     activeLensLabel: "Active Lens",
     internalizedThoughtLabel: "Internalized Thought",
     muteSkillCheckAudio: "Mute skill check audio",
@@ -75,6 +82,13 @@ const vnStrings = {
     innerThoughtTitle: "Inner Parliament",
     innerThoughtThinking: "Thinking",
     innerThoughtPending: "is turning the result over...",
+    providenceLabel: "Провидение",
+    fortuneLabel: "Фортуна",
+    karmaLabel: "Карма",
+    providenceExpand: "Углубить за",
+    providenceThoughtTitle: "Слой Провидения",
+    providenceThoughtEyebrow: "Глубже",
+    providenceThoughtPending: "Дополнительная линия формируется...",
     activeLensLabel: "Active Lens",
     internalizedThoughtLabel: "Internalized Thought",
     muteSkillCheckAudio: "Mute skill check audio",
@@ -114,6 +128,13 @@ const vnStrings = {
     innerThoughtTitle: "Inner Parliament",
     innerThoughtThinking: "Thinking",
     innerThoughtPending: "is turning the result over...",
+    providenceLabel: "Vorsehung",
+    fortuneLabel: "Fortuna",
+    karmaLabel: "Karma",
+    providenceExpand: "Vertiefen fuer",
+    providenceThoughtTitle: "Vorsehungs-Schicht",
+    providenceThoughtEyebrow: "Vertiefung",
+    providenceThoughtPending: "Die tiefere Lesart formt sich...",
     activeLensLabel: "Active Lens",
     internalizedThoughtLabel: "Internalized Thought",
     muteSkillCheckAudio: "Mute skill check audio",
@@ -151,7 +172,9 @@ const characterStrings = {
   },
 } as const;
 
-export type VnStrings = (typeof vnStrings)["en"];
+export type VnStrings = {
+  [Key in keyof (typeof vnStrings)["en"]]: string;
+};
 
 export const getVnStrings = (language: UiLanguage): VnStrings =>
   vnStrings[language];

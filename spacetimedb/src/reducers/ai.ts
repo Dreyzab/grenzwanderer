@@ -2,11 +2,15 @@ import { Timestamp } from "spacetimedb";
 import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
 import {
+  addToVarForPlayer,
   emitTelemetry,
   ensureAdminIdentity,
   ensureAllowlistedWorker,
   ensureIdempotent,
+  ensureNarrativeResources,
   ensurePlayerProfile,
+  ensureNarrativeResourcesForPlayer,
+  getVarForPlayer,
 } from "./helpers";
 import {
   AI_REQUEST_STATUS_COMPLETED,
@@ -19,6 +23,11 @@ import {
   selectClaimCandidate,
   type SupportedAiKind,
 } from "./aiQueue";
+import {
+  AI_GENERATE_DIALOGUE_KIND,
+  parseGenerateDialoguePayload,
+} from "../../../src/features/ai/contracts";
+import { RESOURCE_PROVIDENCE_VAR } from "../../../src/shared/game/narrativeResources";
 
 const MICROS_PER_MILLISECOND = 1_000n;
 
@@ -54,6 +63,31 @@ const requireSupportedAiKind = (kind: string): SupportedAiKind => {
   }
 
   return normalized;
+};
+
+const parseDialoguePayloadOrThrow = (payloadJson: string) => {
+  const payload = parseGenerateDialoguePayload(payloadJson);
+  if (!payload) {
+    throw new SenderError("payloadJson must contain a valid GenerateDialoguePayload");
+  }
+  return payload;
+};
+
+const isProvidenceDialoguePayload = (
+  payloadJson: string,
+): { providenceCost: number } | null => {
+  const payload = parseGenerateDialoguePayload(payloadJson);
+  if (
+    !payload ||
+    payload.source !== "vn_skill_check" ||
+    payload.dialogueLayer !== "providence"
+  ) {
+    return null;
+  }
+
+  return {
+    providenceCost: Math.max(0, Math.trunc(payload.providenceCost ?? 0)),
+  };
 };
 
 const requirePositiveMilliseconds = (
@@ -137,6 +171,95 @@ export const enqueue_ai_request = spacetimedb.reducer(
     emitTelemetry(ctx, "ai_request_enqueued", {
       requestId,
       kind: supportedKind,
+    });
+  },
+);
+
+export const enqueue_providence_dialogue = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    scenarioId: t.string(),
+    nodeId: t.string(),
+    checkId: t.string(),
+    choiceId: t.string(),
+    providenceCost: t.u32(),
+    payloadJson: t.string(),
+  },
+  (
+    ctx,
+    { requestId, scenarioId, nodeId, checkId, choiceId, providenceCost, payloadJson },
+  ) => {
+    ensureIdempotent(ctx, requestId, "enqueue_providence_dialogue");
+    ensurePlayerProfile(ctx);
+    ensureNarrativeResources(ctx);
+
+    const payload = parseDialoguePayloadOrThrow(payloadJson);
+    if (payload.source !== "vn_skill_check") {
+      throw new SenderError("Providence dialogue payload must come from a skill check");
+    }
+    if (payload.dialogueLayer !== "providence") {
+      throw new SenderError("Providence dialogue payload must declare dialogueLayer='providence'");
+    }
+    if (payload.scenarioId !== scenarioId) {
+      throw new SenderError("Providence dialogue scenarioId mismatch");
+    }
+    if (payload.nodeId !== nodeId) {
+      throw new SenderError("Providence dialogue nodeId mismatch");
+    }
+    if (payload.checkId !== checkId) {
+      throw new SenderError("Providence dialogue checkId mismatch");
+    }
+    if (payload.choiceId !== choiceId) {
+      throw new SenderError("Providence dialogue choiceId mismatch");
+    }
+
+    const normalizedProvidenceCost = Math.max(0, Math.trunc(providenceCost));
+    if (Math.max(0, Math.trunc(payload.providenceCost ?? 0)) !== normalizedProvidenceCost) {
+      throw new SenderError("Providence dialogue cost mismatch");
+    }
+
+    const currentProvidence = Math.trunc(
+      getVarForPlayer(ctx, ctx.sender, RESOURCE_PROVIDENCE_VAR),
+    );
+    if (currentProvidence < normalizedProvidenceCost) {
+      throw new SenderError("Not enough Providence");
+    }
+
+    if (normalizedProvidenceCost > 0) {
+      addToVarForPlayer(
+        ctx,
+        ctx.sender,
+        RESOURCE_PROVIDENCE_VAR,
+        -normalizedProvidenceCost,
+      );
+    }
+
+    ctx.db.aiRequest.insert({
+      id: 0n,
+      playerId: ctx.sender,
+      requestId,
+      kind: AI_GENERATE_DIALOGUE_KIND,
+      payloadJson,
+      status: AI_REQUEST_STATUS_PENDING,
+      responseJson: undefined,
+      error: undefined,
+      attemptCount: 0,
+      claimedBy: undefined,
+      claimToken: undefined,
+      claimedAt: undefined,
+      leaseExpiresAt: undefined,
+      nextRetryAt: undefined,
+      createdAt: ctx.timestamp,
+      updatedAt: ctx.timestamp,
+    });
+
+    emitTelemetry(ctx, "providence_dialogue_enqueued", {
+      requestId,
+      scenarioId,
+      nodeId,
+      checkId,
+      choiceId,
+      providenceCost: normalizedProvidenceCost,
     });
   },
 );
@@ -346,6 +469,22 @@ export const fail_ai_request = spacetimedb.reducer(
       return;
     }
 
+    const providencePayload = isProvidenceDialoguePayload(request.payloadJson);
+    if (providencePayload && providencePayload.providenceCost > 0) {
+      ensureNarrativeResourcesForPlayer(ctx, request.playerId);
+      addToVarForPlayer(
+        ctx,
+        request.playerId,
+        RESOURCE_PROVIDENCE_VAR,
+        providencePayload.providenceCost,
+      );
+      emitTelemetry(ctx, "providence_dialogue_refunded", {
+        aiRequestId: aiRequestId.toString(),
+        providenceCost: providencePayload.providenceCost,
+        playerId: request.playerId.toHexString(),
+      });
+    }
+
     emitTelemetry(ctx, "ai_request_delivered", {
       aiRequestId: aiRequestId.toString(),
       status: AI_REQUEST_STATUS_FAILED,
@@ -366,6 +505,11 @@ export const requeue_ai_request = spacetimedb.reducer(
     const request = ctx.db.aiRequest.id.find(aiRequestId);
     if (!request) {
       throw new SenderError("aiRequestId not found");
+    }
+    if (isProvidenceDialoguePayload(request.payloadJson)) {
+      throw new SenderError(
+        "Providence dialogue requests cannot be requeued in v1",
+      );
     }
     if (request.status !== AI_REQUEST_STATUS_FAILED) {
       throw new SenderError("Only failed ai_request rows can be requeued");

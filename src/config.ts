@@ -1,8 +1,39 @@
-﻿export const SPACETIMEDB_HOST =
+import {
+  GENERATED_KARLSRUHE_ENTRY_TOKEN,
+  GENERATED_RELEASE_PROFILE,
+} from "./generated/release-config";
+import type { ReleaseProfile } from "./features/release/types";
+
+const RELEASE_PROFILES = new Set<ReleaseProfile>([
+  "default",
+  "karlsruhe_event",
+]);
+
+const parseReleaseProfile = (
+  value: string | undefined,
+  fallback: ReleaseProfile,
+): ReleaseProfile =>
+  value && RELEASE_PROFILES.has(value as ReleaseProfile)
+    ? (value as ReleaseProfile)
+    : fallback;
+
+export const SPACETIMEDB_HOST =
   import.meta.env.VITE_SPACETIMEDB_HOST ?? "ws://localhost:3000";
 
 export const SPACETIMEDB_DB_NAME =
   import.meta.env.VITE_SPACETIMEDB_DB_NAME ?? "grezwandererdata";
+
+export const RELEASE_PROFILE: ReleaseProfile = parseReleaseProfile(
+  import.meta.env.VITE_RELEASE_PROFILE,
+  parseReleaseProfile(GENERATED_RELEASE_PROFILE, "default"),
+);
+
+export const KARLSRUHE_ENTRY_TOKEN =
+  import.meta.env.VITE_KARLSRUHE_ENTRY_TOKEN ?? GENERATED_KARLSRUHE_ENTRY_TOKEN;
+
+export const SCENE_GEN_BASE_URL =
+  import.meta.env.VITE_SCENE_GEN_BASE_URL ??
+  (RELEASE_PROFILE === "karlsruhe_event" ? "/api" : "");
 
 export const ENABLE_AI =
   String(import.meta.env.VITE_ENABLE_AI ?? "false").toLowerCase() === "true";

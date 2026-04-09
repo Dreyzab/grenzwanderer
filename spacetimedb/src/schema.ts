@@ -4,11 +4,16 @@ import {
   telemetryAggregateSchedule,
   telemetryCleanupSchedule,
 } from "./procedures/maintenance";
+import {
+  AI_REQUEST_STATUS_PENDING,
+  AI_REQUEST_STATUS_PROCESSING,
+} from "./reducers/aiQueue";
+import { ensureAllowlistedWorker } from "./reducers/helpers";
 
 export const playerProfile = table(
   {
     name: "player_profile",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_profile_nickname",
@@ -28,7 +33,7 @@ export const playerProfile = table(
 export const playerFlag = table(
   {
     name: "player_flag",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_flag_player_id",
@@ -54,7 +59,7 @@ export const playerFlag = table(
 export const playerVar = table(
   {
     name: "player_var",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_var_player_id",
@@ -80,7 +85,7 @@ export const playerVar = table(
 export const playerLocation = table(
   {
     name: "player_location",
-    public: true,
+    public: false,
   },
   {
     playerId: t.identity().primaryKey(),
@@ -92,7 +97,7 @@ export const playerLocation = table(
 export const playerInventory = table(
   {
     name: "player_inventory",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_inventory_player_id",
@@ -118,7 +123,7 @@ export const playerInventory = table(
 export const vnSession = table(
   {
     name: "vn_session",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "vn_session_player_id",
@@ -145,7 +150,7 @@ export const vnSession = table(
 export const vnSkillCheckResult = table(
   {
     name: "vn_skill_check_result",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "vn_skill_check_result_player_id",
@@ -173,9 +178,12 @@ export const vnSkillCheckResult = table(
     roll: t.u32(),
     voiceLevel: t.u32(),
     difficulty: t.u32(),
+    baseDifficulty: t.u32(),
+    fortuneSpent: t.u32(),
     passed: t.bool(),
     nextNodeId: t.string().optional(),
     breakdownJson: t.string().optional(),
+    difficultyBreakdownJson: t.string().optional(),
     outcomeGrade: t.string().optional(),
     createdAt: t.timestamp(),
   },
@@ -244,7 +252,7 @@ export const workerAllowlist = table(
 export const idempotencyLog = table(
   {
     name: "idempotency_log",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "idempotency_log_player_id",
@@ -271,7 +279,7 @@ export const idempotencyLog = table(
 export const telemetryEvent = table(
   {
     name: "telemetry_event",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "telemetry_event_event_name",
@@ -298,7 +306,7 @@ export const telemetryEvent = table(
 export const telemetryAggregate = table(
   {
     name: "telemetry_aggregate",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "telemetry_aggregate_bucket_start",
@@ -326,7 +334,7 @@ export const telemetryAggregate = table(
 export const aiRequest = table(
   {
     name: "ai_request",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "ai_request_player_id",
@@ -383,7 +391,7 @@ export const aiRequest = table(
 export const workerIdentity = table(
   {
     name: "worker_identity",
-    public: true,
+    public: false,
   },
   {
     identity: t.identity().primaryKey(),
@@ -483,7 +491,7 @@ export const mindHypothesis = table(
 export const playerMindCase = table(
   {
     name: "player_mind_case",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_mind_case_player_id",
@@ -516,7 +524,7 @@ export const playerMindCase = table(
 export const playerMindFact = table(
   {
     name: "player_mind_fact",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_mind_fact_player_id",
@@ -547,7 +555,7 @@ export const playerMindFact = table(
 export const playerMindHypothesis = table(
   {
     name: "player_mind_hypothesis",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_mind_hypothesis_player_id",
@@ -585,7 +593,7 @@ export const playerMindHypothesis = table(
 export const playerQuest = table(
   {
     name: "player_quest",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_quest_player_id",
@@ -611,7 +619,7 @@ export const playerQuest = table(
 export const playerEvidence = table(
   {
     name: "player_evidence",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_evidence_player_id",
@@ -636,7 +644,7 @@ export const playerEvidence = table(
 export const playerRelationship = table(
   {
     name: "player_relationship",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_relationship_player_id",
@@ -662,7 +670,7 @@ export const playerRelationship = table(
 export const playerNpcState = table(
   {
     name: "player_npc_state",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_npc_state_player_id",
@@ -690,7 +698,7 @@ export const playerNpcState = table(
 export const playerNpcFavor = table(
   {
     name: "player_npc_favor",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_npc_favor_player_id",
@@ -717,7 +725,7 @@ export const playerNpcFavor = table(
 export const playerFactionSignal = table(
   {
     name: "player_faction_signal",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_faction_signal_player_id",
@@ -744,7 +752,7 @@ export const playerFactionSignal = table(
 export const playerAgencyCareer = table(
   {
     name: "player_agency_career",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_agency_career_rank_id",
@@ -770,7 +778,7 @@ export const playerAgencyCareer = table(
 export const playerRumorState = table(
   {
     name: "player_rumor_state",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_rumor_state_player_id",
@@ -811,7 +819,7 @@ export const playerRumorState = table(
 export const battleSession = table(
   {
     name: "battle_session",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "battle_session_player_id",
@@ -862,7 +870,7 @@ export const battleSession = table(
 export const battleCombatant = table(
   {
     name: "battle_combatant",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "battle_combatant_player_id",
@@ -910,7 +918,7 @@ export const battleCombatant = table(
 export const battleCardInstance = table(
   {
     name: "battle_card_instance",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "battle_card_instance_player_id",
@@ -954,7 +962,7 @@ export const battleCardInstance = table(
 export const battleHistory = table(
   {
     name: "battle_history",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "battle_history_player_id",
@@ -987,7 +995,7 @@ export const battleHistory = table(
 export const commandSession = table(
   {
     name: "command_session",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "command_session_player_id",
@@ -1030,7 +1038,7 @@ export const commandSession = table(
 export const commandPartyMember = table(
   {
     name: "command_party_member",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "command_party_member_player_id",
@@ -1067,7 +1075,7 @@ export const commandPartyMember = table(
 export const commandOrderHistory = table(
   {
     name: "command_order_history",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "command_order_history_player_id",
@@ -1102,7 +1110,7 @@ export const commandOrderHistory = table(
 export const playerUnlockGroup = table(
   {
     name: "player_unlock_group",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_unlock_group_player_id",
@@ -1127,7 +1135,7 @@ export const playerUnlockGroup = table(
 export const playerMapEvent = table(
   {
     name: "player_map_event",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_map_event_player_id",
@@ -1149,6 +1157,11 @@ export const playerMapEvent = table(
         algorithm: "btree",
         columns: ["expiresAt"],
       },
+      {
+        accessor: "player_map_event_player_status_expires",
+        algorithm: "btree",
+        columns: ["playerId", "status", "expiresAt"],
+      },
     ],
   },
   {
@@ -1168,7 +1181,7 @@ export const playerMapEvent = table(
 export const playerRedeemedCode = table(
   {
     name: "player_redeemed_code",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_redeemed_code_player_id",
@@ -1184,6 +1197,16 @@ export const playerRedeemedCode = table(
         accessor: "player_redeemed_code_request_id",
         algorithm: "btree",
         columns: ["requestId"],
+      },
+      {
+        accessor: "player_redeemed_code_player_code_result",
+        algorithm: "btree",
+        columns: ["playerId", "codeId", "result"],
+      },
+      {
+        accessor: "player_redeemed_code_player_code_result_redeemed_at",
+        algorithm: "btree",
+        columns: ["playerId", "codeId", "result", "redeemedAt"],
       },
     ],
   },
@@ -1202,7 +1225,7 @@ export const playerRedeemedCode = table(
 export const playerSpiritState = table(
   {
     name: "player_spirit_state",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "player_spirit_state_player_id",
@@ -1279,5 +1302,351 @@ const spacetimedb = schema({
   playerRedeemedCode,
   playerSpiritState,
 });
+
+const senderOf = (ctx: any) =>
+  typeof ctx.sender === "function" ? ctx.sender() : ctx.sender;
+
+const rowsFromIndex = (
+  tableView: any,
+  indexAccessorName: string,
+  value: unknown,
+) => {
+  const index = tableView[indexAccessorName];
+  if (typeof index.find === "function") {
+    const row = index.find(value);
+    return row ? [row] : [];
+  }
+
+  return Array.from(index.filter(value));
+};
+
+const selfScopedByPlayerId = (
+  ctx: any,
+  accessorName: string,
+  playerIdIndexAccessorName: string,
+) =>
+  rowsFromIndex(
+    ctx.db[accessorName],
+    playerIdIndexAccessorName,
+    senderOf(ctx),
+  );
+
+const ensureRegisteredWorkerView = (ctx: any): void => {
+  const sender = senderOf(ctx);
+  ensureAllowlistedWorker(ctx, "read worker ai requests", sender);
+  if (!ctx.db.workerIdentity.identity.find(sender)) {
+    throw new Error("Only a registered worker can read worker ai requests");
+  }
+};
+
+export const my_player_profile = spacetimedb.view(
+  { name: "my_player_profile", public: true },
+  t.array(playerProfile.rowType),
+  (ctx) => selfScopedByPlayerId(ctx, "playerProfile", "playerId"),
+);
+
+export const my_player_flags = spacetimedb.view(
+  { name: "my_player_flags", public: true },
+  t.array(playerFlag.rowType),
+  (ctx) => selfScopedByPlayerId(ctx, "playerFlag", "player_flag_player_id"),
+);
+
+export const my_player_vars = spacetimedb.view(
+  { name: "my_player_vars", public: true },
+  t.array(playerVar.rowType),
+  (ctx) => selfScopedByPlayerId(ctx, "playerVar", "player_var_player_id"),
+);
+
+export const my_player_location = spacetimedb.view(
+  { name: "my_player_location", public: true },
+  t.array(playerLocation.rowType),
+  (ctx) => selfScopedByPlayerId(ctx, "playerLocation", "playerId"),
+);
+
+export const my_player_inventory = spacetimedb.view(
+  { name: "my_player_inventory", public: true },
+  t.array(playerInventory.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerInventory",
+      "player_inventory_player_id",
+    ),
+);
+
+export const my_vn_sessions = spacetimedb.view(
+  { name: "my_vn_sessions", public: true },
+  t.array(vnSession.rowType),
+  (ctx) => selfScopedByPlayerId(ctx, "vnSession", "vn_session_player_id"),
+);
+
+export const my_vn_skill_results = spacetimedb.view(
+  { name: "my_vn_skill_results", public: true },
+  t.array(vnSkillCheckResult.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "vnSkillCheckResult",
+      "vn_skill_check_result_player_id",
+    ),
+);
+
+export const my_ai_requests = spacetimedb.view(
+  { name: "my_ai_requests", public: true },
+  t.array(aiRequest.rowType),
+  (ctx) => selfScopedByPlayerId(ctx, "aiRequest", "ai_request_player_id"),
+);
+
+export const worker_ai_requests = spacetimedb.view(
+  { name: "worker_ai_requests", public: true },
+  t.array(aiRequest.rowType),
+  (ctx) => {
+    ensureRegisteredWorkerView(ctx);
+    return [
+      ...rowsFromIndex(
+        ctx.db.aiRequest,
+        "ai_request_status",
+        AI_REQUEST_STATUS_PENDING,
+      ),
+      ...rowsFromIndex(
+        ctx.db.aiRequest,
+        "ai_request_claimed_by_status",
+        [senderOf(ctx), AI_REQUEST_STATUS_PROCESSING],
+      ),
+    ];
+  },
+);
+
+export const my_mind_cases = spacetimedb.view(
+  { name: "my_mind_cases", public: true },
+  t.array(playerMindCase.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerMindCase",
+      "player_mind_case_player_id",
+    ),
+);
+
+export const my_mind_facts = spacetimedb.view(
+  { name: "my_mind_facts", public: true },
+  t.array(playerMindFact.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerMindFact",
+      "player_mind_fact_player_id",
+    ),
+);
+
+export const my_mind_hypotheses = spacetimedb.view(
+  { name: "my_mind_hypotheses", public: true },
+  t.array(playerMindHypothesis.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerMindHypothesis",
+      "player_mind_hypothesis_player_id",
+    ),
+);
+
+export const my_quests = spacetimedb.view(
+  { name: "my_quests", public: true },
+  t.array(playerQuest.rowType),
+  (ctx) => selfScopedByPlayerId(ctx, "playerQuest", "player_quest_player_id"),
+);
+
+export const my_evidence = spacetimedb.view(
+  { name: "my_evidence", public: true },
+  t.array(playerEvidence.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerEvidence",
+      "player_evidence_player_id",
+    ),
+);
+
+export const my_relationships = spacetimedb.view(
+  { name: "my_relationships", public: true },
+  t.array(playerRelationship.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerRelationship",
+      "player_relationship_player_id",
+    ),
+);
+
+export const my_npc_state = spacetimedb.view(
+  { name: "my_npc_state", public: true },
+  t.array(playerNpcState.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerNpcState",
+      "player_npc_state_player_id",
+    ),
+);
+
+export const my_npc_favors = spacetimedb.view(
+  { name: "my_npc_favors", public: true },
+  t.array(playerNpcFavor.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerNpcFavor",
+      "player_npc_favor_player_id",
+    ),
+);
+
+export const my_faction_signals = spacetimedb.view(
+  { name: "my_faction_signals", public: true },
+  t.array(playerFactionSignal.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerFactionSignal",
+      "player_faction_signal_player_id",
+    ),
+);
+
+export const my_agency_career = spacetimedb.view(
+  { name: "my_agency_career", public: true },
+  t.array(playerAgencyCareer.rowType),
+  (ctx) => selfScopedByPlayerId(ctx, "playerAgencyCareer", "playerId"),
+);
+
+export const my_rumor_state = spacetimedb.view(
+  { name: "my_rumor_state", public: true },
+  t.array(playerRumorState.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerRumorState",
+      "player_rumor_state_player_id",
+    ),
+);
+
+export const my_battle_sessions = spacetimedb.view(
+  { name: "my_battle_sessions", public: true },
+  t.array(battleSession.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "battleSession",
+      "battle_session_player_id",
+    ),
+);
+
+export const my_battle_combatants = spacetimedb.view(
+  { name: "my_battle_combatants", public: true },
+  t.array(battleCombatant.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "battleCombatant",
+      "battle_combatant_player_id",
+    ),
+);
+
+export const my_battle_cards = spacetimedb.view(
+  { name: "my_battle_cards", public: true },
+  t.array(battleCardInstance.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "battleCardInstance",
+      "battle_card_instance_player_id",
+    ),
+);
+
+export const my_battle_history = spacetimedb.view(
+  { name: "my_battle_history", public: true },
+  t.array(battleHistory.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "battleHistory",
+      "battle_history_player_id",
+    ),
+);
+
+export const my_command_sessions = spacetimedb.view(
+  { name: "my_command_sessions", public: true },
+  t.array(commandSession.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "commandSession",
+      "command_session_player_id",
+    ),
+);
+
+export const my_command_party = spacetimedb.view(
+  { name: "my_command_party", public: true },
+  t.array(commandPartyMember.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "commandPartyMember",
+      "command_party_member_player_id",
+    ),
+);
+
+export const my_command_history = spacetimedb.view(
+  { name: "my_command_history", public: true },
+  t.array(commandOrderHistory.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "commandOrderHistory",
+      "command_order_history_player_id",
+    ),
+);
+
+export const my_unlock_groups = spacetimedb.view(
+  { name: "my_unlock_groups", public: true },
+  t.array(playerUnlockGroup.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerUnlockGroup",
+      "player_unlock_group_player_id",
+    ),
+);
+
+export const my_map_events = spacetimedb.view(
+  { name: "my_map_events", public: true },
+  t.array(playerMapEvent.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerMapEvent",
+      "player_map_event_player_id",
+    ),
+);
+
+export const my_redeemed_codes = spacetimedb.view(
+  { name: "my_redeemed_codes", public: true },
+  t.array(playerRedeemedCode.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerRedeemedCode",
+      "player_redeemed_code_player_id",
+    ),
+);
+
+export const my_spirit_state = spacetimedb.view(
+  { name: "my_spirit_state", public: true },
+  t.array(playerSpiritState.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerSpiritState",
+      "player_spirit_state_player_id",
+    ),
+);
 
 export default spacetimedb;

@@ -1,8 +1,17 @@
 import { DbConnection } from "../src/shared/spacetime/bindings";
-import type { ContentServer } from "./content-manifest";
 import {
-  loadManifest,
-  readSnapshot,
+  normalizeContentReleaseProfile,
+  type ContentReleaseProfile,
+} from "./content-authoring-contract";
+import type { ContentTargetCliOptions } from "./content-cli";
+import {
+  formatContentTarget,
+  parseContentTargetArgs,
+  readArg,
+} from "./content-cli";
+import {
+  loadManifestForProfile,
+  readSnapshotForProfile,
   saveManifest,
   upsertRelease,
 } from "./content-manifest";
@@ -14,31 +23,16 @@ import {
 
 const SEMVER_RE = /^\d+\.\d+\.\d+$/;
 
-interface CliOptions {
+interface CliOptions extends ContentTargetCliOptions {
+  profile: ContentReleaseProfile;
   version: string;
-  server: ContentServer;
-  host: string;
-  database: string;
 }
 
 const usage = () => {
   console.error(
-    "Usage: bun run content:release -- --version <X.Y.Z> [--server local|maincloud] [--db <name>] [--host <uri>]",
+    "Usage: bun run content:release -- --version <X.Y.Z> [--profile default|karlsruhe_event] [--server local|maincloud] [--db <name>] [--host <uri>]",
   );
 };
-
-const readArg = (args: string[], name: string): string | null => {
-  const index = args.indexOf(name);
-  if (index < 0 || index + 1 >= args.length) {
-    return null;
-  }
-  return args[index + 1];
-};
-
-const getDefaultHost = (server: ContentServer): string =>
-  server === "local"
-    ? "ws://127.0.0.1:3000"
-    : "https://maincloud.spacetimedb.com";
 
 const parseCli = (): CliOptions => {
   const args = process.argv.slice(2);
@@ -48,21 +42,11 @@ const parseCli = (): CliOptions => {
     throw new Error("The --version argument must use semver format X.Y.Z");
   }
 
-  const serverRaw = readArg(args, "--server") ?? "local";
-  if (serverRaw !== "local" && serverRaw !== "maincloud") {
-    usage();
-    throw new Error("--server must be either local or maincloud");
-  }
-  const server = serverRaw as ContentServer;
-
-  const database =
-    readArg(args, "--db") ??
-    process.env.SPACETIMEDB_DB_NAME ??
-    process.env.VITE_SPACETIMEDB_DB_NAME ??
-    "grezwandererdata";
-  const host = readArg(args, "--host") ?? getDefaultHost(server);
-
-  return { version, server, host, database };
+  return {
+    profile: normalizeContentReleaseProfile(readArg(args, "--profile") ?? undefined),
+    version,
+    ...parseContentTargetArgs(args, usage),
+  };
 };
 
 const nextRequestId = (): string =>
@@ -115,7 +99,7 @@ const publishContent = async (
 
 const main = async (): Promise<void> => {
   const cli = parseCli();
-  const snapshot = readSnapshot();
+  const snapshot = readSnapshotForProfile(cli.profile);
   const version = `content-v${cli.version}+${snapshot.checksum.slice(0, 8)}`;
 
   await publishContent(
@@ -127,7 +111,7 @@ const main = async (): Promise<void> => {
     snapshot.payloadJson,
   );
 
-  const manifest = loadManifest();
+  const manifest = loadManifestForProfile(cli.profile);
   const updated = upsertRelease(manifest, {
     version,
     checksum: snapshot.checksum,
@@ -140,12 +124,12 @@ const main = async (): Promise<void> => {
       database: cli.database,
     },
   });
-  saveManifest(updated);
+  saveManifest(updated, cli.profile);
 
   console.log("Content release published.");
   console.log(`Version: ${version}`);
   console.log(`Checksum: ${snapshot.checksum}`);
-  console.log(`Target: ${cli.server} (${cli.host}) db=${cli.database}`);
+  console.log(`Target: ${formatContentTarget(cli)}`);
 };
 
 main().catch((error) => {

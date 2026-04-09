@@ -46,4 +46,7 @@ aliases: ["Archive Keeper"]
 ## Scenes & Quests
 
 - Appears in: [[10_Narrative/Scenes/node_case1_archive_warrant_run|node_case1_archive_warrant_run]]
+- Appears in: [[10_Narrative/Scenes/node_dead_registry_archive|node_dead_registry_archive]]
+- Appears in: [[10_Narrative/Scenes/node_dead_registry_shadow_ledger|node_dead_registry_shadow_ledger]]
 - Linked quest: [[00_Map_Room/qst_inspector_vienna|qst_inspector_vienna]]
+- Linked quest: [[00_Map_Room/qst_dead_registry|qst_dead_registry]]

@@ -234,16 +234,28 @@ const expectRejected = async (
 
 const findRedeemAttempt = (
   conn: DbConnection,
-  playerHex: string,
   codeId: string,
   result: string,
 ) =>
   [...conn.db.playerRedeemedCode.iter()].find(
-    (row) =>
-      row.playerId.toHexString() === playerHex &&
-      row.codeId === codeId &&
-      row.result === result,
+    (row) => row.codeId === codeId && row.result === result,
   );
+
+const waitForRedeemAttempt = async (
+  conn: DbConnection,
+  codeId: string,
+  result: string,
+) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const row = findRedeemAttempt(conn, codeId, result);
+    if (row) {
+      return row;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+
+  return undefined;
+};
 
 const runSmoke = async () =>
   new Promise<void>((resolve, reject) => {
@@ -261,7 +273,6 @@ const runSmoke = async () =>
           if (!identity) {
             throw new Error("Missing connection identity");
           }
-          const playerHex = identity.toHexString();
 
           await conn.reducers.publishContent({
             requestId: nextRequestId("publish"),
@@ -291,7 +302,7 @@ const runSmoke = async () =>
             trigger: "card_secondary",
           });
 
-          const travelLocation = conn.db.playerLocation.playerId.find(identity);
+          const travelLocation = [...conn.db.playerLocation.iter()][0];
           if (
             !travelLocation ||
             travelLocation.locationId !== "loc_map_travel"
@@ -302,10 +313,7 @@ const runSmoke = async () =>
           }
 
           const visitedTravelFlag = [...conn.db.playerFlag.iter()].find(
-            (row) =>
-              row.playerId.toHexString() === identity.toHexString() &&
-              row.key === `VISITED_${ids.pointTravel}` &&
-              row.value,
+            (row) => row.key === `VISITED_${ids.pointTravel}` && row.value,
           );
           if (!visitedTravelFlag) {
             throw new Error("map_interact travel did not set VISITED_* flag");
@@ -319,9 +327,7 @@ const runSmoke = async () =>
           });
 
           const scenarioSession = [...conn.db.vnSession.iter()].find(
-            (row) =>
-              row.playerId.toHexString() === identity.toHexString() &&
-              row.scenarioId === ids.scenarioCase,
+            (row) => row.scenarioId === ids.scenarioCase,
           );
           if (!scenarioSession) {
             throw new Error(
@@ -330,10 +336,7 @@ const runSmoke = async () =>
           }
 
           const visitedCaseFlag = [...conn.db.playerFlag.iter()].find(
-            (row) =>
-              row.playerId.toHexString() === identity.toHexString() &&
-              row.key === `VISITED_${ids.pointCase}` &&
-              row.value,
+            (row) => row.key === `VISITED_${ids.pointCase}` && row.value,
           );
           if (!visitedCaseFlag) {
             throw new Error(
@@ -363,19 +366,16 @@ const runSmoke = async () =>
             "code_location_required",
           );
 
-          const locationRequiredAttempt = findRedeemAttempt(
-            conn,
-            playerHex,
-            qrCodes.locationRequired.codeId,
-            "location_required",
-          );
+          await new Promise((resolve) => setTimeout(resolve, 100));
           if (
-            !locationRequiredAttempt ||
-            locationRequiredAttempt.attemptedFromLat !== undefined ||
-            locationRequiredAttempt.attemptedFromLng !== undefined
+            findRedeemAttempt(
+              conn,
+              qrCodes.locationRequired.codeId,
+              "location_required",
+            )
           ) {
             throw new Error(
-              "redeem_map_code did not record a location_required attempt",
+              "redeem_map_code unexpectedly persisted a rejected location_required attempt",
             );
           }
 
@@ -390,42 +390,16 @@ const runSmoke = async () =>
             "code_outside_geofence",
           );
 
-          const outsideAttempt = findRedeemAttempt(
-            conn,
-            playerHex,
-            qrCodes.cooldown.codeId,
-            "outside_geofence",
-          );
+          await new Promise((resolve) => setTimeout(resolve, 100));
           if (
-            !outsideAttempt ||
-            outsideAttempt.attemptedFromLat === undefined ||
-            outsideAttempt.attemptedFromLng === undefined
+            findRedeemAttempt(
+              conn,
+              qrCodes.cooldown.codeId,
+              "outside_geofence",
+            )
           ) {
             throw new Error(
-              "redeem_map_code did not record an outside_geofence attempt",
-            );
-          }
-
-          await expectRejected(
-            () =>
-              conn.reducers.redeemMapCode({
-                requestId: nextRequestId("qr_cooldown"),
-                code: qrCodes.cooldown.code,
-                attemptedFromLat: warehouseGeofence.lat,
-                attemptedFromLng: warehouseGeofence.lng,
-              }),
-            "code_retry_later",
-          );
-
-          const cooldownAttempt = findRedeemAttempt(
-            conn,
-            playerHex,
-            qrCodes.cooldown.codeId,
-            "cooldown",
-          );
-          if (!cooldownAttempt) {
-            throw new Error(
-              "redeem_map_code did not record a cooldown attempt",
+              "redeem_map_code unexpectedly persisted a rejected outside_geofence attempt",
             );
           }
 
@@ -436,9 +410,8 @@ const runSmoke = async () =>
             attemptedFromLng: warehouseGeofence.lng,
           });
 
-          const successAttempt = findRedeemAttempt(
+          const successAttempt = await waitForRedeemAttempt(
             conn,
-            playerHex,
             qrCodes.success.codeId,
             "applied",
           );
@@ -449,9 +422,7 @@ const runSmoke = async () =>
           }
 
           const unlockedGroup = [...conn.db.playerUnlockGroup.iter()].find(
-            (row) =>
-              row.playerId.toHexString() === playerHex &&
-              row.groupId === `unlock_${qrCodes.success.codeId}`,
+            (row) => row.groupId === `unlock_${qrCodes.success.codeId}`,
           );
           if (!unlockedGroup) {
             throw new Error(

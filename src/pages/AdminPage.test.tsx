@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   useIdentityMock: vi.fn(),
   tables: {
     playerPresence: Symbol("playerPresence"),
-    playerProfile: Symbol("playerProfile"),
+    myPlayerProfile: Symbol("myPlayerProfile"),
     auditLog: Symbol("auditLog"),
     opsExternalMetric: Symbol("opsExternalMetric"),
     telemetryAggregate: Symbol("telemetryAggregate"),
@@ -61,7 +61,7 @@ describe("AdminPage", () => {
         ];
       }
 
-      if (table === mocks.tables.playerProfile) {
+      if (table === mocks.tables.myPlayerProfile) {
         return [
           [
             {

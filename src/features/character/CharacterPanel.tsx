@@ -1591,12 +1591,12 @@ export const CharacterPanel = () => {
   const { identityHex } = useIdentity();
   const myFlags = usePlayerFlags();
   const myVars = usePlayerVars();
-  const [playerProfileRows] = useTable(tables.playerProfile);
-  const [questRows] = useTable(tables.playerQuest);
-  const [npcStateRows] = useTable(tables.playerNpcState);
-  const [npcFavorRows] = useTable(tables.playerNpcFavor);
-  const [factionSignalRows] = useTable(tables.playerFactionSignal);
-  const [agencyCareerRows] = useTable(tables.playerAgencyCareer);
+  const [playerProfileRows] = useTable(tables.myPlayerProfile);
+  const [questRows] = useTable(tables.myQuests);
+  const [npcStateRows] = useTable(tables.myNpcState);
+  const [npcFavorRows] = useTable(tables.myNpcFavors);
+  const [factionSignalRows] = useTable(tables.myFactionSignals);
+  const [agencyCareerRows] = useTable(tables.myAgencyCareer);
   const [versions] = useTable(tables.contentVersion);
   const [snapshots] = useTable(tables.contentSnapshot);
   const [activeTab, setActiveTab] = useState<CharacterTabId>("profile");
@@ -1611,13 +1611,8 @@ export const CharacterPanel = () => {
     [activeOrigin, myFlags],
   );
   const playerNickname = useMemo(
-    () =>
-      unwrapOptionalString(
-        playerProfileRows.find(
-          (row) => row.playerId.toHexString() === identityHex,
-        )?.nickname,
-      ),
-    [identityHex, playerProfileRows],
+    () => unwrapOptionalString(playerProfileRows[0]?.nickname),
+    [playerProfileRows],
   );
 
   const activeVersion = useMemo(
@@ -1648,30 +1643,22 @@ export const CharacterPanel = () => {
 
   const factionSignalState = useMemo(
     () =>
-      factionSignalRows
-        .filter((row) => row.playerId.toHexString() === identityHex)
-        .map((row) => ({
-          factionId: row.factionId,
-          value: row.value,
-          trend: row.trend,
-        })),
-    [factionSignalRows, identityHex],
+      factionSignalRows.map((row) => ({
+        factionId: row.factionId,
+        value: row.value,
+        trend: row.trend,
+      })),
+    [factionSignalRows],
   );
 
   const socialRelationshipState = useMemo(() => {
     const trustByNpcId = new Map<string, number>();
     for (const row of npcStateRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
       trustByNpcId.set(row.npcId, row.trustScore);
     }
 
     const favorByNpcId = new Map<string, number>();
     for (const row of npcFavorRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
       favorByNpcId.set(row.npcId, normalizeNumber(row.balance));
     }
 
@@ -1679,7 +1666,7 @@ export const CharacterPanel = () => {
       trustByNpcId,
       favorByNpcId,
     };
-  }, [identityHex, npcFavorRows, npcStateRows]);
+  }, [npcFavorRows, npcStateRows]);
 
   const revealedFactionState = useMemo(
     () =>
@@ -1707,11 +1694,8 @@ export const CharacterPanel = () => {
   );
 
   const agencyCareerRow = useMemo(
-    () =>
-      agencyCareerRows.find(
-        (row) => row.playerId.toHexString() === identityHex,
-      ) ?? null,
-    [agencyCareerRows, identityHex],
+    () => agencyCareerRows[0] ?? null,
+    [agencyCareerRows],
   );
 
   const agencyCareerSummary = useMemo<AgencyCareerSummary>(() => {
@@ -1735,13 +1719,10 @@ export const CharacterPanel = () => {
   const questStageById = useMemo(() => {
     const byId = new Map<string, number>();
     for (const row of questRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
       byId.set(row.questId, normalizeNumber(row.stage));
     }
     return byId;
-  }, [identityHex, questRows]);
+  }, [questRows]);
 
   const pointTitleById = useMemo(() => {
     const byId = new Map<string, string>();

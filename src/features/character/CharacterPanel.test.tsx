@@ -11,12 +11,12 @@ const mocks = vi.hoisted(() => ({
   usePlayerVarsMock: vi.fn(),
   debugEnabled: false,
   tablesMock: {
-    playerProfile: Symbol("playerProfile"),
-    playerQuest: Symbol("playerQuest"),
-    playerNpcState: Symbol("playerNpcState"),
-    playerNpcFavor: Symbol("playerNpcFavor"),
-    playerFactionSignal: Symbol("playerFactionSignal"),
-    playerAgencyCareer: Symbol("playerAgencyCareer"),
+    myPlayerProfile: Symbol("myPlayerProfile"),
+    myQuests: Symbol("myQuests"),
+    myNpcState: Symbol("myNpcState"),
+    myNpcFavors: Symbol("myNpcFavors"),
+    myFactionSignals: Symbol("myFactionSignals"),
+    myAgencyCareer: Symbol("myAgencyCareer"),
     contentVersion: Symbol("contentVersion"),
     contentSnapshot: Symbol("contentSnapshot"),
   },
@@ -341,7 +341,7 @@ describe("CharacterPanel", () => {
     mocks.parseSnapshotMock.mockReturnValue(fullSnapshot);
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tablesMock.playerProfile) {
+      if (table === mocks.tablesMock.myPlayerProfile) {
         return [
           [
             {
@@ -352,13 +352,13 @@ describe("CharacterPanel", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerQuest) {
+      if (table === mocks.tablesMock.myQuests) {
         return [
           [{ playerId: makeIdentity("me"), questId: "quest_banker", stage: 1 }],
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerNpcState) {
+      if (table === mocks.tablesMock.myNpcState) {
         return [
           [
             {
@@ -370,7 +370,7 @@ describe("CharacterPanel", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerNpcFavor) {
+      if (table === mocks.tablesMock.myNpcFavors) {
         return [
           [
             {
@@ -382,7 +382,7 @@ describe("CharacterPanel", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerFactionSignal) {
+      if (table === mocks.tablesMock.myFactionSignals) {
         return [
           [
             {
@@ -401,7 +401,7 @@ describe("CharacterPanel", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerAgencyCareer) {
+      if (table === mocks.tablesMock.myAgencyCareer) {
         return [
           [
             {
@@ -559,7 +559,7 @@ describe("CharacterPanel", () => {
 
   it("renders all three briefing-seeded cases as active journal entries", () => {
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tablesMock.playerProfile) {
+      if (table === mocks.tablesMock.myPlayerProfile) {
         return [
           [
             {
@@ -570,7 +570,7 @@ describe("CharacterPanel", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerQuest) {
+      if (table === mocks.tablesMock.myQuests) {
         return [
           [
             { playerId: makeIdentity("me"), questId: "quest_banker", stage: 1 },
@@ -580,7 +580,7 @@ describe("CharacterPanel", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerNpcState) {
+      if (table === mocks.tablesMock.myNpcState) {
         return [
           [
             {
@@ -592,7 +592,7 @@ describe("CharacterPanel", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerNpcFavor) {
+      if (table === mocks.tablesMock.myNpcFavors) {
         return [
           [
             {
@@ -604,7 +604,7 @@ describe("CharacterPanel", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerFactionSignal) {
+      if (table === mocks.tablesMock.myFactionSignals) {
         return [
           [
             {
@@ -623,7 +623,7 @@ describe("CharacterPanel", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerAgencyCareer) {
+      if (table === mocks.tablesMock.myAgencyCareer) {
         return [
           [
             {

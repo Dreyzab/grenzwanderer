@@ -1,48 +1,19 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import {
+  contentSnapshotPath,
+  obsidianCoverageRules,
+  resolveStoryPath,
+  storyRoot,
+  storyRootRelativePath,
+  validateStoryRoot,
+} from "./content-authoring-contract";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..");
-const snapshotPath = path.join(repoRoot, "content", "vn", "pilot.snapshot.json");
+const snapshotPath = contentSnapshotPath;
 
 type Snapshot = {
   scenarios: Array<{ id: string; nodeIds: string[] }>;
 };
-
-type CoverageRule = {
-  directory: string;
-  prefixes: string[];
-  scenarioIds: string[];
-};
-
-const coverageRules: CoverageRule[] = [
-  {
-    directory: "obsidian/StoryDetective/40_GameViewer/Sandbox_KA/Plot/02_Dog",
-    prefixes: ["scene_dog_", "scene_park_"],
-    scenarioIds: ["sandbox_dog_pilot"],
-  },
-  {
-    directory: "obsidian/StoryDetective/40_GameViewer/Sandbox_KA/Plot/03_Ghost",
-    prefixes: [
-      "scene_estate_",
-      "scene_evidence_",
-      "scene_guild_",
-      "scene_conclusion_",
-    ],
-    scenarioIds: ["sandbox_ghost_pilot"],
-  },
-  {
-    directory: "obsidian/StoryDetective/40_GameViewer/Sandbox_KA/08_LivingCity",
-    prefixes: ["scene_city_"],
-    scenarioIds: [
-      "sandbox_city_student_tip",
-      "sandbox_city_cleaner_tip",
-      "sandbox_city_bootblack_tip",
-    ],
-  },
-];
 
 const parseFrontmatterId = (markdown: string): string | null => {
   const normalized = markdown.replace(/^\uFEFF/, "");
@@ -78,8 +49,10 @@ const missingInSnapshot: string[] = [];
 const missingInObsidian: string[] = [];
 const malformedFiles: string[] = [];
 
-for (const rule of coverageRules) {
-  const absoluteDir = path.join(repoRoot, rule.directory);
+validateStoryRoot(storyRoot);
+
+for (const rule of obsidianCoverageRules) {
+  const absoluteDir = resolveStoryPath(rule.directoryRelativeToStoryRoot);
   const files = readdirSync(absoluteDir)
     .filter((entry) => entry.endsWith(".md"))
     .filter((entry) =>
@@ -102,7 +75,9 @@ for (const rule of coverageRules) {
   const discoveredNodeIds = new Set<string>();
   for (const file of files) {
     const absolutePath = path.join(absoluteDir, file);
-    const relativePath = path.join(rule.directory, file).replaceAll("\\", "/");
+    const relativePath = path
+      .join(storyRootRelativePath, rule.directoryRelativeToStoryRoot, file)
+      .replaceAll("\\", "/");
     const markdown = readFileSync(absolutePath, "utf8").replace(/\r\n/g, "\n");
     const nodeId = parseFrontmatterId(markdown);
     if (!nodeId) {
@@ -118,7 +93,9 @@ for (const rule of coverageRules) {
 
   for (const nodeId of expectedNodeIds) {
     if (!discoveredNodeIds.has(nodeId)) {
-      missingInObsidian.push(`${rule.directory} (id=${nodeId})`);
+      missingInObsidian.push(
+        `${storyRootRelativePath}/${rule.directoryRelativeToStoryRoot} (id=${nodeId})`,
+      );
     }
   }
 }

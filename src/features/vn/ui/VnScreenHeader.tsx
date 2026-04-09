@@ -1,11 +1,22 @@
 import type { VnStrings } from "../../i18n/uiStrings";
 import type { VnScenario } from "../types";
+import {
+  FortuneIcon,
+  KarmaIcon,
+  ProvidenceIcon,
+} from "../../../shared/ui/icons/narrative-resource-icons";
 
 interface VnScreenHeaderProps {
   t: VnStrings;
   selectedScenarioId: string;
   scenarios: VnScenario[];
   isInteractionLocked: boolean;
+  narrativeResources: {
+    providence: number;
+    fortune: number;
+    fortuneMod: number;
+    karma: number;
+  };
   onScenarioChange: (scenarioId: string) => void;
   onStartScenario: () => void;
   onOpenDebug?: () => void;
@@ -16,6 +27,7 @@ export const VnScreenHeader = ({
   selectedScenarioId,
   scenarios,
   isInteractionLocked,
+  narrativeResources,
   onScenarioChange,
   onStartScenario,
   onOpenDebug,
@@ -36,6 +48,23 @@ export const VnScreenHeader = ({
     </label>
 
     <div className="button-row">
+      <div className="flex items-center gap-2 rounded-full border border-white/12 bg-black/20 px-3 py-2 text-xs uppercase tracking-[0.16em] text-white/80">
+        <span className="flex items-center gap-1.5">
+          <ProvidenceIcon size={16} />
+          {t.providenceLabel}: {narrativeResources.providence}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <FortuneIcon size={16} />
+          {t.fortuneLabel}: {narrativeResources.fortune}
+          {narrativeResources.fortuneMod !== 0
+            ? ` (${narrativeResources.fortuneMod > 0 ? "+" : ""}${narrativeResources.fortuneMod})`
+            : ""}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <KarmaIcon size={16} />
+          {t.karmaLabel}: {narrativeResources.karma}
+        </span>
+      </div>
       <button
         type="button"
         onClick={onStartScenario}

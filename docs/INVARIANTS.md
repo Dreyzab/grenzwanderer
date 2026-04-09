@@ -27,7 +27,7 @@ Every skill check failure, every denied choice, and every closed branch must lea
 **Enforcement:**
 
 - Every `VnSkillCheck` must define both `onSuccess` and `onFail` branches (or the parent node must have an unconditional fallback choice).
-- Content extraction CI (`content:drift:check`) should flag any terminal node reachable only through a single gated choice with no alternative.
+- Content validation and Case01 smoke coverage should flag any terminal node reachable only through a single gated choice with no alternative.
 - Tiered outcomes (`onSuccessWithCost`) formalize the "price of failure" as explicit effects rather than silent dead-ends.
 
 **Violation examples:**
@@ -84,4 +84,5 @@ Before merging any PR that touches reducers, content nodes, or AI contracts:
 - [ ] Are `suggestedEffects` treated as display-only on the client?
 - [ ] Does the content node have a static fallback if AI is unavailable?
 - [ ] Does `bun run test` pass?
-- [ ] Does `bun run content:drift:check` pass?
+- [ ] Does `bun run content:drift:verify` pass?
+- [ ] Do the relevant Case01 smoke scripts pass for the touched branch or route?

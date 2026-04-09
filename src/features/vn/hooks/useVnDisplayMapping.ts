@@ -12,6 +12,7 @@ import {
   formatSpeaker,
   unwrapOptionalString,
 } from "../vnScreenUtils";
+import { parseGenerateDialoguePayload } from "../../ai/contracts";
 import { getVoicePalette, getVoicePresentation } from "../voicePresentation";
 import type {
   ActiveAiThoughtContext,
@@ -47,13 +48,20 @@ interface UseVnDisplayMappingParams {
   internalizedThought: { title: string } | null;
   activeSkillResolve: VnSkillCheckResolveState | null;
   activeAiThoughtContext: ActiveAiThoughtContext | null;
+  activeProvidenceThoughtContext: ActiveAiThoughtContext | null;
   activeReactionContext: ActiveReactionContext | null;
   activeAiThoughtStatus: SkillCheckAiStatus | null;
+  activeProvidenceThoughtStatus: SkillCheckAiStatus | null;
   activeReactionStatus: SkillCheckAiStatus | null;
   activeAiThoughtVoiceLabel: string | null;
+  activeAiThoughtRequest: { payloadJson: unknown } | null;
   activeAiThoughtResponse: { text: string } | null;
+  activeProvidenceThoughtResponse: { text: string } | null;
   activeReactionResponse: { text: string } | null;
   activeReactionRequest: { error?: unknown } | null;
+  narrativeResources: {
+    providence: number;
+  };
   completionTargetLabel: string | null;
   visitedChoiceKeys: Record<string, boolean>;
   failedChoiceKeys: Record<string, boolean>;
@@ -83,13 +91,18 @@ export function useVnDisplayMapping({
   internalizedThought,
   activeSkillResolve,
   activeAiThoughtContext,
+  activeProvidenceThoughtContext,
   activeReactionContext,
   activeAiThoughtStatus,
+  activeProvidenceThoughtStatus,
   activeReactionStatus,
   activeAiThoughtVoiceLabel,
+  activeAiThoughtRequest,
   activeAiThoughtResponse,
+  activeProvidenceThoughtResponse,
   activeReactionResponse,
   activeReactionRequest,
+  narrativeResources,
   completionTargetLabel,
   visitedChoiceKeys,
   failedChoiceKeys,
@@ -108,6 +121,13 @@ export function useVnDisplayMapping({
     !activeSkillResolve &&
     Boolean(activeReactionContext) &&
     activeReactionStatus !== null;
+  const showInlineProvidenceThoughtCard =
+    !activeSkillResolve &&
+    Boolean(activeProvidenceThoughtContext) &&
+    Boolean(currentNode) &&
+    activeProvidenceThoughtContext?.nodeId === currentNode?.id &&
+    activeProvidenceThoughtStatus !== null &&
+    activeProvidenceThoughtStatus !== "failed";
 
   const activeReactionLabel =
     activeReactionContext && currentNode?.characterId
@@ -240,6 +260,57 @@ export function useVnDisplayMapping({
     t,
   ]);
 
+  const providenceThoughtCard = useMemo<InlineStatusCard | null>(() => {
+    if (!showInlineProvidenceThoughtCard) {
+      return null;
+    }
+
+    return {
+      title: t.providenceThoughtTitle,
+      eyebrow: t.providenceThoughtEyebrow,
+      body:
+        activeProvidenceThoughtStatus === "completed" &&
+        activeProvidenceThoughtResponse?.text
+          ? activeProvidenceThoughtResponse.text
+          : t.providenceThoughtPending,
+      tone: "thought",
+    };
+  }, [
+    activeProvidenceThoughtResponse?.text,
+    activeProvidenceThoughtStatus,
+    showInlineProvidenceThoughtCard,
+    t,
+  ]);
+
+  const providencePayload = useMemo(
+    () =>
+      activeAiThoughtRequest
+        ? parseGenerateDialoguePayload(
+            typeof activeAiThoughtRequest.payloadJson === "string"
+              ? activeAiThoughtRequest.payloadJson
+              : null,
+          )
+        : null,
+    [activeAiThoughtRequest],
+  );
+
+  const providenceCost = Math.max(
+    0,
+    Math.trunc(providencePayload?.providenceCost ?? 0),
+  );
+  const canExpandThoughtWithProvidence =
+    Boolean(thoughtCard) &&
+    providencePayload?.dialogueLayer === "base" &&
+    providenceCost > 0 &&
+    narrativeResources.providence >= providenceCost &&
+    activeProvidenceThoughtStatus !== "pending" &&
+    activeProvidenceThoughtStatus !== "processing" &&
+    activeProvidenceThoughtStatus !== "completed";
+  const providenceCtaLabel =
+    providencePayload?.dialogueLayer === "base" && providenceCost > 0
+      ? `${t.providenceExpand} ${providenceCost} ${t.providenceLabel}`
+      : null;
+
   const choiceDisplayItems = useMemo<ChoiceDisplayItem[]>(
     () =>
       visibleChoices.map((choice, index) => {
@@ -313,6 +384,7 @@ export function useVnDisplayMapping({
   return {
     reactionCard,
     thoughtCard,
+    providenceThoughtCard,
     visibleChoices,
     autoContinueChoice,
     narrativeText,
@@ -323,6 +395,8 @@ export function useVnDisplayMapping({
     displayedScenarioCompleted,
     activeResolveAiStatus,
     activeResolveAiText,
+    canExpandThoughtWithProvidence,
+    providenceCtaLabel,
     innerVoiceCards,
     activeLensBadgeText: activeLens
       ? `${t.activeLensLabel}: ${activeLens.hypothesisText}`

@@ -24,6 +24,17 @@ import {
   type BattleCardEffectTarget,
   type BattleScenarioTemplate,
 } from "./battle_catalog";
+import {
+  NARRATIVE_RESOURCE_DEFAULTS,
+  RESOURCE_FORTUNE_MOD_VAR,
+  RESOURCE_KARMA_VAR,
+  isNarrativeResourceKey,
+  normalizeNarrativeResourceValue,
+  resolveKarmaBand as sharedResolveKarmaBand,
+  resolveKarmaDifficultyDelta as sharedResolveKarmaDifficultyDelta,
+  type NarrativeResourceKey,
+  type VnAiMode,
+} from "../../../../src/shared/game/narrativeResources";
 
 const IDEMPOTENCY_TTL_MICROS = 86_400_000_000n;
 
@@ -55,7 +66,7 @@ export type NpcServiceRole =
   | "political_cover"
   | "transport";
 
-export type VnCondition =
+export type VnConditionLeaf =
   | { type: "flag_equals"; key: string; value: boolean }
   | { type: "var_gte"; key: string; value: number }
   | { type: "var_lte"; key: string; value: number }
@@ -69,7 +80,15 @@ export type VnCondition =
   | { type: "career_rank_gte"; rankId: string }
   | { type: "voice_level_gte"; voiceId: string; value: number }
   | { type: "spirit_state_is"; spiritId: string; state: string }
+  | { type: "hypothesis_focus_is"; caseId: string; hypothesisId: string }
+  | { type: "thought_state_is"; thoughtId: string; state: string }
   | { type: "has_controlled_spirit"; entityArchetypeId: string };
+
+export type VnCondition =
+  | VnConditionLeaf
+  | { type: "logic_and"; conditions: VnCondition[] }
+  | { type: "logic_or"; conditions: VnCondition[] }
+  | { type: "logic_not"; condition: VnCondition };
 
 export type VnEffect =
   | { type: "set_flag"; key: string; value: boolean }
@@ -191,6 +210,7 @@ export interface VnSkillCheck {
   difficulty: number;
   isPassive?: boolean;
   showChancePercent?: boolean;
+  karmaSensitive?: boolean;
   modifiers?: VnCheckModifier[];
   outcomeModel?: VnOutcomeModel;
   onSuccess?: VnSkillCheckOutcomeBranch;
@@ -204,6 +224,8 @@ export interface VnChoice {
   text: string;
   nextNodeId: string;
   choiceType?: "action" | "inquiry" | "flavor";
+  aiMode?: VnAiMode;
+  providenceCost?: number;
   visibleIfAll?: VnCondition[];
   visibleIfAny?: VnCondition[];
   requireAll?: VnCondition[];
@@ -223,6 +245,8 @@ export interface VnNode {
   characterId?: string;
   voicePresenceMode?: VoicePresenceMode;
   activeSpeakers?: string[];
+  aiModeDefault?: VnAiMode;
+  providenceCostDefault?: number;
   terminal?: boolean;
   choices: VnChoice[];
   onEnter?: VnEffect[];
@@ -333,6 +357,7 @@ export interface MysticSnapshot {
 export interface VnRuntimeSettings {
   skillCheckDice?: VnDiceMode;
   defaultEntryScenarioId?: string;
+  releaseProfile?: "default" | "karlsruhe_event";
 }
 
 export interface QuestStageContent {
@@ -837,6 +862,16 @@ const isVnCondition = (value: unknown): value is VnCondition => {
   }
 
   const condition = value as Record<string, unknown>;
+  if (condition.type === "logic_and" || condition.type === "logic_or") {
+    return (
+      Array.isArray(condition.conditions) &&
+      condition.conditions.length > 0 &&
+      condition.conditions.every((entry) => isVnCondition(entry))
+    );
+  }
+  if (condition.type === "logic_not") {
+    return isVnCondition(condition.condition);
+  }
   if (condition.type === "flag_equals") {
     return (
       typeof condition.key === "string" && typeof condition.value === "boolean"
@@ -893,6 +928,18 @@ const isVnCondition = (value: unknown): value is VnCondition => {
       isSkillVoiceId(condition.voiceId) &&
       typeof condition.value === "number"
     );
+  }
+  if (condition.type === "spirit_state_is") {
+    return (
+      typeof condition.spiritId === "string" &&
+      (condition.state === "hostile" ||
+        condition.state === "imprisoned" ||
+        condition.state === "controlled" ||
+        condition.state === "destroyed")
+    );
+  }
+  if (condition.type === "has_controlled_spirit") {
+    return typeof condition.entityArchetypeId === "string";
   }
 
   return false;
@@ -1379,7 +1426,10 @@ const isVnRuntimeSettings = (value: unknown): value is VnRuntimeSettings => {
       isVnDiceMode(runtime.skillCheckDice)) &&
     (runtime.defaultEntryScenarioId === undefined ||
       (typeof runtime.defaultEntryScenarioId === "string" &&
-        runtime.defaultEntryScenarioId.trim().length > 0))
+        runtime.defaultEntryScenarioId.trim().length > 0)) &&
+    (runtime.releaseProfile === undefined ||
+      runtime.releaseProfile === "default" ||
+      runtime.releaseProfile === "karlsruhe_event")
   );
 };
 
@@ -2699,25 +2749,117 @@ export const rollD20 = (
 ): number => rollSkillDie(timestamp, identity, checkId, "d20");
 
 export const ensurePlayerProfile = (ctx: any): void => {
-  const profile = ctx.db.playerProfile.playerId.find(ctx.sender);
+  ensurePlayerProfileForPlayer(ctx, ctx.sender);
+};
+
+export const ensurePlayerProfileForPlayer = (
+  ctx: any,
+  playerId: { toHexString(): string },
+): void => {
+  const profile = ctx.db.playerProfile.playerId.find(playerId);
   if (!profile) {
     ctx.db.playerProfile.insert({
-      playerId: ctx.sender,
+      playerId,
       nickname: undefined,
       createdAt: ctx.timestamp,
       updatedAt: ctx.timestamp,
     });
   }
 
-  const location = ctx.db.playerLocation.playerId.find(ctx.sender);
+  const location = ctx.db.playerLocation.playerId.find(playerId);
   if (!location) {
     ctx.db.playerLocation.insert({
-      playerId: ctx.sender,
+      playerId,
       locationId: "loc_intro",
       updatedAt: ctx.timestamp,
     });
   }
 };
+
+const normalizePlayerVarValue = (key: string, floatValue: number): number => {
+  if (PSYCHE_VAR_KEYS.includes(key as any)) {
+    return clampNumber(floatValue, -100, 100);
+  }
+  if (isNarrativeResourceKey(key)) {
+    return normalizeNarrativeResourceValue(key, floatValue);
+  }
+  return floatValue;
+};
+
+export const getVarForPlayer = (
+  ctx: any,
+  playerId: { toHexString(): string },
+  key: string,
+): number => {
+  const row = ctx.db.playerVar.varId.find(createVarKey(playerId, key));
+  return row?.floatValue ?? 0;
+};
+
+export const upsertVarForPlayer = (
+  ctx: any,
+  playerId: { toHexString(): string },
+  key: string,
+  floatValue: number,
+): void => {
+  assertNonEmpty(key, "key");
+  if (!Number.isFinite(floatValue)) {
+    throw new SenderError("floatValue must be a finite number");
+  }
+
+  ensurePlayerProfileForPlayer(ctx, playerId);
+  const normalizedFloatValue = normalizePlayerVarValue(key, floatValue);
+
+  const varId = createVarKey(playerId, key);
+  const existing = ctx.db.playerVar.varId.find(varId);
+  if (existing) {
+    ctx.db.playerVar.varId.update({
+      ...existing,
+      floatValue: normalizedFloatValue,
+      updatedAt: ctx.timestamp,
+    });
+    return;
+  }
+
+  ctx.db.playerVar.insert({
+    varId,
+    playerId,
+    key,
+    floatValue: normalizedFloatValue,
+    updatedAt: ctx.timestamp,
+  });
+};
+
+export const addToVarForPlayer = (
+  ctx: any,
+  playerId: { toHexString(): string },
+  key: string,
+  delta: number,
+): void => {
+  const current = getVarForPlayer(ctx, playerId, key);
+  upsertVarForPlayer(ctx, playerId, key, current + delta);
+};
+
+export const ensureNarrativeResourcesForPlayer = (
+  ctx: any,
+  playerId: { toHexString(): string },
+): void => {
+  ensurePlayerProfileForPlayer(ctx, playerId);
+
+  for (const [key, defaultValue] of Object.entries(NARRATIVE_RESOURCE_DEFAULTS)) {
+    if (!ctx.db.playerVar.varId.find(createVarKey(playerId, key))) {
+      upsertVarForPlayer(ctx, playerId, key, defaultValue);
+    }
+  }
+};
+
+export const ensureNarrativeResources = (ctx: any): void => {
+  ensureNarrativeResourcesForPlayer(ctx, ctx.sender);
+};
+
+export const resolveKarmaBand = (value: number) => sharedResolveKarmaBand(value);
+
+export const resolveKarmaDifficultyDelta = (value: number) =>
+  sharedResolveKarmaDifficultyDelta(value);
 
 const isRowOwnedBySender = (
   row: { playerId: { toHexString(): string } },
@@ -2975,44 +3117,15 @@ export const upsertFlag = (ctx: any, key: string, value: boolean): void => {
 };
 
 export const getVar = (ctx: any, key: string): number => {
-  const row = ctx.db.playerVar.varId.find(createVarKey(ctx.sender, key));
-  return row?.floatValue ?? 0;
+  return getVarForPlayer(ctx, ctx.sender, key);
 };
 
 export const upsertVar = (ctx: any, key: string, floatValue: number): void => {
-  assertNonEmpty(key, "key");
-  if (!Number.isFinite(floatValue)) {
-    throw new SenderError("floatValue must be a finite number");
-  }
-
-  ensurePlayerProfile(ctx);
-  const normalizedFloatValue = PSYCHE_VAR_KEYS.includes(key as any)
-    ? clampNumber(floatValue, -100, 100)
-    : floatValue;
-
-  const varId = createVarKey(ctx.sender, key);
-  const existing = ctx.db.playerVar.varId.find(varId);
-  if (existing) {
-    ctx.db.playerVar.varId.update({
-      ...existing,
-      floatValue: normalizedFloatValue,
-      updatedAt: ctx.timestamp,
-    });
-    return;
-  }
-
-  ctx.db.playerVar.insert({
-    varId,
-    playerId: ctx.sender,
-    key,
-    floatValue: normalizedFloatValue,
-    updatedAt: ctx.timestamp,
-  });
+  upsertVarForPlayer(ctx, ctx.sender, key, floatValue);
 };
 
 export const addToVar = (ctx: any, key: string, delta: number): void => {
-  const current = getVar(ctx, key);
-  upsertVar(ctx, key, current + delta);
+  addToVarForPlayer(ctx, ctx.sender, key, delta);
 };
 
 const DEFAULT_NPC_AVAILABILITY: NpcAvailabilityState = "available";
@@ -3642,6 +3755,87 @@ export const getMindPalace = (snapshot: VnSnapshot): MindPalaceSnapshot => ({
   hypotheses: snapshot.mindPalace?.hypotheses ?? [],
 });
 
+const evaluateVnCondition = (
+  ctx: any,
+  condition: VnCondition,
+): boolean => {
+  if (condition.type === "logic_and") {
+    return condition.conditions.every((entry) => evaluateVnCondition(ctx, entry));
+  }
+  if (condition.type === "logic_or") {
+    return condition.conditions.some((entry) => evaluateVnCondition(ctx, entry));
+  }
+  if (condition.type === "logic_not") {
+    return !evaluateVnCondition(ctx, condition.condition);
+  }
+
+  if (condition.type === "flag_equals") {
+    return getFlag(ctx, condition.key) === condition.value;
+  }
+  if (condition.type === "var_gte") {
+    return getVar(ctx, condition.key) >= condition.value;
+  }
+  if (condition.type === "var_lte") {
+    return getVar(ctx, condition.key) <= condition.value;
+  }
+  if (condition.type === "has_evidence") {
+    const evidenceKey = createEvidenceKey(ctx.sender, condition.evidenceId);
+    return !!ctx.db.playerEvidence.evidenceKey.find(evidenceKey);
+  }
+  if (condition.type === "quest_stage_gte") {
+    const questKey = createQuestKey(ctx.sender, condition.questId);
+    const row = ctx.db.playerQuest.questKey.find(questKey);
+    return row ? row.stage >= condition.stage : false;
+  }
+  if (condition.type === "relationship_gte") {
+    return getRelationshipValue(ctx, condition.characterId) >= condition.value;
+  }
+  if (condition.type === "has_item") {
+    const inventoryKey = createInventoryKey(ctx.sender, condition.itemId);
+    const row = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
+    return row ? row.quantity > 0 : false;
+  }
+  if (condition.type === "favor_balance_gte") {
+    return getFavorBalance(ctx, condition.npcId) >= condition.value;
+  }
+  if (condition.type === "agency_standing_gte") {
+    return getAgencyStandingScore(ctx) >= condition.value;
+  }
+  if (condition.type === "rumor_state_is") {
+    return getRumorStatus(ctx, condition.rumorId) === condition.status;
+  }
+  if (condition.type === "hypothesis_focus_is") {
+    return getFlag(
+      ctx,
+      createHypothesisFocusFlagKey(condition.caseId, condition.hypothesisId),
+    );
+  }
+  if (condition.type === "thought_state_is") {
+    if (condition.state === "internalized") {
+      return getFlag(ctx, `mind_internalized::${condition.thoughtId}`);
+    }
+    if (condition.state === "researching") {
+      return getFlag(ctx, `mind_researching::${condition.thoughtId}`);
+    }
+    return getFlag(ctx, `mind_unlocked::${condition.thoughtId}`);
+  }
+  if (condition.type === "career_rank_gte") {
+    const currentRankOrder = getCareerRankOrder(
+      ctx,
+      ensureAgencyCareerRow(ctx).rankId,
+    );
+    return currentRankOrder >= getCareerRankOrder(ctx, condition.rankId);
+  }
+  if (condition.type === "voice_level_gte") {
+    return Math.floor(getVar(ctx, condition.voiceId)) >= condition.value;
+  }
+  if (condition.type === "spirit_state_is") {
+    return getFlag(ctx, `spirit_state_${condition.spiritId}::${condition.state}`);
+  }
+
+  return false;
+};
+
 export const areConditionsSatisfied = (
   ctx: any,
   conditions: VnCondition[] | undefined,
@@ -3650,56 +3844,7 @@ export const areConditionsSatisfied = (
     return true;
   }
 
-  return conditions.every((condition) => {
-    if (condition.type === "flag_equals") {
-      return getFlag(ctx, condition.key) === condition.value;
-    }
-    if (condition.type === "var_gte") {
-      return getVar(ctx, condition.key) >= condition.value;
-    }
-    if (condition.type === "var_lte") {
-      return getVar(ctx, condition.key) <= condition.value;
-    }
-    if (condition.type === "has_evidence") {
-      const evidenceKey = createEvidenceKey(ctx.sender, condition.evidenceId);
-      return !!ctx.db.playerEvidence.evidenceKey.find(evidenceKey);
-    }
-    if (condition.type === "quest_stage_gte") {
-      const questKey = createQuestKey(ctx.sender, condition.questId);
-      const row = ctx.db.playerQuest.questKey.find(questKey);
-      return row ? row.stage >= condition.stage : false;
-    }
-    if (condition.type === "relationship_gte") {
-      return (
-        getRelationshipValue(ctx, condition.characterId) >= condition.value
-      );
-    }
-    if (condition.type === "has_item") {
-      const inventoryKey = createInventoryKey(ctx.sender, condition.itemId);
-      const row = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
-      return row ? row.quantity > 0 : false;
-    }
-    if (condition.type === "favor_balance_gte") {
-      return getFavorBalance(ctx, condition.npcId) >= condition.value;
-    }
-    if (condition.type === "agency_standing_gte") {
-      return getAgencyStandingScore(ctx) >= condition.value;
-    }
-    if (condition.type === "rumor_state_is") {
-      return getRumorStatus(ctx, condition.rumorId) === condition.status;
-    }
-    if (condition.type === "career_rank_gte") {
-      const currentRankOrder = getCareerRankOrder(
-        ctx,
-        ensureAgencyCareerRow(ctx).rankId,
-      );
-      return currentRankOrder >= getCareerRankOrder(ctx, condition.rankId);
-    }
-    if (condition.type === "voice_level_gte") {
-      return Math.floor(getVar(ctx, condition.voiceId)) >= condition.value;
-    }
-    return false;
-  });
+  return conditions.every((condition) => evaluateVnCondition(ctx, condition));
 };
 
 const areAnyConditionsSatisfied = (
@@ -3710,9 +3855,7 @@ const areAnyConditionsSatisfied = (
     return true;
   }
 
-  return conditions.some((condition) =>
-    areConditionsSatisfied(ctx, [condition]),
-  );
+  return conditions.some((condition) => evaluateVnCondition(ctx, condition));
 };
 
 const resolveRequireAll = (
@@ -5788,10 +5931,9 @@ const resolveMapEventTtlMinutes = (
 };
 
 export const cleanupExpiredMapEvents = (ctx: any): void => {
-  for (const row of ctx.db.playerMapEvent.iter()) {
-    if (row.playerId.toHexString() !== ctx.sender.toHexString()) {
-      continue;
-    }
+  const playerEvents =
+    ctx.db.playerMapEvent.player_map_event_player_id.filter(ctx.sender);
+  for (const row of playerEvents) {
     if (row.status !== MAP_EVENT_STATUS_ACTIVE) {
       continue;
     }
@@ -5808,9 +5950,7 @@ export const cleanupExpiredMapEvents = (ctx: any): void => {
 };
 
 export const listPlayerMapEvents = (ctx: any): any[] =>
-  [...ctx.db.playerMapEvent.iter()].filter(
-    (row) => row.playerId.toHexString() === ctx.sender.toHexString(),
-  );
+  [...ctx.db.playerMapEvent.player_map_event_player_id.filter(ctx.sender)];
 
 export const getPlayerActiveMapEventByEventId = (
   ctx: any,
@@ -5856,10 +5996,13 @@ export const spawnMapEventInternal = (
     sourceLocationId?: string;
     snapshot?: VnSnapshot;
     snapshotChecksum?: string;
+    skipCleanup?: boolean;
   },
 ): any => {
   ensurePlayerProfile(ctx);
-  cleanupExpiredMapEvents(ctx);
+  if (!options?.skipCleanup) {
+    cleanupExpiredMapEvents(ctx);
+  }
 
   const activeSnapshot =
     options?.snapshot && options?.snapshotChecksum

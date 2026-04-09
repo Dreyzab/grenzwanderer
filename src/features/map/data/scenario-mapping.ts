@@ -1,19 +1,24 @@
-const LEGACY_SCENARIO_TO_CURRENT: Record<string, string> = {
-  detective_case1_hbf_arrival: "sandbox_case01_pilot",
-  detective_case1_bank_scene: "sandbox_case01_pilot",
-  detective_case1_alt_briefing: "sandbox_case01_pilot",
-  detective_case1_mayor_followup: "sandbox_case01_pilot",
-  detective_case1_archive_search: "sandbox_case01_pilot",
-  detective_case1_lab_analysis: "sandbox_case01_pilot",
-  detective_case1_qr_scan_bank: "sandbox_case01_pilot",
-  case1_finale: "sandbox_case01_pilot",
-  lead_tailor: "sandbox_case01_pilot",
-  lead_apothecary: "sandbox_case01_pilot",
-  lead_pub: "sandbox_case01_pilot",
-  interlude_victoria_street: "sandbox_case01_pilot",
-  interlude_lotte_warning: "sandbox_case01_pilot",
-  quest_lotte_wires: "sandbox_case01_pilot",
-  quest_victoria_poetry: "sandbox_case01_pilot",
+import {
+  CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+  CASE01_SCENARIO_IDS,
+} from "../../../shared/case01Canon";
+
+const LEGACY_SCENARIO_TO_CURRENT: Record<string, string | null> = {
+  detective_case1_hbf_arrival: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+  detective_case1_bank_scene: CASE01_SCENARIO_IDS.bankInvestigation,
+  detective_case1_alt_briefing: CASE01_SCENARIO_IDS.mayorBriefing,
+  detective_case1_mayor_followup: CASE01_SCENARIO_IDS.convergence,
+  detective_case1_archive_search: CASE01_SCENARIO_IDS.archiveRun,
+  detective_case1_lab_analysis: CASE01_SCENARIO_IDS.estateBranch,
+  detective_case1_qr_scan_bank: CASE01_SCENARIO_IDS.bankInvestigation,
+  case1_finale: CASE01_SCENARIO_IDS.warehouseFinale,
+  lead_tailor: CASE01_SCENARIO_IDS.leadTailor,
+  lead_apothecary: CASE01_SCENARIO_IDS.leadApothecary,
+  lead_pub: CASE01_SCENARIO_IDS.leadPub,
+  interlude_victoria_street: CASE01_SCENARIO_IDS.convergence,
+  interlude_lotte_warning: CASE01_SCENARIO_IDS.lotteInterlude,
+  quest_lotte_wires: null,
+  quest_victoria_poetry: null,
   encounter_tourist: "sandbox_intro_pilot",
   encounter_cleaner: "sandbox_intro_pilot",
   encounter_student: "sandbox_intro_pilot",
@@ -21,7 +26,7 @@ const LEGACY_SCENARIO_TO_CURRENT: Record<string, string> = {
 
 export const resolveLegacyScenarioId = (
   legacyScenarioId: string,
-): string | undefined => LEGACY_SCENARIO_TO_CURRENT[legacyScenarioId];
+): string | undefined => LEGACY_SCENARIO_TO_CURRENT[legacyScenarioId] ?? undefined;
 
 export const resolveScenarioForPoint = (
   legacyScenarioIds: readonly string[] | undefined,

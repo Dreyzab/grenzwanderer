@@ -24,7 +24,7 @@ const hasOptionalValue = (value: unknown): boolean => {
 
 export const useVnSession = (scenarioId?: string): UseVnSessionResult => {
   const { identityHex } = useIdentity();
-  const [sessions, isReady] = useTable(tables.vnSession);
+  const [sessions, isReady] = useTable(tables.myVnSessions);
   const effectiveReady = isReady || Boolean(identityHex);
 
   return useMemo(() => {
@@ -32,24 +32,16 @@ export const useVnSession = (scenarioId?: string): UseVnSessionResult => {
       return { session: null, isReady: effectiveReady };
     }
 
-    const matchingSessions = sessions.filter(
-      (entry) => entry.playerId.toHexString() === identityHex,
-    );
-
     if (scenarioId) {
       return {
-        session:
-          matchingSessions.find((entry) => entry.scenarioId === scenarioId) ??
-          null,
+        session: sessions.find((entry) => entry.scenarioId === scenarioId) ?? null,
         isReady: effectiveReady,
       };
     }
 
     return {
       session:
-        matchingSessions.find(
-          (entry) => !hasOptionalValue(entry.completedAt),
-        ) ?? null,
+        sessions.find((entry) => !hasOptionalValue(entry.completedAt)) ?? null,
       isReady: effectiveReady,
     };
   }, [effectiveReady, identityHex, scenarioId, sessions]);

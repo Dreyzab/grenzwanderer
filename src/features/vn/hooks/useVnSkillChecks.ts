@@ -19,6 +19,15 @@ import type {
 import { useVnSkillResolveSequence } from "./useVnSkillResolveSequence";
 import type { VnChoice, VnScenario, VnSnapshot } from "../types";
 import type { VnChoiceEvaluationContext } from "../vnContent";
+import {
+  RESOURCE_FORTUNE_MOD_VAR,
+  RESOURCE_FORTUNE_VAR,
+  RESOURCE_KARMA_VAR,
+  resolveDefaultProvidenceCost,
+  resolveEffectiveFortune,
+  resolveKarmaBand,
+  resolveKarmaDifficultyDelta,
+} from "../../../shared/game/narrativeResources";
 
 interface UseVnSkillChecksParams {
   selectedScenarioId: string;
@@ -39,7 +48,14 @@ interface UseVnSkillChecksParams {
   isSfxMuted: boolean;
   playImpactSfx: (passed: boolean) => void | Promise<void>;
   markInteractionHandled: () => void;
-  getChoiceChancePercent: (choice: VnChoice) => number | undefined;
+  getChoiceChancePercent: (
+    choice: VnChoice,
+    fortuneSpend?: number,
+  ) => number | undefined;
+  getChoiceEffectiveDifficulty: (
+    choice: VnChoice,
+    fortuneSpend?: number,
+  ) => number | undefined;
   handleResolvedSkillCheck: (
     pending: AwaitingSkillChoice,
     matchedResult: SkillCheckResultLike,
@@ -48,6 +64,7 @@ interface UseVnSkillChecksParams {
     requestId: string;
     scenarioId: string;
     checkId: string;
+    fortuneSpend?: number;
   }) => Promise<unknown>;
   recordChoice: (input: {
     requestId: string;
@@ -90,6 +107,7 @@ export function useVnSkillChecks({
   playImpactSfx,
   markInteractionHandled,
   getChoiceChancePercent,
+  getChoiceEffectiveDifficulty,
   handleResolvedSkillCheck,
   performSkillCheck,
   recordChoice,
@@ -99,6 +117,8 @@ export function useVnSkillChecks({
   t,
 }: UseVnSkillChecksParams) {
   const [pendingChoiceId, setPendingChoiceId] = useState<string | null>(null);
+  const [armedSkillChoice, setArmedSkillChoice] =
+    useState<AwaitingSkillChoice | null>(null);
   const [awaitingSkillChoice, setAwaitingSkillChoice] =
     useState<AwaitingSkillChoice | null>(null);
   const [failedChoiceKeys, setFailedChoiceKeys] = useState<
@@ -124,6 +144,7 @@ export function useVnSkillChecks({
 
   useEffect(() => {
     setPendingChoiceId(null);
+    setArmedSkillChoice(null);
     setAwaitingSkillChoice(null);
     setFailedChoiceKeys({});
     choiceSessionPointerRef.current = null;
@@ -135,6 +156,7 @@ export function useVnSkillChecks({
       return;
     }
 
+    setArmedSkillChoice(null);
     setAwaitingSkillChoice(null);
     setPendingChoiceId(null);
     choiceSessionPointerRef.current = null;
@@ -202,7 +224,7 @@ export function useVnSkillChecks({
         })
         .finally(() => {
           passiveInFlightRef.current.delete(key);
-        });
+      });
     }
   }, [
     currentNode,
@@ -213,6 +235,98 @@ export function useVnSkillChecks({
     setError,
     transitionState,
   ]);
+
+  const buildPendingSkillChoice = useCallback(
+    (choice: VnChoice, fortuneSpend = 0): AwaitingSkillChoice | null => {
+      if (!choice.skillCheck || !selectedScenarioId || !currentNode) {
+        return null;
+      }
+
+      const frozen = createFrozenSkillCheckPresentation({
+        selectedScenarioId,
+        selectedScenario,
+        snapshot,
+        currentNode,
+        mySession,
+        sessionReady,
+        myFlags,
+        myVars,
+        choiceEvaluationContext,
+        tSessionHydrating: t.sessionHydrating,
+        tUnknownScenario: t.unknownScenario,
+      });
+      const fortuneBalance = Math.trunc(myVars[RESOURCE_FORTUNE_VAR] ?? 0);
+      const fortuneMod = Math.trunc(myVars[RESOURCE_FORTUNE_MOD_VAR] ?? 0);
+      const karma = Math.trunc(myVars[RESOURCE_KARMA_VAR] ?? 0);
+      const effectiveDifficulty =
+        getChoiceEffectiveDifficulty(choice, fortuneSpend) ??
+        choice.skillCheck.difficulty;
+      const difficultyBreakdown = [];
+      const karmaDelta = choice.skillCheck.karmaSensitive
+        ? resolveKarmaDifficultyDelta(karma)
+        : 0;
+      if (choice.skillCheck.karmaSensitive && karmaDelta !== 0) {
+        difficultyBreakdown.push({
+          source: "karma",
+          sourceId: resolveKarmaBand(karma),
+          delta: karmaDelta,
+        });
+      }
+      if (fortuneMod !== 0) {
+        difficultyBreakdown.push({
+          source: "fortune_mod",
+          sourceId: RESOURCE_FORTUNE_MOD_VAR,
+          delta: fortuneMod,
+        });
+      }
+      if (fortuneSpend > 0) {
+        difficultyBreakdown.push({
+          source: "fortune_spend",
+          sourceId: RESOURCE_FORTUNE_VAR,
+          delta: -(fortuneSpend * 2),
+        });
+      }
+
+      const aiMode = choice.aiMode ?? currentNode.aiModeDefault;
+      const providenceCost = resolveDefaultProvidenceCost(
+        aiMode,
+        choice.providenceCost ?? currentNode.providenceCostDefault,
+      );
+
+      return createAwaitingSkillChoice({
+        scenarioId: selectedScenarioId,
+        nodeId: currentNode.id,
+        choice,
+        diceMode: currentDiceMode,
+        chancePercent: getChoiceChancePercent(choice, fortuneSpend),
+        effectiveDifficulty,
+        fortuneSpend,
+        fortuneBalance,
+        effectiveFortune: resolveEffectiveFortune(fortuneBalance, fortuneMod),
+        aiMode,
+        providenceCost,
+        karmaBand: resolveKarmaBand(karma),
+        difficultyBreakdown,
+        frozen,
+      });
+    },
+    [
+      choiceEvaluationContext,
+      currentDiceMode,
+      currentNode,
+      getChoiceChancePercent,
+      getChoiceEffectiveDifficulty,
+      myFlags,
+      mySession,
+      myVars,
+      selectedScenario,
+      selectedScenarioId,
+      sessionReady,
+      snapshot,
+      t.sessionHydrating,
+      t.unknownScenario,
+    ],
+  );
 
   const applyChoiceCommit = useCallback(
     async (scenarioId: string, choiceId: string) => {
@@ -302,6 +416,10 @@ export function useVnSkillChecks({
 
   const handleActiveResolveInteraction = useCallback((): boolean => {
     if (!activeSkillResolve) {
+      return false;
+    }
+
+    if (activeSkillResolve.phase === "arming") {
       return false;
     }
 
@@ -428,88 +546,109 @@ export function useVnSkillChecks({
         return;
       }
 
-      const frozen = createFrozenSkillCheckPresentation({
-        selectedScenarioId,
-        selectedScenario,
-        snapshot,
-        currentNode,
-        mySession,
-        sessionReady,
-        myFlags,
-        myVars,
-        choiceEvaluationContext,
-        tSessionHydrating: t.sessionHydrating,
-        tUnknownScenario: t.unknownScenario,
-      });
-      const pending = createAwaitingSkillChoice({
-        scenarioId: selectedScenarioId,
-        nodeId: currentNode.id,
-        choice,
-        diceMode: currentDiceMode,
-        chancePercent: getChoiceChancePercent(choice),
-        frozen,
-      });
-
-      startResolveSequence(pending);
-      setAwaitingSkillChoice(pending);
-
-      try {
-        await performSkillCheck({
-          requestId: createRequestId(),
-          scenarioId: selectedScenarioId,
-          checkId: skillCheck.id,
-        });
-      } catch (caughtError) {
-        setAwaitingSkillChoice(null);
+      const pending = buildPendingSkillChoice(choice, 0);
+      if (!pending) {
         setPendingChoiceId(null);
-        resetResolveSequence();
-        const message =
-          caughtError instanceof Error
-            ? caughtError.message
-            : "Skill check request failed";
-        setError(message);
+        return;
       }
+
+      setArmedSkillChoice(pending);
+      startResolveSequence(pending);
     },
     [
       activeSkillResolve,
       applyChoiceCommit,
+      buildPendingSkillChoice,
       awaitingSkillChoice,
-      choiceEvaluationContext,
-      currentDiceMode,
       currentNode,
-      getChoiceChancePercent,
       interruptTyping,
       isTyping,
-      myFlags,
       mySession,
       mySkillResults,
-      myVars,
       pendingChoiceId,
-      performSkillCheck,
-      resetResolveSequence,
-      selectedScenario,
       selectedScenarioId,
-      sessionReady,
       setError,
       setStatusLine,
-      snapshot,
       startResolveSequence,
-      t.sessionHydrating,
       t.skillFailed,
       t.skillResolved,
       t.syncing,
-      t.unknownScenario,
       transitionState,
     ],
   );
 
+  const handleFortuneSpendChange = useCallback(
+    (fortuneSpend: number) => {
+      if (!armedSkillChoice || !currentNode) {
+        return;
+      }
+
+      const choice = currentNode.choices.find(
+        (entry: VnChoice) => entry.id === armedSkillChoice.choiceId,
+      );
+      if (!choice?.skillCheck) {
+        return;
+      }
+
+      const nextPending = buildPendingSkillChoice(choice, fortuneSpend);
+      if (!nextPending) {
+        return;
+      }
+
+      setArmedSkillChoice(nextPending);
+      startResolveSequence(nextPending);
+    },
+    [armedSkillChoice, buildPendingSkillChoice, currentNode, startResolveSequence],
+  );
+
+  const confirmArmedSkillCheck = useCallback(async () => {
+    if (
+      !armedSkillChoice ||
+      !selectedScenarioId ||
+      activeSkillResolve?.phase !== "arming"
+    ) {
+      return;
+    }
+
+    setAwaitingSkillChoice(armedSkillChoice);
+    setArmedSkillChoice(null);
+
+    try {
+      await performSkillCheck({
+        requestId: createRequestId(),
+        scenarioId: selectedScenarioId,
+        checkId: armedSkillChoice.checkId,
+        fortuneSpend: armedSkillChoice.fortuneSpend,
+      });
+    } catch (caughtError) {
+      setAwaitingSkillChoice(null);
+      setPendingChoiceId(null);
+      resetResolveSequence();
+      const message =
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Skill check request failed";
+      setError(message);
+    }
+  }, [
+    activeSkillResolve?.phase,
+    armedSkillChoice,
+    performSkillCheck,
+    resetResolveSequence,
+    selectedScenarioId,
+    setError,
+  ]);
+
   return {
     pendingChoiceId,
+    armedSkillChoice,
     awaitingSkillChoice,
     failedChoiceKeys,
     visitedChoiceKeys,
     activeSkillResolve,
     handleChoiceClick,
+    handleFortuneSpendChange,
+    confirmArmedSkillCheck,
     handleActiveResolveInteraction,
   };
 }

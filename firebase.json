@@ -1,0 +1,27 @@
+{
+  "hosting": [
+    {
+      "target": "karlsruhe-event",
+      "public": "dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "/api/**",
+          "run": {
+            "serviceId": "karlsruhe-scene-gen",
+            "region": "europe-west3",
+            "pinTag": true
+          }
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}

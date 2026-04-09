@@ -24,8 +24,7 @@ interface HomePageProps {
       | "map"
       | "mind_palace"
       | "command"
-      | "battle"
-      | "dev",
+      | "battle",
     options?: { mapPanel?: "qr" },
   ) => void;
   onOpenVnScenario: (scenarioId: string) => void;
@@ -35,22 +34,18 @@ type CitySelection = "freiburg_1905" | "karlsruhe_1905";
 type FreiburgFlowState = "idle" | "confirm_reset" | "select_origin";
 
 const buildPlayerFlags = (
-  identityHex: string,
+  isReady: boolean,
   flagsRows: readonly {
-    playerId: { toHexString(): string };
     key: string;
     value: boolean;
   }[],
 ): Record<string, boolean> => {
-  if (!identityHex) {
+  if (!isReady) {
     return {};
   }
 
   const result: Record<string, boolean> = {};
   for (const row of flagsRows) {
-    if (row.playerId.toHexString() !== identityHex) {
-      continue;
-    }
     result[row.key] = row.value;
   }
   return result;
@@ -78,17 +73,14 @@ const resolveSyncStatus = (
 };
 
 const hasFreiburgProgressHeuristic = (
-  identityHex: string,
-  sessions: readonly { playerId: { toHexString(): string } }[],
+  sessions: readonly unknown[],
   flags: Record<string, boolean>,
 ): boolean => {
-  if (!identityHex) {
+  if (sessions.length === 0 && Object.keys(flags).length === 0) {
     return false;
   }
 
-  if (
-    sessions.some((session) => session.playerId.toHexString() === identityHex)
-  ) {
+  if (sessions.length > 0) {
     return true;
   }
 
@@ -109,8 +101,8 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
 
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
-  const [sessions, sessionsReady] = useTable(tables.vnSession);
-  const [flagsRows, flagsReady] = useTable(tables.playerFlag);
+  const [sessions, sessionsReady] = useTable(tables.myVnSessions);
+  const [flagsRows, flagsReady] = useTable(tables.myPlayerFlags);
 
   const [flowState, setFlowState] = useState<FreiburgFlowState>("idle");
   const [flowStatus, setFlowStatus] = useState<string | null>(null);
@@ -145,12 +137,12 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     (sessionsReady && flagsReady) || Boolean(isConnected && identityHex);
 
   const playerFlags = useMemo(
-    () => buildPlayerFlags(identityHex, flagsRows),
+    () => buildPlayerFlags(Boolean(identityHex), flagsRows),
     [flagsRows, identityHex],
   );
   const hasAnyPlayerProgress = useMemo(
-    () => hasFreiburgProgressHeuristic(identityHex, sessions, playerFlags),
-    [identityHex, playerFlags, sessions],
+    () => hasFreiburgProgressHeuristic(sessions, playerFlags),
+    [playerFlags, sessions],
   );
 
   const entryTarget = useMemo<FreiburgEntryTarget>(

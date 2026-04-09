@@ -47,8 +47,8 @@ export function MindBoardCanvas({ caseId }: { caseId: string }) {
     const [mindCases] = useTable(tables.mindCase);
     const [mindFacts] = useTable(tables.mindFact);
     const [mindHypotheses] = useTable(tables.mindHypothesis);
-    const [playerMindFacts] = useTable(tables.playerMindFact);
-    const [playerMindHypotheses] = useTable(tables.playerMindHypothesis);
+    const [playerMindFacts] = useTable(tables.myMindFacts);
+    const [playerMindHypotheses] = useTable(tables.myMindHypotheses);
 
     const validateHypothesis = useReducer(reducers.validateHypothesis);
 
@@ -65,22 +65,22 @@ export function MindBoardCanvas({ caseId }: { caseId: string }) {
     const discoveredFactIds = useMemo(() => {
         const ids = new Set<string>();
         for (const row of playerMindFacts) {
-            if (row.playerId.toHexString() === identityHex && row.caseId === caseId) {
+            if (row.caseId === caseId) {
                 ids.add(row.factId);
             }
         }
         return ids;
-    }, [identityHex, playerMindFacts, caseId]);
+    }, [playerMindFacts, caseId]);
 
     const playerHypothesisMap = useMemo(() => {
         const map = new Map<string, { status: string }>();
         for (const row of playerMindHypotheses) {
-            if (row.playerId.toHexString() === identityHex && row.caseId === caseId) {
+            if (row.caseId === caseId) {
                 map.set(row.hypothesisId, { status: row.status });
             }
         }
         return map;
-    }, [identityHex, playerMindHypotheses, caseId]);
+    }, [playerMindHypotheses, caseId]);
 
     // Derive Nodes
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);

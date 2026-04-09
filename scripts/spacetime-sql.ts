@@ -15,7 +15,7 @@ interface SqlResultSet {
 export interface RunSpacetimeSqlOptions {
   host: string;
   database: string;
-  token: string;
+  token?: string;
   query: string;
   fetchImpl?: FetchLike;
 }
@@ -38,8 +38,8 @@ export const runSpacetimeSql = async ({
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "text/plain",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: query,
     },

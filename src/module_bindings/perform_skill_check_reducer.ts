@@ -14,4 +14,5 @@ export default {
   requestId: __t.string(),
   scenarioId: __t.string(),
   checkId: __t.string(),
+  fortuneSpend: __t.option(__t.u32()),
 };

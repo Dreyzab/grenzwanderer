@@ -369,13 +369,18 @@ const buildSystemPrompt = (payload: GenerateDialoguePayload): string => {
   const canonicalVoiceBrief =
     buildCanonicalVoicePromptBrief(payload.voiceId) ??
     "Use the skill-check voice as a concise internal monologue.";
+  const layerInstruction =
+    payload.dialogueLayer === "providence"
+      ? "Write a second, deeper line that expands the moment without changing facts or outcomes."
+      : "Write one additive inner-thought line for the immediate result.";
   return [
-    "You write one additive inner-thought line for a detective RPG.",
+    "You write inner-thought lines for a detective RPG.",
     "Return exactly one JSON object and nothing else.",
     'The JSON shape is {"text":"...","canonicalVoiceId":"..."}.',
     "Do not wrap the JSON in markdown fences.",
     "Keep the line short, playable, and non-blocking.",
     "Do not invent new facts that contradict the provided scene context.",
+    layerInstruction,
     `Voice guide: ${canonicalVoiceBrief}`,
   ].join("\n");
 };
@@ -396,10 +401,15 @@ const buildUserPrompt = (
   return [
     `Scenario ID: ${payload.scenarioId}`,
     `Node ID: ${payload.nodeId}`,
+    `Dialogue layer: ${payload.dialogueLayer ?? "base"}`,
+    `AI mode: ${payload.aiMode ?? "narrative"}`,
     `Choice text: ${payload.choiceText}`,
     `Narrative text: ${payload.narrativeText}`,
     `Location: ${payload.locationName}`,
     `Character: ${payload.characterName ?? "Narrator"}`,
+    `Difficulty: ${payload.difficulty} (base ${payload.baseDifficulty ?? payload.difficulty})`,
+    `Fortune spend: ${payload.fortuneSpend ?? 0}`,
+    `Karma band: ${payload.karmaBand ?? "neutral"}`,
     `Scene snapshot: ${sceneContext.sceneSnapshot}`,
     `Recent dialogue:\n- ${recentDialogue}`,
     `Active quest summary: ${activeQuestSummary}`,

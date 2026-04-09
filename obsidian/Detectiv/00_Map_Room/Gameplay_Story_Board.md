@@ -63,6 +63,17 @@ Single production board for runtime-accurate narrative and gameplay flow.
   - [[10_Narrative/Scenes/node_case1_lead_apothecary|Node: Case 1 Lead - Apothecary]]
   - [[10_Narrative/Scenes/node_case1_lead_pub|Node: Case 1 Lead - Pub]]
 
+## Parallel Bureau Chain (Proposed)
+
+1. Return to [[00_Map_Room/loc_agency|loc_agency]] after [[10_Narrative/Scenes/node_case1_bank_investigation|Node: Case 1 Bank Investigation]].
+2. Resolve [[10_Narrative/Scenes/node_dead_registry_briefing|Node: Dead Registry Briefing]] and [[10_Narrative/Scenes/node_dead_registry_archive|Node: Dead Registry Archive]].
+3. Run field fork through [[10_Narrative/Scenes/node_dead_registry_infirmary|Node: Dead Registry Infirmary]] and/or [[10_Narrative/Scenes/node_dead_registry_lyceum|Node: Dead Registry Lyceum]], then pressure witness state in [[10_Narrative/Scenes/node_dead_registry_grave_or_parish|Node: Dead Registry Grave or Parish]].
+4. Reveal the civic mechanism in [[10_Narrative/Scenes/node_dead_registry_shadow_ledger|Node: Dead Registry Shadow Ledger]] and close through [[10_Narrative/Scenes/node_dead_registry_resolution|Node: Dead Registry Resolution]].
+
+Parallel-chain constraint:
+
+- Dead Registry must color the bank case through rumors, witness handling, and thermite plausibility, but must not hard-gate lead selection or replace the bank mainline.
+
 ## Runtime Notes (Current Implementation)
 
 - HBF onboarding is a full VN scenario (`/vn/detective_case1_hbf_arrival`).

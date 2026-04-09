@@ -1,0 +1,1443 @@
+{
+  "schemaVersion": 8,
+  "scenarios": [
+    {
+      "id": "karlsruhe_event_arrival",
+      "title": "Karlsruhe Event Arrival",
+      "startNodeId": "scene_karlsruhe_event_arrival_platform",
+      "nodeIds": [
+        "scene_karlsruhe_event_arrival_platform",
+        "scene_karlsruhe_event_arrival_paperboy",
+        "scene_karlsruhe_event_arrival_briefing",
+        "scene_karlsruhe_event_arrival_unlock"
+      ],
+      "mode": "fullscreen",
+      "packId": "karlsruhe_event",
+      "defaultBackgroundUrl": "/images/scenes/karlsruhe_event_arrival.png"
+    },
+    {
+      "id": "sandbox_banker_pilot",
+      "title": "Banker Intro Pilot",
+      "startNodeId": "scene_bank_intro",
+      "nodeIds": [
+        "scene_bank_intro",
+        "scene_bank_intro_ch1",
+        "scene_bank_intro_ch2",
+        "scene_bank_leads",
+        "scene_bank_resolution",
+        "scene_bank_resolution_victory",
+        "scene_bank_resolution_defeat"
+      ],
+      "mode": "fullscreen",
+      "packId": "freiburg_banker",
+      "defaultBackgroundUrl": "/images/scenes/scene_bank_intro.png"
+    },
+    {
+      "id": "sandbox_dog_pilot",
+      "title": "Dog Intro Pilot",
+      "startNodeId": "scene_dog_briefing",
+      "nodeIds": [
+        "scene_dog_briefing",
+        "scene_dog_leads",
+        "scene_dog_caseboard",
+        "scene_dog_market_encounter",
+        "scene_dog_market_beat2",
+        "scene_dog_station_encounter",
+        "scene_dog_station_beat2",
+        "scene_dog_tailor_encounter",
+        "scene_dog_tailor_beat2",
+        "scene_dog_uni_encounter",
+        "scene_dog_pub_encounter",
+        "scene_dog_pub_beat2",
+        "scene_park_reunion_beat1",
+        "scene_park_reunion"
+      ],
+      "mode": "fullscreen",
+      "packId": "freiburg_dog",
+      "defaultBackgroundUrl": "/images/scenes/scene_rathaus_interior.webp"
+    },
+    {
+      "id": "sandbox_missing_aroma_pilot",
+      "title": "Missing Aroma",
+      "startNodeId": "scene_missing_aroma_briefing",
+      "nodeIds": [
+        "scene_missing_aroma_briefing",
+        "scene_missing_aroma_kitchen",
+        "scene_missing_aroma_alley",
+        "scene_missing_aroma_resolution"
+      ],
+      "mode": "fullscreen",
+      "packId": "karlsruhe_event",
+      "defaultBackgroundUrl": "/images/scenes/karlsruhe_missing_aroma.png"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "scene_karlsruhe_event_arrival_platform",
+      "scenarioId": "karlsruhe_event_arrival",
+      "title": "Karlsruhe Hauptbahnhof",
+      "body": "Steam from the first morning train hangs over the platform. Victoria Sterling spots you before the porters do, already carrying a folded dispatch case and a list of unfinished meetings.",
+      "choices": [
+        {
+          "id": "KA_EVENT_ARRIVAL_FOLLOW_VICTORIA",
+          "text": "Take pace beside Victoria and ask for the situation.",
+          "nextNodeId": "scene_karlsruhe_event_arrival_paperboy"
+        },
+        {
+          "id": "KA_EVENT_ARRIVAL_SCAN_CROWD",
+          "text": "Read the platform before speaking.",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_karlsruhe_event_arrival_paperboy",
+          "effects": [
+            {
+              "type": "grant_xp",
+              "amount": 5
+            }
+          ]
+        }
+      ],
+      "characterId": "assistant"
+    },
+    {
+      "id": "scene_karlsruhe_event_arrival_paperboy",
+      "scenarioId": "karlsruhe_event_arrival",
+      "title": "Morning Edition",
+      "body": "Before Victoria can finish her briefing, a paperboy wedges himself between you with today's edition. The headline names three embarrassments before breakfast: the bank robbery, the mayor's vanished dog, and a bakery whose signature scent has disappeared overnight.",
+      "choices": [
+        {
+          "id": "KA_EVENT_PAPERBOY_BUY",
+          "text": "Buy the paper and keep him talking.",
+          "nextNodeId": "scene_karlsruhe_event_arrival_briefing",
+          "effects": [
+            {
+              "type": "grant_xp",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "id": "KA_EVENT_PAPERBOY_GLANCE",
+          "text": "Skim the front page and wave him on.",
+          "nextNodeId": "scene_karlsruhe_event_arrival_briefing"
+        }
+      ],
+      "characterId": "paperboy"
+    },
+    {
+      "id": "scene_karlsruhe_event_arrival_briefing",
+      "scenarioId": "karlsruhe_event_arrival",
+      "title": "Victoria's Briefing",
+      "body": "Victoria taps the paper with one gloved finger. 'Three public fires, one morning. We do not have time for ceremony. Take the city as it is, not as Freiburg trained you to expect it.'",
+      "choices": [
+        {
+          "id": "KA_EVENT_BRIEFING_ACCEPT",
+          "text": "Take the newspaper and move out.",
+          "nextNodeId": "scene_karlsruhe_event_arrival_unlock"
+        }
+      ],
+      "characterId": "assistant"
+    },
+    {
+      "id": "scene_karlsruhe_event_arrival_unlock",
+      "scenarioId": "karlsruhe_event_arrival",
+      "title": "Case Ledger Opened",
+      "body": "The folded newspaper becomes your first Karlsruhe lead sheet. Bank. Rathaus. Bakery. Three names, no ceremony, and the city already moving before you choose.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "grant_evidence",
+          "evidenceId": "ev_karlsruhe_newspaper"
+        },
+        {
+          "type": "set_flag",
+          "key": "karlsruhe_arrival_complete",
+          "value": true
+        },
+        {
+          "type": "unlock_group",
+          "groupId": "loc_ka_bank"
+        },
+        {
+          "type": "unlock_group",
+          "groupId": "loc_ka_rathaus"
+        },
+        {
+          "type": "unlock_group",
+          "groupId": "loc_ka_bakery"
+        },
+        {
+          "type": "track_event",
+          "eventName": "karlsruhe_event_arrival_completed",
+          "tags": {
+            "releaseProfile": "karlsruhe_event"
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene_bank_intro",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Сцена: Разговор с банкиром",
+      "body": "- Вход из [[40_GameViewer/Sandbox_KA/02_Quest_Entries/scene_banker_entry|scene_banker_entry]]. - `sandbox_banker` в статусе `started`. - Визуал: кабинет с закрытым сейфом, ведомости на столе.",
+      "choices": [
+        {
+          "id": "BANK_INTRO_ACCEPT",
+          "text": "Accept the case without pressure",
+          "choiceType": "action",
+          "nextNodeId": "scene_bank_intro_ch1"
+        },
+        {
+          "id": "BANK_INTRO_PRESS_MOTIVE",
+          "text": "Press on hidden motives",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_bank_intro_ch2",
+          "conditions": [
+            {
+              "type": "var_gte",
+              "key": "attr_intellect",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "stress_index",
+              "value": 0.1
+            },
+            {
+              "type": "add_heat",
+              "amount": 1
+            }
+          ]
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "banker_intro_seen",
+          "value": true
+        },
+        {
+          "type": "add_tension",
+          "amount": 1
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_bank_first_impression",
+          "voiceId": "attr_social",
+          "difficulty": 10,
+          "isPassive": true,
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "banker_nervous_noticed",
+                "value": true
+              },
+              {
+                "type": "discover_fact",
+                "caseId": "case_banker_theft",
+                "factId": "fact_banker_nervous"
+              }
+            ]
+          }
+        }
+      ],
+      "characterId": "npc_banker_kessler"
+    },
+    {
+      "id": "scene_bank_intro_ch1",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Choice: Принять дело без конфронтации",
+      "body": "- `choice_id`: `BANK_INTRO_ACCEPT` - `gating_check`: none - `success_effect`: открывает хаб следов",
+      "choices": [
+        {
+          "id": "BANK_CH1_CONTINUE",
+          "text": "Move to lead hub",
+          "nextNodeId": "scene_bank_leads",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "banker_client_cooperative",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "rep_finance",
+              "value": 0.4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_bank_intro_ch2",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Choice: Надавить на мотивы клиента",
+      "body": "- `choice_id`: `BANK_INTRO_PRESS_MOTIVE` - `gating_check`: `logic >= 2` or `empathy >= 2` - `success_effect`: `clue_CLUE_B05_WAX_ON_GLOVE = true`",
+      "choices": [
+        {
+          "id": "BANK_CH2_CONTINUE",
+          "text": "Move to lead hub",
+          "nextNodeId": "scene_bank_leads",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "clue_ledger_gap",
+              "value": true
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_banker_theft",
+              "factId": "fact_ledger_gap"
+            },
+            {
+              "type": "set_flag",
+              "key": "banker_client_hostile",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "rep_civic",
+              "value": 0.2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_bank_leads",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Сцена-хаб: Следы по делу Вагнера",
+      "body": "- Вход из `scene_bank_intro_ch1` или `scene_bank_intro_ch2`. - Повторный вход из `scene_son_house` и `scene_tavern`. - `sandbox_banker = started`",
+      "choices": [
+        {
+          "id": "BANK_LEAD_HOUSE",
+          "text": "Follow house lead",
+          "nextNodeId": "scene_bank_leads",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "banker_lead_house_checked",
+              "value": false
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "banker_lead_house_checked",
+              "value": true
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_banker_theft",
+              "factId": "fact_house_contact"
+            },
+            {
+              "type": "add_var",
+              "key": "case_progress",
+              "value": 0.2
+            }
+          ]
+        },
+        {
+          "id": "BANK_LEAD_TAVERN",
+          "text": "Follow tavern lead",
+          "nextNodeId": "scene_bank_leads",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "banker_lead_tavern_checked",
+              "value": false
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "banker_lead_tavern_checked",
+              "value": true
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_banker_theft",
+              "factId": "fact_tavern_alibi"
+            },
+            {
+              "type": "add_var",
+              "key": "case_progress",
+              "value": 0.2
+            }
+          ]
+        },
+        {
+          "id": "BANK_LEAD_CASINO",
+          "text": "Proceed to casino confrontation",
+          "nextNodeId": "scene_bank_resolution",
+          "conditions": [
+            {
+              "type": "var_gte",
+              "key": "case_progress",
+              "value": 0.2
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "banker_finale_started",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "son_duel_done",
+              "value": false
+            },
+            {
+              "type": "set_flag",
+              "key": "son_duel_won",
+              "value": false
+            },
+            {
+              "type": "set_flag",
+              "key": "son_duel_lost",
+              "value": false
+            },
+            {
+              "type": "add_var",
+              "key": "checks_passed",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_bank_resolution",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Сцена: Казино и очная ставка",
+      "body": "- Вход из [[40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_bank_leads|scene_bank_leads]]. - `sandbox_banker = started` - Рекомендуется хотя бы одна собранная улика (`CLUE_B01` или `CLUE_B03`), но вход не блокируется.",
+      "choices": [
+        {
+          "id": "BANK_RESOLUTION_WIN",
+          "text": "Press the advantage",
+          "nextNodeId": "scene_bank_resolution_victory",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "son_duel_won",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "BANK_RESOLUTION_LOSS",
+          "text": "Recover the thread",
+          "nextNodeId": "scene_bank_resolution_defeat",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "son_duel_lost",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "backgroundUrl": "/images/scenes/scene_casino_duel.png"
+    },
+    {
+      "id": "scene_bank_resolution_victory",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Сцена: Казино и очная ставка",
+      "body": "- Вход из [[40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_bank_leads|scene_bank_leads]]. - `sandbox_banker = started` - Рекомендуется хотя бы одна собранная улика (`CLUE_B01` или `CLUE_B03`), но вход не блокируется.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_quest_stage",
+          "questId": "quest_banker",
+          "stage": 3
+        },
+        {
+          "type": "set_flag",
+          "key": "banker_case_closed",
+          "value": true
+        }
+      ],
+      "backgroundUrl": "/images/scenes/scene_casino_duel.png"
+    },
+    {
+      "id": "scene_bank_resolution_defeat",
+      "scenarioId": "sandbox_banker_pilot",
+      "title": "Сцена: Казино и очная ставка",
+      "body": "- Вход из [[40_GameViewer/Sandbox_KA/Plot/01_Banker/scene_bank_leads|scene_bank_leads]]. - `sandbox_banker = started` - Рекомендуется хотя бы одна собранная улика (`CLUE_B01` или `CLUE_B03`), но вход не блокируется.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_quest_stage",
+          "questId": "quest_banker",
+          "stage": 3
+        },
+        {
+          "type": "set_flag",
+          "key": "banker_case_closed",
+          "value": true
+        }
+      ],
+      "backgroundUrl": "/images/scenes/scene_casino_duel.png"
+    },
+    {
+      "id": "scene_dog_briefing",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "📜 The Mayor's Distress",
+      "body": "| Element | Node | | ------------- | ---------------------------- | | 🎨 Background | [[scene_office_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_BRIEFING_CONTINUE",
+          "text": "Open lead board",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_quest_stage",
+          "questId": "quest_dog",
+          "stage": 1
+        },
+        {
+          "type": "set_flag",
+          "key": "dog_case_started",
+          "value": true
+        }
+      ],
+      "characterId": "npc_anna_mahler"
+    },
+    {
+      "id": "scene_dog_leads",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🔍 Where is Bruno?",
+      "body": "| Element | Node | | ------------- | ---------------------------- | | 🎨 Background | [[scene_map_city_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_LEAD_MARKET",
+          "text": "Check the market route",
+          "nextNodeId": "scene_dog_market_encounter",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "dog_lead_market_done",
+              "value": false
+            }
+          ]
+        },
+        {
+          "id": "DOG_LEAD_STATION",
+          "text": "Check station witnesses",
+          "nextNodeId": "scene_dog_station_encounter",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "dog_lead_station_done",
+              "value": false
+            }
+          ]
+        },
+        {
+          "id": "DOG_LEAD_TAILOR",
+          "text": "Question tailor network",
+          "nextNodeId": "scene_dog_tailor_encounter",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "dog_lead_tailor_done",
+              "value": false
+            }
+          ]
+        },
+        {
+          "id": "DOG_LEAD_UNI",
+          "text": "Inspect university records",
+          "nextNodeId": "scene_dog_uni_encounter",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "dog_lead_uni_done",
+              "value": false
+            }
+          ]
+        },
+        {
+          "id": "DOG_LEAD_PUB",
+          "text": "Reconstruct pub timeline",
+          "nextNodeId": "scene_dog_pub_encounter",
+          "conditions": [
+            {
+              "type": "flag_equals",
+              "key": "dog_lead_pub_done",
+              "value": false
+            }
+          ]
+        },
+        {
+          "id": "DOG_LEAD_CASEBOARD",
+          "text": "Review the current findings",
+          "nextNodeId": "scene_dog_caseboard"
+        },
+        {
+          "id": "DOG_LEAD_REUNION",
+          "text": "Convene at the park",
+          "nextNodeId": "scene_park_reunion_beat1",
+          "conditions": [
+            {
+              "type": "var_gte",
+              "key": "dog_leads_progress",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_quest_stage",
+              "questId": "quest_dog",
+              "stage": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_caseboard",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "Dog Caseboard",
+      "body": "The caseboard is filled with red strings and polaroids. What does it all mean?",
+      "choices": [
+        {
+          "id": "DOG_CASEBOARD_RETURN",
+          "text": "Back to leads",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_market_encounter",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🐟 False Lead: The Market",
+      "body": "| Element | Node | | ------------- | -------------------------- | | 🎨 Background | [[scene_market_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_MARKET_VENDOR_PRESS",
+          "text": "Pressure the vendor for route details",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_market_beat2",
+          "skillCheck": {
+            "id": "check_dog_market_pressure",
+            "voiceId": "attr_social",
+            "difficulty": 11,
+            "showChancePercent": true,
+            "onSuccess": {
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "dog_market_route_confirmed",
+                  "value": true
+                },
+                {
+                  "type": "add_var",
+                  "key": "checks_passed",
+                  "value": 1
+                }
+              ]
+            },
+            "onFail": {
+              "effects": [
+                {
+                  "type": "add_heat",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "DOG_MARKET_QUIET_NOTE",
+          "text": "Log observations and move on",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_dog_market_beat2",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "dog_case_confidence",
+              "value": 0.2
+            }
+          ]
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "dog_lead_market_done",
+          "value": true
+        },
+        {
+          "type": "add_var",
+          "key": "dog_leads_progress",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_market_beat2",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "Market Lead - Beat 2",
+      "body": "The vendor seems to have nothing more to say. Perhaps you should look elsewhere.",
+      "choices": [
+        {
+          "id": "DOG_MARKET_BEAT2_RETURN",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_market_route"
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_station_encounter",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🚂 False Lead: The Station",
+      "body": "| Element | Node | | ------------- | --------------------------- | | 🎨 Background | [[scene_station_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_STATION_BRIBE_PORTER",
+          "text": "Bribe the porter for schedule logs",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_station_beat2",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "dog_station_log_obtained",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "rep_civic",
+              "value": -0.1
+            }
+          ]
+        },
+        {
+          "id": "DOG_STATION_INTERVIEW",
+          "text": "Conduct a formal witness interview",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_dog_station_beat2",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "dog_case_confidence",
+              "value": 0.3
+            }
+          ]
+        },
+        {
+          "id": "DOG_STATION_RECHECK",
+          "text": "Re-check rail manifests",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_dog_station_beat2",
+          "conditions": [
+            {
+              "type": "var_gte",
+              "key": "attr_intellect",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "dog_case_confidence",
+              "value": 0.4
+            }
+          ]
+        },
+        {
+          "id": "DOG_STATION_WRAP",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "dog_lead_station_done",
+          "value": true
+        },
+        {
+          "type": "add_var",
+          "key": "dog_leads_progress",
+          "value": 1
+        },
+        {
+          "type": "change_relationship",
+          "characterId": "npc_anna_mahler",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_station_beat2",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "Station Lead - Beat 2",
+      "body": "The trains come and go. You've gathered all the witness accounts you could.",
+      "choices": [
+        {
+          "id": "DOG_STATION_BEAT2_RETURN",
+          "text": "Back to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_station_manifest"
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_tailor_encounter",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🧵 False Lead: The Tailor",
+      "body": "| Element | Node | | ------------- | -------------------------- | | 🎨 Background | [[scene_tailor_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_TAILOR_AUDIT_BOOKS",
+          "text": "Audit tailor invoices",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_dog_tailor_beat2",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "dog_case_confidence",
+              "value": 0.3
+            }
+          ]
+        },
+        {
+          "id": "DOG_TAILOR_INTIMIDATE",
+          "text": "Intimidate workshop apprentice",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_tailor_beat2",
+          "effects": [
+            {
+              "type": "add_tension",
+              "amount": 1
+            },
+            {
+              "type": "set_flag",
+              "key": "dog_tailor_intimidation",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "DOG_TAILOR_RETURN",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "dog_lead_tailor_done",
+          "value": true
+        },
+        {
+          "type": "add_var",
+          "key": "dog_leads_progress",
+          "value": 1
+        },
+        {
+          "type": "grant_evidence",
+          "evidenceId": "ev_bank_master_key"
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_tailor_beat2",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "Tailor Lead - Beat 2",
+      "body": "The tailor continues to work on the fabrics, ignoring your pointed glares.",
+      "choices": [
+        {
+          "id": "DOG_TAILOR_BEAT2_RETURN",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_tailor_invoice"
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_uni_encounter",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🎓 False Lead: The University",
+      "body": "| Element | Node | | ------------- | ----------------------- | | 🎨 Background | [[scene_uni_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_UNI_ARCHIVE_REQUEST",
+          "text": "Request registry with legal notice",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_leads",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "dog_uni_registry_official",
+              "value": true
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "npc_anna_mahler",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "DOG_UNI_STEALTH_COPY",
+          "text": "Copy registry quietly after hours",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_leads",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "dog_uni_registry_unofficial",
+              "value": true
+            },
+            {
+              "type": "add_heat",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "DOG_UNI_RETURN",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "dog_lead_uni_done",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "dog_registry_found",
+          "value": true
+        },
+        {
+          "type": "add_var",
+          "key": "dog_leads_progress",
+          "value": 1
+        },
+        {
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_uni_registry"
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_pub_encounter",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "🍺 False Lead: The Red Cog",
+      "body": "| Element | Node | | ------------- | ----------------------- | | 🎨 Background | [[scene_pub_bg]] |",
+      "choices": [
+        {
+          "id": "DOG_PUB_TRUST_BARTENDER",
+          "text": "Trust bartender testimony",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_dog_pub_beat2",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "dog_case_confidence",
+              "value": 0.2
+            }
+          ]
+        },
+        {
+          "id": "DOG_PUB_TAIL_SUSPECT",
+          "text": "Tail the suspect immediately",
+          "choiceType": "action",
+          "nextNodeId": "scene_dog_pub_beat2",
+          "skillCheck": {
+            "id": "check_dog_pub_tail",
+            "voiceId": "attr_perception",
+            "difficulty": 10,
+            "showChancePercent": true,
+            "onSuccess": {
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "dog_pub_tail_success",
+                  "value": true
+                },
+                {
+                  "type": "add_var",
+                  "key": "checks_passed",
+                  "value": 1
+                }
+              ]
+            },
+            "onFail": {
+              "effects": [
+                {
+                  "type": "add_tension",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "DOG_PUB_RETURN",
+          "text": "Return to lead board",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "dog_lead_pub_done",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "ghost_route_unlocked",
+          "value": true
+        },
+        {
+          "type": "add_var",
+          "key": "dog_leads_progress",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "scene_dog_pub_beat2",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "Pub Lead - Beat 2",
+      "body": "The pub is loud and full of patrons. The trail here seems cold for now.",
+      "choices": [
+        {
+          "id": "DOG_PUB_BEAT2_RETURN",
+          "text": "Head back to leads",
+          "nextNodeId": "scene_dog_leads"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_pub_identification"
+        }
+      ]
+    },
+    {
+      "id": "scene_park_reunion_beat1",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "📖 Beat 1: A Good Boy?",
+      "body": "**[Narrator]**: \"Under an old oak tree, you find the fugitive. Bruno lies on his back, paws in the air, sleeping off a food coma.",
+      "choices": [
+        {
+          "id": "DOG_REUNION_CONTINUE",
+          "text": "Finalize findings",
+          "nextNodeId": "scene_park_reunion"
+        }
+      ],
+      "backgroundUrl": "/images/scenes/scene_park_reunion.png"
+    },
+    {
+      "id": "scene_park_reunion",
+      "scenarioId": "sandbox_dog_pilot",
+      "title": "ðŸŒ³ Park Reunion",
+      "body": "| Element | Node | | ------------------ | ----------------------------- | | ðŸŽ¨ Background | [[scene_park_reunion_bg]] |",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "dog_reunion_reached",
+          "value": true
+        },
+        {
+          "type": "discover_fact",
+          "caseId": "case_dog_trail",
+          "factId": "fact_dog_reunion_capstone"
+        }
+      ],
+      "backgroundUrl": "/images/scenes/scene_park_reunion.png"
+    },
+    {
+      "id": "scene_missing_aroma_briefing",
+      "scenarioId": "sandbox_missing_aroma_pilot",
+      "title": "Bakery Counter",
+      "body": "The baker does not talk about thefts. He talks about absences. This morning the ovens worked, the bread rose, and yet the cardamom signature that draws half the street simply never arrived.",
+      "choices": [
+        {
+          "id": "MISSING_AROMA_CHECK_KITCHEN",
+          "text": "Inspect the ovens and spice shelf.",
+          "nextNodeId": "scene_missing_aroma_kitchen"
+        },
+        {
+          "id": "MISSING_AROMA_QUESTION_APPRENTICE",
+          "text": "Question the apprentice about the missing scent.",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_missing_aroma_kitchen",
+          "effects": [
+            {
+              "type": "grant_xp",
+              "amount": 5
+            }
+          ]
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_quest_stage",
+          "questId": "quest_missing_aroma",
+          "stage": 1
+        },
+        {
+          "type": "set_flag",
+          "key": "missing_aroma_case_started",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "scene_missing_aroma_kitchen",
+      "scenarioId": "sandbox_missing_aroma_pilot",
+      "title": "Cooling Rack",
+      "body": "The missing aroma was not stolen from the tray. It was intercepted before the dough reached the front room. A torn paper wrap and a wet footprint point toward the service alley.",
+      "choices": [
+        {
+          "id": "MISSING_AROMA_FOLLOW_TRAIL",
+          "text": "Follow the service trail into the alley.",
+          "nextNodeId": "scene_missing_aroma_alley",
+          "effects": [
+            {
+              "type": "set_quest_stage",
+              "questId": "quest_missing_aroma",
+              "stage": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_missing_aroma_alley",
+      "scenarioId": "sandbox_missing_aroma_pilot",
+      "title": "Service Alley",
+      "body": "You find the missing spice packet where a courier tried to dry it over a boiler vent. The aroma was borrowed to fake a premium delivery, not to poison the batch. Sloppy, urgent, and easy to unwind.",
+      "choices": [
+        {
+          "id": "MISSING_AROMA_CLOSE_CASE",
+          "text": "Recover the packet and close the file quietly.",
+          "nextNodeId": "scene_missing_aroma_resolution"
+        }
+      ]
+    },
+    {
+      "id": "scene_missing_aroma_resolution",
+      "scenarioId": "sandbox_missing_aroma_pilot",
+      "title": "Aroma Restored",
+      "body": "The baker relights the oven, the scent returns to the room, and the neighborhood never learns how close it came to panic over a missing spice packet.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_quest_stage",
+          "questId": "quest_missing_aroma",
+          "stage": 3
+        },
+        {
+          "type": "set_flag",
+          "key": "missing_aroma_case_closed",
+          "value": true
+        },
+        {
+          "type": "track_event",
+          "eventName": "karlsruhe_missing_aroma_closed",
+          "tags": {
+            "releaseProfile": "karlsruhe_event"
+          }
+        }
+      ]
+    }
+  ],
+  "vnRuntime": {
+    "skillCheckDice": "d20",
+    "defaultEntryScenarioId": "karlsruhe_event_arrival",
+    "releaseProfile": "karlsruhe_event"
+  },
+  "mindPalace": {
+    "cases": [],
+    "facts": [],
+    "hypotheses": []
+  },
+  "map": {
+    "defaultRegionId": "KARLSRUHE_1905",
+    "regions": [
+      {
+        "id": "KARLSRUHE_1905",
+        "name": "Karlsruhe (1905)",
+        "geoCenterLat": 49.0069,
+        "geoCenterLng": 8.4037,
+        "zoom": 13
+      }
+    ],
+    "points": [
+      {
+        "id": "loc_ka_bank",
+        "title": "Bankhaus J.A. Krebs",
+        "regionId": "KARLSRUHE_1905",
+        "lat": 49.0106,
+        "lng": 8.4048,
+        "category": "PUBLIC",
+        "description": "Victoria's banker file is waiting behind the ledger desk.",
+        "image": "/images/scenes/scene_bank_intro.png",
+        "locationId": "loc_ka_bank",
+        "defaultState": "locked",
+        "unlockGroup": "loc_ka_bank",
+        "bindings": [
+          {
+            "id": "ka_event_bank_start",
+            "trigger": "card_primary",
+            "label": "Open Banker File",
+            "priority": 100,
+            "intent": "objective",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_banker_pilot"
+              }
+            ]
+          },
+          {
+            "id": "ka_event_bank_travel",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 20,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_ka_bank"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_ka_rathaus",
+        "title": "Rathaus Quarter",
+        "regionId": "KARLSRUHE_1905",
+        "lat": 49.0094,
+        "lng": 8.4011,
+        "category": "PUBLIC",
+        "description": "The mayor's office is where the dog case breaks open.",
+        "image": "/images/scenes/scene_rathaus_interior.webp",
+        "locationId": "loc_ka_rathaus",
+        "defaultState": "locked",
+        "unlockGroup": "loc_ka_rathaus",
+        "bindings": [
+          {
+            "id": "ka_event_dog_start",
+            "trigger": "card_primary",
+            "label": "Open Mayor's Dog",
+            "priority": 100,
+            "intent": "objective",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_dog_pilot"
+              }
+            ]
+          },
+          {
+            "id": "ka_event_rathaus_travel",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 20,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_ka_rathaus"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loc_ka_bakery",
+        "title": "Bakery of the Missing Aroma",
+        "regionId": "KARLSRUHE_1905",
+        "lat": 49.0041,
+        "lng": 8.4113,
+        "category": "PUBLIC",
+        "description": "A famous scent has vanished from the ovens overnight.",
+        "image": "/images/scenes/scene_bakery_counter.png",
+        "locationId": "loc_ka_bakery",
+        "defaultState": "locked",
+        "unlockGroup": "loc_ka_bakery",
+        "bindings": [
+          {
+            "id": "ka_event_aroma_start",
+            "trigger": "card_primary",
+            "label": "Open Missing Aroma",
+            "priority": 100,
+            "intent": "objective",
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "sandbox_missing_aroma_pilot"
+              }
+            ]
+          },
+          {
+            "id": "ka_event_bakery_travel",
+            "trigger": "card_secondary",
+            "label": "Travel",
+            "priority": 20,
+            "intent": "travel",
+            "actions": [
+              {
+                "type": "travel_to",
+                "locationId": "loc_ka_bakery"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "shadowRoutes": [],
+    "qrCodeRegistry": [],
+    "mapEventTemplates": [],
+    "testDefaults": {
+      "defaultEventTtlMinutes": 15
+    }
+  },
+  "questCatalog": [
+    {
+      "id": "quest_banker",
+      "title": "Bank Robbery",
+      "stages": [
+        {
+          "stage": 1,
+          "title": "Open Bank Robbery",
+          "objectiveHint": "Start the banker file from the Karlsruhe bank.",
+          "objectivePointIds": [
+            "loc_ka_bank"
+          ]
+        },
+        {
+          "stage": 2,
+          "title": "Pressure the Banker",
+          "objectiveHint": "Stay on the bank trail until the ledger breaks.",
+          "objectivePointIds": [
+            "loc_ka_bank"
+          ]
+        },
+        {
+          "stage": 3,
+          "title": "Case Closed",
+          "objectiveHint": "Bank robbery archived.",
+          "objectivePointIds": [
+            "loc_ka_bank"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quest_dog",
+      "title": "Mayor's Dog",
+      "stages": [
+        {
+          "stage": 1,
+          "title": "Open Dog Lead Board",
+          "objectiveHint": "Open the mayor's dog file from Rathaus.",
+          "objectivePointIds": [
+            "loc_ka_rathaus"
+          ]
+        },
+        {
+          "stage": 2,
+          "title": "Follow the Route",
+          "objectiveHint": "Push the witness chain until the reunion.",
+          "objectivePointIds": [
+            "loc_ka_rathaus"
+          ]
+        },
+        {
+          "stage": 3,
+          "title": "Case Closed",
+          "objectiveHint": "Mayor's dog logged and sealed.",
+          "objectivePointIds": [
+            "loc_ka_rathaus"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quest_missing_aroma",
+      "title": "Missing Aroma",
+      "stages": [
+        {
+          "stage": 1,
+          "title": "Bakery Briefing",
+          "objectiveHint": "Open the bakery complaint from the Karlsruhe map.",
+          "objectivePointIds": [
+            "loc_ka_bakery"
+          ]
+        },
+        {
+          "stage": 2,
+          "title": "Trace the Scent",
+          "objectiveHint": "Follow the missing spice trail behind the bakery.",
+          "objectivePointIds": [
+            "loc_ka_bakery"
+          ]
+        },
+        {
+          "stage": 3,
+          "title": "Case Closed",
+          "objectiveHint": "Aroma restored and the bakery file archived.",
+          "objectivePointIds": [
+            "loc_ka_bakery"
+          ]
+        }
+      ]
+    }
+  ],
+  "socialCatalog": {
+    "npcIdentities": [],
+    "services": [],
+    "rumors": [],
+    "careerRanks": [],
+    "factions": []
+  },
+  "checksum": "d1d1082a82cb37786e681db8d471dc6917d11e89a9548affba4d6055a5a28354",
+  "generatedAt": "2026-04-09T14:30:21.386Z"
+}

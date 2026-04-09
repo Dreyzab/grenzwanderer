@@ -5,16 +5,13 @@ import { useIdentity } from "../../../shared/spacetime/useIdentity";
 
 export const usePlayerLocation = () => {
   const { identityHex } = useIdentity();
-  const [locations] = useTable(tables.playerLocation);
+  const [locations] = useTable(tables.myPlayerLocation);
 
   return useMemo(() => {
     if (!identityHex) {
       return null;
     }
 
-    return (
-      locations.find((entry) => entry.playerId.toHexString() === identityHex) ??
-      null
-    );
+    return locations[0] ?? null;
   }, [identityHex, locations]);
 };

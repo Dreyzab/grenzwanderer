@@ -36,6 +36,9 @@ export const collectCaseIdsFromMapConditions = (conditions: any): string[] => {
     if (cond.type === "logic_or" || cond.type === "logic_and") {
       ids.push(...collectCaseIdsFromMapConditions(cond.conditions));
     }
+    if (cond.type === "logic_not" && cond.condition) {
+      ids.push(...collectCaseIdsFromMapConditions([cond.condition]));
+    }
   }
   return ids;
 };

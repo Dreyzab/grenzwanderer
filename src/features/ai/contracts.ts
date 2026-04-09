@@ -2,6 +2,15 @@ import {
   isValidSceneResultEnvelope,
   type SceneResultEnvelope,
 } from "./sceneResultEnvelope";
+import {
+  isDialogueLayer,
+  isKarmaBand,
+  isVnAiMode,
+  type DialogueLayer,
+  type DifficultyBreakdownEntry,
+  type KarmaBand,
+  type VnAiMode,
+} from "../../shared/game/narrativeResources";
 
 export const AI_GENERATE_DIALOGUE_KIND = "generate_dialogue";
 export const AI_GENERATE_CHARACTER_REACTION_KIND =
@@ -32,16 +41,23 @@ export interface GenerateDialoguePayload {
   choiceId: string;
   voiceId: string;
   choiceText: string;
+  dialogueLayer?: DialogueLayer;
+  aiMode?: VnAiMode;
+  providenceCost?: number;
+  karmaBand?: KarmaBand;
   passed: boolean;
   roll: number;
   difficulty: number;
+  baseDifficulty?: number;
   voiceLevel: number;
+  fortuneSpend?: number;
   locationName: string;
   characterName?: string;
   narrativeText: string;
   ensemble?: DialogueEnsemble;
   outcomeGrade?: "fail" | "success" | "critical" | "success_with_cost";
   breakdown?: { source: string; sourceId: string; delta: number }[];
+  difficultyBreakdown?: DifficultyBreakdownEntry[];
   margin?: number;
   voicePresenceMode?: "text_variability" | "parliament" | "mechanical_voice";
   activeSpeakers?: string[];
@@ -191,6 +207,10 @@ const isBreakdownEntry = (
   );
 };
 
+const isDifficultyBreakdownEntry = (
+  value: unknown,
+): value is DifficultyBreakdownEntry => isBreakdownEntry(value);
+
 const isVoicePresenceMode = (
   value: unknown,
 ): value is GenerateDialoguePayload["voicePresenceMode"] =>
@@ -294,10 +314,20 @@ export const isGenerateDialoguePayload = (
     typeof payload.choiceId === "string" &&
     typeof payload.voiceId === "string" &&
     typeof payload.choiceText === "string" &&
+    (payload.dialogueLayer === undefined ||
+      isDialogueLayer(payload.dialogueLayer)) &&
+    (payload.aiMode === undefined || isVnAiMode(payload.aiMode)) &&
+    (payload.providenceCost === undefined ||
+      isFiniteNumber(payload.providenceCost)) &&
+    (payload.karmaBand === undefined || isKarmaBand(payload.karmaBand)) &&
     typeof payload.passed === "boolean" &&
     isFiniteNumber(payload.roll) &&
     isFiniteNumber(payload.difficulty) &&
+    (payload.baseDifficulty === undefined ||
+      isFiniteNumber(payload.baseDifficulty)) &&
     isFiniteNumber(payload.voiceLevel) &&
+    (payload.fortuneSpend === undefined ||
+      isFiniteNumber(payload.fortuneSpend)) &&
     typeof payload.locationName === "string" &&
     (payload.characterName === undefined ||
       typeof payload.characterName === "string") &&
@@ -308,6 +338,9 @@ export const isGenerateDialoguePayload = (
     (payload.breakdown === undefined ||
       (Array.isArray(payload.breakdown) &&
         payload.breakdown.every(isBreakdownEntry))) &&
+    (payload.difficultyBreakdown === undefined ||
+      (Array.isArray(payload.difficultyBreakdown) &&
+        payload.difficultyBreakdown.every(isDifficultyBreakdownEntry))) &&
     (payload.margin === undefined || isFiniteNumber(payload.margin)) &&
     (payload.voicePresenceMode === undefined ||
       isVoicePresenceMode(payload.voicePresenceMode)) &&
@@ -486,6 +519,7 @@ export const matchesSkillCheckThought = (
   nodeId: string,
   checkId?: string,
   choiceId?: string,
+  dialogueLayer?: DialogueLayer,
 ): boolean => {
   if (!payload) {
     return false;
@@ -500,6 +534,10 @@ export const matchesSkillCheckThought = (
   }
 
   if (choiceId && payload.choiceId !== choiceId) {
+    return false;
+  }
+
+  if (dialogueLayer && payload.dialogueLayer !== dialogueLayer) {
     return false;
   }
 

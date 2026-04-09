@@ -4,10 +4,10 @@ import { BattlePage } from "./BattlePage";
 
 const mocks = vi.hoisted(() => {
   const tables = {
-    battleSession: Symbol("battleSession"),
-    battleCombatant: Symbol("battleCombatant"),
-    battleCardInstance: Symbol("battleCardInstance"),
-    battleHistory: Symbol("battleHistory"),
+    myBattleSessions: Symbol("myBattleSessions"),
+    myBattleCombatants: Symbol("myBattleCombatants"),
+    myBattleCards: Symbol("myBattleCards"),
+    myBattleHistory: Symbol("myBattleHistory"),
   };
   const reducers = {
     playBattleCard: Symbol("playBattleCard"),
@@ -84,12 +84,11 @@ describe("BattlePage", () => {
 
   it("renders the active battle hand and plays a card on click", async () => {
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tables.battleSession) {
+      if (table === mocks.tables.myBattleSessions) {
         return [
           [
             {
               sessionKey: "me::battle",
-              playerId: identity("me"),
               scenarioId: "sandbox_son_duel",
               returnTab: "vn",
               phase: "player_turn",
@@ -108,13 +107,12 @@ describe("BattlePage", () => {
           true,
         ];
       }
-      if (table === mocks.tables.battleCombatant) {
+      if (table === mocks.tables.myBattleCombatants) {
         return [
           [
             {
               combatantKey: "player",
               sessionKey: "me::battle",
-              playerId: identity("me"),
               combatantId: "detective",
               side: "player",
               label: "Detective",
@@ -131,7 +129,6 @@ describe("BattlePage", () => {
             {
               combatantKey: "enemy",
               sessionKey: "me::battle",
-              playerId: identity("me"),
               combatantId: "friedrich_richter",
               side: "enemy",
               label: "Friedrich Richter",
@@ -152,13 +149,12 @@ describe("BattlePage", () => {
           true,
         ];
       }
-      if (table === mocks.tables.battleCardInstance) {
+      if (table === mocks.tables.myBattleCards) {
         return [
           [
             {
               cardInstanceKey: "card::1",
               sessionKey: "me::battle",
-              playerId: identity("me"),
               instanceId: "card_1",
               cardId: "card_pointed_question",
               ownerCombatantId: "detective",
@@ -174,7 +170,6 @@ describe("BattlePage", () => {
             {
               cardInstanceKey: "card::2",
               sessionKey: "me::battle",
-              playerId: identity("me"),
               instanceId: "card_2",
               cardId: "card_press_advantage",
               ownerCombatantId: "detective",
@@ -191,13 +186,12 @@ describe("BattlePage", () => {
           true,
         ];
       }
-      if (table === mocks.tables.battleHistory) {
+      if (table === mocks.tables.myBattleHistory) {
         return [
           [
             {
               historyKey: "history::1",
               sessionKey: "me::battle",
-              playerId: identity("me"),
               message: "Battle opened: Casino Confrontation.",
               createdAt: "1",
             },
@@ -222,12 +216,11 @@ describe("BattlePage", () => {
 
   it("ends the turn from an active battle state", async () => {
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tables.battleSession) {
+      if (table === mocks.tables.myBattleSessions) {
         return [
           [
             {
               sessionKey: "me::battle",
-              playerId: identity("me"),
               scenarioId: "sandbox_son_duel",
               returnTab: "vn",
               phase: "player_turn",
@@ -246,13 +239,12 @@ describe("BattlePage", () => {
           true,
         ];
       }
-      if (table === mocks.tables.battleCombatant) {
+      if (table === mocks.tables.myBattleCombatants) {
         return [
           [
             {
               combatantKey: "player",
               sessionKey: "me::battle",
-              playerId: identity("me"),
               combatantId: "detective",
               side: "player",
               label: "Detective",
@@ -269,7 +261,6 @@ describe("BattlePage", () => {
             {
               combatantKey: "enemy",
               sessionKey: "me::battle",
-              playerId: identity("me"),
               combatantId: "friedrich_richter",
               side: "enemy",
               label: "Friedrich Richter",
@@ -290,10 +281,10 @@ describe("BattlePage", () => {
           true,
         ];
       }
-      if (table === mocks.tables.battleCardInstance) {
+      if (table === mocks.tables.myBattleCards) {
         return [[], true];
       }
-      if (table === mocks.tables.battleHistory) {
+      if (table === mocks.tables.myBattleHistory) {
         return [[], true];
       }
       return [[], true];
@@ -310,14 +301,13 @@ describe("BattlePage", () => {
 
   it("returns to the stored tab when a resolved battle is closed", async () => {
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tables.battleSession) {
+      if (table === mocks.tables.myBattleSessions) {
         return [
           [
             {
               sessionKey: "me::battle",
-              playerId: identity("me"),
               scenarioId: "sandbox_son_duel",
-              returnTab: "dev",
+              returnTab: "map",
               phase: "result",
               status: "resolved",
               title: "Casino Confrontation",
@@ -337,13 +327,12 @@ describe("BattlePage", () => {
           true,
         ];
       }
-      if (table === mocks.tables.battleCombatant) {
+      if (table === mocks.tables.myBattleCombatants) {
         return [
           [
             {
               combatantKey: "player",
               sessionKey: "me::battle",
-              playerId: identity("me"),
               combatantId: "detective",
               side: "player",
               label: "Detective",
@@ -360,7 +349,6 @@ describe("BattlePage", () => {
             {
               combatantKey: "enemy",
               sessionKey: "me::battle",
-              playerId: identity("me"),
               combatantId: "friedrich_richter",
               side: "enemy",
               label: "Friedrich Richter",
@@ -378,10 +366,10 @@ describe("BattlePage", () => {
           true,
         ];
       }
-      if (table === mocks.tables.battleCardInstance) {
+      if (table === mocks.tables.myBattleCards) {
         return [[], true];
       }
-      if (table === mocks.tables.battleHistory) {
+      if (table === mocks.tables.myBattleHistory) {
         return [[], true];
       }
       return [[], true];
@@ -397,6 +385,6 @@ describe("BattlePage", () => {
     await waitFor(() => {
       expect(mocks.closeBattleModeMock).toHaveBeenCalledTimes(1);
     });
-    expect(onNavigateTab).toHaveBeenCalledWith("dev");
+    expect(onNavigateTab).toHaveBeenCalledWith("map");
   });
 });

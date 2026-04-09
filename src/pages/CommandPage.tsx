@@ -14,7 +14,6 @@ type TabId =
   | "character"
   | "map"
   | "mind_palace"
-  | "dev"
   | "command"
   | "battle";
 
@@ -81,10 +80,9 @@ const normalizeReturnTab = (value: string): CommandTab =>
   value === "vn" ? "vn" : "map";
 
 export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
-  const { identityHex } = useIdentity();
-  const [sessions, sessionsReady] = useTable(tables.commandSession);
-  const [members, membersReady] = useTable(tables.commandPartyMember);
-  const [history, historyReady] = useTable(tables.commandOrderHistory);
+  const [sessions, sessionsReady] = useTable(tables.myCommandSessions);
+  const [members, membersReady] = useTable(tables.myCommandParty);
+  const [history, historyReady] = useTable(tables.myCommandHistory);
   const issueCommand = useReducer(reducers.issueCommand);
   const resolveCommand = useReducer(reducers.resolveCommand);
   const closeCommandMode = useReducer(reducers.closeCommandMode);
@@ -93,10 +91,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const activeSession = useMemo(() => {
-    const ownSessions = sessions.filter(
-      (row) =>
-        row.playerId.toHexString() === identityHex && row.status !== "closed",
-    );
+    const ownSessions = sessions.filter((row) => row.status !== "closed");
     if (ownSessions.length === 0) {
       return null;
     }
@@ -104,7 +99,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
     return ownSessions.sort((left, right) =>
       String(right.updatedAt).localeCompare(String(left.updatedAt)),
     )[0];
-  }, [identityHex, sessions]);
+  }, [sessions]);
 
   const activeMembers = useMemo<CommandActor[]>(() => {
     if (!activeSession) {
@@ -113,9 +108,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
 
     return members
       .filter(
-        (row) =>
-          row.playerId.toHexString() === identityHex &&
-          row.sessionKey === activeSession.sessionKey,
+        (row) => row.sessionKey === activeSession.sessionKey,
       )
       .map((row) => ({
         actorId: row.actorId,
@@ -130,7 +123,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
         sortOrder: Number(row.sortOrder),
       }))
       .sort((left, right) => left.sortOrder - right.sortOrder);
-  }, [activeSession, identityHex, members]);
+  }, [activeSession, members]);
 
   const orders = useMemo(
     () => parseOrders(activeSession?.ordersJson),
@@ -144,15 +137,13 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
 
     return history
       .filter(
-        (row) =>
-          row.playerId.toHexString() === identityHex &&
-          row.sessionKey === activeSession.sessionKey,
+        (row) => row.sessionKey === activeSession.sessionKey,
       )
       .sort((left, right) =>
         String(right.createdAt).localeCompare(String(left.createdAt)),
       )
       .slice(0, 3);
-  }, [activeSession, history, identityHex]);
+  }, [activeSession, history]);
 
   const isReady = sessionsReady && membersReady && historyReady;
   const isResolving = pendingOrderId !== null || activeSession?.phase === "resolving";

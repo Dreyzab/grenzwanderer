@@ -18,11 +18,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify Secrets
+      - name: Verify GCP Secrets
         run: |
           if [ -z "${{ secrets.GCP_CREDENTIALS }}" ]; then
-            echo "::error::GCP_CREDENTIALS secret is empty or missing!"
+            echo "::error::GCP_CREDENTIALS secret is empty! Ensure it is set in Settings > Secrets and variables > Actions"
             exit 1
+          fi
+          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
+            echo "::warning::GCP_PROJECT_ID secret is empty! Using fallback: detective-prod-8f6f0"
           fi
 
       - name: Google Auth
@@ -37,17 +40,21 @@ jobs:
         run: gcloud auth configure-docker europe-west3-docker.pkg.dev
 
       - name: Build and Push Container
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || 'detective-prod-8f6f0' }}
         run: |
-          docker build -t europe-west3-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }} ./cloud_run/scene_gen
-          docker push europe-west3-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }}
+          docker build -t europe-west3-docker.pkg.dev/${PROJECT_ID}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }} ./cloud_run/scene_gen
+          docker push europe-west3-docker.pkg.dev/${PROJECT_ID}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }}
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || 'detective-prod-8f6f0' }}
         with:
           service: karlsruhe-scene-gen
-          image: europe-west3-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }}
+          image: europe-west3-docker.pkg.dev/${PROJECT_ID}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }}
           region: europe-west3
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          project_id: ${PROJECT_ID}
           flags: --allow-unauthenticated
 
   deploy-frontend:

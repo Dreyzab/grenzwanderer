@@ -48,13 +48,11 @@ jobs:
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
-        env:
-          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || 'detective-prod-8f6f0' }}
         with:
           service: karlsruhe-scene-gen
-          image: europe-west3-docker.pkg.dev/${PROJECT_ID}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }}
+          image: europe-west3-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID || 'detective-prod-8f6f0' }}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }}
           region: europe-west3
-          project_id: ${PROJECT_ID}
+          project_id: ${{ secrets.GCP_PROJECT_ID || 'detective-prod-8f6f0' }}
           flags: --allow-unauthenticated
 
   deploy-frontend:
@@ -93,5 +91,5 @@ jobs:
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: ${{ secrets.GCP_PROJECT_ID }}
+          projectId: ${{ secrets.GCP_PROJECT_ID || 'detective-prod-8f6f0' }}
           target: karlsruhe-event

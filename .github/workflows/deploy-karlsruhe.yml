@@ -60,6 +60,7 @@ jobs:
     needs: deploy-scene-gen
     runs-on: ubuntu-latest
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       VITE_RELEASE_PROFILE: karlsruhe_event
       VITE_SPACETIMEDB_DB_NAME: grezwandererdata-karlsruhe
       VITE_SCENE_GEN_BASE_URL: /api

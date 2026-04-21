@@ -21,9 +21,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Install SpacetimeDB CLI
+      - name: Install SpacetimeDB CLI (Non-interactive)
         run: |
-          curl -sSf https://install.spacetimedb.com | sh -s -- -y
+          curl -sSfL https://install.spacetimedb.com | sh -s -- -y
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Publish SpacetimeDB Module

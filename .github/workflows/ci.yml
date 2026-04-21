@@ -31,8 +31,8 @@ jobs:
 
       - name: Install SpacetimeDB CLI
         run: |
-          curl -sSf https://install.spacetimedb.com | sh
-          echo "$HOME/.spacetime/bin" >> $GITHUB_PATH
+          curl -sSfL https://install.spacetimedb.com | sh -s -- -y
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
           "$HOME/.spacetime/bin/spacetime" version install 2.0.1
           "$HOME/.spacetime/bin/spacetime" version use 2.0.1
           "$HOME/.spacetime/bin/spacetime" version list

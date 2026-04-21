@@ -59,7 +59,7 @@
     "spacetime:generate": "bun run bootstrap:config:prepare && bun run release:config:prepare && spacetime generate -y --lang typescript --out-dir src/module_bindings --module-path spacetimedb && bun run scripts/postgenerate.ts",
     "spacetime:publish:local": "bun run bootstrap:config:prepare && bun run release:config:prepare && spacetime publish grezwandererdata --module-path spacetimedb --server local",
     "spacetime:publish:local:clear": "bun run bootstrap:config:prepare && bun run release:config:prepare && spacetime publish grezwandererdata --clear-database -y --module-path spacetimedb --server local",
-    "spacetime:publish": "bun run bootstrap:config:prepare && bun run release:config:prepare && spacetime publish grezwandererdata --module-path spacetimedb --server maincloud",
+    "spacetime:publish": "bun run bootstrap:config:prepare && bun run release:config:prepare && spacetime publish grezwandererdata -y --module-path spacetimedb --server maincloud",
     "content:release": "bun run scripts/content-release.ts",
     "content:release:karlsruhe": "bun run scripts/content-release.ts --profile karlsruhe_event --server maincloud --db grezwandererdata-karlsruhe",
     "content:release:freiburg": "bun run scripts/content-release.ts --profile default --server maincloud --db grezwandererdata",

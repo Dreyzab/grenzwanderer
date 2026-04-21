@@ -1,0 +1,49 @@
+name: Deploy Production (Freiburg)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Publish SpacetimeDB Module
+        env:
+          STDB_OPERATOR_TOKEN: ${{ secrets.STDB_OPERATOR_TOKEN }}
+        run: |
+          # Use operator token for maincloud publishing
+          # Note: STDB_OPERATOR_TOKEN must be configured in repository secrets
+          mkdir -p ~/.spacetime
+          echo "{\"token\":\"$STDB_OPERATOR_TOKEN\"}" > ~/.spacetime/auth_token.json
+          bun run spacetime:publish
+
+      - name: Build
+        env:
+          VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VITE_RELEASE_PROFILE: "freiburg_detective"
+          VITE_SPACETIMEDB_HOST: "https://maincloud.spacetimedb.com"
+          VITE_SPACETIMEDB_DB_NAME: "grezwandererdata"
+        run: bun run build:freiburg
+
+      - name: Deploy to Firebase
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GCP_CREDENTIALS }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          # The deploy script already calls firebase-tools and specifies the site
+          bun run deploy:firebase:freiburg

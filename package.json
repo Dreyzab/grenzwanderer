@@ -62,6 +62,7 @@
     "spacetime:publish": "bun run bootstrap:config:prepare && bun run release:config:prepare && spacetime publish grezwandererdata --module-path spacetimedb --server maincloud",
     "content:release": "bun run scripts/content-release.ts",
     "content:release:karlsruhe": "bun run scripts/content-release.ts --profile karlsruhe_event --server maincloud --db grezwandererdata-karlsruhe",
+    "content:release:freiburg": "bun run scripts/content-release.ts --profile default --server maincloud --db grezwandererdata",
     "content:tag": "bun run scripts/content-tag.ts",
     "content:rollback": "bun run scripts/content-rollback.ts",
     "content:manifest:check": "bun run scripts/content-manifest-check.ts",

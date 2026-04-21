@@ -33,9 +33,9 @@ jobs:
         run: |
           curl -sSfL https://install.spacetimedb.com | sh -s -- -y
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          "$HOME/.spacetime/bin/spacetime" version install 2.0.1
-          "$HOME/.spacetime/bin/spacetime" version use 2.0.1
-          "$HOME/.spacetime/bin/spacetime" version list
+          "$HOME/.local/bin/spacetime" version install 2.0.1
+          "$HOME/.local/bin/spacetime" version use 2.0.1
+          "$HOME/.local/bin/spacetime" version list
 
       - name: Install dependencies
         run: bun install --frozen-lockfile

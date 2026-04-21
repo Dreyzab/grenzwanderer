@@ -68,7 +68,9 @@ const requireSupportedAiKind = (kind: string): SupportedAiKind => {
 const parseDialoguePayloadOrThrow = (payloadJson: string) => {
   const payload = parseGenerateDialoguePayload(payloadJson);
   if (!payload) {
-    throw new SenderError("payloadJson must contain a valid GenerateDialoguePayload");
+    throw new SenderError(
+      "payloadJson must contain a valid GenerateDialoguePayload",
+    );
   }
   return payload;
 };
@@ -187,7 +189,15 @@ export const enqueue_providence_dialogue = spacetimedb.reducer(
   },
   (
     ctx,
-    { requestId, scenarioId, nodeId, checkId, choiceId, providenceCost, payloadJson },
+    {
+      requestId,
+      scenarioId,
+      nodeId,
+      checkId,
+      choiceId,
+      providenceCost,
+      payloadJson,
+    },
   ) => {
     ensureIdempotent(ctx, requestId, "enqueue_providence_dialogue");
     ensurePlayerProfile(ctx);
@@ -195,10 +205,14 @@ export const enqueue_providence_dialogue = spacetimedb.reducer(
 
     const payload = parseDialoguePayloadOrThrow(payloadJson);
     if (payload.source !== "vn_skill_check") {
-      throw new SenderError("Providence dialogue payload must come from a skill check");
+      throw new SenderError(
+        "Providence dialogue payload must come from a skill check",
+      );
     }
     if (payload.dialogueLayer !== "providence") {
-      throw new SenderError("Providence dialogue payload must declare dialogueLayer='providence'");
+      throw new SenderError(
+        "Providence dialogue payload must declare dialogueLayer='providence'",
+      );
     }
     if (payload.scenarioId !== scenarioId) {
       throw new SenderError("Providence dialogue scenarioId mismatch");
@@ -214,7 +228,10 @@ export const enqueue_providence_dialogue = spacetimedb.reducer(
     }
 
     const normalizedProvidenceCost = Math.max(0, Math.trunc(providenceCost));
-    if (Math.max(0, Math.trunc(payload.providenceCost ?? 0)) !== normalizedProvidenceCost) {
+    if (
+      Math.max(0, Math.trunc(payload.providenceCost ?? 0)) !==
+      normalizedProvidenceCost
+    ) {
       throw new SenderError("Providence dialogue cost mismatch");
     }
 

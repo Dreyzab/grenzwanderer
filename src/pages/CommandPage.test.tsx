@@ -87,7 +87,8 @@ describe("CommandPage", () => {
                   id: "deploy_inspector_watch",
                   actorId: "inspector",
                   label: "Deploy Night Watch",
-                  description: "Route the inspector through the station quarter.",
+                  description:
+                    "Route the inspector through the station quarter.",
                   effectPreview: "Gain one strong lead.",
                   disabled: false,
                 },
@@ -127,7 +128,9 @@ describe("CommandPage", () => {
 
     render(<CommandPage onNavigateTab={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /deploy night watch/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /deploy night watch/i }),
+    );
 
     await waitFor(() => {
       expect(mocks.issueCommandMock).toHaveBeenCalledTimes(1);

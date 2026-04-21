@@ -221,7 +221,12 @@ const evaluateQrCodeCondition = (
     );
   }
   if (condition.type === "logic_not") {
-    return !evaluateQrCodeCondition(ctx, condition.condition, attemptedLocation, cache);
+    return !evaluateQrCodeCondition(
+      ctx,
+      condition.condition,
+      attemptedLocation,
+      cache,
+    );
   }
   if (condition.type === "geofence_within") {
     if (!attemptedLocation) {
@@ -567,9 +572,9 @@ const iterateRedeemRowsByCodeForSender = (
   codeId: string,
 ): Iterable<any> => {
   const senderHex = ctx.sender.toHexString();
-  return [...ctx.db.playerRedeemedCode.player_redeemed_code_code_id.filter(codeId)].filter(
-    (row) => row.playerId.toHexString() === senderHex,
-  );
+  return [
+    ...ctx.db.playerRedeemedCode.player_redeemed_code_code_id.filter(codeId),
+  ].filter((row) => row.playerId.toHexString() === senderHex);
 };
 
 const hasPriorSuccessfulRedeem = (ctx: any, codeId: string): boolean => {
@@ -595,7 +600,10 @@ const hasRecentRejectedRedeem = (
       continue;
     }
 
-    if (timestampMicros(row.redeemedAt) + MAP_CODE_RETRY_COOLDOWN_MICROS > nowMicros) {
+    if (
+      timestampMicros(row.redeemedAt) + MAP_CODE_RETRY_COOLDOWN_MICROS >
+      nowMicros
+    ) {
       return true;
     }
   }

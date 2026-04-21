@@ -351,10 +351,7 @@ export const perform_skill_check = spacetimedb.reducer(
     }
 
     const effectiveDifficulty = normalizeDifficulty(
-      baseDifficulty +
-        karmaDelta +
-        fortuneMod -
-        normalizedFortuneSpend * 2,
+      baseDifficulty + karmaDelta + fortuneMod - normalizedFortuneSpend * 2,
     );
 
     const total = roll + voiceLevel + modifierTotal;

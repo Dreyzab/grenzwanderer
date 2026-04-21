@@ -640,7 +640,11 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       conditions: [
         {
           type: "logic_not",
-          condition: { type: "flag_is", key: "warehouse_plan_locked", value: true },
+          condition: {
+            type: "flag_is",
+            key: "warehouse_plan_locked",
+            value: true,
+          },
         },
       ],
       actions: [
@@ -920,7 +924,8 @@ export const CASE_01_POINTS: Case01PointSource[] = [
       "Rail yard storage facility used for late-stage investigation.",
     lat: 48.001,
     lng: 7.838,
-    image: "/images/locations/loc_freiburg_warehouse/loc_stuhlinger_warehouse.webp",
+    image:
+      "/images/locations/loc_freiburg_warehouse/loc_stuhlinger_warehouse.webp",
     locationId: "loc_freiburg_warehouse",
     category: "SHADOW",
     unlockGroup: "loc_freiburg_warehouse",

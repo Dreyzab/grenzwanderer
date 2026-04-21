@@ -34,7 +34,8 @@ export const useVnSession = (scenarioId?: string): UseVnSessionResult => {
 
     if (scenarioId) {
       return {
-        session: sessions.find((entry) => entry.scenarioId === scenarioId) ?? null,
+        session:
+          sessions.find((entry) => entry.scenarioId === scenarioId) ?? null,
         isReady: effectiveReady,
       };
     }

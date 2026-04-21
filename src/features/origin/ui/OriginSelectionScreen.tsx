@@ -17,7 +17,10 @@ import {
   TriangleAlert,
   X,
 } from "lucide-react";
-import { originProfiles, type OriginProfileDefinition } from "../../character/originProfiles";
+import {
+  originProfiles,
+  type OriginProfileDefinition,
+} from "../../character/originProfiles";
 import { GameIcon } from "../../../shared/ui/icons/game-icons";
 
 interface OriginSelectionScreenProps {
@@ -69,13 +72,15 @@ const statusStrip = (status: string | null | undefined) =>
     </div>
   ) : null;
 
-const genderLabel = (gender: OriginProfileDefinition["dossier"]["gender"]): string =>
-  gender === "female" ? "F" : "M";
+const genderLabel = (
+  gender: OriginProfileDefinition["dossier"]["gender"],
+): string => (gender === "female" ? "F" : "M");
 
 const formatXp = (requiredXp: number): string => `${requiredXp} XP`;
 
 const getFlawIcon = (iconKey: string) => {
-  const Icon = FLAW_ICON_MAP[iconKey as keyof typeof FLAW_ICON_MAP] ?? AlertCircle;
+  const Icon =
+    FLAW_ICON_MAP[iconKey as keyof typeof FLAW_ICON_MAP] ?? AlertCircle;
   return <Icon size={14} />;
 };
 
@@ -85,13 +90,16 @@ export const OriginSelectionScreen = ({
   onConfirmOrigin,
   onCancel,
 }: OriginSelectionScreenProps) => {
-  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(
+    null,
+  );
   const detailRef = useRef<HTMLDivElement | null>(null);
 
   const selectedProfile = useMemo(
     () =>
       selectedProfileId
-        ? originProfiles.find((profile) => profile.id === selectedProfileId) ?? null
+        ? (originProfiles.find((profile) => profile.id === selectedProfileId) ??
+          null)
         : null,
     [selectedProfileId],
   );
@@ -205,7 +213,10 @@ const OriginListView = ({
         FREIBURG POLICE DEPARTMENT · 1905
       </div>
 
-      <div className="mx-auto mb-4 h-px w-12" style={{ backgroundColor: C.crimson }} />
+      <div
+        className="mx-auto mb-4 h-px w-12"
+        style={{ backgroundColor: C.crimson }}
+      />
 
       <p
         className="mb-2 text-xs uppercase tracking-[0.32em]"
@@ -228,8 +239,8 @@ const OriginListView = ({
         className="mx-auto mt-2 max-w-[300px] text-xs italic leading-relaxed sm:max-w-[360px]"
         style={{ color: `${C.bone}66`, fontFamily: "var(--font-serif)" }}
       >
-        Choose the dossier you want to open. Your origin determines your opening route,
-        flaw, and baseline investigative strengths.
+        Choose the dossier you want to open. Your origin determines your opening
+        route, flaw, and baseline investigative strengths.
       </p>
 
       {statusStrip(status)}
@@ -341,7 +352,10 @@ const DossierCard = ({
       <div className="min-w-0 flex-1 px-3 py-2.5">
         <div
           className="mb-0.5 text-[8px] uppercase tracking-[0.3em]"
-          style={{ color: profile.dossier.accentColor, fontFamily: "var(--font-mono)" }}
+          style={{
+            color: profile.dossier.accentColor,
+            fontFamily: "var(--font-mono)",
+          }}
         >
           {profile.label}
         </div>
@@ -563,11 +577,18 @@ const OriginDetailView = forwardRef<
           ))}
         </div>
 
-        <Section label="SIGNATURE ABILITY" accent={C.brass} icon={<Sparkles size={14} />}>
+        <Section
+          label="SIGNATURE ABILITY"
+          accent={C.brass}
+          icon={<Sparkles size={14} />}
+        >
           <div className="mb-1 text-sm font-bold" style={{ color: C.bone }}>
             {profile.signature.title}
           </div>
-          <p className="text-xs leading-relaxed" style={{ color: `${C.bone}77` }}>
+          <p
+            className="text-xs leading-relaxed"
+            style={{ color: `${C.bone}77` }}
+          >
             {profile.signature.description}
           </p>
           <div
@@ -592,7 +613,10 @@ const OriginDetailView = forwardRef<
           <div className="mb-1 text-sm font-bold" style={{ color: C.crimson }}>
             {profile.flaw.title}
           </div>
-          <p className="text-xs leading-relaxed" style={{ color: `${C.bone}77` }}>
+          <p
+            className="text-xs leading-relaxed"
+            style={{ color: `${C.bone}77` }}
+          >
             {profile.flaw.description}
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -647,11 +671,17 @@ const OriginDetailView = forwardRef<
                 </div>
                 <div
                   className="text-[8px] uppercase tracking-wide"
-                  style={{ color: `${C.steel}88`, fontFamily: "var(--font-mono)" }}
+                  style={{
+                    color: `${C.steel}88`,
+                    fontFamily: "var(--font-mono)",
+                  }}
                 >
                   {track.focus}
                 </div>
-                <p className="mt-2 text-xs leading-relaxed" style={{ color: `${C.bone}66` }}>
+                <p
+                  className="mt-2 text-xs leading-relaxed"
+                  style={{ color: `${C.bone}66` }}
+                >
                   {track.description}
                 </p>
 
@@ -663,17 +693,27 @@ const OriginDetailView = forwardRef<
                           className="h-1.5 w-1.5 rounded-full"
                           style={{ backgroundColor: accent }}
                         />
-                        <GameIcon name={step.voice} size={10} className="opacity-80" />
+                        <GameIcon
+                          name={step.voice}
+                          size={10}
+                          className="opacity-80"
+                        />
                         <span
                           className="text-[7px] uppercase"
-                          style={{ color: `${C.bone}55`, fontFamily: "var(--font-mono)" }}
+                          style={{
+                            color: `${C.bone}55`,
+                            fontFamily: "var(--font-mono)",
+                          }}
                         >
                           {formatXp(step.requiredXp)}
                         </span>
                         {index < track.steps.length - 1 ? (
                           <span
                             className="mx-0.5 text-[7px]"
-                            style={{ color: `${C.steel}40`, fontFamily: "var(--font-mono)" }}
+                            style={{
+                              color: `${C.steel}40`,
+                              fontFamily: "var(--font-mono)",
+                            }}
                           >
                             {"->"}
                           </span>
@@ -683,10 +723,16 @@ const OriginDetailView = forwardRef<
                   ))}
                 </div>
 
-                <div className="mt-2 text-[9px] italic" style={{ color: `${C.bone}55` }}>
+                <div
+                  className="mt-2 text-[9px] italic"
+                  style={{ color: `${C.bone}55` }}
+                >
                   {`-> ${track.finalAbilityTitle}`}
                 </div>
-                <p className="mt-1 text-[10px] leading-relaxed" style={{ color: `${C.bone}60` }}>
+                <p
+                  className="mt-1 text-[10px] leading-relaxed"
+                  style={{ color: `${C.bone}60` }}
+                >
                   {track.finalAbilityDescription}
                 </p>
               </div>

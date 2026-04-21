@@ -124,7 +124,8 @@ const BATTLE_CARDS: readonly BattleCardDefinition[] = [
   {
     id: "card_expose_pattern",
     label: "Expose the Pattern",
-    description: "Link one inconsistency to the next and stay on the offensive.",
+    description:
+      "Link one inconsistency to the next and stay on the offensive.",
     costAp: 2,
     effectPreview: "Deal 3 resolve damage and draw 1 card.",
     effects: [

@@ -74,9 +74,7 @@ describe("BattlePage", () => {
 
     render(<BattlePage onNavigateTab={vi.fn()} />);
 
-    expect(
-      screen.getByText(/no active battle is open/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/no active battle is open/i)).toBeInTheDocument();
     expect(
       screen.getByText(/banker vn slice or the debug launcher/i),
     ).toBeInTheDocument();
@@ -174,7 +172,8 @@ describe("BattlePage", () => {
               cardId: "card_press_advantage",
               ownerCombatantId: "detective",
               label: "Press the Advantage",
-              description: "Use the room's doubt to keep the tempo on your side.",
+              description:
+                "Use the room's doubt to keep the tempo on your side.",
               effectPreview: "Deal 6 resolve damage.",
               costAp: 2,
               zone: "deck",
@@ -379,7 +378,9 @@ describe("BattlePage", () => {
     render(<BattlePage onNavigateTab={onNavigateTab} />);
 
     expect(screen.getByText("Friedrich Buckles")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "End Turn" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "End Turn" }),
+    ).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Return" }));
 
     await waitFor(() => {

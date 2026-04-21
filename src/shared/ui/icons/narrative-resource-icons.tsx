@@ -54,4 +54,3 @@ export const KarmaIcon = (props: NarrativeResourceIconProps) => (
     <path d="M66 40 L60 54 H72 Z" />
   </ResourceIconWrapper>
 );
-

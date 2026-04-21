@@ -1,7 +1,7 @@
 {
-    "promptHash": "generated_by_agent",
-    "prompt": "1905 newspaper printing press room interior, massive heavy iron printing machines, scattered stacks of fresh newspapers and paper rolls, ink stains on the wooden floor, warm gaslight illumination, set in 1905 Kaiser-era Germany. Painterly digital art style, thick expressive brushstrokes, coherent historical color palette, warm dramatic lighting, masterpiece. Visual details: Iron machinery, paper stacks, ink. Mood: Industry and urgency. Wide establishing shot, empty scene, no people visible. 16:9 aspect ratio, high resolution.",
-    "model": "imagen-3.0-generate-002",
-    "createdAt": "2026-03-03T22:08:15.000Z",
-    "locationId": "printing_press_room"
+  "promptHash": "generated_by_agent",
+  "prompt": "1905 newspaper printing press room interior, massive heavy iron printing machines, scattered stacks of fresh newspapers and paper rolls, ink stains on the wooden floor, warm gaslight illumination, set in 1905 Kaiser-era Germany. Painterly digital art style, thick expressive brushstrokes, coherent historical color palette, warm dramatic lighting, masterpiece. Visual details: Iron machinery, paper stacks, ink. Mood: Industry and urgency. Wide establishing shot, empty scene, no people visible. 16:9 aspect ratio, high resolution.",
+  "model": "imagen-3.0-generate-002",
+  "createdAt": "2026-03-03T22:08:15.000Z",
+  "locationId": "printing_press_room"
 }

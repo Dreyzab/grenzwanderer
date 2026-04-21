@@ -528,7 +528,9 @@ const parseSchemaTables = (schemaSource: string): SchemaTable[] => {
 
 const parseViewNames = (schemaSource: string): Set<string> => {
   const viewNames = new Set<string>();
-  for (const match of schemaSource.matchAll(/spacetimedb\.view\(\s*\{[\s\S]*?name:\s*"([^"]+)"/g)) {
+  for (const match of schemaSource.matchAll(
+    /spacetimedb\.view\(\s*\{[\s\S]*?name:\s*"([^"]+)"/g,
+  )) {
     viewNames.add(match[1]);
   }
   return viewNames;
@@ -630,7 +632,9 @@ export const validateVisibilityMatrix = (): void => {
     schemaTables.map((tableInfo) => [tableInfo.tableName, tableInfo] as const),
   );
   const schemaExportMap = new Map(
-    schemaTables.map((tableInfo) => [tableInfo.schemaExport, tableInfo] as const),
+    schemaTables.map(
+      (tableInfo) => [tableInfo.schemaExport, tableInfo] as const,
+    ),
   );
   const schemaViewNames = extractSchemaViewNames();
   const seenTableNames = new Set<string>();

@@ -94,11 +94,15 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
 
       const id = generateId();
       setToasts((prev) => {
-        const next = [...prev, { id, message: normalizedMessage, type, source }];
+        const next = [
+          ...prev,
+          { id, message: normalizedMessage, type, source },
+        ];
         return next.length > MAX_VISIBLE ? next.slice(-MAX_VISIBLE) : next;
       });
 
-      const safeTtl = Number.isFinite(ttlMs) && ttlMs > 0 ? ttlMs : DEFAULT_TTL_MS;
+      const safeTtl =
+        Number.isFinite(ttlMs) && ttlMs > 0 ? ttlMs : DEFAULT_TTL_MS;
       const timer = setTimeout(() => {
         dismissToast(id);
       }, safeTtl);

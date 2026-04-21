@@ -1,7 +1,7 @@
 {
-    "promptHash": "generated_by_agent",
-    "prompt": "1905 grand theater auditorium interior, rows of plush red velvet seats, ornate gold leaf decorations on curved balconies, heavy dark velvet stage curtains completely closed, dim romantic lighting from crystal wall sconces, set in 1905 Kaiser-era Germany. Painterly digital art style, thick expressive brushstrokes, coherent historical color palette, warm dramatic lighting, masterpiece. Visual details: Red velvet, gold trim, dim lighting. Mood: Theatrical anticipation. Wide establishing shot, empty scene, no people visible. 16:9 aspect ratio, high resolution.",
-    "model": "imagen-3.0-generate-002",
-    "createdAt": "2026-03-03T22:08:15.000Z",
-    "locationId": "theater_auditorium"
+  "promptHash": "generated_by_agent",
+  "prompt": "1905 grand theater auditorium interior, rows of plush red velvet seats, ornate gold leaf decorations on curved balconies, heavy dark velvet stage curtains completely closed, dim romantic lighting from crystal wall sconces, set in 1905 Kaiser-era Germany. Painterly digital art style, thick expressive brushstrokes, coherent historical color palette, warm dramatic lighting, masterpiece. Visual details: Red velvet, gold trim, dim lighting. Mood: Theatrical anticipation. Wide establishing shot, empty scene, no people visible. 16:9 aspect ratio, high resolution.",
+  "model": "imagen-3.0-generate-002",
+  "createdAt": "2026-03-03T22:08:15.000Z",
+  "locationId": "theater_auditorium"
 }

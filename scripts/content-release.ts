@@ -43,7 +43,9 @@ const parseCli = (): CliOptions => {
   }
 
   return {
-    profile: normalizeContentReleaseProfile(readArg(args, "--profile") ?? undefined),
+    profile: normalizeContentReleaseProfile(
+      readArg(args, "--profile") ?? undefined,
+    ),
     version,
     ...parseContentTargetArgs(args, usage),
   };

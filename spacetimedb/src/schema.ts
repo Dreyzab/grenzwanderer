@@ -1325,11 +1325,7 @@ const selfScopedByPlayerId = (
   accessorName: string,
   playerIdIndexAccessorName: string,
 ) =>
-  rowsFromIndex(
-    ctx.db[accessorName],
-    playerIdIndexAccessorName,
-    senderOf(ctx),
-  );
+  rowsFromIndex(ctx.db[accessorName], playerIdIndexAccessorName, senderOf(ctx));
 
 const ensureRegisteredWorkerView = (ctx: any): void => {
   const sender = senderOf(ctx);
@@ -1367,11 +1363,7 @@ export const my_player_inventory = spacetimedb.view(
   { name: "my_player_inventory", public: true },
   t.array(playerInventory.rowType),
   (ctx) =>
-    selfScopedByPlayerId(
-      ctx,
-      "playerInventory",
-      "player_inventory_player_id",
-    ),
+    selfScopedByPlayerId(ctx, "playerInventory", "player_inventory_player_id"),
 );
 
 export const my_vn_sessions = spacetimedb.view(
@@ -1408,11 +1400,10 @@ export const worker_ai_requests = spacetimedb.view(
         "ai_request_status",
         AI_REQUEST_STATUS_PENDING,
       ),
-      ...rowsFromIndex(
-        ctx.db.aiRequest,
-        "ai_request_claimed_by_status",
-        [senderOf(ctx), AI_REQUEST_STATUS_PROCESSING],
-      ),
+      ...rowsFromIndex(ctx.db.aiRequest, "ai_request_claimed_by_status", [
+        senderOf(ctx),
+        AI_REQUEST_STATUS_PROCESSING,
+      ]),
     ];
   },
 );
@@ -1421,22 +1412,14 @@ export const my_mind_cases = spacetimedb.view(
   { name: "my_mind_cases", public: true },
   t.array(playerMindCase.rowType),
   (ctx) =>
-    selfScopedByPlayerId(
-      ctx,
-      "playerMindCase",
-      "player_mind_case_player_id",
-    ),
+    selfScopedByPlayerId(ctx, "playerMindCase", "player_mind_case_player_id"),
 );
 
 export const my_mind_facts = spacetimedb.view(
   { name: "my_mind_facts", public: true },
   t.array(playerMindFact.rowType),
   (ctx) =>
-    selfScopedByPlayerId(
-      ctx,
-      "playerMindFact",
-      "player_mind_fact_player_id",
-    ),
+    selfScopedByPlayerId(ctx, "playerMindFact", "player_mind_fact_player_id"),
 );
 
 export const my_mind_hypotheses = spacetimedb.view(
@@ -1460,11 +1443,7 @@ export const my_evidence = spacetimedb.view(
   { name: "my_evidence", public: true },
   t.array(playerEvidence.rowType),
   (ctx) =>
-    selfScopedByPlayerId(
-      ctx,
-      "playerEvidence",
-      "player_evidence_player_id",
-    ),
+    selfScopedByPlayerId(ctx, "playerEvidence", "player_evidence_player_id"),
 );
 
 export const my_relationships = spacetimedb.view(
@@ -1482,22 +1461,14 @@ export const my_npc_state = spacetimedb.view(
   { name: "my_npc_state", public: true },
   t.array(playerNpcState.rowType),
   (ctx) =>
-    selfScopedByPlayerId(
-      ctx,
-      "playerNpcState",
-      "player_npc_state_player_id",
-    ),
+    selfScopedByPlayerId(ctx, "playerNpcState", "player_npc_state_player_id"),
 );
 
 export const my_npc_favors = spacetimedb.view(
   { name: "my_npc_favors", public: true },
   t.array(playerNpcFavor.rowType),
   (ctx) =>
-    selfScopedByPlayerId(
-      ctx,
-      "playerNpcFavor",
-      "player_npc_favor_player_id",
-    ),
+    selfScopedByPlayerId(ctx, "playerNpcFavor", "player_npc_favor_player_id"),
 );
 
 export const my_faction_signals = spacetimedb.view(
@@ -1532,22 +1503,14 @@ export const my_battle_sessions = spacetimedb.view(
   { name: "my_battle_sessions", public: true },
   t.array(battleSession.rowType),
   (ctx) =>
-    selfScopedByPlayerId(
-      ctx,
-      "battleSession",
-      "battle_session_player_id",
-    ),
+    selfScopedByPlayerId(ctx, "battleSession", "battle_session_player_id"),
 );
 
 export const my_battle_combatants = spacetimedb.view(
   { name: "my_battle_combatants", public: true },
   t.array(battleCombatant.rowType),
   (ctx) =>
-    selfScopedByPlayerId(
-      ctx,
-      "battleCombatant",
-      "battle_combatant_player_id",
-    ),
+    selfScopedByPlayerId(ctx, "battleCombatant", "battle_combatant_player_id"),
 );
 
 export const my_battle_cards = spacetimedb.view(
@@ -1565,22 +1528,14 @@ export const my_battle_history = spacetimedb.view(
   { name: "my_battle_history", public: true },
   t.array(battleHistory.rowType),
   (ctx) =>
-    selfScopedByPlayerId(
-      ctx,
-      "battleHistory",
-      "battle_history_player_id",
-    ),
+    selfScopedByPlayerId(ctx, "battleHistory", "battle_history_player_id"),
 );
 
 export const my_command_sessions = spacetimedb.view(
   { name: "my_command_sessions", public: true },
   t.array(commandSession.rowType),
   (ctx) =>
-    selfScopedByPlayerId(
-      ctx,
-      "commandSession",
-      "command_session_player_id",
-    ),
+    selfScopedByPlayerId(ctx, "commandSession", "command_session_player_id"),
 );
 
 export const my_command_party = spacetimedb.view(
@@ -1620,11 +1575,7 @@ export const my_map_events = spacetimedb.view(
   { name: "my_map_events", public: true },
   t.array(playerMapEvent.rowType),
   (ctx) =>
-    selfScopedByPlayerId(
-      ctx,
-      "playerMapEvent",
-      "player_map_event_player_id",
-    ),
+    selfScopedByPlayerId(ctx, "playerMapEvent", "player_map_event_player_id"),
 );
 
 export const my_redeemed_codes = spacetimedb.view(

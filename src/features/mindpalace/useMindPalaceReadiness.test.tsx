@@ -67,10 +67,7 @@ describe("useMindPalaceReadiness", () => {
         ];
       }
       if (table === mocks.tablesMock.myMindFacts) {
-        return [
-          [{ caseId: "case_1", factId: "fact_1" }],
-          true,
-        ];
+        return [[{ caseId: "case_1", factId: "fact_1" }], true];
       }
       if (table === mocks.tablesMock.myMindHypotheses) {
         return [[], true];

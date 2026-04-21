@@ -107,9 +107,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
     }
 
     return members
-      .filter(
-        (row) => row.sessionKey === activeSession.sessionKey,
-      )
+      .filter((row) => row.sessionKey === activeSession.sessionKey)
       .map((row) => ({
         actorId: row.actorId,
         label: row.label,
@@ -136,9 +134,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
     }
 
     return history
-      .filter(
-        (row) => row.sessionKey === activeSession.sessionKey,
-      )
+      .filter((row) => row.sessionKey === activeSession.sessionKey)
       .sort((left, right) =>
         String(right.createdAt).localeCompare(String(left.createdAt)),
       )
@@ -146,7 +142,8 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
   }, [activeSession, history]);
 
   const isReady = sessionsReady && membersReady && historyReady;
-  const isResolving = pendingOrderId !== null || activeSession?.phase === "resolving";
+  const isResolving =
+    pendingOrderId !== null || activeSession?.phase === "resolving";
   const returnTab = normalizeReturnTab(activeSession?.returnTab ?? "map");
   const outcome =
     activeSession &&
@@ -225,8 +222,8 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
         <article className="card compact">
           <strong>Command Mode</strong>
           <p>
-            No active command briefing is open. Start one from the agency hub or a
-            story effect that issues `open_command_mode`.
+            No active command briefing is open. Start one from the agency hub or
+            a story effect that issues `open_command_mode`.
           </p>
         </article>
       </section>
@@ -235,7 +232,10 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
 
   return (
     <section className="panel-section">
-      <article className="card compact" style={{ display: "grid", gap: "1rem" }}>
+      <article
+        className="card compact"
+        style={{ display: "grid", gap: "1rem" }}
+      >
         <header style={{ display: "grid", gap: "0.5rem" }}>
           <div
             style={{
@@ -253,11 +253,19 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
               Return: {returnTab === "vn" ? "Story" : "Map"}
             </span>
           </div>
-          <p style={{ margin: 0, lineHeight: 1.65 }}>{activeSession.briefing}</p>
+          <p style={{ margin: 0, lineHeight: 1.65 }}>
+            {activeSession.briefing}
+          </p>
         </header>
 
         <section style={{ display: "grid", gap: "0.75rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "1rem",
+            }}
+          >
             <strong>Field Team</strong>
             <span className="eyebrow">{activeMembers.length} actors</span>
           </div>
@@ -322,7 +330,13 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
         ) : null}
 
         <section style={{ display: "grid", gap: "0.75rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "1rem",
+            }}
+          >
             <strong>Available Orders</strong>
             <span className="eyebrow">{activeSession.phase}</span>
           </div>
@@ -362,11 +376,15 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
                     opacity: isPending ? 0.72 : 1,
                   }}
                 >
-                  <strong>{isPending ? `${order.label}...` : order.label}</strong>
+                  <strong>
+                    {isPending ? `${order.label}...` : order.label}
+                  </strong>
                   <span>{order.description}</span>
                   <span style={{ opacity: 0.76 }}>{order.effectPreview}</span>
                   {order.disabledReason ? (
-                    <span style={{ opacity: 0.68 }}>{order.disabledReason}</span>
+                    <span style={{ opacity: 0.68 }}>
+                      {order.disabledReason}
+                    </span>
                   ) : null}
                 </button>
               );
@@ -388,7 +406,13 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
                 }}
               >
                 <strong>{entry.title}</strong>
-                <p style={{ margin: "0.35rem 0 0", opacity: 0.78, lineHeight: 1.55 }}>
+                <p
+                  style={{
+                    margin: "0.35rem 0 0",
+                    opacity: 0.78,
+                    lineHeight: 1.55,
+                  }}
+                >
                   {entry.summary}
                 </p>
               </article>
@@ -410,8 +434,14 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
         ) : null}
 
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button type="button" onClick={() => void handleClose()} disabled={isClosing}>
-            {activeSession.phase === "result" ? "Return to field" : "Exit command mode"}
+          <button
+            type="button"
+            onClick={() => void handleClose()}
+            disabled={isClosing}
+          >
+            {activeSession.phase === "result"
+              ? "Return to field"
+              : "Exit command mode"}
           </button>
         </div>
       </article>

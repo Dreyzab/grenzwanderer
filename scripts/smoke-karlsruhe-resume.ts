@@ -10,7 +10,9 @@ if (!arrivalScenario) {
 }
 
 if (arrivalScenario.completionRoute) {
-  throw new Error("Karlsruhe arrival should return to map instead of chaining into another scenario");
+  throw new Error(
+    "Karlsruhe arrival should return to map instead of chaining into another scenario",
+  );
 }
 
 const unlockNode = snapshot.nodes.find(
@@ -35,7 +37,11 @@ const hasNewspaperEvidence = onEnter.some(
 );
 
 if (!hasArrivalFlag || !hasNewspaperEvidence) {
-  throw new Error("Karlsruhe arrival unlock node is missing the required flag/evidence grant");
+  throw new Error(
+    "Karlsruhe arrival unlock node is missing the required flag/evidence grant",
+  );
 }
 
-console.log("[smoke:karlsruhe:resume] Arrival completion grants the expected resume state.");
+console.log(
+  "[smoke:karlsruhe:resume] Arrival completion grants the expected resume state.",
+);

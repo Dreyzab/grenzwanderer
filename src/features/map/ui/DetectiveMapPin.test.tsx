@@ -28,7 +28,12 @@ const basePoint: RuntimeMapPoint = {
 describe("DetectiveMapPin", () => {
   it("renders photo markers with selected state metadata", () => {
     render(
-      <DetectiveMapPin point={basePoint} isSelected={true} isZoomedOut={false} onClick={vi.fn()} />,
+      <DetectiveMapPin
+        point={basePoint}
+        isSelected={true}
+        isZoomedOut={false}
+        onClick={vi.fn()}
+      />,
     );
 
     const button = screen.getByRole("button", {

@@ -238,14 +238,10 @@ export const useMapPersistentState = (
   const [inventory, inventoryReady] = useTable(tables.myPlayerInventory);
   const [evidence, evidenceReady] = useTable(tables.myEvidence);
   const [quests, questsReady] = useTable(tables.myQuests);
-  const [relationships, relationshipsReady] = useTable(
-    tables.myRelationships,
-  );
+  const [relationships, relationshipsReady] = useTable(tables.myRelationships);
   const [npcStates, npcStatesReady] = useTable(tables.myNpcState);
   const [npcFavors, npcFavorsReady] = useTable(tables.myNpcFavors);
-  const [agencyCareers, agencyCareersReady] = useTable(
-    tables.myAgencyCareer,
-  );
+  const [agencyCareers, agencyCareersReady] = useTable(tables.myAgencyCareer);
   const [rumorStates, rumorStatesReady] = useTable(tables.myRumorState);
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
@@ -281,9 +277,7 @@ export const useMapPersistentState = (
       FALLBACK_REGION;
 
     const currentLocationId =
-      identityHex.length > 0
-        ? (locations[0]?.locationId ?? null)
-        : null;
+      identityHex.length > 0 ? (locations[0]?.locationId ?? null) : null;
 
     const activeFlags = new Set<string>();
     const visitedFlags = new Set<string>();
@@ -343,9 +337,7 @@ export const useMapPersistentState = (
     }
 
     const agencyCareer =
-      identityHex.length > 0
-        ? (agencyCareers[0] ?? null)
-        : null;
+      identityHex.length > 0 ? (agencyCareers[0] ?? null) : null;
     const agencyStanding = agencyCareer?.standingScore ?? 0;
     const careerRankId = agencyCareer?.rankId ?? null;
 

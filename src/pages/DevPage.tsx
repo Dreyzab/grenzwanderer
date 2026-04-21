@@ -91,7 +91,9 @@ export const DevPage = () => {
   return (
     <section className="panel-section h-full overflow-y-auto w-full p-4 space-y-4">
       <div className="bg-slate-900 border border-amber-900/50 rounded-lg p-4">
-        <h2 className="text-amber-500 text-lg font-serif mb-4">Development Cheats</h2>
+        <h2 className="text-amber-500 text-lg font-serif mb-4">
+          Development Cheats
+        </h2>
         <div className="flex gap-4 flex-wrap">
           <button
             type="button"

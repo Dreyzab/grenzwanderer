@@ -40,7 +40,12 @@ export interface ContentReleaseManifest {
 }
 
 export const snapshotPath = contentSnapshotPath;
-export const manifestPath = path.join(repoRoot, "content", "vn", "releases.manifest.json");
+export const manifestPath = path.join(
+  repoRoot,
+  "content",
+  "vn",
+  "releases.manifest.json",
+);
 
 const defaultManifest = (): ContentReleaseManifest => ({
   schemaVersion: 1,
@@ -222,7 +227,9 @@ export const readSnapshotForProfile = (
     `Snapshot file is missing: ${effectiveSnapshotPath}. Run 'bun run content:extract' first.`,
   );
 
-  const parsed = JSON.parse(readFileSync(effectiveSnapshotPath, "utf8")) as unknown;
+  const parsed = JSON.parse(
+    readFileSync(effectiveSnapshotPath, "utf8"),
+  ) as unknown;
   const raw = asRecord(parsed, "pilot.snapshot.json");
 
   const schemaVersion = asPositiveInteger(
@@ -271,7 +278,9 @@ export const loadManifestForProfile = (
     };
   }
 
-  const parsed = JSON.parse(readFileSync(effectiveManifestPath, "utf8")) as unknown;
+  const parsed = JSON.parse(
+    readFileSync(effectiveManifestPath, "utf8"),
+  ) as unknown;
   const record = asRecord(parsed, "releases.manifest.json");
 
   const schemaVersion = asPositiveInteger(

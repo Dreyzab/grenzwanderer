@@ -8,7 +8,8 @@ const CACHE_ROOT =
   process.env.SCENE_GEN_CACHE_ROOT ??
   path.join(process.cwd(), "tmp", "scene-gen-cache");
 const PROMPT_VERSION = process.env.SCENE_GEN_PROMPT_VERSION ?? "karlsruhe-v1";
-const RELEASE_PROFILE = process.env.SCENE_GEN_RELEASE_PROFILE ?? "karlsruhe_event";
+const RELEASE_PROFILE =
+  process.env.SCENE_GEN_RELEASE_PROFILE ?? "karlsruhe_event";
 
 const SCENE_PROMPTS = {
   karlsruhe_event_arrival:
@@ -182,7 +183,8 @@ const server = createServer(async (request, response) => {
 
   if (
     request.method === "POST" &&
-    (url.pathname === "/scene/generate" || url.pathname === "/api/scene/generate")
+    (url.pathname === "/scene/generate" ||
+      url.pathname === "/api/scene/generate")
   ) {
     try {
       const payload = await parseRequestBody(request);

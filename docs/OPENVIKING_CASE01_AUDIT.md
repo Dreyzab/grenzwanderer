@@ -48,7 +48,7 @@ bun run openviking:audit:case01 -- -FindOnly -MaxFiles 4
 ## Expected Findings
 
 - supported runtime path is `case01_hbf_arrival -> Fritz priority choice ->
-  bank/Mayor -> leads -> convergence -> warehouse finale`
+bank/Mayor -> leads -> convergence -> warehouse finale`
 - authored branch scenes live in
   `obsidian/StoryDetective/40_GameViewer/Case01/_runtime`
 - Detectiv alias material is visible under design/reference scope, not confused

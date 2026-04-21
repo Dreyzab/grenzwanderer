@@ -1348,25 +1348,19 @@
           "stage": 1,
           "title": "Open Bank Robbery",
           "objectiveHint": "Start the banker file from the Karlsruhe bank.",
-          "objectivePointIds": [
-            "loc_ka_bank"
-          ]
+          "objectivePointIds": ["loc_ka_bank"]
         },
         {
           "stage": 2,
           "title": "Pressure the Banker",
           "objectiveHint": "Stay on the bank trail until the ledger breaks.",
-          "objectivePointIds": [
-            "loc_ka_bank"
-          ]
+          "objectivePointIds": ["loc_ka_bank"]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Bank robbery archived.",
-          "objectivePointIds": [
-            "loc_ka_bank"
-          ]
+          "objectivePointIds": ["loc_ka_bank"]
         }
       ]
     },
@@ -1378,25 +1372,19 @@
           "stage": 1,
           "title": "Open Dog Lead Board",
           "objectiveHint": "Open the mayor's dog file from Rathaus.",
-          "objectivePointIds": [
-            "loc_ka_rathaus"
-          ]
+          "objectivePointIds": ["loc_ka_rathaus"]
         },
         {
           "stage": 2,
           "title": "Follow the Route",
           "objectiveHint": "Push the witness chain until the reunion.",
-          "objectivePointIds": [
-            "loc_ka_rathaus"
-          ]
+          "objectivePointIds": ["loc_ka_rathaus"]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Mayor's dog logged and sealed.",
-          "objectivePointIds": [
-            "loc_ka_rathaus"
-          ]
+          "objectivePointIds": ["loc_ka_rathaus"]
         }
       ]
     },
@@ -1408,25 +1396,19 @@
           "stage": 1,
           "title": "Bakery Briefing",
           "objectiveHint": "Open the bakery complaint from the Karlsruhe map.",
-          "objectivePointIds": [
-            "loc_ka_bakery"
-          ]
+          "objectivePointIds": ["loc_ka_bakery"]
         },
         {
           "stage": 2,
           "title": "Trace the Scent",
           "objectiveHint": "Follow the missing spice trail behind the bakery.",
-          "objectivePointIds": [
-            "loc_ka_bakery"
-          ]
+          "objectivePointIds": ["loc_ka_bakery"]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Aroma restored and the bakery file archived.",
-          "objectivePointIds": [
-            "loc_ka_bakery"
-          ]
+          "objectivePointIds": ["loc_ka_bakery"]
         }
       ]
     }

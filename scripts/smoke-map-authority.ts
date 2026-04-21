@@ -392,11 +392,7 @@ const runSmoke = async () =>
 
           await new Promise((resolve) => setTimeout(resolve, 100));
           if (
-            findRedeemAttempt(
-              conn,
-              qrCodes.cooldown.codeId,
-              "outside_geofence",
-            )
+            findRedeemAttempt(conn, qrCodes.cooldown.codeId, "outside_geofence")
           ) {
             throw new Error(
               "redeem_map_code unexpectedly persisted a rejected outside_geofence attempt",

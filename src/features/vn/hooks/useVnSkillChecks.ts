@@ -224,7 +224,7 @@ export function useVnSkillChecks({
         })
         .finally(() => {
           passiveInFlightRef.current.delete(key);
-      });
+        });
     }
   }, [
     currentNode,
@@ -598,7 +598,12 @@ export function useVnSkillChecks({
       setArmedSkillChoice(nextPending);
       startResolveSequence(nextPending);
     },
-    [armedSkillChoice, buildPendingSkillChoice, currentNode, startResolveSequence],
+    [
+      armedSkillChoice,
+      buildPendingSkillChoice,
+      currentNode,
+      startResolveSequence,
+    ],
   );
 
   const confirmArmedSkillCheck = useCallback(async () => {

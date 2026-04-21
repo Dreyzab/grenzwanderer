@@ -75,13 +75,11 @@ export const mapMetricsSnapshotPath = path.join(
 
 export const resolveContentSnapshotPath = (
   profile: ContentReleaseProfile = resolveContentReleaseProfile(),
-): string =>
-  resolveRepoPath(getContentSnapshotRelativePath(profile));
+): string => resolveRepoPath(getContentSnapshotRelativePath(profile));
 
 export const resolvePublicContentSnapshotPath = (
   profile: ContentReleaseProfile = resolveContentReleaseProfile(),
-): string =>
-  resolveRepoPath(getPublicContentSnapshotRelativePath(profile));
+): string => resolveRepoPath(getPublicContentSnapshotRelativePath(profile));
 
 export const resolveReleaseManifestPath = (
   profile: ContentReleaseProfile = resolveContentReleaseProfile(),
@@ -139,7 +137,10 @@ export const resolveStoryPath = (
   relativePath: string,
   customStoryRoot: string = storyRoot,
 ): string =>
-  path.join(customStoryRoot, ...normalizeRepoRelativePath(relativePath).split("/"));
+  path.join(
+    customStoryRoot,
+    ...normalizeRepoRelativePath(relativePath).split("/"),
+  );
 
 export const validateStoryRoot = (
   customStoryRoot: string = storyRoot,
@@ -171,8 +172,7 @@ export const validateCase01OnboardingRoot = (
 export const isContentSensitivePath = (candidatePath: string): boolean => {
   const normalized = normalizeRepoRelativePath(candidatePath);
   return contentSensitivePathPrefixes.some(
-    (prefix) =>
-      normalized === prefix || normalized.startsWith(prefix),
+    (prefix) => normalized === prefix || normalized.startsWith(prefix),
   );
 };
 

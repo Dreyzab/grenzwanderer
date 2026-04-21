@@ -4,11 +4,7 @@ import * as THREE from "three";
 import { getSkillCheckVoicePalette } from "../skillCheckPalette";
 import type { VnDiceMode } from "../types";
 
-export type VnSkillCheckDicePhase =
-  | "arming"
-  | "rolling"
-  | "impact"
-  | "result";
+export type VnSkillCheckDicePhase = "arming" | "rolling" | "impact" | "result";
 
 interface VnSkillCheckDiceSceneProps {
   diceMode: VnDiceMode;
@@ -83,7 +79,12 @@ const D10Die = ({
       <cylinderGeometry args={[0, 0.82, 0.82, 10, 1, false]} />
       <meshStandardMaterial {...materialProps} />
     </mesh>
-    <mesh castShadow receiveShadow position={[0, -0.34, 0]} rotation={[Math.PI, 0, 0]}>
+    <mesh
+      castShadow
+      receiveShadow
+      position={[0, -0.34, 0]}
+      rotation={[Math.PI, 0, 0]}
+    >
       <cylinderGeometry args={[0, 0.82, 0.82, 10, 1, false]} />
       <meshStandardMaterial {...materialProps} />
     </mesh>
@@ -111,8 +112,7 @@ const DiceMesh = ({ diceMode, voiceId, phase, passed }: DiceMeshProps) => {
     }
 
     const elapsed = (performance.now() - phaseStartedAtRef.current) / 1000;
-    const bobOffset =
-      phase === "rolling" ? Math.sin(elapsed * 7.5) * 0.14 : 0;
+    const bobOffset = phase === "rolling" ? Math.sin(elapsed * 7.5) * 0.14 : 0;
     const rollSpinX = phase === "rolling" ? delta * 7.4 : 0;
     const rollSpinY = phase === "rolling" ? delta * 9.2 : 0;
     const rollSpinZ = phase === "rolling" ? delta * 5.6 : 0;
@@ -163,7 +163,8 @@ const DiceMesh = ({ diceMode, voiceId, phase, passed }: DiceMeshProps) => {
   const materialProps = {
     color: palette.text,
     emissive: palette.accent,
-    emissiveIntensity: phase === "impact" ? 0.8 : phase === "result" ? 0.5 : 0.28,
+    emissiveIntensity:
+      phase === "impact" ? 0.8 : phase === "result" ? 0.5 : 0.28,
     metalness: 0.36,
     roughness: 0.28,
   } satisfies JSX.IntrinsicElements["meshStandardMaterial"];
@@ -196,7 +197,10 @@ export const VnSkillCheckDiceScene = ({
   const frameLoop = phase === "result" ? "demand" : "always";
 
   return (
-    <div className="vn-check-resolve__dice-shell" data-testid="vn-skill-dice-scene">
+    <div
+      className="vn-check-resolve__dice-shell"
+      data-testid="vn-skill-dice-scene"
+    >
       <Canvas
         camera={{ position: [0, 0, 3.8], fov: 34 }}
         dpr={[1, 1.5]}
@@ -218,9 +222,17 @@ export const VnSkillCheckDiceScene = ({
           intensity={1.15}
           color={palette.accent}
         />
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.08, 0]} receiveShadow>
+        <mesh
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, -1.08, 0]}
+          receiveShadow
+        >
           <circleGeometry args={[2.4, 40]} />
-          <meshBasicMaterial color={palette.glowStrong} transparent opacity={0.12} />
+          <meshBasicMaterial
+            color={palette.glowStrong}
+            transparent
+            opacity={0.12}
+          />
         </mesh>
         <DiceMesh
           diceMode={diceMode}

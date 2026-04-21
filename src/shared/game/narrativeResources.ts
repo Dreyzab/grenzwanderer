@@ -121,4 +121,3 @@ export const isDialogueLayer = (value: unknown): value is DialogueLayer =>
 export const isKarmaBand = (value: unknown): value is KarmaBand =>
   typeof value === "string" &&
   (KARMA_BANDS as readonly string[]).includes(value);
-

@@ -24,9 +24,7 @@ describe("content-pre-push", () => {
     expect(
       shouldRunContentGate(["obsidian/StoryDetective/40_GameViewer/demo.md"]),
     ).toBe(true);
-    expect(
-      shouldRunContentGate(["scripts/content-vocabulary.ts"]),
-    ).toBe(true);
+    expect(shouldRunContentGate(["scripts/content-vocabulary.ts"])).toBe(true);
     expect(shouldRunContentGate(["src/app/App.tsx"])).toBe(false);
   });
 
@@ -42,7 +40,8 @@ describe("content-pre-push", () => {
 
   it("falls back to origin/main when upstream is unavailable", () => {
     const exec = createExec({
-      "git rev-parse --abbrev-ref --symbolic-full-name @{upstream}": "__THROW__",
+      "git rev-parse --abbrev-ref --symbolic-full-name @{upstream}":
+        "__THROW__",
       "git rev-parse --verify --quiet origin/main": "origin/main\n",
       "git merge-base HEAD origin/main": "def456\n",
     });
@@ -52,7 +51,8 @@ describe("content-pre-push", () => {
 
   it("falls back to HEAD~1 when neither upstream nor origin/main resolve", () => {
     const exec = createExec({
-      "git rev-parse --abbrev-ref --symbolic-full-name @{upstream}": "__THROW__",
+      "git rev-parse --abbrev-ref --symbolic-full-name @{upstream}":
+        "__THROW__",
       "git rev-parse --verify --quiet origin/main": "__THROW__",
       "git rev-parse --verify --quiet HEAD~1": "789abc\n",
     });

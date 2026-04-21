@@ -3,10 +3,7 @@ import type {
   ContentReleaseManifest,
   ContentTarget,
 } from "./content-manifest";
-import {
-  loadManifest,
-  readSnapshot,
-} from "./content-manifest";
+import { loadManifest, readSnapshot } from "./content-manifest";
 import {
   formatContentTarget,
   parseContentTargetArgs,
@@ -233,7 +230,9 @@ const main = async (): Promise<void> => {
     return;
   }
 
-  console.log("[content:db:status] Active DB content matches the selected baseline.");
+  console.log(
+    "[content:db:status] Active DB content matches the selected baseline.",
+  );
 };
 
 if (import.meta.main) {

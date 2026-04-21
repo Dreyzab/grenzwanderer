@@ -34,7 +34,9 @@ export const Toaster = () => {
           <span className="text-lg shrink-0" aria-hidden="true">
             {typeIcons[toast.type]}
           </span>
-          <p className="text-sm font-medium leading-snug flex-1">{toast.message}</p>
+          <p className="text-sm font-medium leading-snug flex-1">
+            {toast.message}
+          </p>
           <button
             type="button"
             onClick={() => dismissToast(toast.id)}

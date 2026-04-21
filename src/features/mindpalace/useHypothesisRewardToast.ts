@@ -8,7 +8,9 @@ export const useHypothesisRewardToast = () => {
   const { identityHex } = useIdentity();
   const { showToast } = useToast();
 
-  const [playerMindHypotheses, hypothesesReady] = useTable(tables.myMindHypotheses);
+  const [playerMindHypotheses, hypothesesReady] = useTable(
+    tables.myMindHypotheses,
+  );
 
   const knownValidatedIdsRef = useRef<Set<string>>(new Set());
   const initializedRef = useRef(false);

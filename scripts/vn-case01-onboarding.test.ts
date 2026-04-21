@@ -257,7 +257,9 @@ Text.
       expect(choice.requireAll).toEqual([
         { type: "var_gte", key: "attr_social", value: 3 },
       ]);
-      expect(choice.requireAny).toEqual([{ type: "has_item", itemId: "lockpick" }]);
+      expect(choice.requireAny).toEqual([
+        { type: "has_item", itemId: "lockpick" },
+      ]);
       expect(choice.skillCheck?.id).toBe("check_probe");
       expect(choice.skillCheck?.showChancePercent).toBe(true);
       expect(choice.skillCheck?.onSuccess?.effects?.[0]).toEqual({
@@ -295,9 +297,7 @@ Text.
     };
 
     withFixture(files, (storyRoot) => {
-      expect(() => parseCase01Onboarding(storyRoot)).toThrow(
-        /INVALID_BOOLEAN/,
-      );
+      expect(() => parseCase01Onboarding(storyRoot)).toThrow(/INVALID_BOOLEAN/);
     });
   });
 

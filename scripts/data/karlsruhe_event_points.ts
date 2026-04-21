@@ -33,7 +33,8 @@ export const buildKarlsruheEventMapSnapshot = (
         lat: 49.0106,
         lng: 8.4048,
         category: "PUBLIC",
-        description: "Victoria's banker file is waiting behind the ledger desk.",
+        description:
+          "Victoria's banker file is waiting behind the ledger desk.",
         image: "/images/scenes/scene_bank_intro.png",
         locationId: "loc_ka_bank",
         defaultState: "locked",

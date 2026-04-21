@@ -4,3 +4,7 @@ src/module_bindings/
 spacetimedb/dist/
 obsidian/
 *.log
+.venv/
+data/
+tmp/
+.agent/

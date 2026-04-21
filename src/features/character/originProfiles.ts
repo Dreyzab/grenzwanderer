@@ -137,7 +137,8 @@ export const originProfiles: OriginProfileDefinition[] = [
       gender: "male",
       cityOrigin: "Stuttgart -> Freiburg",
       quote: "The city lies beautifully. My job is to make it stumble.",
-      avatarUrl: "/images/characters/journalist_portrait/journalist_portrait.png",
+      avatarUrl:
+        "/images/characters/journalist_portrait/journalist_portrait.png",
       accentColor: "#A61C2F",
     },
   },
@@ -215,7 +216,8 @@ export const originProfiles: OriginProfileDefinition[] = [
       cityOrigin: "Karlsruhe (Hochadel)",
       quote:
         "I was taught to hold a rapier and hold a conversation. Now I learn to hold the truth.",
-      avatarUrl: "/images/characters/aristocrat_portrait/aristocrat_portrait.png",
+      avatarUrl:
+        "/images/characters/aristocrat_portrait/aristocrat_portrait.png",
       accentColor: "#4E5D6C",
     },
   },

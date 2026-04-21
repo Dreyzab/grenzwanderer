@@ -13,26 +13,57 @@ const LOCATION_MAPPING: Record<string, string[]> = {
   loc_hotel_royal: ["hotel_"],
   loc_police_station: ["police_"],
   loc_pub_deutsche: ["pub_", "loc_ganter", "tavern"],
-  loc_freiburg_estate: ["loc_ka_estate", "aristocratic_salon", "bedroom_noble", "bathroom_luxe", "loc_ka_estate"],
+  loc_freiburg_estate: [
+    "loc_ka_estate",
+    "aristocratic_salon",
+    "bedroom_noble",
+    "bathroom_luxe",
+    "loc_ka_estate",
+  ],
   loc_student_house: ["student_house", "loc_student_house"],
   loc_hospital: ["hospital_"],
   loc_agency: ["loc_agency", "loc_ka_agency"],
   loc_munster: ["loc_munster", "munster"],
-  loc_misc: ["street_", "bakery", "barbershop", "carriage", "cemetery", "clockmaker", "factory", "haunted", "industrialist", "lab_bg", "lab_workbench", "location_exterior", "location_placeholder", "post_office", "printing", "ruined", "smugglers", "telegraph", "theater", "warehouse_exterior"]
+  loc_misc: [
+    "street_",
+    "bakery",
+    "barbershop",
+    "carriage",
+    "cemetery",
+    "clockmaker",
+    "factory",
+    "haunted",
+    "industrialist",
+    "lab_bg",
+    "lab_workbench",
+    "location_exterior",
+    "location_placeholder",
+    "post_office",
+    "printing",
+    "ruined",
+    "smugglers",
+    "telegraph",
+    "theater",
+    "warehouse_exterior",
+  ],
 };
 
 function migrateLocations() {
   console.log("--- Migrating Locations ---");
   const files = fs.readdirSync(LOC_DIR);
-  
+
   for (const file of files) {
-    if (file.endsWith(".webp") || file.endsWith(".png") || file.endsWith(".meta.json")) {
+    if (
+      file.endsWith(".webp") ||
+      file.endsWith(".png") ||
+      file.endsWith(".meta.json")
+    ) {
       const fullPath = path.join(LOC_DIR, file);
       if (fs.lstatSync(fullPath).isDirectory()) continue;
 
       let targetFolder = "misc";
       for (const [folder, prefixes] of Object.entries(LOCATION_MAPPING)) {
-        if (prefixes.some(p => file.startsWith(p))) {
+        if (prefixes.some((p) => file.startsWith(p))) {
           targetFolder = folder;
           break;
         }
@@ -51,15 +82,19 @@ function migrateLocations() {
 function migrateCharacters() {
   console.log("\n--- Migrating Characters ---");
   const files = fs.readdirSync(CHAR_DIR);
-  
+
   for (const file of files) {
-    if (file.endsWith(".webp") || file.endsWith(".png") || file.endsWith(".meta.json")) {
+    if (
+      file.endsWith(".webp") ||
+      file.endsWith(".png") ||
+      file.endsWith(".meta.json")
+    ) {
       const fullPath = path.join(CHAR_DIR, file);
       if (fs.lstatSync(fullPath).isDirectory()) continue;
 
       // Extract ID: clara_altenburg.webp -> clara_altenburg
       const id = path.basename(file, path.extname(file)).replace(".meta", "");
-      
+
       const destDir = path.join(CHAR_DIR, id);
       if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
 

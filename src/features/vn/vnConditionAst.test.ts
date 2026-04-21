@@ -21,7 +21,11 @@ describe("VN condition AST", () => {
         {
           type: "logic_and" as const,
           conditions: [
-            { type: "flag_equals" as const, key: "origin_detective", value: true },
+            {
+              type: "flag_equals" as const,
+              key: "origin_detective",
+              value: true,
+            },
             {
               type: "logic_not" as const,
               condition: {
@@ -45,16 +49,24 @@ describe("VN condition AST", () => {
     };
 
     expect(
-      isChoiceVisible(choice, {
-        origin_detective: true,
-        banker_case_closed: false,
-      }, {}),
+      isChoiceVisible(
+        choice,
+        {
+          origin_detective: true,
+          banker_case_closed: false,
+        },
+        {},
+      ),
     ).toBe(true);
     expect(
-      isChoiceEnabled(choice, {}, {
-        attr_intellect: 1,
-        attr_social: 4,
-      }),
+      isChoiceEnabled(
+        choice,
+        {},
+        {
+          attr_intellect: 1,
+          attr_social: 4,
+        },
+      ),
     ).toBe(true);
   });
 

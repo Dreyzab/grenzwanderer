@@ -13,7 +13,10 @@ export type PinVisualState = "locked" | "discovered" | "visited" | "completed";
 export type MapRegionId = string;
 export type MapRegion = MapRegionSnapshot;
 
-export interface MapPoint extends Omit<MapPointSnapshot, "bindings" | "category"> {
+export interface MapPoint extends Omit<
+  MapPointSnapshot,
+  "bindings" | "category"
+> {
   bindings?: MapBinding[];
   legacyScenarioIds?: string[];
   category?: MapPointCategory;

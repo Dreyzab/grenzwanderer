@@ -1,4 +1,7 @@
-import { assertSetEquals, loadKarlsruheSnapshot } from "./smoke-karlsruhe-helpers";
+import {
+  assertSetEquals,
+  loadKarlsruheSnapshot,
+} from "./smoke-karlsruhe-helpers";
 
 const snapshot = loadKarlsruheSnapshot();
 const pointIds = new Set<string>(
@@ -27,4 +30,6 @@ for (const quest of snapshot.questCatalog ?? []) {
   }
 }
 
-console.log("[smoke:karlsruhe:map] Karlsruhe map slice exposes exactly three case entry points.");
+console.log(
+  "[smoke:karlsruhe:map] Karlsruhe map slice exposes exactly three case entry points.",
+);

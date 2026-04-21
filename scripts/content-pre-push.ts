@@ -8,7 +8,10 @@ import {
 type ExecFileSyncLike = (
   file: string,
   args: readonly string[],
-  options?: { encoding?: BufferEncoding | "buffer"; stdio?: "inherit" | "pipe" },
+  options?: {
+    encoding?: BufferEncoding | "buffer";
+    stdio?: "inherit" | "pipe";
+  },
 ) => string | Buffer;
 
 const readGitText = (
@@ -75,8 +78,9 @@ export const listChangedPathsSinceBase = (
     .filter((entry) => entry.length > 0);
 };
 
-export const shouldRunContentGate = (changedPaths: readonly string[]): boolean =>
-  hasContentSensitiveChanges(changedPaths);
+export const shouldRunContentGate = (
+  changedPaths: readonly string[],
+): boolean => hasContentSensitiveChanges(changedPaths);
 
 const runLocalContentGate = (): void => {
   execFileSync("bun", ["run", "content:gate:local"], { stdio: "inherit" });
@@ -84,7 +88,9 @@ const runLocalContentGate = (): void => {
 
 if (import.meta.main) {
   if (process.env.SKIP_CONTENT_GATE === "1") {
-    console.log("[content:pre-push] SKIP_CONTENT_GATE=1, skipping content gate.");
+    console.log(
+      "[content:pre-push] SKIP_CONTENT_GATE=1, skipping content gate.",
+    );
     process.exit(0);
   }
 

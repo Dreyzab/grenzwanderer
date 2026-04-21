@@ -61,7 +61,10 @@ describe("MindPalacePanel", () => {
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
       if (table === mocks.tablesMock.mindCase) {
-        return [[{ caseId: "case_1", title: "Case One", isActive: true }], true];
+        return [
+          [{ caseId: "case_1", title: "Case One", isActive: true }],
+          true,
+        ];
       }
       if (table === mocks.tablesMock.mindHypothesis) {
         return [
@@ -78,19 +81,13 @@ describe("MindPalacePanel", () => {
         ];
       }
       if (table === mocks.tablesMock.myMindFacts) {
-        return [
-          [{ caseId: "case_1", factId: "fact_1" }],
-          true,
-        ];
+        return [[{ caseId: "case_1", factId: "fact_1" }], true];
       }
       if (table === mocks.tablesMock.myMindHypotheses) {
         return [[], true];
       }
       if (table === mocks.tablesMock.myMindCases) {
-        return [
-          [{ caseId: "case_1", status: "in_progress" }],
-          true,
-        ];
+        return [[{ caseId: "case_1", status: "in_progress" }], true];
       }
       return [[], true];
     });
@@ -108,7 +105,10 @@ describe("MindPalacePanel", () => {
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
       if (table === mocks.tablesMock.mindCase) {
-        return [[{ caseId: "case_1", title: "Case One", isActive: true }], true];
+        return [
+          [{ caseId: "case_1", title: "Case One", isActive: true }],
+          true,
+        ];
       }
       if (table === mocks.tablesMock.mindHypothesis) {
         return [[], true];

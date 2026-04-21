@@ -5,12 +5,16 @@
   width: 100%;
   min-height: calc(100dvh - env(safe-area-inset-bottom) - 4rem);
   background:
-    radial-gradient(circle at 18% 16%,
+    radial-gradient(
+      circle at 18% 16%,
       rgba(184, 139, 70, 0.18),
-      transparent 26%),
-    radial-gradient(circle at 82% 12%,
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 82% 12%,
       rgba(60, 129, 152, 0.16),
-      transparent 24%),
+      transparent 24%
+    ),
     #07090c;
 }
 
@@ -28,7 +32,7 @@
   pointer-events: none;
 }
 
-.gw-map-header>article {
+.gw-map-header > article {
   pointer-events: auto;
 }
 
@@ -300,8 +304,12 @@
   border: none !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  transition: width 220ms ease, height 220ms ease, filter 220ms ease;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 8px var(--gw-map-pin-glow));
+  transition:
+    width 220ms ease,
+    height 220ms ease,
+    filter 220ms ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 0 8px var(--gw-map-pin-glow));
 }
 
 .gw-map-pin[data-zoomed-out="true"] .gw-map-pin__marker svg {
@@ -316,7 +324,8 @@
 
 .gw-map-pin[data-zoomed-out="true"]:hover .gw-map-pin__marker {
   transform: scale(1.35);
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 12px var(--gw-map-pin-glow));
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.7))
+    drop-shadow(0 0 12px var(--gw-map-pin-glow));
 }
 
 .gw-map-pin[data-zoomed-out="true"]:hover .gw-map-pin__tooltip {
@@ -385,7 +394,6 @@
 }
 
 @keyframes gw-map-pulse {
-
   0%,
   100% {
     opacity: 1;

@@ -47,7 +47,11 @@ export interface VnSkillCheckResolveState {
   fortuneSpend?: number;
   fortuneBalance?: number;
   effectiveFortune?: number;
-  difficultyBreakdown?: Array<{ source: string; sourceId: string; delta: number }>;
+  difficultyBreakdown?: Array<{
+    source: string;
+    sourceId: string;
+    delta: number;
+  }>;
   nextNodeId?: string | null;
   frozen: FrozenSkillCheckPresentation;
 }
@@ -334,10 +338,14 @@ export const VnSkillCheckResolveOverlay = ({
                       );
                     })}
                   </div>
-                  {state.difficultyBreakdown && state.difficultyBreakdown.length > 0 ? (
+                  {state.difficultyBreakdown &&
+                  state.difficultyBreakdown.length > 0 ? (
                     <p className="vn-check-resolve__fortune-meta">
                       {state.difficultyBreakdown
-                        .map((entry) => `${entry.source} ${entry.delta > 0 ? "+" : ""}${entry.delta}`)
+                        .map(
+                          (entry) =>
+                            `${entry.source} ${entry.delta > 0 ? "+" : ""}${entry.delta}`,
+                        )
                         .join(" | ")}
                     </p>
                   ) : null}

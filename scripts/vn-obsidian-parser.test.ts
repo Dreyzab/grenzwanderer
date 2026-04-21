@@ -159,7 +159,11 @@ terminal: true
       },
       (storyRoot) => {
         const result = loadObsidianScenarioBundles(storyRoot);
-        expect(result.diagnostics.some((entry) => entry.code === "LOCALE_LOGIC_FORBIDDEN")).toBe(true);
+        expect(
+          result.diagnostics.some(
+            (entry) => entry.code === "LOCALE_LOGIC_FORBIDDEN",
+          ),
+        ).toBe(true);
       },
     );
   });

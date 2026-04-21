@@ -3,6 +3,7 @@
 ## Scope
 
 Hardening checklist for Mind Palace gameplay loop:
+
 - fact discovery toast,
 - ready hypothesis badge on `Scan`,
 - hypothesis validation reward toast,

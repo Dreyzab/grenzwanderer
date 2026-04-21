@@ -2845,7 +2845,9 @@ export const ensureNarrativeResourcesForPlayer = (
 ): void => {
   ensurePlayerProfileForPlayer(ctx, playerId);
 
-  for (const [key, defaultValue] of Object.entries(NARRATIVE_RESOURCE_DEFAULTS)) {
+  for (const [key, defaultValue] of Object.entries(
+    NARRATIVE_RESOURCE_DEFAULTS,
+  )) {
     if (!ctx.db.playerVar.varId.find(createVarKey(playerId, key))) {
       upsertVarForPlayer(ctx, playerId, key, defaultValue);
     }
@@ -2856,7 +2858,8 @@ export const ensureNarrativeResources = (ctx: any): void => {
   ensureNarrativeResourcesForPlayer(ctx, ctx.sender);
 };
 
-export const resolveKarmaBand = (value: number) => sharedResolveKarmaBand(value);
+export const resolveKarmaBand = (value: number) =>
+  sharedResolveKarmaBand(value);
 
 export const resolveKarmaDifficultyDelta = (value: number) =>
   sharedResolveKarmaDifficultyDelta(value);
@@ -3755,15 +3758,16 @@ export const getMindPalace = (snapshot: VnSnapshot): MindPalaceSnapshot => ({
   hypotheses: snapshot.mindPalace?.hypotheses ?? [],
 });
 
-const evaluateVnCondition = (
-  ctx: any,
-  condition: VnCondition,
-): boolean => {
+const evaluateVnCondition = (ctx: any, condition: VnCondition): boolean => {
   if (condition.type === "logic_and") {
-    return condition.conditions.every((entry) => evaluateVnCondition(ctx, entry));
+    return condition.conditions.every((entry) =>
+      evaluateVnCondition(ctx, entry),
+    );
   }
   if (condition.type === "logic_or") {
-    return condition.conditions.some((entry) => evaluateVnCondition(ctx, entry));
+    return condition.conditions.some((entry) =>
+      evaluateVnCondition(ctx, entry),
+    );
   }
   if (condition.type === "logic_not") {
     return !evaluateVnCondition(ctx, condition.condition);
@@ -3830,7 +3834,10 @@ const evaluateVnCondition = (
     return Math.floor(getVar(ctx, condition.voiceId)) >= condition.value;
   }
   if (condition.type === "spirit_state_is") {
-    return getFlag(ctx, `spirit_state_${condition.spiritId}::${condition.state}`);
+    return getFlag(
+      ctx,
+      `spirit_state_${condition.spiritId}::${condition.state}`,
+    );
   }
 
   return false;
@@ -5931,8 +5938,9 @@ const resolveMapEventTtlMinutes = (
 };
 
 export const cleanupExpiredMapEvents = (ctx: any): void => {
-  const playerEvents =
-    ctx.db.playerMapEvent.player_map_event_player_id.filter(ctx.sender);
+  const playerEvents = ctx.db.playerMapEvent.player_map_event_player_id.filter(
+    ctx.sender,
+  );
   for (const row of playerEvents) {
     if (row.status !== MAP_EVENT_STATUS_ACTIVE) {
       continue;
@@ -5949,8 +5957,9 @@ export const cleanupExpiredMapEvents = (ctx: any): void => {
   }
 };
 
-export const listPlayerMapEvents = (ctx: any): any[] =>
-  [...ctx.db.playerMapEvent.player_map_event_player_id.filter(ctx.sender)];
+export const listPlayerMapEvents = (ctx: any): any[] => [
+  ...ctx.db.playerMapEvent.player_map_event_player_id.filter(ctx.sender),
+];
 
 export const getPlayerActiveMapEventByEventId = (
   ctx: any,

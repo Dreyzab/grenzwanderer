@@ -1,7 +1,7 @@
 {
-    "promptHash": "generated_by_agent",
-    "prompt": "1905 underground smuggler's den in a damp cellar, stacks of wooden crates with stenciled markings, scattered contraband, flickering lantern light casting long shadows on rough brick walls, set in 1905 Kaiser-era Germany. Painterly digital art style, thick expressive brushstrokes, coherent historical color palette, warm dramatic lighting, masterpiece. Visual details: Rough brick, wooden crates, lantern light. Mood: Clandestine danger. Wide establishing shot, empty scene, no people visible. 16:9 aspect ratio, high resolution.",
-    "model": "imagen-3.0-generate-002",
-    "createdAt": "2026-03-03T22:08:15.000Z",
-    "locationId": "smugglers_den"
+  "promptHash": "generated_by_agent",
+  "prompt": "1905 underground smuggler's den in a damp cellar, stacks of wooden crates with stenciled markings, scattered contraband, flickering lantern light casting long shadows on rough brick walls, set in 1905 Kaiser-era Germany. Painterly digital art style, thick expressive brushstrokes, coherent historical color palette, warm dramatic lighting, masterpiece. Visual details: Rough brick, wooden crates, lantern light. Mood: Clandestine danger. Wide establishing shot, empty scene, no people visible. 16:9 aspect ratio, high resolution.",
+  "model": "imagen-3.0-generate-002",
+  "createdAt": "2026-03-03T22:08:15.000Z",
+  "locationId": "smugglers_den"
 }

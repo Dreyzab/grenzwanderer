@@ -1,7 +1,7 @@
 {
-    "promptHash": "generated_by_agent",
-    "prompt": "1905 post office interior, wooden service counters with brass grilles, walls lined with sorting boxes and letters, dusty sunlight streaming through tall windows, set in 1905 Kaiser-era Germany. Painterly digital art style, thick expressive brushstrokes, coherent historical color palette, warm dramatic lighting, masterpiece. Visual details: Wood, brass, paper stacks. Mood: Quiet bureaucracy. Wide establishing shot, empty scene, no people visible. 16:9 aspect ratio, high resolution.",
-    "model": "imagen-3.0-generate-002",
-    "createdAt": "2026-03-03T21:58:33.000Z",
-    "locationId": "post_office_interior"
+  "promptHash": "generated_by_agent",
+  "prompt": "1905 post office interior, wooden service counters with brass grilles, walls lined with sorting boxes and letters, dusty sunlight streaming through tall windows, set in 1905 Kaiser-era Germany. Painterly digital art style, thick expressive brushstrokes, coherent historical color palette, warm dramatic lighting, masterpiece. Visual details: Wood, brass, paper stacks. Mood: Quiet bureaucracy. Wide establishing shot, empty scene, no people visible. 16:9 aspect ratio, high resolution.",
+  "model": "imagen-3.0-generate-002",
+  "createdAt": "2026-03-03T21:58:33.000Z",
+  "locationId": "post_office_interior"
 }

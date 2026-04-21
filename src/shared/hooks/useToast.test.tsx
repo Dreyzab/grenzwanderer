@@ -62,7 +62,9 @@ describe("useToast", () => {
       </ToastProvider>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "trigger-short-toast" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "trigger-short-toast" }),
+    );
     expect(screen.getByText("Short toast")).toBeInTheDocument();
 
     await act(async () => {

@@ -1,7 +1,7 @@
 {
-    "promptHash": "generated_by_agent",
-    "prompt": "1905 barbershop interior, ornate mirrors on patterned wallpaper, vintage leather barber chairs, ceramic shaving mugs and straight razors on marble counters, set in 1905 Kaiser-era Germany. Painterly digital art style, thick expressive brushstrokes, coherent historical color palette, warm dramatic lighting, masterpiece. Visual details: Mirrors, leather, tiled floor. Mood: Nostalgic calm. Wide establishing shot, empty scene, no people visible. 16:9 aspect ratio, high resolution.",
-    "model": "imagen-3.0-generate-002",
-    "createdAt": "2026-03-03T21:58:33.000Z",
-    "locationId": "barbershop_interior"
+  "promptHash": "generated_by_agent",
+  "prompt": "1905 barbershop interior, ornate mirrors on patterned wallpaper, vintage leather barber chairs, ceramic shaving mugs and straight razors on marble counters, set in 1905 Kaiser-era Germany. Painterly digital art style, thick expressive brushstrokes, coherent historical color palette, warm dramatic lighting, masterpiece. Visual details: Mirrors, leather, tiled floor. Mood: Nostalgic calm. Wide establishing shot, empty scene, no people visible. 16:9 aspect ratio, high resolution.",
+  "model": "imagen-3.0-generate-002",
+  "createdAt": "2026-03-03T21:58:33.000Z",
+  "locationId": "barbershop_interior"
 }

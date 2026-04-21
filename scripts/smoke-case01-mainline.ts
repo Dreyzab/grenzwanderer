@@ -23,7 +23,12 @@ type SnapshotPayload = {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
-const snapshotPath = path.join(repoRoot, "content", "vn", "pilot.snapshot.json");
+const snapshotPath = path.join(
+  repoRoot,
+  "content",
+  "vn",
+  "pilot.snapshot.json",
+);
 
 const assert = (condition: unknown, message: string): void => {
   if (!condition) {
@@ -34,7 +39,10 @@ const assert = (condition: unknown, message: string): void => {
 const readSnapshot = (): SnapshotPayload =>
   JSON.parse(readFileSync(snapshotPath, "utf8")) as SnapshotPayload;
 
-const findPoint = (snapshot: SnapshotPayload, pointId: string): SnapshotPoint => {
+const findPoint = (
+  snapshot: SnapshotPayload,
+  pointId: string,
+): SnapshotPoint => {
   const point = snapshot.map?.points.find((entry) => entry.id === pointId);
   if (!point) {
     throw new Error(`Missing map point '${pointId}' in extracted snapshot`);
@@ -49,7 +57,8 @@ const scenarioBindingsForPoint = (
     (binding.actions ?? [])
       .filter(
         (action): action is { type: string; scenarioId: string } =>
-          action.type === "start_scenario" && typeof action.scenarioId === "string",
+          action.type === "start_scenario" &&
+          typeof action.scenarioId === "string",
       )
       .map((action) => ({
         bindingId: binding.id,
@@ -59,7 +68,9 @@ const scenarioBindingsForPoint = (
 
 try {
   const snapshot = readSnapshot();
-  const scenarioIds = new Set(snapshot.scenarios.map((scenario) => scenario.id));
+  const scenarioIds = new Set(
+    snapshot.scenarios.map((scenario) => scenario.id),
+  );
 
   for (const scenarioId of [
     CASE01_SCENARIO_IDS.leadTailor,
@@ -85,7 +96,9 @@ try {
     findPoint(snapshot, pointId);
   }
 
-  const rathausBindings = scenarioBindingsForPoint(findPoint(snapshot, "loc_rathaus"));
+  const rathausBindings = scenarioBindingsForPoint(
+    findPoint(snapshot, "loc_rathaus"),
+  );
   const workersPubBindings = scenarioBindingsForPoint(
     findPoint(snapshot, "loc_workers_pub"),
   );

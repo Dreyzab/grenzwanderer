@@ -10,7 +10,10 @@ import type {
   VnScenarioCompletionRoute,
   VnSkillCheck,
 } from "../src/features/vn/types";
-import { parseConditionExpression, parseEffectExpression } from "./vn-logic-expression";
+import {
+  parseConditionExpression,
+  parseEffectExpression,
+} from "./vn-logic-expression";
 import type {
   BlueprintDiagnostic,
   NodeBlueprint,
@@ -74,13 +77,18 @@ const asString = (
 };
 
 const asOptionalString = (value: unknown): string | undefined =>
-  typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+  typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : undefined;
 
 const asStringArray = (
   value: unknown,
   context: { relativePath: string; field: string },
 ): string[] => {
-  if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string")) {
+  if (
+    !Array.isArray(value) ||
+    value.some((entry) => typeof entry !== "string")
+  ) {
     throw createDiagnostic({
       code: "PARSE_ERROR",
       message: `${context.field} must be an array of strings`,
@@ -201,7 +209,10 @@ const findSection = (body: string, sectionName: string): string | null => {
     }
   }
 
-  return lines.slice(start + 1, end).join("\n").trim();
+  return lines
+    .slice(start + 1, end)
+    .join("\n")
+    .trim();
 };
 
 const extractLocaleBody = (body: string): string => {
@@ -210,9 +221,7 @@ const extractLocaleBody = (body: string): string => {
     return section;
   }
 
-  const stripped = body
-    .replace(/^#\s+.+$/m, "")
-    .trim();
+  const stripped = body.replace(/^#\s+.+$/m, "").trim();
   return stripped;
 };
 
@@ -408,10 +417,7 @@ const parseSkillCheck = (
   return parsed;
 };
 
-const parseChoice = (
-  value: unknown,
-  relativePath: string,
-): VnChoice => {
+const parseChoice = (value: unknown, relativePath: string): VnChoice => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw createDiagnostic({
       code: "PARSE_ERROR",
@@ -438,7 +444,9 @@ const parseChoice = (
   };
 };
 
-const parseScenarioManifest = (doc: ParsedMarkdownDocument): ParseScenarioManifest => {
+const parseScenarioManifest = (
+  doc: ParsedMarkdownDocument,
+): ParseScenarioManifest => {
   const { frontmatter, relativePath } = doc;
   const id = asString(frontmatter.id, { relativePath, field: "id" });
   const title = asString(frontmatter.title, { relativePath, field: "title" });
@@ -488,8 +496,9 @@ const parseScenarioManifest = (doc: ParsedMarkdownDocument): ParseScenarioManife
           field: "supported_locales",
         });
   const migrationMode =
-    (asOptionalString(frontmatter.migration_mode) as ScenarioMigrationMode | undefined) ??
-    "authoritative";
+    (asOptionalString(frontmatter.migration_mode) as
+      | ScenarioMigrationMode
+      | undefined) ?? "authoritative";
 
   return {
     migrationMode,
@@ -502,9 +511,13 @@ const parseScenarioManifest = (doc: ParsedMarkdownDocument): ParseScenarioManife
       nodeIds: sceneOrder,
       mode: asOptionalString(frontmatter.mode) as ScenarioBlueprint["mode"],
       packId: asOptionalString(frontmatter.pack_id),
-      skillCheckDice: asOptionalString(frontmatter.skill_check_dice) as ScenarioBlueprint["skillCheckDice"],
+      skillCheckDice: asOptionalString(
+        frontmatter.skill_check_dice,
+      ) as ScenarioBlueprint["skillCheckDice"],
       musicUrl: asOptionalString(frontmatter.music_url),
-      defaultBackgroundUrl: asOptionalString(frontmatter.default_background_url),
+      defaultBackgroundUrl: asOptionalString(
+        frontmatter.default_background_url,
+      ),
       completionRoute:
         parsedCompletionRoutes && parsedCompletionRoutes.length === 1
           ? parsedCompletionRoutes[0]
@@ -517,7 +530,10 @@ const parseScenarioManifest = (doc: ParsedMarkdownDocument): ParseScenarioManife
   };
 };
 
-const collectScenarioRoots = (storyRoot: string, currentDir = storyRoot): string[] => {
+const collectScenarioRoots = (
+  storyRoot: string,
+  currentDir = storyRoot,
+): string[] => {
   const roots: string[] = [];
   for (const entry of readdirSync(currentDir, { withFileTypes: true })) {
     if (entry.name === ".obsidian" || entry.name === "99_Archive") {
@@ -535,7 +551,10 @@ const collectScenarioRoots = (storyRoot: string, currentDir = storyRoot): string
   return roots.sort();
 };
 
-const buildAutoContinueChoice = (nodeId: string, nextNodeId: string): VnChoice => ({
+const buildAutoContinueChoice = (
+  nodeId: string,
+  nextNodeId: string,
+): VnChoice => ({
   id: `AUTO_CONTINUE_${nodeId.toUpperCase()}`,
   text: "Continue",
   nextNodeId,
@@ -574,7 +593,11 @@ const validateLocaleDocument = (
     }
   }
 
-  if (/^##\s+(Choices|Logic|Preconditions|OnEnter|Passive Checks)\s*$/im.test(doc.body)) {
+  if (
+    /^##\s+(Choices|Logic|Preconditions|OnEnter|Passive Checks)\s*$/im.test(
+      doc.body,
+    )
+  ) {
     diagnostics.push(
       createDiagnostic({
         code: "LOCALE_LOGIC_FORBIDDEN",
@@ -609,8 +632,12 @@ export const loadObsidianScenarioBundles = (
         .map((entry) => entry.name)
         .sort();
 
-      const canonicalFiles = sceneFiles.filter((entry) => CANONICAL_FILE_RE.test(entry));
-      const localeFiles = sceneFiles.filter((entry) => LOCALE_FILE_RE.test(entry));
+      const canonicalFiles = sceneFiles.filter((entry) =>
+        CANONICAL_FILE_RE.test(entry),
+      );
+      const localeFiles = sceneFiles.filter((entry) =>
+        LOCALE_FILE_RE.test(entry),
+      );
       const localeDocs = new Map<string, Map<string, ParsedMarkdownDocument>>();
       for (const localeFile of localeFiles) {
         const match = localeFile.match(LOCALE_FILE_RE);
@@ -619,16 +646,24 @@ export const loadObsidianScenarioBundles = (
         }
         const canonicalId = match[1];
         const locale = match[2];
-        const doc = parseMarkdownDocument(storyRoot, `${scenarioRoot}/${localeFile}`);
+        const doc = parseMarkdownDocument(
+          storyRoot,
+          `${scenarioRoot}/${localeFile}`,
+        );
         validateLocaleDocument(doc, diagnostics);
-        const forScene = localeDocs.get(canonicalId) ?? new Map<string, ParsedMarkdownDocument>();
+        const forScene =
+          localeDocs.get(canonicalId) ??
+          new Map<string, ParsedMarkdownDocument>();
         forScene.set(locale, doc);
         localeDocs.set(canonicalId, forScene);
       }
 
       const canonicalById = new Map<string, ParsedMarkdownDocument>();
       for (const fileName of canonicalFiles) {
-        const doc = parseMarkdownDocument(storyRoot, `${scenarioRoot}/${fileName}`);
+        const doc = parseMarkdownDocument(
+          storyRoot,
+          `${scenarioRoot}/${fileName}`,
+        );
         const basename = fileName.replace(/\.md$/, "");
         const id = asString(doc.frontmatter.id, {
           relativePath: doc.relativePath,
@@ -874,11 +909,14 @@ export const loadObsidianScenarioBundles = (
             parsedLogic.preconditions,
             canonical.relativePath,
           ),
-          onEnter: parseEffectList(parsedLogic.on_enter, canonical.relativePath),
+          onEnter: parseEffectList(
+            parsedLogic.on_enter,
+            canonical.relativePath,
+          ),
           passiveChecks:
             parsedLogic.passive_checks === undefined
               ? undefined
-              : (() => {
+              : ((() => {
                   if (!Array.isArray(parsedLogic.passive_checks)) {
                     throw createDiagnostic({
                       code: "PARSE_ERROR",
@@ -894,7 +932,7 @@ export const loadObsidianScenarioBundles = (
                   return parsedLogic.passive_checks.map((entry) =>
                     parseSkillCheck(entry, canonical.relativePath),
                   );
-                })()?.filter(Boolean) as VnSkillCheck[] | undefined,
+                })()?.filter(Boolean) as VnSkillCheck[] | undefined),
         });
       }
 

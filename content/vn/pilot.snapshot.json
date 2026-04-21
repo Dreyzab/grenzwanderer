@@ -44,10 +44,7 @@
       "id": "case01_estate_branch",
       "title": "Case 01: Estate Trace",
       "startNodeId": "scene_case01_estate_entry",
-      "nodeIds": [
-        "scene_case01_estate_entry",
-        "scene_case01_estate_exit"
-      ],
+      "nodeIds": ["scene_case01_estate_entry", "scene_case01_estate_exit"],
       "mode": "overlay",
       "packId": "case01_mainline"
     },
@@ -81,10 +78,7 @@
       "id": "case01_lead_pub",
       "title": "Case 01: Pub Lead",
       "startNodeId": "scene_case01_pub_entry",
-      "nodeIds": [
-        "scene_case01_pub_entry",
-        "scene_case01_pub_exit"
-      ],
+      "nodeIds": ["scene_case01_pub_entry", "scene_case01_pub_exit"],
       "mode": "overlay",
       "packId": "case01_mainline"
     },
@@ -92,10 +86,7 @@
       "id": "case01_lead_tailor",
       "title": "Case 01: Tailor Lead",
       "startNodeId": "scene_case01_tailor_entry",
-      "nodeIds": [
-        "scene_case01_tailor_entry",
-        "scene_case01_tailor_exit"
-      ],
+      "nodeIds": ["scene_case01_tailor_entry", "scene_case01_tailor_exit"],
       "mode": "overlay",
       "packId": "case01_mainline"
     },
@@ -160,12 +151,8 @@
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "sandbox_agency_briefing",
-        "requiredFlagsAll": [
-          "origin_detective"
-        ],
-        "blockedIfFlagsAny": [
-          "agency_briefing_complete"
-        ]
+        "requiredFlagsAll": ["origin_detective"],
+        "blockedIfFlagsAny": ["agency_briefing_complete"]
       },
       "packId": "detective_origin"
     },
@@ -182,12 +169,8 @@
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "detective_agency_wakeup",
-        "requiredFlagsAll": [
-          "origin_detective"
-        ],
-        "blockedIfFlagsAny": [
-          "detective_prologue_done"
-        ]
+        "requiredFlagsAll": ["origin_detective"],
+        "blockedIfFlagsAny": ["detective_prologue_done"]
       },
       "packId": "detective_origin",
       "defaultBackgroundUrl": "/images/scenes/scene_bank_intro.png"
@@ -272,12 +255,8 @@
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "sandbox_agency_briefing",
-        "requiredFlagsAll": [
-          "origin_journalist"
-        ],
-        "blockedIfFlagsAny": [
-          "agency_briefing_complete"
-        ]
+        "requiredFlagsAll": ["origin_journalist"],
+        "blockedIfFlagsAny": ["agency_briefing_complete"]
       },
       "packId": "journalist_origin"
     },
@@ -285,18 +264,12 @@
       "id": "origin_detective_bootstrap",
       "title": "Origin Bootstrap - Detective",
       "startNodeId": "scene_origin_detective_bootstrap",
-      "nodeIds": [
-        "scene_origin_detective_bootstrap"
-      ],
+      "nodeIds": ["scene_origin_detective_bootstrap"],
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "detective_case01_prologue",
-        "requiredFlagsAll": [
-          "origin_detective"
-        ],
-        "blockedIfFlagsAny": [
-          "detective_prologue_done"
-        ]
+        "requiredFlagsAll": ["origin_detective"],
+        "blockedIfFlagsAny": ["detective_prologue_done"]
       },
       "packId": "system_origin_bootstrap"
     },
@@ -304,18 +277,12 @@
       "id": "origin_journalist_bootstrap",
       "title": "Origin Bootstrap - Journalist",
       "startNodeId": "scene_origin_journalist_bootstrap",
-      "nodeIds": [
-        "scene_origin_journalist_bootstrap"
-      ],
+      "nodeIds": ["scene_origin_journalist_bootstrap"],
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "journalist_agency_wakeup",
-        "requiredFlagsAll": [
-          "origin_journalist"
-        ],
-        "blockedIfFlagsAny": [
-          "origin_journalist_handoff_done"
-        ]
+        "requiredFlagsAll": ["origin_journalist"],
+        "blockedIfFlagsAny": ["origin_journalist_handoff_done"]
       },
       "packId": "system_origin_bootstrap"
     },
@@ -323,10 +290,7 @@
       "id": "sandbox_agency_briefing",
       "title": "Agency Briefing",
       "startNodeId": "scene_agency_briefing_intro",
-      "nodeIds": [
-        "scene_agency_briefing_intro",
-        "scene_agency_briefing_outro"
-      ],
+      "nodeIds": ["scene_agency_briefing_intro", "scene_agency_briefing_outro"],
       "mode": "overlay",
       "packId": "freiburg_agency"
     },
@@ -394,10 +358,7 @@
       "id": "sandbox_city_bootblack_tip",
       "title": "Living City: Bootblack Tip",
       "startNodeId": "scene_city_bootblack_tip",
-      "nodeIds": [
-        "scene_city_bootblack_tip",
-        "scene_city_bootblack_tip_end"
-      ],
+      "nodeIds": ["scene_city_bootblack_tip", "scene_city_bootblack_tip_end"],
       "mode": "overlay",
       "packId": "freiburg_living_city"
     },
@@ -405,10 +366,7 @@
       "id": "sandbox_city_cleaner_tip",
       "title": "Living City: Cleaner Tip",
       "startNodeId": "scene_city_cleaner_tip",
-      "nodeIds": [
-        "scene_city_cleaner_tip",
-        "scene_city_cleaner_tip_end"
-      ],
+      "nodeIds": ["scene_city_cleaner_tip", "scene_city_cleaner_tip_end"],
       "mode": "overlay",
       "packId": "freiburg_living_city"
     },
@@ -416,10 +374,7 @@
       "id": "sandbox_city_student_tip",
       "title": "Living City: Student Tip",
       "startNodeId": "scene_city_student_tip",
-      "nodeIds": [
-        "scene_city_student_tip",
-        "scene_city_student_tip_end"
-      ],
+      "nodeIds": ["scene_city_student_tip", "scene_city_student_tip_end"],
       "mode": "overlay",
       "packId": "freiburg_living_city"
     },
@@ -505,12 +460,8 @@
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "journalist_agency_wakeup",
-        "requiredFlagsAll": [
-          "origin_journalist"
-        ],
-        "blockedIfFlagsAny": [
-          "origin_journalist_handoff_done"
-        ]
+        "requiredFlagsAll": ["origin_journalist"],
+        "blockedIfFlagsAny": ["origin_journalist_handoff_done"]
       },
       "packId": "freiburg_intro"
     },
@@ -518,10 +469,7 @@
       "id": "sandbox_loop_demo",
       "title": "Loop Demo Pilot",
       "startNodeId": "scene_loop_demo_intro",
-      "nodeIds": [
-        "scene_loop_demo_intro",
-        "scene_loop_demo_end"
-      ],
+      "nodeIds": ["scene_loop_demo_intro", "scene_loop_demo_end"],
       "mode": "overlay",
       "packId": "system_loop_demo"
     },
@@ -540,10 +488,7 @@
       "id": "sandbox_workers_pub_rumor",
       "title": "Workers Pub Rumor",
       "startNodeId": "scene_workers_pub_rumor",
-      "nodeIds": [
-        "scene_workers_pub_rumor",
-        "scene_workers_pub_rumor_end"
-      ],
+      "nodeIds": ["scene_workers_pub_rumor", "scene_workers_pub_rumor_end"],
       "mode": "overlay",
       "packId": "freiburg_rumors"
     }
@@ -4918,11 +4863,7 @@
       ],
       "backgroundUrl": "/images/scenes/scene_evidence_collection.png",
       "voicePresenceMode": "parliament",
-      "activeSpeakers": [
-        "attr_intellect",
-        "attr_perception",
-        "attr_spirit"
-      ]
+      "activeSpeakers": ["attr_intellect", "attr_perception", "attr_spirit"]
     },
     {
       "id": "scene_evidence_collection_beat1",
@@ -5093,11 +5034,7 @@
         }
       ],
       "voicePresenceMode": "parliament",
-      "activeSpeakers": [
-        "inner_leader",
-        "inner_guide",
-        "inner_cynic"
-      ]
+      "activeSpeakers": ["inner_leader", "inner_guide", "inner_cynic"]
     },
     {
       "id": "scene_inner_voice_demo_reflection",
@@ -5145,11 +5082,7 @@
         }
       ],
       "voicePresenceMode": "parliament",
-      "activeSpeakers": [
-        "inner_leader",
-        "inner_guide",
-        "inner_cynic"
-      ]
+      "activeSpeakers": ["inner_leader", "inner_guide", "inner_cynic"]
     },
     {
       "id": "scene_inner_voice_demo_leader",
@@ -5885,9 +5818,7 @@
         "caseId": "case_loop_demo",
         "key": "loop_demo_solved",
         "text": "The loop demo has been completed successfully.",
-        "requiredFactIds": [
-          "fact_loop_clue"
-        ],
+        "requiredFactIds": ["fact_loop_clue"],
         "requiredVars": [],
         "rewardEffects": [
           {
@@ -7546,28 +7477,16 @@
       {
         "id": "route_ghost_undercity",
         "regionId": "FREIBURG_1905",
-        "pointIds": [
-          "loc_munster",
-          "loc_apothecary",
-          "loc_pub"
-        ],
+        "pointIds": ["loc_munster", "loc_apothecary", "loc_pub"],
         "color": "#5d4632",
-        "revealFlagsAll": [
-          "ghost_route_unlocked"
-        ]
+        "revealFlagsAll": ["ghost_route_unlocked"]
       },
       {
         "id": "route_finale_stuhlinger",
         "regionId": "FREIBURG_1905",
-        "pointIds": [
-          "loc_agency",
-          "loc_workers_pub",
-          "loc_freiburg_warehouse"
-        ],
+        "pointIds": ["loc_agency", "loc_workers_pub", "loc_freiburg_warehouse"],
         "color": "#2f3c4f",
-        "revealFlagsAll": [
-          "freiburg_finale_open"
-        ]
+        "revealFlagsAll": ["freiburg_finale_open"]
       }
     ],
     "qrCodeRegistry": [
@@ -7591,9 +7510,7 @@
             "groupId": "loc_freiburg_warehouse"
           }
         ],
-        "requiresFlagsAll": [
-          "agency_briefing_complete"
-        ]
+        "requiresFlagsAll": ["agency_briefing_complete"]
       }
     ],
     "mapEventTemplates": [
@@ -7656,26 +7573,19 @@
           "stage": 1,
           "title": "Initial Briefing",
           "objectiveHint": "Meet Kessler at the bank and open the ledger trail.",
-          "objectivePointIds": [
-            "loc_freiburg_bank"
-          ]
+          "objectivePointIds": ["loc_freiburg_bank"]
         },
         {
           "stage": 2,
           "title": "Cross-Check Leads",
           "objectiveHint": "Revisit the bank after checking external testimonies.",
-          "objectivePointIds": [
-            "loc_freiburg_bank",
-            "loc_hbf"
-          ]
+          "objectivePointIds": ["loc_freiburg_bank", "loc_hbf"]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Banker case archived.",
-          "objectivePointIds": [
-            "loc_freiburg_warehouse"
-          ]
+          "objectivePointIds": ["loc_freiburg_warehouse"]
         }
       ]
     },
@@ -7687,26 +7597,19 @@
           "stage": 1,
           "title": "Open Dog Lead Board",
           "objectiveHint": "Collect initial route intel from Rathaus.",
-          "objectivePointIds": [
-            "loc_rathaus"
-          ]
+          "objectivePointIds": ["loc_rathaus"]
         },
         {
           "stage": 2,
           "title": "Converge Leads",
           "objectiveHint": "Convene in the park after enough witness routes.",
-          "objectivePointIds": [
-            "loc_rathaus",
-            "loc_workers_pub"
-          ]
+          "objectivePointIds": ["loc_rathaus", "loc_workers_pub"]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Dog trail logged and sealed.",
-          "objectivePointIds": [
-            "loc_workers_pub"
-          ]
+          "objectivePointIds": ["loc_workers_pub"]
         }
       ]
     },
@@ -7718,26 +7621,19 @@
           "stage": 1,
           "title": "Estate Survey",
           "objectiveHint": "Open the ghost investigation from the workers' tavern.",
-          "objectivePointIds": [
-            "loc_workers_pub"
-          ]
+          "objectivePointIds": ["loc_workers_pub"]
         },
         {
           "stage": 2,
           "title": "Assemble Proof",
           "objectiveHint": "Correlate bookshelf and floor evidence before accusation.",
-          "objectivePointIds": [
-            "loc_workers_pub",
-            "loc_freiburg_bank"
-          ]
+          "objectivePointIds": ["loc_workers_pub", "loc_freiburg_bank"]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Ghost case finalized and written into records.",
-          "objectivePointIds": [
-            "loc_freiburg_warehouse"
-          ]
+          "objectivePointIds": ["loc_freiburg_warehouse"]
         }
       ]
     }
@@ -7842,11 +7738,7 @@
         "color": "#374151",
         "layer": "shadow",
         "visibility": "hidden",
-        "signalStateLabels": [
-          "Unseen",
-          "Marked",
-          "Recognized"
-        ]
+        "signalStateLabels": ["Unseen", "Marked", "Recognized"]
       }
     ],
     "npcIdentities": [
@@ -7869,10 +7761,7 @@
         "introFlag": "met_anna_intro",
         "homePointId": "loc_workers_pub",
         "workPointId": "loc_agency",
-        "serviceIds": [
-          "svc_anna_whispers",
-          "svc_anna_student_intro"
-        ]
+        "serviceIds": ["svc_anna_whispers", "svc_anna_student_intro"]
       },
       {
         "id": "npc_archivist_otto",
@@ -7883,9 +7772,7 @@
         "introFlag": "met_archivist_intro",
         "homePointId": "loc_rathaus",
         "workPointId": "loc_rathaus",
-        "serviceIds": [
-          "svc_otto_archive_packet"
-        ]
+        "serviceIds": ["svc_otto_archive_packet"]
       }
     ],
     "services": [
@@ -7925,9 +7812,7 @@
         "caseId": "quest_banker",
         "leadPointId": "loc_hbf",
         "sourceNpcId": "npc_anna_mahler",
-        "verifiesOn": [
-          "service_unlock"
-        ],
+        "verifiesOn": ["service_unlock"],
         "careerCriterionOnVerify": "verified_rumor_chain"
       }
     ],
@@ -7947,9 +7832,7 @@
         "standingRequired": 15,
         "qualifyingCaseId": "quest_banker",
         "serviceCriteriaNeeded": 2,
-        "privileges": [
-          "Field warrant"
-        ]
+        "privileges": ["Field warrant"]
       },
       {
         "id": "agency_detective",
@@ -7957,9 +7840,7 @@
         "order": 2,
         "standingRequired": 35,
         "serviceCriteriaNeeded": 2,
-        "privileges": [
-          "Priority filing access"
-        ]
+        "privileges": ["Priority filing access"]
       },
       {
         "id": "senior_detective",
@@ -7967,9 +7848,7 @@
         "order": 3,
         "standingRequired": 55,
         "serviceCriteriaNeeded": 2,
-        "privileges": [
-          "Discretionary field command"
-        ]
+        "privileges": ["Discretionary field command"]
       },
       {
         "id": "lead_investigator",
@@ -7977,9 +7856,7 @@
         "order": 4,
         "standingRequired": 75,
         "serviceCriteriaNeeded": 2,
-        "privileges": [
-          "Agency-wide mandate"
-        ]
+        "privileges": ["Agency-wide mandate"]
       }
     ]
   },

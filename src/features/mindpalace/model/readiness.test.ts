@@ -24,7 +24,9 @@ describe("mindpalace readiness model", () => {
   });
 
   it("derives ready when all facts and vars pass", () => {
-    const requiredVars: RequiredVar[] = [{ key: "attr_logic", op: "gte", value: 2 }];
+    const requiredVars: RequiredVar[] = [
+      { key: "attr_logic", op: "gte", value: 2 },
+    ];
     const state = deriveHypothesisState({
       requiredFactIds: ["fact_a"],
       requiredVars,

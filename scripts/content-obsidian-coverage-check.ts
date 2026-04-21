@@ -125,7 +125,9 @@ if (
     }
   }
   if (malformedFiles.length > 0) {
-    console.error("[content:obsidian:coverage] Files with missing frontmatter id:");
+    console.error(
+      "[content:obsidian:coverage] Files with missing frontmatter id:",
+    );
     for (const file of malformedFiles) {
       console.error(`- ${file}`);
     }

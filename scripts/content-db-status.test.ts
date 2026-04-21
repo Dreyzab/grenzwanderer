@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type {
-  ContentReleaseManifest,
-  ContentTarget,
-} from "./content-manifest";
+import type { ContentReleaseManifest, ContentTarget } from "./content-manifest";
 import {
   evaluateContentDbStatus,
   findLatestReleaseForTarget,
@@ -22,7 +19,8 @@ const manifest: ContentReleaseManifest = {
   releases: [
     {
       version: "content-v1.0.0+aaaa1111",
-      checksum: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      checksum:
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       schemaVersion: 6,
       generatedAt: "2026-04-01T00:00:00.000Z",
       publishedAt: "2026-04-01T12:00:00.000Z",
@@ -30,7 +28,8 @@ const manifest: ContentReleaseManifest = {
     },
     {
       version: "content-v1.0.1+bbbb2222",
-      checksum: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      checksum:
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       schemaVersion: 6,
       generatedAt: "2026-04-02T00:00:00.000Z",
       publishedAt: "2026-04-02T12:00:00.000Z",

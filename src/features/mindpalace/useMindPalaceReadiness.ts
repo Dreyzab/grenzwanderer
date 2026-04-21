@@ -33,9 +33,7 @@ export const useMindPalaceReadiness = (): MindPalaceReadiness => {
       return { hasReadyHypotheses: false, readyCount: 0 };
     }
 
-    const discoveredFactIds = new Set(
-      playerMindFacts.map((row) => row.factId),
-    );
+    const discoveredFactIds = new Set(playerMindFacts.map((row) => row.factId));
 
     const validatedHypothesisIds = new Set(
       playerMindHypotheses

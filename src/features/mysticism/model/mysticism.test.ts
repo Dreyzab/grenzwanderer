@@ -47,7 +47,8 @@ const snapshot: VnSnapshot = {
         text: "The sound arrives twice, the second time from nowhere visible.",
         entityArchetypeId: "echo_hound",
         signatureIds: ["echo"],
-        rationalInterpretation: "Tunnel acoustics and crowd panic may be compounding.",
+        rationalInterpretation:
+          "Tunnel acoustics and crowd panic may be compounding.",
       },
     ],
   },

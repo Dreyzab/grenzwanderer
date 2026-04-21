@@ -173,10 +173,7 @@ export function useVnDerivedState({
     return summaries;
   }, [snapshot?.socialCatalog?.npcIdentities]);
 
-  const mySessions = useMemo(
-    () => [...sessions],
-    [sessions],
-  );
+  const mySessions = useMemo(() => [...sessions], [sessions]);
 
   const currentSessionPointer = useMemo(
     () => sessionPointer(mySession),
@@ -205,12 +202,11 @@ export function useVnDerivedState({
 
   const mySkillResults = useMemo<SkillCheckResultLike[]>(
     () =>
-      [...skillResults]
-        .sort((left, right) =>
-          timestampMicros(right.createdAt) > timestampMicros(left.createdAt)
-            ? 1
-            : -1,
-        ),
+      [...skillResults].sort((left, right) =>
+        timestampMicros(right.createdAt) > timestampMicros(left.createdAt)
+          ? 1
+          : -1,
+      ),
     [skillResults],
   );
 
@@ -464,7 +460,9 @@ export function useVnDerivedState({
   const activeProvidenceThoughtResponse = useMemo(
     () =>
       activeProvidenceThoughtRequest
-        ? parseStoredDialogueResponse(activeProvidenceThoughtRequest.responseJson)
+        ? parseStoredDialogueResponse(
+            activeProvidenceThoughtRequest.responseJson,
+          )
         : null,
     [activeProvidenceThoughtRequest],
   );
@@ -492,8 +490,8 @@ export function useVnDerivedState({
       : "pending";
   }, [activeAiThoughtContext, activeAiThoughtRequest?.status]);
 
-  const activeProvidenceThoughtStatus = useMemo<SkillCheckAiStatus | null>(
-    () => {
+  const activeProvidenceThoughtStatus =
+    useMemo<SkillCheckAiStatus | null>(() => {
       if (!ENABLE_AI || !activeProvidenceThoughtContext) {
         return null;
       }
@@ -504,9 +502,10 @@ export function useVnDerivedState({
         status === "failed"
         ? status
         : "pending";
-    },
-    [activeProvidenceThoughtContext, activeProvidenceThoughtRequest?.status],
-  );
+    }, [
+      activeProvidenceThoughtContext,
+      activeProvidenceThoughtRequest?.status,
+    ]);
 
   const activeReactionStatus = useMemo<SkillCheckAiStatus | null>(() => {
     if (

@@ -9,7 +9,10 @@ import {
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
-const mapIterations = Math.max(1, Number(process.env.LAT_MAP_ITERATIONS ?? "60"));
+const mapIterations = Math.max(
+  1,
+  Number(process.env.LAT_MAP_ITERATIONS ?? "60"),
+);
 const redeemIterations = Math.max(
   1,
   Number(process.env.LAT_REDEEM_ITERATIONS ?? "60"),
@@ -96,7 +99,10 @@ const percentile = (values: number[], ratio: number): number => {
     return 0;
   }
   const sorted = [...values].sort((a, b) => a - b);
-  const idx = Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * ratio));
+  const idx = Math.min(
+    sorted.length - 1,
+    Math.floor((sorted.length - 1) * ratio),
+  );
   return sorted[idx];
 };
 

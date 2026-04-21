@@ -58,7 +58,12 @@ type MigrationReport = {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
-const snapshotPath = path.join(repoRoot, "content", "vn", "pilot.snapshot.json");
+const snapshotPath = path.join(
+  repoRoot,
+  "content",
+  "vn",
+  "pilot.snapshot.json",
+);
 const migrationReportPath = path.join(
   repoRoot,
   "tmp",
@@ -81,7 +86,8 @@ const readMigrationReport = (): MigrationReport =>
 const getScenarioNodes = (
   snapshot: SnapshotPayload,
   scenarioId: string,
-): SnapshotNode[] => snapshot.nodes.filter((node) => node.scenarioId === scenarioId);
+): SnapshotNode[] =>
+  snapshot.nodes.filter((node) => node.scenarioId === scenarioId);
 
 const findNode = (snapshot: SnapshotPayload, nodeId: string): SnapshotNode => {
   const node = snapshot.nodes.find((entry) => entry.id === nodeId);
@@ -95,12 +101,10 @@ const hasEffect = (
   effects: SnapshotEffect[] | undefined,
   expected: Partial<SnapshotEffect>,
 ): boolean =>
-  (effects ?? []).some(
-    (effect) =>
-      Object.entries(expected).every(
-        ([key, value]) =>
-          effect[key as keyof SnapshotEffect] === value,
-      ),
+  (effects ?? []).some((effect) =>
+    Object.entries(expected).every(
+      ([key, value]) => effect[key as keyof SnapshotEffect] === value,
+    ),
   );
 
 const hasVisibleRoute = (
@@ -266,11 +270,14 @@ try {
     "Lawful finale must set case01_final_outcome=1",
   );
   assert(
-    hasEffect(findNode(snapshot, "scene_case01_warehouse_compromised").onEnter, {
-      type: "set_var",
-      key: "case01_final_outcome",
-      value: CASE01_FINAL_OUTCOME_COMPROMISED,
-    }),
+    hasEffect(
+      findNode(snapshot, "scene_case01_warehouse_compromised").onEnter,
+      {
+        type: "set_var",
+        key: "case01_final_outcome",
+        value: CASE01_FINAL_OUTCOME_COMPROMISED,
+      },
+    ),
     "Compromised finale must set case01_final_outcome=2",
   );
 

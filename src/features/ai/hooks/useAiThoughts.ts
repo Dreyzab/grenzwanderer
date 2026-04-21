@@ -9,13 +9,12 @@ export const useAiThoughts = () => {
 
   return useMemo(
     () =>
-      [...requests]
-        .sort((left, right) =>
-          left.updatedAt.microsSinceUnixEpoch >
-          right.updatedAt.microsSinceUnixEpoch
-            ? -1
-            : 1,
-        ),
+      [...requests].sort((left, right) =>
+        left.updatedAt.microsSinceUnixEpoch >
+        right.updatedAt.microsSinceUnixEpoch
+          ? -1
+          : 1,
+      ),
     [identityHex, requests],
   );
 };

@@ -78,7 +78,7 @@ export const useKarlsruheSceneBackground = (
   );
 
   const [sceneResult, setSceneResult] = useState<SceneGenerationResult | null>(
-    () => (cacheKey ? sceneGenerationCache.get(cacheKey) ?? null : null),
+    () => (cacheKey ? (sceneGenerationCache.get(cacheKey) ?? null) : null),
   );
 
   useEffect(() => {

@@ -42,7 +42,9 @@ const normalizeReturnTab = (value: string): BattleReturnTab => {
   return "map";
 };
 
-const toCombatantView = (row: Record<string, unknown>): BattleCombatantView => ({
+const toCombatantView = (
+  row: Record<string, unknown>,
+): BattleCombatantView => ({
   combatantId: String(row.combatantId),
   side: row.side === "enemy" ? "enemy" : "player",
   label: String(row.label),
@@ -98,9 +100,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
     }
 
     return combatants
-      .filter(
-        (row) => row.sessionKey === activeSession.sessionKey,
-      )
+      .filter((row) => row.sessionKey === activeSession.sessionKey)
       .map((row) => toCombatantView(row as unknown as Record<string, unknown>))
       .sort((left, right) => left.side.localeCompare(right.side));
   }, [activeSession, combatants]);
@@ -115,9 +115,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
     }
 
     const ownCards = cards
-      .filter(
-        (row) => row.sessionKey === activeSession.sessionKey,
-      )
+      .filter((row) => row.sessionKey === activeSession.sessionKey)
       .map((row) => row as unknown as Record<string, unknown>);
 
     return {
@@ -136,9 +134,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
     }
 
     return history
-      .filter(
-        (row) => row.sessionKey === activeSession.sessionKey,
-      )
+      .filter((row) => row.sessionKey === activeSession.sessionKey)
       .sort((left, right) =>
         String(right.createdAt).localeCompare(String(left.createdAt)),
       )
@@ -146,9 +142,12 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
       .reverse();
   }, [activeSession, history]);
 
-  const isReady = sessionsReady && combatantsReady && cardsReady && historyReady;
-  const player = activeCombatants.find((entry) => entry.side === "player") ?? null;
-  const enemy = activeCombatants.find((entry) => entry.side === "enemy") ?? null;
+  const isReady =
+    sessionsReady && combatantsReady && cardsReady && historyReady;
+  const player =
+    activeCombatants.find((entry) => entry.side === "player") ?? null;
+  const enemy =
+    activeCombatants.find((entry) => entry.side === "enemy") ?? null;
   const returnTab = normalizeReturnTab(activeSession?.returnTab ?? "map");
   const outcome =
     activeSession &&
@@ -259,7 +258,10 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
 
   return (
     <section className="panel-section">
-      <article className="card compact" style={{ display: "grid", gap: "1rem" }}>
+      <article
+        className="card compact"
+        style={{ display: "grid", gap: "1rem" }}
+      >
         <header style={{ display: "grid", gap: "0.5rem" }}>
           <div
             style={{
@@ -274,10 +276,17 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
               <h2 style={{ margin: "0.4rem 0 0" }}>{activeSession.title}</h2>
             </div>
             <span className="pill-label">
-              Return: {returnTab === "vn" ? "Story" : returnTab === "dev" ? "Debug" : "Map"}
+              Return:{" "}
+              {returnTab === "vn"
+                ? "Story"
+                : returnTab === "dev"
+                  ? "Debug"
+                  : "Map"}
             </span>
           </div>
-          <p style={{ margin: 0, lineHeight: 1.65 }}>{activeSession.briefing}</p>
+          <p style={{ margin: 0, lineHeight: 1.65 }}>
+            {activeSession.briefing}
+          </p>
         </header>
 
         <section
@@ -321,7 +330,8 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
               </div>
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
                 <span>
-                  {activeSession.resolveLabel}: {combatant.resolve}/{combatant.maxResolve}
+                  {activeSession.resolveLabel}: {combatant.resolve}/
+                  {combatant.maxResolve}
                 </span>
                 <span>
                   {activeSession.blockLabel}: {combatant.block}
@@ -333,7 +343,9 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
               {combatant.side === "enemy" && combatant.nextIntentLabel ? (
                 <p style={{ margin: 0, lineHeight: 1.55 }}>
                   <strong>Intent:</strong> {combatant.nextIntentLabel}
-                  {combatant.nextIntentSummary ? ` - ${combatant.nextIntentSummary}` : ""}
+                  {combatant.nextIntentSummary
+                    ? ` - ${combatant.nextIntentSummary}`
+                    : ""}
                 </p>
               ) : null}
             </article>
@@ -374,7 +386,9 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
               <button
                 key={card.instanceId}
                 type="button"
-                disabled={!card.isPlayable || pendingCardId !== null || isResolved}
+                disabled={
+                  !card.isPlayable || pendingCardId !== null || isResolved
+                }
                 onClick={() => void handlePlayCard(card)}
                 style={{
                   textAlign: "left",
@@ -465,7 +479,9 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
         ) : null}
 
         {error ? (
-          <p style={{ margin: 0, color: "#f5b0a6", fontWeight: 500 }}>{error}</p>
+          <p style={{ margin: 0, color: "#f5b0a6", fontWeight: 500 }}>
+            {error}
+          </p>
         ) : null}
 
         <div
@@ -477,11 +493,19 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
           }}
         >
           {!isResolved ? (
-            <button type="button" onClick={() => void handleEndTurn()} disabled={isEndingTurn}>
+            <button
+              type="button"
+              onClick={() => void handleEndTurn()}
+              disabled={isEndingTurn}
+            >
               {isEndingTurn ? "Resolving..." : "End Turn"}
             </button>
           ) : null}
-          <button type="button" onClick={() => void handleClose()} disabled={isClosing}>
+          <button
+            type="button"
+            onClick={() => void handleClose()}
+            disabled={isClosing}
+          >
             {isResolved ? "Return" : "Close Battle"}
           </button>
         </div>

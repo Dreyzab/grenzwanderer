@@ -1,16 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  contentDriftFiles,
-  verifyContentDrift,
-} from "./content-drift-check";
+import { contentDriftFiles, verifyContentDrift } from "./content-drift-check";
 
 const buildSnapshot = (overrides: Record<string, unknown> = {}): string =>
   JSON.stringify(
     {
       schemaVersion: 6,
       generatedAt: "2026-04-08T00:00:00.000Z",
-      checksum: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      checksum:
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       scenarios: [{ id: "sandbox_intro_pilot", nodeIds: ["scene_start"] }],
       ...overrides,
     },

@@ -18,9 +18,15 @@ export const loadKarlsruheSnapshot = () => {
     typeof snapshot.schemaVersion === "number",
     "Karlsruhe snapshot is missing schemaVersion",
   );
-  assert(Array.isArray(snapshot.scenarios), "Karlsruhe snapshot is missing scenarios");
+  assert(
+    Array.isArray(snapshot.scenarios),
+    "Karlsruhe snapshot is missing scenarios",
+  );
   assert(Array.isArray(snapshot.nodes), "Karlsruhe snapshot is missing nodes");
-  assert(snapshot.map && Array.isArray(snapshot.map.points), "Karlsruhe snapshot is missing map");
+  assert(
+    snapshot.map && Array.isArray(snapshot.map.points),
+    "Karlsruhe snapshot is missing map",
+  );
 
   return snapshot;
 };

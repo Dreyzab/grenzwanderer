@@ -24,7 +24,12 @@ type SnapshotPayload = {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
-const snapshotPath = path.join(repoRoot, "content", "vn", "pilot.snapshot.json");
+const snapshotPath = path.join(
+  repoRoot,
+  "content",
+  "vn",
+  "pilot.snapshot.json",
+);
 
 const assert = (condition: unknown, message: string): void => {
   if (!condition) {
@@ -35,7 +40,10 @@ const assert = (condition: unknown, message: string): void => {
 const readSnapshot = (): SnapshotPayload =>
   JSON.parse(readFileSync(snapshotPath, "utf8")) as SnapshotPayload;
 
-const findPoint = (snapshot: SnapshotPayload, pointId: string): SnapshotPoint => {
+const findPoint = (
+  snapshot: SnapshotPayload,
+  pointId: string,
+): SnapshotPoint => {
   const point = snapshot.map?.points.find((entry) => entry.id === pointId);
   if (!point) {
     throw new Error(`Missing map point '${pointId}' in extracted snapshot`);
@@ -56,10 +64,13 @@ const hasScenarioBinding = (
 
 try {
   const snapshot = readSnapshot();
-  const scenarioIds = new Set(snapshot.scenarios.map((scenario) => scenario.id));
+  const scenarioIds = new Set(
+    snapshot.scenarios.map((scenario) => scenario.id),
+  );
 
   assert(
-    snapshot.vnRuntime?.defaultEntryScenarioId === CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    snapshot.vnRuntime?.defaultEntryScenarioId ===
+      CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     `Expected defaultEntryScenarioId=${CASE01_DEFAULT_ENTRY_SCENARIO_ID}, got ${snapshot.vnRuntime?.defaultEntryScenarioId ?? "missing"}`,
   );
 
@@ -73,7 +84,8 @@ try {
   }
 
   assert(
-    snapshot.map?.regions.every((region) => region.id === "FREIBURG_1905") ?? false,
+    snapshot.map?.regions.every((region) => region.id === "FREIBURG_1905") ??
+      false,
     "Case01 entry smoke expects Freiburg-only supported runtime regions",
   );
 

@@ -212,8 +212,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
     id: "scene_case01_platform_survey",
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
     titleOverride: "Platform Steam",
     bodyOverride:
       "Steam hangs low under the station roof. A paperboy is being chased between trunks, a porter pretends not to see it, and Fritz Muller stands under a gas lamp with the kind of stillness policemen learn when the first report is already worse than the public version.",
@@ -302,8 +301,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
     id: "scene_case01_priority_handoff",
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/01_Onboarding/map_transit.md",
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/map_transit.md",
     titleOverride: "City Open",
     bodyOverride:
       "Fritz steps aside. Freiburg is open now, but only along the path you just made expensive. The first district is waiting on your answer.",
@@ -313,8 +311,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
     id: "scene_case01_mayor_entry",
     scenarioId: CASE01_SCENARIO_IDS.mayorBriefing,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing.md",
+    sourcePath: "40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing.md",
     titleOverride: "Mayor's Office",
     bodyOverride:
       "The mayor does not offer you a chair until he has decided what sort of investigator you are. He wants the panic contained, the council reassured, and the bank matter finished before the newspapers decide it was an inside job with friends in City Hall.",
@@ -335,8 +332,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
     id: "scene_case01_mayor_dossier",
     scenarioId: CASE01_SCENARIO_IDS.mayorBriefing,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing.md",
+    sourcePath: "40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing.md",
     titleOverride: "Political Pressure",
     bodyOverride:
       "He gives you three things and pretends they are one: a permit to push into the records later, a warning that Galdermann has friends who pay for silence, and a refusal to say Hartmann's name without first seeing what you can prove.",
@@ -355,8 +351,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
     id: "scene_case01_mayor_exit",
     scenarioId: CASE01_SCENARIO_IDS.mayorBriefing,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing.md",
+    sourcePath: "40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing.md",
     titleOverride: "Official Writ",
     bodyOverride:
       "By the time you leave, you have enough paper to open doors and enough political pressure to know those same doors may close behind you.",
@@ -556,8 +551,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
     id: "scene_case01_apothecary_entry",
     scenarioId: CASE01_SCENARIO_IDS.leadApothecary,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/04_Leads/scene_lead_apothecary.md",
+    sourcePath: "40_GameViewer/Case01/Plot/04_Leads/scene_lead_apothecary.md",
     titleOverride: "Lowen Apotheke",
     bodyOverride:
       "The apothecary does not deny the compound once you name its smell. The residue is real, the purchase route runs through university stock, and the order was signed under cover of a sender name no honest clerk would trust twice.",
@@ -572,8 +566,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
     id: "scene_case01_apothecary_exit",
     scenarioId: CASE01_SCENARIO_IDS.leadApothecary,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/04_Leads/scene_lead_apothecary.md",
+    sourcePath: "40_GameViewer/Case01/Plot/04_Leads/scene_lead_apothecary.md",
     titleOverride: "Chemical Bundle Locked",
     bodyOverride:
       "By the time you leave, the residue is no longer mysterious. It is logistical, expensive, and routed through people who expected the chemistry to look more important than the theft.",
@@ -616,8 +609,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
     id: "scene_case01_estate_entry",
     scenarioId: CASE01_SCENARIO_IDS.estateBranch,
-    sourcePath:
-      "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_estate_intro.md",
+    sourcePath: "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_estate_intro.md",
     titleOverride: "Estate Ledger",
     bodyOverride:
       "The estate is not haunted. It is staged. Someone used a private villa outside the main routes to store telegraph copies, costume receipts, and a payment log written in the careful half-code of people who expect the clerk to die before the archive survives.",
@@ -648,8 +640,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
     id: "scene_case01_lotte_warning",
     scenarioId: CASE01_SCENARIO_IDS.lotteInterlude,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/04_Leads/scene_lotte_interlude.md",
+    sourcePath: "40_GameViewer/Case01/Plot/04_Leads/scene_lotte_interlude.md",
     titleOverride: "Lotte on the Wire",
     bodyOverride:
       "The telephone line hisses before Lotte Weber speaks. She has seen switchboard traffic redirect itself around your questions, which means somebody knows the investigation is narrowing. Her warning is plain: if you keep pulling the thread in daylight, the city will pull back in uniform.",
@@ -670,8 +661,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
     id: "scene_case01_lotte_trust",
     scenarioId: CASE01_SCENARIO_IDS.lotteInterlude,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/04_Leads/scene_lotte_interlude.md",
+    sourcePath: "40_GameViewer/Case01/Plot/04_Leads/scene_lotte_interlude.md",
     titleOverride: "Channel Preserved",
     bodyOverride:
       "Lotte does not soften, but she does stay on the line. The warning becomes a working channel instead of a courtesy.",
@@ -691,8 +681,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
     id: "scene_case01_lotte_distance",
     scenarioId: CASE01_SCENARIO_IDS.lotteInterlude,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/04_Leads/scene_lotte_interlude.md",
+    sourcePath: "40_GameViewer/Case01/Plot/04_Leads/scene_lotte_interlude.md",
     titleOverride: "Channel Narrowed",
     bodyOverride:
       "She accepts the distance faster than you wanted her to. The warning stands, but the next call will cost more trust than this one did.",

@@ -166,7 +166,8 @@ export const VnScreen = ({
     mySession,
     sessionReady,
   );
-  const generatedBackgroundUrl = useKarlsruheSceneBackground(selectedScenarioId);
+  const generatedBackgroundUrl =
+    useKarlsruheSceneBackground(selectedScenarioId);
   const {
     choiceEvaluationContext,
     trustByNpcId,
@@ -606,8 +607,8 @@ export const VnScreen = ({
           onRoll={() => void confirmArmedSkillCheck()}
           canRoll={Boolean(
             armedSkillChoice &&
-              activeSkillResolve?.phase === "arming" &&
-              !awaitingSkillChoice,
+            activeSkillResolve?.phase === "arming" &&
+            !awaitingSkillChoice,
           )}
           onInteract={handleActiveResolveInteraction}
         />

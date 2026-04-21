@@ -54,11 +54,15 @@ export const KarlsruheQrGate = ({
         <div className="mt-8 rounded-[28px] border border-stone-800 bg-stone-900/80 p-8 flex flex-col items-center justify-center gap-5">
           <div className="relative h-48 w-48 rounded-[28px] border border-amber-700/40 bg-stone-950 flex items-center justify-center">
             <div className="absolute inset-5 rounded-[20px] border border-dashed border-amber-600/35" />
-            <ScanLine className="h-24 w-24 text-amber-200/90" strokeWidth={1.6} />
+            <ScanLine
+              className="h-24 w-24 text-amber-200/90"
+              strokeWidth={1.6}
+            />
           </div>
           <div className="text-center">
             <p className="m-0 text-sm text-stone-200">
-              Expected route: <span className="font-mono">/karlsruhe?entry=&lt;token&gt;</span>
+              Expected route:{" "}
+              <span className="font-mono">/karlsruhe?entry=&lt;token&gt;</span>
             </p>
             {hasGrant ? (
               <p className="m-0 mt-2 text-xs text-emerald-300/80">

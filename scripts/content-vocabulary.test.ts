@@ -4,12 +4,12 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import {
-  CONDITION_OPERATORS,
-  EFFECT_OPERATORS,
-} from "./content-vocabulary";
+import { CONDITION_OPERATORS, EFFECT_OPERATORS } from "./content-vocabulary";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 const typesPath = path.join(repoRoot, "src", "features", "vn", "types.ts");
 
 const extractOperators = (

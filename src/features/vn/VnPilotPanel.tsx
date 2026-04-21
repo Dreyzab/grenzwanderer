@@ -206,7 +206,9 @@ export const VnPilotPanel = () => {
         <div className="button-row">
           <button
             onClick={handleAiProbe}
-            disabled={!ENABLE_AI || !activeVersion || isBusy || !probeSkillChoice}
+            disabled={
+              !ENABLE_AI || !activeVersion || isBusy || !probeSkillChoice
+            }
             title={
               !ENABLE_AI
                 ? "AI is disabled by feature flag"
@@ -250,7 +252,9 @@ export const VnPilotPanel = () => {
         <article className="card warning">
           <p>
             No active content snapshot is available.
-            {" Publish via CLI with 'bun run content:release -- --version X.Y.Z'."}
+            {
+              " Publish via CLI with 'bun run content:release -- --version X.Y.Z'."
+            }
           </p>
         </article>
       )}

@@ -11,7 +11,7 @@ Grenzwanderer is runtime-independent from Detectiv0. This bridge preserves migra
 | Area                | Detectiv0                        | Grenzwanderer                                        | Status              | Notes                                                 |
 | ------------------- | -------------------------------- | ---------------------------------------------------- | ------------------- | ----------------------------------------------------- |
 | Runtime backend     | Custom API + services            | SpacetimeDB reducers/tables                          | Diverged by design  | No runtime coupling                                   |
-| Narrative source    | Obsidian vault                   | Obsidian vault + extractor                           | Partial parity      | Runtime/snapshot canon now prefers Case01-first flow |
+| Narrative source    | Obsidian vault                   | Obsidian vault + extractor                           | Partial parity      | Runtime/snapshot canon now prefers Case01-first flow  |
 | Content versioning  | Mixed/manual flows               | `content_version` + `content_snapshot` + CLI release | Improved            | Semver+checksum policy                                |
 | CI quality gates    | Present                          | Added in `ci.yml`                                    | Aligned             | Branch protection required                            |
 | Acceptance matrix   | Mixed docs + runtime habits      | `scripts/acceptance-matrix.ts` + smoke pipeline      | Improved            | Entry paths and content gates are explicit            |

@@ -1,6 +1,6 @@
 import type { ContentServer, ContentTarget } from "./content-manifest";
 
-export interface ContentTargetCliOptions extends ContentTarget {}
+export type ContentTargetCliOptions = ContentTarget;
 
 export const readArg = (args: string[], name: string): string | null => {
   const index = args.indexOf(name);

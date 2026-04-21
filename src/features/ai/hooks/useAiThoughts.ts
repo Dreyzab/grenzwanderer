@@ -15,6 +15,6 @@ export const useAiThoughts = () => {
           ? -1
           : 1,
       ),
-    [identityHex, requests],
+    [requests],
   );
 };

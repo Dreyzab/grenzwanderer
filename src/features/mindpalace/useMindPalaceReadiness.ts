@@ -67,7 +67,6 @@ export const useMindPalaceReadiness = (): MindPalaceReadiness => {
       readyCount,
     };
   }, [
-    identityHex,
     mindCases,
     mindHypotheses,
     playerMindFacts,

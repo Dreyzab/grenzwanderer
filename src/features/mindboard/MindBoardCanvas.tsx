@@ -157,13 +157,14 @@ export function MindBoardCanvas({ caseId }: { caseId: string }) {
         return inNode;
       }),
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     caseId,
     factsForCase,
     hypothesesForCase,
     discoveredFactIds,
     playerHypothesisMap,
-  ]); // eslint-disable-line react-hooks/exhaustive-deps
+  ]);
 
   const onConnect = useCallback(
     async (params: Connection) => {

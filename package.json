@@ -26,7 +26,7 @@
     "governance:visibility:matrix": "bun run scripts/visibility-matrix.ts",
     "governance:visibility:check": "bun run scripts/visibility-matrix.ts --check",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "bun run release:config:prepare && vitest run",
     "content:extract": "bun run scripts/extract-vn-content.ts",
     "content:extract:karlsruhe": "bun run scripts/extract-vn-content.ts --profile karlsruhe_event",
     "ops:ai:watch": "bun run scripts/ai-worker-watch.ts",

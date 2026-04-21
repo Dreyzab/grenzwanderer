@@ -5,6 +5,7 @@ import type {
   AwaitingSkillChoice,
   SkillCheckResultLike,
 } from "../vnScreenTypes";
+import { resolveKarmaBand } from "../../../shared/game/narrativeResources";
 
 const pendingChoice: AwaitingSkillChoice = {
   scenarioId: "scenario_alpha",
@@ -16,6 +17,15 @@ const pendingChoice: AwaitingSkillChoice = {
   voiceLabel: "Charisma",
   diceMode: "d20",
   chancePercent: 85,
+  baseDifficulty: 8,
+  effectiveDifficulty: 8,
+  fortuneSpend: 0,
+  fortuneBalance: 1,
+  effectiveFortune: 1,
+  aiMode: "narrative",
+  providenceCost: 1,
+  karmaBand: resolveKarmaBand(0),
+  difficultyBreakdown: [],
   frozen: {
     locationName: "Case Alpha",
     characterName: "Tailor",

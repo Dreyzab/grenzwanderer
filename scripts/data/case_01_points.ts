@@ -1,9 +1,15 @@
-﻿import type {
+import type {
   MapAction,
   MapCondition,
   MapPointCategory,
   MapSnapshot,
 } from "../../src/features/vn/types";
+import {
+  CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+  CASE01_ROUTE_VALUE_COVERT,
+  CASE01_ROUTE_VALUE_OFFICIAL,
+  CASE01_SCENARIO_IDS,
+} from "../../src/shared/case01Canon";
 
 export interface Case01PointSource {
   id: string;
@@ -117,20 +123,20 @@ export const CASE_01_REGIONS: MapSnapshot["regions"] = [
 export const CASE_01_DEFAULT_REGION_ID = "FREIBURG_1905";
 
 const LEGACY_SCENARIO_TO_CURRENT: Record<string, string> = {
-  detective_case1_hbf_arrival: "sandbox_case01_pilot",
-  detective_case1_bank_scene: "sandbox_banker_pilot",
-  detective_case1_alt_briefing: "sandbox_dog_pilot",
-  detective_case1_mayor_followup: "sandbox_dog_pilot",
-  detective_case1_archive_search: "sandbox_dog_pilot",
-  detective_case1_lab_analysis: "sandbox_ghost_pilot",
-  detective_case1_qr_scan_bank: "sandbox_banker_pilot",
-  case1_finale: "sandbox_case01_pilot",
-  lead_tailor: "sandbox_dog_pilot",
-  lead_apothecary: "sandbox_ghost_pilot",
-  lead_pub: "sandbox_ghost_pilot",
-  interlude_victoria_street: "sandbox_case01_pilot",
-  interlude_lotte_warning: "sandbox_case01_pilot",
-  quest_lotte_wires: "sandbox_case01_pilot",
+  detective_case1_hbf_arrival: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+  detective_case1_bank_scene: CASE01_SCENARIO_IDS.bankInvestigation,
+  detective_case1_alt_briefing: CASE01_SCENARIO_IDS.mayorBriefing,
+  detective_case1_mayor_followup: CASE01_SCENARIO_IDS.convergence,
+  detective_case1_archive_search: CASE01_SCENARIO_IDS.archiveRun,
+  detective_case1_lab_analysis: CASE01_SCENARIO_IDS.estateBranch,
+  detective_case1_qr_scan_bank: CASE01_SCENARIO_IDS.bankInvestigation,
+  case1_finale: CASE01_SCENARIO_IDS.warehouseFinale,
+  lead_tailor: CASE01_SCENARIO_IDS.leadTailor,
+  lead_apothecary: CASE01_SCENARIO_IDS.leadApothecary,
+  lead_pub: CASE01_SCENARIO_IDS.leadPub,
+  interlude_victoria_street: CASE01_SCENARIO_IDS.convergence,
+  interlude_lotte_warning: CASE01_SCENARIO_IDS.lotteInterlude,
+  quest_lotte_wires: CASE01_SCENARIO_IDS.lotteInterlude,
   quest_victoria_poetry: "sandbox_case01_pilot",
   encounter_tourist: "sandbox_intro_pilot",
   encounter_cleaner: "sandbox_intro_pilot",
@@ -159,15 +165,6 @@ const resolveScenarioId = (
   return undefined;
 };
 
-const CLOSED_CASES_CONDITION: LegacyMapCondition = {
-  type: "logic_and",
-  conditions: [
-    { type: "flag_is", key: "banker_case_closed", value: true },
-    { type: "flag_is", key: "dog_case_closed", value: true },
-    { type: "flag_is", key: "ghost_case_closed", value: true },
-  ],
-};
-
 const AGENCY_BRIEFING_SCENARIO_ID = "sandbox_agency_briefing";
 const AGENCY_SERVICE_UNLOCK_SCENARIO_ID = "sandbox_agency_service_unlock";
 const STUDENT_HOUSE_SCENARIO_ID = "sandbox_student_house_access";
@@ -181,6 +178,77 @@ const ANNA_ACCESS_CONDITION: LegacyMapCondition = {
   ],
 };
 
+const CASE01_MAINLINE_UNLOCKED_CONDITION: LegacyMapCondition = {
+  type: "flag_is",
+  key: "case01_onboarding_complete",
+  value: true,
+};
+
+const CASE01_ANY_TWO_LEADS_CONDITION: LegacyMapCondition = {
+  type: "logic_or",
+  conditions: [
+    {
+      type: "logic_and",
+      conditions: [
+        { type: "flag_is", key: "tailor_lead_complete", value: true },
+        { type: "flag_is", key: "apothecary_lead_complete", value: true },
+      ],
+    },
+    {
+      type: "logic_and",
+      conditions: [
+        { type: "flag_is", key: "tailor_lead_complete", value: true },
+        { type: "flag_is", key: "pub_lead_complete", value: true },
+      ],
+    },
+    {
+      type: "logic_and",
+      conditions: [
+        { type: "flag_is", key: "apothecary_lead_complete", value: true },
+        { type: "flag_is", key: "pub_lead_complete", value: true },
+      ],
+    },
+  ],
+};
+
+const CASE01_NO_ROUTE_SELECTED_CONDITION: LegacyMapCondition = {
+  type: "var_lte",
+  key: "convergence_route",
+  value: 0,
+};
+
+const CASE01_OFFICIAL_ROUTE_CONDITION: LegacyMapCondition = {
+  type: "logic_and",
+  conditions: [
+    {
+      type: "var_gte",
+      key: "convergence_route",
+      value: CASE01_ROUTE_VALUE_OFFICIAL,
+    },
+    {
+      type: "var_lte",
+      key: "convergence_route",
+      value: CASE01_ROUTE_VALUE_OFFICIAL,
+    },
+  ],
+};
+
+const CASE01_COVERT_ROUTE_CONDITION: LegacyMapCondition = {
+  type: "logic_and",
+  conditions: [
+    {
+      type: "var_gte",
+      key: "convergence_route",
+      value: CASE01_ROUTE_VALUE_COVERT,
+    },
+    {
+      type: "var_lte",
+      key: "convergence_route",
+      value: CASE01_ROUTE_VALUE_COVERT,
+    },
+  ],
+};
+
 const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
   loc_agency: [
     {
@@ -191,6 +259,7 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       intent: "objective",
       conditions: [
         { type: "flag_is", key: "agency_briefing_complete", value: false },
+        { type: "flag_is", key: "case01_onboarding_complete", value: false },
       ],
       actions: [
         { type: "start_scenario", scenarioId: AGENCY_BRIEFING_SCENARIO_ID },
@@ -199,13 +268,18 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
     {
       id: "bind_agency_caseboard",
       trigger: "card_primary",
-      label: "Review Active Files",
+      label: "Review Fritz's Brief",
       priority: 80,
       intent: "interaction",
       conditions: [
-        { type: "flag_is", key: "agency_briefing_complete", value: true },
+        { type: "flag_is", key: "case01_onboarding_complete", value: false },
       ],
-      actions: [{ type: "start_scenario", scenarioId: "sandbox_case01_pilot" }],
+      actions: [
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+        },
+      ],
     },
     {
       id: "bind_agency_student_intro_service",
@@ -272,17 +346,20 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
     {
       id: "bind_hbf_intro_start",
       trigger: "card_primary",
-      label: "Review Arrival Brief",
+      label: "Begin Case 01",
       priority: 130,
       intent: "objective",
       conditions: [
-        { type: "flag_is", flagId: "intro_freiburg_done", value: false },
+        { type: "flag_is", key: "case01_onboarding_complete", value: false },
       ],
       actions: [
-        { type: "start_scenario", scenarioId: "sandbox_intro_pilot" },
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+        },
         {
           type: "track_event",
-          eventName: "map_hbf_intro_start",
+          eventName: "case01_hbf_runtime_entry",
           tags: { location: "hbf" },
         },
       ],
@@ -290,16 +367,19 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
     {
       id: "bind_hbf_case_bridge",
       trigger: "card_primary",
-      label: "Open Case Bridge",
+      label: "Review Arrival Notes",
       priority: 95,
       intent: "interaction",
       conditions: [
-        { type: "flag_is", key: "intro_freiburg_done", value: true },
-        { type: "flag_is", key: "case01_bridge_started", value: false },
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        { type: "flag_is", key: "bank_investigation_complete", value: false },
       ],
       actions: [
-        { type: "start_scenario", scenarioId: "sandbox_case01_pilot" },
-        { type: "set_flag", key: "case01_bridge_started", value: true },
+        {
+          type: "track_event",
+          eventName: "case01_hbf_revisited",
+          tags: { pointId: "loc_hbf" },
+        },
       ],
     },
     {
@@ -338,90 +418,108 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
     {
       id: "bind_bank_start",
       trigger: "card_primary",
-      label: "Interview Kessler",
+      label: "Investigate the Bank",
       priority: 130,
       intent: "objective",
-      conditions: [{ type: "flag_is", key: "banker_intro_seen", value: false }],
-      actions: [
-        { type: "start_scenario", scenarioId: "sandbox_banker_pilot" },
-        { type: "set_quest_stage", questId: "quest_banker", stage: 1 },
-      ],
-    },
-    {
-      id: "bind_bank_followup",
-      trigger: "card_primary",
-      label: "Follow Banker Leads",
-      priority: 110,
-      intent: "interaction",
       conditions: [
-        { type: "quest_stage_gte", questId: "quest_banker", stage: 2 },
-        { type: "flag_is", key: "banker_case_closed", value: false },
-      ],
-      actions: [{ type: "start_scenario", scenarioId: "sandbox_banker_pilot" }],
-    },
-    {
-      id: "bind_bank_close",
-      trigger: "card_primary",
-      label: "Close Banker Case",
-      priority: 90,
-      intent: "objective",
-      conditions: [
-        { type: "flag_is", key: "case_banker_theft_solved", value: true },
-        { type: "flag_is", key: "banker_case_closed", value: false },
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        {
+          type: "logic_or",
+          conditions: [
+            { type: "flag_is", key: "priority_bank_first", value: true },
+            { type: "flag_is", key: "mayor_briefing_complete", value: true },
+          ],
+        },
+        {
+          type: "flag_is",
+          key: "bank_investigation_complete",
+          value: false,
+        },
       ],
       actions: [
-        { type: "set_quest_stage", questId: "quest_banker", stage: 3 },
-        { type: "set_flag", key: "banker_case_closed", value: true },
-        { type: "grant_xp", amount: 35 },
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.bankInvestigation,
+        },
       ],
     },
   ],
   loc_rathaus: [
     {
-      id: "bind_rathaus_dog_start",
+      id: "bind_rathaus_mayor_start",
       trigger: "card_primary",
-      label: "Open Dog Briefing",
+      label: "Meet the Mayor",
       priority: 125,
       intent: "objective",
       conditions: [
-        { type: "flag_is", key: "dog_case_closed", value: false },
-        { type: "flag_is", key: "banker_intro_seen", value: true },
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        { type: "flag_is", key: "priority_mayor_first", value: true },
+        { type: "flag_is", key: "mayor_briefing_complete", value: false },
       ],
       actions: [
-        { type: "start_scenario", scenarioId: "sandbox_dog_pilot" },
-        { type: "set_quest_stage", questId: "quest_dog", stage: 1 },
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.mayorBriefing,
+        },
       ],
     },
     {
-      id: "bind_rathaus_dog_followup",
+      id: "bind_rathaus_convergence",
       trigger: "card_primary",
-      label: "Review Registry Leads",
+      label: "Commit the Route",
       priority: 110,
       intent: "interaction",
       conditions: [
-        { type: "quest_stage_gte", questId: "quest_dog", stage: 2 },
-        { type: "flag_is", key: "dog_case_closed", value: false },
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        { type: "flag_is", key: "bank_investigation_complete", value: true },
+        CASE01_ANY_TWO_LEADS_CONDITION,
+        CASE01_NO_ROUTE_SELECTED_CONDITION,
       ],
-      actions: [{ type: "start_scenario", scenarioId: "sandbox_dog_pilot" }],
+      actions: [
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.convergence,
+        },
+      ],
     },
     {
-      id: "bind_rathaus_registry_unlock",
+      id: "bind_rathaus_archive_run",
       trigger: "card_primary",
-      label: "Archive Clearance",
+      label: "Run the Warrants",
       priority: 80,
       intent: "interaction",
       conditions: [
-        { type: "flag_is", key: "dog_registry_found", value: true },
-        { type: "flag_is", key: "loc_rathaus_unlocked", value: false },
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        CASE01_OFFICIAL_ROUTE_CONDITION,
+        { type: "flag_is", key: "warrant_ready", value: false },
       ],
       actions: [
-        { type: "unlock_group", groupId: "loc_rathaus" },
-        { type: "set_flag", key: "loc_rathaus_unlocked", value: true },
-        { type: "grant_evidence", evidenceId: "ev_bank_master_key" },
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.archiveRun,
+        },
       ],
     },
   ],
   loc_workers_pub: [
+    {
+      id: "bind_pub_covert_route",
+      trigger: "card_primary",
+      label: "Work the Backchannel",
+      priority: 150,
+      intent: "objective",
+      conditions: [
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        CASE01_COVERT_ROUTE_CONDITION,
+        { type: "flag_is", key: "covert_entry_ready", value: false },
+      ],
+      actions: [
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.railYardTail,
+        },
+      ],
+    },
     {
       id: "bind_pub_rumor_raid",
       trigger: "card_secondary",
@@ -520,9 +618,16 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       label: "Enter Finale",
       priority: 140,
       intent: "objective",
-      conditions: [CLOSED_CASES_CONDITION],
+      conditions: [
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        { type: "flag_is", key: "warehouse_plan_locked", value: true },
+        { type: "flag_is", key: "case_resolved", value: false },
+      ],
       actions: [
-        { type: "start_scenario", scenarioId: "sandbox_case01_pilot" },
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.warehouseFinale,
+        },
         { type: "set_flag", key: "freiburg_finale_open", value: true },
       ],
     },
@@ -532,7 +637,12 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       label: "Inspect Locked Gate",
       priority: 20,
       intent: "interaction",
-      conditions: [{ type: "logic_not", condition: CLOSED_CASES_CONDITION }],
+      conditions: [
+        {
+          type: "logic_not",
+          condition: { type: "flag_is", key: "warehouse_plan_locked", value: true },
+        },
+      ],
       actions: [
         {
           type: "track_event",
@@ -608,6 +718,46 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       ],
     },
   ],
+  loc_freiburg_estate: [
+    {
+      id: "bind_estate_trace",
+      trigger: "card_primary",
+      label: "Trace the Estate Ledger",
+      priority: 110,
+      intent: "interaction",
+      conditions: [
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        { type: "flag_is", key: "bank_investigation_complete", value: true },
+        { type: "flag_is", key: "estate_branch_complete", value: false },
+      ],
+      actions: [
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.estateBranch,
+        },
+      ],
+    },
+  ],
+  loc_telephone: [
+    {
+      id: "bind_telephone_lotte_interlude",
+      trigger: "card_primary",
+      label: "Answer Lotte's Warning",
+      priority: 105,
+      intent: "interaction",
+      conditions: [
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        CASE01_ANY_TWO_LEADS_CONDITION,
+        { type: "flag_is", key: "lotte_interlude_complete", value: false },
+      ],
+      actions: [
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.lotteInterlude,
+        },
+      ],
+    },
+  ],
 };
 
 export const CASE_01_POINTS: Case01PointSource[] = [
@@ -619,7 +769,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
       "Your hidden office and operations hub. Briefings, evidence walls, and trusted informants start here.",
     lat: 47.9952,
     lng: 7.8508,
-    image: "/images/locations/loc_agency.webp",
+    image: "/images/locations/loc_agency/loc_agency.webp",
     locationId: "loc_agency",
     category: "HUB",
     defaultState: "discovered",
@@ -632,7 +782,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
       "Steam-era gateway to Freiburg. Arrivals from Basel and Strasbourg.",
     lat: 47.997791,
     lng: 7.842609,
-    image: "/images/locations/loc_hauptbahnhof.webp",
+    image: "/images/locations/loc_hbf/loc_hauptbahnhof.webp",
     locationId: "loc_hbf",
     category: "PUBLIC",
     defaultState: "discovered",
@@ -647,7 +797,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
       "Prestigious bank at Munsterplatz, currently under renovation.",
     lat: 47.995574,
     lng: 7.852296,
-    image: "/images/locations/loc_bankhaus.webp",
+    image: "/images/locations/loc_freiburg_bank/loc_bankhaus.webp",
     locationId: "loc_freiburg_bank",
     category: "PUBLIC",
     unlockGroup: "loc_freiburg_bank",
@@ -665,7 +815,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "City Hall and records authority for central Freiburg.",
     lat: 47.99629692434917,
     lng: 7.8492596695028,
-    image: "/images/locations/loc_rathaus_archiv.webp",
+    image: "/images/locations/loc_rathaus/loc_rathaus_archiv.webp",
     locationId: "loc_rathaus",
     category: "PUBLIC",
     unlockGroup: "loc_rathaus",
@@ -684,7 +834,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "Gothic cathedral dominating the city center.",
     lat: 47.9955,
     lng: 7.8529,
-    image: "/images/locations/loc_munster.webp",
+    image: "/images/locations/loc_munster/loc_munster.webp",
     locationId: "loc_munster",
     category: "PUBLIC",
     defaultState: "discovered",
@@ -698,7 +848,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "University chemistry lab for forensic analysis.",
     lat: 47.994,
     lng: 7.846,
-    image: "/images/locations/loc_uni.webp",
+    image: "/images/locations/loc_uni/loc_uni.webp",
     locationId: "loc_uni_chem",
     category: "PUBLIC",
     defaultState: "discovered",
@@ -712,7 +862,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "Medical institute focused on serology and lab diagnostics.",
     lat: 47.9935,
     lng: 7.847,
-    image: "/images/locations/loc_uni.webp",
+    image: "/images/locations/loc_uni/loc_uni.webp",
     locationId: "loc_uni_med",
     category: "PUBLIC",
     defaultState: "discovered",
@@ -726,7 +876,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "Fraternity house in the university quarter.",
     lat: 47.99,
     lng: 7.848,
-    image: "/images/locations/loc_student_house.webp",
+    image: "/images/locations/loc_student_house/loc_student_house.webp",
     locationId: "loc_student_house",
     category: "SHADOW",
     unlockGroup: "loc_student_house",
@@ -741,7 +891,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "Busy inn popular with locals and travelers.",
     lat: 47.992,
     lng: 7.854,
-    image: "/images/locations/loc_ganter_brauerei.webp",
+    image: "/images/locations/loc_pub_deutsche/loc_ganter_brauerei.webp",
     locationId: "loc_pub_deutsche",
     category: "PUBLIC",
     defaultState: "discovered",
@@ -755,7 +905,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "Tanners quarter where movement is best watched at night.",
     lat: 47.993,
     lng: 7.851,
-    image: "/images/locations/loc_suburbs.webp",
+    image: "/images/locations/loc_misc/loc_suburbs.webp",
     locationId: "loc_red_light",
     category: "PUBLIC",
     defaultState: "discovered",
@@ -770,7 +920,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
       "Rail yard storage facility used for late-stage investigation.",
     lat: 48.001,
     lng: 7.838,
-    image: "/images/locations/loc_stuhlinger_warehouse.webp",
+    image: "/images/locations/loc_freiburg_warehouse/loc_stuhlinger_warehouse.webp",
     locationId: "loc_freiburg_warehouse",
     category: "SHADOW",
     unlockGroup: "loc_freiburg_warehouse",
@@ -779,13 +929,29 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     legacyScenarioIds: ["case1_finale"],
   },
   {
+    id: "loc_freiburg_estate",
+    regionId: "FREIBURG_1905",
+    title: "Edge Estate",
+    description:
+      "A private estate used as a quiet relay point for the case's hidden paperwork.",
+    lat: 47.9898,
+    lng: 7.8612,
+    image: "/images/locations/loc_student_house/loc_student_house.webp",
+    locationId: "loc_freiburg_estate",
+    category: "SHADOW",
+    unlockGroup: "loc_freiburg_estate",
+    defaultState: "locked",
+    isHiddenInitially: true,
+    legacyScenarioIds: ["detective_case1_lab_analysis"],
+  },
+  {
     id: "loc_workers_pub",
     regionId: "FREIBURG_1905",
     title: "The Red Cog Tavern",
     description: "Workers tavern and hub for social leads.",
     lat: 47.999,
     lng: 7.839,
-    image: "/images/locations/loc_ganter_brauerei.webp",
+    image: "/images/locations/loc_pub_deutsche/loc_ganter_brauerei.webp",
     locationId: "loc_workers_pub",
     category: "PUBLIC",
     defaultState: "discovered",
@@ -799,7 +965,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "Historic city gate with strong foot traffic.",
     lat: 47.9936,
     lng: 7.849,
-    image: "/images/locations/loc_munster.webp",
+    image: "/images/locations/loc_munster/loc_munster.webp",
     locationId: "loc_martinstor",
     category: "PUBLIC",
     defaultState: "discovered",
@@ -813,7 +979,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "Eastern city gate and surveillance vantage point.",
     lat: 47.9928,
     lng: 7.8545,
-    image: "/images/locations/loc_munster.webp",
+    image: "/images/locations/loc_munster/loc_munster.webp",
     locationId: "loc_schwabentor",
     category: "PUBLIC",
     defaultState: "discovered",
@@ -827,7 +993,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "Disguise and costume workshop tied to lead progression.",
     lat: 47.9935,
     lng: 7.8525,
-    image: "/images/locations/loc_student_house.webp",
+    image: "/images/locations/loc_student_house/loc_student_house.webp",
     locationId: "loc_tailor",
     category: "SHADOW",
     unlockGroup: "loc_tailor",
@@ -842,7 +1008,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "Pharmacy near the cathedral with chemical evidence links.",
     lat: 47.9952,
     lng: 7.8535,
-    image: "/images/locations/loc_uni.webp",
+    image: "/images/locations/loc_uni/loc_uni.webp",
     locationId: "loc_apothecary",
     category: "SHADOW",
     unlockGroup: "loc_apothecary",
@@ -857,7 +1023,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "Tavern near Martinstor with working-class witnesses.",
     lat: 47.9938,
     lng: 7.8495,
-    image: "/images/locations/loc_ganter_brauerei.webp",
+    image: "/images/locations/loc_pub_deutsche/loc_ganter_brauerei.webp",
     locationId: "loc_pub",
     category: "SHADOW",
     unlockGroup: "loc_pub",
@@ -872,7 +1038,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     description: "Message relay and switchboard narrative checkpoint.",
     lat: 47.9965,
     lng: 7.8485,
-    image: "/images/locations/loc_rathaus_archiv.webp",
+    image: "/images/locations/loc_rathaus/loc_rathaus_archiv.webp",
     locationId: "loc_telephone",
     category: "SHADOW",
     unlockGroup: "loc_telephone",
@@ -935,7 +1101,7 @@ const CASE_01_MAP_EVENT_TEMPLATES: NonNullable<
       category: "EPHEMERAL",
       description:
         "A whispered lead points to a raid already unfolding near the rail yards.",
-      image: "/images/locations/loc_suburbs.webp",
+      image: "/images/locations/loc_misc/loc_suburbs.webp",
       locationId: "loc_street_event",
       defaultState: "discovered",
       isHiddenInitially: false,

@@ -3,9 +3,7 @@ import {
   __DbConnectionBuilder,
   __DbConnectionImpl,
   __makeQueryBuilder,
-  __schema,
   __SubscriptionBuilderImpl,
-  __table,
   reducers as generatedReducers,
 } from "../../module_bindings";
 import type {
@@ -42,188 +40,154 @@ import type {
   PlayerRedeemedCode,
   PlayerRelationship,
   PlayerRumorState,
+  PlayerSpiritState,
   PlayerUnlockGroup,
   PlayerVar,
   VnSession,
   VnSkillCheckResult,
 } from "../../module_bindings/types";
-import AiRequestRow from "./generated_row_schemas/ai_request_table";
-import BattleCardInstanceRow from "./generated_row_schemas/battle_card_instance_table";
-import BattleCombatantRow from "./generated_row_schemas/battle_combatant_table";
-import BattleHistoryRow from "./generated_row_schemas/battle_history_table";
-import BattleSessionRow from "./generated_row_schemas/battle_session_table";
-import CommandOrderHistoryRow from "./generated_row_schemas/command_order_history_table";
-import CommandPartyMemberRow from "./generated_row_schemas/command_party_member_table";
-import CommandSessionRow from "./generated_row_schemas/command_session_table";
-import PlayerAgencyCareerRow from "./generated_row_schemas/player_agency_career_table";
-import PlayerEvidenceRow from "./generated_row_schemas/player_evidence_table";
-import PlayerFactionSignalRow from "./generated_row_schemas/player_faction_signal_table";
-import PlayerFlagRow from "./generated_row_schemas/player_flag_table";
-import PlayerInventoryRow from "./generated_row_schemas/player_inventory_table";
-import PlayerLocationRow from "./generated_row_schemas/player_location_table";
-import PlayerMapEventRow from "./generated_row_schemas/player_map_event_table";
-import PlayerMindCaseRow from "./generated_row_schemas/player_mind_case_table";
-import PlayerMindFactRow from "./generated_row_schemas/player_mind_fact_table";
-import PlayerMindHypothesisRow from "./generated_row_schemas/player_mind_hypothesis_table";
-import PlayerNpcFavorRow from "./generated_row_schemas/player_npc_favor_table";
-import PlayerNpcStateRow from "./generated_row_schemas/player_npc_state_table";
-import PlayerProfileRow from "./generated_row_schemas/player_profile_table";
-import PlayerQuestRow from "./generated_row_schemas/player_quest_table";
-import PlayerRedeemedCodeRow from "./generated_row_schemas/player_redeemed_code_table";
-import PlayerRelationshipRow from "./generated_row_schemas/player_relationship_table";
-import PlayerRumorStateRow from "./generated_row_schemas/player_rumor_state_table";
-import PlayerUnlockGroupRow from "./generated_row_schemas/player_unlock_group_table";
-import PlayerVarRow from "./generated_row_schemas/player_var_table";
-import VnSessionRow from "./generated_row_schemas/vn_session_table";
-import VnSkillCheckResultRow from "./generated_row_schemas/vn_skill_check_result_table";
-
-const toSnakeCase = (value: string): string =>
-  value
-    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
-    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1_$2")
-    .toLowerCase();
-
-const viewTablesSchema = __schema({
-  myPlayerProfile: __table({ name: "my_player_profile" }, PlayerProfileRow),
-  myPlayerFlags: __table({ name: "my_player_flags" }, PlayerFlagRow),
-  myPlayerVars: __table({ name: "my_player_vars" }, PlayerVarRow),
-  myPlayerLocation: __table({ name: "my_player_location" }, PlayerLocationRow),
-  myPlayerInventory: __table(
-    { name: "my_player_inventory" },
-    PlayerInventoryRow,
-  ),
-  myVnSessions: __table({ name: "my_vn_sessions" }, VnSessionRow),
-  myVnSkillResults: __table(
-    { name: "my_vn_skill_results" },
-    VnSkillCheckResultRow,
-  ),
-  myAiRequests: __table({ name: "my_ai_requests" }, AiRequestRow),
-  workerAiRequests: __table({ name: "worker_ai_requests" }, AiRequestRow),
-  myMindCases: __table({ name: "my_mind_cases" }, PlayerMindCaseRow),
-  myMindFacts: __table({ name: "my_mind_facts" }, PlayerMindFactRow),
-  myMindHypotheses: __table(
-    { name: "my_mind_hypotheses" },
-    PlayerMindHypothesisRow,
-  ),
-  myQuests: __table({ name: "my_quests" }, PlayerQuestRow),
-  myEvidence: __table({ name: "my_evidence" }, PlayerEvidenceRow),
-  myRelationships: __table({ name: "my_relationships" }, PlayerRelationshipRow),
-  myNpcState: __table({ name: "my_npc_state" }, PlayerNpcStateRow),
-  myNpcFavors: __table({ name: "my_npc_favors" }, PlayerNpcFavorRow),
-  myFactionSignals: __table(
-    { name: "my_faction_signals" },
-    PlayerFactionSignalRow,
-  ),
-  myAgencyCareer: __table({ name: "my_agency_career" }, PlayerAgencyCareerRow),
-  myRumorState: __table({ name: "my_rumor_state" }, PlayerRumorStateRow),
-  myBattleSessions: __table({ name: "my_battle_sessions" }, BattleSessionRow),
-  myBattleCombatants: __table(
-    { name: "my_battle_combatants" },
-    BattleCombatantRow,
-  ),
-  myBattleCards: __table({ name: "my_battle_cards" }, BattleCardInstanceRow),
-  myBattleHistory: __table({ name: "my_battle_history" }, BattleHistoryRow),
-  myCommandSessions: __table(
-    { name: "my_command_sessions" },
-    CommandSessionRow,
-  ),
-  myCommandParty: __table({ name: "my_command_party" }, CommandPartyMemberRow),
-  myCommandHistory: __table(
-    { name: "my_command_history" },
-    CommandOrderHistoryRow,
-  ),
-  myUnlockGroups: __table({ name: "my_unlock_groups" }, PlayerUnlockGroupRow),
-  myMapEvents: __table({ name: "my_map_events" }, PlayerMapEventRow),
-  myRedeemedCodes: __table(
-    { name: "my_redeemed_codes" },
-    PlayerRedeemedCodeRow,
-  ),
-});
-
-const APP_REMOTE_MODULE = {
-  ...GENERATED_REMOTE_MODULE,
-  tables: {
-    ...GENERATED_REMOTE_MODULE.tables,
-    ...viewTablesSchema.schemaType.tables,
-  },
-} as const;
-
-for (const [key, table] of Object.entries(APP_REMOTE_MODULE.tables)) {
-  (table as { sourceName?: string }).sourceName ??= toSnakeCase(key);
-}
-
 const queryTables = __makeQueryBuilder({
-  tables: APP_REMOTE_MODULE.tables,
+  tables: GENERATED_REMOTE_MODULE.tables,
 });
 
-type AppRemoteModule = typeof APP_REMOTE_MODULE;
+type AppRemoteModule = typeof GENERATED_REMOTE_MODULE;
 type BaseDbConnection = __DbConnectionImpl<AppRemoteModule>;
 type BaseDbView = BaseDbConnection["db"];
 
+type ViewDbAliases = {
+  myPlayerProfile: BaseDbView["my_player_profile"];
+  myPlayerFlags: BaseDbView["my_player_flags"];
+  myPlayerVars: BaseDbView["my_player_vars"];
+  myPlayerLocation: BaseDbView["my_player_location"];
+  myPlayerInventory: BaseDbView["my_player_inventory"];
+  myVnSessions: BaseDbView["my_vn_sessions"];
+  myVnSkillResults: BaseDbView["my_vn_skill_results"];
+  myAiRequests: BaseDbView["my_ai_requests"];
+  workerAiRequests: BaseDbView["worker_ai_requests"];
+  myMindCases: BaseDbView["my_mind_cases"];
+  myMindFacts: BaseDbView["my_mind_facts"];
+  myMindHypotheses: BaseDbView["my_mind_hypotheses"];
+  myQuests: BaseDbView["my_quests"];
+  myEvidence: BaseDbView["my_evidence"];
+  myRelationships: BaseDbView["my_relationships"];
+  myNpcState: BaseDbView["my_npc_state"];
+  myNpcFavors: BaseDbView["my_npc_favors"];
+  myFactionSignals: BaseDbView["my_faction_signals"];
+  myAgencyCareer: BaseDbView["my_agency_career"];
+  myRumorState: BaseDbView["my_rumor_state"];
+  myBattleSessions: BaseDbView["my_battle_sessions"];
+  myBattleCombatants: BaseDbView["my_battle_combatants"];
+  myBattleCards: BaseDbView["my_battle_cards"];
+  myBattleHistory: BaseDbView["my_battle_history"];
+  myCommandSessions: BaseDbView["my_command_sessions"];
+  myCommandParty: BaseDbView["my_command_party"];
+  myCommandHistory: BaseDbView["my_command_history"];
+  myUnlockGroups: BaseDbView["my_unlock_groups"];
+  myMapEvents: BaseDbView["my_map_events"];
+  myRedeemedCodes: BaseDbView["my_redeemed_codes"];
+  mySpiritState: BaseDbView["my_spirit_state"];
+};
+
+const viewDbAliases: Readonly<Record<keyof ViewDbAliases, keyof BaseDbView>> = {
+  myPlayerProfile: "my_player_profile",
+  myPlayerFlags: "my_player_flags",
+  myPlayerVars: "my_player_vars",
+  myPlayerLocation: "my_player_location",
+  myPlayerInventory: "my_player_inventory",
+  myVnSessions: "my_vn_sessions",
+  myVnSkillResults: "my_vn_skill_results",
+  myAiRequests: "my_ai_requests",
+  workerAiRequests: "worker_ai_requests",
+  myMindCases: "my_mind_cases",
+  myMindFacts: "my_mind_facts",
+  myMindHypotheses: "my_mind_hypotheses",
+  myQuests: "my_quests",
+  myEvidence: "my_evidence",
+  myRelationships: "my_relationships",
+  myNpcState: "my_npc_state",
+  myNpcFavors: "my_npc_favors",
+  myFactionSignals: "my_faction_signals",
+  myAgencyCareer: "my_agency_career",
+  myRumorState: "my_rumor_state",
+  myBattleSessions: "my_battle_sessions",
+  myBattleCombatants: "my_battle_combatants",
+  myBattleCards: "my_battle_cards",
+  myBattleHistory: "my_battle_history",
+  myCommandSessions: "my_command_sessions",
+  myCommandParty: "my_command_party",
+  myCommandHistory: "my_command_history",
+  myUnlockGroups: "my_unlock_groups",
+  myMapEvents: "my_map_events",
+  myRedeemedCodes: "my_redeemed_codes",
+  mySpiritState: "my_spirit_state",
+};
+
 type LegacyDbAliases = {
-  playerProfile: BaseDbView["myPlayerProfile"];
-  playerFlag: BaseDbView["myPlayerFlags"];
-  playerVar: BaseDbView["myPlayerVars"];
-  playerLocation: BaseDbView["myPlayerLocation"];
-  playerInventory: BaseDbView["myPlayerInventory"];
-  vnSession: BaseDbView["myVnSessions"];
-  vnSkillCheckResult: BaseDbView["myVnSkillResults"];
-  aiRequest: BaseDbView["myAiRequests"];
-  playerMindCase: BaseDbView["myMindCases"];
-  playerMindFact: BaseDbView["myMindFacts"];
-  playerMindHypothesis: BaseDbView["myMindHypotheses"];
-  playerQuest: BaseDbView["myQuests"];
-  playerEvidence: BaseDbView["myEvidence"];
-  playerRelationship: BaseDbView["myRelationships"];
-  playerNpcState: BaseDbView["myNpcState"];
-  playerNpcFavor: BaseDbView["myNpcFavors"];
-  playerFactionSignal: BaseDbView["myFactionSignals"];
-  playerAgencyCareer: BaseDbView["myAgencyCareer"];
-  playerRumorState: BaseDbView["myRumorState"];
-  battleSession: BaseDbView["myBattleSessions"];
-  battleCombatant: BaseDbView["myBattleCombatants"];
-  battleCardInstance: BaseDbView["myBattleCards"];
-  battleHistory: BaseDbView["myBattleHistory"];
-  commandSession: BaseDbView["myCommandSessions"];
-  commandPartyMember: BaseDbView["myCommandParty"];
-  commandOrderHistory: BaseDbView["myCommandHistory"];
-  playerUnlockGroup: BaseDbView["myUnlockGroups"];
-  playerMapEvent: BaseDbView["myMapEvents"];
-  playerRedeemedCode: BaseDbView["myRedeemedCodes"];
+  playerProfile: BaseDbView["my_player_profile"];
+  playerFlag: BaseDbView["my_player_flags"];
+  playerVar: BaseDbView["my_player_vars"];
+  playerLocation: BaseDbView["my_player_location"];
+  playerInventory: BaseDbView["my_player_inventory"];
+  vnSession: BaseDbView["my_vn_sessions"];
+  vnSkillCheckResult: BaseDbView["my_vn_skill_results"];
+  aiRequest: BaseDbView["my_ai_requests"];
+  playerMindCase: BaseDbView["my_mind_cases"];
+  playerMindFact: BaseDbView["my_mind_facts"];
+  playerMindHypothesis: BaseDbView["my_mind_hypotheses"];
+  playerQuest: BaseDbView["my_quests"];
+  playerEvidence: BaseDbView["my_evidence"];
+  playerRelationship: BaseDbView["my_relationships"];
+  playerNpcState: BaseDbView["my_npc_state"];
+  playerNpcFavor: BaseDbView["my_npc_favors"];
+  playerFactionSignal: BaseDbView["my_faction_signals"];
+  playerAgencyCareer: BaseDbView["my_agency_career"];
+  playerRumorState: BaseDbView["my_rumor_state"];
+  battleSession: BaseDbView["my_battle_sessions"];
+  battleCombatant: BaseDbView["my_battle_combatants"];
+  battleCardInstance: BaseDbView["my_battle_cards"];
+  battleHistory: BaseDbView["my_battle_history"];
+  commandSession: BaseDbView["my_command_sessions"];
+  commandPartyMember: BaseDbView["my_command_party"];
+  commandOrderHistory: BaseDbView["my_command_history"];
+  playerUnlockGroup: BaseDbView["my_unlock_groups"];
+  playerMapEvent: BaseDbView["my_map_events"];
+  playerRedeemedCode: BaseDbView["my_redeemed_codes"];
+  playerSpiritState: BaseDbView["my_spirit_state"];
 };
 
 const legacyDbAliases: Readonly<
   Record<keyof LegacyDbAliases, keyof BaseDbView>
 > = {
-  playerProfile: "myPlayerProfile",
-  playerFlag: "myPlayerFlags",
-  playerVar: "myPlayerVars",
-  playerLocation: "myPlayerLocation",
-  playerInventory: "myPlayerInventory",
-  vnSession: "myVnSessions",
-  vnSkillCheckResult: "myVnSkillResults",
-  aiRequest: "myAiRequests",
-  playerMindCase: "myMindCases",
-  playerMindFact: "myMindFacts",
-  playerMindHypothesis: "myMindHypotheses",
-  playerQuest: "myQuests",
-  playerEvidence: "myEvidence",
-  playerRelationship: "myRelationships",
-  playerNpcState: "myNpcState",
-  playerNpcFavor: "myNpcFavors",
-  playerFactionSignal: "myFactionSignals",
-  playerAgencyCareer: "myAgencyCareer",
-  playerRumorState: "myRumorState",
-  battleSession: "myBattleSessions",
-  battleCombatant: "myBattleCombatants",
-  battleCardInstance: "myBattleCards",
-  battleHistory: "myBattleHistory",
-  commandSession: "myCommandSessions",
-  commandPartyMember: "myCommandParty",
-  commandOrderHistory: "myCommandHistory",
-  playerUnlockGroup: "myUnlockGroups",
-  playerMapEvent: "myMapEvents",
-  playerRedeemedCode: "myRedeemedCodes",
+  playerProfile: "my_player_profile",
+  playerFlag: "my_player_flags",
+  playerVar: "my_player_vars",
+  playerLocation: "my_player_location",
+  playerInventory: "my_player_inventory",
+  vnSession: "my_vn_sessions",
+  vnSkillCheckResult: "my_vn_skill_results",
+  aiRequest: "my_ai_requests",
+  playerMindCase: "my_mind_cases",
+  playerMindFact: "my_mind_facts",
+  playerMindHypothesis: "my_mind_hypotheses",
+  playerQuest: "my_quests",
+  playerEvidence: "my_evidence",
+  playerRelationship: "my_relationships",
+  playerNpcState: "my_npc_state",
+  playerNpcFavor: "my_npc_favors",
+  playerFactionSignal: "my_faction_signals",
+  playerAgencyCareer: "my_agency_career",
+  playerRumorState: "my_rumor_state",
+  battleSession: "my_battle_sessions",
+  battleCombatant: "my_battle_combatants",
+  battleCardInstance: "my_battle_cards",
+  battleHistory: "my_battle_history",
+  commandSession: "my_command_sessions",
+  commandPartyMember: "my_command_party",
+  commandOrderHistory: "my_command_history",
+  playerUnlockGroup: "my_unlock_groups",
+  playerMapEvent: "my_map_events",
+  playerRedeemedCode: "my_redeemed_codes",
+  playerSpiritState: "my_spirit_state",
 };
 
 export const tables = {
@@ -232,69 +196,42 @@ export const tables = {
   mindCase: queryTables.mindCase,
   mindFact: queryTables.mindFact,
   mindHypothesis: queryTables.mindHypothesis,
-  myPlayerProfile: queryTables.myPlayerProfile,
-  myPlayerFlags: queryTables.myPlayerFlags,
-  myPlayerVars: queryTables.myPlayerVars,
-  myPlayerLocation: queryTables.myPlayerLocation,
-  myPlayerInventory: queryTables.myPlayerInventory,
-  myVnSessions: queryTables.myVnSessions,
-  myVnSkillResults: queryTables.myVnSkillResults,
-  myAiRequests: queryTables.myAiRequests,
-  workerAiRequests: queryTables.workerAiRequests,
-  myMindCases: queryTables.myMindCases,
-  myMindFacts: queryTables.myMindFacts,
-  myMindHypotheses: queryTables.myMindHypotheses,
-  myQuests: queryTables.myQuests,
-  myEvidence: queryTables.myEvidence,
-  myRelationships: queryTables.myRelationships,
-  myNpcState: queryTables.myNpcState,
-  myNpcFavors: queryTables.myNpcFavors,
-  myFactionSignals: queryTables.myFactionSignals,
-  myAgencyCareer: queryTables.myAgencyCareer,
-  myRumorState: queryTables.myRumorState,
-  myBattleSessions: queryTables.myBattleSessions,
-  myBattleCombatants: queryTables.myBattleCombatants,
-  myBattleCards: queryTables.myBattleCards,
-  myBattleHistory: queryTables.myBattleHistory,
-  myCommandSessions: queryTables.myCommandSessions,
-  myCommandParty: queryTables.myCommandParty,
-  myCommandHistory: queryTables.myCommandHistory,
-  myUnlockGroups: queryTables.myUnlockGroups,
-  myMapEvents: queryTables.myMapEvents,
-  myRedeemedCodes: queryTables.myRedeemedCodes,
-  playerProfile: queryTables.myPlayerProfile,
-  playerFlag: queryTables.myPlayerFlags,
-  playerVar: queryTables.myPlayerVars,
-  playerLocation: queryTables.myPlayerLocation,
-  playerInventory: queryTables.myPlayerInventory,
-  vnSession: queryTables.myVnSessions,
-  vnSkillCheckResult: queryTables.myVnSkillResults,
-  aiRequest: queryTables.myAiRequests,
-  playerMindCase: queryTables.myMindCases,
-  playerMindFact: queryTables.myMindFacts,
-  playerMindHypothesis: queryTables.myMindHypotheses,
-  playerQuest: queryTables.myQuests,
-  playerEvidence: queryTables.myEvidence,
-  playerRelationship: queryTables.myRelationships,
-  playerNpcState: queryTables.myNpcState,
-  playerNpcFavor: queryTables.myNpcFavors,
-  playerFactionSignal: queryTables.myFactionSignals,
-  playerAgencyCareer: queryTables.myAgencyCareer,
-  playerRumorState: queryTables.myRumorState,
-  battleSession: queryTables.myBattleSessions,
-  battleCombatant: queryTables.myBattleCombatants,
-  battleCardInstance: queryTables.myBattleCards,
-  battleHistory: queryTables.myBattleHistory,
-  commandSession: queryTables.myCommandSessions,
-  commandPartyMember: queryTables.myCommandParty,
-  commandOrderHistory: queryTables.myCommandHistory,
-  playerUnlockGroup: queryTables.myUnlockGroups,
-  playerMapEvent: queryTables.myMapEvents,
-  playerRedeemedCode: queryTables.myRedeemedCodes,
+  myPlayerProfile: queryTables.my_player_profile,
+  myPlayerFlags: queryTables.my_player_flags,
+  myPlayerVars: queryTables.my_player_vars,
+  myPlayerLocation: queryTables.my_player_location,
+  myPlayerInventory: queryTables.my_player_inventory,
+  myVnSessions: queryTables.my_vn_sessions,
+  myVnSkillResults: queryTables.my_vn_skill_results,
+  myAiRequests: queryTables.my_ai_requests,
+  workerAiRequests: queryTables.worker_ai_requests,
+  myMindCases: queryTables.my_mind_cases,
+  myMindFacts: queryTables.my_mind_facts,
+  myMindHypotheses: queryTables.my_mind_hypotheses,
+  myQuests: queryTables.my_quests,
+  myEvidence: queryTables.my_evidence,
+  myRelationships: queryTables.my_relationships,
+  myNpcState: queryTables.my_npc_state,
+  myNpcFavors: queryTables.my_npc_favors,
+  myFactionSignals: queryTables.my_faction_signals,
+  myAgencyCareer: queryTables.my_agency_career,
+  myRumorState: queryTables.my_rumor_state,
+  myBattleSessions: queryTables.my_battle_sessions,
+  myBattleCombatants: queryTables.my_battle_combatants,
+  myBattleCards: queryTables.my_battle_cards,
+  myBattleHistory: queryTables.my_battle_history,
+  myCommandSessions: queryTables.my_command_sessions,
+  myCommandParty: queryTables.my_command_party,
+  myCommandHistory: queryTables.my_command_history,
+  myUnlockGroups: queryTables.my_unlock_groups,
+  myMapEvents: queryTables.my_map_events,
+  myRedeemedCodes: queryTables.my_redeemed_codes,
+  mySpiritState: queryTables.my_spirit_state,
 } as const;
 
 export const reducers = {
   advanceQuest: generatedReducers.advanceQuest,
+  beginKarlsruheEventEntry: generatedReducers.beginKarlsruheEventEntry,
   beginFreiburgOrigin: generatedReducers.beginFreiburgOrigin,
   buyItem: generatedReducers.buyItem,
   changeAgencyStanding: generatedReducers.changeAgencyStanding,
@@ -303,35 +240,30 @@ export const reducers = {
   changeRelationship: generatedReducers.changeRelationship,
   closeBattleMode: generatedReducers.closeBattleMode,
   closeCommandMode: generatedReducers.closeCommandMode,
-  deliverThought: generatedReducers.deliverThought,
   discoverFact: generatedReducers.discoverFact,
   endBattleTurn: generatedReducers.endBattleTurn,
   enqueueAiRequest: generatedReducers.enqueueAiRequest,
+  enqueueProvidenceDialogue: generatedReducers.enqueueProvidenceDialogue,
   grantEvidence: generatedReducers.grantEvidence,
   grantItem: generatedReducers.grantItem,
   grantXp: generatedReducers.grantXp,
-  heartbeatPresence: generatedReducers.heartbeatPresence,
   issueCommand: generatedReducers.issueCommand,
-  joinAgency: generatedReducers.joinAgency,
   mapInteract: generatedReducers.mapInteract,
   openBattleMode: generatedReducers.openBattleMode,
   openCommandMode: generatedReducers.openCommandMode,
   performSkillCheck: generatedReducers.performSkillCheck,
   playBattleCard: generatedReducers.playBattleCard,
-  purgeMindThought: generatedReducers.purgeMindThought,
   recordChoice: generatedReducers.recordChoice,
   recordServiceCriterion: generatedReducers.recordServiceCriterion,
   redeemMapCode: generatedReducers.redeemMapCode,
   registerRumor: generatedReducers.registerRumor,
   resolveCommand: generatedReducers.resolveCommand,
-  restAndRecover: generatedReducers.restAndRecover,
   setFlag: generatedReducers.setFlag,
   setHypothesisFocus: generatedReducers.setHypothesisFocus,
   setNickname: generatedReducers.setNickname,
   setQuestStage: generatedReducers.setQuestStage,
   setVar: generatedReducers.setVar,
   startMindCase: generatedReducers.startMindCase,
-  startMindThoughtResearch: generatedReducers.startMindThoughtResearch,
   startScenario: generatedReducers.startScenario,
   trackEvent: generatedReducers.trackEvent,
   travelTo: generatedReducers.travelTo,
@@ -351,12 +283,17 @@ export type SubscriptionHandle = __SubscriptionHandleImpl<AppRemoteModule>;
 export class SubscriptionBuilder extends __SubscriptionBuilderImpl<AppRemoteModule> {}
 
 export class DbConnection extends __DbConnectionImpl<AppRemoteModule> {
-  declare readonly db: BaseDbView & LegacyDbAliases;
+  declare readonly db: BaseDbView & ViewDbAliases & LegacyDbAliases;
 
   constructor(config: __DbConnectionConfig<AppRemoteModule>) {
     super(config);
 
     const dbRecord = this.db as Record<string, unknown>;
+    for (const [aliasName, sourceName] of Object.entries(
+      viewDbAliases,
+    ) as Array<[keyof ViewDbAliases, keyof BaseDbView]>) {
+      dbRecord[aliasName] ??= dbRecord[sourceName as string];
+    }
     for (const [legacyName, nextName] of Object.entries(
       legacyDbAliases,
     ) as Array<[keyof LegacyDbAliases, keyof BaseDbView]>) {
@@ -366,7 +303,7 @@ export class DbConnection extends __DbConnectionImpl<AppRemoteModule> {
 
   static builder = (): DbConnectionBuilder =>
     new DbConnectionBuilder(
-      APP_REMOTE_MODULE,
+      GENERATED_REMOTE_MODULE,
       (config: __DbConnectionConfig<AppRemoteModule>) =>
         new DbConnection(config),
     );
@@ -403,6 +340,7 @@ export type {
   PlayerRedeemedCode,
   PlayerRelationship,
   PlayerRumorState,
+  PlayerSpiritState,
   PlayerUnlockGroup,
   PlayerVar,
   VnSession,

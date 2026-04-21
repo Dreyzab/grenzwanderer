@@ -23,8 +23,9 @@ describe("acceptance matrix", () => {
       { label: "Map authority", script: "smoke:map-authority" },
       { label: "Battle authority", script: "smoke:battle-authority" },
       { label: "Origin entry", script: "smoke:origin-entry" },
-      { label: "Origin handoff", script: "smoke:origin-handoff" },
-      { label: "MVP routes", script: "smoke:mvp-routes" },
+      { label: "Case01 entry", script: "smoke:case01-entry" },
+      { label: "Case01 mainline", script: "smoke:case01-mainline" },
+      { label: "Case01 branches", script: "smoke:case01-branches" },
       { label: "Banker duel", script: "smoke:banker-duel" },
       { label: "Social access", script: "smoke:social-access" },
       { label: "Rumor verification", script: "smoke:rumor-verification" },
@@ -40,5 +41,6 @@ describe("acceptance matrix", () => {
     expect(markdown).toContain("| Supported flow | Type | Entry path |");
     expect(markdown).toContain("`freiburg_origin_entry`");
     expect(markdown).toContain("`bun run smoke:origin-entry`");
+    expect(markdown).toContain("`freiburg_case01_entry`");
   });
 });

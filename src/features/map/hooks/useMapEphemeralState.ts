@@ -69,7 +69,7 @@ const parseEventPayload = (payloadJson: string): MapPointSnapshot | null => {
 
 export const useMapEphemeralState = (): UseMapEphemeralStateResult => {
   const { identityHex } = useIdentity();
-  const [events, eventsReady] = useTable(tables.playerMapEvent);
+  const [events, eventsReady] = useTable(tables.myMapEvents);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
@@ -78,8 +78,11 @@ export const useMapEphemeralState = (): UseMapEphemeralStateResult => {
   }, []);
 
   const activeEvents = useMemo(() => {
+    if (!identityHex) {
+      return [] as ActiveMapEventPoint[];
+    }
+
     return events
-      .filter((row) => row.playerId.toHexString() === identityHex)
       .filter((row) => row.status === "active")
       .map((row) => {
         const point = parseEventPayload(row.payloadJson);

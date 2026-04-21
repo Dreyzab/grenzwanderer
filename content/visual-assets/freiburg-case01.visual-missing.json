@@ -1,0 +1,474 @@
+[
+  {
+    "locationId": "loc_agency",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_agency.webp",
+    "expectedMetaPath": "images/locations/loc_agency.meta.json",
+    "runtimeImagePath": "/images/locations/loc_agency.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_agency"],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_apothecary",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_apothecary.webp",
+    "expectedMetaPath": "images/locations/loc_apothecary.meta.json",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_apothecary",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_apothecary--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_apothecary--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_freiburg_bank",
+    "variantId": "crime_scene",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_bankhaus--crime_scene.webp",
+    "expectedMetaPath": "images/locations/loc_bankhaus--crime_scene.meta.json",
+    "runtimeImagePath": "/images/locations/loc_bankhaus.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_freiburg_bank",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_bankhaus.webp",
+    "expectedMetaPath": "images/locations/loc_bankhaus.meta.json",
+    "runtimeImagePath": "/images/locations/loc_bankhaus.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
+    "issues": ["missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_freiburg_bank",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_bankhaus--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_bankhaus--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_bankhaus.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_freiburg_estate",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_freiburg_estate.webp",
+    "expectedMetaPath": "images/locations/loc_freiburg_estate.meta.json",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_freiburg_estate",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_freiburg_estate--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_freiburg_estate--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_freiburg_estate",
+    "variantId": "memory",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_freiburg_estate--memory.webp",
+    "expectedMetaPath": "images/locations/loc_freiburg_estate--memory.meta.json",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_freiburg_warehouse",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_stuhlinger_warehouse.webp",
+    "expectedMetaPath": "images/locations/loc_stuhlinger_warehouse.meta.json",
+    "runtimeImagePath": "/images/locations/loc_stuhlinger_warehouse.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_warehouse"],
+    "issues": ["missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_freiburg_warehouse",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_stuhlinger_warehouse--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_stuhlinger_warehouse--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_stuhlinger_warehouse.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_warehouse"],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_hbf",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_hauptbahnhof.webp",
+    "expectedMetaPath": "images/locations/loc_hauptbahnhof.meta.json",
+    "runtimeImagePath": "/images/locations/loc_hauptbahnhof.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_hbf"],
+    "issues": ["missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_hbf",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_hauptbahnhof--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_hauptbahnhof--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_hauptbahnhof.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_hbf"],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_martinstor",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_martinstor.webp",
+    "expectedMetaPath": "images/locations/loc_martinstor.meta.json",
+    "runtimeImagePath": "/images/locations/loc_munster.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_martinstor",
+      "loc_munster",
+      "loc_schwabentor"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_munster",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_munster.webp",
+    "expectedMetaPath": "images/locations/loc_munster.meta.json",
+    "runtimeImagePath": "/images/locations/loc_munster.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_martinstor",
+      "loc_munster",
+      "loc_schwabentor"
+    ],
+    "issues": ["missing_expected_meta", "runtime_reuses_shared_image"]
+  },
+  {
+    "locationId": "loc_pub",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_pub.webp",
+    "expectedMetaPath": "images/locations/loc_pub.meta.json",
+    "runtimeImagePath": "/images/locations/loc_ganter_brauerei.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_pub",
+      "loc_pub_deutsche",
+      "loc_workers_pub"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_pub",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_pub--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_pub--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_ganter_brauerei.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_pub",
+      "loc_pub_deutsche",
+      "loc_workers_pub"
+    ],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_pub_deutsche",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_pub_deutsche.webp",
+    "expectedMetaPath": "images/locations/loc_pub_deutsche.meta.json",
+    "runtimeImagePath": "/images/locations/loc_ganter_brauerei.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_pub",
+      "loc_pub_deutsche",
+      "loc_workers_pub"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_rathaus",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_rathaus.webp",
+    "expectedMetaPath": "images/locations/loc_rathaus.meta.json",
+    "runtimeImagePath": "/images/locations/loc_rathaus_archiv.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_rathaus",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_rathaus--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_rathaus--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_rathaus_archiv.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_red_light",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_suburbs.webp",
+    "expectedMetaPath": "images/locations/loc_suburbs.meta.json",
+    "runtimeImagePath": "/images/locations/loc_suburbs.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_red_light"],
+    "issues": ["missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_red_light",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_suburbs--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_suburbs--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_suburbs.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_red_light"],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_schwabentor",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_schwabentor.webp",
+    "expectedMetaPath": "images/locations/loc_schwabentor.meta.json",
+    "runtimeImagePath": "/images/locations/loc_munster.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_martinstor",
+      "loc_munster",
+      "loc_schwabentor"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_student_house",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_student_house.webp",
+    "expectedMetaPath": "images/locations/loc_student_house.meta.json",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "issues": ["missing_expected_meta", "runtime_reuses_shared_image"]
+  },
+  {
+    "locationId": "loc_student_house",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_student_house--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_student_house--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_tailor",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_tailor.webp",
+    "expectedMetaPath": "images/locations/loc_tailor.meta.json",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_tailor",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_tailor--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_tailor--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_student_house.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_estate",
+      "loc_student_house",
+      "loc_tailor"
+    ],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_telephone",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_telephone.webp",
+    "expectedMetaPath": "images/locations/loc_telephone.meta.json",
+    "runtimeImagePath": "/images/locations/loc_rathaus_archiv.webp",
+    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_uni_chem",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_uni_chem.webp",
+    "expectedMetaPath": "images/locations/loc_uni_chem.meta.json",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_uni_chem",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_uni_chem--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_uni_chem--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_uni_med",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_uni_med.webp",
+    "expectedMetaPath": "images/locations/loc_uni_med.meta.json",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_uni_med",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_uni_med--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_uni_med--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_uni.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_apothecary",
+      "loc_uni_chem",
+      "loc_uni_med"
+    ],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  },
+  {
+    "locationId": "loc_workers_pub",
+    "variantId": "default",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_workers_pub.webp",
+    "expectedMetaPath": "images/locations/loc_workers_pub.meta.json",
+    "runtimeImagePath": "/images/locations/loc_ganter_brauerei.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_pub",
+      "loc_pub_deutsche",
+      "loc_workers_pub"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta",
+      "runtime_reuses_shared_image"
+    ]
+  },
+  {
+    "locationId": "loc_workers_pub",
+    "variantId": "investigation",
+    "assetKind": "exterior",
+    "expectedImagePath": "images/locations/loc_workers_pub--investigation.webp",
+    "expectedMetaPath": "images/locations/loc_workers_pub--investigation.meta.json",
+    "runtimeImagePath": "/images/locations/loc_ganter_brauerei.webp",
+    "runtimeImageSharedWithLocationIds": [
+      "loc_pub",
+      "loc_pub_deutsche",
+      "loc_workers_pub"
+    ],
+    "issues": ["missing_expected_image", "missing_expected_meta"]
+  }
+]

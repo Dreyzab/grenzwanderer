@@ -31,6 +31,7 @@ This document defines runtime architecture, content release lifecycle, and repos
 - Narrative source lives in `obsidian/StoryDetective`.
 - Extractor generates `content/vn/pilot.snapshot.json` and the public copy.
 - Snapshot carries deterministic checksum metadata.
+- Shared authoring/path contract lives in `docs/OBSIDIAN_VN_CONTRACT.md` and `scripts/content-authoring-contract.ts`.
 - Repo-backed Freiburg social content lives in `scripts/data/freiburg_social_catalog.ts` and is emitted into `VnSnapshot.socialCatalog`.
 
 ## Acceptance Contract
@@ -40,10 +41,10 @@ This document defines runtime architecture, content release lifecycle, and repos
 - Every supported flow must define:
   - explicit entry path;
   - one smoke command;
-  - whether `content:extract`, `content:manifest:check`, and `content:drift:check` are required.
+  - whether `content:extract`, `content:manifest:check`, and `content:drift:verify` are required.
 - `scripts/smoke-all.ts` is derived from the acceptance matrix instead of maintaining its own list.
-- Snapshot-backed acceptance flows currently cover Freiburg entry/handoff, Freiburg case slice, Freiburg dog deduction closure, and the Freiburg social loop.
-- The canonical journalist handoff contract is `journalist_agency_wakeup -> sandbox_agency_briefing`; `intro_journalist` remains snapshot-backed legacy/debug content rather than supported onboarding.
+- Snapshot-backed acceptance flows currently cover Freiburg origin entry, Case01 canonical entry, Case01 mainline, Freiburg dog deduction closure, and the Freiburg social loop.
+- The canonical default Freiburg runtime entry is now `case01_hbf_arrival`, which drives Fritz's priority choice and the supported Case01 mainline. `sandbox_case01_pilot` remains snapshot-backed legacy/debug content rather than the supported runtime path.
 - Synthetic contract flows cover reducer/runtime authority checks where extracted content is intentionally not required.
 - Freiburg is the only supported city in the current player-facing path. Karlsruhe remains explicitly unavailable.
 
@@ -64,11 +65,15 @@ This document defines runtime architecture, content release lifecycle, and repos
 1. Author or update narrative in `obsidian/`.
 2. Build a fresh snapshot with `bun run content:extract`.
 3. Validate integrity and drift.
-   - `content:drift:check` mutates generated snapshot artifacts because it invokes `content:extract`.
+   - `content:drift:verify` is the canonical read-only local artifact consistency check.
+   - `content:drift:against-head` is the explicit git-`HEAD` comparison mode.
+   - `content:gate:local` is the mutating local gate that regenerates artifacts, runs the Case01 smoke pack, and then verifies the local artifacts.
+   - `content:drift:check` remains a deprecated alias to `content:gate:local`.
 4. Publish through `bun run content:release -- --version X.Y.Z ...`.
 5. Record the release in `content/vn/releases.manifest.json`.
 6. Create the matching git tag through `bun run content:tag -- --version X.Y.Z`.
 7. Roll back with `bun run content:rollback -- --checksum <sha256> ...` when required.
+8. Inspect repo vs DB drift with `bun run content:db:status -- ...` when needed.
 
 Production content publishing remains CLI-only.
 

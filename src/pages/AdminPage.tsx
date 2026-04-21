@@ -9,6 +9,7 @@ const ONE_MINUTE_MICROS = 60n * ONE_SECOND_MICROS;
 const FIFTEEN_MINUTES_MICROS = 15n * ONE_MINUTE_MICROS;
 const NINETY_SECONDS_MICROS = 90n * ONE_SECOND_MICROS;
 const ONE_DAY_MICROS = 24n * 60n * ONE_MINUTE_MICROS;
+const EMPTY_ROWS: any[] = [];
 
 const TELEMETRY_EVENT_LABELS: Record<string, string> = {
   scenario_started: "Scenarios started",
@@ -112,25 +113,20 @@ const metricTone = (status: string): string => {
 
 export const AdminPage = () => {
   const { identityHex } = useIdentity();
-  const [presenceRows, presenceReady] = useTable(tables.playerPresence);
-  const [profiles, profilesReady] = useTable(tables.playerProfile);
-  const [auditRows, auditReady] = useTable(tables.auditLog);
-  const [externalMetrics, externalMetricsReady] = useTable(
-    tables.opsExternalMetric,
-  );
-  const [telemetryAggregates, telemetryReady] = useTable(
-    tables.telemetryAggregate,
-  );
+  const [profiles, profilesReady] = useTable(tables.myPlayerProfile);
   const [versions, versionsReady] = useTable(tables.contentVersion);
 
+  const presenceRows = EMPTY_ROWS;
+  const presenceReady = true;
+  const auditRows = EMPTY_ROWS;
+  const auditReady = true;
+  const externalMetrics = EMPTY_ROWS;
+  const externalMetricsReady = true;
+  const telemetryAggregates = EMPTY_ROWS;
+  const telemetryReady = true;
+
   const nowMicros = BigInt(Date.now()) * 1000n;
-  const isReady =
-    presenceReady &&
-    profilesReady &&
-    auditReady &&
-    externalMetricsReady &&
-    telemetryReady &&
-    versionsReady;
+  const isReady = profilesReady && versionsReady;
 
   const profilesByIdentity = useMemo(() => {
     const next = new Map<string, string>();

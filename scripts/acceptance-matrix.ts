@@ -23,7 +23,7 @@ export interface AcceptanceFlow {
 export const CONTENT_GATE_COMMANDS = {
   extract: "content:extract",
   manifest: "content:manifest:check",
-  drift: "content:drift:check",
+  drift: "content:drift:verify",
 } as const;
 
 export const acceptanceFlows: AcceptanceFlow[] = [
@@ -82,7 +82,7 @@ export const acceptanceFlows: AcceptanceFlow[] = [
     label: "Freiburg origin entry",
     kind: "player_flow",
     entryPath:
-      "HomePage -> Freiburg 1905 -> OriginSelectionScreen -> beginFreiburgOrigin -> canonical origin scenario (journalist_agency_wakeup for journalist)",
+      "HomePage -> Freiburg 1905 -> OriginSelectionScreen -> beginFreiburgOrigin -> origin-specific intro -> default Case01 runtime entry",
     smokeCommand: "smoke:origin-entry",
     smokeLabel: "Origin entry",
     includeInSmokeAll: true,
@@ -94,29 +94,13 @@ export const acceptanceFlows: AcceptanceFlow[] = [
     notes: "Snapshot-backed player entry flow for Freiburg origins.",
   },
   {
-    id: "freiburg_origin_handoff",
-    label: "Freiburg intro handoff",
-    kind: "player_flow",
-    entryPath: "journalist_agency_wakeup -> sandbox_agency_briefing",
-    smokeCommand: "smoke:origin-handoff",
-    smokeLabel: "Origin handoff",
-    includeInSmokeAll: true,
-    gates: {
-      extract: true,
-      manifest: true,
-      drift: true,
-    },
-    notes:
-      "Locks the wakeup-first journalist handoff contract and keeps briefing entry tied to canonical completion-route state.",
-  },
-  {
-    id: "freiburg_case_slice",
-    label: "Freiburg case slice",
+    id: "freiburg_case01_entry",
+    label: "Freiburg Case01 canonical entry",
     kind: "player_flow",
     entryPath:
-      "Agency/Map -> sandbox_banker_pilot + sandbox_dog_pilot + sandbox_ghost_pilot",
-    smokeCommand: "smoke:mvp-routes",
-    smokeLabel: "MVP routes",
+      "case01_hbf_arrival -> Fritz priority choice -> loc_freiburg_bank or loc_rathaus",
+    smokeCommand: "smoke:case01-entry",
+    smokeLabel: "Case01 entry",
     includeInSmokeAll: true,
     gates: {
       extract: true,
@@ -124,7 +108,41 @@ export const acceptanceFlows: AcceptanceFlow[] = [
       drift: true,
     },
     notes:
-      "Thin supported case slice before Karlsruhe: banker duel plus dog, ghost, and case bridge routing.",
+      "Locks the Case01-first supported runtime path and prevents legacy route ids from collapsing back into sandbox_case01_pilot.",
+  },
+  {
+    id: "freiburg_case01_mainline",
+    label: "Freiburg Case01 mainline",
+    kind: "player_flow",
+    entryPath:
+      "Bank investigation -> lead phase -> Lotte interlude -> convergence -> archive/rail -> warehouse finale",
+    smokeCommand: "smoke:case01-mainline",
+    smokeLabel: "Case01 mainline",
+    includeInSmokeAll: true,
+    gates: {
+      extract: true,
+      manifest: true,
+      drift: true,
+    },
+    notes:
+      "Snapshot-backed Case01 canon for Freiburg. Pilot banker/dog/ghost routes remain side or dev content and no longer define the supported mainline.",
+  },
+  {
+    id: "freiburg_case01_branches",
+    label: "Freiburg Case01 branch outcomes",
+    kind: "player_flow",
+    entryPath:
+      "Mayor/lead/estate authored runtime scenes -> Lotte interlude -> convergence_route -> warehouse outcome",
+    smokeCommand: "smoke:case01-branches",
+    smokeLabel: "Case01 branches",
+    includeInSmokeAll: true,
+    gates: {
+      extract: true,
+      manifest: true,
+      drift: true,
+    },
+    notes:
+      "Locks authored Obsidian ownership for Case01 branch scenes and preserves the canonical bureau_trace_found, convergence_route, and case01_final_outcome contracts.",
   },
   {
     id: "freiburg_banker_duel",

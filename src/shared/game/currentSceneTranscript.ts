@@ -1,8 +1,10 @@
-import type {
-  DialogueNode,
-  Speaker,
-} from "@/entities/visual-novel/model/types";
-import { resolveAssetPath } from "@/entities/visual-novel/lib/assets";
+import type { DialogueNode, Speaker } from "../../features/vn/types";
+
+const resolveAssetPath = (path: string): string => {
+  if (!path || path.startsWith("http") || path.startsWith("/")) return path;
+  return `/vn/assets/${path}`;
+};
+
 import {
   INNER_VOICE_DEFINITIONS,
   isInnerVoiceId,

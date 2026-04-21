@@ -23,9 +23,9 @@ export const MindPalacePanel = () => {
 
   const [mindCases] = useTable(tables.mindCase);
   const [mindHypotheses] = useTable(tables.mindHypothesis);
-  const [playerMindFacts] = useTable(tables.playerMindFact);
-  const [playerMindHypotheses] = useTable(tables.playerMindHypothesis);
-  const [playerMindCases] = useTable(tables.playerMindCase);
+  const [playerMindFacts] = useTable(tables.myMindFacts);
+  const [playerMindHypotheses] = useTable(tables.myMindHypotheses);
+  const [playerMindCases] = useTable(tables.myMindCases);
 
   const startMindCase = useReducer(reducers.startMindCase);
 
@@ -63,13 +63,9 @@ export const MindPalacePanel = () => {
     }
 
     return (
-      playerMindCases.find(
-        (entry) =>
-          entry.playerId.toHexString() === identityHex &&
-          entry.caseId === selectedCaseId,
-      ) ?? null
+      playerMindCases.find((entry) => entry.caseId === selectedCaseId) ?? null
     );
-  }, [identityHex, playerMindCases, selectedCaseId]);
+  }, [playerMindCases, selectedCaseId]);
 
   const caseReadySummary = useMemo(() => {
     if (!selectedCaseId) {
@@ -78,21 +74,14 @@ export const MindPalacePanel = () => {
 
     const discoveredFactIds = new Set(
       playerMindFacts
-        .filter(
-          (row) =>
-            row.playerId.toHexString() === identityHex &&
-            row.caseId === selectedCaseId,
-        )
+        .filter((row) => row.caseId === selectedCaseId)
         .map((row) => row.factId),
     );
 
     const validatedHypothesisIds = new Set(
       playerMindHypotheses
         .filter(
-          (row) =>
-            row.playerId.toHexString() === identityHex &&
-            row.caseId === selectedCaseId &&
-            row.status === "validated",
+          (row) => row.caseId === selectedCaseId && row.status === "validated",
         )
         .map((row) => row.hypothesisId),
     );
@@ -124,7 +113,6 @@ export const MindPalacePanel = () => {
       totalHypotheses: hypothesesForCase.length,
     };
   }, [
-    identityHex,
     mindHypotheses,
     playerMindFacts,
     playerMindHypotheses,

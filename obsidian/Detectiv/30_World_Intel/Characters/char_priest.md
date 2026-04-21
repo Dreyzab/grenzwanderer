@@ -47,4 +47,7 @@ aliases: ["Pater Johannes Kreuzer"]
 
 - Appears in: [[10_Narrative/Scenes/node_case1_bank_investigation|node_case1_bank_investigation]]
 - Appears in: [[10_Narrative/Scenes/node_case1_lead_pub|node_case1_lead_pub]]
+- Appears in: [[10_Narrative/Scenes/node_dead_registry_infirmary|node_dead_registry_infirmary]]
+- Appears in: [[10_Narrative/Scenes/node_dead_registry_grave_or_parish|node_dead_registry_grave_or_parish]]
 - Linked quest: [[00_Map_Room/qst_victoria_poetry|qst_victoria_poetry]]
+- Linked quest: [[00_Map_Room/qst_dead_registry|qst_dead_registry]]

@@ -10,12 +10,12 @@ const mocks = vi.hoisted(() => ({
   useIdentityMock: vi.fn(),
   parseSnapshotMock: vi.fn(),
   tablesMock: {
-    playerInventory: Symbol("playerInventory"),
-    playerRelationship: Symbol("playerRelationship"),
-    playerNpcState: Symbol("playerNpcState"),
-    playerNpcFavor: Symbol("playerNpcFavor"),
-    playerAgencyCareer: Symbol("playerAgencyCareer"),
-    playerFlag: Symbol("playerFlag"),
+    myPlayerInventory: Symbol("myPlayerInventory"),
+    myRelationships: Symbol("myRelationships"),
+    myNpcState: Symbol("myNpcState"),
+    myNpcFavors: Symbol("myNpcFavors"),
+    myAgencyCareer: Symbol("myAgencyCareer"),
+    myPlayerFlags: Symbol("myPlayerFlags"),
     contentVersion: Symbol("contentVersion"),
     contentSnapshot: Symbol("contentSnapshot"),
   },
@@ -40,10 +40,6 @@ vi.mock("../../../shared/spacetime/bindings", () => ({
 vi.mock("../../vn/vnContent", () => ({
   parseSnapshot: (...args: unknown[]) => mocks.parseSnapshotMock(...args),
 }));
-
-const makeIdentity = (hex: string) => ({
-  toHexString: () => hex,
-});
 
 const socialSnapshot = {
   socialCatalog: {
@@ -119,11 +115,10 @@ describe("DetectiveHub", () => {
     mocks.parseSnapshotMock.mockReturnValue(socialSnapshot);
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tablesMock.playerInventory) {
+      if (table === mocks.tablesMock.myPlayerInventory) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               inventoryKey: "inv_1",
               itemId: "lockpick_kit",
               quantity: 2,
@@ -132,11 +127,10 @@ describe("DetectiveHub", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerRelationship) {
+      if (table === mocks.tablesMock.myRelationships) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               relationshipKey: "rel_1",
               characterId: "npc_anna_mahler",
               value: 12,
@@ -145,11 +139,10 @@ describe("DetectiveHub", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerNpcState) {
+      if (table === mocks.tablesMock.myNpcState) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               npcId: "npc_anna_mahler",
               trustScore: 32,
             },
@@ -157,11 +150,10 @@ describe("DetectiveHub", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerNpcFavor) {
+      if (table === mocks.tablesMock.myNpcFavors) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               npcId: "npc_anna_mahler",
               balance: 1,
             },
@@ -169,11 +161,10 @@ describe("DetectiveHub", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerAgencyCareer) {
+      if (table === mocks.tablesMock.myAgencyCareer) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               standingScore: 18,
               rankId: "trainee",
             },
@@ -181,11 +172,10 @@ describe("DetectiveHub", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerFlag) {
+      if (table === mocks.tablesMock.myPlayerFlags) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               key: "INTRO_COMPLETED",
               value: false,
             },

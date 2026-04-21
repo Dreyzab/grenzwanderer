@@ -1,6 +1,6 @@
 # Migration Bridge: Detectiv0 -> Grenzwanderer
 
-Last updated: 2026-03-08
+Last updated: 2026-04-08
 
 ## Intent
 
@@ -11,7 +11,7 @@ Grenzwanderer is runtime-independent from Detectiv0. This bridge preserves migra
 | Area                | Detectiv0                        | Grenzwanderer                                        | Status              | Notes                                                 |
 | ------------------- | -------------------------------- | ---------------------------------------------------- | ------------------- | ----------------------------------------------------- |
 | Runtime backend     | Custom API + services            | SpacetimeDB reducers/tables                          | Diverged by design  | No runtime coupling                                   |
-| Narrative source    | Obsidian vault                   | Obsidian vault + extractor                           | Partial parity      | Grenzwanderer uses snapshot pipeline                  |
+| Narrative source    | Obsidian vault                   | Obsidian vault + extractor                           | Partial parity      | Runtime/snapshot canon now prefers Case01-first flow |
 | Content versioning  | Mixed/manual flows               | `content_version` + `content_snapshot` + CLI release | Improved            | Semver+checksum policy                                |
 | CI quality gates    | Present                          | Added in `ci.yml`                                    | Aligned             | Branch protection required                            |
 | Acceptance matrix   | Mixed docs + runtime habits      | `scripts/acceptance-matrix.ts` + smoke pipeline      | Improved            | Entry paths and content gates are explicit            |
@@ -38,5 +38,11 @@ When a Detectiv0-origin concept is adopted, add:
 1. Source reference (component/service/doc)
 2. Grenzwanderer destination path
 3. Adaptation notes and rationale
+
+## Canon Identity Rule
+
+- Runtime/display canon wins when Detectiv design material disagrees with supported runtime content.
+- Detectiv aliases must be marked as `design/reference` until they are migrated into runtime canon.
+- Current Case01 identity policy is documented in `docs/CASE01_CANON_IDENTITY.md`.
 
 RU note: этот документ нужен для прозрачности миграции, а не для связывания runtime двух проектов.

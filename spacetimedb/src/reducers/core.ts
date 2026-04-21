@@ -1,5 +1,9 @@
-﻿import { SenderError, t } from "spacetimedb/server";
+import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
+import {
+  GENERATED_KARLSRUHE_ENTRY_TOKEN_HASH,
+  GENERATED_RELEASE_PROFILE,
+} from "../generated/release-config";
 import {
   applyEffects,
   cleanupExpiredMapEvents,
@@ -15,11 +19,13 @@ import {
   ensureIdempotent,
   ensurePlayerProfile,
   getActiveSnapshot,
+  getFlag,
   getScenario,
   hasPlayerGameplayProgress,
   recordServiceCriterionInternal,
   registerRumorInternal,
   resetPlayerGameplayState,
+  sha256Hex,
   setNickname,
   syncAgencyCareerQualifyingCase,
   type VnEffect,
@@ -30,6 +36,11 @@ import {
 } from "./helpers";
 import { getFactionIdValidationError } from "./helpers/factionSignalGuard";
 import { startScenarioInternal } from "./vn";
+
+const KARLSRUHE_EVENT_RELEASE_PROFILE = "karlsruhe_event";
+const KARLSRUHE_ENTRY_GRANTED_FLAG = "karlsruhe_event_entry_granted";
+const KARLSRUHE_ARRIVAL_COMPLETE_FLAG = "karlsruhe_arrival_complete";
+const KARLSRUHE_DEFAULT_ENTRY_SCENARIO_ID = "karlsruhe_event_arrival";
 
 const FREIBURG_ORIGIN_ALLOWLIST = {
   journalist: {
@@ -47,6 +58,10 @@ const FREIBURG_ORIGIN_ALLOWLIST = {
   archivist: {
     choiceId: "BACKSTORY_ARCHIVIST",
     scenarioId: "intro_archivist",
+  },
+  detective: {
+    choiceId: "BACKSTORY_DETECTIVE",
+    scenarioId: "detective_case01_prologue",
   },
 } as const;
 
@@ -75,6 +90,37 @@ const resolveOriginChoiceEffects = (
   }
 
   throw new SenderError(`Origin choice ${choiceId} is missing from snapshot`);
+};
+
+const hasOptionalValue = (value: unknown): boolean => {
+  if (value === undefined || value === null) {
+    return false;
+  }
+  if (typeof value === "object" && value !== null && "tag" in value) {
+    const tagged = value as { tag?: string };
+    return tagged.tag === "some";
+  }
+  return true;
+};
+
+const resolveSnapshotReleaseProfile = (snapshot: {
+  vnRuntime?: { releaseProfile?: string };
+}): string => snapshot.vnRuntime?.releaseProfile ?? GENERATED_RELEASE_PROFILE;
+
+const hashKarlsruheEntryToken = (entryToken: string): string =>
+  sha256Hex(entryToken);
+
+const findOpenVnSession = (ctx: any) => {
+  const senderHex = ctx.sender.toHexString();
+  for (const row of ctx.db.vnSession.iter()) {
+    if (
+      row.playerId.toHexString() === senderHex &&
+      !hasOptionalValue(row.completedAt)
+    ) {
+      return row;
+    }
+  }
+  return null;
 };
 
 export const set_nickname = spacetimedb.reducer(
@@ -146,6 +192,16 @@ export const begin_freiburg_origin = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "begin_freiburg_origin");
     ensurePlayerProfile(ctx);
+    const { snapshot } = getActiveSnapshot(ctx);
+
+    if (
+      resolveSnapshotReleaseProfile(snapshot) ===
+      KARLSRUHE_EVENT_RELEASE_PROFILE
+    ) {
+      throw new SenderError(
+        "begin_freiburg_origin is disabled for the Karlsruhe event release",
+      );
+    }
 
     if (!isFreiburgOriginProfileId(profileId)) {
       throw new SenderError(
@@ -162,8 +218,6 @@ export const begin_freiburg_origin = spacetimedb.reducer(
     if (resetProgress) {
       resetPlayerGameplayState(ctx);
     }
-
-    const { snapshot } = getActiveSnapshot(ctx);
     const profile = FREIBURG_ORIGIN_ALLOWLIST[profileId];
     getScenario(snapshot, profile.scenarioId);
 
@@ -175,6 +229,61 @@ export const begin_freiburg_origin = spacetimedb.reducer(
     startScenarioInternal(ctx, profile.scenarioId, {
       skipInboundRouteValidation: true,
     });
+  },
+);
+
+export const begin_karlsruhe_event_entry = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    entryToken: t.string(),
+  },
+  (ctx, { requestId, entryToken }) => {
+    if (!entryToken || entryToken.trim().length === 0) {
+      throw new SenderError("entryToken must not be empty");
+    }
+
+    ensureIdempotent(ctx, requestId, "begin_karlsruhe_event_entry");
+    ensurePlayerProfile(ctx);
+
+    const { snapshot } = getActiveSnapshot(ctx);
+    if (
+      resolveSnapshotReleaseProfile(snapshot) !==
+      KARLSRUHE_EVENT_RELEASE_PROFILE
+    ) {
+      throw new SenderError(
+        "begin_karlsruhe_event_entry requires a Karlsruhe event snapshot",
+      );
+    }
+
+    if (!GENERATED_KARLSRUHE_ENTRY_TOKEN_HASH) {
+      throw new SenderError("Karlsruhe event entry is not configured");
+    }
+
+    const normalizedEntryToken = entryToken.trim();
+    if (
+      hashKarlsruheEntryToken(normalizedEntryToken) !==
+      GENERATED_KARLSRUHE_ENTRY_TOKEN_HASH
+    ) {
+      throw new SenderError("Invalid Karlsruhe event entry token");
+    }
+
+    upsertFlag(ctx, KARLSRUHE_ENTRY_GRANTED_FLAG, true);
+
+    const arrivalScenarioId =
+      snapshot.vnRuntime?.defaultEntryScenarioId ??
+      KARLSRUHE_DEFAULT_ENTRY_SCENARIO_ID;
+
+    getScenario(snapshot, arrivalScenarioId);
+
+    if (findOpenVnSession(ctx)) {
+      return;
+    }
+
+    if (!getFlag(ctx, KARLSRUHE_ARRIVAL_COMPLETE_FLAG)) {
+      startScenarioInternal(ctx, arrivalScenarioId, {
+        skipInboundRouteValidation: true,
+      });
+    }
   },
 );
 

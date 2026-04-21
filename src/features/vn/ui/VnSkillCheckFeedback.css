@@ -269,6 +269,74 @@
   line-height: 1.5;
 }
 
+.vn-check-resolve__fortune {
+  margin-top: 0.85rem;
+  padding: 0.8rem 0.85rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(226, 186, 109, 0.18);
+  background: rgba(255, 248, 220, 0.04);
+}
+
+.vn-check-resolve__fortune-label,
+.vn-check-resolve__fortune-meta {
+  margin: 0;
+  color: rgba(235, 228, 216, 0.82);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.vn-check-resolve__fortune-options {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+
+.vn-check-resolve__fortune-option,
+.vn-check-resolve__roll-button {
+  appearance: none;
+  border: 1px solid rgba(226, 186, 109, 0.28);
+  border-radius: 0.85rem;
+  background: rgba(0, 0, 0, 0.24);
+  color: rgba(245, 240, 232, 0.92);
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    opacity 140ms ease;
+}
+
+.vn-check-resolve__fortune-option {
+  min-width: 2.5rem;
+  padding: 0.55rem 0.8rem;
+}
+
+.vn-check-resolve__fortune-option.is-active {
+  background: rgba(226, 186, 109, 0.18);
+  border-color: rgba(226, 186, 109, 0.5);
+}
+
+.vn-check-resolve__fortune-option:disabled,
+.vn-check-resolve__roll-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.vn-check-resolve__fortune-meta {
+  margin-top: 0.65rem;
+  font-size: 0.74rem;
+  color: rgba(226, 186, 109, 0.72);
+}
+
+.vn-check-resolve__roll-button {
+  width: 100%;
+  margin-top: 0.85rem;
+  padding: 0.7rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .vn-skill-toast {
   position: absolute;
   top: max(0.9rem, env(safe-area-inset-top));

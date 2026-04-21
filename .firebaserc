@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "detective-prod-8f6f0"
+  },
+  "targets": {
+    "detective-prod-8f6f0": {
+      "hosting": {
+        "karlsruhe-event": [
+          "karlsruhe-event-prod"
+        ]
+      }
+    }
+  }
+}

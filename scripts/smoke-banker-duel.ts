@@ -130,6 +130,7 @@ const runScenarioPath = async (
           requestId: nextRequestId(`check_${scenarioId}_${checkId}`),
           scenarioId,
           checkId,
+          fortuneSpend: undefined,
         });
       }
     }

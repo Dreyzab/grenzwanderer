@@ -4,7 +4,9 @@ import { Volume2, VolumeX } from "lucide-react";
 import { usePlayerFlags } from "../../../entities/player/hooks/usePlayerFlags";
 import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
 import { ENABLE_AI } from "../../../config";
+import { useKarlsruheSceneBackground } from "../../release/sceneGeneration";
 import { getVnStrings } from "../../i18n/uiStrings";
+import { parseGenerateDialoguePayload } from "../../ai/contracts";
 import { useVnAiLogic } from "../hooks/useVnAiLogic";
 import { useVnDerivedState } from "../hooks/useVnDerivedState";
 import { useVnDisplayMapping } from "../hooks/useVnDisplayMapping";
@@ -61,19 +63,22 @@ export const VnScreen = ({
 
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
-  const [sessions, sessionsReady] = useTable(tables.vnSession);
-  const [skillResults] = useTable(tables.vnSkillCheckResult);
-  const [aiRequests] = useTable(tables.aiRequest);
-  const [questRows] = useTable(tables.playerQuest);
-  const [npcStateRows, npcStateReady] = useTable(tables.playerNpcState);
-  const [npcFavorRows] = useTable(tables.playerNpcFavor);
-  const [agencyCareerRows] = useTable(tables.playerAgencyCareer);
-  const [rumorStateRows] = useTable(tables.playerRumorState);
+  const [sessions, sessionsReady] = useTable(tables.myVnSessions);
+  const [skillResults] = useTable(tables.myVnSkillResults);
+  const [aiRequests] = useTable(tables.myAiRequests);
+  const [questRows] = useTable(tables.myQuests);
+  const [npcStateRows, npcStateReady] = useTable(tables.myNpcState);
+  const [npcFavorRows] = useTable(tables.myNpcFavors);
+  const [agencyCareerRows] = useTable(tables.myAgencyCareer);
+  const [rumorStateRows] = useTable(tables.myRumorState);
 
   const startScenario = useReducer(reducers.startScenario);
   const recordChoice = useReducer(reducers.recordChoice);
-  const performSkillCheck = useReducer(reducers.performSkillCheck);
+  const performSkillCheckReducer = useReducer(reducers.performSkillCheck);
   const enqueueAiRequest = useReducer(reducers.enqueueAiRequest);
+  const enqueueProvidenceDialogue = useReducer(
+    reducers.enqueueProvidenceDialogue,
+  );
 
   const [selectedScenarioId, setSelectedScenarioId] = useState("");
   const [transitionState, setTransitionState] =
@@ -83,6 +88,8 @@ export const VnScreen = ({
   const [isTyping, setIsTyping] = useState(false);
   const [isSfxMuted, setIsSfxMuted] = useState(() => readVnSfxMuted());
   const [activeAiThoughtContext, setActiveAiThoughtContext] =
+    useState<ActiveAiThoughtContext | null>(null);
+  const [activeProvidenceThoughtContext, setActiveProvidenceThoughtContext] =
     useState<ActiveAiThoughtContext | null>(null);
   const [activeReactionKey, setActiveReactionKey] = useState<string | null>(
     null,
@@ -95,6 +102,20 @@ export const VnScreen = ({
   const myVars = usePlayerVars();
   const uiLanguage = useUiLanguage(myFlags);
   const t = useMemo(() => getVnStrings(uiLanguage), [uiLanguage]);
+
+  const performSkillCheck = useCallback(
+    (input: {
+      requestId: string;
+      scenarioId: string;
+      checkId: string;
+      fortuneSpend?: number;
+    }) =>
+      performSkillCheckReducer({
+        ...input,
+        fortuneSpend: input.fortuneSpend,
+      }),
+    [performSkillCheckReducer],
+  );
 
   useEffect(() => {
     writeVnSfxMuted(isSfxMuted);
@@ -126,6 +147,7 @@ export const VnScreen = ({
     setTransitionState("idle");
     setError(null);
     setActiveAiThoughtContext(null);
+    setActiveProvidenceThoughtContext(null);
     setActiveReactionKey(null);
   }, [selectedScenarioId]);
 
@@ -144,6 +166,7 @@ export const VnScreen = ({
     mySession,
     sessionReady,
   );
+  const generatedBackgroundUrl = useKarlsruheSceneBackground(selectedScenarioId);
   const {
     choiceEvaluationContext,
     trustByNpcId,
@@ -169,15 +192,19 @@ export const VnScreen = ({
     activeLens,
     internalizedThought,
     activeAiThoughtRequest,
+    activeProvidenceThoughtRequest,
     activeReactionRequest,
     activeAiThoughtResponse,
+    activeProvidenceThoughtResponse,
     activeReactionResponse,
     activeAiThoughtVoiceLabel,
     activeAiThoughtStatus,
+    activeProvidenceThoughtStatus,
     activeReactionStatus,
+    narrativeResources,
+    getChoiceEffectiveDifficulty,
     getChoiceChancePercent,
   } = useVnDerivedState({
-    identityHex,
     sessions,
     sessionsReady,
     skillResults,
@@ -197,9 +224,11 @@ export const VnScreen = ({
     sessionReady,
     currentNode,
     activeAiThoughtContext,
+    activeProvidenceThoughtContext,
     activeReactionKey,
     tSessionHydrating: t.sessionHydrating,
   });
+  const effectiveBackgroundUrl = generatedBackgroundUrl ?? currentResolvedBgUrl;
   const { handleStartScenario, runCompletionTransition } = useVnTransitions({
     snapshot,
     activeVersionChecksum: activeVersion?.checksum ?? null,
@@ -250,11 +279,14 @@ export const VnScreen = ({
   }, []);
   const {
     pendingChoiceId,
+    armedSkillChoice,
     awaitingSkillChoice,
     failedChoiceKeys,
     visitedChoiceKeys,
     activeSkillResolve,
     handleChoiceClick,
+    handleFortuneSpendChange,
+    confirmArmedSkillCheck,
     handleActiveResolveInteraction,
   } = useVnSkillChecks({
     selectedScenarioId,
@@ -276,6 +308,7 @@ export const VnScreen = ({
     playImpactSfx: playSkillCheckImpactSfx,
     markInteractionHandled,
     getChoiceChancePercent,
+    getChoiceEffectiveDifficulty,
     handleResolvedSkillCheck: enqueueResolvedSkillAiThought,
     performSkillCheck,
     recordChoice,
@@ -291,9 +324,80 @@ export const VnScreen = ({
       typingFinishedAtRef.current = Date.now();
     }
   }, []);
+  const handleProvidenceExpand = useCallback(async () => {
+    if (!activeAiThoughtContext || !activeAiThoughtRequest) {
+      return;
+    }
+
+    const payload = parseGenerateDialoguePayload(
+      typeof activeAiThoughtRequest.payloadJson === "string"
+        ? activeAiThoughtRequest.payloadJson
+        : null,
+    );
+    if (!payload || payload.dialogueLayer !== "base") {
+      return;
+    }
+
+    const providenceCost = Math.max(0, Math.trunc(payload.providenceCost ?? 0));
+    if (providenceCost <= 0) {
+      return;
+    }
+
+    if (
+      activeProvidenceThoughtStatus === "pending" ||
+      activeProvidenceThoughtStatus === "processing" ||
+      activeProvidenceThoughtStatus === "completed"
+    ) {
+      return;
+    }
+
+    const context: ActiveAiThoughtContext = {
+      ...activeAiThoughtContext,
+      dialogueLayer: "providence",
+    };
+
+    setActiveProvidenceThoughtContext(context);
+
+    try {
+      await enqueueProvidenceDialogue({
+        requestId: createRequestId(),
+        scenarioId: payload.scenarioId,
+        nodeId: payload.nodeId,
+        checkId: payload.checkId,
+        choiceId: payload.choiceId,
+        providenceCost,
+        payloadJson: JSON.stringify({
+          ...payload,
+          dialogueLayer: "providence",
+          providenceCost,
+        }),
+      });
+    } catch (caughtError) {
+      setActiveProvidenceThoughtContext((current) =>
+        current?.scenarioId === context.scenarioId &&
+        current?.nodeId === context.nodeId &&
+        current?.checkId === context.checkId &&
+        current?.choiceId === context.choiceId &&
+        current?.dialogueLayer === "providence"
+          ? null
+          : current,
+      );
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Providence dialogue request failed",
+      );
+    }
+  }, [
+    activeAiThoughtContext,
+    activeAiThoughtRequest,
+    activeProvidenceThoughtStatus,
+    enqueueProvidenceDialogue,
+  ]);
   const {
     reactionCard,
     thoughtCard,
+    providenceThoughtCard,
     innerVoiceCards,
     visibleChoices,
     autoContinueChoice,
@@ -305,6 +409,8 @@ export const VnScreen = ({
     displayedScenarioCompleted,
     activeResolveAiStatus,
     activeResolveAiText,
+    canExpandThoughtWithProvidence,
+    providenceCtaLabel,
     activeLensBadgeText,
     internalizedThoughtBadgeText,
     choiceDisplayItems,
@@ -324,7 +430,7 @@ export const VnScreen = ({
     currentVisibleChoices,
     currentAutoContinueChoice,
     currentNarrativeText,
-    currentResolvedBgUrl,
+    currentResolvedBgUrl: effectiveBackgroundUrl,
     currentSpeakerLabel,
     currentShowOriginCards,
     isScenarioCompleted,
@@ -332,13 +438,18 @@ export const VnScreen = ({
     internalizedThought,
     activeSkillResolve,
     activeAiThoughtContext,
+    activeProvidenceThoughtContext,
     activeReactionContext: currentReactionContext,
     activeAiThoughtStatus,
+    activeProvidenceThoughtStatus,
     activeReactionStatus,
     activeAiThoughtVoiceLabel,
+    activeAiThoughtRequest,
     activeAiThoughtResponse,
+    activeProvidenceThoughtResponse,
     activeReactionResponse,
     activeReactionRequest,
+    narrativeResources,
     completionTargetLabel,
     visitedChoiceKeys,
     failedChoiceKeys,
@@ -433,6 +544,7 @@ export const VnScreen = ({
         selectedScenarioId={selectedScenarioId}
         scenarios={snapshot.scenarios}
         isInteractionLocked={isInteractionLocked}
+        narrativeResources={narrativeResources}
         onScenarioChange={setSelectedScenarioId}
         onStartScenario={handleStartScenario}
         onOpenDebug={onOpenDebug}
@@ -452,7 +564,10 @@ export const VnScreen = ({
             t={t}
             reactionCard={reactionCard}
             thoughtCard={thoughtCard}
+            providenceThoughtCard={providenceThoughtCard}
             innerVoiceCards={innerVoiceCards}
+            canExpandThoughtWithProvidence={canExpandThoughtWithProvidence}
+            providenceCtaLabel={providenceCtaLabel}
             activeLensBadgeText={activeLensBadgeText}
             internalizedThoughtBadgeText={internalizedThoughtBadgeText}
             showOriginCards={showOriginCards}
@@ -476,6 +591,7 @@ export const VnScreen = ({
               void handleChoiceClick(choice, !isAvailable || !mySession);
             }}
             onChoiceClick={(choice) => void handleChoiceClick(choice, false)}
+            onProvidenceExpand={() => void handleProvidenceExpand()}
             onCompletionTransition={() => void runCompletionTransition()}
             onRestartScene={() => void handleStartScenario()}
           />
@@ -486,6 +602,13 @@ export const VnScreen = ({
           aiStatus={activeResolveAiStatus}
           aiThoughtText={activeResolveAiText}
           aiThoughtVoiceLabel={activeAiThoughtVoiceLabel}
+          onFortuneSpendChange={handleFortuneSpendChange}
+          onRoll={() => void confirmArmedSkillCheck()}
+          canRoll={Boolean(
+            armedSkillChoice &&
+              activeSkillResolve?.phase === "arming" &&
+              !awaitingSkillChoice,
+          )}
           onInteract={handleActiveResolveInteraction}
         />
         {!activeSkillResolve ? (

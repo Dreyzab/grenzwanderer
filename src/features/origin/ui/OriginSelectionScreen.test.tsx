@@ -39,11 +39,14 @@ vi.mock("framer-motion", async () => {
     );
 
   return {
-    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+      <>{children}</>
+    ),
     motion: new Proxy(
       {},
       {
-        get: (_target, key) => createMotionComponent(key as keyof HTMLElementTagNameMap),
+        get: (_target, key) =>
+          createMotionComponent(key as keyof HTMLElementTagNameMap),
       },
     ),
   };
@@ -54,37 +57,36 @@ describe("OriginSelectionScreen", () => {
     vi.clearAllMocks();
   });
 
-  it("renders all four origins in array order on the list view", () => {
+  it("renders all five origins in array order on the list view", () => {
     render(
-      <OriginSelectionScreen
-        onCancel={vi.fn()}
-        onConfirmOrigin={vi.fn()}
-      />,
+      <OriginSelectionScreen onCancel={vi.fn()} onConfirmOrigin={vi.fn()} />,
     );
 
     const cardButtons = screen
       .getAllByRole("button")
       .filter((button) => (button.textContent ?? "").includes("Origin"));
 
-    expect(cardButtons).toHaveLength(4);
+    expect(cardButtons).toHaveLength(5);
     expect(cardButtons[0]).toHaveTextContent("Journalist Origin");
     expect(cardButtons[1]).toHaveTextContent("Aristocrat Origin");
     expect(cardButtons[2]).toHaveTextContent("Veteran Origin");
     expect(cardButtons[3]).toHaveTextContent("Archivist Origin");
+    expect(cardButtons[4]).toHaveTextContent("Detective Origin");
   });
 
   it("transitions from list to detail and back again", () => {
     render(
-      <OriginSelectionScreen
-        onCancel={vi.fn()}
-        onConfirmOrigin={vi.fn()}
-      />,
+      <OriginSelectionScreen onCancel={vi.fn()} onConfirmOrigin={vi.fn()} />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /Charlotte von Waldstein/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Charlotte von Waldstein/i }),
+    );
 
     expect(screen.getByText("SIGNATURE ABILITY")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /BEGIN INVESTIGATION/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /BEGIN INVESTIGATION/i }),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /BACK/i }));
 
@@ -103,7 +105,9 @@ describe("OriginSelectionScreen", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Arthur Vance/i }));
-    fireEvent.click(screen.getByRole("button", { name: /BEGIN INVESTIGATION/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /BEGIN INVESTIGATION/i }),
+    );
 
     expect(onConfirmOrigin).toHaveBeenCalledWith("journalist");
   });
@@ -118,7 +122,9 @@ describe("OriginSelectionScreen", () => {
       />,
     );
 
-    expect(screen.getByText("Launching Freiburg origin...")).toBeInTheDocument();
+    expect(
+      screen.getByText("Launching Freiburg origin..."),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Martha Heller/i }));
 
@@ -131,7 +137,11 @@ describe("OriginSelectionScreen", () => {
       />,
     );
 
-    expect(screen.getByText("Launching Freiburg origin...")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /BEGIN INVESTIGATION/i })).toBeDisabled();
+    expect(
+      screen.getByText("Launching Freiburg origin..."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /BEGIN INVESTIGATION/i }),
+    ).toBeDisabled();
   });
 });

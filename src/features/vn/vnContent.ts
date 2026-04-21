@@ -38,6 +38,7 @@ import type {
   QrRedeemPolicy,
   RumorStateStatus,
   SightMode,
+  SpiritEncounterDefinition,
   VnChoice,
   VnCheckModifierSource,
   VnCondition,
@@ -62,6 +63,7 @@ import {
   MIN_VN_SCHEMA_WITH_QUEST_CATALOG,
   MIN_VN_SCHEMA_WITH_SOCIAL_FACTIONS,
 } from "./snapshotSchema";
+import { isVnAiMode } from "../../shared/game/narrativeResources";
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -101,6 +103,17 @@ const isQrPolicyTier = (value: unknown): value is QrPolicyTier =>
 const isCondition = (value: unknown): value is VnCondition => {
   if (!isObject(value) || typeof value.type !== "string") {
     return false;
+  }
+
+  if (value.type === "logic_and" || value.type === "logic_or") {
+    return (
+      Array.isArray(value.conditions) &&
+      value.conditions.length > 0 &&
+      value.conditions.every((entry) => isCondition(entry))
+    );
+  }
+  if (value.type === "logic_not") {
+    return isCondition(value.condition);
   }
 
   if (value.type === "flag_equals") {
@@ -157,6 +170,18 @@ const isCondition = (value: unknown): value is VnCondition => {
       isSkillVoiceId(value.voiceId) &&
       typeof value.value === "number"
     );
+  }
+  if (value.type === "spirit_state_is") {
+    return (
+      typeof value.spiritId === "string" &&
+      (value.state === "hostile" ||
+        value.state === "imprisoned" ||
+        value.state === "controlled" ||
+        value.state === "destroyed")
+    );
+  }
+  if (value.type === "has_controlled_spirit") {
+    return typeof value.entityArchetypeId === "string";
   }
 
   return false;
@@ -318,6 +343,20 @@ const isEffect = (value: unknown): value is VnEffect => {
       typeof value.delta === "number"
     );
   }
+  if (
+    value.type === "subjugate_spirit" ||
+    value.type === "destroy_spirit" ||
+    value.type === "release_spirit"
+  ) {
+    return typeof value.spiritId === "string";
+  }
+  if (value.type === "imprison_spirit") {
+    return (
+      typeof value.spiritId === "string" &&
+      (value.requiredItemId === undefined ||
+        typeof value.requiredItemId === "string")
+    );
+  }
 
   return false;
 };
@@ -359,6 +398,8 @@ const isSkillCheck = (value: unknown): boolean => {
     (value.isPassive === undefined || typeof value.isPassive === "boolean") &&
     (value.showChancePercent === undefined ||
       typeof value.showChancePercent === "boolean") &&
+    (value.karmaSensitive === undefined ||
+      typeof value.karmaSensitive === "boolean") &&
     hasModifiers &&
     (value.outcomeModel === undefined || isOutcomeModel(value.outcomeModel)) &&
     isOutcomeBranch(value.onSuccess) &&
@@ -411,6 +452,9 @@ const isChoice = (value: unknown): value is VnChoice => {
     typeof value.id === "string" &&
     typeof value.text === "string" &&
     typeof value.nextNodeId === "string" &&
+    (value.aiMode === undefined || isVnAiMode(value.aiMode)) &&
+    (value.providenceCost === undefined ||
+      typeof value.providenceCost === "number") &&
     hasLegacyConditions &&
     hasVisibleIfAll &&
     hasVisibleIfAny &&
@@ -438,6 +482,9 @@ const isNode = (value: unknown): value is VnNode => {
       typeof value.characterId === "string") &&
     (value.voicePresenceMode === undefined ||
       isVoicePresenceMode(value.voicePresenceMode)) &&
+    (value.aiModeDefault === undefined || isVnAiMode(value.aiModeDefault)) &&
+    (value.providenceCostDefault === undefined ||
+      typeof value.providenceCostDefault === "number") &&
     (value.activeSpeakers === undefined ||
       (Array.isArray(value.activeSpeakers) &&
         value.activeSpeakers.every(
@@ -679,11 +726,53 @@ const parseMysticism = (
     return null;
   }
 
+  let spiritEncounters: SpiritEncounterDefinition[] | undefined = undefined;
+  if (value.spiritEncounters !== undefined) {
+    if (
+      !Array.isArray(value.spiritEncounters) ||
+      !value.spiritEncounters.every((entry) =>
+        isSpiritEncounterDefinition(entry),
+      )
+    ) {
+      return null;
+    }
+    spiritEncounters = value.spiritEncounters;
+  }
+
   return {
     entityArchetypes: value.entityArchetypes,
     observations: value.observations ?? [],
+    spiritEncounters,
   };
 };
+
+const isSpiritControlledBonus = (value: unknown): boolean =>
+  isObject(value) &&
+  (value.type === "skill_modifier" ||
+    value.type === "sight_mode_unlock" ||
+    value.type === "psyche_read") &&
+  (value.voiceId === undefined || typeof value.voiceId === "string") &&
+  (value.delta === undefined || typeof value.delta === "number") &&
+  (value.targetNpcId === undefined || typeof value.targetNpcId === "string");
+
+const isSpiritEncounterDefinition = (value: unknown): boolean =>
+  isObject(value) &&
+  typeof value.id === "string" &&
+  typeof value.entityArchetypeId === "string" &&
+  typeof value.displayName === "string" &&
+  typeof value.subjugationDifficulty === "number" &&
+  typeof value.observationBonusPerSignature === "number" &&
+  typeof value.battleScenarioId === "string" &&
+  (value.onSubjugateEffects === undefined ||
+    (Array.isArray(value.onSubjugateEffects) &&
+      value.onSubjugateEffects.every((entry) => isEffect(entry)))) &&
+  (value.onDestroyEffects === undefined ||
+    (Array.isArray(value.onDestroyEffects) &&
+      value.onDestroyEffects.every((entry) => isEffect(entry)))) &&
+  (value.imprisonmentItemId === undefined ||
+    typeof value.imprisonmentItemId === "string") &&
+  Array.isArray(value.controlledBonuses) &&
+  value.controlledBonuses.every((entry) => isSpiritControlledBonus(entry));
 
 const parseVnRuntime = (value: unknown): VnSnapshot["vnRuntime"] | null => {
   if (value === undefined) {
@@ -703,10 +792,18 @@ const parseVnRuntime = (value: unknown): VnSnapshot["vnRuntime"] | null => {
   ) {
     return null;
   }
+  if (
+    value.releaseProfile !== undefined &&
+    value.releaseProfile !== "default" &&
+    value.releaseProfile !== "karlsruhe_event"
+  ) {
+    return null;
+  }
 
   return {
     skillCheckDice: value.skillCheckDice,
     defaultEntryScenarioId: value.defaultEntryScenarioId,
+    releaseProfile: value.releaseProfile,
   };
 };
 
@@ -1764,7 +1861,7 @@ const readMappedString = <T extends string>(
   return (source as Readonly<Record<string, T>>)[key] ?? null;
 };
 
-const evaluateChoiceCondition = (
+const evaluateChoiceConditionLeaf = (
   condition: VnCondition,
   flags: Record<string, boolean>,
   vars: Record<string, number>,
@@ -1835,6 +1932,29 @@ const evaluateChoiceCondition = (
   // Client pre-check is advisory; leave server as authority for unsupported
   // local data sources (inventory/evidence/quest/relationship).
   return true;
+};
+
+const evaluateChoiceCondition = (
+  condition: VnCondition,
+  flags: Record<string, boolean>,
+  vars: Record<string, number>,
+  context?: VnChoiceEvaluationContext,
+): boolean => {
+  if (condition.type === "logic_and") {
+    return condition.conditions.every((entry) =>
+      evaluateChoiceCondition(entry, flags, vars, context),
+    );
+  }
+  if (condition.type === "logic_or") {
+    return condition.conditions.some((entry) =>
+      evaluateChoiceCondition(entry, flags, vars, context),
+    );
+  }
+  if (condition.type === "logic_not") {
+    return !evaluateChoiceCondition(condition.condition, flags, vars, context);
+  }
+
+  return evaluateChoiceConditionLeaf(condition, flags, vars, context);
 };
 
 const groupAll = (

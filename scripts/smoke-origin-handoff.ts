@@ -10,12 +10,6 @@ import {
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
-const DEFAULT_TRACK_BY_PROFILE: Record<string, string> = {
-  journalist: "journalist_whistleblower",
-  aristocrat: "aristocrat_duelist",
-  veteran: "veteran_shield",
-  archivist: "archivist_dust_cartographer",
-};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,16 +45,10 @@ const beginOriginDeterministically = async (
   requestId: string,
   profileId: string,
 ): Promise<void> => {
-  const selectedTrackId = DEFAULT_TRACK_BY_PROFILE[profileId];
-  if (!selectedTrackId) {
-    throw new Error(`Missing default selectedTrackId for profile ${profileId}`);
-  }
-
   try {
     await conn.reducers.beginFreiburgOrigin({
       requestId,
       profileId,
-      selectedTrackId,
       resetProgress: false,
     });
   } catch (error) {
@@ -76,7 +64,6 @@ const beginOriginDeterministically = async (
     await conn.reducers.beginFreiburgOrigin({
       requestId: `${requestId}_reset`,
       profileId,
-      selectedTrackId,
       resetProgress: true,
     });
   }

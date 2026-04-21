@@ -16,14 +16,14 @@ tags:
 - Route: `/vn/intro_journalist`
 - Source: legacy direct navigation/debug flow only.
 - Scenario logic anchor: `apps/web/src/entities/visual-novel/scenarios/detective/origins/intro_journalist.logic.ts`
-- Canonical supported onboarding is `journalist_agency_wakeup -> sandbox_agency_briefing`.
+- Canonical supported onboarding is `case01_hbf_arrival -> Fritz priority choice -> bank/Mayor -> leads -> convergence -> warehouse finale`.
 
 ## Preconditions
 
 - Required flags: legacy/debug access or optional origin branch trigger.
 - Required evidence/items: none.
 - Required quest stage: pre-case optional branch.
-- Fallback if missing requirements: continue canonical onboarding chain.
+- Fallback if missing requirements: continue Case01-first supported chain.
 
 ## Designer View
 
@@ -46,13 +46,13 @@ tags:
   - `anna_knows_secret=true`
   - `used_shivers_intro=true`
   - `met_anna_intro=true`
-  - does not define the canonical journalist onboarding handoff anymore
+  - does not define the canonical Case01-first onboarding handoff
   - unlocked `loc_rathaus`
   - evidence `ev_bank_master_key`
 
 ## Transitions
 
-- END -> legacy/debug continuation only. Supported journalist mainline now starts in the cellar wakeup flow and hands off into `sandbox_agency_briefing`.
+- END -> legacy/debug continuation only. Supported player-facing mainline now starts at `case01_hbf_arrival`.
 
 ## Validation
 

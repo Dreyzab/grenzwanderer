@@ -36,7 +36,7 @@ export const AiThoughtsPanel = () => {
           <p className="muted">No AI requests yet.</p>
         ) : (
           <ul className="unstyled-list">
-            {thoughts.map((entry) => (
+            {thoughts.map((entry: (typeof thoughts)[number]) => (
               <li key={entry.id.toString()} className="secret-row">
                 <strong>{entry.kind}</strong>
                 <span>

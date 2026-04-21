@@ -1,3 +1,4 @@
 
 bun run test
 spacetime build --module-path spacetimedb
+bun run scripts/content-pre-push.ts

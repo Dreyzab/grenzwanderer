@@ -24,6 +24,7 @@ tags:
 
 - [[30_World_Intel/Characters/char_bank_teller|char_bank_teller]]
 - [[30_World_Intel/Characters/char_archive_keeper|char_archive_keeper]]
+- [[30_World_Intel/Characters/char_chemist_teacher|char_chemist_teacher]]
 - [[30_World_Intel/Characters/char_warehouse_guard|char_warehouse_guard]]
 - [[30_World_Intel/Characters/char_dock_worker|char_dock_worker]]
 - [[30_World_Intel/Characters/char_gustav_brandt|char_gustav_brandt]]

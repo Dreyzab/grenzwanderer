@@ -3,9 +3,10 @@ import os from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
+import { case01OnboardingRelativeRoot } from "./content-authoring-contract";
 import { parseCase01Onboarding } from "./vn-case01-onboarding";
 
-const ONBOARDING_RELATIVE_ROOT = "40_GameViewer/Case01/Plot/01_Onboarding";
+const ONBOARDING_RELATIVE_ROOT = case01OnboardingRelativeRoot;
 
 const createTempStoryRoot = (): string =>
   mkdtempSync(path.join(os.tmpdir(), "case01-onboarding-"));
@@ -146,6 +147,17 @@ Text.
         /scene_intro_journey\.md:1:\d+ \[MISSING_TYPE\]/,
       );
     });
+  });
+
+  it("fails fast when the onboarding root contract is missing", () => {
+    const storyRoot = createTempStoryRoot();
+    try {
+      expect(() => parseCase01Onboarding(storyRoot)).toThrow(
+        /MISSING_ONBOARDING_ROOT/,
+      );
+    } finally {
+      rmSync(storyRoot, { recursive: true, force: true });
+    }
   });
 
   it("fails fast on invalid Sets syntax with file and line details", () => {

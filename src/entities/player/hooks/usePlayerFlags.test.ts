@@ -14,7 +14,7 @@ vi.mock("../../../shared/spacetime/useIdentity", () => ({
 }));
 
 vi.mock("../../../shared/spacetime/bindings", () => ({
-  tables: { playerFlag: Symbol("playerFlag") },
+  tables: { myPlayerFlags: Symbol("myPlayerFlags") },
 }));
 
 const makeIdentity = (hex: string) => ({
@@ -26,18 +26,18 @@ describe("usePlayerFlags", () => {
     vi.clearAllMocks();
   });
 
-  it("returns only flags for current player", () => {
+  it("returns flags from the scoped self view", () => {
     useIdentityMock.mockReturnValue({ identityHex: "me" });
     useTableMock.mockReturnValue([
       [
         { playerId: makeIdentity("me"), key: "lang_ru", value: true },
-        { playerId: makeIdentity("other"), key: "lang_de", value: true },
+        { playerId: makeIdentity("me"), key: "lang_de", value: true },
       ],
     ]);
 
     const { result } = renderHook(() => usePlayerFlags());
 
-    expect(result.current).toEqual({ lang_ru: true });
+    expect(result.current).toEqual({ lang_ru: true, lang_de: true });
   });
 
   it("returns empty record without identity", () => {

@@ -67,8 +67,14 @@ jobs:
       - name: Map metrics snapshot check
         run: bun run content:map:metrics:check
 
-      - name: Content drift check
-        run: bun run scripts/content-drift-check.ts
+      - name: Content drift verify
+        run: bun run content:drift:verify
+
+      - name: Case01 content smokes
+        run: |
+          bun run smoke:case01-entry
+          bun run smoke:case01-mainline
+          bun run smoke:case01-branches
 
       - name: Build SpacetimeDB module
         run: spacetime build --module-path spacetimedb

@@ -1,0 +1,10 @@
+{
+  "promptHash": "3afef1230a04",
+  "prompt": "1905 university amphitheater lecture hall with dark polished wood, steep curved rows, and massive chalkboards covered in equations, set in 1905 Kaiser-era Germany. Oil painting, broad expressive brushstrokes, muted historical color palette Visual details: Dust motes in slanted sunlight, high arched windows. Mood: Quiet concentration and intellectual arrogance. Wide establishing shot, empty scene, no people visible. 16:9 aspect ratio, high resolution.",
+  "model": "imagen-3.0-generate-002",
+  "createdAt": "2026-02-21T20:19:04.082Z",
+  "locationId": "uni_hoersaal",
+  "variantId": "default",
+  "assetKind": "interior",
+  "visualArchetype": "university_neogothic"
+}

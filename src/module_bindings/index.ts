@@ -37,18 +37,22 @@ import {
 import AdvanceQuestReducer from "./advance_quest_reducer";
 import AllowWorkerIdentityReducer from "./allow_worker_identity_reducer";
 import BeginFreiburgOriginReducer from "./begin_freiburg_origin_reducer";
+import BeginKarlsruheEventEntryReducer from "./begin_karlsruhe_event_entry_reducer";
 import BootstrapAdminIdentityReducer from "./bootstrap_admin_identity_reducer";
 import BuyItemReducer from "./buy_item_reducer";
 import ChangeAgencyStandingReducer from "./change_agency_standing_reducer";
 import ChangeFactionSignalReducer from "./change_faction_signal_reducer";
 import ChangeFavorBalanceReducer from "./change_favor_balance_reducer";
 import ChangeRelationshipReducer from "./change_relationship_reducer";
+import ClaimNextAiRequestReducer from "./claim_next_ai_request_reducer";
 import CloseBattleModeReducer from "./close_battle_mode_reducer";
 import CloseCommandModeReducer from "./close_command_mode_reducer";
-import DeliverThoughtReducer from "./deliver_thought_reducer";
+import CompleteAiRequestReducer from "./complete_ai_request_reducer";
 import DiscoverFactReducer from "./discover_fact_reducer";
 import EndBattleTurnReducer from "./end_battle_turn_reducer";
 import EnqueueAiRequestReducer from "./enqueue_ai_request_reducer";
+import EnqueueProvidenceDialogueReducer from "./enqueue_providence_dialogue_reducer";
+import FailAiRequestReducer from "./fail_ai_request_reducer";
 import GrantAdminIdentityReducer from "./grant_admin_identity_reducer";
 import GrantEvidenceReducer from "./grant_evidence_reducer";
 import GrantItemReducer from "./grant_item_reducer";
@@ -65,6 +69,8 @@ import RecordServiceCriterionReducer from "./record_service_criterion_reducer";
 import RedeemMapCodeReducer from "./redeem_map_code_reducer";
 import RegisterRumorReducer from "./register_rumor_reducer";
 import RegisterWorkerIdentityReducer from "./register_worker_identity_reducer";
+import RenewAiRequestLeaseReducer from "./renew_ai_request_lease_reducer";
+import RequeueAiRequestReducer from "./requeue_ai_request_reducer";
 import ResolveCommandReducer from "./resolve_command_reducer";
 import RollbackContentReducer from "./rollback_content_reducer";
 import SetFlagReducer from "./set_flag_reducer";
@@ -83,209 +89,47 @@ import VerifyRumorReducer from "./verify_rumor_reducer";
 // Import all procedure arg schemas
 
 // Import all table schema definitions
-import AiRequestRow from "./ai_request_table";
-import BattleCardInstanceRow from "./battle_card_instance_table";
-import BattleCombatantRow from "./battle_combatant_table";
-import BattleHistoryRow from "./battle_history_table";
-import BattleSessionRow from "./battle_session_table";
-import CommandOrderHistoryRow from "./command_order_history_table";
-import CommandPartyMemberRow from "./command_party_member_table";
-import CommandSessionRow from "./command_session_table";
 import ContentSnapshotRow from "./content_snapshot_table";
 import ContentVersionRow from "./content_version_table";
-import IdempotencyLogRow from "./idempotency_log_table";
 import MindCaseRow from "./mind_case_table";
 import MindFactRow from "./mind_fact_table";
 import MindHypothesisRow from "./mind_hypothesis_table";
-import PlayerAgencyCareerRow from "./player_agency_career_table";
-import PlayerEvidenceRow from "./player_evidence_table";
-import PlayerFactionSignalRow from "./player_faction_signal_table";
-import PlayerFlagRow from "./player_flag_table";
-import PlayerInventoryRow from "./player_inventory_table";
-import PlayerLocationRow from "./player_location_table";
-import PlayerMapEventRow from "./player_map_event_table";
-import PlayerMindCaseRow from "./player_mind_case_table";
-import PlayerMindFactRow from "./player_mind_fact_table";
-import PlayerMindHypothesisRow from "./player_mind_hypothesis_table";
-import PlayerNpcFavorRow from "./player_npc_favor_table";
-import PlayerNpcStateRow from "./player_npc_state_table";
-import PlayerProfileRow from "./player_profile_table";
-import PlayerQuestRow from "./player_quest_table";
-import PlayerRedeemedCodeRow from "./player_redeemed_code_table";
-import PlayerRelationshipRow from "./player_relationship_table";
-import PlayerRumorStateRow from "./player_rumor_state_table";
-import PlayerUnlockGroupRow from "./player_unlock_group_table";
-import PlayerVarRow from "./player_var_table";
-import TelemetryAggregateRow from "./telemetry_aggregate_table";
-import TelemetryEventRow from "./telemetry_event_table";
-import VnSessionRow from "./vn_session_table";
-import VnSkillCheckResultRow from "./vn_skill_check_result_table";
-import WorkerIdentityRow from "./worker_identity_table";
+import MyAgencyCareerRow from "./my_agency_career_table";
+import MyAiRequestsRow from "./my_ai_requests_table";
+import MyBattleCardsRow from "./my_battle_cards_table";
+import MyBattleCombatantsRow from "./my_battle_combatants_table";
+import MyBattleHistoryRow from "./my_battle_history_table";
+import MyBattleSessionsRow from "./my_battle_sessions_table";
+import MyCommandHistoryRow from "./my_command_history_table";
+import MyCommandPartyRow from "./my_command_party_table";
+import MyCommandSessionsRow from "./my_command_sessions_table";
+import MyEvidenceRow from "./my_evidence_table";
+import MyFactionSignalsRow from "./my_faction_signals_table";
+import MyMapEventsRow from "./my_map_events_table";
+import MyMindCasesRow from "./my_mind_cases_table";
+import MyMindFactsRow from "./my_mind_facts_table";
+import MyMindHypothesesRow from "./my_mind_hypotheses_table";
+import MyNpcFavorsRow from "./my_npc_favors_table";
+import MyNpcStateRow from "./my_npc_state_table";
+import MyPlayerFlagsRow from "./my_player_flags_table";
+import MyPlayerInventoryRow from "./my_player_inventory_table";
+import MyPlayerLocationRow from "./my_player_location_table";
+import MyPlayerProfileRow from "./my_player_profile_table";
+import MyPlayerVarsRow from "./my_player_vars_table";
+import MyQuestsRow from "./my_quests_table";
+import MyRedeemedCodesRow from "./my_redeemed_codes_table";
+import MyRelationshipsRow from "./my_relationships_table";
+import MyRumorStateRow from "./my_rumor_state_table";
+import MySpiritStateRow from "./my_spirit_state_table";
+import MyUnlockGroupsRow from "./my_unlock_groups_table";
+import MyVnSessionsRow from "./my_vn_sessions_table";
+import MyVnSkillResultsRow from "./my_vn_skill_results_table";
+import WorkerAiRequestsRow from "./worker_ai_requests_table";
 
 /** Type-only namespace exports for generated type groups. */
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
-  aiRequest: __table({
-    name: 'ai_request',
-    indexes: [
-      { name: 'id', algorithm: 'btree', columns: [
-        'id',
-      ] },
-      { name: 'ai_request_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'ai_request_request_id', algorithm: 'btree', columns: [
-        'requestId',
-      ] },
-      { name: 'ai_request_status', algorithm: 'btree', columns: [
-        'status',
-      ] },
-    ],
-    constraints: [
-      { name: 'ai_request_id_key', constraint: 'unique', columns: ['id'] },
-    ],
-  }, AiRequestRow),
-  battleCardInstance: __table({
-    name: 'battle_card_instance',
-    indexes: [
-      { name: 'cardInstanceKey', algorithm: 'btree', columns: [
-        'cardInstanceKey',
-      ] },
-      { name: 'battle_card_instance_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'battle_card_instance_session_key', algorithm: 'btree', columns: [
-        'sessionKey',
-      ] },
-      { name: 'battle_card_instance_zone', algorithm: 'btree', columns: [
-        'zone',
-      ] },
-    ],
-    constraints: [
-      { name: 'battle_card_instance_card_instance_key_key', constraint: 'unique', columns: ['cardInstanceKey'] },
-    ],
-  }, BattleCardInstanceRow),
-  battleCombatant: __table({
-    name: 'battle_combatant',
-    indexes: [
-      { name: 'combatantKey', algorithm: 'btree', columns: [
-        'combatantKey',
-      ] },
-      { name: 'battle_combatant_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'battle_combatant_session_key', algorithm: 'btree', columns: [
-        'sessionKey',
-      ] },
-      { name: 'battle_combatant_side', algorithm: 'btree', columns: [
-        'side',
-      ] },
-    ],
-    constraints: [
-      { name: 'battle_combatant_combatant_key_key', constraint: 'unique', columns: ['combatantKey'] },
-    ],
-  }, BattleCombatantRow),
-  battleHistory: __table({
-    name: 'battle_history',
-    indexes: [
-      { name: 'historyKey', algorithm: 'btree', columns: [
-        'historyKey',
-      ] },
-      { name: 'battle_history_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'battle_history_session_key', algorithm: 'btree', columns: [
-        'sessionKey',
-      ] },
-      { name: 'battle_history_turn_count', algorithm: 'btree', columns: [
-        'turnCount',
-      ] },
-    ],
-    constraints: [
-      { name: 'battle_history_history_key_key', constraint: 'unique', columns: ['historyKey'] },
-    ],
-  }, BattleHistoryRow),
-  battleSession: __table({
-    name: 'battle_session',
-    indexes: [
-      { name: 'battle_session_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'battle_session_scenario_id', algorithm: 'btree', columns: [
-        'scenarioId',
-      ] },
-      { name: 'sessionKey', algorithm: 'btree', columns: [
-        'sessionKey',
-      ] },
-      { name: 'battle_session_status', algorithm: 'btree', columns: [
-        'status',
-      ] },
-    ],
-    constraints: [
-      { name: 'battle_session_session_key_key', constraint: 'unique', columns: ['sessionKey'] },
-    ],
-  }, BattleSessionRow),
-  commandOrderHistory: __table({
-    name: 'command_order_history',
-    indexes: [
-      { name: 'historyKey', algorithm: 'btree', columns: [
-        'historyKey',
-      ] },
-      { name: 'command_order_history_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'command_order_history_scenario_id', algorithm: 'btree', columns: [
-        'scenarioId',
-      ] },
-      { name: 'command_order_history_session_key', algorithm: 'btree', columns: [
-        'sessionKey',
-      ] },
-    ],
-    constraints: [
-      { name: 'command_order_history_history_key_key', constraint: 'unique', columns: ['historyKey'] },
-    ],
-  }, CommandOrderHistoryRow),
-  commandPartyMember: __table({
-    name: 'command_party_member',
-    indexes: [
-      { name: 'command_party_member_actor_id', algorithm: 'btree', columns: [
-        'actorId',
-      ] },
-      { name: 'memberKey', algorithm: 'btree', columns: [
-        'memberKey',
-      ] },
-      { name: 'command_party_member_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'command_party_member_session_key', algorithm: 'btree', columns: [
-        'sessionKey',
-      ] },
-    ],
-    constraints: [
-      { name: 'command_party_member_member_key_key', constraint: 'unique', columns: ['memberKey'] },
-    ],
-  }, CommandPartyMemberRow),
-  commandSession: __table({
-    name: 'command_session',
-    indexes: [
-      { name: 'command_session_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'command_session_scenario_id', algorithm: 'btree', columns: [
-        'scenarioId',
-      ] },
-      { name: 'sessionKey', algorithm: 'btree', columns: [
-        'sessionKey',
-      ] },
-      { name: 'command_session_status', algorithm: 'btree', columns: [
-        'status',
-      ] },
-    ],
-    constraints: [
-      { name: 'command_session_session_key_key', constraint: 'unique', columns: ['sessionKey'] },
-    ],
-  }, CommandSessionRow),
   contentSnapshot: __table({
     name: 'content_snapshot',
     indexes: [
@@ -314,23 +158,6 @@ const tablesSchema = __schema({
       { name: 'content_version_version_key', constraint: 'unique', columns: ['version'] },
     ],
   }, ContentVersionRow),
-  idempotencyLog: __table({
-    name: 'idempotency_log',
-    indexes: [
-      { name: 'idempotency_log_expires_at', algorithm: 'btree', columns: [
-        'expiresAt',
-      ] },
-      { name: 'idempotencyKey', algorithm: 'btree', columns: [
-        'idempotencyKey',
-      ] },
-      { name: 'idempotency_log_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-    ],
-    constraints: [
-      { name: 'idempotency_log_idempotency_key_key', constraint: 'unique', columns: ['idempotencyKey'] },
-    ],
-  }, IdempotencyLogRow),
   mindCase: __table({
     name: 'mind_case',
     indexes: [
@@ -385,426 +212,223 @@ const tablesSchema = __schema({
       { name: 'mind_hypothesis_hypothesis_id_key', constraint: 'unique', columns: ['hypothesisId'] },
     ],
   }, MindHypothesisRow),
-  playerAgencyCareer: __table({
-    name: 'player_agency_career',
+  my_agency_career: __table({
+    name: 'my_agency_career',
     indexes: [
-      { name: 'playerId', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'player_agency_career_rank_id', algorithm: 'btree', columns: [
-        'rankId',
-      ] },
     ],
     constraints: [
-      { name: 'player_agency_career_player_id_key', constraint: 'unique', columns: ['playerId'] },
     ],
-  }, PlayerAgencyCareerRow),
-  playerEvidence: __table({
-    name: 'player_evidence',
+  }, MyAgencyCareerRow),
+  my_ai_requests: __table({
+    name: 'my_ai_requests',
     indexes: [
-      { name: 'player_evidence_evidence_id', algorithm: 'btree', columns: [
-        'evidenceId',
-      ] },
-      { name: 'evidenceKey', algorithm: 'btree', columns: [
-        'evidenceKey',
-      ] },
-      { name: 'player_evidence_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
     ],
     constraints: [
-      { name: 'player_evidence_evidence_key_key', constraint: 'unique', columns: ['evidenceKey'] },
     ],
-  }, PlayerEvidenceRow),
-  playerFactionSignal: __table({
-    name: 'player_faction_signal',
+  }, MyAiRequestsRow),
+  my_battle_cards: __table({
+    name: 'my_battle_cards',
     indexes: [
-      { name: 'player_faction_signal_faction_id', algorithm: 'btree', columns: [
-        'factionId',
-      ] },
-      { name: 'player_faction_signal_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'signalKey', algorithm: 'btree', columns: [
-        'signalKey',
-      ] },
     ],
     constraints: [
-      { name: 'player_faction_signal_signal_key_key', constraint: 'unique', columns: ['signalKey'] },
     ],
-  }, PlayerFactionSignalRow),
-  playerFlag: __table({
-    name: 'player_flag',
+  }, MyBattleCardsRow),
+  my_battle_combatants: __table({
+    name: 'my_battle_combatants',
     indexes: [
-      { name: 'flagId', algorithm: 'btree', columns: [
-        'flagId',
-      ] },
-      { name: 'player_flag_key', algorithm: 'btree', columns: [
-        'key',
-      ] },
-      { name: 'player_flag_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
     ],
     constraints: [
-      { name: 'player_flag_flag_id_key', constraint: 'unique', columns: ['flagId'] },
     ],
-  }, PlayerFlagRow),
-  playerInventory: __table({
-    name: 'player_inventory',
+  }, MyBattleCombatantsRow),
+  my_battle_history: __table({
+    name: 'my_battle_history',
     indexes: [
-      { name: 'inventoryKey', algorithm: 'btree', columns: [
-        'inventoryKey',
-      ] },
-      { name: 'player_inventory_item_id', algorithm: 'btree', columns: [
-        'itemId',
-      ] },
-      { name: 'player_inventory_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
     ],
     constraints: [
-      { name: 'player_inventory_inventory_key_key', constraint: 'unique', columns: ['inventoryKey'] },
     ],
-  }, PlayerInventoryRow),
-  playerLocation: __table({
-    name: 'player_location',
+  }, MyBattleHistoryRow),
+  my_battle_sessions: __table({
+    name: 'my_battle_sessions',
     indexes: [
-      { name: 'playerId', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
     ],
     constraints: [
-      { name: 'player_location_player_id_key', constraint: 'unique', columns: ['playerId'] },
     ],
-  }, PlayerLocationRow),
-  playerMapEvent: __table({
-    name: 'player_map_event',
+  }, MyBattleSessionsRow),
+  my_command_history: __table({
+    name: 'my_command_history',
     indexes: [
-      { name: 'eventId', algorithm: 'btree', columns: [
-        'eventId',
-      ] },
-      { name: 'player_map_event_expires_at', algorithm: 'btree', columns: [
-        'expiresAt',
-      ] },
-      { name: 'player_map_event_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'player_map_event_status', algorithm: 'btree', columns: [
-        'status',
-      ] },
-      { name: 'player_map_event_template_id', algorithm: 'btree', columns: [
-        'templateId',
-      ] },
     ],
     constraints: [
-      { name: 'player_map_event_event_id_key', constraint: 'unique', columns: ['eventId'] },
     ],
-  }, PlayerMapEventRow),
-  playerMindCase: __table({
-    name: 'player_mind_case',
+  }, MyCommandHistoryRow),
+  my_command_party: __table({
+    name: 'my_command_party',
     indexes: [
-      { name: 'player_mind_case_case_id', algorithm: 'btree', columns: [
-        'caseId',
-      ] },
-      { name: 'playerCaseKey', algorithm: 'btree', columns: [
-        'playerCaseKey',
-      ] },
-      { name: 'player_mind_case_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'player_mind_case_status', algorithm: 'btree', columns: [
-        'status',
-      ] },
     ],
     constraints: [
-      { name: 'player_mind_case_player_case_key_key', constraint: 'unique', columns: ['playerCaseKey'] },
     ],
-  }, PlayerMindCaseRow),
-  playerMindFact: __table({
-    name: 'player_mind_fact',
+  }, MyCommandPartyRow),
+  my_command_sessions: __table({
+    name: 'my_command_sessions',
     indexes: [
-      { name: 'player_mind_fact_case_id', algorithm: 'btree', columns: [
-        'caseId',
-      ] },
-      { name: 'player_mind_fact_fact_id', algorithm: 'btree', columns: [
-        'factId',
-      ] },
-      { name: 'playerFactKey', algorithm: 'btree', columns: [
-        'playerFactKey',
-      ] },
-      { name: 'player_mind_fact_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
     ],
     constraints: [
-      { name: 'player_mind_fact_player_fact_key_key', constraint: 'unique', columns: ['playerFactKey'] },
     ],
-  }, PlayerMindFactRow),
-  playerMindHypothesis: __table({
-    name: 'player_mind_hypothesis',
+  }, MyCommandSessionsRow),
+  my_evidence: __table({
+    name: 'my_evidence',
     indexes: [
-      { name: 'player_mind_hypothesis_case_id', algorithm: 'btree', columns: [
-        'caseId',
-      ] },
-      { name: 'player_mind_hypothesis_hypothesis_id', algorithm: 'btree', columns: [
-        'hypothesisId',
-      ] },
-      { name: 'playerHypothesisKey', algorithm: 'btree', columns: [
-        'playerHypothesisKey',
-      ] },
-      { name: 'player_mind_hypothesis_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'player_mind_hypothesis_status', algorithm: 'btree', columns: [
-        'status',
-      ] },
     ],
     constraints: [
-      { name: 'player_mind_hypothesis_player_hypothesis_key_key', constraint: 'unique', columns: ['playerHypothesisKey'] },
     ],
-  }, PlayerMindHypothesisRow),
-  playerNpcFavor: __table({
-    name: 'player_npc_favor',
+  }, MyEvidenceRow),
+  my_faction_signals: __table({
+    name: 'my_faction_signals',
     indexes: [
-      { name: 'favorKey', algorithm: 'btree', columns: [
-        'favorKey',
-      ] },
-      { name: 'player_npc_favor_npc_id', algorithm: 'btree', columns: [
-        'npcId',
-      ] },
-      { name: 'player_npc_favor_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
     ],
     constraints: [
-      { name: 'player_npc_favor_favor_key_key', constraint: 'unique', columns: ['favorKey'] },
     ],
-  }, PlayerNpcFavorRow),
-  playerNpcState: __table({
-    name: 'player_npc_state',
+  }, MyFactionSignalsRow),
+  my_map_events: __table({
+    name: 'my_map_events',
     indexes: [
-      { name: 'player_npc_state_npc_id', algorithm: 'btree', columns: [
-        'npcId',
-      ] },
-      { name: 'npcStateKey', algorithm: 'btree', columns: [
-        'npcStateKey',
-      ] },
-      { name: 'player_npc_state_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
     ],
     constraints: [
-      { name: 'player_npc_state_npc_state_key_key', constraint: 'unique', columns: ['npcStateKey'] },
     ],
-  }, PlayerNpcStateRow),
-  playerProfile: __table({
-    name: 'player_profile',
+  }, MyMapEventsRow),
+  my_mind_cases: __table({
+    name: 'my_mind_cases',
     indexes: [
-      { name: 'player_profile_nickname', algorithm: 'btree', columns: [
-        'nickname',
-      ] },
-      { name: 'playerId', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
     ],
     constraints: [
-      { name: 'player_profile_player_id_key', constraint: 'unique', columns: ['playerId'] },
     ],
-  }, PlayerProfileRow),
-  playerQuest: __table({
-    name: 'player_quest',
+  }, MyMindCasesRow),
+  my_mind_facts: __table({
+    name: 'my_mind_facts',
     indexes: [
-      { name: 'player_quest_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'player_quest_quest_id', algorithm: 'btree', columns: [
-        'questId',
-      ] },
-      { name: 'questKey', algorithm: 'btree', columns: [
-        'questKey',
-      ] },
     ],
     constraints: [
-      { name: 'player_quest_quest_key_key', constraint: 'unique', columns: ['questKey'] },
     ],
-  }, PlayerQuestRow),
-  playerRedeemedCode: __table({
-    name: 'player_redeemed_code',
+  }, MyMindFactsRow),
+  my_mind_hypotheses: __table({
+    name: 'my_mind_hypotheses',
     indexes: [
-      { name: 'player_redeemed_code_code_id', algorithm: 'btree', columns: [
-        'codeId',
-      ] },
-      { name: 'player_redeemed_code_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'redemptionId', algorithm: 'btree', columns: [
-        'redemptionId',
-      ] },
-      { name: 'player_redeemed_code_request_id', algorithm: 'btree', columns: [
-        'requestId',
-      ] },
     ],
     constraints: [
-      { name: 'player_redeemed_code_redemption_id_key', constraint: 'unique', columns: ['redemptionId'] },
     ],
-  }, PlayerRedeemedCodeRow),
-  playerRelationship: __table({
-    name: 'player_relationship',
+  }, MyMindHypothesesRow),
+  my_npc_favors: __table({
+    name: 'my_npc_favors',
     indexes: [
-      { name: 'player_relationship_character_id', algorithm: 'btree', columns: [
-        'characterId',
-      ] },
-      { name: 'player_relationship_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'relationshipKey', algorithm: 'btree', columns: [
-        'relationshipKey',
-      ] },
     ],
     constraints: [
-      { name: 'player_relationship_relationship_key_key', constraint: 'unique', columns: ['relationshipKey'] },
     ],
-  }, PlayerRelationshipRow),
-  playerRumorState: __table({
-    name: 'player_rumor_state',
+  }, MyNpcFavorsRow),
+  my_npc_state: __table({
+    name: 'my_npc_state',
     indexes: [
-      { name: 'player_rumor_state_case_id', algorithm: 'btree', columns: [
-        'caseId',
-      ] },
-      { name: 'player_rumor_state_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'player_rumor_state_rumor_id', algorithm: 'btree', columns: [
-        'rumorId',
-      ] },
-      { name: 'rumorStateKey', algorithm: 'btree', columns: [
-        'rumorStateKey',
-      ] },
-      { name: 'player_rumor_state_status', algorithm: 'btree', columns: [
-        'status',
-      ] },
     ],
     constraints: [
-      { name: 'player_rumor_state_rumor_state_key_key', constraint: 'unique', columns: ['rumorStateKey'] },
     ],
-  }, PlayerRumorStateRow),
-  playerUnlockGroup: __table({
-    name: 'player_unlock_group',
+  }, MyNpcStateRow),
+  my_player_flags: __table({
+    name: 'my_player_flags',
     indexes: [
-      { name: 'player_unlock_group_group_id', algorithm: 'btree', columns: [
-        'groupId',
-      ] },
-      { name: 'player_unlock_group_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'unlockKey', algorithm: 'btree', columns: [
-        'unlockKey',
-      ] },
     ],
     constraints: [
-      { name: 'player_unlock_group_unlock_key_key', constraint: 'unique', columns: ['unlockKey'] },
     ],
-  }, PlayerUnlockGroupRow),
-  playerVar: __table({
-    name: 'player_var',
+  }, MyPlayerFlagsRow),
+  my_player_inventory: __table({
+    name: 'my_player_inventory',
     indexes: [
-      { name: 'player_var_key', algorithm: 'btree', columns: [
-        'key',
-      ] },
-      { name: 'player_var_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'varId', algorithm: 'btree', columns: [
-        'varId',
-      ] },
     ],
     constraints: [
-      { name: 'player_var_var_id_key', constraint: 'unique', columns: ['varId'] },
     ],
-  }, PlayerVarRow),
-  telemetryAggregate: __table({
-    name: 'telemetry_aggregate',
+  }, MyPlayerInventoryRow),
+  my_player_location: __table({
+    name: 'my_player_location',
     indexes: [
-      { name: 'aggregateKey', algorithm: 'btree', columns: [
-        'aggregateKey',
-      ] },
-      { name: 'telemetry_aggregate_bucket_start', algorithm: 'btree', columns: [
-        'bucketStart',
-      ] },
-      { name: 'telemetry_aggregate_event_name', algorithm: 'btree', columns: [
-        'eventName',
-      ] },
     ],
     constraints: [
-      { name: 'telemetry_aggregate_aggregate_key_key', constraint: 'unique', columns: ['aggregateKey'] },
     ],
-  }, TelemetryAggregateRow),
-  telemetryEvent: __table({
-    name: 'telemetry_event',
+  }, MyPlayerLocationRow),
+  my_player_profile: __table({
+    name: 'my_player_profile',
     indexes: [
-      { name: 'telemetry_event_created_at', algorithm: 'btree', columns: [
-        'createdAt',
-      ] },
-      { name: 'eventId', algorithm: 'btree', columns: [
-        'eventId',
-      ] },
-      { name: 'telemetry_event_event_name', algorithm: 'btree', columns: [
-        'eventName',
-      ] },
     ],
     constraints: [
-      { name: 'telemetry_event_event_id_key', constraint: 'unique', columns: ['eventId'] },
     ],
-  }, TelemetryEventRow),
-  vnSession: __table({
-    name: 'vn_session',
+  }, MyPlayerProfileRow),
+  my_player_vars: __table({
+    name: 'my_player_vars',
     indexes: [
-      { name: 'vn_session_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'vn_session_scenario_id', algorithm: 'btree', columns: [
-        'scenarioId',
-      ] },
-      { name: 'sessionKey', algorithm: 'btree', columns: [
-        'sessionKey',
-      ] },
     ],
     constraints: [
-      { name: 'vn_session_session_key_key', constraint: 'unique', columns: ['sessionKey'] },
     ],
-  }, VnSessionRow),
-  vnSkillCheckResult: __table({
-    name: 'vn_skill_check_result',
+  }, MyPlayerVarsRow),
+  my_quests: __table({
+    name: 'my_quests',
     indexes: [
-      { name: 'vn_skill_check_result_check_id', algorithm: 'btree', columns: [
-        'checkId',
-      ] },
-      { name: 'vn_skill_check_result_player_id', algorithm: 'btree', columns: [
-        'playerId',
-      ] },
-      { name: 'resultKey', algorithm: 'btree', columns: [
-        'resultKey',
-      ] },
-      { name: 'vn_skill_check_result_scenario_id', algorithm: 'btree', columns: [
-        'scenarioId',
-      ] },
     ],
     constraints: [
-      { name: 'vn_skill_check_result_result_key_key', constraint: 'unique', columns: ['resultKey'] },
     ],
-  }, VnSkillCheckResultRow),
-  workerIdentity: __table({
-    name: 'worker_identity',
+  }, MyQuestsRow),
+  my_redeemed_codes: __table({
+    name: 'my_redeemed_codes',
     indexes: [
-      { name: 'identity', algorithm: 'btree', columns: [
-        'identity',
-      ] },
     ],
     constraints: [
-      { name: 'worker_identity_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
-  }, WorkerIdentityRow),
+  }, MyRedeemedCodesRow),
+  my_relationships: __table({
+    name: 'my_relationships',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyRelationshipsRow),
+  my_rumor_state: __table({
+    name: 'my_rumor_state',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyRumorStateRow),
+  my_spirit_state: __table({
+    name: 'my_spirit_state',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MySpiritStateRow),
+  my_unlock_groups: __table({
+    name: 'my_unlock_groups',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyUnlockGroupsRow),
+  my_vn_sessions: __table({
+    name: 'my_vn_sessions',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyVnSessionsRow),
+  my_vn_skill_results: __table({
+    name: 'my_vn_skill_results',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyVnSkillResultsRow),
+  worker_ai_requests: __table({
+    name: 'worker_ai_requests',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, WorkerAiRequestsRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
@@ -812,18 +436,22 @@ const reducersSchema = __reducers(
   __reducerSchema("advance_quest", AdvanceQuestReducer),
   __reducerSchema("allow_worker_identity", AllowWorkerIdentityReducer),
   __reducerSchema("begin_freiburg_origin", BeginFreiburgOriginReducer),
+  __reducerSchema("begin_karlsruhe_event_entry", BeginKarlsruheEventEntryReducer),
   __reducerSchema("bootstrap_admin_identity", BootstrapAdminIdentityReducer),
   __reducerSchema("buy_item", BuyItemReducer),
   __reducerSchema("change_agency_standing", ChangeAgencyStandingReducer),
   __reducerSchema("change_faction_signal", ChangeFactionSignalReducer),
   __reducerSchema("change_favor_balance", ChangeFavorBalanceReducer),
   __reducerSchema("change_relationship", ChangeRelationshipReducer),
+  __reducerSchema("claim_next_ai_request", ClaimNextAiRequestReducer),
   __reducerSchema("close_battle_mode", CloseBattleModeReducer),
   __reducerSchema("close_command_mode", CloseCommandModeReducer),
-  __reducerSchema("deliver_thought", DeliverThoughtReducer),
+  __reducerSchema("complete_ai_request", CompleteAiRequestReducer),
   __reducerSchema("discover_fact", DiscoverFactReducer),
   __reducerSchema("end_battle_turn", EndBattleTurnReducer),
   __reducerSchema("enqueue_ai_request", EnqueueAiRequestReducer),
+  __reducerSchema("enqueue_providence_dialogue", EnqueueProvidenceDialogueReducer),
+  __reducerSchema("fail_ai_request", FailAiRequestReducer),
   __reducerSchema("grant_admin_identity", GrantAdminIdentityReducer),
   __reducerSchema("grant_evidence", GrantEvidenceReducer),
   __reducerSchema("grant_item", GrantItemReducer),
@@ -840,6 +468,8 @@ const reducersSchema = __reducers(
   __reducerSchema("redeem_map_code", RedeemMapCodeReducer),
   __reducerSchema("register_rumor", RegisterRumorReducer),
   __reducerSchema("register_worker_identity", RegisterWorkerIdentityReducer),
+  __reducerSchema("renew_ai_request_lease", RenewAiRequestLeaseReducer),
+  __reducerSchema("requeue_ai_request", RequeueAiRequestReducer),
   __reducerSchema("resolve_command", ResolveCommandReducer),
   __reducerSchema("rollback_content", RollbackContentReducer),
   __reducerSchema("set_flag", SetFlagReducer),

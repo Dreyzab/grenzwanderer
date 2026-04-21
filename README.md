@@ -118,7 +118,7 @@ bun run content:extract
 bun run content:manifest:check
 bun run content:obsidian:coverage:check
 bun run content:map:metrics:check
-bun run content:drift:check
+bun run content:drift:verify
 ```
 
 With local SpacetimeDB running and the module published, execute the supported smoke pipeline:
@@ -129,7 +129,7 @@ bun run smoke:all
 
 `smoke:all` is derived from the acceptance matrix. Synthetic contract flows in the matrix explicitly mark extract/manifest/drift gates as `n/a`.
 The Freiburg social loop is covered through `smoke:social-access`, `smoke:rumor-verification`, `smoke:agency-career`, and `smoke:service-unlock`.
-The canonical journalist onboarding path is now wakeup-first: `journalist_agency_wakeup -> sandbox_agency_briefing`. `intro_journalist` remains in the snapshot for legacy/debug coverage only.
+The canonical Case01 runtime path is now `case01_hbf_arrival -> Fritz priority choice -> bank/Mayor -> leads -> convergence -> warehouse finale`. `sandbox_case01_pilot` remains in the snapshot for legacy/debug coverage only.
 
 ## SpacetimeDB Visibility Matrix
 
@@ -150,7 +150,8 @@ Validate matrix coverage against the current schema:
 bun run governance:visibility:check
 ```
 
-This inventory classifies every current `public: true` table as `public-by-design`, `player-scoped`, or `operational-private` and records the required replacement read path before any visibility flip.
+This inventory classifies every governed relation in the visibility inventory (public tables plus governed scoped views) as `public-by-design`, `player-scoped`, or `operational-private` and records the required replacement read path before any visibility flip.
+Raw `operational-private` tables are already closed in `spacetimedb/src/schema.ts` (`public: false`); remaining risk sits in public scoped subscription surfaces and is managed through auth/view hardening and smoke coverage.
 The visibility matrix is already landed. The next governance follow-up is CI supply-chain hardening, not another reducer-auth baseline pass.
 
 ## Git And PR Flow
@@ -218,10 +219,13 @@ bun run content:extract
 bun run content:manifest:check
 bun run content:obsidian:coverage:check
 bun run content:map:metrics:check
-bun run content:drift:check
+bun run content:drift:verify
 ```
 
-`content:drift:check` rewrites generated snapshot artifacts because it runs `content:extract` internally.
+`content:drift:verify` is read-only and verifies that the local snapshot artifacts agree with each other after normalization.
+Use `bun run content:drift:against-head` when you explicitly want to compare the working tree artifacts against git `HEAD`.
+`content:gate:local` is the mutating convenience gate (`extract -> coverage -> metrics -> Case01 smokes -> verify`).
+`content:drift:check` remains as a deprecated alias to `content:gate:local`.
 
 3. Publish content:
 
@@ -229,14 +233,20 @@ bun run content:drift:check
 bun run content:release -- --version X.Y.Z --server local --db grezwandererdata
 ```
 
-4. Create the corresponding git tag:
+4. Inspect repo vs DB state when needed:
+
+```bash
+bun run content:db:status -- --server local --db grezwandererdata
+```
+
+5. Create the corresponding git tag:
 
 ```bash
 bun run content:tag -- --version X.Y.Z
 git push origin content-vX.Y.Z+checksum8
 ```
 
-5. Roll back when needed:
+6. Roll back when needed:
 
 ```bash
 bun run content:rollback -- --checksum <sha256> --server local --db grezwandererdata
@@ -246,6 +256,10 @@ Detailed operational procedure:
 
 - `docs/CONTENT_RELEASE_RUNBOOK.md`
 - `docs/GIT_RELEASE_GOVERNANCE.md`
+
+Obsidian authoring contract:
+
+- `docs/OBSIDIAN_VN_CONTRACT.md`
 
 ## Manual GitHub Setup
 
@@ -275,6 +289,8 @@ git push -u origin main
 - `ARCHITECTURE.md`
 - `DOCS_POLICY.md`
 - `docs/ACCEPTANCE_MATRIX.md`
+- `docs/CASE01_CANON_IDENTITY.md`
 - `docs/GIT_RELEASE_GOVERNANCE.md`
 - `docs/CONTENT_RELEASE_RUNBOOK.md`
 - `docs/MIGRATION_BRIDGE_DETECTIV0.md`
+- `docs/OPENVIKING_CASE01_AUDIT.md`

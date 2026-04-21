@@ -9,6 +9,7 @@ tags:
 
 ## Core
 
+- [[00_Map_Room/loc_agency|loc_agency]]
 - [[00_Map_Room/loc_hbf|loc_hbf]]
 - [[00_Map_Room/loc_freiburg_bank|loc_freiburg_bank]]
 - [[00_Map_Room/loc_freiburg_archive|loc_freiburg_archive]]
@@ -20,6 +21,12 @@ tags:
 - [[00_Map_Room/loc_tailor|loc_tailor]]
 - [[00_Map_Room/loc_apothecary|loc_apothecary]]
 - [[00_Map_Room/loc_pub|loc_pub]]
+
+## Bureau Threads
+
+- [[30_World_Intel/Locations/Loc_Munster|loc_munster]]
+- [[30_World_Intel/Locations/Loc_Kiliani_Lab|loc_uni_chem]]
+- [[30_World_Intel/Locations/Loc_Freiburg_Lyceum|loc_lyceum]]
 
 ## Karlsruhe (ka1905)
 

@@ -5,6 +5,10 @@ import {
   SPEAKER_IDS as BASE_SPEAKER_IDS,
 } from "../data/innerVoiceContract";
 import { originProfiles } from "./origins.manifest";
+import {
+  CASE01_CANON_FLAG_KEYS,
+  CASE01_CANON_VAR_KEYS,
+} from "../src/shared/case01Canon";
 
 export const CONDITION_OPERATORS = new Set<string>([
   "flag_equals",
@@ -17,7 +21,15 @@ export const CONDITION_OPERATORS = new Set<string>([
   "favor_balance_gte",
   "agency_standing_gte",
   "rumor_state_is",
+  "hypothesis_focus_is",
+  "thought_state_is",
   "career_rank_gte",
+  "voice_level_gte",
+  "spirit_state_is",
+  "has_controlled_spirit",
+  "logic_and",
+  "logic_or",
+  "logic_not",
 ]);
 
 export const EFFECT_OPERATORS = new Set<string>([
@@ -30,6 +42,7 @@ export const EFFECT_OPERATORS = new Set<string>([
   "spawn_map_event",
   "track_event",
   "discover_fact",
+  "unlock_mind_thought",
   "grant_xp",
   "unlock_group",
   "set_quest_stage",
@@ -45,7 +58,17 @@ export const EFFECT_OPERATORS = new Set<string>([
   "add_heat",
   "add_tension",
   "grant_influence",
+  "shift_awakening",
+  "record_entity_observation",
+  "unlock_distortion_point",
+  "set_sight_mode",
+  "apply_rationalist_buffer",
+  "tag_entity_signature",
   "change_psyche_axis",
+  "subjugate_spirit",
+  "destroy_spirit",
+  "imprison_spirit",
+  "release_spirit",
 ]);
 
 const BASE_FLAG_KEYS = new Set<string>([
@@ -96,6 +119,7 @@ const BASE_FLAG_KEYS = new Set<string>([
   "flag_paperboy_theft_seen",
   "flag_skipped_station_investigation",
   "flaw_battle_scar_trigger",
+  "flaw_cynic_mistrust",
   "flaw_gambling_addiction",
   "flaw_obsessive_archivist",
   "flaw_prideful_etiquette",
@@ -109,6 +133,8 @@ const BASE_FLAG_KEYS = new Set<string>([
   "ghost_route_unlocked",
   "ghost_truth_proven",
   "intro_freiburg_done",
+  "karlsruhe_arrival_complete",
+  "karlsruhe_event_entry_granted",
   "lang_de",
   "lang_en",
   "lang_ru",
@@ -117,13 +143,18 @@ const BASE_FLAG_KEYS = new Set<string>([
   "met_archivist_intro",
   "met_baroness_intro",
   "met_major_falk_intro",
+  "missing_aroma_case_closed",
+  "missing_aroma_case_started",
   "agency_promotion_review_complete",
   "nose_for_story_triggered",
   "origin_archivist_handoff_done",
   "origin_aristocrat_handoff_done",
   "origin_journalist",
+  "origin_detective",
+  "origin_detective_handoff_done",
   "origin_journalist_handoff_done",
   "origin_veteran_handoff_done",
+  "detective_prologue_done",
   "priority_bank_first",
   "priority_mayor_first",
   "service_anna_student_intro_unlocked",
@@ -136,6 +167,7 @@ const BASE_FLAG_KEYS = new Set<string>([
 
 const BASE_VAR_KEYS = new Set<string>([
   "attr_deception",
+  "attr_empathy",
   "attr_encyclopedia",
   "attr_intellect",
   "attr_perception",
@@ -166,6 +198,14 @@ const BASE_VOICE_IDS = new Set<string>(BASE_SKILL_VOICE_IDS);
 const BASE_PSYCHE_VAR_KEY_SET = new Set<string>(BASE_PSYCHE_VAR_KEYS_ARRAY);
 const BASE_INNER_SPEAKER_IDS = new Set<string>(BASE_INNER_VOICE_IDS);
 const BASE_SPEAKER_POOL_IDS = new Set<string>(BASE_SPEAKER_IDS);
+
+for (const flagKey of CASE01_CANON_FLAG_KEYS) {
+  BASE_FLAG_KEYS.add(flagKey);
+}
+
+for (const varKey of CASE01_CANON_VAR_KEYS) {
+  BASE_VAR_KEYS.add(varKey);
+}
 
 for (const profile of originProfiles) {
   BASE_FLAG_KEYS.add(profile.originFlagKey);

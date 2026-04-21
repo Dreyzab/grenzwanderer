@@ -137,7 +137,7 @@ export const originProfiles: OriginProfileDefinition[] = [
       gender: "male",
       cityOrigin: "Stuttgart -> Freiburg",
       quote: "The city lies beautifully. My job is to make it stumble.",
-      avatarUrl: "/images/characters/journalist_portrait.png",
+      avatarUrl: "/images/characters/journalist_portrait/journalist_portrait.png",
       accentColor: "#A61C2F",
     },
   },
@@ -215,7 +215,7 @@ export const originProfiles: OriginProfileDefinition[] = [
       cityOrigin: "Karlsruhe (Hochadel)",
       quote:
         "I was taught to hold a rapier and hold a conversation. Now I learn to hold the truth.",
-      avatarUrl: "/images/characters/aristocrat_portrait.png",
+      avatarUrl: "/images/characters/aristocrat_portrait/aristocrat_portrait.png",
       accentColor: "#4E5D6C",
     },
   },
@@ -293,7 +293,7 @@ export const originProfiles: OriginProfileDefinition[] = [
       gender: "male",
       cityOrigin: "Baden-Wurttemberg",
       quote: "War took everything except the instinct to survive.",
-      avatarUrl: "/images/characters/veteran_portrait.png",
+      avatarUrl: "/images/characters/veteran_portrait/veteran_portrait.png",
       accentColor: "#B5852B",
     },
   },
@@ -371,8 +371,87 @@ export const originProfiles: OriginProfileDefinition[] = [
       gender: "female",
       cityOrigin: "Freiburg (Altstadt)",
       quote: "Every archive hides a truth someone paid to bury.",
-      avatarUrl: "/images/characters/doctor_portrait.png",
+      avatarUrl: "/images/characters/doctor_portrait/doctor_portrait.png",
       accentColor: "#2E6B57",
+    },
+  },
+  {
+    id: "detective",
+    choiceId: "BACKSTORY_DETECTIVE",
+    originFlagKey: "origin_detective",
+    handoffDoneFlagKeys: ["origin_detective_handoff_done"],
+    label: "Detective Origin",
+    summary: "Logic, observation, and deductive street smarts.",
+    scenarioId: "detective_case01_prologue",
+    flawFlagKey: "flaw_cynic_mistrust",
+    signatureAbilityFlagKey: "ability_crime_scene_reconstruction",
+    statEffects: [
+      { key: "attr_intellect", value: 3 },
+      { key: "attr_perception", value: 4 },
+      { key: "attr_empathy", value: 1 },
+    ],
+    signature: {
+      title: "Crime Scene Reconstruction",
+      description:
+        "Can reconstruct the immediate sequence of events at a crime scene based on physical evidence without needing a specialized check.",
+      passiveLabel: "Passive",
+    },
+    flaw: {
+      title: "Cynical Mistrust",
+      description:
+        "Struggles to believe anyone's first answer. Paranoia costs time and alienates otherwise cooperative witnesses.",
+      icon: "eye-off",
+      checkVoice: "empathy",
+      dc: 9,
+      durationLabel: "Until Reassured",
+    },
+    tracks: [
+      {
+        id: "detective_investigator",
+        title: "Private Investigator",
+        description:
+          "Hard-boiled investigation methods and interrogation tactics.",
+        progressVarKey: "track_investigator_xp",
+        tier1FlagKey: "track_investigator_tier1",
+        tier2FlagKey: "track_investigator_tier2",
+        focus: "Perception + Logic",
+        steps: [
+          { voice: "logic", requiredXp: 100 },
+          { voice: "perception", requiredXp: 200 },
+          { voice: "authority", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "The Final Piece",
+        finalAbilityDescription:
+          "Automatically spots the one conflicting piece of evidence that disproves a suspect's alibi.",
+      },
+      {
+        id: "detective_occult",
+        title: "Occult Sleuth",
+        description:
+          "Pursues the weird and unnatural anomalies hidden in mundane cases.",
+        progressVarKey: "track_occult_sleuth_xp",
+        tier1FlagKey: "track_occult_sleuth_tier1",
+        tier2FlagKey: "track_occult_sleuth_tier2",
+        focus: "Intuition + Occultism",
+        steps: [
+          { voice: "intuition", requiredXp: 100 },
+          { voice: "occultism", requiredXp: 200 },
+          { voice: "imagination", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "Beyond The Veil",
+        finalAbilityDescription:
+          "Can commune with lingering spectral residue to hear the last sounds recorded in an area before death.",
+      },
+    ],
+    dossier: {
+      characterName: "Elias Thorne",
+      age: 35,
+      gender: "male",
+      cityOrigin: "Freiburg",
+      quote:
+        "Every lie leaves a footprint. You just have to know where to look.",
+      avatarUrl: "/images/characters/detective_portrait/detective_portrait.png",
+      accentColor: "#1A365D",
     },
   },
 ];

@@ -79,5 +79,9 @@ tags:
 ## Notes
 
 - Existing plot chains stay in `Plot/**` as narrative references.
-- Runtime source of truth for scene order and flags is `apps/web/src/entities/visual-novel/scenarios/detective/sandbox/**`.
+- Runtime source of truth for authoritative VN scenarios is the Obsidian
+  runtime slice under `40_GameViewer/Sandbox_KA/**/_runtime/_scenario.md` and
+  its sibling `scene_*.md` files.
+- Legacy TS runtime definitions remain a migration baseline only until a
+  scenario moves to `migration_mode: authoritative`.
 - Exit wrappers represent approved return-to-map states and must stay synchronized with runtime flags.

@@ -4,9 +4,9 @@ import { CommandPage } from "./CommandPage";
 
 const mocks = vi.hoisted(() => {
   const tables = {
-    commandSession: Symbol("commandSession"),
-    commandPartyMember: Symbol("commandPartyMember"),
-    commandOrderHistory: Symbol("commandOrderHistory"),
+    myCommandSessions: Symbol("myCommandSessions"),
+    myCommandParty: Symbol("myCommandParty"),
+    myCommandHistory: Symbol("myCommandHistory"),
   };
   const reducers = {
     issueCommand: Symbol("issueCommand"),
@@ -70,12 +70,11 @@ describe("CommandPage", () => {
 
   it("renders active command orders and resolves one on click", async () => {
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tables.commandSession) {
+      if (table === mocks.tables.myCommandSessions) {
         return [
           [
             {
               sessionKey: "me::command",
-              playerId: identity("me"),
               scenarioId: "agency_evening_briefing",
               sourceTab: "map",
               returnTab: "map",
@@ -102,13 +101,12 @@ describe("CommandPage", () => {
           true,
         ];
       }
-      if (table === mocks.tables.commandPartyMember) {
+      if (table === mocks.tables.myCommandParty) {
         return [
           [
             {
               memberKey: "member::inspector",
               sessionKey: "me::command",
-              playerId: identity("me"),
               actorId: "inspector",
               label: "Inspector",
               role: "Field Lead",
@@ -121,7 +119,7 @@ describe("CommandPage", () => {
           true,
         ];
       }
-      if (table === mocks.tables.commandOrderHistory) {
+      if (table === mocks.tables.myCommandHistory) {
         return [[], true];
       }
       return [[], true];
@@ -139,12 +137,11 @@ describe("CommandPage", () => {
 
   it("returns to the stored tab when closing a resolved command session", async () => {
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tables.commandSession) {
+      if (table === mocks.tables.myCommandSessions) {
         return [
           [
             {
               sessionKey: "me::command",
-              playerId: identity("me"),
               scenarioId: "agency_evening_briefing",
               sourceTab: "vn",
               returnTab: "vn",
@@ -165,10 +162,10 @@ describe("CommandPage", () => {
           true,
         ];
       }
-      if (table === mocks.tables.commandPartyMember) {
+      if (table === mocks.tables.myCommandParty) {
         return [[], true];
       }
-      if (table === mocks.tables.commandOrderHistory) {
+      if (table === mocks.tables.myCommandHistory) {
         return [[], true];
       }
       return [[], true];

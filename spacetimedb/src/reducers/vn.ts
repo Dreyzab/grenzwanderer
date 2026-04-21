@@ -1,6 +1,7 @@
 import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
 import {
+  addToVar,
   applyEffects,
   areConditionsSatisfied,
   arePassiveChecksResolved,
@@ -8,6 +9,7 @@ import {
   createSkillCheckResultKey,
   emitTelemetry,
   ensureIdempotent,
+  ensureNarrativeResources,
   ensurePlayerProfile,
   getActiveSnapshot,
   getFlag,
@@ -16,11 +18,20 @@ import {
   getVar,
   isChoiceAllowed,
   isNodeEntryAllowed,
+  resolveKarmaBand,
+  resolveKarmaDifficultyDelta,
   resolveSkillCheckOutcome,
   resolveDiceMode,
   rollSkillDie,
   type VnSkillCheck,
 } from "./helpers";
+import {
+  RESOURCE_FORTUNE_MOD_VAR,
+  RESOURCE_FORTUNE_VAR,
+  RESOURCE_KARMA_VAR,
+  resolveEffectiveFortune,
+  type DifficultyBreakdownEntry,
+} from "../../../src/shared/game/narrativeResources";
 
 const hasOptionalValue = (value: unknown): boolean => {
   if (value === undefined || value === null) {
@@ -53,6 +64,12 @@ const withScenarioFlowTag = (
     ? { ...tags, systemFlow: "origin_bootstrap" }
     : tags;
 
+const clampFortuneSpend = (value: number | undefined): number =>
+  Math.max(0, Math.min(2, Math.trunc(value ?? 0)));
+
+const normalizeDifficulty = (value: number): number =>
+  Math.max(1, Math.trunc(value));
+
 export interface StartScenarioInternalResult {
   activeVersion: { version: string };
   scenario: { id: string; packId?: unknown };
@@ -73,6 +90,7 @@ export const startScenarioInternal = (
   }
 
   ensurePlayerProfile(ctx);
+  ensureNarrativeResources(ctx);
 
   const { snapshot, activeVersion } = getActiveSnapshot(ctx);
   const scenario = getScenario(snapshot, scenarioId);
@@ -185,8 +203,9 @@ export const perform_skill_check = spacetimedb.reducer(
     requestId: t.string(),
     scenarioId: t.string(),
     checkId: t.string(),
+    fortuneSpend: t.u32().optional(),
   },
-  (ctx, { requestId, scenarioId, checkId }) => {
+  (ctx, { requestId, scenarioId, checkId, fortuneSpend }) => {
     if (!scenarioId || scenarioId.trim().length === 0) {
       throw new SenderError("scenarioId must not be empty");
     }
@@ -196,6 +215,7 @@ export const perform_skill_check = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "perform_skill_check");
     ensurePlayerProfile(ctx);
+    ensureNarrativeResources(ctx);
 
     const { snapshot, activeVersion } = getActiveSnapshot(ctx);
     getScenario(snapshot, scenarioId);
@@ -261,6 +281,27 @@ export const perform_skill_check = spacetimedb.reducer(
     const diceMode = resolveDiceMode(snapshot, scenarioId);
     const roll = rollSkillDie(ctx.timestamp, ctx.sender, checkId, diceMode);
     const voiceLevel = Math.floor(getVar(ctx, check.voiceId));
+    const baseDifficulty = normalizeDifficulty(check.difficulty);
+    const karmaValue = Math.trunc(getVar(ctx, RESOURCE_KARMA_VAR));
+    const fortuneBalance = Math.trunc(getVar(ctx, RESOURCE_FORTUNE_VAR));
+    const fortuneMod = Math.trunc(getVar(ctx, RESOURCE_FORTUNE_MOD_VAR));
+    const normalizedFortuneSpend = clampFortuneSpend(fortuneSpend);
+    const effectiveFortune = resolveEffectiveFortune(
+      fortuneBalance,
+      fortuneMod,
+    );
+
+    if (normalizedFortuneSpend > 0) {
+      if (fortuneBalance <= 0) {
+        throw new SenderError("Fortune reserve is empty");
+      }
+      if (effectiveFortune <= 0) {
+        throw new SenderError("Fortune spend is blocked by current modifiers");
+      }
+      if (normalizedFortuneSpend > fortuneBalance) {
+        throw new SenderError("Not enough Fortune to spend that amount");
+      }
+    }
 
     // Resolve modifiers deterministically from player state
     const breakdown: { source: string; sourceId: string; delta: number }[] = [
@@ -282,9 +323,43 @@ export const perform_skill_check = spacetimedb.reducer(
       }
     }
 
+    const difficultyBreakdown: DifficultyBreakdownEntry[] = [];
+    const karmaDelta = check.karmaSensitive
+      ? resolveKarmaDifficultyDelta(karmaValue)
+      : 0;
+    if (check.karmaSensitive && karmaDelta !== 0) {
+      difficultyBreakdown.push({
+        source: "karma",
+        sourceId: resolveKarmaBand(karmaValue),
+        delta: karmaDelta,
+      });
+    }
+    if (fortuneMod !== 0) {
+      difficultyBreakdown.push({
+        source: "fortune_mod",
+        sourceId: RESOURCE_FORTUNE_MOD_VAR,
+        delta: fortuneMod,
+      });
+    }
+    if (normalizedFortuneSpend > 0) {
+      difficultyBreakdown.push({
+        source: "fortune_spend",
+        sourceId: RESOURCE_FORTUNE_VAR,
+        delta: -(normalizedFortuneSpend * 2),
+      });
+      addToVar(ctx, RESOURCE_FORTUNE_VAR, -normalizedFortuneSpend);
+    }
+
+    const effectiveDifficulty = normalizeDifficulty(
+      baseDifficulty +
+        karmaDelta +
+        fortuneMod -
+        normalizedFortuneSpend * 2,
+    );
+
     const total = roll + voiceLevel + modifierTotal;
-    const passed = total >= check.difficulty;
-    const margin = total - check.difficulty;
+    const passed = total >= effectiveDifficulty;
+    const margin = total - effectiveDifficulty;
 
     // Determine outcome grade and branch.
     const { outcomeGrade, outcome, costEffects } = resolveSkillCheckOutcome({
@@ -324,10 +399,16 @@ export const perform_skill_check = spacetimedb.reducer(
       checkId,
       roll,
       voiceLevel,
-      difficulty: check.difficulty,
+      difficulty: effectiveDifficulty,
+      baseDifficulty,
+      fortuneSpent: normalizedFortuneSpend,
       passed,
       nextNodeId,
       breakdownJson: JSON.stringify(breakdown),
+      difficultyBreakdownJson:
+        difficultyBreakdown.length > 0
+          ? JSON.stringify(difficultyBreakdown)
+          : undefined,
       outcomeGrade,
       createdAt: ctx.timestamp,
     });
@@ -371,7 +452,13 @@ export const perform_skill_check = spacetimedb.reducer(
       roll,
       voiceLevel,
       modifierTotal,
-      difficulty: check.difficulty,
+      difficulty: effectiveDifficulty,
+      baseDifficulty,
+      fortuneSpend: normalizedFortuneSpend,
+      fortuneMod,
+      karmaValue,
+      karmaDelta,
+      difficultyBreakdown,
       passed,
       outcomeGrade,
       margin,

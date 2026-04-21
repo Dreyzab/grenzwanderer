@@ -16,6 +16,7 @@ tags:
 - [[00_Map_Room/qst_victoria_poetry|qst_victoria_poetry]]
 - [[00_Map_Room/qst_lotte_wires|qst_lotte_wires]]
 - [[00_Map_Room/qst_inspector_vienna|qst_inspector_vienna]]
+- [[00_Map_Room/qst_dead_registry|qst_dead_registry]]
 
 ## Karlsruhe Sandbox (ka1905)
 
@@ -66,4 +67,5 @@ flowchart LR
   A[node_case1_first_lead_selection] --> B[qst_victoria_poetry]
   A --> C[qst_lotte_wires]
   F[node_case1_bank_investigation] --> D[qst_inspector_vienna]
+  F --> E[qst_dead_registry]
 ```

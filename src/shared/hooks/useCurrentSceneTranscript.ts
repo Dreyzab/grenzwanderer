@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { DialogueNode } from "@/entities/visual-novel/model/types";
-import type {
-  CurrentSceneTranscriptBlock,
-  ResolvedTranscriptLine,
-  TranscriptCharacterSource,
-} from "@/shared/game/currentSceneTranscript";
-import { resolveCurrentSceneTranscriptLine } from "@/shared/game/currentSceneTranscript";
+import type { DialogueNode } from "../../features/vn/types";
+import {
+  type CurrentSceneTranscriptBlock,
+  type ResolvedTranscriptLine,
+  type TranscriptCharacterSource,
+  resolveCurrentSceneTranscriptLine,
+} from "../game/currentSceneTranscript";
 
 export interface UseCurrentSceneTranscriptArgs {
   sceneId: string;

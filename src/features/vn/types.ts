@@ -3,8 +3,32 @@ import type {
   InnerVoiceId,
   PsycheAxis,
 } from "../../../data/innerVoiceContract";
+import type { VnAiMode } from "../../shared/game/narrativeResources";
 
-export type VnCondition =
+export interface Speaker {
+  id?: string;
+  name?: string;
+  displayName?: string;
+  characterId?: string;
+  emotion?: string | { primary: string };
+  sprite?: string;
+  portraitUrl?: string;
+}
+
+export interface DialogueNode {
+  id: string;
+  type?: string;
+  text?: string;
+  body?: string;
+  content?: { text: string };
+  speaker?: string | Speaker;
+  characterId?: string;
+  emotion?: string | { primary: string };
+  scenarioId?: string;
+  nextNodeId?: string;
+}
+
+export type VnConditionLeaf =
   | { type: "flag_equals"; key: string; value: boolean }
   | { type: "var_gte"; key: string; value: number }
   | { type: "var_lte"; key: string; value: number }
@@ -18,7 +42,15 @@ export type VnCondition =
   | { type: "hypothesis_focus_is"; caseId: string; hypothesisId: string }
   | { type: "thought_state_is"; thoughtId: string; state: MindThoughtState }
   | { type: "career_rank_gte"; rankId: string }
-  | { type: "voice_level_gte"; voiceId: string; value: number };
+  | { type: "voice_level_gte"; voiceId: string; value: number }
+  | { type: "spirit_state_is"; spiritId: string; state: SpiritState }
+  | { type: "has_controlled_spirit"; entityArchetypeId: string };
+
+export type VnCondition =
+  | VnConditionLeaf
+  | { type: "logic_and"; conditions: VnCondition[] }
+  | { type: "logic_or"; conditions: VnCondition[] }
+  | { type: "logic_not"; condition: VnCondition };
 
 export type VnEffect =
   | { type: "set_flag"; key: string; value: boolean }
@@ -91,7 +123,11 @@ export type VnEffect =
   | { type: "set_sight_mode"; mode: SightMode }
   | { type: "apply_rationalist_buffer"; amount: number }
   | { type: "tag_entity_signature"; signatureId: string }
-  | { type: "change_psyche_axis"; axis: PsycheAxis; delta: number };
+  | { type: "change_psyche_axis"; axis: PsycheAxis; delta: number }
+  | { type: "subjugate_spirit"; spiritId: string }
+  | { type: "destroy_spirit"; spiritId: string }
+  | { type: "imprison_spirit"; spiritId: string; requiredItemId?: string }
+  | { type: "release_spirit"; spiritId: string };
 
 export type VnDiceMode = "d20" | "d10";
 
@@ -137,6 +173,7 @@ export interface VnSkillCheck {
   difficulty: number;
   isPassive?: boolean;
   showChancePercent?: boolean;
+  karmaSensitive?: boolean;
   modifiers?: VnCheckModifier[];
   outcomeModel?: VnOutcomeModel;
   onSuccess?: VnSkillCheckOutcomeBranch;
@@ -150,6 +187,8 @@ export interface VnChoice {
   text: string;
   nextNodeId: string;
   choiceType?: "action" | "inquiry" | "flavor";
+  aiMode?: VnAiMode;
+  providenceCost?: number;
   visibleIfAll?: VnCondition[];
   visibleIfAny?: VnCondition[];
   requireAll?: VnCondition[];
@@ -174,6 +213,8 @@ export interface VnNode {
   characterId?: string;
   voicePresenceMode?: VoicePresenceMode;
   activeSpeakers?: string[];
+  aiModeDefault?: VnAiMode;
+  providenceCostDefault?: number;
   terminal?: boolean;
   choices: VnChoice[];
   onEnter?: VnEffect[];
@@ -187,6 +228,7 @@ export interface VnScenario {
   startNodeId: string;
   nodeIds: string[];
   completionRoute?: VnScenarioCompletionRoute;
+  completionRoutes?: VnScenarioCompletionRoute[];
   skillCheckDice?: VnDiceMode;
   mode?: "overlay" | "fullscreen";
   packId?: string;
@@ -257,6 +299,29 @@ export type MysticAwakeningBand =
   | "open"
   | "pierced";
 
+export type SpiritState = "hostile" | "imprisoned" | "controlled" | "destroyed";
+export type SpiritSubjugationMethod = "dialogue" | "battle" | "ritual";
+
+export interface SpiritControlledBonus {
+  type: "skill_modifier" | "sight_mode_unlock" | "psyche_read";
+  voiceId?: string;
+  delta?: number;
+  targetNpcId?: string;
+}
+
+export interface SpiritEncounterDefinition {
+  id: string;
+  entityArchetypeId: string;
+  displayName: string;
+  subjugationDifficulty: number;
+  observationBonusPerSignature: number;
+  battleScenarioId: string;
+  onSubjugateEffects: VnEffect[];
+  onDestroyEffects: VnEffect[];
+  imprisonmentItemId?: string;
+  controlledBonuses: SpiritControlledBonus[];
+}
+
 export type SightMode = "rational" | "sensitive" | "ether";
 export type NpcAvailabilityState =
   | "available"
@@ -318,11 +383,13 @@ export interface MysticObservationDefinition {
 export interface MysticSnapshot {
   entityArchetypes: MysticEntityArchetype[];
   observations: MysticObservationDefinition[];
+  spiritEncounters?: SpiritEncounterDefinition[];
 }
 
 export interface VnRuntimeSettings {
   skillCheckDice?: VnDiceMode;
   defaultEntryScenarioId?: string;
+  releaseProfile?: "default" | "karlsruhe_event";
 }
 
 export interface QuestStageContent {

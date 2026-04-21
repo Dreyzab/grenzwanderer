@@ -1,0 +1,10 @@
+{
+  "characterId": "police_group",
+  "outfit": "Gendarmerie",
+  "emotion": "Neutral",
+  "prompt": "Oil painting, Sargent-style broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, A squad of German gendarmes in formation, dark blue wool gendarmerie uniform coats, silver buttons, high standing collars, blue kepis with silver emblems, weathered disciplined faces with trimmed mustaches, natural diffused daylight, soft shadows, balanced tones, wide group shot, standing in formation, Group sprite scene, neutral studio light, plain dark backdrop, no second figure, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors.",
+  "promptHash": "67af9cf2f6d1",
+  "model": "gemini-2.1-flash-image",
+  "createdAt": "2026-04-09T09:06:00.000Z",
+  "masterAssetPath": "Grenzwanderer/images/characters/police_group/master.png"
+}

@@ -5,6 +5,12 @@ import type {
 import type { SkillCheckVoicePalette } from "./skillCheckPalette";
 import type { VnChoice } from "./types";
 import type { FrozenSkillCheckPresentation } from "./ui/VnSkillCheckResolveOverlay";
+import type {
+  DialogueLayer,
+  DifficultyBreakdownEntry,
+  KarmaBand,
+  VnAiMode,
+} from "../../shared/game/narrativeResources";
 
 export interface AwaitingSkillChoice {
   scenarioId: string;
@@ -16,10 +22,20 @@ export interface AwaitingSkillChoice {
   voiceLabel: string;
   diceMode: "d20" | "d10";
   chancePercent?: number;
+  baseDifficulty: number;
+  effectiveDifficulty: number;
+  fortuneSpend: number;
+  fortuneBalance: number;
+  effectiveFortune: number;
+  aiMode?: VnAiMode;
+  providenceCost: number;
+  karmaBand: KarmaBand;
+  difficultyBreakdown: DifficultyBreakdownEntry[];
   frozen: FrozenSkillCheckPresentation;
 }
 
 export interface ActiveAiThoughtContext {
+  dialogueLayer: DialogueLayer;
   scenarioId: string;
   nodeId: string;
   checkId: string;
@@ -47,9 +63,12 @@ export type SkillCheckResultLike = {
   roll: number;
   voiceLevel: number;
   difficulty: number;
+  baseDifficulty?: number;
+  fortuneSpent?: number;
   passed: boolean;
   nextNodeId: unknown;
   breakdownJson?: unknown;
+  difficultyBreakdownJson?: unknown;
   outcomeGrade?: unknown;
   createdAt: unknown;
 };

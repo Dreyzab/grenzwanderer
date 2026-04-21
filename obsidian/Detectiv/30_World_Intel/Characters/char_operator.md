@@ -5,9 +5,15 @@ tier: major
 runtime_character_id: operator
 faction: fct_civil_service
 aliases: ["Lotte Fischer"]
+canon_status: design_reference_alias
+runtime_display_name: Lotte Weber
 ---
 
-# Lotte Fischer
+# Lotte Fischer (Design Alias)
+
+> Canon note: supported runtime and Case01 content use `Lotte Weber`.
+> `Lotte Fischer` is retained here as a Detectiv design/reference alias until
+> the document is fully migrated to runtime canon.
 
 ## Dossier
 

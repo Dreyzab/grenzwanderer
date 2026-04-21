@@ -25,6 +25,7 @@ import {
   formatSpeaker,
   normalizeBody,
   normalizeNumeric,
+  parseDifficultyBreakdown,
   parseSkillCheckBreakdown,
   reactionRequestMatchesContext,
   resolveOutcomeGrade,
@@ -203,6 +204,7 @@ export function useVnAiLogic({
           : [pending.voiceId];
       const psycheProfile = buildDialoguePsycheProfile(activeSpeakers);
       const context: ActiveAiThoughtContext = {
+        dialogueLayer: "base",
         scenarioId: pending.scenarioId,
         nodeId: targetNodeId,
         checkId: pending.checkId,
@@ -211,6 +213,9 @@ export function useVnAiLogic({
         choiceText: pending.choiceText,
         resultCreatedAtMicros: timestampMicros(matchedResult.createdAt),
       };
+      const difficultyBreakdown = parseDifficultyBreakdown(
+        matchedResult.difficultyBreakdownJson,
+      );
 
       setActiveAiThoughtContext(context);
 
@@ -257,6 +262,7 @@ export function useVnAiLogic({
       };
 
       const thoughtKey = buildAiThoughtKey(
+        context.dialogueLayer,
         context.scenarioId,
         context.nodeId,
         context.checkId,
@@ -288,12 +294,20 @@ export function useVnAiLogic({
             choiceId: pending.choiceId,
             voiceId: pending.voiceId,
             choiceText: pending.choiceText,
+            dialogueLayer: "base",
+            aiMode: pending.aiMode,
+            providenceCost: pending.providenceCost,
+            karmaBand: pending.karmaBand,
             passed: matchedResult.passed,
             roll: matchedResult.roll,
             difficulty: matchedResult.difficulty,
+            baseDifficulty:
+              matchedResult.baseDifficulty ?? pending.baseDifficulty,
             voiceLevel: matchedResult.voiceLevel,
+            fortuneSpend: matchedResult.fortuneSpent ?? pending.fortuneSpend,
             outcomeGrade,
             breakdown,
+            difficultyBreakdown,
             margin,
             voicePresenceMode,
             activeSpeakers,

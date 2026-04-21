@@ -54,12 +54,12 @@ export const DetectiveHub = ({
   const [pendingBindingId, setPendingBindingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [inventoryRows] = useTable(tables.playerInventory);
-  const [relationshipRows] = useTable(tables.playerRelationship);
-  const [npcStateRows] = useTable(tables.playerNpcState);
-  const [npcFavorRows] = useTable(tables.playerNpcFavor);
-  const [agencyCareerRows] = useTable(tables.playerAgencyCareer);
-  const [flagRows] = useTable(tables.playerFlag);
+  const [inventoryRows] = useTable(tables.myPlayerInventory);
+  const [relationshipRows] = useTable(tables.myRelationships);
+  const [npcStateRows] = useTable(tables.myNpcState);
+  const [npcFavorRows] = useTable(tables.myNpcFavors);
+  const [agencyCareerRows] = useTable(tables.myAgencyCareer);
+  const [flagRows] = useTable(tables.myPlayerFlags);
   const [versionRows] = useTable(tables.contentVersion);
   const [snapshotRows] = useTable(tables.contentSnapshot);
 
@@ -115,42 +115,27 @@ export const DetectiveHub = ({
   const introCompleted = useMemo(
     () =>
       flagRows.some(
-        (row) =>
-          row.playerId.toHexString() === identityHex &&
-          row.key === "INTRO_COMPLETED" &&
-          row.value === true,
+        (row) => row.key === "INTRO_COMPLETED" && row.value === true,
       ),
-    [flagRows, identityHex],
+    [flagRows],
   );
 
   const inventoryItems = useMemo(
-    () =>
-      inventoryRows.filter(
-        (row) => row.playerId.toHexString() === identityHex && row.quantity > 0,
-      ),
-    [identityHex, inventoryRows],
+    () => inventoryRows.filter((row) => row.quantity > 0),
+    [inventoryRows],
   );
 
   const companions = useMemo(() => {
     const trustByNpcId = new Map<string, number>();
     for (const row of relationshipRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
       trustByNpcId.set(row.characterId, row.value);
     }
     for (const row of npcStateRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
       trustByNpcId.set(row.npcId, row.trustScore);
     }
 
     const favorByNpcId = new Map<string, number>();
     for (const row of npcFavorRows) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
       favorByNpcId.set(
         row.npcId,
         typeof row.balance === "bigint" ? Number(row.balance) : row.balance,
@@ -174,7 +159,6 @@ export const DetectiveHub = ({
         };
       });
   }, [
-    identityHex,
     npcFavorRows,
     npcStateRows,
     relationshipRows,
@@ -186,11 +170,8 @@ export const DetectiveHub = ({
   );
 
   const agencyCareer = useMemo(
-    () =>
-      agencyCareerRows.find(
-        (row) => row.playerId.toHexString() === identityHex,
-      ) ?? null,
-    [agencyCareerRows, identityHex],
+    () => agencyCareerRows[0] ?? null,
+    [agencyCareerRows],
   );
   const agencyStandingLabel = getAgencyStandingPresentation(
     agencyCareer?.standingScore ?? 0,

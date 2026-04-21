@@ -13,8 +13,8 @@ const mocks = vi.hoisted(() => ({
   useTableMock: vi.fn(),
   lastVnProps: null as null | Record<string, unknown>,
   tables: {
-    commandSession: Symbol("commandSession"),
-    battleSession: Symbol("battleSession"),
+    myCommandSessions: Symbol("myCommandSessions"),
+    myBattleSessions: Symbol("myBattleSessions"),
   },
 }));
 
@@ -32,7 +32,7 @@ vi.mock("../shared/spacetime/bindings", () => ({
   reducers: {
     startScenario: Symbol("startScenario"),
     setNickname: Symbol("setNickname"),
-    heartbeatPresence: Symbol("heartbeatPresence"),
+    beginFreiburgOrigin: Symbol("beginFreiburgOrigin"),
   },
 }));
 
@@ -82,7 +82,6 @@ vi.mock("../pages/BattlePage", () => ({
 vi.mock("../pages/MindPalacePage", () => ({
   MindPalacePage: () => <div>mind</div>,
 }));
-vi.mock("../pages/DevPage", () => ({ DevPage: () => <div>dev</div> }));
 vi.mock("../features/mindpalace/useFactDiscoveryToast", () => ({
   useFactDiscoveryToast: () => {},
 }));
@@ -183,12 +182,11 @@ describe("AppShell URL synchronization", () => {
 
   it("switches into command tab when an active command session appears", async () => {
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tables.commandSession) {
+      if (table === mocks.tables.myCommandSessions) {
         return [
           [
             {
               sessionKey: "me::command",
-              playerId: { toHexString: () => "me" },
               status: "active",
             },
           ],
@@ -208,12 +206,11 @@ describe("AppShell URL synchronization", () => {
 
   it("switches into battle tab when an active battle session appears", async () => {
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tables.battleSession) {
+      if (table === mocks.tables.myBattleSessions) {
         return [
           [
             {
               sessionKey: "me::battle",
-              playerId: { toHexString: () => "me" },
               status: "active",
             },
           ],

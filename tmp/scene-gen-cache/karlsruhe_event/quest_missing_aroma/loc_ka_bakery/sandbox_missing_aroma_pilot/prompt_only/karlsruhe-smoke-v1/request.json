@@ -1,0 +1,11 @@
+{
+  "releaseProfile": "karlsruhe_event",
+  "input": {
+    "caseId": "quest_missing_aroma",
+    "pointId": "loc_ka_bakery",
+    "scenarioId": "sandbox_missing_aroma_pilot",
+    "mode": "prompt_only",
+    "imageInput": null
+  },
+  "prompt": "Historic bakery in Karlsruhe, missing spice aroma, warm ovens, investigative atmosphere."
+}

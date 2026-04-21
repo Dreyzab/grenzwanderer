@@ -47,6 +47,46 @@ function Get-ProfileTargets {
                 (Join-Path $projectDir "obsidian")
             )
         }
+        "runtime" {
+            return @(
+                (Join-Path $projectDir "content\vn"),
+                (Join-Path $projectDir "public\content\vn"),
+                (Join-Path $projectDir "scripts\extract-vn-content.ts"),
+                (Join-Path $projectDir "scripts\data\case_01_points.ts"),
+                (Join-Path $projectDir "scripts\data\case01_canon_runtime.ts"),
+                (Join-Path $projectDir "obsidian\StoryDetective\40_GameViewer\Case01\_runtime"),
+                (Join-Path $projectDir "src\features\vn"),
+                (Join-Path $projectDir "src\features\map\data\scenario-mapping.ts"),
+                (Join-Path $projectDir "src\features\map\data\generated-static-points.ts"),
+                (Join-Path $projectDir "scripts\acceptance-matrix.ts")
+            )
+        }
+        "case01" {
+            return @(
+                (Join-Path $projectDir "obsidian\StoryDetective\40_GameViewer\Case01"),
+                (Join-Path $projectDir "scripts\data\case01_canon_runtime.ts"),
+                (Join-Path $projectDir "scripts\data\case_01_points.ts"),
+                (Join-Path $projectDir "content\vn\pilot.snapshot.json")
+            )
+        }
+        "design" {
+            return @(
+                (Join-Path $projectDir "obsidian\Detectiv\10_Narrative\Scenes"),
+                (Join-Path $projectDir "obsidian\Detectiv\30_World_Intel\Characters"),
+                (Join-Path $projectDir "obsidian\Detectiv\00_Map_Room\qst_lotte_wires.md"),
+                (Join-Path $projectDir "obsidian\Detectiv\00_Map_Room\loc_ka_estate.md"),
+                (Join-Path $projectDir "docs\CASE01_CANON_IDENTITY.md")
+            )
+        }
+        "roadmap" {
+            return @(
+                (Join-Path $projectDir "docs\DEVELOPMENT_ROADMAP.md"),
+                (Join-Path $projectDir "docs\ACCEPTANCE_MATRIX.md"),
+                (Join-Path $projectDir "docs\OPENVIKING_CASE01_AUDIT.md"),
+                (Join-Path $projectDir "ARCHITECTURE.md"),
+                (Join-Path $projectDir "README.md")
+            )
+        }
         "frontend" {
             return @(
                 (Join-Path $projectDir "src\app"),

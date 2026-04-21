@@ -3,7 +3,11 @@ import {
   isInnerVoiceId,
 } from "../../../data/innerVoiceContract";
 import {
-  formatSkillCheckVoiceLabel,
+  getCanonicalVoiceLabel,
+  getCanonicalVoicePromptProfile,
+  getCanonicalVoiceRoleLabels,
+} from "../../../data/voiceBridge";
+import {
   getSkillCheckVoicePalette,
   type SkillCheckVoicePalette,
 } from "./skillCheckPalette";
@@ -26,12 +30,13 @@ export const getVoicePresentation = (voiceId: string): VoicePresentation => {
     };
   }
 
-  const label = formatSkillCheckVoiceLabel(voiceId);
+  const loreProfile = getCanonicalVoicePromptProfile(voiceId);
+  const label = getCanonicalVoiceLabel(voiceId);
   return {
     label,
-    personaLabel: label,
+    personaLabel: loreProfile?.archetype ?? label,
     palette: getSkillCheckVoicePalette(voiceId),
-    ensembleRoles: [],
+    ensembleRoles: getCanonicalVoiceRoleLabels(voiceId),
   };
 };
 

@@ -257,11 +257,26 @@ describe("ai-context-builder", () => {
     expect(context.sceneSnapshot).toContain("Tailor Audit");
     expect(context.sceneSnapshot).toContain("Outcome: critical success");
     expect(context.sceneSnapshot).toContain("Outcome margin: 5");
+    expect(context.sceneSnapshot).toContain(
+      "Voice bridge: attr_social -> charisma",
+    );
+    expect(context.sceneSnapshot).toContain(
+      "Canonical voice: Charisma (charisma)",
+    );
+    expect(context.sceneSnapshot).toContain(
+      'Voice style guide: Charisma (Character); motto "Make them enjoy telling you what hurts them."',
+    );
     expect(context.sceneSnapshot).toContain("Journalist Origin");
     expect(context.sceneSnapshot).toContain("Whistleblower");
     expect(context.sceneSnapshot).toContain("Voice presence: parliament");
     expect(context.sceneSnapshot).toContain(
       "Active speakers: attr_social, attr_logic",
+    );
+    expect(context.sceneSnapshot).toContain(
+      "Canonical speakers: charisma, logic",
+    );
+    expect(context.sceneSnapshot).toContain(
+      "Parliament style stack: Charisma: warm and adaptive, social and flattering",
     );
     expect(context.sceneSnapshot).toContain(
       "Hidden-layer status: archive verification pending",

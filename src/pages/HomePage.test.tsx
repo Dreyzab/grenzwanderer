@@ -6,16 +6,14 @@ const mocks = vi.hoisted(() => {
   const tables = {
     contentVersion: Symbol("contentVersion"),
     contentSnapshot: Symbol("contentSnapshot"),
-    vnSession: Symbol("vnSession"),
-    playerFlag: Symbol("playerFlag"),
-    playerProfile: Symbol("playerProfile"),
+    myVnSessions: Symbol("myVnSessions"),
+    myPlayerFlags: Symbol("myPlayerFlags"),
   };
 
   return {
     tables,
     reducers: {
       beginFreiburgOrigin: Symbol("beginFreiburgOrigin"),
-      setNickname: Symbol("setNickname"),
     },
     useIdentityMock: vi.fn(),
     useTableMock: vi.fn(),
@@ -66,50 +64,19 @@ vi.mock("../features/origin/ui/OriginSelectionScreen", () => ({
     onCancel,
     status,
   }: {
-    onConfirmOrigin: (draft: {
-      profileId: string;
-      nickname: string;
-      selectedTrackId: string;
-    }) => void;
+    onConfirmOrigin: (profileId: string) => void;
     onCancel: () => void;
     status?: string | null;
   }) => (
     <div data-testid="origin-selection">
       <p>{status ?? ""}</p>
-      <button
-        type="button"
-        onClick={() =>
-          onConfirmOrigin({
-            profileId: "journalist",
-            nickname: "Operator Anna",
-            selectedTrackId: "journalist_whistleblower",
-          })
-        }
-      >
+      <button type="button" onClick={() => onConfirmOrigin("journalist")}>
         confirm-journalist
       </button>
-      <button
-        type="button"
-        onClick={() =>
-          onConfirmOrigin({
-            profileId: "aristocrat",
-            nickname: "Baroness Login",
-            selectedTrackId: "aristocrat_duelist",
-          })
-        }
-      >
+      <button type="button" onClick={() => onConfirmOrigin("aristocrat")}>
         confirm-aristocrat
       </button>
-      <button
-        type="button"
-        onClick={() =>
-          onConfirmOrigin({
-            profileId: "archivist",
-            nickname: "",
-            selectedTrackId: "archivist_dust_cartographer",
-          })
-        }
-      >
+      <button type="button" onClick={() => onConfirmOrigin("archivist")}>
         confirm-archivist-empty-nickname
       </button>
       <button type="button" onClick={onCancel}>
@@ -216,13 +183,11 @@ type TestState = {
   sessionReady: boolean;
   flagRows: any[];
   flagsReady: boolean;
-  playerProfileRows: any[];
 };
 
 describe("HomePage Freiburg flow", () => {
   let state: TestState;
   let beginFreiburgOriginReducerMock: ReturnType<typeof vi.fn>;
-  let setNicknameReducerMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -250,7 +215,6 @@ describe("HomePage Freiburg flow", () => {
       sessionReady: true,
       flagRows: [],
       flagsReady: true,
-      playerProfileRows: [],
     };
 
     mocks.useIdentityMock.mockReturnValue({
@@ -259,13 +223,9 @@ describe("HomePage Freiburg flow", () => {
       connectionError: undefined,
     });
     beginFreiburgOriginReducerMock = vi.fn().mockResolvedValue(undefined);
-    setNicknameReducerMock = vi.fn().mockResolvedValue(undefined);
     mocks.useReducerMock.mockImplementation((reducer: symbol) => {
       if (reducer === mocks.reducers.beginFreiburgOrigin) {
         return beginFreiburgOriginReducerMock;
-      }
-      if (reducer === mocks.reducers.setNickname) {
-        return setNicknameReducerMock;
       }
       return vi.fn();
     });
@@ -277,14 +237,11 @@ describe("HomePage Freiburg flow", () => {
       if (table === mocks.tables.contentSnapshot) {
         return [state.contentSnapshotRows, state.contentSnapshotReady];
       }
-      if (table === mocks.tables.vnSession) {
+      if (table === mocks.tables.myVnSessions) {
         return [state.sessionRows, state.sessionReady];
       }
-      if (table === mocks.tables.playerFlag) {
+      if (table === mocks.tables.myPlayerFlags) {
         return [state.flagRows, state.flagsReady];
-      }
-      if (table === mocks.tables.playerProfile) {
-        return [state.playerProfileRows, true];
       }
       return [[], true];
     });
@@ -351,21 +308,14 @@ describe("HomePage Freiburg flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "confirm-aristocrat" }));
 
     await waitFor(() => {
-      expect(setNicknameReducerMock).toHaveBeenCalledWith({
-        nickname: "Baroness Login",
-      });
       expect(beginFreiburgOriginReducerMock).toHaveBeenCalledWith(
         expect.objectContaining({
           profileId: "aristocrat",
-          selectedTrackId: "aristocrat_duelist",
           resetProgress: true,
         }),
       );
       expect(onOpenVnScenario).toHaveBeenCalledWith("intro_aristocrat");
     });
-    expect(setNicknameReducerMock.mock.invocationCallOrder[0]).toBeLessThan(
-      beginFreiburgOriginReducerMock.mock.invocationCallOrder[0],
-    );
   });
 
   it("cancels reset confirmation without starting a new game", () => {
@@ -489,15 +439,8 @@ describe("HomePage Freiburg flow", () => {
     expect(onNavigate).toHaveBeenCalledWith("map", { mapPanel: "qr" });
   });
 
-  it("starts an origin without calling setNickname when the trimmed nickname is unchanged", async () => {
+  it("starts an origin directly from selection without nickname mutation", async () => {
     const onOpenVnScenario = vi.fn();
-
-    state.playerProfileRows = [
-      {
-        playerId: identity("me"),
-        nickname: { tag: "some", value: "" },
-      },
-    ];
 
     render(
       <HomePage onNavigate={vi.fn()} onOpenVnScenario={onOpenVnScenario} />,
@@ -511,11 +454,9 @@ describe("HomePage Freiburg flow", () => {
     );
 
     await waitFor(() => {
-      expect(setNicknameReducerMock).not.toHaveBeenCalled();
       expect(beginFreiburgOriginReducerMock).toHaveBeenCalledWith(
         expect.objectContaining({
           profileId: "archivist",
-          selectedTrackId: "archivist_dust_cartographer",
           resetProgress: false,
         }),
       );

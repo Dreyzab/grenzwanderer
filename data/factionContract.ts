@@ -17,6 +17,25 @@ export const LEGACY_REPUTATION_VAR_BY_FACTION_ID = {
   underworld: "rep_underworld",
 } as const;
 
+export const LEGACY_LAYER_BY_FACTION_ID = {
+  civic_order: "daylight",
+  financial_bloc: "political",
+  underworld: "shadow",
+} as const satisfies Record<
+  keyof typeof LEGACY_REPUTATION_VAR_BY_FACTION_ID,
+  FactionLayer
+>;
+
+export const MIN_FACTION_PRESSURE_REVEAL = 15;
+export const MAX_ALIGNMENT_CONTRIBUTION = 40;
+export const MAX_ALIGNMENT_FACTIONS_PER_LAYER = 2;
+
+export type FactionRevealReason = "contact" | "pressure";
+export type FactionCatalogSource =
+  | { factions?: FactionDefinition[] }
+  | { socialCatalog?: { factions?: FactionDefinition[] } }
+  | undefined;
+
 export const CANONICAL_FACTION_REGISTRY: FactionDefinition[] = [
   {
     id: "city_chancellery",
@@ -156,3 +175,53 @@ export function isFactionDefinition(
     entry.signalStateLabels.every((label) => typeof label === "string")
   );
 }
+
+const getSourceFactions = (
+  source?: FactionCatalogSource,
+): FactionDefinition[] | undefined => {
+  if (!source) {
+    return undefined;
+  }
+
+  if ("factions" in source && Array.isArray(source.factions)) {
+    return source.factions.filter(isFactionDefinition);
+  }
+
+  if (
+    "socialCatalog" in source &&
+    source.socialCatalog &&
+    Array.isArray(source.socialCatalog.factions)
+  ) {
+    return source.socialCatalog.factions.filter(isFactionDefinition);
+  }
+
+  return undefined;
+};
+
+export const getFactionCatalog = (
+  source?: FactionCatalogSource,
+): FactionDefinition[] => {
+  const snapshotFactions = getSourceFactions(source);
+  if (!snapshotFactions || snapshotFactions.length === 0) {
+    return [...CANONICAL_FACTION_REGISTRY];
+  }
+
+  const snapshotById = new Map(
+    snapshotFactions.map((entry) => [entry.id, entry] as const),
+  );
+
+  return CANONICAL_FACTION_REGISTRY.map(
+    (entry) => snapshotById.get(entry.id) ?? entry,
+  );
+};
+
+export const getPublicFactionCatalog = (
+  source?: FactionCatalogSource,
+): FactionDefinition[] =>
+  getFactionCatalog(source).filter((entry) => entry.visibility === "public");
+
+export const getFactionDefinition = (
+  factionId: string,
+  source?: FactionCatalogSource,
+): FactionDefinition | undefined =>
+  getFactionCatalog(source).find((entry) => entry.id === factionId);

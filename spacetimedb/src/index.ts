@@ -1,4 +1,37 @@
 import spacetimedb from "./schema";
+export {
+  my_agency_career,
+  my_ai_requests,
+  my_battle_cards,
+  my_battle_combatants,
+  my_battle_history,
+  my_battle_sessions,
+  my_command_history,
+  my_command_party,
+  my_command_sessions,
+  my_evidence,
+  my_faction_signals,
+  my_map_events,
+  my_mind_cases,
+  my_mind_facts,
+  my_mind_hypotheses,
+  my_npc_favors,
+  my_npc_state,
+  my_player_flags,
+  my_player_inventory,
+  my_player_location,
+  my_player_profile,
+  my_player_vars,
+  my_quests,
+  my_redeemed_codes,
+  my_relationships,
+  my_rumor_state,
+  my_spirit_state,
+  my_unlock_groups,
+  my_vn_sessions,
+  my_vn_skill_results,
+  worker_ai_requests,
+} from "./schema";
 import {
   aggregate_telemetry,
   cleanup_idempotency_log,
@@ -16,6 +49,7 @@ export {
 register_maintenance_reducers(spacetimedb);
 
 export {
+  begin_karlsruhe_event_entry,
   begin_freiburg_origin,
   buy_item,
   set_flag,
@@ -51,8 +85,13 @@ export {
   validate_hypothesis,
 } from "./reducers/mindpalace";
 export {
-  deliver_thought,
+  claim_next_ai_request,
+  complete_ai_request,
   enqueue_ai_request,
+  enqueue_providence_dialogue,
+  fail_ai_request,
+  renew_ai_request_lease,
+  requeue_ai_request,
   register_worker_identity,
 } from "./reducers/ai";
 export {

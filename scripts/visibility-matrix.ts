@@ -22,9 +22,10 @@ export interface VisibilityMatrixEntry {
   rationale: string;
 }
 
-export interface PublicSchemaTable {
+export interface SchemaTable {
   tableName: string;
   schemaExport: string;
+  isPublic: boolean;
 }
 
 export interface ConsumerInventory {
@@ -52,7 +53,8 @@ const ignoredDirectoryNames = new Set([
 ]);
 const fileListCache = new Map<string, string[]>();
 const fileSourceCache = new Map<string, string>();
-let publicSchemaTablesCache: PublicSchemaTable[] | null = null;
+let schemaTablesCache: SchemaTable[] | null = null;
+let schemaViewNamesCache: Set<string> | null = null;
 let visibilityInventoryCache: VisibilityInventoryRow[] | null = null;
 
 const entry = (
@@ -111,6 +113,14 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "my_player_inventory",
     "wave3-core-progression",
     "Inventory is player-private state used in map and detective hub surfaces.",
+  ),
+  entry(
+    "player_spirit_state",
+    "playerSpiritState",
+    "player-scoped",
+    "my_spirit_state",
+    "wave3-core-progression",
+    "Spirit states (hostile/controlled) are player-specific progression state.",
   ),
   entry(
     "vn_session",
@@ -174,7 +184,7 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "operational-private",
     "my_ai_requests",
     "wave1-operational",
-    "AI request rows mix player-facing thought history with backend processing state, so they need a scoped projection before closure.",
+    "AI request rows currently stay raw-public for the MVP worker loop, but they still mix player-facing thought history with backend processing state and should ultimately collapse behind a scoped projection.",
   ),
   entry(
     "worker_identity",
@@ -491,8 +501,8 @@ const collectRuntimeRefs = (): Map<string, Set<string>> => {
   return runtimeRefs;
 };
 
-const parsePublicSchemaTables = (schemaSource: string): PublicSchemaTable[] => {
-  const tables: PublicSchemaTable[] = [];
+const parseSchemaTables = (schemaSource: string): SchemaTable[] => {
+  const tables: SchemaTable[] = [];
   const tablePattern =
     /export const (\w+) = table\(\s*\{([\s\S]*?)\}\s*,\s*\{/g;
 
@@ -500,32 +510,59 @@ const parsePublicSchemaTables = (schemaSource: string): PublicSchemaTable[] => {
     const schemaExport = match[1];
     const optionsBlock = match[2];
     const tableNameMatch = optionsBlock.match(/name:\s*"([^"]+)"/);
-    if (!tableNameMatch || !/public:\s*true/.test(optionsBlock)) {
+    if (!tableNameMatch) {
       continue;
     }
+
+    const publicMatch = optionsBlock.match(/public:\s*(true|false)/);
 
     tables.push({
       tableName: tableNameMatch[1],
       schemaExport,
+      isPublic: publicMatch?.[1] === "true",
     });
   }
 
   return tables;
 };
 
+const parseViewNames = (schemaSource: string): Set<string> => {
+  const viewNames = new Set<string>();
+  for (const match of schemaSource.matchAll(/spacetimedb\.view\(\s*\{[\s\S]*?name:\s*"([^"]+)"/g)) {
+    viewNames.add(match[1]);
+  }
+  return viewNames;
+};
+
+export const extractSchemaTables = (schemaSource?: string): SchemaTable[] => {
+  if (schemaSource !== undefined) {
+    return parseSchemaTables(schemaSource);
+  }
+
+  if (schemaTablesCache) {
+    return schemaTablesCache;
+  }
+
+  schemaTablesCache = parseSchemaTables(readCachedUtf8(schemaPath));
+  return schemaTablesCache;
+};
+
 export const extractPublicSchemaTables = (
   schemaSource?: string,
-): PublicSchemaTable[] => {
+): SchemaTable[] =>
+  extractSchemaTables(schemaSource).filter((tableInfo) => tableInfo.isPublic);
+
+export const extractSchemaViewNames = (schemaSource?: string): Set<string> => {
   if (schemaSource !== undefined) {
-    return parsePublicSchemaTables(schemaSource);
+    return parseViewNames(schemaSource);
   }
 
-  if (publicSchemaTablesCache) {
-    return publicSchemaTablesCache;
+  if (schemaViewNamesCache) {
+    return schemaViewNamesCache;
   }
 
-  publicSchemaTablesCache = parsePublicSchemaTables(readCachedUtf8(schemaPath));
-  return publicSchemaTablesCache;
+  schemaViewNamesCache = parseViewNames(readCachedUtf8(schemaPath));
+  return schemaViewNamesCache;
 };
 
 export const buildVisibilityInventory = (): VisibilityInventoryRow[] => {
@@ -588,13 +625,14 @@ const summarizeConsumers = (consumers: ConsumerInventory): string => {
 };
 
 export const validateVisibilityMatrix = (): void => {
-  const publicTables = extractPublicSchemaTables();
-  const publicTableNames = new Set(
-    publicTables.map((tableInfo) => tableInfo.tableName),
+  const schemaTables = extractSchemaTables();
+  const schemaTableMap = new Map(
+    schemaTables.map((tableInfo) => [tableInfo.tableName, tableInfo] as const),
   );
-  const publicSchemaExports = new Set(
-    publicTables.map((tableInfo) => tableInfo.schemaExport),
+  const schemaExportMap = new Map(
+    schemaTables.map((tableInfo) => [tableInfo.schemaExport, tableInfo] as const),
   );
+  const schemaViewNames = extractSchemaViewNames();
   const seenTableNames = new Set<string>();
   const seenSchemaExports = new Set<string>();
   const problems: string[] = [];
@@ -614,15 +652,17 @@ export const validateVisibilityMatrix = (): void => {
     }
     seenSchemaExports.add(entryValue.schemaExport);
 
-    if (!publicTableNames.has(entryValue.tableName)) {
+    const schemaTable = schemaTableMap.get(entryValue.tableName);
+    if (!schemaTable) {
       problems.push(
-        `Matrix entry '${entryValue.tableName}' is not a current public table in schema.ts.`,
+        `Matrix entry '${entryValue.tableName}' is not a current table in schema.ts.`,
       );
     }
 
-    if (!publicSchemaExports.has(entryValue.schemaExport)) {
+    const schemaExport = schemaExportMap.get(entryValue.schemaExport);
+    if (!schemaExport) {
       problems.push(
-        `Matrix entry '${entryValue.schemaExport}' is not a current public schema export.`,
+        `Matrix entry '${entryValue.schemaExport}' is not a current schema export.`,
       );
     }
 
@@ -632,9 +672,18 @@ export const validateVisibilityMatrix = (): void => {
           `Public-by-design table '${entryValue.tableName}' must stay in 'retain-public'.`,
         );
       }
+      if (schemaTable && !schemaTable.isPublic) {
+        problems.push(
+          `Public-by-design table '${entryValue.tableName}' must remain public in schema.ts.`,
+        );
+      }
     } else if (entryValue.migrationWave === "retain-public") {
       problems.push(
         `Non-public-by-design table '${entryValue.tableName}' cannot stay in 'retain-public'.`,
+      );
+    } else if (schemaTable?.isPublic) {
+      problems.push(
+        `Governed private table '${entryValue.tableName}' must be non-public in schema.ts.`,
       );
     }
 
@@ -647,12 +696,14 @@ export const validateVisibilityMatrix = (): void => {
     if (entryValue.rationale.trim().length === 0) {
       problems.push(`Table '${entryValue.tableName}' is missing a rationale.`);
     }
-  }
 
-  for (const tableInfo of publicTables) {
-    if (!seenTableNames.has(tableInfo.tableName)) {
+    if (
+      entryValue.visibilityClass !== "public-by-design" &&
+      /^[a-z0-9_]+$/.test(entryValue.replacementReadPath) &&
+      !schemaViewNames.has(entryValue.replacementReadPath)
+    ) {
       problems.push(
-        `Public table '${tableInfo.tableName}' is missing from the visibility matrix.`,
+        `Replacement read path '${entryValue.replacementReadPath}' is missing a server view export.`,
       );
     }
   }
@@ -674,7 +725,7 @@ export const formatVisibilityMatrixMarkdown = (): string => {
   const lines = [
     "# SpacetimeDB Visibility Matrix",
     "",
-    `- Public tables inventoried: ${visibilityMatrix.length}`,
+    `- Governed relations inventoried: ${visibilityMatrix.length}`,
     `- public-by-design: ${classificationCounts["public-by-design"]}`,
     `- player-scoped: ${classificationCounts["player-scoped"]}`,
     `- operational-private: ${classificationCounts["operational-private"]}`,
@@ -699,7 +750,7 @@ const printCheckSummary = (): void => {
   const counts = countsByClass(visibilityMatrix);
   console.log(
     [
-      `Visibility matrix valid for ${visibilityMatrix.length} public tables.`,
+      `Visibility matrix valid for ${visibilityMatrix.length} governed relations.`,
       `public-by-design=${counts["public-by-design"]}`,
       `player-scoped=${counts["player-scoped"]}`,
       `operational-private=${counts["operational-private"]}`,

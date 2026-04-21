@@ -6,11 +6,11 @@ import type { SkillCheckResultLike, TransitionState } from "../vnScreenTypes";
 
 const t = {
   choiceApplied: "Choice applied",
-  sessionHydrating: "Hydrating",
-  skillFailed: "Skill failed",
-  skillResolved: "Skill resolved",
+  sessionHydrating: "Syncing session...",
+  skillFailed: "Skill check failed",
+  skillResolved: "Skill check resolved on server",
   syncing: "Syncing...",
-  unknownScenario: "Unknown",
+  unknownScenario: "Unknown Scenario",
 } as const;
 
 const timestamp = (micros: bigint) => ({
@@ -96,6 +96,7 @@ function useHarness(props: HarnessProps = {}) {
     playImpactSfx: props.playImpactSfx ?? vi.fn(),
     markInteractionHandled: props.markInteractionHandled ?? vi.fn(),
     getChoiceChancePercent: () => 85,
+    getChoiceEffectiveDifficulty: () => 8,
     handleResolvedSkillCheck: props.handleResolvedSkillCheck ?? vi.fn(),
     performSkillCheck:
       props.performSkillCheck ?? vi.fn().mockResolvedValue(undefined),
@@ -124,7 +125,7 @@ describe("useVnSkillChecks", () => {
   });
 
   it("enqueues passive checks once while the request is in flight", async () => {
-    let resolvePerform: (() => void) | null = null;
+    let resolvePerform: ((value?: void) => void) | undefined;
     const performSkillCheck = vi.fn(
       () =>
         new Promise<void>((resolve) => {
@@ -157,7 +158,7 @@ describe("useVnSkillChecks", () => {
     rerender({
       currentNode,
       performSkillCheck,
-    });
+    } as any);
 
     expect(performSkillCheck).toHaveBeenCalledTimes(1);
 
@@ -184,7 +185,7 @@ describe("useVnSkillChecks", () => {
           createdAt: timestamp(10n),
         },
       ],
-    });
+    } as any);
 
     expect(performSkillCheck).toHaveBeenCalledTimes(1);
   });
@@ -209,9 +210,25 @@ describe("useVnSkillChecks", () => {
     });
 
     expect(result.current.pendingChoiceId).toBe("choice_probe");
-    expect(result.current.awaitingSkillChoice?.checkId).toBe("check_probe");
+    expect(result.current.armedSkillChoice?.checkId).toBe("check_probe");
+    expect(result.current.awaitingSkillChoice).toBeNull();
     expect(result.current.activeSkillResolve?.phase).toBe("arming");
+    expect(performSkillCheck).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await result.current.confirmArmedSkillCheck();
+      await Promise.resolve();
+    });
+
+    expect(result.current.armedSkillChoice).toBeNull();
+    expect(result.current.awaitingSkillChoice?.checkId).toBe("check_probe");
     expect(performSkillCheck).toHaveBeenCalledTimes(1);
+    expect(performSkillCheck).toHaveBeenCalledWith({
+      requestId: expect.any(String),
+      scenarioId: "scenario_alpha",
+      checkId: "check_probe",
+      fortuneSpend: 0,
+    });
 
     const matchedResult: SkillCheckResultLike = {
       resultKey: "result_probe",
@@ -232,7 +249,7 @@ describe("useVnSkillChecks", () => {
         performSkillCheck,
         handleResolvedSkillCheck,
         mySkillResults: [matchedResult],
-      });
+      } as any);
       await Promise.resolve();
     });
 
@@ -277,6 +294,11 @@ describe("useVnSkillChecks", () => {
       await result.current.handleChoiceClick(baseChoice as any, false);
     });
 
+    await act(async () => {
+      await result.current.confirmArmedSkillCheck();
+      await Promise.resolve();
+    });
+
     const matchedResult: SkillCheckResultLike = {
       resultKey: "result_probe",
       playerId: { toHexString: () => "me" },
@@ -295,11 +317,16 @@ describe("useVnSkillChecks", () => {
       rerender({
         playImpactSfx,
         mySkillResults: [matchedResult],
-      });
+      } as any);
       await Promise.resolve();
     });
 
     expect(result.current.awaitingSkillChoice).toBeNull();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    expect(result.current.activeSkillResolve?.phase).toBe("rolling");
 
     act(() => {
       expect(result.current.handleActiveResolveInteraction()).toBe(true);
@@ -338,6 +365,11 @@ describe("useVnSkillChecks", () => {
       await result.current.handleChoiceClick(baseChoice as any, false);
     });
 
+    await act(async () => {
+      await result.current.confirmArmedSkillCheck();
+      await Promise.resolve();
+    });
+
     rerender({
       recordChoice,
       markInteractionHandled,
@@ -356,7 +388,7 @@ describe("useVnSkillChecks", () => {
           createdAt: timestamp(32n),
         },
       ],
-    });
+    } as any);
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(300);
@@ -528,7 +560,7 @@ describe("useVnSkillChecks", () => {
     await act(async () => {
       rerender({
         selectedScenarioId: "scenario_beta",
-      });
+      } as any);
       await Promise.resolve();
     });
 
@@ -555,7 +587,7 @@ describe("useVnSkillChecks", () => {
             createdAt: timestamp(36n),
           },
         ],
-      });
+      } as any);
       await Promise.resolve();
     });
 
@@ -599,7 +631,7 @@ describe("useVnSkillChecks", () => {
         },
         currentSessionPointer: "session::beta",
         recordChoice,
-      });
+      } as any);
       await Promise.resolve();
     });
 
@@ -624,6 +656,11 @@ describe("useVnSkillChecks", () => {
     });
 
     await act(async () => {
+      await result.current.confirmArmedSkillCheck();
+      await Promise.resolve();
+    });
+
+    await act(async () => {
       rerender({
         recordChoice,
         mySkillResults: [
@@ -641,7 +678,7 @@ describe("useVnSkillChecks", () => {
             createdAt: timestamp(37n),
           },
         ],
-      });
+      } as any);
       await Promise.resolve();
     });
 

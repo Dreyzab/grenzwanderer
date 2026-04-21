@@ -5,7 +5,7 @@ import { useIdentity } from "../../../shared/spacetime/useIdentity";
 
 export const usePlayerVars = (): Record<string, number> => {
   const { identityHex } = useIdentity();
-  const [vars] = useTable(tables.playerVar);
+  const [vars] = useTable(tables.myPlayerVars);
 
   return useMemo(() => {
     if (!identityHex) {
@@ -14,9 +14,6 @@ export const usePlayerVars = (): Record<string, number> => {
 
     const result: Record<string, number> = {};
     for (const row of vars) {
-      if (row.playerId.toHexString() !== identityHex) {
-        continue;
-      }
       result[row.key] = row.floatValue;
     }
     return result;

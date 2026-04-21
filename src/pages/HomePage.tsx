@@ -5,10 +5,7 @@ import {
   getOriginProfileById,
   originProfiles,
 } from "../features/character/originProfiles";
-import {
-  OriginSelectionScreen,
-  type OriginSelectionDraft,
-} from "../features/origin/ui/OriginSelectionScreen";
+import { OriginSelectionScreen } from "../features/origin/ui/OriginSelectionScreen";
 import {
   resolveFreiburgEntryTarget,
   type FreiburgEntryTarget,
@@ -20,7 +17,14 @@ import { ConfirmationModal } from "../shared/ui/ConfirmationModal";
 
 interface HomePageProps {
   onNavigate: (
-    target: "vn" | "character" | "map" | "mind_palace" | "dev",
+    target:
+      | "home"
+      | "vn"
+      | "character"
+      | "map"
+      | "mind_palace"
+      | "command"
+      | "battle",
     options?: { mapPanel?: "qr" },
   ) => void;
   onOpenVnScenario: (scenarioId: string) => void;
@@ -30,22 +34,18 @@ type CitySelection = "freiburg_1905" | "karlsruhe_1905";
 type FreiburgFlowState = "idle" | "confirm_reset" | "select_origin";
 
 const buildPlayerFlags = (
-  identityHex: string,
+  isReady: boolean,
   flagsRows: readonly {
-    playerId: { toHexString(): string };
     key: string;
     value: boolean;
   }[],
 ): Record<string, boolean> => {
-  if (!identityHex) {
+  if (!isReady) {
     return {};
   }
 
   const result: Record<string, boolean> = {};
   for (const row of flagsRows) {
-    if (row.playerId.toHexString() !== identityHex) {
-      continue;
-    }
     result[row.key] = row.value;
   }
   return result;
@@ -73,17 +73,14 @@ const resolveSyncStatus = (
 };
 
 const hasFreiburgProgressHeuristic = (
-  identityHex: string,
-  sessions: readonly { playerId: { toHexString(): string } }[],
+  sessions: readonly unknown[],
   flags: Record<string, boolean>,
 ): boolean => {
-  if (!identityHex) {
+  if (sessions.length === 0 && Object.keys(flags).length === 0) {
     return false;
   }
 
-  if (
-    sessions.some((session) => session.playerId.toHexString() === identityHex)
-  ) {
+  if (sessions.length > 0) {
     return true;
   }
 
@@ -98,35 +95,14 @@ const hasFreiburgProgressHeuristic = (
   );
 };
 
-const unwrapOptionalString = (value: unknown): string | null => {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (value === undefined || value === null) {
-    return null;
-  }
-
-  if (typeof value === "object" && value !== null && "tag" in value) {
-    const tagged = value as { tag?: string; value?: unknown };
-    if (tagged.tag === "some" && typeof tagged.value === "string") {
-      return tagged.value;
-    }
-  }
-
-  return null;
-};
-
 export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const { identityHex, isConnected, connectionError } = useIdentity();
   const beginFreiburgOrigin = useReducer(reducers.beginFreiburgOrigin);
-  const setNickname = useReducer(reducers.setNickname);
 
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
-  const [sessions, sessionsReady] = useTable(tables.vnSession);
-  const [flagsRows, flagsReady] = useTable(tables.playerFlag);
-  const [playerProfiles] = useTable(tables.playerProfile);
+  const [sessions, sessionsReady] = useTable(tables.myVnSessions);
+  const [flagsRows, flagsReady] = useTable(tables.myPlayerFlags);
 
   const [flowState, setFlowState] = useState<FreiburgFlowState>("idle");
   const [flowStatus, setFlowStatus] = useState<string | null>(null);
@@ -161,20 +137,12 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     (sessionsReady && flagsReady) || Boolean(isConnected && identityHex);
 
   const playerFlags = useMemo(
-    () => buildPlayerFlags(identityHex, flagsRows),
+    () => buildPlayerFlags(Boolean(identityHex), flagsRows),
     [flagsRows, identityHex],
   );
-  const currentNickname = useMemo(
-    () =>
-      unwrapOptionalString(
-        playerProfiles.find((row) => row.playerId.toHexString() === identityHex)
-          ?.nickname,
-      ) ?? "",
-    [identityHex, playerProfiles],
-  );
   const hasAnyPlayerProgress = useMemo(
-    () => hasFreiburgProgressHeuristic(identityHex, sessions, playerFlags),
-    [identityHex, playerFlags, sessions],
+    () => hasFreiburgProgressHeuristic(sessions, playerFlags),
+    [playerFlags, sessions],
   );
 
   const entryTarget = useMemo<FreiburgEntryTarget>(
@@ -237,11 +205,6 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
       return;
     }
 
-    if (entryTarget.kind === "freeplay") {
-      onNavigate("map");
-      return;
-    }
-
     if (entryTarget.kind === "resume" || entryTarget.kind === "start") {
       handleOpenScenario(entryTarget.scenarioId);
       return;
@@ -270,8 +233,8 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     openOriginSelection(false);
   };
 
-  const handleOriginConfirm = async (draft: OriginSelectionDraft) => {
-    const profile = getOriginProfileById(draft.profileId);
+  const handleOriginConfirm = async (profileId: string) => {
+    const profile = getOriginProfileById(profileId);
     if (launchInFlightRef.current || !profile) {
       return;
     }
@@ -286,14 +249,9 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     setFlowStatus(null);
 
     try {
-      const trimmedNickname = draft.nickname.trim();
-      if (trimmedNickname !== currentNickname.trim()) {
-        await setNickname({ nickname: trimmedNickname });
-      }
       await beginFreiburgOrigin({
         requestId: `home_begin_freiburg_${Date.now()}`,
         profileId: profile.id,
-        selectedTrackId: draft.selectedTrackId,
         resetProgress: pendingResetOnBegin,
       });
       handleOpenScenario(profile.scenarioId);
@@ -426,7 +384,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
           disabled={isEntryBlocked || isLaunching}
           status={isEntryBlocked ? syncStatus : flowStatus}
           onCancel={closeOriginFlow}
-          onConfirmOrigin={(draft) => void handleOriginConfirm(draft)}
+          onConfirmOrigin={(profileId) => void handleOriginConfirm(profileId)}
         />
       ) : null}
     </div>

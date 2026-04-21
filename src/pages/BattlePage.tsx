@@ -36,7 +36,7 @@ const unwrapOptionalString = (value: unknown): string | null => {
 };
 
 const normalizeReturnTab = (value: string): BattleReturnTab => {
-  if (value === "vn" || value === "dev") {
+  if (value === "vn") {
     return value;
   }
   return "map";
@@ -69,11 +69,10 @@ const toCardView = (row: Record<string, unknown>): BattleCardView => ({
 });
 
 export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
-  const { identityHex } = useIdentity();
-  const [sessions, sessionsReady] = useTable(tables.battleSession);
-  const [combatants, combatantsReady] = useTable(tables.battleCombatant);
-  const [cards, cardsReady] = useTable(tables.battleCardInstance);
-  const [history, historyReady] = useTable(tables.battleHistory);
+  const [sessions, sessionsReady] = useTable(tables.myBattleSessions);
+  const [combatants, combatantsReady] = useTable(tables.myBattleCombatants);
+  const [cards, cardsReady] = useTable(tables.myBattleCards);
+  const [history, historyReady] = useTable(tables.myBattleHistory);
   const playBattleCard = useReducer(reducers.playBattleCard);
   const endBattleTurn = useReducer(reducers.endBattleTurn);
   const closeBattleMode = useReducer(reducers.closeBattleMode);
@@ -83,10 +82,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const activeSession = useMemo(() => {
-    const ownSessions = sessions.filter(
-      (row) =>
-        row.playerId.toHexString() === identityHex && row.status !== "closed",
-    );
+    const ownSessions = sessions.filter((row) => row.status !== "closed");
     if (ownSessions.length === 0) {
       return null;
     }
@@ -94,7 +90,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
     return ownSessions.sort((left, right) =>
       String(right.updatedAt).localeCompare(String(left.updatedAt)),
     )[0];
-  }, [identityHex, sessions]);
+  }, [sessions]);
 
   const activeCombatants = useMemo(() => {
     if (!activeSession) {
@@ -103,13 +99,11 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
 
     return combatants
       .filter(
-        (row) =>
-          row.playerId.toHexString() === identityHex &&
-          row.sessionKey === activeSession.sessionKey,
+        (row) => row.sessionKey === activeSession.sessionKey,
       )
       .map((row) => toCombatantView(row as unknown as Record<string, unknown>))
       .sort((left, right) => left.side.localeCompare(right.side));
-  }, [activeSession, combatants, identityHex]);
+  }, [activeSession, combatants]);
 
   const activeCards = useMemo(() => {
     if (!activeSession) {
@@ -122,9 +116,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
 
     const ownCards = cards
       .filter(
-        (row) =>
-          row.playerId.toHexString() === identityHex &&
-          row.sessionKey === activeSession.sessionKey,
+        (row) => row.sessionKey === activeSession.sessionKey,
       )
       .map((row) => row as unknown as Record<string, unknown>);
 
@@ -136,7 +128,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
         .map(toCardView)
         .sort((left, right) => left.zoneOrder - right.zoneOrder),
     };
-  }, [activeSession, cards, identityHex]);
+  }, [activeSession, cards]);
 
   const recentHistory = useMemo(() => {
     if (!activeSession) {
@@ -145,16 +137,14 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
 
     return history
       .filter(
-        (row) =>
-          row.playerId.toHexString() === identityHex &&
-          row.sessionKey === activeSession.sessionKey,
+        (row) => row.sessionKey === activeSession.sessionKey,
       )
       .sort((left, right) =>
         String(right.createdAt).localeCompare(String(left.createdAt)),
       )
       .slice(0, 8)
       .reverse();
-  }, [activeSession, history, identityHex]);
+  }, [activeSession, history]);
 
   const isReady = sessionsReady && combatantsReady && cardsReady && historyReady;
   const player = activeCombatants.find((entry) => entry.side === "player") ?? null;

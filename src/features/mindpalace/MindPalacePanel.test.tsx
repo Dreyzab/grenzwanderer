@@ -11,9 +11,9 @@ const mocks = vi.hoisted(() => ({
   tablesMock: {
     mindCase: Symbol("mindCase"),
     mindHypothesis: Symbol("mindHypothesis"),
-    playerMindFact: Symbol("playerMindFact"),
-    playerMindHypothesis: Symbol("playerMindHypothesis"),
-    playerMindCase: Symbol("playerMindCase"),
+    myMindFacts: Symbol("myMindFacts"),
+    myMindHypotheses: Symbol("myMindHypotheses"),
+    myMindCases: Symbol("myMindCases"),
   },
   reducersMock: {
     startMindCase: Symbol("startMindCase"),
@@ -43,10 +43,6 @@ vi.mock("../mindboard/MindBoardCanvas", () => ({
     <div data-testid="mind-board-canvas">{caseId}</div>
   ),
 }));
-
-const makeIdentity = (hex: string) => ({
-  toHexString: () => hex,
-});
 
 describe("MindPalacePanel", () => {
   beforeEach(() => {
@@ -81,18 +77,18 @@ describe("MindPalacePanel", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerMindFact) {
+      if (table === mocks.tablesMock.myMindFacts) {
         return [
-          [{ playerId: makeIdentity("me"), caseId: "case_1", factId: "fact_1" }],
+          [{ caseId: "case_1", factId: "fact_1" }],
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerMindHypothesis) {
+      if (table === mocks.tablesMock.myMindHypotheses) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerMindCase) {
+      if (table === mocks.tablesMock.myMindCases) {
         return [
-          [{ playerId: makeIdentity("me"), caseId: "case_1", status: "in_progress" }],
+          [{ caseId: "case_1", status: "in_progress" }],
           true,
         ];
       }
@@ -117,13 +113,13 @@ describe("MindPalacePanel", () => {
       if (table === mocks.tablesMock.mindHypothesis) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerMindFact) {
+      if (table === mocks.tablesMock.myMindFacts) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerMindHypothesis) {
+      if (table === mocks.tablesMock.myMindHypotheses) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerMindCase) {
+      if (table === mocks.tablesMock.myMindCases) {
         return [[], true];
       }
       return [[], true];

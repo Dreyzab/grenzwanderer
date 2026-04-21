@@ -28,23 +28,27 @@ bun run content:manifest:check
 bun run quality:loop-poc
 bun run content:obsidian:coverage:check
 bun run content:map:metrics:check
+bun run smoke:case01-entry
+bun run smoke:case01-mainline
+bun run smoke:case01-branches
 bun run test
 ```
 
 Note: `checklist.py` is not part of this repository; use script-based gates above.
 
-3. Validate drift against committed snapshot artifacts:
+3. Validate local snapshot artifact consistency:
 
 ```bash
-bun run content:drift:check
+bun run content:drift:verify
 ```
 
 Important:
 
-- `content:drift:check` is not read-only in this repository.
-- The command runs `content:extract` before drift validation.
-- It rewrites `content/vn/pilot.snapshot.json` and `public/content/vn/pilot.snapshot.json` as part of the check.
-- Run it only when the current extractor/runtime state is intended to become the new baseline.
+- `content:drift:verify` is read-only in this repository and checks that the local snapshot artifacts agree with each other after normalization.
+- `bun run content:drift:against-head` is the explicit git-`HEAD` comparison command when you want to verify that a regenerated snapshot has been committed as the new baseline.
+- `content:gate:local` is the mutating local gate that runs `content:extract`, the Case01 smoke pack, and then local artifact verification.
+- `content:drift:check` remains a deprecated alias to `content:gate:local`.
+- Run the mutating gate only when the current extractor/runtime state is intended to become the new baseline.
 
 4. Publish content:
 
@@ -81,6 +85,7 @@ Release payload contract:
 - `content_version` has one active version.
 - active version format is `content-vX.Y.Z+checksum8`.
 - `content/vn/releases.manifest.json` latest release entry matches the checksum in `content/vn/pilot.snapshot.json`.
+- `bun run content:db:status -- --server <target> --db <name>` reports the target DB as aligned with the selected baseline.
 
 ## Rollback Procedure
 

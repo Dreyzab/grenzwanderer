@@ -9,8 +9,8 @@ const mocks = vi.hoisted(() => ({
   tablesMock: {
     mindCase: Symbol("mindCase"),
     mindHypothesis: Symbol("mindHypothesis"),
-    playerMindFact: Symbol("playerMindFact"),
-    playerMindHypothesis: Symbol("playerMindHypothesis"),
+    myMindFacts: Symbol("myMindFacts"),
+    myMindHypotheses: Symbol("myMindHypotheses"),
   },
 }));
 
@@ -29,10 +29,6 @@ vi.mock("../../entities/player/hooks/usePlayerVars", () => ({
 vi.mock("../../shared/spacetime/bindings", () => ({
   tables: mocks.tablesMock,
 }));
-
-const makeIdentity = (hex: string) => ({
-  toHexString: () => hex,
-});
 
 const Harness = () => {
   const readiness = useMindPalaceReadiness();
@@ -70,13 +66,13 @@ describe("useMindPalaceReadiness", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerMindFact) {
+      if (table === mocks.tablesMock.myMindFacts) {
         return [
-          [{ playerId: makeIdentity("me"), caseId: "case_1", factId: "fact_1" }],
+          [{ caseId: "case_1", factId: "fact_1" }],
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerMindHypothesis) {
+      if (table === mocks.tablesMock.myMindHypotheses) {
         return [[], true];
       }
       return [[], true];
@@ -108,14 +104,13 @@ describe("useMindPalaceReadiness", () => {
           true,
         ];
       }
-      if (table === mocks.tablesMock.playerMindFact) {
+      if (table === mocks.tablesMock.myMindFacts) {
         return [[], true];
       }
-      if (table === mocks.tablesMock.playerMindHypothesis) {
+      if (table === mocks.tablesMock.myMindHypotheses) {
         return [
           [
             {
-              playerId: makeIdentity("me"),
               caseId: "case_1",
               hypothesisId: "hyp_1",
               status: "validated",

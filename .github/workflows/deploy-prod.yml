@@ -32,7 +32,7 @@ jobs:
         run: |
           # Use operator token for maincloud publishing
           # Note: STDB_OPERATOR_TOKEN must be configured in repository secrets
-          spacetime login --token "$STDB_OPERATOR_TOKEN" --server-issued-login https://maincloud.spacetimedb.com
+          spacetime login --token "$STDB_OPERATOR_TOKEN"
           bun run spacetime:publish
 
       - name: Sync Narrative Content

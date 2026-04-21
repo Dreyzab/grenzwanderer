@@ -25,6 +25,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../../../config", () => ({
   MAPBOX_STYLE: "mapbox://styles/test",
   MAPBOX_TOKEN: "test-token",
+  RELEASE_PROFILE: "default",
 }));
 
 vi.mock("spacetimedb/react", () => ({

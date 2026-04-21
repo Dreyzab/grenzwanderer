@@ -1,4 +1,7 @@
-export type ReleaseProfile = "default" | "karlsruhe_event";
+export type ReleaseProfile =
+  | "default"
+  | "karlsruhe_event"
+  | "freiburg_detective";
 
 export type EntryGateState =
   | "scan_required"

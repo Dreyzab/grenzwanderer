@@ -116,6 +116,7 @@ vi.mock("../../config", () => ({
   get ENABLE_DEBUG_CONTENT_SEED() {
     return mocks.debugEnabled;
   },
+  RELEASE_PROFILE: "default",
 }));
 
 const makeIdentity = (hex: string) => ({

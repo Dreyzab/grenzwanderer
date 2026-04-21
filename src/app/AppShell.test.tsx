@@ -36,6 +36,15 @@ vi.mock("../shared/spacetime/bindings", () => ({
   },
 }));
 
+vi.mock("../config", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config")>();
+  return {
+    ...actual,
+    RELEASE_PROFILE: "freiburg_detective",
+    SPACETIMEDB_DB_NAME: "grenzwandererdata",
+  };
+});
+
 vi.mock("../pages/VnPage", () => ({
   VnPage: (props: Record<string, unknown>) => {
     mocks.lastVnProps = props;

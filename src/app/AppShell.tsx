@@ -85,6 +85,15 @@ const tabsByProfile: Record<
     { id: "vn", label: "VN" },
     { id: "character", label: "Dossier" },
   ],
+  freiburg_detective: [
+    { id: "home", label: "Home" },
+    { id: "map", label: "Map" },
+    { id: "vn", label: "VN" },
+    { id: "command", label: "Ops" },
+    { id: "battle", label: "Duel" },
+    { id: "character", label: "Dossier" },
+    { id: "mind_palace", label: "Scan" },
+  ],
 };
 
 const hasOptionalValue = (value: unknown): boolean => {

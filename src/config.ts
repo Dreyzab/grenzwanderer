@@ -9,6 +9,7 @@ import type { ReleaseProfile } from "./features/release/types";
 const RELEASE_PROFILES = new Set<ReleaseProfile>([
   "default",
   "karlsruhe_event",
+  "freiburg_detective",
 ]);
 
 const parseReleaseProfile = (

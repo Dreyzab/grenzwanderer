@@ -46,7 +46,7 @@ describe("freiburg visual asset scaffold", () => {
     expect(estateDefault?.visualArchetype).toBe("estate_noble");
     expect(estateDefault?.expectedBasename).toBe("loc_freiburg_estate");
     expect(estateDefault?.runtimeImagePath).toBe(
-      "/images/locations/loc_student_house.webp",
+      "/images/locations/loc_student_house/loc_student_house.webp",
     );
     expect(estateDefault?.expectedImagePath).toContain(
       "images/locations/loc_freiburg_estate.webp",

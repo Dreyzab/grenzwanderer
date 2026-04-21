@@ -120,6 +120,7 @@ vi.mock("../../../entities/player/hooks/usePlayerVars", () => ({
 
 vi.mock("../../../config", () => ({
   ENABLE_AI: true,
+  RELEASE_PROFILE: "freiburg_detective",
 }));
 
 vi.mock("../../../widgets/vn-overlay/VnNarrativePanel", () => ({

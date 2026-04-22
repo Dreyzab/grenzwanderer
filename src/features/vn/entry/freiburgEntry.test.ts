@@ -206,7 +206,7 @@ describe("resolveFreiburgEntryTarget", () => {
     });
   });
 
-  it("routes completed journalist wakeup into the agency briefing before freeplay", () => {
+  it("routes completed journalist wakeup into the default entry scenario (Case01 pilot) before freeplay", () => {
     const result = resolveFreiburgEntryTarget({
       isConnected: true,
       contentReady: true,
@@ -232,7 +232,7 @@ describe("resolveFreiburgEntryTarget", () => {
 
     expect(result).toEqual({
       kind: "start",
-      scenarioId: "sandbox_agency_briefing",
+      scenarioId: "sandbox_case01_pilot",
     });
   });
 

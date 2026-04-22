@@ -127,15 +127,23 @@ vi.mock("../../../widgets/vn-overlay/VnNarrativePanel", () => ({
   VnNarrativePanel: ({
     children,
     choicesSlot,
+    backgroundVideoUrl,
     locationName,
     narrativeText,
+    narrativeLayout,
+    onVideoEnded,
     onSurfaceTap,
   }: any) => (
     <div>
       <div data-testid="location-name">{locationName}</div>
       <div data-testid="narrative-text">{narrativeText}</div>
+      <div data-testid="narrative-layout">{narrativeLayout}</div>
+      <div data-testid="background-video-url">{backgroundVideoUrl}</div>
       <button type="button" onClick={onSurfaceTap}>
         surface-tap
+      </button>
+      <button type="button" onClick={onVideoEnded}>
+        video-ended
       </button>
       <div data-testid="overlay-slot">{children}</div>
       <div data-testid="choices-slot">{choicesSlot}</div>
@@ -374,6 +382,139 @@ describe("VnScreen critical behavior", () => {
     expect(mocks.recordChoiceMock.mock.calls[0]?.[0]?.choiceId).toBe(
       "AUTO_CONTINUE_NODE_START",
     );
+  });
+
+  it("waits for video end before auto-continuing cinematic nodes", async () => {
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_case01_pilot",
+          title: "Case01",
+          startNodeId: "node_video",
+          nodeIds: ["node_video", "node_next"],
+        },
+      ],
+      [
+        {
+          id: "node_video",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Arrival Reel",
+          body: "",
+          narrativeLayout: "fullscreen",
+          backgroundVideoUrl: "/VN/start/video/Bahn.mp4",
+          advanceOnVideoEnd: true,
+          choices: [
+            {
+              id: "AUTO_CONTINUE_NODE_VIDEO",
+              text: "Continue.",
+              nextNodeId: "node_next",
+            },
+          ],
+        },
+        {
+          id: "node_next",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Next",
+          body: "Body",
+          choices: [],
+        },
+      ],
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(3n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_case01_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_video",
+        updatedAt: timestamp(10n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    render(<VnScreen />);
+
+    expect(screen.getByTestId("narrative-layout")).toHaveTextContent(
+      "fullscreen",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "surface-tap" }));
+    expect(mocks.recordChoiceMock).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "video-ended" }));
+
+    await waitFor(() => {
+      expect(mocks.recordChoiceMock).toHaveBeenCalledTimes(1);
+    });
+    expect(mocks.recordChoiceMock.mock.calls[0]?.[0]?.choiceId).toBe(
+      "AUTO_CONTINUE_NODE_VIDEO",
+    );
+  });
+
+  it("derives letter_overlay layout and hides runtime chrome for letters", () => {
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_case01_pilot",
+          title: "Case01",
+          startNodeId: "node_letter",
+          nodeIds: ["node_letter", "node_next"],
+        },
+      ],
+      [
+        {
+          id: "node_letter",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Letter",
+          body: "Orders from the Agency",
+          narrativePresentation: "letter",
+          choices: [
+            {
+              id: "AUTO_CONTINUE_NODE_LETTER",
+              text: "Continue.",
+              nextNodeId: "node_next",
+            },
+          ],
+        },
+        {
+          id: "node_next",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Next",
+          body: "Body",
+          choices: [],
+        },
+      ],
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(3n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_case01_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_letter",
+        updatedAt: timestamp(10n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    render(<VnScreen />);
+
+    expect(screen.getByTestId("narrative-layout")).toHaveTextContent(
+      "letter_overlay",
+    );
+    expect(screen.getByTestId("choices-slot")).toBeEmptyDOMElement();
+    expect(screen.queryByRole("combobox")).toBeNull();
   });
 
   it("shows chance percent only for opted-in active checks", () => {

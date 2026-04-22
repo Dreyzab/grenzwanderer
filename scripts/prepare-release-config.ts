@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 
-type ReleaseProfile = "default" | "karlsruhe_event";
+type ReleaseProfile = "default" | "karlsruhe_event" | "freiburg_detective";
 
 const resolveProfile = (): ReleaseProfile => {
   const rawValue =
@@ -15,7 +15,9 @@ const resolveProfile = (): ReleaseProfile => {
     process.env.RELEASE_PROFILE?.trim() ??
     "default";
 
-  return rawValue === "karlsruhe_event" ? "karlsruhe_event" : "default";
+  if (rawValue === "karlsruhe_event") return "karlsruhe_event";
+  if (rawValue === "freiburg_detective") return "freiburg_detective";
+  return "default";
 };
 
 const hashToken = (value: string): string =>
@@ -24,14 +26,18 @@ const hashToken = (value: string): string =>
 const releaseProfile = resolveProfile();
 
 const spacetimeHost =
-  process.env.VITE_SPACETIMEDB_HOST?.trim() ??
-  (releaseProfile === "karlsruhe_event"
+  releaseProfile === "karlsruhe_event" ||
+  releaseProfile === "freiburg_detective"
     ? "https://maincloud.spacetimedb.com"
-    : "");
+    : (process.env.VITE_SPACETIMEDB_HOST?.trim() ?? "");
 
 const spacetimeDbName =
   process.env.VITE_SPACETIMEDB_DB_NAME?.trim() ??
-  (releaseProfile === "karlsruhe_event" ? "grezwandererdata-karlsruhe" : "");
+  (releaseProfile === "freiburg_detective"
+    ? "grezwandererdata"
+    : releaseProfile === "karlsruhe_event"
+      ? "grezwandererdata-karlsruhe"
+      : "");
 
 const entryToken =
   process.env.VITE_KARLSRUHE_ENTRY_TOKEN?.trim() ??
@@ -78,7 +84,5 @@ mkdirSync(path.dirname(backendOutputPath), { recursive: true });
 writeFileSync(backendOutputPath, backendFileContent, "utf8");
 
 console.log(
-  releaseProfile === "karlsruhe_event"
-    ? "[release-config] wrote Karlsruhe release profile configuration."
-    : "[release-config] wrote default release profile configuration.",
+  `[release-config] wrote ${releaseProfile} release profile configuration.`,
 );

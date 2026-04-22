@@ -379,7 +379,7 @@ describe("HomePage Freiburg flow", () => {
     expect(screen.queryByTestId("origin-selection")).not.toBeInTheDocument();
   });
 
-  it("routes completed journalist wakeup into the agency briefing before freeplay", async () => {
+  it("routes completed journalist wakeup into the default entry scenario (Case01 pilot) before freeplay", async () => {
     const onOpenVnScenario = vi.fn();
 
     state.sessionRows = [
@@ -412,7 +412,7 @@ describe("HomePage Freiburg flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     await waitFor(() => {
-      expect(onOpenVnScenario).toHaveBeenCalledWith("sandbox_agency_briefing");
+      expect(onOpenVnScenario).toHaveBeenCalledWith("sandbox_case01_pilot");
     });
   });
 

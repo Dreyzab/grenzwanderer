@@ -21,16 +21,20 @@ const parseReleaseProfile = (
     : fallback;
 
 export const SPACETIMEDB_HOST =
-  import.meta.env.VITE_SPACETIMEDB_HOST ??
-  (GENERATED_SPACETIMEDB_HOST.length > 0
+  import.meta.env.PROD && GENERATED_SPACETIMEDB_HOST.length > 0
     ? GENERATED_SPACETIMEDB_HOST
-    : "ws://localhost:3000");
+    : (import.meta.env.VITE_SPACETIMEDB_HOST ??
+      (GENERATED_SPACETIMEDB_HOST.length > 0
+        ? GENERATED_SPACETIMEDB_HOST
+        : "ws://localhost:3000"));
 
 export const SPACETIMEDB_DB_NAME =
-  import.meta.env.VITE_SPACETIMEDB_DB_NAME ??
-  (GENERATED_SPACETIMEDB_DB_NAME.length > 0
+  import.meta.env.PROD && GENERATED_SPACETIMEDB_DB_NAME.length > 0
     ? GENERATED_SPACETIMEDB_DB_NAME
-    : "grezwandererdata");
+    : (import.meta.env.VITE_SPACETIMEDB_DB_NAME ??
+      (GENERATED_SPACETIMEDB_DB_NAME.length > 0
+        ? GENERATED_SPACETIMEDB_DB_NAME
+        : "grezwandererdata"));
 
 export const RELEASE_PROFILE: ReleaseProfile = parseReleaseProfile(
   import.meta.env.VITE_RELEASE_PROFILE,
@@ -59,11 +63,14 @@ export const MAPBOX_STYLE =
   import.meta.env.VITE_MAPBOX_STYLE ??
   "mapbox://styles/inoti/cmktqmmks002s01pa3f3gfpll";
 
-export const APP_VERSION = __APP_VERSION__;
+export const APP_VERSION =
+  typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev";
 
-export const APP_COMMIT_SHA = __APP_COMMIT_SHA__;
+export const APP_COMMIT_SHA =
+  typeof __APP_COMMIT_SHA__ !== "undefined" ? __APP_COMMIT_SHA__ : "local";
 
-export const APP_BUILD_TIMESTAMP = __APP_BUILD_TIMESTAMP__;
+export const APP_BUILD_TIMESTAMP =
+  typeof __APP_BUILD_TIMESTAMP__ !== "undefined" ? __APP_BUILD_TIMESTAMP__ : "";
 
 export const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN ?? "";
 

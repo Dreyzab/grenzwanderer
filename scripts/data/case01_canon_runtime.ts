@@ -34,20 +34,38 @@ const covertRouteConditions = [
   },
 ];
 
+const CASE01_START_VIDEO_BASE_PATH = "/VN/start/video";
+const CASE01_START_IMAGE_BASE_PATH = "/VN/start/image";
+const CASE01_TRAIN_COMPARTMENT_BG = `${CASE01_START_IMAGE_BASE_PATH}/compartment_cinema.png`;
+const CASE01_TRAIN_ASSISTANT_BG = `${CASE01_START_IMAGE_BASE_PATH}/train_assistant.png`;
+const CASE01_PLATFORM_STILL_BG = `${CASE01_START_IMAGE_BASE_PATH}/Ankommen.png`;
+const CASE01_HBF_BG = `${CASE01_START_IMAGE_BASE_PATH}/HBF.png`;
+const CASE01_NEWSBOY_BG = `${CASE01_START_IMAGE_BASE_PATH}/boy_newspaper_styled.png`;
+const CASE01_LUGGAGE_BG = `${CASE01_START_IMAGE_BASE_PATH}/bahnhof_luggage_counter_1776719222396.png`;
+const CASE01_POLICE_BG = `${CASE01_START_IMAGE_BASE_PATH}/bahnhof_police_post_1776719605015.png`;
+
 export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
   {
     id: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     title: "Case 01: Freiburg Arrival",
-    startNodeId: "scene_case01_train_telegram",
+    startNodeId: "scene_case01_opening_arrival_video",
     mode: "fullscreen",
     packId: "case01_mainline",
-    defaultBackgroundUrl: "/images/scenes/scene_bank_intro.png",
+    defaultBackgroundUrl: CASE01_HBF_BG,
     nodeIds: [
-      "scene_case01_train_telegram",
-      "scene_case01_platform_survey",
-      "scene_case01_fritz_contact",
-      "scene_case01_priority_choice",
-      "scene_case01_priority_handoff",
+      "scene_case01_opening_arrival_video",
+      "scene_case01_train_compartment_cinema",
+      "scene_case01_train_compartment_letter",
+      "scene_case01_train_assistant_intro",
+      "scene_case01_train_door_creaks",
+      "scene_case01_train_assistant_departure",
+      "scene_case01_train_ankommen_video",
+      "scene_case01_train_voza_cutscene",
+      "scene_case01_train_disembark_journal",
+      "scene_case01_beat1_atmosphere",
+      "scene_case01_hbf_newsboy",
+      "scene_case01_hbf_luggage",
+      "scene_case01_hbf_police",
     ],
   },
   {
@@ -174,13 +192,16 @@ export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
 
 export const CASE01_CANON_NODES: NodeBlueprint[] = [
   {
-    id: "scene_case01_train_telegram",
+    id: "scene_case01_opening_arrival_video",
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
-    titleOverride: "Telegram to Freiburg",
-    bodyOverride:
-      "The telegram crackles once more in your hand before the train slows into Freiburg. Bankhaus J.A. Krebs has been opened without force. Fritz Muller is waiting on the platform, and every line of the message insists the city is already late.",
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Approach by rail",
+    bodyOverride: "",
+    backgroundVideoUrl: `${CASE01_START_VIDEO_BASE_PATH}/Bahn.mp4`,
+    backgroundVideoPosterUrl: CASE01_TRAIN_COMPARTMENT_BG,
+    backgroundVideoSoundPrompt: true,
+    narrativeLayout: "fullscreen",
+    advanceOnVideoEnd: true,
     onEnter: [
       {
         type: "set_flag",
@@ -190,122 +211,318 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     ],
     choices: [
       {
-        id: "CASE01_TRAIN_READ",
-        text: "Read the telegram again and note the missing details.",
-        nextNodeId: "scene_case01_platform_survey",
-        effects: [{ type: "grant_xp", amount: 5 }],
-      },
-      {
-        id: "CASE01_TRAIN_LOOK_OUT",
-        text: "Watch the station approach and commit the platform to memory.",
-        nextNodeId: "scene_case01_platform_survey",
-        effects: [
-          {
-            type: "track_event",
-            eventName: "case01_hbf_arrival_started",
-            tags: { path: "train" },
-          },
-        ],
+        id: "AUTO_CONTINUE_SCENE_CASE01_OPENING_ARRIVAL_VIDEO",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_compartment_cinema",
       },
     ],
   },
   {
-    id: "scene_case01_platform_survey",
+    id: "scene_case01_train_compartment_cinema",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Night compartment",
+    bodyOverride: "",
+    backgroundUrl: CASE01_TRAIN_COMPARTMENT_BG,
+    narrativeLayout: "fullscreen",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_COMPARTMENT_CINEMA",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_compartment_letter",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_compartment_letter",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Orders from the Agency",
+    bodyOverride:
+      "Dear detective,\n\nI insist that you reach Freiburg without delay. The matter at the bank is not to be trusted to local vanity, nor to the newspapers that fatten on secondhand panic. A room at Zum Eber is already waiting for you, and the station will offer more silence than answers.\n\nTake that silence seriously. It is rarely innocent.\n\nWith respect,\nMaster",
+    backgroundUrl: CASE01_TRAIN_COMPARTMENT_BG,
+    narrativePresentation: "letter",
+    narrativeLayout: "letter_overlay",
+    letterOverlayRevealDelayMs: 2800,
+    choices: [
+      {
+        id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_COMPARTMENT_LETTER",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_assistant_intro",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_assistant_intro",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Неожиданный визитор",
+    bodyOverride:
+      "Дверь купе приоткрывается, и в проёме появляется ваш помощник. Он не садится, лишь придерживает пальцами шляпу, словно готов снова исчезнуть в коридоре.\n\n— Сэр, вы читали утренние газеты? — спрашивает он, понижая голос. — Ни в одной заметке ни слова о Фрайбурге. Будто город вырезали из сегодняшнего дня.\n\nОн смотрит на письмо у вас в руках и хмурится. Слишком чисто. Слишком вовремя. Даже стук колёс теперь звучит как предупреждение.",
+    backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
+    narrativeLayout: "split",
+    characterId: "assistant",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_ASSISTANT_INTRO",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_door_creaks",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_door_creaks",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Ни слова в эфире",
+    bodyOverride:
+      "— Я проверил и радиосводку, и ранние листки, — продолжает помощник. — Ничего. Ни одной строки об ограблении, ни одного тревожного слова между биржей и погодой.\n\nОн говорит это так, будто отсутствие новости страшнее самой новости. Ограбление банка, о котором молчат редакторы, пахнет не случайностью, а договорённостью.\n\nВ коридоре кто-то проходит мимо, и дверь снова едва слышно поскрипывает. Ваш собеседник делает шаг назад, оставляя вам пространство для мысли и недоверия.",
+    backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
+    narrativeLayout: "split",
+    characterId: "assistant",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_DOOR_CREAKS",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_assistant_departure",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_assistant_departure",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Прибытие рядом",
+    bodyOverride:
+      "— Мы почти на месте, — говорит он уже тише. — Я поищу матушку в вагоне-ресторане и перехвачу багаж, пока вы будете сходить на перрон. Встретимся у стойки выдачи.\n\nОн коротко кивает, будто это обычная дорога, а не пролог к делу, которое кто-то уже успел спрятать от города. Затем исчезает в коридоре, оставляя вам письмо, стекло окна и последний отрезок пути.",
+    backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
+    narrativeLayout: "split",
+    characterId: "assistant",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_ASSISTANT_DEPARTURE",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_ankommen_video",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_ankommen_video",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Approach to Freiburg",
+    bodyOverride: "",
+    backgroundVideoUrl: `${CASE01_START_VIDEO_BASE_PATH}/Ankommen.mp4`,
+    backgroundVideoPosterUrl: CASE01_PLATFORM_STILL_BG,
+    narrativeLayout: "fullscreen",
+    advanceOnVideoEnd: true,
+    choices: [
+      {
+        id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_ANKOMMEN_VIDEO",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_voza_cutscene",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_voza_cutscene",
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
-    titleOverride: "Platform Steam",
-    bodyOverride:
-      "Steam hangs low under the station roof. A paperboy is being chased between trunks, a porter pretends not to see it, and Fritz Muller stands under a gas lamp with the kind of stillness policemen learn when the first report is already worse than the public version.",
+    titleOverride: "Platform roll-in",
+    bodyOverride: "",
+    backgroundVideoUrl: `${CASE01_START_VIDEO_BASE_PATH}/Video_voza_na_peronu.mp4`,
+    backgroundVideoPosterUrl: CASE01_HBF_BG,
+    narrativeLayout: "fullscreen",
+    advanceOnVideoEnd: true,
     choices: [
       {
-        id: "CASE01_PLATFORM_SCAN",
-        text: "Look over the platform before speaking to Fritz.",
-        nextNodeId: "scene_case01_fritz_contact",
-        effects: [
-          {
-            type: "set_flag",
-            key: "fritz_platform_scan_complete",
-            value: true,
-          },
-          { type: "set_flag", key: "flag_paperboy_theft_seen", value: true },
-          { type: "set_flag", key: "flag_bought_newspaper", value: true },
-        ],
-      },
-      {
-        id: "CASE01_PLATFORM_DIRECT",
-        text: "Go straight to Fritz before the station noise eats the facts.",
-        nextNodeId: "scene_case01_fritz_contact",
+        id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_VOZA_CUTSCENE",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_disembark_journal",
       },
     ],
   },
   {
-    id: "scene_case01_fritz_contact",
+    id: "scene_case01_train_disembark_journal",
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/01_Onboarding/scene_fritz_mission.md",
-    titleOverride: "Fritz Muller's Brief",
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    titleOverride: "On the platform",
     bodyOverride:
-      "Fritz keeps his voice low. The bank wants speed, the Rathaus wants control, and both claim the other is already contaminating the case. He gives you the same warning twice: if you choose badly now, someone else writes the first version of the truth.",
+      "The platform receives you like a room that was warned in advance.\n\nOne part of your mind starts counting exits, uniforms, luggage carts, the honest geometry of escape. Another part notices the silence first: no public outrage, no raised voices, no appetite for scandal. Freiburg has decided to keep its pulse hidden.\n\nA third, less useful but never absent, whispers that the city already knows your name and resents you for arriving late.\n\nGood. Let it resent. Silence is still testimony, if you stand inside it long enough.",
+    backgroundUrl: CASE01_PLATFORM_STILL_BG,
+    narrativeLayout: "thought_log",
+    characterId: "inspector",
     choices: [
       {
-        id: "CASE01_FRITZ_ACCEPT",
-        text: "Take the case from Fritz and force the first real decision.",
-        nextNodeId: "scene_case01_priority_choice",
-        effects: [
-          {
-            type: "set_flag",
-            key: "fritz_contact_established",
-            value: true,
-          },
-        ],
+        id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_DISEMBARK_JOURNAL",
+        text: "Continue.",
+        nextNodeId: "scene_case01_beat1_atmosphere",
       },
     ],
   },
   {
-    id: "scene_case01_priority_choice",
+    id: "scene_case01_beat1_atmosphere",
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
-    sourcePath:
-      "40_GameViewer/Case01/Plot/01_Onboarding/choice_set_priority.md",
-    titleOverride: "Priority Lock",
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    titleOverride: "Hauptbahnhof, Freiburg",
     bodyOverride:
-      "Fritz waits. Bank first means the crime scene before the politicians sand it smooth. Mayor first means documents, leverage, and a witness network that might already be lying in chorus.",
+      "Steam folds around the iron columns and the first rush of arriving passengers. A boy with newspapers cuts between trunks like a thought no one can pin down. Somewhere farther down the platform, metal tags knock softly against a luggage grille, and beyond that a police post studies the crowd with professional boredom.\n\nFreiburg has not greeted you. It has merely failed to hide.",
+    backgroundUrl: CASE01_HBF_BG,
     choices: [
       {
-        id: "CASE01_PRIORITY_BANK",
-        text: "Go to the bank first.",
-        nextNodeId: "scene_case01_priority_handoff",
-        effects: [
-          { type: "set_flag", key: "priority_bank_first", value: true },
-          { type: "set_flag", key: "priority_mayor_first", value: false },
-          { type: "set_flag", key: "case01_priority_locked", value: true },
-          { type: "set_flag", key: "case01_onboarding_complete", value: true },
-          { type: "set_flag", key: "intro_freiburg_done", value: true },
-          { type: "unlock_group", groupId: "loc_freiburg_bank" },
-        ],
+        id: "CASE01_BEAT1_NEWSBOY",
+        text: "Speak to the newspaper boy.",
+        nextNodeId: "scene_case01_hbf_newsboy",
       },
       {
-        id: "CASE01_PRIORITY_MAYOR",
-        text: "Go to the mayor first.",
-        nextNodeId: "scene_case01_priority_handoff",
-        effects: [
-          { type: "set_flag", key: "priority_bank_first", value: false },
-          { type: "set_flag", key: "priority_mayor_first", value: true },
-          { type: "set_flag", key: "case01_priority_locked", value: true },
-          { type: "set_flag", key: "case01_onboarding_complete", value: true },
-          { type: "set_flag", key: "intro_freiburg_done", value: true },
-          { type: "unlock_group", groupId: "loc_rathaus" },
-        ],
+        id: "CASE01_BEAT1_LUGGAGE",
+        text: "Go to the luggage counter.",
+        nextNodeId: "scene_case01_hbf_luggage",
+      },
+      {
+        id: "CASE01_BEAT1_POLICE",
+        text: "Approach the railway police post.",
+        nextNodeId: "scene_case01_hbf_police",
       },
     ],
   },
   {
-    id: "scene_case01_priority_handoff",
+    id: "scene_case01_hbf_newsboy",
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
-    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/map_transit.md",
-    titleOverride: "City Open",
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    titleOverride: "Evening edition",
     bodyOverride:
-      "Fritz steps aside. Freiburg is open now, but only along the path you just made expensive. The first district is waiting on your answer.",
+      "A newspaper boy is calling fresh headlines beside a soot-streaked pillar. That alone is wrong. Your assistant swore the papers were silent on the robbery, yet here the bank's name is being sold by the armful to late arrivals.\n\nHe keeps one eye on the crowd while he shouts, as if waiting to be corrected for knowing too much. The edition is thin, hurried, and specific where rumor should still be fog. Someone wanted the station to hear about Bankhaus Krebs before the rest of Freiburg could decide how to feel about it.\n\nIf the story is already in print, the bank is no longer only a crime scene. It is the first battleground.",
+    backgroundUrl: CASE01_NEWSBOY_BG,
+    characterId: "paperboy",
     terminal: true,
+    onEnter: [
+      {
+        type: "set_flag",
+        key: "case01_onboarding_complete",
+        value: true,
+      },
+      {
+        type: "set_flag",
+        key: "intro_freiburg_done",
+        value: true,
+      },
+      {
+        type: "set_flag",
+        key: "priority_bank_first",
+        value: true,
+      },
+      {
+        type: "set_flag",
+        key: "priority_mayor_first",
+        value: false,
+      },
+      {
+        type: "set_flag",
+        key: "case01_priority_locked",
+        value: true,
+      },
+      { type: "unlock_group", groupId: "loc_freiburg_bank" },
+      { type: "unlock_group", groupId: "loc_rathaus" },
+      {
+        type: "track_event",
+        eventName: "case01_hbf_branch_selected",
+        tags: { branch: "newsboy", route: "bank" },
+      },
+    ],
+    choices: [],
+  },
+  {
+    id: "scene_case01_hbf_luggage",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    titleOverride: "Luggage Counter",
+    bodyOverride:
+      "Behind the brass grille, the luggage clerk is already tired of everyone in front of him. Trunks, hat boxes, and porters' tags make a little bureaucracy of metal and impatience. In that clutter, one line on the incoming manifest stands out with almost theatrical precision: a secured crate from Strasbourg marked for Bankhaus J.A. Krebs, rushed through as a priority transfer before dawn.\n\nThe clerk pretends not to notice you reading upside down. He notices. He simply prefers not to become part of the story. That, too, is useful.\n\nThe bank did not merely suffer a robbery. It received something first. Whatever Freiburg is hiding, the paper trail starts there.",
+    backgroundUrl: CASE01_LUGGAGE_BG,
+    terminal: true,
+    onEnter: [
+      {
+        type: "set_flag",
+        key: "case01_onboarding_complete",
+        value: true,
+      },
+      {
+        type: "set_flag",
+        key: "intro_freiburg_done",
+        value: true,
+      },
+      {
+        type: "set_flag",
+        key: "priority_bank_first",
+        value: true,
+      },
+      {
+        type: "set_flag",
+        key: "priority_mayor_first",
+        value: false,
+      },
+      {
+        type: "set_flag",
+        key: "case01_priority_locked",
+        value: true,
+      },
+      { type: "unlock_group", groupId: "loc_freiburg_bank" },
+      { type: "unlock_group", groupId: "loc_rathaus" },
+      {
+        type: "track_event",
+        eventName: "case01_hbf_branch_selected",
+        tags: { branch: "luggage", route: "bank" },
+      },
+    ],
+    choices: [],
+  },
+  {
+    id: "scene_case01_hbf_police",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    titleOverride: "Police Post",
+    bodyOverride:
+      "Two railway policemen keep their voices low, but not low enough. One mutters about an open vault and an untouched window; the other cuts him off with a glance toward the city side of the station. The real fear in their posture is not violence. It is instruction.\n\nWhen they notice you listening, the taller one stiffens and smooths his tunic. 'No loitering. Orders are to keep the platform clear until the Rathaus gives its statement.' He says Rathaus the way a clerk says weather: as the force that decides what may be acknowledged.\n\nSo the city hall is already awake, already managing the shape of the story. If politics is pulling the strings before noon, that thread deserves the first hard tug.",
+    backgroundUrl: CASE01_POLICE_BG,
+    terminal: true,
+    onEnter: [
+      {
+        type: "set_flag",
+        key: "case01_onboarding_complete",
+        value: true,
+      },
+      {
+        type: "set_flag",
+        key: "intro_freiburg_done",
+        value: true,
+      },
+      {
+        type: "set_flag",
+        key: "priority_bank_first",
+        value: false,
+      },
+      {
+        type: "set_flag",
+        key: "priority_mayor_first",
+        value: true,
+      },
+      {
+        type: "set_flag",
+        key: "case01_priority_locked",
+        value: true,
+      },
+      { type: "unlock_group", groupId: "loc_freiburg_bank" },
+      { type: "unlock_group", groupId: "loc_rathaus" },
+      {
+        type: "track_event",
+        eventName: "case01_hbf_branch_selected",
+        tags: { branch: "police", route: "rathaus" },
+      },
+    ],
     choices: [],
   },
   {

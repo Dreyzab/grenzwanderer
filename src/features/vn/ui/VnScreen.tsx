@@ -3,7 +3,6 @@ import { useReducer, useTable } from "spacetimedb/react";
 import { Volume2, VolumeX } from "lucide-react";
 import { usePlayerFlags } from "../../../entities/player/hooks/usePlayerFlags";
 import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
-import { ENABLE_AI } from "../../../config";
 import { useKarlsruheSceneBackground } from "../../release/sceneGeneration";
 import { getVnStrings } from "../../i18n/uiStrings";
 import { parseGenerateDialoguePayload } from "../../ai/contracts";
@@ -16,13 +15,12 @@ import { useCurrentNode } from "../hooks/useCurrentNode";
 import { useVnSession } from "../hooks/useVnSession";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
 import { reducers, tables } from "../../../shared/spacetime/bindings";
-import { useIdentity } from "../../../shared/spacetime/useIdentity";
 import {
   getScenarioById,
   isChoiceAvailable,
   parseSnapshot,
 } from "../vnContent";
-import type { VnChoice, VnScenario, VnSnapshot } from "../types";
+import type { VnNarrativeLayout, VnScenario, VnSnapshot } from "../types";
 import { VnPassiveCheckBanner } from "./VnPassiveCheckBanner";
 import { VnChoicesRenderer } from "./VnChoicesRenderer";
 import { VnScreenHeader } from "./VnScreenHeader";
@@ -59,8 +57,6 @@ export const VnScreen = ({
   onScenarioChange,
   onNavigateTab,
 }: VnScreenProps) => {
-  const { identityHex } = useIdentity();
-
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
   const [sessions, sessionsReady] = useTable(tables.myVnSessions);
@@ -94,6 +90,7 @@ export const VnScreen = ({
   const [activeReactionKey, setActiveReactionKey] = useState<string | null>(
     null,
   );
+  const [videoEnded, setVideoEnded] = useState(false);
 
   const typedTextRef = useRef<TypedTextHandle>(null);
   const typingFinishedAtRef = useRef(0);
@@ -166,6 +163,9 @@ export const VnScreen = ({
     mySession,
     sessionReady,
   );
+  useEffect(() => {
+    setVideoEnded(false);
+  }, [currentNode?.id]);
   const generatedBackgroundUrl =
     useKarlsruheSceneBackground(selectedScenarioId);
   const {
@@ -458,7 +458,65 @@ export const VnScreen = ({
     getChoiceChancePercent,
   });
 
-  const handleSurfaceTap = () => {
+  const effectiveNarrativeLayout = useMemo<VnNarrativeLayout>(() => {
+    const layout = currentNode?.narrativeLayout;
+    if (
+      currentNode?.narrativePresentation === "letter" &&
+      (layout === undefined || layout === "split")
+    ) {
+      return "letter_overlay";
+    }
+
+    return layout ?? "split";
+  }, [currentNode?.narrativeLayout, currentNode?.narrativePresentation]);
+  const hideImmersiveChrome =
+    effectiveNarrativeLayout === "fullscreen" ||
+    effectiveNarrativeLayout === "letter_overlay";
+
+  const handleVideoEnded = useCallback(() => {
+    if (videoEnded) {
+      return;
+    }
+
+    setVideoEnded(true);
+
+    if (
+      !currentNode?.advanceOnVideoEnd ||
+      !currentNode.backgroundVideoUrl ||
+      transitionState !== "idle" ||
+      !autoContinueChoice ||
+      !selectedScenarioId ||
+      !mySession
+    ) {
+      return;
+    }
+
+    const isAvailable = isChoiceAvailable(
+      autoContinueChoice,
+      myFlags,
+      myVars,
+      choiceEvaluationContext,
+    );
+    if (!isAvailable) {
+      return;
+    }
+
+    void handleChoiceClick(autoContinueChoice, false);
+  }, [
+    autoContinueChoice,
+    choiceEvaluationContext,
+    currentNode?.advanceOnVideoEnd,
+    currentNode?.backgroundVideoUrl,
+    handleChoiceClick,
+    myFlags,
+    mySession,
+    myVars,
+    selectedScenarioId,
+    transitionState,
+    videoEnded,
+  ]);
+
+  const handleSurfaceTap = useCallback(() => {
     if (handleActiveResolveInteraction()) {
       return;
     }
@@ -482,6 +540,14 @@ export const VnScreen = ({
       awaitingSkillChoice ||
       pendingChoiceId ||
       !selectedScenarioId
+    ) {
+      return;
+    }
+
+    if (
+      currentNode?.advanceOnVideoEnd &&
+      currentNode.backgroundVideoUrl &&
+      !videoEnded
     ) {
       return;
     }
@@ -511,7 +577,25 @@ export const VnScreen = ({
     }
 
     void handleChoiceClick(autoContinueChoice, false);
-  };
+  }, [
+    autoContinueChoice,
+    awaitingSkillChoice,
+    choiceEvaluationContext,
+    currentNode,
+    displayedScenarioCompleted,
+    handleActiveResolveInteraction,
+    handleChoiceClick,
+    handleStartScenario,
+    isTyping,
+    myFlags,
+    mySession,
+    myVars,
+    pendingChoiceId,
+    runCompletionTransition,
+    selectedScenarioId,
+    transitionState,
+    videoEnded,
+  ]);
 
   if (!activeVersion || !snapshot) {
     return (
@@ -540,62 +624,74 @@ export const VnScreen = ({
 
   return (
     <section className="vn-screen-root">
-      <VnScreenHeader
-        t={t}
-        selectedScenarioId={selectedScenarioId}
-        scenarios={snapshot.scenarios}
-        isInteractionLocked={isInteractionLocked}
-        narrativeResources={narrativeResources}
-        onScenarioChange={setSelectedScenarioId}
-        onStartScenario={handleStartScenario}
-        onOpenDebug={onOpenDebug}
-      />
+      {!hideImmersiveChrome ? (
+        <VnScreenHeader
+          t={t}
+          selectedScenarioId={selectedScenarioId}
+          scenarios={snapshot.scenarios}
+          isInteractionLocked={isInteractionLocked}
+          narrativeResources={narrativeResources}
+          onScenarioChange={setSelectedScenarioId}
+          onStartScenario={handleStartScenario}
+          onOpenDebug={onOpenDebug}
+        />
+      ) : null}
 
       <VnNarrativePanel
+        sceneId={currentNode?.id}
         locationName={displayLocationName}
         characterName={speakerLabel === "Narrator" ? undefined : speakerLabel}
         narrativeText={narrativeText}
         backgroundImageUrl={resolvedBgUrl ?? undefined}
+        backgroundVideoUrl={currentNode?.backgroundVideoUrl}
+        backgroundVideoPosterUrl={currentNode?.backgroundVideoPosterUrl}
+        backgroundVideoSoundPrompt={currentNode?.backgroundVideoSoundPrompt}
+        narrativeLayout={effectiveNarrativeLayout}
+        narrativePresentation={currentNode?.narrativePresentation}
+        letterOverlayRevealDelayMs={currentNode?.letterOverlayRevealDelayMs}
         onTypingChange={handleTypingChange}
         isTyping={isTyping}
         typedTextRef={typedTextRef}
         onSurfaceTap={handleSurfaceTap}
+        onVideoEnded={handleVideoEnded}
         choicesSlot={
-          <VnChoicesRenderer
-            t={t}
-            reactionCard={reactionCard}
-            thoughtCard={thoughtCard}
-            providenceThoughtCard={providenceThoughtCard}
-            innerVoiceCards={innerVoiceCards}
-            canExpandThoughtWithProvidence={canExpandThoughtWithProvidence}
-            providenceCtaLabel={providenceCtaLabel}
-            activeLensBadgeText={activeLensBadgeText}
-            internalizedThoughtBadgeText={internalizedThoughtBadgeText}
-            showOriginCards={showOriginCards}
-            visibleChoices={visibleChoices}
-            choiceDisplayItems={choiceDisplayItems}
-            isInteractionLocked={isInteractionLocked}
-            currentNodePresent={Boolean(currentNode)}
-            displayedScenarioCompleted={displayedScenarioCompleted}
-            canTriggerCompletion={canTriggerCompletion}
-            completionRoute={completionRoute}
-            completionTargetLabel={completionTargetLabel}
-            hasAutoContinueChoice={hasAutoContinueChoice}
-            sessionReady={sessionReady}
-            onOriginPick={(choice) => {
-              const isAvailable = isChoiceAvailable(
-                choice,
-                myFlags,
-                myVars,
-                choiceEvaluationContext,
-              );
-              void handleChoiceClick(choice, !isAvailable || !mySession);
-            }}
-            onChoiceClick={(choice) => void handleChoiceClick(choice, false)}
-            onProvidenceExpand={() => void handleProvidenceExpand()}
-            onCompletionTransition={() => void runCompletionTransition()}
-            onRestartScene={() => void handleStartScenario()}
-          />
+          hideImmersiveChrome ? null : (
+            <VnChoicesRenderer
+              t={t}
+              reactionCard={reactionCard}
+              thoughtCard={thoughtCard}
+              providenceThoughtCard={providenceThoughtCard}
+              innerVoiceCards={innerVoiceCards}
+              canExpandThoughtWithProvidence={canExpandThoughtWithProvidence}
+              providenceCtaLabel={providenceCtaLabel}
+              activeLensBadgeText={activeLensBadgeText}
+              internalizedThoughtBadgeText={internalizedThoughtBadgeText}
+              showOriginCards={showOriginCards}
+              visibleChoices={visibleChoices}
+              choiceDisplayItems={choiceDisplayItems}
+              isInteractionLocked={isInteractionLocked}
+              currentNodePresent={Boolean(currentNode)}
+              displayedScenarioCompleted={displayedScenarioCompleted}
+              canTriggerCompletion={canTriggerCompletion}
+              completionRoute={completionRoute}
+              completionTargetLabel={completionTargetLabel}
+              hasAutoContinueChoice={hasAutoContinueChoice}
+              sessionReady={sessionReady}
+              onOriginPick={(choice) => {
+                const isAvailable = isChoiceAvailable(
+                  choice,
+                  myFlags,
+                  myVars,
+                  choiceEvaluationContext,
+                );
+                void handleChoiceClick(choice, !isAvailable || !mySession);
+              }}
+              onChoiceClick={(choice) => void handleChoiceClick(choice, false)}
+              onProvidenceExpand={() => void handleProvidenceExpand()}
+              onCompletionTransition={() => void runCompletionTransition()}
+              onRestartScene={() => void handleStartScenario()}
+            />
+          )
         }
       >
         <VnSkillCheckResolveOverlay

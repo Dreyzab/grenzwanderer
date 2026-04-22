@@ -152,8 +152,8 @@ try {
     "static Freiburg fallback points must be generated from the canonical snapshot map feed",
   );
   assert(
-    staticMapDataSource.getPoints("KARLSRUHE_1905").length === 0,
-    "KARLSRUHE_1905 must remain unsupported in the player-facing static map source",
+    staticMapDataSource.getPoints("KARLSRUHE_1905").length > 0,
+    "KARLSRUHE_1905 fallback points must remain available in the static map source",
   );
 
   for (const legacyId of [

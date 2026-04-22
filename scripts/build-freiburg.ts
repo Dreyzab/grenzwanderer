@@ -5,10 +5,8 @@ const env = {
   CONTENT_RELEASE_PROFILE: "freiburg_detective",
   RELEASE_PROFILE: "freiburg_detective",
   VITE_RELEASE_PROFILE: "freiburg_detective",
-  VITE_SPACETIMEDB_HOST:
-    process.env.VITE_SPACETIMEDB_HOST ?? "https://maincloud.spacetimedb.com",
-  VITE_SPACETIMEDB_DB_NAME:
-    process.env.VITE_SPACETIMEDB_DB_NAME ?? "grezwandererdata",
+  VITE_SPACETIMEDB_HOST: "https://maincloud.spacetimedb.com",
+  VITE_SPACETIMEDB_DB_NAME: "grezwandererdata",
   VITE_SCENE_GEN_BASE_URL: process.env.VITE_SCENE_GEN_BASE_URL ?? "/api",
 };
 

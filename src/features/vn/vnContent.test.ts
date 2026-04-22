@@ -64,6 +64,64 @@ describe("vnContent runtime parsing", () => {
     expect(parsed?.scenarios[0]?.skillCheckDice).toBe("d10");
   });
 
+  it("parses cinematic narrative fields on nodes", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          scenarios: [
+            {
+              id: "scenario_cinematic",
+              title: "Cinematic",
+              startNodeId: "node_cinematic",
+              nodeIds: ["node_cinematic", "node_next"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_cinematic",
+              scenarioId: "scenario_cinematic",
+              title: "Arrival",
+              body: "",
+              backgroundUrl: "/VN/start/image/HBF.png",
+              backgroundVideoUrl: "/VN/start/video/Bahn.mp4",
+              backgroundVideoPosterUrl:
+                "/VN/start/image/compartment_cinema.png",
+              backgroundVideoSoundPrompt: true,
+              narrativeLayout: "fullscreen",
+              narrativePresentation: "letter",
+              advanceOnVideoEnd: true,
+              letterOverlayRevealDelayMs: 2800,
+              choices: [
+                {
+                  id: "AUTO_CONTINUE_NODE_CINEMATIC",
+                  text: "Continue.",
+                  nextNodeId: "node_next",
+                },
+              ],
+            },
+            {
+              id: "node_next",
+              scenarioId: "scenario_cinematic",
+              title: "Next",
+              body: "Body",
+              choices: [],
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(parsed?.nodes[0]).toMatchObject({
+      backgroundVideoUrl: "/VN/start/video/Bahn.mp4",
+      backgroundVideoPosterUrl: "/VN/start/image/compartment_cinema.png",
+      backgroundVideoSoundPrompt: true,
+      narrativeLayout: "fullscreen",
+      narrativePresentation: "letter",
+      advanceOnVideoEnd: true,
+      letterOverlayRevealDelayMs: 2800,
+    });
+  });
+
   it("parses opted-in skill check chance metadata", () => {
     const parsed = parseSnapshot(
       JSON.stringify(

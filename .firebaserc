@@ -7,8 +7,19 @@
       "hosting": {
         "karlsruhe-event": [
           "karlsruhe-event-prod"
+        ],
+        "freiburg-event": [
+          "freiburg-event-prod"
+        ]
+      }
+    },
+    "freiburg-event-prod": {
+      "hosting": {
+        "karlsruhe-event": [
+          "freiburg-event-prod"
         ]
       }
     }
-  }
+  },
+  "etags": {}
 }

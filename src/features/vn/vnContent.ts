@@ -45,6 +45,8 @@ import type {
   VnDiceMode,
   VnEffect,
   VnNode,
+  VnNarrativeLayout,
+  VnNarrativePresentation,
   VnOutcomeModel,
   VnScenarioCompletionRoute,
   VnScenario,
@@ -75,6 +77,16 @@ const isVoicePresenceMode = (value: unknown): value is VoicePresenceMode =>
   value === "text_variability" ||
   value === "parliament" ||
   value === "mechanical_voice";
+
+const isNarrativeLayout = (value: unknown): value is VnNarrativeLayout =>
+  value === "split" ||
+  value === "fullscreen" ||
+  value === "letter_overlay" ||
+  value === "thought_log";
+
+const isNarrativePresentation = (
+  value: unknown,
+): value is VnNarrativePresentation => value === "letter";
 
 const isCheckModifierSource = (
   value: unknown,
@@ -478,6 +490,12 @@ const isNode = (value: unknown): value is VnNode => {
     typeof value.body === "string" &&
     (value.backgroundUrl === undefined ||
       typeof value.backgroundUrl === "string") &&
+    (value.backgroundVideoUrl === undefined ||
+      typeof value.backgroundVideoUrl === "string") &&
+    (value.backgroundVideoPosterUrl === undefined ||
+      typeof value.backgroundVideoPosterUrl === "string") &&
+    (value.backgroundVideoSoundPrompt === undefined ||
+      typeof value.backgroundVideoSoundPrompt === "boolean") &&
     (value.characterId === undefined ||
       typeof value.characterId === "string") &&
     (value.voicePresenceMode === undefined ||
@@ -485,6 +503,14 @@ const isNode = (value: unknown): value is VnNode => {
     (value.aiModeDefault === undefined || isVnAiMode(value.aiModeDefault)) &&
     (value.providenceCostDefault === undefined ||
       typeof value.providenceCostDefault === "number") &&
+    (value.narrativeLayout === undefined ||
+      isNarrativeLayout(value.narrativeLayout)) &&
+    (value.narrativePresentation === undefined ||
+      isNarrativePresentation(value.narrativePresentation)) &&
+    (value.advanceOnVideoEnd === undefined ||
+      typeof value.advanceOnVideoEnd === "boolean") &&
+    (value.letterOverlayRevealDelayMs === undefined ||
+      typeof value.letterOverlayRevealDelayMs === "number") &&
     (value.activeSpeakers === undefined ||
       (Array.isArray(value.activeSpeakers) &&
         value.activeSpeakers.every(

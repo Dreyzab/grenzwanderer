@@ -4194,6 +4194,30 @@ const validateChoiceBlueprint = (
 const validateNodeBlueprint = (node: NodeBlueprint): void => {
   assertAscii(node.id, "node.id");
   assertAscii(node.scenarioId, `node(${node.id}).scenarioId`);
+  if (node.backgroundUrl) {
+    assertAscii(node.backgroundUrl, `node(${node.id}).backgroundUrl`);
+  }
+  if (node.backgroundVideoUrl) {
+    assertAscii(node.backgroundVideoUrl, `node(${node.id}).backgroundVideoUrl`);
+  }
+  if (node.backgroundVideoPosterUrl) {
+    assertAscii(
+      node.backgroundVideoPosterUrl,
+      `node(${node.id}).backgroundVideoPosterUrl`,
+    );
+  }
+  if (node.backgroundVideoSoundPrompt !== undefined) {
+    if (typeof node.backgroundVideoSoundPrompt !== "boolean") {
+      throw new Error(
+        `node(${node.id}).backgroundVideoSoundPrompt must be a boolean`,
+      );
+    }
+    if (node.backgroundVideoSoundPrompt && !node.backgroundVideoUrl) {
+      throw new Error(
+        `node(${node.id}).backgroundVideoSoundPrompt requires backgroundVideoUrl`,
+      );
+    }
+  }
   if (node.characterId) {
     assertAscii(node.characterId, `node(${node.id}).characterId`);
     assertKnownId(
@@ -4209,6 +4233,48 @@ const validateNodeBlueprint = (node: NodeBlueprint): void => {
   }
   if (node.defaultLocale) {
     assertAscii(node.defaultLocale, `node(${node.id}).defaultLocale`);
+  }
+  if (node.narrativePresentation !== undefined) {
+    if (node.narrativePresentation !== "letter") {
+      throw new Error(
+        `node(${node.id}) has unsupported narrativePresentation: ${String(node.narrativePresentation)}`,
+      );
+    }
+  }
+  if (node.narrativeLayout !== undefined) {
+    const allowed = new Set([
+      "split",
+      "fullscreen",
+      "letter_overlay",
+      "thought_log",
+    ]);
+    if (!allowed.has(node.narrativeLayout)) {
+      throw new Error(
+        `node(${node.id}) has unsupported narrativeLayout: ${String(node.narrativeLayout)}`,
+      );
+    }
+  }
+  if (node.advanceOnVideoEnd !== undefined) {
+    if (typeof node.advanceOnVideoEnd !== "boolean") {
+      throw new Error(`node(${node.id}).advanceOnVideoEnd must be a boolean`);
+    }
+    if (node.advanceOnVideoEnd && !node.backgroundVideoUrl) {
+      throw new Error(
+        `node(${node.id}).advanceOnVideoEnd requires backgroundVideoUrl`,
+      );
+    }
+  }
+  if (node.letterOverlayRevealDelayMs !== undefined) {
+    if (
+      typeof node.letterOverlayRevealDelayMs !== "number" ||
+      !Number.isFinite(node.letterOverlayRevealDelayMs) ||
+      node.letterOverlayRevealDelayMs < 0 ||
+      node.letterOverlayRevealDelayMs > 120_000
+    ) {
+      throw new Error(
+        `node(${node.id}).letterOverlayRevealDelayMs must be 0..120000`,
+      );
+    }
   }
   if (node.activeSpeakers) {
     for (const speakerId of node.activeSpeakers) {
@@ -4892,7 +4958,7 @@ for (const quest of isKarlsruheEventRelease
 const buildRuntimeNode = (node: NodeBlueprint): VnNode => {
   const resolvedSourcePath = resolveNodeSourcePath(node);
   const markdown =
-    node.titleOverride && node.bodyOverride
+    node.titleOverride !== undefined && node.bodyOverride !== undefined
       ? ""
       : readMarkdown(resolvedSourcePath);
   const title = node.titleOverride ?? extractTitle(markdown, node.id);
@@ -4918,17 +4984,38 @@ const buildRuntimeNode = (node: NodeBlueprint): VnNode => {
   if (node.passiveChecks) {
     vnNode.passiveChecks = node.passiveChecks;
   }
-  if (node.backgroundUrl) {
+  if (node.backgroundUrl !== undefined) {
     vnNode.backgroundUrl = node.backgroundUrl;
   }
-  if (node.characterId) {
+  if (node.backgroundVideoUrl !== undefined) {
+    vnNode.backgroundVideoUrl = node.backgroundVideoUrl;
+  }
+  if (node.backgroundVideoPosterUrl !== undefined) {
+    vnNode.backgroundVideoPosterUrl = node.backgroundVideoPosterUrl;
+  }
+  if (node.backgroundVideoSoundPrompt !== undefined) {
+    vnNode.backgroundVideoSoundPrompt = node.backgroundVideoSoundPrompt;
+  }
+  if (node.characterId !== undefined) {
     vnNode.characterId = node.characterId;
   }
-  if (node.voicePresenceMode) {
+  if (node.voicePresenceMode !== undefined) {
     vnNode.voicePresenceMode = node.voicePresenceMode;
   }
   if (node.activeSpeakers) {
     vnNode.activeSpeakers = [...node.activeSpeakers];
+  }
+  if (node.narrativePresentation !== undefined) {
+    vnNode.narrativePresentation = node.narrativePresentation;
+  }
+  if (node.narrativeLayout !== undefined) {
+    vnNode.narrativeLayout = node.narrativeLayout;
+  }
+  if (node.advanceOnVideoEnd !== undefined) {
+    vnNode.advanceOnVideoEnd = node.advanceOnVideoEnd;
+  }
+  if (node.letterOverlayRevealDelayMs !== undefined) {
+    vnNode.letterOverlayRevealDelayMs = node.letterOverlayRevealDelayMs;
   }
 
   return vnNode;

@@ -23,9 +23,16 @@ export type NodeBlueprint = {
   preconditions?: VnCondition[];
   passiveChecks?: VnSkillCheck[];
   backgroundUrl?: string;
+  backgroundVideoUrl?: VnNode["backgroundVideoUrl"];
+  backgroundVideoPosterUrl?: VnNode["backgroundVideoPosterUrl"];
+  backgroundVideoSoundPrompt?: VnNode["backgroundVideoSoundPrompt"];
   characterId?: string;
   voicePresenceMode?: VnNode["voicePresenceMode"];
   activeSpeakers?: string[];
+  narrativeLayout?: VnNode["narrativeLayout"];
+  narrativePresentation?: VnNode["narrativePresentation"];
+  advanceOnVideoEnd?: VnNode["advanceOnVideoEnd"];
+  letterOverlayRevealDelayMs?: VnNode["letterOverlayRevealDelayMs"];
   titleOverride?: string;
   bodyOverride?: string;
 };

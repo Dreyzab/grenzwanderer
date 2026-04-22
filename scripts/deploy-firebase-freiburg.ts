@@ -32,9 +32,7 @@ run([
   "firebase-tools",
   "deploy",
   "--only",
-  "hosting",
-  "--site",
-  "freiburg-event-prod",
+  "hosting:freiburg-event",
 ]);
 
 console.log("[deploy:firebase:freiburg] Freiburg Hosting deploy completed.");

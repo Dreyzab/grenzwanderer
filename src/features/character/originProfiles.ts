@@ -70,7 +70,7 @@ export const originProfiles: OriginProfileDefinition[] = [
     handoffDoneFlagKeys: ["origin_journalist_handoff_done"],
     label: "Journalist Origin",
     summary: "Leaks, rumor networks, and pressure through publication.",
-    scenarioId: "journalist_agency_wakeup",
+    scenarioId: "case01_hbf_arrival",
     flawFlagKey: "flaw_gambling_addiction",
     signatureAbilityFlagKey: "ability_nose_for_story",
     statEffects: [
@@ -384,7 +384,7 @@ export const originProfiles: OriginProfileDefinition[] = [
     handoffDoneFlagKeys: ["origin_detective_handoff_done"],
     label: "Detective Origin",
     summary: "Logic, observation, and deductive street smarts.",
-    scenarioId: "detective_case01_prologue",
+    scenarioId: "case01_hbf_arrival",
     flawFlagKey: "flaw_cynic_mistrust",
     signatureAbilityFlagKey: "ability_crime_scene_reconstruction",
     statEffects: [

@@ -15,9 +15,29 @@ type SnapshotPoint = {
   }>;
 };
 
+type SnapshotEffect = {
+  type: string;
+  key?: string;
+  value?: boolean | number;
+  groupId?: string;
+};
+
+type SnapshotChoice = {
+  id: string;
+  nextNodeId: string;
+};
+
+type SnapshotNode = {
+  id: string;
+  choices: SnapshotChoice[];
+  onEnter?: SnapshotEffect[];
+  terminal?: boolean;
+};
+
 type SnapshotPayload = {
   vnRuntime?: { defaultEntryScenarioId?: string };
   scenarios: Array<{ id: string }>;
+  nodes: SnapshotNode[];
   map?: { points: SnapshotPoint[]; regions: Array<{ id: string }> };
 };
 
@@ -50,6 +70,24 @@ const findPoint = (
   }
   return point;
 };
+
+const findNode = (snapshot: SnapshotPayload, nodeId: string): SnapshotNode => {
+  const node = snapshot.nodes.find((entry) => entry.id === nodeId);
+  if (!node) {
+    throw new Error(`Missing node '${nodeId}' in extracted snapshot`);
+  }
+  return node;
+};
+
+const hasEffect = (
+  effects: SnapshotEffect[] | undefined,
+  expected: Partial<SnapshotEffect>,
+): boolean =>
+  (effects ?? []).some((effect) =>
+    Object.entries(expected).every(
+      ([key, value]) => effect[key as keyof SnapshotEffect] === value,
+    ),
+  );
 
 const hasScenarioBinding = (
   point: SnapshotPoint,
@@ -104,6 +142,91 @@ try {
   assert(
     hasScenarioBinding(rathausPoint, CASE01_SCENARIO_IDS.mayorBriefing),
     "loc_rathaus must start the mayor briefing scenario",
+  );
+
+  const beat1Node = findNode(snapshot, "scene_case01_beat1_atmosphere");
+  const newsboyNode = findNode(snapshot, "scene_case01_hbf_newsboy");
+  const luggageNode = findNode(snapshot, "scene_case01_hbf_luggage");
+  const policeNode = findNode(snapshot, "scene_case01_hbf_police");
+
+  assert(
+    beat1Node.choices.some(
+      (choice) =>
+        choice.id === "CASE01_BEAT1_NEWSBOY" &&
+        choice.nextNodeId === "scene_case01_hbf_newsboy",
+    ),
+    "scene_case01_beat1_atmosphere must still route to the newsboy branch",
+  );
+  assert(
+    beat1Node.choices.some(
+      (choice) =>
+        choice.id === "CASE01_BEAT1_LUGGAGE" &&
+        choice.nextNodeId === "scene_case01_hbf_luggage",
+    ),
+    "scene_case01_beat1_atmosphere must still route to the luggage branch",
+  );
+  assert(
+    beat1Node.choices.some(
+      (choice) =>
+        choice.id === "CASE01_BEAT1_POLICE" &&
+        choice.nextNodeId === "scene_case01_hbf_police",
+    ),
+    "scene_case01_beat1_atmosphere must still route to the police branch",
+  );
+
+  for (const [branchLabel, node] of [
+    ["newsboy", newsboyNode],
+    ["luggage", luggageNode],
+    ["police", policeNode],
+  ] as const) {
+    assert(node.terminal === true, `${branchLabel} branch must end on the map`);
+    assert(
+      hasEffect(node.onEnter, {
+        type: "set_flag",
+        key: "case01_onboarding_complete",
+        value: true,
+      }),
+      `${branchLabel} branch must complete onboarding`,
+    );
+    assert(
+      hasEffect(node.onEnter, {
+        type: "unlock_group",
+        groupId: "loc_freiburg_bank",
+      }),
+      `${branchLabel} branch must unlock loc_freiburg_bank for map travel`,
+    );
+    assert(
+      hasEffect(node.onEnter, {
+        type: "unlock_group",
+        groupId: "loc_rathaus",
+      }),
+      `${branchLabel} branch must unlock loc_rathaus for map travel`,
+    );
+  }
+
+  assert(
+    hasEffect(newsboyNode.onEnter, {
+      type: "set_flag",
+      key: "priority_bank_first",
+      value: true,
+    }),
+    "newsboy branch must prioritize the bank route",
+  );
+  assert(
+    hasEffect(luggageNode.onEnter, {
+      type: "set_flag",
+      key: "priority_bank_first",
+      value: true,
+    }),
+    "luggage branch must prioritize the bank route",
+  );
+  assert(
+    hasEffect(policeNode.onEnter, {
+      type: "set_flag",
+      key: "priority_mayor_first",
+      value: true,
+    }),
+    "police branch must prioritize the Rathaus route",
   );
 
   for (const legacyId of [

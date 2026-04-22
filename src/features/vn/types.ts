@@ -204,17 +204,32 @@ export interface VnChoice {
   }>;
 }
 
+export type VnNarrativeLayout =
+  | "split"
+  | "fullscreen"
+  | "letter_overlay"
+  | "thought_log";
+
+export type VnNarrativePresentation = "letter";
+
 export interface VnNode {
   id: string;
   scenarioId: string;
   title: string;
   body: string;
   backgroundUrl?: string;
+  backgroundVideoUrl?: string;
+  backgroundVideoPosterUrl?: string;
+  backgroundVideoSoundPrompt?: boolean;
   characterId?: string;
   voicePresenceMode?: VoicePresenceMode;
   activeSpeakers?: string[];
   aiModeDefault?: VnAiMode;
   providenceCostDefault?: number;
+  narrativeLayout?: VnNarrativeLayout;
+  narrativePresentation?: VnNarrativePresentation;
+  advanceOnVideoEnd?: boolean;
+  letterOverlayRevealDelayMs?: number;
   terminal?: boolean;
   choices: VnChoice[];
   onEnter?: VnEffect[];

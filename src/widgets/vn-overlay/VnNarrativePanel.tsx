@@ -49,6 +49,8 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   backgroundVideoSoundPrompt,
   narrativeLayout,
   narrativePresentation,
+  letterOverlayRevealDelayMs,
+  onChoiceSelect,
   isTyping,
   onTypingChange,
   onNarrativeComplete,

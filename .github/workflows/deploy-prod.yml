@@ -37,7 +37,7 @@ jobs:
 
       - name: Sync Narrative Content
         env:
-          STDB_OPERATOR_TOKEN: ${{ secrets.STDB_OPERATOR_TOKEN }}
+          SPACETIMEDB_OPERATOR_TOKEN: ${{ secrets.STDB_OPERATOR_TOKEN }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
           bun run content:release:freiburg -- --version $VERSION

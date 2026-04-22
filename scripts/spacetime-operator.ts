@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 
 const OPERATOR_TOKEN_ENV = "SPACETIMEDB_OPERATOR_TOKEN";
+const ALT_OPERATOR_TOKEN_ENV = "STDB_OPERATOR_TOKEN";
 const OPERATOR_TOKEN_FILE_ENV = "SPACETIMEDB_OPERATOR_TOKEN_FILE";
 
 const defaultTokenPath = (host: string, database: string): string => {
@@ -28,7 +29,9 @@ export const getOperatorToken = (
   host: string,
   database: string,
 ): string | undefined => {
-  const envToken = process.env[OPERATOR_TOKEN_ENV]?.trim();
+  const envToken =
+    process.env[OPERATOR_TOKEN_ENV]?.trim() ||
+    process.env[ALT_OPERATOR_TOKEN_ENV]?.trim();
   if (envToken) {
     return envToken;
   }

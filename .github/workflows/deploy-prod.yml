@@ -26,6 +26,9 @@ jobs:
           curl -sSfL https://install.spacetimedb.com | sh -s -- -y
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      - name: Print Runner Identity
+        run: spacetime identity
+
       - name: Publish SpacetimeDB Module
         env:
           STDB_OPERATOR_TOKEN: ${{ secrets.STDB_OPERATOR_TOKEN }}

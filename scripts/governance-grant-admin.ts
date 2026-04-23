@@ -1,3 +1,4 @@
+import { Identity } from "spacetimedb";
 import {
   connectOperatorConnection,
   getOperatorToken,
@@ -30,9 +31,7 @@ const main = async (): Promise<void> => {
   );
 
   try {
-    const targetIdentity = Uint8Array.from(
-      Buffer.from(identityHex.replace(/^0x/, ""), "hex"),
-    );
+    const targetIdentity = Identity.fromString(identityHex.replace(/^0x/, ""));
 
     console.log(`Granting admin access to ${identityHex}...`);
     await conn.reducers.grantAdminIdentity({ identity: targetIdentity });

@@ -25,14 +25,22 @@ const run = (command: string[]) => {
   }
 };
 
+console.log(
+  `[deploy] GOOGLE_APPLICATION_CREDENTIALS: ${process.env.GOOGLE_APPLICATION_CREDENTIALS || "NOT SET"}`,
+);
+console.log(
+  `[deploy] GCP_PROJECT_ID: ${process.env.GCP_PROJECT_ID || "NOT SET"}`,
+);
+
 run(["bun", "run", "build:freiburg"]);
 run([
-  "bun",
-  "x",
+  "npx",
   "firebase-tools",
   "deploy",
   "--only",
   "hosting:freiburg-event",
+  "--project",
+  process.env.GCP_PROJECT_ID || "grenzwanderer-event",
   "--non-interactive",
 ]);
 

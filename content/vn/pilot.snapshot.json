@@ -932,7 +932,7 @@
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_OPENING_ARRIVAL_VIDEO",
           "text": "Continue.",
-          "nextNodeId": "scene_case01_train_compartment_letter"
+          "nextNodeId": "scene_case01_train_compartment_cinema"
         }
       ],
       "onEnter": [
@@ -8282,5 +8282,5 @@
     ]
   },
   "checksum": "98be589666b49cc353f69fb3a8e04bbcb8de03c0d026021b4fe3ef6e6dfaafa8",
-  "generatedAt": "2026-04-23T11:38:11.616Z"
+  "generatedAt": "2026-04-23T12:50:12.191Z"
 }

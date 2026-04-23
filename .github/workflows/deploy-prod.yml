@@ -52,8 +52,10 @@ jobs:
 
       - name: Deploy to Firebase
         env:
-          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GCP_CREDENTIALS }}
+          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
-          # The deploy script already calls firebase-tools and specifies the site
+          echo "$GCP_CREDENTIALS" > gcp-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=gcp-key.json
           bun run deploy:firebase:freiburg
+          rm gcp-key.json

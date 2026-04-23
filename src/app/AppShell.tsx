@@ -232,6 +232,33 @@ const identityLabel = (identityHex: string): string => {
   return `${identityHex.slice(0, 8)}...${identityHex.slice(-4)}`;
 };
 
+const postDebugLog = (
+  location: string,
+  message: string,
+  data: Record<string, unknown>,
+  hypothesisId: string,
+  runId = "run1",
+): void => {
+  // #region agent log
+  fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": "f85e6b",
+    },
+    body: JSON.stringify({
+      sessionId: "f85e6b",
+      runId,
+      hypothesisId,
+      location,
+      message,
+      data,
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+};
+
 const AppShell = () => {
   const { identity, identityHex } = useIdentity();
   const [commandSessions] = useTable(tables.myCommandSessions);
@@ -495,6 +522,16 @@ const AppShell = () => {
   }, [identityHex, isActive]);
 
   const openVnScenario = (scenarioId: string) => {
+    postDebugLog(
+      "AppShell.tsx:openVnScenario",
+      "Open VN scenario requested",
+      {
+        scenarioId,
+        activeTabBefore: activeTab,
+        vnScenarioIdBefore: vnScenarioId ?? null,
+      },
+      "H1",
+    );
     if (isKarlsruheProfile) {
       setPathname(KARLSRUHE_EVENT_PATHNAME);
     }
@@ -509,6 +546,17 @@ const AppShell = () => {
     }
 
     const safeTab = coerceTabForProfile(tab, RELEASE_PROFILE, vnScenarioId);
+    postDebugLog(
+      "AppShell.tsx:navigateToTab",
+      "Navigate tab requested",
+      {
+        requestedTab: tab,
+        safeTab,
+        vnScenarioId: vnScenarioId ?? null,
+        mapPanel: options?.mapPanel ?? null,
+      },
+      "H1",
+    );
     setActiveTab(safeTab);
     setMapPanel(safeTab === "map" ? options?.mapPanel : undefined);
   };

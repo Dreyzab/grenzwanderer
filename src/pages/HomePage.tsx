@@ -95,6 +95,33 @@ const hasFreiburgProgressHeuristic = (
   );
 };
 
+const postDebugLog = (
+  location: string,
+  message: string,
+  data: Record<string, unknown>,
+  hypothesisId: string,
+  runId = "run1",
+): void => {
+  // #region agent log
+  fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": "f85e6b",
+    },
+    body: JSON.stringify({
+      sessionId: "f85e6b",
+      runId,
+      hypothesisId,
+      location,
+      message,
+      data,
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+};
+
 export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const { identityHex, isConnected, connectionError } = useIdentity();
   const beginFreiburgOrigin = useReducer(reducers.beginFreiburgOrigin);
@@ -195,6 +222,19 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   };
 
   const handleContinue = async () => {
+    postDebugLog(
+      "HomePage.tsx:handleContinue",
+      "Continue pressed",
+      {
+        selectedCity,
+        entryTargetKind: entryTarget.kind,
+        entryScenarioId:
+          entryTarget.kind === "start" || entryTarget.kind === "resume"
+            ? entryTarget.scenarioId
+            : null,
+      },
+      "H1",
+    );
     if (!isFreiburgSelected) {
       setFlowStatus("Karlsruhe flow is not available yet.");
       return;

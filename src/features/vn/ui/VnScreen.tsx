@@ -57,6 +57,39 @@ export const VnScreen = ({
   onScenarioChange,
   onNavigateTab,
 }: VnScreenProps) => {
+  const postDebugLog = useCallback(
+    (
+      location: string,
+      message: string,
+      data: Record<string, unknown>,
+      hypothesisId: string,
+      runId = "run1",
+    ) => {
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Debug-Session-Id": "f85e6b",
+          },
+          body: JSON.stringify({
+            sessionId: "f85e6b",
+            runId,
+            hypothesisId,
+            location,
+            message,
+            data,
+            timestamp: Date.now(),
+          }),
+        },
+      ).catch(() => {});
+      // #endregion
+    },
+    [],
+  );
+
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
   const [sessions, sessionsReady] = useTable(tables.myVnSessions);
@@ -473,6 +506,32 @@ export const VnScreen = ({
     effectiveNarrativeLayout === "fullscreen" ||
     effectiveNarrativeLayout === "letter_overlay";
 
+  useEffect(() => {
+    postDebugLog(
+      "VnScreen.tsx:node-layout",
+      "Node and layout state",
+      {
+        selectedScenarioId: selectedScenarioId || null,
+        nodeId: currentNode?.id ?? null,
+        narrativeLayout: currentNode?.narrativeLayout ?? null,
+        narrativePresentation: currentNode?.narrativePresentation ?? null,
+        effectiveNarrativeLayout,
+        hideImmersiveChrome,
+        autoContinueChoiceId: autoContinueChoice?.id ?? null,
+      },
+      "H2",
+    );
+  }, [
+    autoContinueChoice?.id,
+    currentNode?.id,
+    currentNode?.narrativeLayout,
+    currentNode?.narrativePresentation,
+    effectiveNarrativeLayout,
+    hideImmersiveChrome,
+    postDebugLog,
+    selectedScenarioId,
+  ]);
+
   const handleVideoEnded = useCallback(() => {
     if (videoEnded) {
       return;
@@ -502,6 +561,16 @@ export const VnScreen = ({
     }
 
     void handleChoiceClick(autoContinueChoice, false);
+    postDebugLog(
+      "VnScreen.tsx:handleVideoEnded",
+      "Auto-continue fired from video end",
+      {
+        nodeId: currentNode?.id ?? null,
+        autoContinueChoiceId: autoContinueChoice.id,
+        selectedScenarioId: selectedScenarioId ?? null,
+      },
+      "H4",
+    );
   }, [
     autoContinueChoice,
     choiceEvaluationContext,
@@ -514,10 +583,33 @@ export const VnScreen = ({
     selectedScenarioId,
     transitionState,
     videoEnded,
+    postDebugLog,
+    currentNode?.id,
   ]);
 
   const handleSurfaceTap = useCallback(() => {
+    postDebugLog(
+      "VnScreen.tsx:handleSurfaceTap:entry-v2",
+      "Surface tap branch entry",
+      {
+        nodeId: currentNode?.id ?? null,
+        layout: effectiveNarrativeLayout,
+        transitionState,
+        isTyping,
+        awaitingSkillChoice: Boolean(awaitingSkillChoice),
+        pendingChoiceId: pendingChoiceId ?? null,
+        autoContinueChoiceId: autoContinueChoice?.id ?? null,
+        videoEnded,
+      },
+      "H6",
+    );
     if (handleActiveResolveInteraction()) {
+      postDebugLog(
+        "VnScreen.tsx:handleSurfaceTap:resolve",
+        "Tap consumed by active resolve interaction",
+        { nodeId: currentNode?.id ?? null },
+        "H6",
+      );
       return;
     }
 
@@ -526,12 +618,24 @@ export const VnScreen = ({
     }
 
     if (isTyping) {
+      postDebugLog(
+        "VnScreen.tsx:handleSurfaceTap:typing",
+        "Tap finishes typing",
+        { nodeId: currentNode?.id ?? null },
+        "H6",
+      );
       typedTextRef.current?.finish();
       return;
     }
 
     const elapsedSinceTypingFinish = Date.now() - typingFinishedAtRef.current;
     if (elapsedSinceTypingFinish < TAP_CONTINUE_COOLDOWN_MS) {
+      postDebugLog(
+        "VnScreen.tsx:handleSurfaceTap:cooldown",
+        "Tap blocked by typing cooldown",
+        { nodeId: currentNode?.id ?? null, elapsedSinceTypingFinish },
+        "H6",
+      );
       return;
     }
 
@@ -549,6 +653,16 @@ export const VnScreen = ({
       currentNode.backgroundVideoUrl &&
       !videoEnded
     ) {
+      postDebugLog(
+        "VnScreen.tsx:handleSurfaceTap",
+        "Surface tap blocked waiting for video end",
+        {
+          nodeId: currentNode.id,
+          backgroundVideoUrl: currentNode.backgroundVideoUrl,
+          videoEnded,
+        },
+        "H4",
+      );
       return;
     }
 
@@ -558,6 +672,16 @@ export const VnScreen = ({
     }
 
     if (!autoContinueChoice || !currentNode) {
+      postDebugLog(
+        "VnScreen.tsx:handleSurfaceTap:no-auto",
+        "No auto-continue choice on tap",
+        {
+          nodeId: currentNode?.id ?? null,
+          hasCurrentNode: Boolean(currentNode),
+          autoContinueChoiceId: autoContinueChoice?.id ?? null,
+        },
+        "H6",
+      );
       return;
     }
 
@@ -577,6 +701,17 @@ export const VnScreen = ({
     }
 
     void handleChoiceClick(autoContinueChoice, false);
+    postDebugLog(
+      "VnScreen.tsx:handleSurfaceTap",
+      "Surface tap auto-continue committed",
+      {
+        nodeId: currentNode.id,
+        autoContinueChoiceId: autoContinueChoice.id,
+        selectedScenarioId: selectedScenarioId ?? null,
+        transitionState,
+      },
+      "H3",
+    );
   }, [
     autoContinueChoice,
     awaitingSkillChoice,
@@ -595,6 +730,8 @@ export const VnScreen = ({
     selectedScenarioId,
     transitionState,
     videoEnded,
+    postDebugLog,
+    effectiveNarrativeLayout,
   ]);
 
   if (!activeVersion || !snapshot) {

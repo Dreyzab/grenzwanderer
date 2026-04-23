@@ -337,6 +337,37 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
         ]
       },
       {
+        "id": "bind_bank_close",
+        "trigger": "card_primary",
+        "label": "Close Banker Case",
+        "priority": 85,
+        "intent": "objective",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "case_banker_theft_solved",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": false
+          }
+        ],
+        "actions": [
+          {
+            "type": "set_quest_stage",
+            "questId": "quest_banker",
+            "stage": 3
+          },
+          {
+            "type": "set_flag",
+            "key": "bank_investigation_complete",
+            "value": true
+          }
+        ]
+      },
+      {
         "id": "sys_travel_loc_freiburg_bank",
         "trigger": "card_secondary",
         "label": "Travel",

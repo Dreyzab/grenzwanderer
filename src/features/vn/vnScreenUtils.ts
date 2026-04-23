@@ -63,6 +63,16 @@ export const createRequestId = (): string => {
 export const normalizeBody = (body: string): string =>
   body.replace(/\s+/g, " ").replace(/\|/g, " ").trim();
 
+export const normalizeLetterBody = (body: string): string =>
+  body
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/\|/g, " ")
+    .trim();
+
 export const formatSpeaker = (
   characterId?: string,
   snapshot?: VnSnapshot | null,

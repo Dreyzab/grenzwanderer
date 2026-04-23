@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-04-22T21:12:21.153Z",
+  "updatedAt": "2026-04-23T11:38:01.410Z",
   "releases": [
     {
       "version": "content-v0.0.1+2a6600d5",
@@ -128,6 +128,18 @@
       "schemaVersion": 8,
       "generatedAt": "2026-04-22T21:07:25.363Z",
       "publishedAt": "2026-04-22T21:12:21.152Z",
+      "target": {
+        "server": "maincloud",
+        "host": "https://maincloud.spacetimedb.com",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.3.0+98be5896",
+      "checksum": "98be589666b49cc353f69fb3a8e04bbcb8de03c0d026021b4fe3ef6e6dfaafa8",
+      "schemaVersion": 8,
+      "generatedAt": "2026-04-23T11:37:12.393Z",
+      "publishedAt": "2026-04-23T11:38:01.409Z",
       "target": {
         "server": "maincloud",
         "host": "https://maincloud.spacetimedb.com",

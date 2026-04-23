@@ -6663,6 +6663,37 @@
             ]
           },
           {
+            "id": "bind_bank_close",
+            "trigger": "card_primary",
+            "label": "Close Banker Case",
+            "priority": 85,
+            "intent": "objective",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "case_banker_theft_solved",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "set_quest_stage",
+                "questId": "quest_banker",
+                "stage": 3
+              },
+              {
+                "type": "set_flag",
+                "key": "bank_investigation_complete",
+                "value": true
+              }
+            ]
+          },
+          {
             "id": "sys_travel_loc_freiburg_bank",
             "trigger": "card_secondary",
             "label": "Travel",
@@ -8250,6 +8281,6 @@
       }
     ]
   },
-  "checksum": "94021c92c79c177f3c3214905c3f3e940985247d23f01349e8451ca07a0cf14b",
-  "generatedAt": "2026-04-22T20:58:00.416Z"
+  "checksum": "98be589666b49cc353f69fb3a8e04bbcb8de03c0d026021b4fe3ef6e6dfaafa8",
+  "generatedAt": "2026-04-23T11:38:11.616Z"
 }

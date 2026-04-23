@@ -39,6 +39,48 @@
   animation: vn-typed-cursor-blink 820ms step-end infinite;
 }
 
+.vn-letter-sheet {
+  --vn-text-primary: #3c2616;
+  --vn-accent: #6d2418;
+}
+
+.vn-letter-sheet .vn-typed-text {
+  color: var(--vn-text-primary);
+  font-family:
+    "Crimson Pro", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  font-size: clamp(1rem, 1.75vw, 1.18rem);
+  font-weight: 500;
+  line-height: 1.58;
+  letter-spacing: 0.008em;
+  text-shadow: 0 1px 0 rgba(255, 247, 218, 0.46);
+}
+
+.vn-letter-sheet .vn-typed-text::first-letter {
+  color: #612416;
+  float: left;
+  font-family: "Playfair Display", "Crimson Pro", serif;
+  font-size: 3em;
+  font-weight: 600;
+  line-height: 0.88;
+  margin: 0.08em 0.12em 0 0;
+}
+
+.vn-letter-sheet .vn-typed-text__token {
+  color: #632016;
+  border-bottom-color: rgba(99, 32, 22, 0.58);
+  text-shadow: none;
+}
+
+.vn-letter-sheet .vn-typed-text__token:hover {
+  color: #47150f;
+  border-bottom-color: rgba(71, 21, 15, 0.85);
+  text-shadow: 0 0 8px rgba(99, 32, 22, 0.12);
+}
+
+.vn-letter-sheet .vn-typed-text__cursor {
+  background: #6d2418;
+}
+
 @keyframes vn-typed-token-fade {
   from {
     opacity: 0;

@@ -311,69 +311,73 @@ const evaluateMapCondition = (
   condition: MapCondition,
   cache: MapEvaluationCache,
 ): boolean => {
-  if (condition.type === "flag_is") {
-    return getFlag(ctx, condition.key) === condition.value;
+  switch (condition.type) {
+    case "flag_is": {
+      return getFlag(ctx, condition.key) === condition.value;
+    }
+    case "var_gte": {
+      return getVar(ctx, condition.key) >= condition.value;
+    }
+    case "var_lte": {
+      return getVar(ctx, condition.key) <= condition.value;
+    }
+    case "has_item": {
+      const inventoryKey = createInventoryKey(ctx.sender, condition.itemId);
+      const row = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
+      return row ? row.quantity > 0 : false;
+    }
+    case "has_evidence": {
+      const evidenceKey = createEvidenceKey(ctx.sender, condition.evidenceId);
+      return !!ctx.db.playerEvidence.evidenceKey.find(evidenceKey);
+    }
+    case "quest_stage_gte": {
+      const questKey = createQuestKey(ctx.sender, condition.questId);
+      const row = ctx.db.playerQuest.questKey.find(questKey);
+      return row ? row.stage >= condition.stage : false;
+    }
+    case "relationship_gte": {
+      return (
+        getRelationshipValue(ctx, condition.characterId) >= condition.value
+      );
+    }
+    case "favor_balance_gte": {
+      return getFavorBalance(ctx, condition.npcId) >= condition.value;
+    }
+    case "agency_standing_gte": {
+      return getAgencyStandingScore(ctx) >= condition.value;
+    }
+    case "rumor_state_is": {
+      return getRumorStatus(ctx, condition.rumorId) === condition.status;
+    }
+    case "career_rank_gte": {
+      return (
+        getCurrentPlayerCareerRankOrderCached(ctx, cache) >=
+        getCareerRankOrderCached(ctx, condition.rankId, cache)
+      );
+    }
+    case "unlock_group_has": {
+      const unlockKey = createUnlockGroupKey(ctx.sender, condition.groupId);
+      return !!ctx.db.playerUnlockGroup.unlockKey.find(unlockKey);
+    }
+    case "point_state_is": {
+      return resolvePointState(ctx, point) === condition.state;
+    }
+    case "logic_and": {
+      return condition.conditions.every((entry) =>
+        evaluateMapCondition(ctx, point, entry, cache),
+      );
+    }
+    case "logic_or": {
+      return condition.conditions.some((entry) =>
+        evaluateMapCondition(ctx, point, entry, cache),
+      );
+    }
+    case "logic_not": {
+      return !evaluateMapCondition(ctx, point, condition.condition, cache);
+    }
+    default:
+      return false;
   }
-  if (condition.type === "var_gte") {
-    return getVar(ctx, condition.key) >= condition.value;
-  }
-  if (condition.type === "var_lte") {
-    return getVar(ctx, condition.key) <= condition.value;
-  }
-  if (condition.type === "has_item") {
-    const inventoryKey = createInventoryKey(ctx.sender, condition.itemId);
-    const row = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
-    return row ? row.quantity > 0 : false;
-  }
-  if (condition.type === "has_evidence") {
-    const evidenceKey = createEvidenceKey(ctx.sender, condition.evidenceId);
-    return !!ctx.db.playerEvidence.evidenceKey.find(evidenceKey);
-  }
-  if (condition.type === "quest_stage_gte") {
-    const questKey = createQuestKey(ctx.sender, condition.questId);
-    const row = ctx.db.playerQuest.questKey.find(questKey);
-    return row ? row.stage >= condition.stage : false;
-  }
-  if (condition.type === "relationship_gte") {
-    return getRelationshipValue(ctx, condition.characterId) >= condition.value;
-  }
-  if (condition.type === "favor_balance_gte") {
-    return getFavorBalance(ctx, condition.npcId) >= condition.value;
-  }
-  if (condition.type === "agency_standing_gte") {
-    return getAgencyStandingScore(ctx) >= condition.value;
-  }
-  if (condition.type === "rumor_state_is") {
-    return getRumorStatus(ctx, condition.rumorId) === condition.status;
-  }
-  if (condition.type === "career_rank_gte") {
-    return (
-      getCurrentPlayerCareerRankOrderCached(ctx, cache) >=
-      getCareerRankOrderCached(ctx, condition.rankId, cache)
-    );
-  }
-  if (condition.type === "unlock_group_has") {
-    const unlockKey = createUnlockGroupKey(ctx.sender, condition.groupId);
-    return !!ctx.db.playerUnlockGroup.unlockKey.find(unlockKey);
-  }
-  if (condition.type === "point_state_is") {
-    return resolvePointState(ctx, point) === condition.state;
-  }
-  if (condition.type === "logic_and") {
-    return condition.conditions.every((entry) =>
-      evaluateMapCondition(ctx, point, entry, cache),
-    );
-  }
-  if (condition.type === "logic_or") {
-    return condition.conditions.some((entry) =>
-      evaluateMapCondition(ctx, point, entry, cache),
-    );
-  }
-  if (condition.type === "logic_not") {
-    return !evaluateMapCondition(ctx, point, condition.condition, cache);
-  }
-
-  return false;
 };
 
 const assertUnsupportedMapAction = (action: never): never => {
@@ -649,6 +653,7 @@ export const map_interact = spacetimedb.reducer(
     }
 
     const point = map.points.find((entry) => entry.id === pointId) ?? null;
+
     const activeEventRow =
       point === null ? getPlayerActiveMapEventByEventId(ctx, pointId) : null;
     const runtimePoint =

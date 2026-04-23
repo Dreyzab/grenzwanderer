@@ -33,6 +33,7 @@ import {
   hasOptionalValue,
   isAutoContinueChoice,
   normalizeBody,
+  normalizeLetterBody,
   normalizeNumeric,
   parseStoredCharacterReactionResponse,
   parseStoredDialogueResponse,
@@ -341,6 +342,12 @@ export function useVnDerivedState({
   const currentNarrativeText = useMemo(() => {
     if (!currentNode) {
       return sessionReady ? "" : tSessionHydrating;
+    }
+    if (
+      currentNode.narrativePresentation === "letter" ||
+      currentNode.narrativeLayout === "letter_overlay"
+    ) {
+      return normalizeLetterBody(currentNode.body);
     }
     return normalizeBody(currentNode.body);
   }, [currentNode, sessionReady, tSessionHydrating]);

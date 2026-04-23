@@ -6,7 +6,10 @@ import {
 } from "../../features/vn/types";
 import { VnNarrativeText } from "../../features/vn/ui/VnNarrativeText";
 import { MapPin } from "lucide-react";
-import type { TypedTextHandle } from "../../features/vn/ui/TypedText";
+import {
+  TypedText,
+  type TypedTextHandle,
+} from "../../features/vn/ui/TypedText";
 
 interface VnNarrativePanelProps {
   sceneId?: string;
@@ -59,6 +62,39 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   onVideoEnded,
   children,
 }) => {
+  const postDebugLog = useCallback(
+    (
+      location: string,
+      message: string,
+      data: Record<string, unknown>,
+      hypothesisId: string,
+      runId = "run1",
+    ) => {
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Debug-Session-Id": "f85e6b",
+          },
+          body: JSON.stringify({
+            sessionId: "f85e6b",
+            runId,
+            hypothesisId,
+            location,
+            message,
+            data,
+            timestamp: Date.now(),
+          }),
+        },
+      ).catch(() => {});
+      // #endregion
+    },
+    [],
+  );
+
   const effectiveNarrativeLayout =
     narrativeLayout ??
     (narrativePresentation === "letter" ? "letter_overlay" : "split");
@@ -108,6 +144,15 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     setLetterRevealed(false);
     const timeoutId = window.setTimeout(() => {
       setLetterRevealed(true);
+      postDebugLog(
+        "VnNarrativePanel.tsx:letter-reveal",
+        "Letter overlay revealed by timer",
+        {
+          sceneId: sceneId ?? null,
+          revealDelayMs,
+        },
+        "H3",
+      );
     }, revealDelayMs);
 
     return () => {
@@ -117,8 +162,37 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     backgroundVideoUrl,
     isLetterOverlay,
     needsSoundPrompt,
+    postDebugLog,
     revealDelayMs,
     sceneId,
+  ]);
+
+  useEffect(() => {
+    postDebugLog(
+      "VnNarrativePanel.tsx:scene-init",
+      "Narrative panel scene state",
+      {
+        sceneId: sceneId ?? null,
+        effectiveNarrativeLayout,
+        isImmersive,
+        isLetterOverlay,
+        letterRevealed,
+        backgroundVideoUrl: backgroundVideoUrl ?? null,
+        needsSoundPrompt,
+        soundPromptPhase,
+      },
+      "H2",
+    );
+  }, [
+    backgroundVideoUrl,
+    effectiveNarrativeLayout,
+    isImmersive,
+    isLetterOverlay,
+    letterRevealed,
+    needsSoundPrompt,
+    postDebugLog,
+    sceneId,
+    soundPromptPhase,
   ]);
 
   useEffect(() => {
@@ -136,10 +210,20 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   ]);
 
   const handleSoundAllow = useCallback(() => {
+    postDebugLog(
+      "VnNarrativePanel.tsx:handleSoundAllow",
+      "Sound prompt allow pressed",
+      {
+        sceneId: sceneId ?? null,
+        videoStatus,
+        hasVideoRef: Boolean(videoRef.current),
+      },
+      "H4",
+    );
     setVideoUnmuted(true);
     setSoundPromptPhase("playing");
     void startVideoAfterSoundChoice(true);
-  }, [startVideoAfterSoundChoice]);
+  }, [postDebugLog, sceneId, startVideoAfterSoundChoice, videoStatus]);
 
   const handleSoundDeny = useCallback(() => {
     setVideoUnmuted(false);
@@ -147,12 +231,61 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     void startVideoAfterSoundChoice(false);
   }, [startVideoAfterSoundChoice]);
 
-  const handleSurfaceInteraction = useCallback(() => {
-    if (isLetterOverlay && !letterRevealed) {
-      return;
-    }
-    onSurfaceTap?.();
-  }, [isLetterOverlay, letterRevealed, onSurfaceTap]);
+  const handleSurfaceInteraction = useCallback(
+    (event?: React.MouseEvent<HTMLElement>) => {
+      postDebugLog(
+        "VnNarrativePanel.tsx:surface-v2",
+        "Surface interaction observed",
+        {
+          sceneId: sceneId ?? null,
+          isLetterOverlay,
+          letterRevealed,
+          soundPromptPhase,
+          targetTag:
+            (event?.target as HTMLElement | null)?.tagName?.toLowerCase() ??
+            null,
+          currentTargetTag:
+            (
+              event?.currentTarget as HTMLElement | null
+            )?.tagName?.toLowerCase() ?? null,
+        },
+        "H6",
+      );
+      if (isLetterOverlay && !letterRevealed) {
+        postDebugLog(
+          "VnNarrativePanel.tsx:surface",
+          "Surface tap blocked before letter reveal",
+          {
+            sceneId: sceneId ?? null,
+            isLetterOverlay,
+            letterRevealed,
+          },
+          "H3",
+        );
+        return;
+      }
+      postDebugLog(
+        "VnNarrativePanel.tsx:surface",
+        "Surface tap forwarded to VnScreen",
+        {
+          sceneId: sceneId ?? null,
+          isLetterOverlay,
+          letterRevealed,
+          soundPromptPhase,
+        },
+        "H3",
+      );
+      onSurfaceTap?.();
+    },
+    [
+      isLetterOverlay,
+      letterRevealed,
+      onSurfaceTap,
+      postDebugLog,
+      sceneId,
+      soundPromptPhase,
+    ],
+  );
 
   const showVideoLoadingState =
     Boolean(backgroundVideoUrl) &&
@@ -168,13 +301,23 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
       typedTextRef={typedTextRef}
     />
   );
+  const letterNarrativeBody = (
+    <div className="vn-letter-sheet">
+      <TypedText
+        ref={typedTextRef}
+        text={narrativeText}
+        onComplete={onNarrativeComplete}
+        onTypingChange={onTypingChange}
+      />
+    </div>
+  );
 
   return (
-    <div
-      className="fixed inset-0 z-200 overflow-hidden bg-black select-none"
-      style={{ height: "100dvh" }}
-    >
-      <div className="absolute inset-0 overflow-hidden">
+    <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-black font-serif text-stone-200 select-none">
+      <div
+        className="absolute inset-0 z-0 transition-opacity duration-1000"
+        style={{ opacity: soundPromptPhase === "prompt" ? 0 : 1 }}
+      >
         {backgroundVideoUrl &&
           (backgroundVideoPosterUrl || backgroundImageUrl) && (
             <img
@@ -225,7 +368,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
       {isImmersive ? (
         <div
           className="absolute inset-0 z-60"
-          onClick={handleSurfaceInteraction}
+          onClick={(event) => handleSurfaceInteraction(event)}
           aria-hidden="true"
         />
       ) : null}
@@ -289,31 +432,48 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
       {children}
 
       {isLetterOverlay ? (
-        <div className="absolute inset-0 z-110 flex items-center justify-center px-5 py-8 pointer-events-none">
+        <div className="absolute inset-0 z-110 flex items-center justify-center px-4 pt-8 pb-[calc(2rem+4rem+env(safe-area-inset-bottom))] pointer-events-none sm:px-8">
           <div
             className={[
-              "w-full max-w-3xl transform transition-all duration-700 ease-out",
+              "w-full max-w-[44rem] transform transition-all duration-700 ease-out",
               letterRevealed
                 ? "translate-y-0 -rotate-1 scale-100 opacity-100"
                 : "translate-y-10 rotate-2 scale-95 opacity-0",
             ].join(" ")}
           >
-            <div className="relative overflow-hidden rounded-4xl border border-stone-700/40 bg-[linear-gradient(180deg,rgba(252,246,226,0.98)_0%,rgba(240,229,196,0.98)_100%)] px-6 py-8 shadow-[0_30px_80px_rgba(0,0,0,0.5)] sm:px-10 sm:py-12">
-              <div className="absolute inset-x-6 top-4 h-px bg-linear-to-r from-transparent via-stone-500/35 to-transparent sm:inset-x-10" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(120,75,28,0.12),transparent_42%),radial-gradient(circle_at_bottom_right,rgba(59,39,16,0.14),transparent_38%)]" />
-              <div className="relative z-10">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-stone-600/80">
-                  Confidential Memorandum
-                </p>
-                <div
-                  className="mt-6 text-[1.18rem] leading-[1.85] text-stone-800 sm:text-[1.35rem]"
-                  style={{
-                    fontFamily:
-                      '"Segoe Script", "Brush Script MT", "Snell Roundhand", cursive',
-                    whiteSpace: "pre-wrap",
-                  }}
-                >
-                  {letterRevealed ? narrativeBody : null}
+            <div className="relative">
+              <div className="absolute -inset-4 rounded-[2.5rem] bg-black/30 blur-2xl" />
+              <div className="relative overflow-hidden rounded-[1.25rem] border border-[#7a5830]/45 bg-[linear-gradient(135deg,rgba(255,250,229,0.99)_0%,rgba(238,220,178,0.99)_58%,rgba(218,190,139,0.99)_100%)] px-5 py-6 shadow-[0_34px_100px_rgba(0,0,0,0.62),inset_0_0_0_1px_rgba(255,255,255,0.35)] sm:px-12 sm:py-10">
+                <div className="absolute inset-0 bg-[url('/images/paper-texture.png')] opacity-[0.22] mix-blend-multiply" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_12%,rgba(146,94,38,0.16),transparent_30%),radial-gradient(circle_at_86%_78%,rgba(88,47,20,0.18),transparent_34%)]" />
+                <div className="absolute left-[13%] top-0 h-full w-px bg-[#8b683b]/18" />
+                <div className="absolute inset-x-8 top-6 h-px bg-linear-to-r from-transparent via-[#7a5830]/35 to-transparent sm:inset-x-14" />
+                <div className="absolute inset-x-8 bottom-6 h-px bg-linear-to-r from-transparent via-[#7a5830]/25 to-transparent sm:inset-x-14" />
+                <div className="absolute -right-5 -bottom-5 size-24 rounded-full border border-[#7f2517]/35 bg-[radial-gradient(circle,rgba(128,35,24,0.2)_0%,rgba(128,35,24,0.12)_45%,transparent_70%)]" />
+
+                <div className="relative z-10 mx-auto max-w-[34rem]">
+                  <div className="flex items-start justify-between gap-5 border-b border-[#7a5830]/30 pb-4">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#6b4422]">
+                        Private Correspondence
+                      </p>
+                      <p className="mt-2 text-[0.72rem] uppercase tracking-[0.2em] text-[#8c6a3d]">
+                        Freiburg i. Br. / Station post
+                      </p>
+                    </div>
+                    <div className="rounded-full border border-[#7a5830]/35 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#6b4422]">
+                      1905
+                    </div>
+                  </div>
+
+                  <div className="mt-5 whitespace-pre-wrap text-[#3c2616]">
+                    {letterRevealed ? letterNarrativeBody : null}
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between border-t border-[#7a5830]/20 pt-3 text-[0.68rem] uppercase tracking-[0.22em] text-[#8c6a3d]">
+                    <span>Unsealed at arrival</span>
+                    <span>Tap to continue</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -353,7 +513,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
                     characterName ? "pt-12" : "py-6"
                   }`,
             ].join(" ")}
-            onClick={handleSurfaceInteraction}
+            onClick={(event) => handleSurfaceInteraction(event)}
           >
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-amber-900/10 via-transparent to-transparent pointer-events-none" />
             <div className="absolute inset-0 bg-stone-950/40 pointer-events-none" />
@@ -383,6 +543,8 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
               )}
             </div>
           )}
+          {/* Navbar Spacer */}
+          <div className="h-[calc(4rem+env(safe-area-inset-bottom))]" />
         </div>
       ) : null}
     </div>

@@ -50,12 +50,10 @@ jobs:
           VITE_SPACETIMEDB_DB_NAME: "grezwandererdata"
         run: bun run build:freiburg
 
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
       - name: Deploy to Firebase
-        env:
-          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-        run: |
-          echo "$GCP_CREDENTIALS" > gcp-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=gcp-key.json
-          bun run deploy:firebase:freiburg
-          rm gcp-key.json
+        run: bun run deploy:firebase:freiburg

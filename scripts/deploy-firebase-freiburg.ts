@@ -33,6 +33,7 @@ run([
   "deploy",
   "--only",
   "hosting:freiburg-event",
+  "--non-interactive",
 ]);
 
 console.log("[deploy:firebase:freiburg] Freiburg Hosting deploy completed.");

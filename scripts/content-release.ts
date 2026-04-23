@@ -68,8 +68,11 @@ const publishContent = async (
       .withUri(host)
       .withDatabaseName(database)
       .withToken(getOperatorToken(host, database))
-      .onConnect(async (conn, _identity, token) => {
+      .onConnect(async (conn, identity, token) => {
         try {
+          console.log(
+            `ℹ️ INFO Connected as Identity: ${identity.toHexString()}`,
+          );
           persistOperatorToken(host, database, token);
           await ensureAdminAccess(conn);
           await conn.reducers.publishContent({

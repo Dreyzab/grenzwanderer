@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home,
@@ -63,7 +63,25 @@ export const Navbar = <TTab extends string>({
   onTabChange,
   badges,
 }: NavbarProps<TTab>) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    try {
+      const saved = localStorage.getItem("grenzwanderer_navbar_collapsed");
+      return saved === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "grenzwanderer_navbar_collapsed",
+        isCollapsed.toString(),
+      );
+    } catch {
+      // ignore
+    }
+  }, [isCollapsed]);
 
   return (
     <motion.nav

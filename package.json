@@ -65,6 +65,7 @@
     "content:release:freiburg": "bun run scripts/content-release.ts --profile default --server maincloud --db grezwandererdata",
     "content:tag": "bun run scripts/content-tag.ts",
     "content:rollback": "bun run scripts/content-rollback.ts",
+    "governance:admin:grant": "bun run scripts/governance-grant-admin.ts",
     "content:manifest:check": "bun run scripts/content-manifest-check.ts",
     "content:obsidian:coverage:check": "bun run scripts/content-obsidian-coverage-check.ts",
     "content:map:metrics:check": "bun run scripts/content-map-metrics-check.ts",

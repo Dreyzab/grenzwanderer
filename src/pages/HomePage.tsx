@@ -13,7 +13,12 @@ import {
 import { parseSnapshot } from "../features/vn/vnContent";
 import { reducers, tables } from "../shared/spacetime/bindings";
 import { useIdentity } from "../shared/spacetime/useIdentity";
+import { postRuntimeDebug } from "../shared/debug/runtimeDebug";
 import { ConfirmationModal } from "../shared/ui/ConfirmationModal";
+import {
+  resolveUiLanguage,
+  type UiLanguage,
+} from "../shared/hooks/useUiLanguage";
 
 interface HomePageProps {
   onNavigate: (
@@ -32,6 +37,28 @@ interface HomePageProps {
 
 type CitySelection = "freiburg_1905" | "karlsruhe_1905";
 type FreiburgFlowState = "idle" | "confirm_reset" | "select_origin";
+type LanguageFlagKey = "lang_ru" | "lang_de";
+
+const languagePanelStrings: Record<
+  UiLanguage,
+  { label: string; title: string; switching: string }
+> = {
+  en: {
+    label: "Language",
+    title: "Choose interface language",
+    switching: "Switching language...",
+  },
+  ru: {
+    label: "Язык",
+    title: "Выберите язык интерфейса",
+    switching: "Переключаем язык...",
+  },
+  de: {
+    label: "Sprache",
+    title: "Interface-Sprache waehlen",
+    switching: "Sprache wird gewechselt...",
+  },
+};
 
 const buildPlayerFlags = (
   isReady: boolean,
@@ -95,36 +122,10 @@ const hasFreiburgProgressHeuristic = (
   );
 };
 
-const postDebugLog = (
-  location: string,
-  message: string,
-  data: Record<string, unknown>,
-  hypothesisId: string,
-  runId = "run1",
-): void => {
-  // #region agent log
-  fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "f85e6b",
-    },
-    body: JSON.stringify({
-      sessionId: "f85e6b",
-      runId,
-      hypothesisId,
-      location,
-      message,
-      data,
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-  // #endregion
-};
-
 export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const { identityHex, isConnected, connectionError } = useIdentity();
   const beginFreiburgOrigin = useReducer(reducers.beginFreiburgOrigin);
+  const setFlag = useReducer(reducers.setFlag);
 
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
@@ -137,6 +138,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const [selectedCity, setSelectedCity] =
     useState<CitySelection>("freiburg_1905");
   const [pendingResetOnBegin, setPendingResetOnBegin] = useState(false);
+  const [isLanguageUpdating, setIsLanguageUpdating] = useState(false);
   const launchInFlightRef = useRef(false);
 
   const activeVersion = useMemo(
@@ -171,6 +173,11 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     () => hasFreiburgProgressHeuristic(sessions, playerFlags),
     [playerFlags, sessions],
   );
+  const uiLanguage = useMemo(
+    () => resolveUiLanguage(playerFlags),
+    [playerFlags],
+  );
+  const languageUi = languagePanelStrings[uiLanguage];
 
   const entryTarget = useMemo<FreiburgEntryTarget>(
     () =>
@@ -221,8 +228,36 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     onOpenVnScenario(scenarioId);
   };
 
+  const handleLanguageChange = async (nextLanguage: UiLanguage) => {
+    if (isLanguageUpdating || uiLanguage === nextLanguage) {
+      return;
+    }
+    setIsLanguageUpdating(true);
+    setFlowStatus(languageUi.switching);
+
+    const updates: Array<{ key: LanguageFlagKey; value: boolean }> = [
+      { key: "lang_ru", value: nextLanguage === "ru" },
+      { key: "lang_de", value: nextLanguage === "de" },
+    ];
+
+    try {
+      for (const update of updates) {
+        await setFlag(update);
+      }
+      setFlowStatus(null);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to switch language. Please retry.";
+      setFlowStatus(message);
+    } finally {
+      setIsLanguageUpdating(false);
+    }
+  };
+
   const handleContinue = async () => {
-    postDebugLog(
+    postRuntimeDebug(
       "HomePage.tsx:handleContinue",
       "Continue pressed",
       {
@@ -316,6 +351,36 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
       <div className="fixed inset-0 bg-gradient-to-b from-stone-950 via-transparent to-stone-950/80 pointer-events-none" />
 
       <main className="flex-1 flex flex-col items-center justify-center p-6 gap-10 pb-24 relative z-10">
+        <div className="w-full max-w-lg flex justify-end">
+          <div className="inline-flex items-center gap-2 rounded-xl border border-[#44403c] bg-[#1c1917]/95 px-3 py-2 shadow-md">
+            <span className="text-[11px] uppercase tracking-wide text-[#a8a29e]">
+              {languageUi.label}
+            </span>
+            <div
+              className="inline-flex items-center rounded-md border border-[#44403c] overflow-hidden"
+              role="group"
+              aria-label={languageUi.title}
+            >
+              {(["en", "ru", "de"] as const).map((language) => (
+                <button
+                  key={language}
+                  type="button"
+                  title={languageUi.title}
+                  onClick={() => void handleLanguageChange(language)}
+                  disabled={isLanguageUpdating}
+                  className={`h-8 min-w-[42px] px-2 text-xs font-semibold tracking-wide transition-colors ${
+                    uiLanguage === language
+                      ? "bg-[#a16207] text-[#f5f5f4]"
+                      : "bg-[#292524] text-[#d6d3d1] hover:bg-[#44403c]"
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  {language.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="text-center space-y-3">
           <div className="relative inline-block">
             <h1 className="text-5xl md:text-7xl font-sans text-primary tracking-tighter drop-shadow-lg relative z-10">

@@ -171,7 +171,7 @@ const OriginListView = ({
     animate={{ opacity: 1 }}
     exit={{ opacity: 0, x: -60 }}
     transition={{ duration: 0.35 }}
-    className="origin-selection-shell min-h-[100dvh] flex flex-col relative overflow-hidden select-none"
+    className="origin-selection-shell flex h-[100dvh] max-h-[100dvh] min-h-0 flex-col relative overflow-hidden select-none"
     style={{ backgroundColor: C.coal }}
   >
     <div
@@ -205,7 +205,7 @@ const OriginListView = ({
       <X size={16} />
     </button>
 
-    <header className="relative z-10 px-5 pb-4 pt-[max(env(safe-area-inset-top),1.5rem)] text-center">
+    <header className="relative z-10 shrink-0 px-5 pb-4 pt-[max(env(safe-area-inset-top),1.5rem)] text-center">
       <div
         className="mb-3 text-[9px] uppercase tracking-[0.4em]"
         style={{ color: C.bone, opacity: 0.4, fontFamily: "var(--font-mono)" }}
@@ -255,7 +255,7 @@ const OriginListView = ({
       </div>
     </header>
 
-    <main className="relative z-10 flex-1 overflow-y-auto px-4 pb-8">
+    <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pb-8">
       <div className="mx-auto flex max-w-md flex-col gap-3">
         {originProfiles.map((profile, index) => (
           <DossierCard
@@ -269,7 +269,7 @@ const OriginListView = ({
       </div>
     </main>
 
-    <footer className="relative z-10 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-2">
+    <footer className="relative z-10 shrink-0 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-2">
       <div className="mx-auto flex max-w-md justify-end">
         <button
           type="button"
@@ -450,41 +450,43 @@ const OriginDetailView = forwardRef<
       style={{ backgroundColor: C.coal }}
     >
       <div
-        className="sticky top-0 z-20 flex items-center justify-between px-5 py-3"
+        className="sticky top-0 z-20 px-5 py-3"
         style={{
           backgroundColor: `${C.coal}EE`,
           backdropFilter: "blur(12px)",
           borderBottom: `1px solid ${C.steel}15`,
         }}
       >
-        <button
-          type="button"
-          onClick={onBack}
-          className="px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] transition-opacity hover:opacity-80"
-          style={{ color: C.steel, fontFamily: "var(--font-mono)" }}
-        >
-          {"<- BACK"}
-        </button>
-        <div
-          className="text-[9px] uppercase tracking-[0.3em]"
-          style={{ color: `${C.bone}40`, fontFamily: "var(--font-mono)" }}
-        >
-          ORIGIN SELECTION
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] transition-opacity hover:opacity-80"
+            style={{ color: `${C.bone}CC`, fontFamily: "var(--font-mono)" }}
+          >
+            {"<- BACK"}
+          </button>
+          <div
+            className="text-[10px] uppercase tracking-[0.3em]"
+            style={{ color: `${C.bone}80`, fontFamily: "var(--font-mono)" }}
+          >
+            ORIGIN SELECTION
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            aria-label="Close origin selection"
+            className="flex h-9 w-9 items-center justify-center transition-opacity hover:opacity-80"
+            style={{
+              color: C.bone,
+              border: `1px solid ${C.steel}25`,
+              backgroundColor: `${C.ink}C0`,
+              clipPath: CLIP_BADGE,
+            }}
+          >
+            <X size={16} />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onCancel}
-          aria-label="Close origin selection"
-          className="flex h-9 w-9 items-center justify-center transition-opacity hover:opacity-80"
-          style={{
-            color: C.bone,
-            border: `1px solid ${C.steel}25`,
-            backgroundColor: `${C.ink}C0`,
-            clipPath: CLIP_BADGE,
-          }}
-        >
-          <X size={16} />
-        </button>
       </div>
 
       <div className="relative max-h-[45vh] w-full shrink-0 overflow-hidden aspect-[4/3]">
@@ -508,33 +510,35 @@ const OriginDetailView = forwardRef<
           }}
         />
 
-        <div className="absolute bottom-4 left-5 right-5">
-          <div
-            className="mb-1 text-[9px] uppercase tracking-[0.3em]"
-            style={{ color: accent, fontFamily: "var(--font-mono)" }}
-          >
-            {`THE ${profile.id.toUpperCase()}`}
-          </div>
-          <h2
-            className="text-3xl font-black uppercase leading-none tracking-tight"
-            style={{
-              color: C.bone,
-              fontFamily: "var(--font-display)",
-              textShadow: "0 2px 20px rgba(0,0,0,0.6)",
-            }}
-          >
-            {profile.dossier.characterName}
-          </h2>
-          <div
-            className="mt-1 text-[10px] uppercase tracking-[0.15em]"
-            style={{ color: `${C.bone}55`, fontFamily: "var(--font-mono)" }}
-          >
-            {`${profile.dossier.cityOrigin} · ${genderLabel(profile.dossier.gender)}, age ${profile.dossier.age}`}
+        <div className="absolute bottom-4 left-0 right-0 px-5">
+          <div className="mx-auto w-full max-w-3xl">
+            <div
+              className="mb-1 text-[10px] uppercase tracking-[0.3em]"
+              style={{ color: accent, fontFamily: "var(--font-mono)" }}
+            >
+              {`THE ${profile.id.toUpperCase()}`}
+            </div>
+            <h2
+              className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl"
+              style={{
+                color: C.bone,
+                fontFamily: "var(--font-display)",
+                textShadow: "0 2px 20px rgba(0,0,0,0.6)",
+              }}
+            >
+              {profile.dossier.characterName}
+            </h2>
+            <div
+              className="mt-1 text-xs uppercase tracking-[0.15em]"
+              style={{ color: `${C.bone}AA`, fontFamily: "var(--font-mono)" }}
+            >
+              {`${profile.dossier.cityOrigin} · ${genderLabel(profile.dossier.gender)}, age ${profile.dossier.age}`}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="relative z-10 mt-2 flex flex-col gap-5 px-5 pb-[120px]">
+      <div className="relative z-10 mx-auto mt-2 flex w-full max-w-3xl flex-col gap-5 px-5 pb-[120px]">
         {statusStrip(status)}
 
         <div
@@ -545,14 +549,14 @@ const OriginDetailView = forwardRef<
           }}
         >
           <div
-            className="mb-2 text-[8px] uppercase tracking-[0.3em]"
-            style={{ color: `${accent}80`, fontFamily: "var(--font-mono)" }}
+            className="mb-2 text-[10px] uppercase tracking-[0.3em]"
+            style={{ color: `${accent}CC`, fontFamily: "var(--font-mono)" }}
           >
             THE FREIBURG DOSSIER
           </div>
           <p
-            className="text-sm italic leading-relaxed"
-            style={{ color: `${C.bone}88`, fontFamily: "var(--font-serif)" }}
+            className="text-base italic leading-relaxed"
+            style={{ color: `${C.bone}CC`, fontFamily: "var(--font-serif)" }}
           >
             "{profile.dossier.quote}"
           </p>
@@ -562,12 +566,12 @@ const OriginDetailView = forwardRef<
           {profile.statEffects.map((stat) => (
             <div
               key={stat.key}
-              className="inline-flex items-center gap-2 px-3 py-2 text-[10px] uppercase tracking-[0.18em]"
+              className="inline-flex items-center gap-2 px-3 py-2 text-xs uppercase tracking-[0.18em]"
               style={{
                 clipPath: CLIP_BADGE,
-                backgroundColor: `${accent}12`,
-                border: `1px solid ${accent}22`,
-                color: `${C.bone}D0`,
+                backgroundColor: `${accent}1F`,
+                border: `1px solid ${accent}40`,
+                color: C.bone,
                 fontFamily: "var(--font-mono)",
               }}
             >
@@ -582,21 +586,21 @@ const OriginDetailView = forwardRef<
           accent={C.brass}
           icon={<Sparkles size={14} />}
         >
-          <div className="mb-1 text-sm font-bold" style={{ color: C.bone }}>
+          <div className="mb-1 text-base font-bold" style={{ color: C.bone }}>
             {profile.signature.title}
           </div>
           <p
-            className="text-xs leading-relaxed"
-            style={{ color: `${C.bone}77` }}
+            className="text-sm leading-relaxed"
+            style={{ color: `${C.bone}CC` }}
           >
             {profile.signature.description}
           </p>
           <div
-            className="mt-2 inline-block px-2 py-1 text-[9px] uppercase"
+            className="mt-2 inline-block px-2 py-1 text-[10px] uppercase tracking-wider"
             style={{
-              backgroundColor: `${C.brass}12`,
-              color: `${C.brass}AA`,
-              border: `1px solid ${C.brass}20`,
+              backgroundColor: `${C.brass}1F`,
+              color: C.brass,
+              border: `1px solid ${C.brass}40`,
               clipPath: CLIP_BADGE,
               fontFamily: "var(--font-mono)",
             }}
@@ -610,22 +614,25 @@ const OriginDetailView = forwardRef<
           accent={C.crimson}
           icon={getFlawIcon(profile.flaw.icon)}
         >
-          <div className="mb-1 text-sm font-bold" style={{ color: C.crimson }}>
+          <div
+            className="mb-1 text-base font-bold"
+            style={{ color: C.crimson }}
+          >
             {profile.flaw.title}
           </div>
           <p
-            className="text-xs leading-relaxed"
-            style={{ color: `${C.bone}77` }}
+            className="text-sm leading-relaxed"
+            style={{ color: `${C.bone}CC` }}
           >
             {profile.flaw.description}
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             <div
-              className="px-2 py-1 text-[9px] uppercase"
+              className="px-2 py-1 text-[10px] uppercase tracking-wider"
               style={{
-                backgroundColor: `${C.crimson}12`,
-                color: `${C.crimson}99`,
-                border: `1px solid ${C.crimson}20`,
+                backgroundColor: `${C.crimson}1F`,
+                color: `${C.crimson}EE`,
+                border: `1px solid ${C.crimson}40`,
                 clipPath: CLIP_BADGE,
                 fontFamily: "var(--font-mono)",
               }}
@@ -633,11 +640,11 @@ const OriginDetailView = forwardRef<
               {`CHECK: ${profile.flaw.checkVoice.toUpperCase()} DC ${profile.flaw.dc}`}
             </div>
             <div
-              className="px-2 py-1 text-[9px] uppercase"
+              className="px-2 py-1 text-[10px] uppercase tracking-wider"
               style={{
-                backgroundColor: `${C.steel}12`,
-                color: `${C.steel}AA`,
-                border: `1px solid ${C.steel}20`,
+                backgroundColor: `${C.steel}1F`,
+                color: `${C.bone}CC`,
+                border: `1px solid ${C.steel}40`,
                 clipPath: CLIP_BADGE,
                 fontFamily: "var(--font-mono)",
               }}
@@ -664,23 +671,23 @@ const OriginDetailView = forwardRef<
                 }}
               >
                 <div
-                  className="mb-0.5 text-xs font-bold uppercase"
+                  className="mb-0.5 text-sm font-bold uppercase"
                   style={{ color: C.bone, fontFamily: "var(--font-display)" }}
                 >
                   {track.title}
                 </div>
                 <div
-                  className="text-[8px] uppercase tracking-wide"
+                  className="text-[10px] uppercase tracking-wide"
                   style={{
-                    color: `${C.steel}88`,
+                    color: `${C.steel}DD`,
                     fontFamily: "var(--font-mono)",
                   }}
                 >
                   {track.focus}
                 </div>
                 <p
-                  className="mt-2 text-xs leading-relaxed"
-                  style={{ color: `${C.bone}66` }}
+                  className="mt-2 text-sm leading-relaxed"
+                  style={{ color: `${C.bone}BB` }}
                 >
                   {track.description}
                 </p>
@@ -688,20 +695,20 @@ const OriginDetailView = forwardRef<
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {track.steps.map((step, index) => (
                     <div key={`${track.id}-${step.voice}-${step.requiredXp}`}>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <div
                           className="h-1.5 w-1.5 rounded-full"
                           style={{ backgroundColor: accent }}
                         />
                         <GameIcon
                           name={step.voice}
-                          size={10}
-                          className="opacity-80"
+                          size={12}
+                          className="opacity-90"
                         />
                         <span
-                          className="text-[7px] uppercase"
+                          className="text-[10px] uppercase"
                           style={{
-                            color: `${C.bone}55`,
+                            color: `${C.bone}AA`,
                             fontFamily: "var(--font-mono)",
                           }}
                         >
@@ -709,9 +716,9 @@ const OriginDetailView = forwardRef<
                         </span>
                         {index < track.steps.length - 1 ? (
                           <span
-                            className="mx-0.5 text-[7px]"
+                            className="mx-0.5 text-[10px]"
                             style={{
-                              color: `${C.steel}40`,
+                              color: `${C.steel}88`,
                               fontFamily: "var(--font-mono)",
                             }}
                           >
@@ -724,14 +731,14 @@ const OriginDetailView = forwardRef<
                 </div>
 
                 <div
-                  className="mt-2 text-[9px] italic"
-                  style={{ color: `${C.bone}55` }}
+                  className="mt-3 text-xs italic"
+                  style={{ color: `${C.bone}CC` }}
                 >
                   {`-> ${track.finalAbilityTitle}`}
                 </div>
                 <p
-                  className="mt-1 text-[10px] leading-relaxed"
-                  style={{ color: `${C.bone}60` }}
+                  className="mt-1 text-xs leading-relaxed"
+                  style={{ color: `${C.bone}AA` }}
                 >
                   {track.finalAbilityDescription}
                 </p>
@@ -747,7 +754,7 @@ const OriginDetailView = forwardRef<
           background: `linear-gradient(180deg, transparent, ${C.coal}EE 20%, ${C.coal} 100%)`,
         }}
       >
-        <div className="pointer-events-auto">
+        <div className="pointer-events-auto mx-auto w-full max-w-3xl">
           <motion.button
             type="button"
             disabled={disabled}
@@ -795,7 +802,7 @@ const Section = ({
     <div className="mb-2 flex items-center gap-2">
       <span style={{ color: accent }}>{icon}</span>
       <div
-        className="text-[9px] uppercase tracking-[0.3em]"
+        className="text-[11px] font-semibold uppercase tracking-[0.3em]"
         style={{ color: accent, fontFamily: "var(--font-mono)" }}
       >
         {label}

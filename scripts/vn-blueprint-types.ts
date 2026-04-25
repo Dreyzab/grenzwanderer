@@ -27,6 +27,7 @@ export type NodeBlueprint = {
   backgroundVideoPosterUrl?: VnNode["backgroundVideoPosterUrl"];
   backgroundVideoSoundPrompt?: VnNode["backgroundVideoSoundPrompt"];
   characterId?: string;
+  sceneGroupId?: string;
   voicePresenceMode?: VnNode["voicePresenceMode"];
   activeSpeakers?: string[];
   narrativeLayout?: VnNode["narrativeLayout"];

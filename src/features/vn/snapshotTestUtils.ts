@@ -1,4 +1,5 @@
 import { CANONICAL_FACTION_REGISTRY } from "../../../data/factionContract";
+import { createVnContractMetadata } from "../../shared/vn-contract";
 import {
   CURRENT_VN_SNAPSHOT_SCHEMA_VERSION,
   MIN_VN_SCHEMA_WITH_MAP,
@@ -99,6 +100,7 @@ export const createTestSnapshot = (
   mergeSnapshot(
     {
       schemaVersion: CURRENT_VN_SNAPSHOT_SCHEMA_VERSION,
+      contractMetadata: createVnContractMetadata(),
       scenarios: [],
       nodes: [],
       vnRuntime: {

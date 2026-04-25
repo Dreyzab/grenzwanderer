@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { motion, useDragControls } from "framer-motion";
 import {
   Home,
   Map as MapIcon,
@@ -10,7 +10,6 @@ import {
   Compass,
   Swords,
   ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 
 type TabId =
@@ -83,29 +82,73 @@ export const Navbar = <TTab extends string>({
     }
   }, [isCollapsed]);
 
+  const navRef = useRef<HTMLElement | null>(null);
+  const barRowRef = useRef<HTMLDivElement | null>(null);
+  const dragControls = useDragControls();
+  const [collapseY, setCollapseY] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const h = Math.round(el.getBoundingClientRect().height);
+      // Как в CSS: calc(100% - 1.5rem - env(safe-area-inset-bottom))
+      const peek = 24; // 1.5rem
+      const barRow = barRowRef.current;
+      const safe =
+        (barRow && parseFloat(getComputedStyle(barRow).paddingBottom)) || 0;
+      setCollapseY(Math.max(0, h - peek - safe));
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    if (barRowRef.current) ro.observe(barRowRef.current);
+    return () => ro.disconnect();
+  }, [tabs.length]);
+
+  const yAnimated =
+    isCollapsed && collapseY > 0
+      ? collapseY
+      : isCollapsed
+        ? "calc(100% - 1.5rem - env(safe-area-inset-bottom))"
+        : 0;
+
   return (
     <motion.nav
+      ref={navRef}
       initial={false}
-      animate={{
-        y: isCollapsed
-          ? "calc(100% - 1.5rem - env(safe-area-inset-bottom))"
-          : 0,
-      }}
-      drag="y"
-      dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={0.2}
+      animate={{ y: yAnimated }}
+      drag={collapseY > 0 ? "y" : false}
+      dragListener={false}
+      dragControls={dragControls}
+      dragConstraints={
+        collapseY > 0 ? { top: 0, bottom: collapseY } : undefined
+      }
+      dragElastic={0.04}
+      dragMomentum={false}
       onDragEnd={(_, info) => {
-        if (info.offset.y > 50) setIsCollapsed(true);
-        else if (info.offset.y < -50) setIsCollapsed(false);
+        if (collapseY <= 0) return;
+        const { offset, velocity } = info;
+        const vTh = 280;
+        if (!isCollapsed) {
+          if (offset.y > 48 || velocity.y > vTh) setIsCollapsed(true);
+          else setIsCollapsed(false);
+        } else {
+          if (offset.y < -48 || velocity.y < -vTh) setIsCollapsed(false);
+          else setIsCollapsed(true);
+        }
       }}
-      transition={{ type: "spring", damping: 25, stiffness: 200 }}
+      transition={{ type: "spring", damping: 28, stiffness: 280 }}
       className="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-stone-950/95 backdrop-blur-md border-t border-stone-800 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] touch-none"
     >
-      {/* Pull Handle / Toggle Button */}
+      {/* Ручка: жест тянет панель; onTap — без конфликта с drag */}
       <div className="flex justify-center w-full">
-        <button
+        <motion.button
           type="button"
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onPointerDown={(e) => dragControls.start(e)}
+          onTap={() => setIsCollapsed((c) => !c)}
           className="group relative -top-3 flex h-8 w-20 items-center justify-center rounded-t-2xl border-x border-t border-stone-800 bg-stone-950/95 pb-1 transition-colors hover:bg-stone-900"
           aria-label={isCollapsed ? "Expand Navigation" : "Collapse Navigation"}
         >
@@ -116,10 +159,13 @@ export const Navbar = <TTab extends string>({
           >
             <ChevronDown size={14} />
           </motion.div>
-        </button>
+        </motion.button>
       </div>
 
-      <div className="h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] px-2 flex items-center">
+      <div
+        ref={barRowRef}
+        className="h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] px-2 flex items-center"
+      >
         <div className="flex items-center justify-between w-full h-16 max-w-lg mx-auto relative">
           {tabs.map((tab) => {
             const isActive = tab.id === activeTab;

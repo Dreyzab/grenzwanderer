@@ -16,6 +16,7 @@ const __dirname = path.dirname(__filename);
 export const repoRoot = path.resolve(__dirname, "..");
 
 export const storyRootRelativePath = "obsidian/StoryDetective";
+export const designDocsRootRelativePath = "obsidian/Detectiv";
 export const case01OnboardingRelativeRoot =
   "40_GameViewer/Case01/Plot/01_Onboarding";
 export const normalizeContentReleaseProfile = (
@@ -59,6 +60,10 @@ export const mapMetricsSnapshotRelativePath =
 export const storyRoot = path.join(
   repoRoot,
   ...storyRootRelativePath.split("/"),
+);
+export const designDocsRoot = path.join(
+  repoRoot,
+  ...designDocsRootRelativePath.split("/"),
 );
 export const contentSnapshotPath = path.join(
   repoRoot,

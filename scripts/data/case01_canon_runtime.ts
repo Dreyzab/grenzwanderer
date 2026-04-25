@@ -201,6 +201,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundVideoPosterUrl: CASE01_TRAIN_COMPARTMENT_BG,
     backgroundVideoSoundPrompt: true,
     narrativeLayout: "fullscreen",
+    sceneGroupId: "train_bahn_video",
     advanceOnVideoEnd: true,
     onEnter: [
       {
@@ -225,6 +226,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     bodyOverride: "",
     backgroundUrl: CASE01_TRAIN_COMPARTMENT_BG,
     narrativeLayout: "fullscreen",
+    sceneGroupId: "train_compartment",
     choices: [
       {
         id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_COMPARTMENT_CINEMA",
@@ -244,6 +246,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_TRAIN_COMPARTMENT_BG,
     narrativePresentation: "letter",
     narrativeLayout: "letter_overlay",
+    sceneGroupId: "train_compartment",
     letterOverlayRevealDelayMs: 2800,
     choices: [
       {
@@ -257,11 +260,11 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     id: "scene_case01_train_assistant_intro",
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
-    titleOverride: "Неожиданный визитор",
     bodyOverride:
-      "Дверь купе приоткрывается, и в проёме появляется ваш помощник. Он не садится, лишь придерживает пальцами шляпу, словно готов снова исчезнуть в коридоре.\n\n— Сэр, вы читали утренние газеты? — спрашивает он, понижая голос. — Ни в одной заметке ни слова о Фрайбурге. Будто город вырезали из сегодняшнего дня.\n\nОн смотрит на письмо у вас в руках и хмурится. Слишком чисто. Слишком вовремя. Даже стук колёс теперь звучит как предупреждение.",
+      "**[Narrator]**:\nСкрип двери. Помощник замирает в проёме. Его рука на шляпе — как щит против сквозняка в коридоре.\n\n**[Assistant]**:\n— Сэр, газеты молчат. Ни слова о Фрайбурге. Будто город просто вырезали из сегодняшнего дня.\n\n**[inner_cynic]**:\nТишина — это не отсутствие звука. Это присутствие чьей-то очень дорогой воли.",
     backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
-    narrativeLayout: "split",
+    narrativeLayout: "log",
+    sceneGroupId: "train_assistant",
     characterId: "assistant",
     choices: [
       {
@@ -276,11 +279,11 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath:
       "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
-    titleOverride: "Ни слова в эфире",
     bodyOverride:
-      "— Я проверил и радиосводку, и ранние листки, — продолжает помощник. — Ничего. Ни одной строки об ограблении, ни одного тревожного слова между биржей и погодой.\n\nОн говорит это так, будто отсутствие новости страшнее самой новости. Ограбление банка, о котором молчат редакторы, пахнет не случайностью, а договорённостью.\n\nВ коридоре кто-то проходит мимо, и дверь снова едва слышно поскрипывает. Ваш собеседник делает шаг назад, оставляя вам пространство для мысли и недоверия.",
+      "**[Assistant]**:\n— Ни радио, ни листки. Между биржей и погодой — звенящая пустота. Никто не хочет брать на себя ответственность за первую новость.\n\n**[inner_analyst]**:\nЗаговор молчания требует логистики. Редакторы не бывают такими единодушными бесплатно. Кто-то купил время, чтобы подготовить сцену.\n\n**[Narrator]**:\nСтук колёс по рельсам теперь звучит как обратный отсчёт.",
     backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
-    narrativeLayout: "split",
+    narrativeLayout: "log",
+    sceneGroupId: "train_assistant",
     characterId: "assistant",
     choices: [
       {
@@ -295,11 +298,11 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath:
       "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
-    titleOverride: "Прибытие рядом",
     bodyOverride:
-      "— Мы почти на месте, — говорит он уже тише. — Я поищу матушку в вагоне-ресторане и перехвачу багаж, пока вы будете сходить на перрон. Встретимся у стойки выдачи.\n\nОн коротко кивает, будто это обычная дорога, а не пролог к делу, которое кто-то уже успел спрятать от города. Затем исчезает в коридоре, оставляя вам письмо, стекло окна и последний отрезок пути.",
+      "**[Assistant]**:\n— Почти на месте. Я заберу багаж и матушку, встретимся на выдаче. Не дайте им сбить вас с толку на перроне.\n\n**[Narrator]**:\nКороткий кивок. Дверь захлопывается. Остаток пути ты едешь в компании письма и своего растущего недоверия.",
     backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
-    narrativeLayout: "split",
+    narrativeLayout: "log",
+    sceneGroupId: "train_assistant",
     characterId: "assistant",
     choices: [
       {
@@ -318,6 +321,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundVideoUrl: `${CASE01_START_VIDEO_BASE_PATH}/Ankommen.mp4`,
     backgroundVideoPosterUrl: CASE01_PLATFORM_STILL_BG,
     narrativeLayout: "fullscreen",
+    sceneGroupId: "train_ankommen_video",
     advanceOnVideoEnd: true,
     choices: [
       {
@@ -336,6 +340,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundVideoUrl: `${CASE01_START_VIDEO_BASE_PATH}/Video_voza_na_peronu.mp4`,
     backgroundVideoPosterUrl: CASE01_HBF_BG,
     narrativeLayout: "fullscreen",
+    sceneGroupId: "train_voza_video",
     advanceOnVideoEnd: true,
     choices: [
       {
@@ -353,7 +358,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     bodyOverride:
       "The platform receives you like a room that was warned in advance.\n\nOne part of your mind starts counting exits, uniforms, luggage carts, the honest geometry of escape. Another part notices the silence first: no public outrage, no raised voices, no appetite for scandal. Freiburg has decided to keep its pulse hidden.\n\nA third, less useful but never absent, whispers that the city already knows your name and resents you for arriving late.\n\nGood. Let it resent. Silence is still testimony, if you stand inside it long enough.",
     backgroundUrl: CASE01_PLATFORM_STILL_BG,
-    narrativeLayout: "thought_log",
+    narrativeLayout: "log",
+    sceneGroupId: "platform_disembark",
     characterId: "inspector",
     choices: [
       {
@@ -371,6 +377,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     bodyOverride:
       "Steam folds around the iron columns and the first rush of arriving passengers. A boy with newspapers cuts between trunks like a thought no one can pin down. Somewhere farther down the platform, metal tags knock softly against a luggage grille, and beyond that a police post studies the crowd with professional boredom.\n\nFreiburg has not greeted you. It has merely failed to hide.",
     backgroundUrl: CASE01_HBF_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "hbf_hall",
     choices: [
       {
         id: "CASE01_BEAT1_NEWSBOY",
@@ -397,6 +405,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     bodyOverride:
       "A newspaper boy is calling fresh headlines beside a soot-streaked pillar. That alone is wrong. Your assistant swore the papers were silent on the robbery, yet here the bank's name is being sold by the armful to late arrivals.\n\nHe keeps one eye on the crowd while he shouts, as if waiting to be corrected for knowing too much. The edition is thin, hurried, and specific where rumor should still be fog. Someone wanted the station to hear about Bankhaus Krebs before the rest of Freiburg could decide how to feel about it.\n\nIf the story is already in print, the bank is no longer only a crime scene. It is the first battleground.",
     backgroundUrl: CASE01_NEWSBOY_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "hbf_newsboy",
     characterId: "paperboy",
     terminal: true,
     onEnter: [
@@ -443,6 +453,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     bodyOverride:
       "Behind the brass grille, the luggage clerk is already tired of everyone in front of him. Trunks, hat boxes, and porters' tags make a little bureaucracy of metal and impatience. In that clutter, one line on the incoming manifest stands out with almost theatrical precision: a secured crate from Strasbourg marked for Bankhaus J.A. Krebs, rushed through as a priority transfer before dawn.\n\nThe clerk pretends not to notice you reading upside down. He notices. He simply prefers not to become part of the story. That, too, is useful.\n\nThe bank did not merely suffer a robbery. It received something first. Whatever Freiburg is hiding, the paper trail starts there.",
     backgroundUrl: CASE01_LUGGAGE_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "hbf_luggage",
     terminal: true,
     onEnter: [
       {
@@ -488,6 +500,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     bodyOverride:
       "Two railway policemen keep their voices low, but not low enough. One mutters about an open vault and an untouched window; the other cuts him off with a glance toward the city side of the station. The real fear in their posture is not violence. It is instruction.\n\nWhen they notice you listening, the taller one stiffens and smooths his tunic. 'No loitering. Orders are to keep the platform clear until the Rathaus gives its statement.' He says Rathaus the way a clerk says weather: as the force that decides what may be acknowledged.\n\nSo the city hall is already awake, already managing the shape of the story. If politics is pulling the strings before noon, that thread deserves the first hard tug.",
     backgroundUrl: CASE01_POLICE_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "hbf_police",
     terminal: true,
     onEnter: [
       {

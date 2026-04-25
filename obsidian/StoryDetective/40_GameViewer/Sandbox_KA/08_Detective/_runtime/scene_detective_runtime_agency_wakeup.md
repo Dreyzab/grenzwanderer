@@ -15,8 +15,6 @@ telegrams.
 ```vn-logic
 preconditions:
   - and(flag_equals(origin_detective,true), not(flag_equals(origin_detective_handoff_done,true)))
-on_enter:
-  - set_flag(origin_detective_handoff_done,true)
 choices:
   - id: DETECTIVE_REPORT_IN
     text: Report to the agency floor

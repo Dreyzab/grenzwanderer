@@ -428,12 +428,20 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
           conditions: [
             { type: "flag_is", key: "priority_bank_first", value: true },
             { type: "flag_is", key: "mayor_briefing_complete", value: true },
+            { type: "flag_is", key: "origin_detective", value: true },
           ],
         },
         {
           type: "flag_is",
           key: "bank_investigation_complete",
           value: false,
+        },
+        {
+          type: "logic_or",
+          conditions: [
+            { type: "flag_is", key: "origin_detective", value: false },
+            { type: "flag_is", key: "detective_prologue_done", value: true },
+          ],
         },
       ],
       actions: [
@@ -468,7 +476,13 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       intent: "objective",
       conditions: [
         CASE01_MAINLINE_UNLOCKED_CONDITION,
-        { type: "flag_is", key: "priority_mayor_first", value: true },
+        {
+          type: "logic_or",
+          conditions: [
+            { type: "flag_is", key: "priority_mayor_first", value: true },
+            { type: "flag_is", key: "origin_detective", value: true },
+          ],
+        },
         { type: "flag_is", key: "mayor_briefing_complete", value: false },
       ],
       actions: [

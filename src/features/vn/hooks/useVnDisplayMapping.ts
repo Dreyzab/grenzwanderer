@@ -1,5 +1,13 @@
 import { useMemo } from "react";
+import type { UiLanguage } from "../../../shared/hooks/useUiLanguage";
 import type { VnStrings } from "../../i18n/uiStrings";
+import {
+  localizeVnChoice,
+  localizeVnChoices,
+  resolveVnNodeText,
+  resolveVnScenarioTitle,
+} from "../../i18n/vnContentTranslations";
+import { useI18n } from "../../i18n/I18nContext";
 import {
   buildInnerVoiceFallbackText,
   readPsycheState,
@@ -28,6 +36,7 @@ import type { VnSkillCheckResolveState } from "../ui/VnSkillCheckResolveOverlay"
 
 interface UseVnDisplayMappingParams {
   t: VnStrings;
+  uiLanguage: UiLanguage;
   selectedScenarioId: string;
   selectedScenario: VnScenario | null;
   snapshot: VnSnapshot | null;
@@ -71,6 +80,7 @@ interface UseVnDisplayMappingParams {
 
 export function useVnDisplayMapping({
   t,
+  uiLanguage,
   selectedScenarioId,
   selectedScenario,
   snapshot,
@@ -109,6 +119,8 @@ export function useVnDisplayMapping({
   pendingChoiceId,
   getChoiceChancePercent,
 }: UseVnDisplayMappingParams) {
+  const { dictionary } = useI18n();
+
   const showInlineAiThoughtCard =
     !activeSkillResolve &&
     Boolean(activeAiThoughtContext) &&
@@ -141,21 +153,77 @@ export function useVnDisplayMapping({
       : null;
 
   const displayedPresentation = activeSkillResolve?.frozen;
-  const visibleChoices =
+  const presentationScenarioId =
+    activeSkillResolve?.scenarioId ?? selectedScenarioId;
+  const presentationNodeId =
+    activeSkillResolve?.nodeId ?? currentNode?.id ?? null;
+  const baseVisibleChoices =
     displayedPresentation?.visibleChoices ?? currentVisibleChoices;
-  const autoContinueChoice =
+  const baseAutoContinueChoice =
     displayedPresentation?.autoContinueChoice ?? currentAutoContinueChoice;
-  const narrativeText =
+  const visibleChoices = useMemo(
+    () =>
+      localizeVnChoices(
+        uiLanguage,
+        presentationScenarioId,
+        presentationNodeId,
+        baseVisibleChoices,
+        dictionary,
+      ),
+    [
+      baseVisibleChoices,
+      dictionary,
+      presentationNodeId,
+      presentationScenarioId,
+      uiLanguage,
+    ],
+  );
+  const autoContinueChoice = useMemo(
+    () =>
+      baseAutoContinueChoice
+        ? localizeVnChoice(
+            uiLanguage,
+            presentationScenarioId,
+            presentationNodeId,
+            baseAutoContinueChoice,
+            dictionary,
+          )
+        : null,
+    [
+      baseAutoContinueChoice,
+      dictionary,
+      presentationNodeId,
+      presentationScenarioId,
+      uiLanguage,
+    ],
+  );
+  const baseNarrativeText =
     displayedPresentation?.narrativeText ?? currentNarrativeText;
+  const narrativeText = resolveVnNodeText(
+    uiLanguage,
+    presentationScenarioId,
+    presentationNodeId,
+    "body",
+    baseNarrativeText,
+    dictionary,
+  );
   const resolvedBgUrl =
     displayedPresentation?.backgroundImageUrl ?? currentResolvedBgUrl;
   const speakerLabel = displayedPresentation
     ? (displayedPresentation.characterName ?? "Narrator")
     : currentSpeakerLabel;
-  const displayLocationName =
+  const baseDisplayLocationName =
     displayedPresentation?.locationName ??
     selectedScenario?.title ??
     t.unknownScenario;
+  const displayLocationName = resolveVnScenarioTitle(
+    uiLanguage,
+    selectedScenario?.id === presentationScenarioId
+      ? selectedScenario
+      : { id: presentationScenarioId, title: baseDisplayLocationName },
+    baseDisplayLocationName,
+    dictionary,
+  );
   const showOriginCards =
     displayedPresentation?.showOriginCards ?? currentShowOriginCards;
   const displayedScenarioCompleted =
@@ -316,7 +384,7 @@ export function useVnDisplayMapping({
       visibleChoices.map((choice, index) => {
         const choiceKey = buildChoiceKey(
           selectedScenarioId,
-          currentNode.id,
+          presentationNodeId ?? currentNode?.id ?? "",
           choice.id,
         );
         const isAvailable = isChoiceAvailable(
@@ -375,6 +443,7 @@ export function useVnDisplayMapping({
       mySession,
       myVars,
       pendingChoiceId,
+      presentationNodeId,
       selectedScenarioId,
       visibleChoices,
       visitedChoiceKeys,

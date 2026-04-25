@@ -1,0 +1,38 @@
+{
+	"nodes":[
+		{"id":"note_header","type":"text","text":"# Freiburg Detective\n## Canonical Entry Flow (Origin: Detective)","x":-2300,"y":-300,"width":400,"height":150},
+		{"id":"menu_entry","type":"text","text":"### Main Menu\nAction: [BEGIN INVESTIGATION]\nTriggers: `case01_hbf_arrival`","x":-2300,"y":0,"width":300,"height":200},
+		{"id":"vid_intro","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md","x":-1900,"y":-150,"width":350,"height":500},
+		{"id":"node_compartment","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md","x":-1500,"y":-150,"width":350,"height":500},
+		{"id":"node_letter","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md","x":-1100,"y":-150,"width":350,"height":500},
+		{"id":"node_assistant","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md","x":-700,"y":-150,"width":350,"height":500},
+		{"id":"vid_ankommen","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md","x":-300,"y":-150,"width":350,"height":500},
+		{"id":"vid_voza","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md","x":100,"y":-150,"width":350,"height":500},
+		{"id":"hbf_platform","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md","x":500,"y":-150,"width":350,"height":500},
+		{"id":"branch_newsboy","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md","x":950,"y":-450,"width":300,"height":400},
+		{"id":"branch_luggage","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md","x":950,"y":-25,"width":300,"height":400},
+		{"id":"branch_police","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md","x":950,"y":400,"width":300,"height":400},
+		{"id":"note_transition","type":"text","text":"### End of Arrival\nFlags: `priority_bank_first`\nState: Mainline Active","x":1350,"y":0,"width":300,"height":200},
+		{"id":"agency_wakeup","type":"file","file":"40_GameViewer/Sandbox_KA/08_Detective/_runtime/scene_detective_runtime_agency_wakeup.md","x":1750,"y":0,"width":350,"height":500},
+		{"id":"courier_case","type":"text","text":"## Secondary Case\nMissing Courier\n(Triggered by orientation)","x":1750,"y":600,"width":350,"height":150}
+	],
+	"edges":[
+		{"id":"e_menu_to_vid","fromNode":"menu_entry","fromSide":"right","toNode":"vid_intro","toSide":"left","label":"begin_investigation"},
+		{"id":"e_vid_to_comp","fromNode":"vid_intro","fromSide":"right","toNode":"node_compartment","toSide":"left","label":"Video: Bahn.mp4"},
+		{"id":"e_comp_to_letter","fromNode":"node_compartment","fromSide":"right","toNode":"node_letter","toSide":"left","label":"Night Compartment"},
+		{"id":"e_letter_to_ass","fromNode":"node_letter","fromSide":"right","toNode":"node_assistant","toSide":"left","label":"Master's Orders"},
+		{"id":"e_ass_to_ank","fromNode":"node_assistant","fromSide":"right","toNode":"vid_ankommen","toSide":"left","label":"Assistant Briefing"},
+		{"id":"e_ank_to_voza","fromNode":"vid_ankommen","fromSide":"right","toNode":"vid_voza","toSide":"left","label":"Video: Ankommen.mp4"},
+		{"id":"e_voza_to_plat","fromNode":"vid_voza","fromSide":"right","toNode":"hbf_platform","toSide":"left","label":"Platform Entrance (Voza)"},
+		{"id":"e_plat_to_news","fromNode":"hbf_platform","fromSide":"right","toNode":"branch_newsboy","toSide":"left","label":"Newsboy"},
+		{"id":"e_plat_to_lugg","fromNode":"hbf_platform","fromSide":"right","toNode":"branch_luggage","toSide":"left","label":"Luggage"},
+		{"id":"e_plat_to_pol","fromNode":"hbf_platform","fromSide":"right","toNode":"branch_police","toSide":"left","label":"Police"},
+		{"id":"e_news_to_trans","fromNode":"branch_newsboy","fromSide":"right","toNode":"note_transition","toSide":"left"},
+		{"id":"e_lugg_to_trans","fromNode":"branch_luggage","fromSide":"right","toNode":"note_transition","toSide":"left"},
+		{"id":"e_pol_to_trans","fromNode":"branch_police","fromSide":"right","toNode":"note_transition","toSide":"left"},
+		{"id":"e_trans_to_wakeup","fromNode":"note_transition","fromSide":"right","toNode":"agency_wakeup","toSide":"left","label":"Next Day / Loop"}
+	]
+}
+
+
+

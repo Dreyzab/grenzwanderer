@@ -35,6 +35,7 @@ import { ToastProvider } from "../shared/hooks/useToast";
 import { reducers, tables } from "../shared/spacetime/bindings";
 import { useIdentity } from "../shared/spacetime/useIdentity";
 import { usePresenceHeartbeat } from "../shared/spacetime/usePresenceHeartbeat";
+import { postRuntimeDebug } from "../shared/debug/runtimeDebug";
 import { Toaster } from "../shared/ui/Toaster";
 import { Navbar } from "../widgets/navbar/Navbar";
 import "./AppShell.css";
@@ -232,35 +233,13 @@ const identityLabel = (identityHex: string): string => {
   return `${identityHex.slice(0, 8)}...${identityHex.slice(-4)}`;
 };
 
-const postDebugLog = (
-  location: string,
-  message: string,
-  data: Record<string, unknown>,
-  hypothesisId: string,
-  runId = "run1",
-): void => {
-  // #region agent log
-  fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "f85e6b",
-    },
-    body: JSON.stringify({
-      sessionId: "f85e6b",
-      runId,
-      hypothesisId,
-      location,
-      message,
-      data,
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-  // #endregion
-};
-
 const AppShell = () => {
   const { identity, identityHex } = useIdentity();
+  const hasReceivedIdentityRef = useRef(false);
+  if (identity) {
+    hasReceivedIdentityRef.current = true;
+  }
+  const showInitialSpacetimeGate = !identity && !hasReceivedIdentityRef.current;
   const [commandSessions] = useTable(tables.myCommandSessions);
   const [battleSessions] = useTable(tables.myBattleSessions);
   const [vnSessions] = useTable(tables.myVnSessions);
@@ -522,7 +501,7 @@ const AppShell = () => {
   }, [identityHex, isActive]);
 
   const openVnScenario = (scenarioId: string) => {
-    postDebugLog(
+    postRuntimeDebug(
       "AppShell.tsx:openVnScenario",
       "Open VN scenario requested",
       {
@@ -546,7 +525,7 @@ const AppShell = () => {
     }
 
     const safeTab = coerceTabForProfile(tab, RELEASE_PROFILE, vnScenarioId);
-    postDebugLog(
+    postRuntimeDebug(
       "AppShell.tsx:navigateToTab",
       "Navigate tab requested",
       {
@@ -610,7 +589,7 @@ const AppShell = () => {
     return <MindPalacePage />;
   };
 
-  if (!isActive || !identity) {
+  if (showInitialSpacetimeGate) {
     return (
       <div className="app-shell app-shell-loading">
         <h1>Grenzwanderer</h1>
@@ -633,21 +612,23 @@ const AppShell = () => {
   }
 
   return (
-    <ToastProvider>
-      <Toaster />
-      <AppShellInner
-        activeTab={activeTab}
-        setActiveTab={navigateToTab}
-        statusText={statusText}
-        renderTab={renderTab}
-        tabs={tabsByProfile[RELEASE_PROFILE]}
-        subtitle={
-          isKarlsruheProfile
-            ? "Karlsruhe QR Event Release v1"
-            : "Phase 2 MindPalace Vertical Slice"
-        }
-      />
-    </ToastProvider>
+    <I18nProvider>
+      <ToastProvider>
+        <Toaster />
+        <AppShellInner
+          activeTab={activeTab}
+          setActiveTab={navigateToTab}
+          statusText={statusText}
+          renderTab={renderTab}
+          tabs={tabsByProfile[RELEASE_PROFILE]}
+          subtitle={
+            isKarlsruheProfile
+              ? "Karlsruhe QR Event Release v1"
+              : "Phase 2 MindPalace Vertical Slice"
+          }
+        />
+      </ToastProvider>
+    </I18nProvider>
   );
 };
 

@@ -320,6 +320,11 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
                 "type": "flag_is",
                 "key": "mayor_briefing_complete",
                 "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "origin_detective",
+                "value": true
               }
             ]
           },
@@ -327,6 +332,21 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
             "type": "flag_is",
             "key": "bank_investigation_complete",
             "value": false
+          },
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "origin_detective",
+                "value": false
+              },
+              {
+                "type": "flag_is",
+                "key": "detective_prologue_done",
+                "value": true
+              }
+            ]
           }
         ],
         "actions": [
@@ -409,9 +429,19 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
             "value": true
           },
           {
-            "type": "flag_is",
-            "key": "priority_mayor_first",
-            "value": true
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "priority_mayor_first",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "origin_detective",
+                "value": true
+              }
+            ]
           },
           {
             "type": "flag_is",

@@ -70,7 +70,7 @@ describe("VN condition AST", () => {
     ).toBe(true);
   });
 
-  it("parses snapshot schema 8 with nested VN conditions", () => {
+  it("parses snapshot schema 9 with nested VN conditions", () => {
     const snapshot = parseSnapshot(
       readFileSync(
         path.join(repoRoot, "content", "vn", "pilot.snapshot.json"),
@@ -78,7 +78,7 @@ describe("VN condition AST", () => {
       ),
     );
 
-    expect(snapshot?.schemaVersion).toBe(8);
+    expect(snapshot?.schemaVersion).toBe(9);
     const runtimeNode = snapshot?.nodes.find(
       (node) => node.id === "scene_detective_runtime_agency_orientation",
     );

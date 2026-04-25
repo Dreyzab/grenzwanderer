@@ -13,17 +13,16 @@ bank dossier across the table, already sorted into witness names, timings, and
 the first contradictions.
 
 ```vn-logic
-on_enter:
-  - set_flag(detective_prologue_done,true)
 choices:
   - id: DETECTIVE_ACCEPT_CASE
     text: Take the bank file
     next: scene_detective_runtime_case01_arrival
     visible_if_all:
-      - and(flag_equals(origin_detective,true), flag_equals(detective_prologue_done,true))
+      - flag_equals(origin_detective,true)
     require_all:
       - var_gte(attr_intellect,2)
     effects:
+      - set_flag(origin_detective_handoff_done,true)
       - add_var(checks_passed,1)
       - track_event(detective_runtime_case_open)
   - id: DETECTIVE_PRESS_VICTORIA
@@ -32,5 +31,6 @@ choices:
     visible_if_any:
       - or(flag_equals(origin_detective,true), flag_equals(origin_journalist,true))
     effects:
+      - set_flag(origin_detective_handoff_done,true)
       - add_tension(1)
 ```

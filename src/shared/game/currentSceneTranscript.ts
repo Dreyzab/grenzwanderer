@@ -9,6 +9,12 @@ import {
   INNER_VOICE_DEFINITIONS,
   isInnerVoiceId,
 } from "../../../data/innerVoiceContract";
+import type { I18nDictionary } from "../../features/i18n/I18nContext";
+import type { UiLanguage } from "../hooks/useUiLanguage";
+import {
+  resolveSpeakerLabel,
+  resolveVnNodeText,
+} from "../../features/i18n/vnContentTranslations";
 
 export type TranscriptSpeakerKind = "character" | "voice" | "narrator";
 export type TranscriptMediaKind =
@@ -65,6 +71,8 @@ export interface ResolveCurrentSceneTranscriptLineArgs {
   backgroundUrl?: string;
   node: DialogueNode;
   characters?: TranscriptCharacterSource[];
+  uiLanguage?: UiLanguage;
+  dictionary?: I18nDictionary | null;
 }
 
 interface VoiceRegistryEntry {
@@ -392,9 +400,31 @@ export const resolveCurrentSceneTranscriptLine = ({
   backgroundUrl,
   node,
   characters = [],
+  uiLanguage = "en",
+  dictionary,
 }: ResolveCurrentSceneTranscriptLineArgs): ResolvedTranscriptLine | null => {
-  const { text, speakerLabel, characterId, emotionLabel } =
-    resolveSpeakerFields(node);
+  const {
+    text: baseText,
+    speakerLabel: baseSpeakerLabel,
+    characterId,
+    emotionLabel,
+  } = resolveSpeakerFields(node);
+
+  const text = resolveVnNodeText(
+    uiLanguage,
+    sceneId,
+    node.id,
+    "body",
+    baseText,
+    dictionary,
+  );
+
+  const speakerLabel = resolveSpeakerLabel(
+    uiLanguage,
+    characterId || baseSpeakerLabel,
+    baseSpeakerLabel,
+    dictionary,
+  );
 
   if (!text.trim()) {
     return null;

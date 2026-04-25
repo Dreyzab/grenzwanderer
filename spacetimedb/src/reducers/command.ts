@@ -9,7 +9,7 @@ import {
   openCommandModeInternal,
   resolveCommandInternal,
   type CommandReturnTab,
-} from "./helpers/all";
+} from "./helpers";
 
 const isCommandReturnTab = (value: string): value is CommandReturnTab =>
   value === "map" || value === "vn";

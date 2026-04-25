@@ -205,7 +205,7 @@ export const normalizeSnapshotForPublish = (
 export const readSnapshot = (): {
   checksum: string;
   schemaVersion: number;
-  generatedAt: string;
+  generatedAt?: string;
   payload: Record<string, unknown>;
   payloadJson: string;
 } => {
@@ -217,7 +217,7 @@ export const readSnapshotForProfile = (
 ): {
   checksum: string;
   schemaVersion: number;
-  generatedAt: string;
+  generatedAt?: string;
   payload: Record<string, unknown>;
   payloadJson: string;
 } => {
@@ -236,11 +236,13 @@ export const readSnapshotForProfile = (
     raw.schemaVersion,
     "pilot.snapshot.json schemaVersion",
   );
-  const generatedAt = asString(
-    raw.generatedAt,
-    "pilot.snapshot.json generatedAt",
-  );
-  assertIsoDate(generatedAt, "pilot.snapshot.json generatedAt");
+  const generatedAt =
+    raw.generatedAt === undefined
+      ? undefined
+      : asString(raw.generatedAt, "pilot.snapshot.json generatedAt");
+  if (generatedAt !== undefined) {
+    assertIsoDate(generatedAt, "pilot.snapshot.json generatedAt");
+  }
   const declaredChecksum = asString(
     raw.checksum,
     "pilot.snapshot.json checksum",

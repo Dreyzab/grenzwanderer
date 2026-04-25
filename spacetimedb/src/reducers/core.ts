@@ -45,7 +45,7 @@ const KARLSRUHE_DEFAULT_ENTRY_SCENARIO_ID = "karlsruhe_event_arrival";
 const FREIBURG_ORIGIN_ALLOWLIST = {
   journalist: {
     choiceId: "BACKSTORY_JOURNALIST",
-    scenarioId: "journalist_agency_wakeup",
+    scenarioId: "case01_hbf_arrival",
   },
   aristocrat: {
     choiceId: "BACKSTORY_ARISTOCRAT",
@@ -61,7 +61,7 @@ const FREIBURG_ORIGIN_ALLOWLIST = {
   },
   detective: {
     choiceId: "BACKSTORY_DETECTIVE",
-    scenarioId: "detective_case01_prologue",
+    scenarioId: "case01_hbf_arrival",
   },
 } as const;
 

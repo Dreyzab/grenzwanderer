@@ -1,5 +1,6 @@
 import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
+import { MIN_VN_SCHEMA_WITH_CONTRACT_METADATA } from "../../../src/shared/vn-contract";
 import {
   deactivateContentVersions,
   emitTelemetry,
@@ -40,6 +41,12 @@ export const publish_content = spacetimedb.reducer(
     const activeVersion = [...ctx.db.contentVersion.iter()].find(
       (row) => row.isActive,
     );
+
+    if (activeVersion && schemaVersion < activeVersion.schemaVersion) {
+      throw new SenderError(
+        "schemaVersion downgrade is not allowed through publish_content",
+      );
+    }
 
     if (activeVersion && activeVersion.schemaVersion !== schemaVersion) {
       resetForSchemaMigration(ctx);
@@ -118,6 +125,11 @@ export const rollback_content = spacetimedb.reducer(
     }
 
     const snapshot = parseSnapshotPayload(targetSnapshot.payloadJson);
+    if (snapshot.schemaVersion !== targetVersion.schemaVersion) {
+      throw new SenderError(
+        "targetChecksum schemaVersion does not match stored content version",
+      );
+    }
 
     deactivateContentVersions(ctx);
 
@@ -133,6 +145,8 @@ export const rollback_content = spacetimedb.reducer(
       version: targetVersion.version,
       targetChecksum,
       schemaVersion: targetVersion.schemaVersion,
+      contractMetadata:
+        snapshot.schemaVersion >= MIN_VN_SCHEMA_WITH_CONTRACT_METADATA,
     });
   },
 );

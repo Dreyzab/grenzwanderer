@@ -1,5 +1,69 @@
 {
-  "schemaVersion": 8,
+  "schemaVersion": 9,
+  "contractMetadata": {
+    "contractVersion": 1,
+    "vocabulary": {
+      "conditions": [
+        "agency_standing_gte",
+        "career_rank_gte",
+        "favor_balance_gte",
+        "flag_equals",
+        "has_controlled_spirit",
+        "has_evidence",
+        "has_item",
+        "hypothesis_focus_is",
+        "logic_and",
+        "logic_not",
+        "logic_or",
+        "quest_stage_gte",
+        "relationship_gte",
+        "rumor_state_is",
+        "spirit_state_is",
+        "thought_state_is",
+        "var_gte",
+        "var_lte",
+        "voice_level_gte"
+      ],
+      "effects": [
+        "add_heat",
+        "add_tension",
+        "add_var",
+        "apply_rationalist_buffer",
+        "change_agency_standing",
+        "change_faction_signal",
+        "change_favor_balance",
+        "change_psyche_axis",
+        "change_relationship",
+        "destroy_spirit",
+        "discover_fact",
+        "grant_evidence",
+        "grant_influence",
+        "grant_item",
+        "grant_xp",
+        "imprison_spirit",
+        "open_battle_mode",
+        "open_command_mode",
+        "record_entity_observation",
+        "record_service_criterion",
+        "register_rumor",
+        "release_spirit",
+        "set_flag",
+        "set_quest_stage",
+        "set_sight_mode",
+        "set_var",
+        "shift_awakening",
+        "spawn_map_event",
+        "subjugate_spirit",
+        "tag_entity_signature",
+        "track_event",
+        "travel_to",
+        "unlock_distortion_point",
+        "unlock_group",
+        "unlock_mind_thought",
+        "verify_rumor"
+      ]
+    }
+  },
   "scenarios": [
     {
       "id": "case01_archive_warrant_run",
@@ -148,42 +212,6 @@
       "defaultBackgroundUrl": "/images/scenes/scene_estate_intro.png"
     },
     {
-      "id": "detective_agency_wakeup",
-      "title": "Immersion Bath Wakeup (Detective)",
-      "startNodeId": "scene_detective_agency_wakeup",
-      "nodeIds": [
-        "scene_detective_agency_wakeup",
-        "scene_detective_agency_orientation",
-        "scene_detective_recruitment_pitch"
-      ],
-      "mode": "fullscreen",
-      "completionRoute": {
-        "nextScenarioId": "sandbox_agency_briefing",
-        "requiredFlagsAll": ["origin_detective"],
-        "blockedIfFlagsAny": ["agency_briefing_complete"]
-      },
-      "packId": "detective_origin"
-    },
-    {
-      "id": "detective_case01_prologue",
-      "title": "Bank Investigation Prologue",
-      "startNodeId": "scene_detective_case01_arrival",
-      "nodeIds": [
-        "scene_detective_case01_arrival",
-        "scene_detective_case01_investigation",
-        "scene_detective_case01_spirit_encounter",
-        "scene_detective_case01_knockout"
-      ],
-      "mode": "fullscreen",
-      "completionRoute": {
-        "nextScenarioId": "detective_agency_wakeup",
-        "requiredFlagsAll": ["origin_detective"],
-        "blockedIfFlagsAny": ["detective_prologue_done"]
-      },
-      "packId": "detective_origin",
-      "defaultBackgroundUrl": "/images/scenes/scene_bank_intro.png"
-    },
-    {
       "id": "intro_archivist",
       "title": "Stacks of Omitted Pages",
       "startNodeId": "scene_archivist_intro",
@@ -289,9 +317,9 @@
       "nodeIds": ["scene_origin_detective_bootstrap"],
       "mode": "fullscreen",
       "completionRoute": {
-        "nextScenarioId": "detective_case01_prologue",
+        "nextScenarioId": "case01_hbf_arrival",
         "requiredFlagsAll": ["origin_detective"],
-        "blockedIfFlagsAny": ["detective_prologue_done"]
+        "blockedIfFlagsAny": ["case01_onboarding_complete"]
       },
       "packId": "system_origin_bootstrap"
     },
@@ -945,6 +973,7 @@
       "backgroundVideoUrl": "/VN/start/video/Bahn.mp4",
       "backgroundVideoPosterUrl": "/VN/start/image/compartment_cinema.png",
       "backgroundVideoSoundPrompt": true,
+      "sceneGroupId": "train_bahn_video",
       "narrativeLayout": "fullscreen",
       "advanceOnVideoEnd": true
     },
@@ -961,6 +990,7 @@
         }
       ],
       "backgroundUrl": "/VN/start/image/compartment_cinema.png",
+      "sceneGroupId": "train_compartment",
       "narrativeLayout": "fullscreen"
     },
     {
@@ -976,6 +1006,7 @@
         }
       ],
       "backgroundUrl": "/VN/start/image/compartment_cinema.png",
+      "sceneGroupId": "train_compartment",
       "narrativePresentation": "letter",
       "narrativeLayout": "letter_overlay",
       "letterOverlayRevealDelayMs": 2800
@@ -983,8 +1014,8 @@
     {
       "id": "scene_case01_train_assistant_intro",
       "scenarioId": "case01_hbf_arrival",
-      "title": "Неожиданный визитор",
-      "body": "Дверь купе приоткрывается, и в проёме появляется ваш помощник. Он не садится, лишь придерживает пальцами шляпу, словно готов снова исчезнуть в коридоре.\n\n— Сэр, вы читали утренние газеты? — спрашивает он, понижая голос. — Ни в одной заметке ни слова о Фрайбурге. Будто город вырезали из сегодняшнего дня.\n\nОн смотрит на письмо у вас в руках и хмурится. Слишком чисто. Слишком вовремя. Даже стук колёс теперь звучит как предупреждение.",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\nСкрип двери. Помощник замирает в проёме. Его рука на шляпе — как щит против сквозняка в коридоре.\n\n**[Assistant]**:\n— Сэр, газеты молчат. Ни слова о Фрайбурге. Будто город просто вырезали из сегодняшнего дня.\n\n**[inner_cynic]**:\nТишина — это не отсутствие звука. Это присутствие чьей-то очень дорогой воли.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_ASSISTANT_INTRO",
@@ -994,13 +1025,14 @@
       ],
       "backgroundUrl": "/VN/start/image/train_assistant.png",
       "characterId": "assistant",
-      "narrativeLayout": "split"
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_train_door_creaks",
       "scenarioId": "case01_hbf_arrival",
-      "title": "Ни слова в эфире",
-      "body": "— Я проверил и радиосводку, и ранние листки, — продолжает помощник. — Ничего. Ни одной строки об ограблении, ни одного тревожного слова между биржей и погодой.\n\nОн говорит это так, будто отсутствие новости страшнее самой новости. Ограбление банка, о котором молчат редакторы, пахнет не случайностью, а договорённостью.\n\nВ коридоре кто-то проходит мимо, и дверь снова едва слышно поскрипывает. Ваш собеседник делает шаг назад, оставляя вам пространство для мысли и недоверия.",
+      "title": "Journey to Freiburg",
+      "body": "**[Assistant]**:\n— Ни радио, ни листки. Между биржей и погодой — звенящая пустота. Никто не хочет брать на себя ответственность за первую новость.\n\n**[inner_analyst]**:\nЗаговор молчания требует логистики. Редакторы не бывают такими единодушными бесплатно. Кто-то купил время, чтобы подготовить сцену.\n\n**[Narrator]**:\nСтук колёс по рельсам теперь звучит как обратный отсчёт.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_DOOR_CREAKS",
@@ -1010,13 +1042,14 @@
       ],
       "backgroundUrl": "/VN/start/image/train_assistant.png",
       "characterId": "assistant",
-      "narrativeLayout": "split"
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_train_assistant_departure",
       "scenarioId": "case01_hbf_arrival",
-      "title": "Прибытие рядом",
-      "body": "— Мы почти на месте, — говорит он уже тише. — Я поищу матушку в вагоне-ресторане и перехвачу багаж, пока вы будете сходить на перрон. Встретимся у стойки выдачи.\n\nОн коротко кивает, будто это обычная дорога, а не пролог к делу, которое кто-то уже успел спрятать от города. Затем исчезает в коридоре, оставляя вам письмо, стекло окна и последний отрезок пути.",
+      "title": "Journey to Freiburg",
+      "body": "**[Assistant]**:\n— Почти на месте. Я заберу багаж и матушку, встретимся на выдаче. Не дайте им сбить вас с толку на перроне.\n\n**[Narrator]**:\nКороткий кивок. Дверь захлопывается. Остаток пути ты едешь в компании письма и своего растущего недоверия.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_ASSISTANT_DEPARTURE",
@@ -1026,7 +1059,8 @@
       ],
       "backgroundUrl": "/VN/start/image/train_assistant.png",
       "characterId": "assistant",
-      "narrativeLayout": "split"
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_train_ankommen_video",
@@ -1042,6 +1076,7 @@
       ],
       "backgroundVideoUrl": "/VN/start/video/Ankommen.mp4",
       "backgroundVideoPosterUrl": "/VN/start/image/Ankommen.png",
+      "sceneGroupId": "train_ankommen_video",
       "narrativeLayout": "fullscreen",
       "advanceOnVideoEnd": true
     },
@@ -1059,6 +1094,7 @@
       ],
       "backgroundVideoUrl": "/VN/start/video/Video_voza_na_peronu.mp4",
       "backgroundVideoPosterUrl": "/VN/start/image/HBF.png",
+      "sceneGroupId": "train_voza_video",
       "narrativeLayout": "fullscreen",
       "advanceOnVideoEnd": true
     },
@@ -1076,7 +1112,8 @@
       ],
       "backgroundUrl": "/VN/start/image/Ankommen.png",
       "characterId": "inspector",
-      "narrativeLayout": "thought_log"
+      "sceneGroupId": "platform_disembark",
+      "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_beat1_atmosphere",
@@ -1100,7 +1137,9 @@
           "nextNodeId": "scene_case01_hbf_police"
         }
       ],
-      "backgroundUrl": "/VN/start/image/HBF.png"
+      "backgroundUrl": "/VN/start/image/HBF.png",
+      "sceneGroupId": "hbf_hall",
+      "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_hbf_newsboy",
@@ -1153,7 +1192,9 @@
         }
       ],
       "backgroundUrl": "/VN/start/image/boy_newspaper_styled.png",
-      "characterId": "paperboy"
+      "characterId": "paperboy",
+      "sceneGroupId": "hbf_newsboy",
+      "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_hbf_luggage",
@@ -1205,7 +1246,9 @@
           }
         }
       ],
-      "backgroundUrl": "/VN/start/image/bahnhof_luggage_counter_1776719222396.png"
+      "backgroundUrl": "/VN/start/image/bahnhof_luggage_counter_1776719222396.png",
+      "sceneGroupId": "hbf_luggage",
+      "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_hbf_police",
@@ -1257,7 +1300,9 @@
           }
         }
       ],
-      "backgroundUrl": "/VN/start/image/bahnhof_police_post_1776719605015.png"
+      "backgroundUrl": "/VN/start/image/bahnhof_police_post_1776719605015.png",
+      "sceneGroupId": "hbf_police",
+      "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_apothecary_entry",
@@ -1679,227 +1724,6 @@
         {
           "type": "grant_xp",
           "amount": 25
-        }
-      ]
-    },
-    {
-      "id": "scene_detective_agency_wakeup",
-      "scenarioId": "detective_agency_wakeup",
-      "title": "Immersion Bath",
-      "body": "Steam. A ceramic edge under your fingers. Lotte Weber's voice cuts through the fog: 'Inspector. You are late, you are wet, and you are mine now.'",
-      "choices": [
-        {
-          "id": "DETECTIVE_WAKEUP_SURFACE",
-          "text": "Grip the tub rim and sit up.",
-          "nextNodeId": "scene_detective_agency_orientation",
-          "effects": [
-            {
-              "type": "track_event",
-              "eventName": "detective_wakeup_surfaced",
-              "tags": {
-                "route": "detective_wakeup"
-              }
-            }
-          ]
-        }
-      ],
-      "characterId": "npc_weber_dispatcher"
-    },
-    {
-      "id": "scene_detective_agency_orientation",
-      "scenarioId": "detective_agency_wakeup",
-      "title": "Agency Corridor",
-      "body": "Weber walks you down a corridor lined with locked doors. Every surface looks designed to be hosed down. 'You were an inspector. That is useful. Less useful: you have seen something you were not supposed to see.'",
-      "choices": [
-        {
-          "id": "DETECTIVE_ORIENTATION_ASK",
-          "text": "Ask what the Agency wants from a detective.",
-          "nextNodeId": "scene_detective_recruitment_pitch"
-        },
-        {
-          "id": "DETECTIVE_ORIENTATION_DEMAND",
-          "text": "Demand to know what happened in the vault.",
-          "choiceType": "inquiry",
-          "nextNodeId": "scene_detective_recruitment_pitch",
-          "effects": [
-            {
-              "type": "track_event",
-              "eventName": "detective_wakeup_demanded_answers",
-              "tags": {
-                "route": "detective_wakeup"
-              }
-            }
-          ]
-        }
-      ],
-      "characterId": "npc_weber_dispatcher"
-    },
-    {
-      "id": "scene_detective_recruitment_pitch",
-      "scenarioId": "detective_agency_wakeup",
-      "title": "Weber's Pitch",
-      "body": "Weber drops a thin case file on the table. 'The bank was the beginning. Not the end. Welcome to the Grenzwanderer programme. Try not to die on the first day.'",
-      "terminal": true,
-      "choices": [],
-      "onEnter": [
-        {
-          "type": "set_flag",
-          "key": "origin_detective_handoff_done",
-          "value": true
-        },
-        {
-          "type": "track_event",
-          "eventName": "detective_wakeup_completed",
-          "tags": {
-            "route": "detective_wakeup"
-          }
-        }
-      ],
-      "characterId": "npc_weber_dispatcher"
-    },
-    {
-      "id": "scene_detective_case01_arrival",
-      "scenarioId": "detective_case01_prologue",
-      "title": "Bankhaus J.A. Krebs",
-      "body": "A grey morning. The Bankhaus sits behind its iron gates. Victoria Sterling waits by the door, a leather satchel pressed to her side.",
-      "choices": [
-        {
-          "id": "DETECTIVE_ARRIVAL_ENTER",
-          "text": "Follow Sterling inside.",
-          "nextNodeId": "scene_detective_case01_investigation",
-          "effects": [
-            {
-              "type": "track_event",
-              "eventName": "detective_prologue_entered_bank",
-              "tags": {
-                "route": "detective_prologue"
-              }
-            }
-          ]
-        },
-        {
-          "id": "DETECTIVE_ARRIVAL_INSPECT_EXTERIOR",
-          "text": "Walk the perimeter first. Old habit.",
-          "choiceType": "inquiry",
-          "nextNodeId": "scene_detective_case01_investigation",
-          "effects": [
-            {
-              "type": "track_event",
-              "eventName": "detective_prologue_inspected_exterior",
-              "tags": {
-                "route": "detective_prologue"
-              }
-            },
-            {
-              "type": "grant_xp",
-              "amount": 5
-            }
-          ]
-        }
-      ],
-      "characterId": "assistant"
-    },
-    {
-      "id": "scene_detective_case01_investigation",
-      "scenarioId": "detective_case01_prologue",
-      "title": "Vault Corridor",
-      "body": "The vault corridor stretches ahead. Victoria has already spread dust patterns across the tiles. A deposit box sits open — no forced entry.",
-      "choices": [
-        {
-          "id": "DETECTIVE_INVESTIGATE_LOCKBOX",
-          "text": "Examine the lockbox mechanism up close.",
-          "nextNodeId": "scene_detective_case01_spirit_encounter",
-          "effects": [
-            {
-              "type": "track_event",
-              "eventName": "detective_prologue_examined_lockbox",
-              "tags": {
-                "route": "detective_prologue"
-              }
-            },
-            {
-              "type": "grant_xp",
-              "amount": 10
-            }
-          ]
-        },
-        {
-          "id": "DETECTIVE_INVESTIGATE_CORRIDOR",
-          "text": "Check the rest of the corridor before focusing.",
-          "nextNodeId": "scene_detective_case01_spirit_encounter",
-          "effects": [
-            {
-              "type": "track_event",
-              "eventName": "detective_prologue_checked_corridor",
-              "tags": {
-                "route": "detective_prologue"
-              }
-            }
-          ]
-        }
-      ],
-      "characterId": "assistant"
-    },
-    {
-      "id": "scene_detective_case01_spirit_encounter",
-      "scenarioId": "detective_case01_prologue",
-      "title": "Something Wrong",
-      "body": "The air drops ten degrees. Victoria's hand freezes mid-notation. The gas lamps flicker — not a draught. A voice rises from inside the vault, a ledger being read backwards.",
-      "choices": [
-        {
-          "id": "DETECTIVE_SPIRIT_CONFRONT",
-          "text": "Step towards the source.",
-          "nextNodeId": "scene_detective_case01_knockout",
-          "effects": [
-            {
-              "type": "track_event",
-              "eventName": "detective_prologue_confronted_spirit",
-              "tags": {
-                "route": "detective_prologue"
-              }
-            }
-          ]
-        },
-        {
-          "id": "DETECTIVE_SPIRIT_SHIELD_VICTORIA",
-          "text": "Pull Victoria behind you.",
-          "nextNodeId": "scene_detective_case01_knockout",
-          "effects": [
-            {
-              "type": "change_relationship",
-              "characterId": "assistant",
-              "delta": 10
-            },
-            {
-              "type": "track_event",
-              "eventName": "detective_prologue_shielded_victoria",
-              "tags": {
-                "route": "detective_prologue"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "scene_detective_case01_knockout",
-      "scenarioId": "detective_case01_prologue",
-      "title": "Blackout",
-      "body": "Your training screams for an explanation. But your body is already moving backwards. The last thing you see is Victoria's face, illuminated by a light that has no source. Then the floor meets you.",
-      "terminal": true,
-      "choices": [],
-      "onEnter": [
-        {
-          "type": "set_flag",
-          "key": "detective_prologue_done",
-          "value": true
-        },
-        {
-          "type": "track_event",
-          "eventName": "detective_prologue_knockout",
-          "tags": {
-            "route": "detective_prologue"
-          }
         }
       ]
     },
@@ -3728,7 +3552,7 @@
       "id": "scene_intro_journey",
       "scenarioId": "sandbox_case01_pilot",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\n\"Поезд отходит от Карлсруэ в предрассветных сумерках.\nТы один в купе — [clue:пустота:ev_empty_compartment] вокруг располагает к размышлениям.\n\n[clue:Телеграмма:ev_telegram_paper] лежит в кармане. Её слова ты помнишь наизусть:\n_«Ограбление Имперского Банка»_.\"\n\n\n**[Internal Monologue]**:\n\"Фрайбург. Университетский город. Граница с Швейцарией.\nЕсли деньги уже за границей — дело закрыто, не начавшись.\n\nНо если вор ещё здесь...\"\n\n**[Narrator]**:\n\"За окном проносятся [clue:тёмные силуэты Шварцвальда:ev_schwarzwald_silhouette].\nТуман [clue:стелется над полями:ev_morning_mist], скрывая очертания деревень.\n\nПроводник объявляет: _«Nächster Halt — Freiburg im Breisgau!»_\"\n\n\n**[Internal Monologue]**:\n\"Каждое дело начинается с вопроса.\nЭтот раз вопрос простой: _кто забрал деньги?_\n\nОтвет — где-то в этом городе. Осталось его найти.\"\n\n\n**[Narrator]**:\n\"Поезд замедляется. Вокзал Фрайбурга появляется из тумана —\n[clue:величественное здание:ev_station_architecture] в неоренессансном стиле.\"",
+      "body": "**[Narrator]**:\n\"Карлсруэ смыло дождем. В купе пахнет пылью и остывшим углем.\"\n\n\n**[inner_cynic]**:\n\"Семь слов в кармане. Семь слов, чтобы ты окончательно сошел с ума.\"\n\n\n**[inner_analyst]**:\n\"Имперский Банк. Это не грабеж, это вызов геометрии порядка.\"\n\n**[Narrator]**:\n\"Скрип железа. Туман за стеклом слишком плотный для обычного утра.\n\nПроводник объявляет: _«Nächster Halt — Freiburg im Breisgau!»_\"\n\n\n**[inner_exile]**:\n\"Фрайбург. Город, который не ждал тебя, но уже подготовил камеру.\"\n\n\n**[Narrator]**:\n\"Перрон. Неоренессанс в копоти. Ты здесь.\"",
       "choices": [
         {
           "id": "AUTO_CONTINUE_SCENE_INTRO_JOURNEY",
@@ -4119,13 +3943,6 @@
           ]
         }
       ],
-      "onEnter": [
-        {
-          "type": "set_flag",
-          "key": "origin_detective_handoff_done",
-          "value": true
-        }
-      ],
       "preconditions": [
         {
           "type": "logic_and",
@@ -4159,19 +3976,9 @@
           "nextNodeId": "scene_detective_runtime_case01_arrival",
           "visibleIfAll": [
             {
-              "type": "logic_and",
-              "conditions": [
-                {
-                  "type": "flag_equals",
-                  "key": "origin_detective",
-                  "value": true
-                },
-                {
-                  "type": "flag_equals",
-                  "key": "detective_prologue_done",
-                  "value": true
-                }
-              ]
+              "type": "flag_equals",
+              "key": "origin_detective",
+              "value": true
             }
           ],
           "requireAll": [
@@ -4182,6 +3989,11 @@
             }
           ],
           "effects": [
+            {
+              "type": "set_flag",
+              "key": "origin_detective_handoff_done",
+              "value": true
+            },
             {
               "type": "add_var",
               "key": "checks_passed",
@@ -4216,17 +4028,15 @@
           ],
           "effects": [
             {
+              "type": "set_flag",
+              "key": "origin_detective_handoff_done",
+              "value": true
+            },
+            {
               "type": "add_tension",
               "amount": 1
             }
           ]
-        }
-      ],
-      "onEnter": [
-        {
-          "type": "set_flag",
-          "key": "detective_prologue_done",
-          "value": true
         }
       ]
     },
@@ -6646,6 +6456,11 @@
                     "type": "flag_is",
                     "key": "mayor_briefing_complete",
                     "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "origin_detective",
+                    "value": true
                   }
                 ]
               },
@@ -6653,6 +6468,21 @@
                 "type": "flag_is",
                 "key": "bank_investigation_complete",
                 "value": false
+              },
+              {
+                "type": "logic_or",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "origin_detective",
+                    "value": false
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "detective_prologue_done",
+                    "value": true
+                  }
+                ]
               }
             ],
             "actions": [
@@ -6735,9 +6565,19 @@
                 "value": true
               },
               {
-                "type": "flag_is",
-                "key": "priority_mayor_first",
-                "value": true
+                "type": "logic_or",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "priority_mayor_first",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "origin_detective",
+                    "value": true
+                  }
+                ]
               },
               {
                 "type": "flag_is",
@@ -8281,6 +8121,5 @@
       }
     ]
   },
-  "checksum": "98be589666b49cc353f69fb3a8e04bbcb8de03c0d026021b4fe3ef6e6dfaafa8",
-  "generatedAt": "2026-04-23T16:11:25.434Z"
+  "checksum": "2b0ab0a76633eee216df7978e33b29222ebae59c2a35d83935734a2e46363887"
 }

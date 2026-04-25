@@ -121,7 +121,7 @@ const main = async (): Promise<void> => {
     version,
     checksum: snapshot.checksum,
     schemaVersion: snapshot.schemaVersion,
-    generatedAt: snapshot.generatedAt,
+    generatedAt: snapshot.generatedAt ?? new Date().toISOString(),
     publishedAt: new Date().toISOString(),
     target: {
       server: cli.server,

@@ -1,5 +1,69 @@
 {
-  "schemaVersion": 8,
+  "schemaVersion": 9,
+  "contractMetadata": {
+    "contractVersion": 1,
+    "vocabulary": {
+      "conditions": [
+        "agency_standing_gte",
+        "career_rank_gte",
+        "favor_balance_gte",
+        "flag_equals",
+        "has_controlled_spirit",
+        "has_evidence",
+        "has_item",
+        "hypothesis_focus_is",
+        "logic_and",
+        "logic_not",
+        "logic_or",
+        "quest_stage_gte",
+        "relationship_gte",
+        "rumor_state_is",
+        "spirit_state_is",
+        "thought_state_is",
+        "var_gte",
+        "var_lte",
+        "voice_level_gte"
+      ],
+      "effects": [
+        "add_heat",
+        "add_tension",
+        "add_var",
+        "apply_rationalist_buffer",
+        "change_agency_standing",
+        "change_faction_signal",
+        "change_favor_balance",
+        "change_psyche_axis",
+        "change_relationship",
+        "destroy_spirit",
+        "discover_fact",
+        "grant_evidence",
+        "grant_influence",
+        "grant_item",
+        "grant_xp",
+        "imprison_spirit",
+        "open_battle_mode",
+        "open_command_mode",
+        "record_entity_observation",
+        "record_service_criterion",
+        "register_rumor",
+        "release_spirit",
+        "set_flag",
+        "set_quest_stage",
+        "set_sight_mode",
+        "set_var",
+        "shift_awakening",
+        "spawn_map_event",
+        "subjugate_spirit",
+        "tag_entity_signature",
+        "track_event",
+        "travel_to",
+        "unlock_distortion_point",
+        "unlock_group",
+        "unlock_mind_thought",
+        "verify_rumor"
+      ]
+    }
+  },
   "scenarios": [
     {
       "id": "karlsruhe_event_arrival",
@@ -1420,6 +1484,5 @@
     "careerRanks": [],
     "factions": []
   },
-  "checksum": "d1d1082a82cb37786e681db8d471dc6917d11e89a9548affba4d6055a5a28354",
-  "generatedAt": "2026-04-09T14:30:21.386Z"
+  "checksum": "cbf65e910e583a92d319b344b4af82d73a675b67cbd26ff56cadf619df7cf7d2"
 }

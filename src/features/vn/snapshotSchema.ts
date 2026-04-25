@@ -1,9 +1,1 @@
-export const MIN_VN_SCHEMA_WITH_MIND_PALACE = 2;
-export const MIN_VN_SCHEMA_WITH_MAP = 3;
-export const MIN_VN_SCHEMA_WITH_QUEST_CATALOG = 4;
-export const MIN_VN_SCHEMA_WITH_MAP_EXPANSIONS = 6;
-export const MIN_VN_SCHEMA_WITH_SOCIAL_FACTIONS = 7;
-export const MIN_VN_SCHEMA_WITH_OBSIDIAN_AST = 8;
-
-export const CURRENT_VN_SNAPSHOT_SCHEMA_VERSION =
-  MIN_VN_SCHEMA_WITH_OBSIDIAN_AST;
+export * from "../../shared/vn-contract/schema";

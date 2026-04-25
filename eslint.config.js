@@ -8,6 +8,7 @@ export default tseslint.config(
   {
     ignores: [
       "dist",
+      "coverage",
       "src/module_bindings",
       "obsidian",
       "src/shared/spacetime/generated_row_schemas",

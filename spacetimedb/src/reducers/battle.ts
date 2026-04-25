@@ -9,7 +9,7 @@ import {
   playBattleCardInternal,
   type BattleReturnTab,
   type BattleSourceTab,
-} from "./helpers/all";
+} from "./helpers";
 
 const isBattleReturnTab = (value: string): value is BattleReturnTab =>
   value === "map" || value === "vn" || value === "dev";

@@ -141,6 +141,20 @@ const rawPrivateQueryPatterns = governedPrivateRelations.map(
     ),
 );
 
+const forbiddenBrowserDebugPatterns: Array<{
+  pattern: RegExp;
+  description: string;
+}> = [
+  {
+    pattern: /127\.0\.0\.1:7827/,
+    description: "hardcoded local debug ingest endpoint",
+  },
+  {
+    pattern: /\/ingest\/516e26f3-8222-4f1d-b4fe-801d6fa79ab1/,
+    description: "hardcoded agent ingest path",
+  },
+];
+
 const issues: string[] = [];
 
 const appShellContent = readFileSync(appShellPath, "utf8");
@@ -200,6 +214,11 @@ for (const forbiddenToken of [
 
 for (const filePath of walk(srcRoot)) {
   const source = readFileSync(filePath, "utf8");
+  for (const { pattern, description } of forbiddenBrowserDebugPatterns) {
+    if (pattern.test(source)) {
+      issues.push(`${toRepoPath(filePath)} contains ${description}.`);
+    }
+  }
   for (const match of source.matchAll(/useTable\s*\(\s*tables\.(\w+)/g)) {
     const tableName = match[1];
     if (governedPrivateTableAliases.has(tableName)) {

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  MIN_VN_SCHEMA_WITH_CONTRACT_METADATA,
   MIN_VN_SCHEMA_WITH_MAP,
   MIN_VN_SCHEMA_WITH_MAP_EXPANSIONS,
   MIN_VN_SCHEMA_WITH_MIND_PALACE,
+  MIN_VN_SCHEMA_WITH_OBSIDIAN_AST,
   MIN_VN_SCHEMA_WITH_QUEST_CATALOG,
   MIN_VN_SCHEMA_WITH_SOCIAL_FACTIONS,
 } from "./snapshotSchema";
@@ -10,7 +12,11 @@ import {
   createLegacyMaplessSnapshot,
   createTestSnapshot,
 } from "./snapshotTestUtils";
-import { parseSnapshot } from "./vnContent";
+import {
+  createVnSnapshotIndex,
+  parseSnapshot,
+  parseVnSnapshotPayload,
+} from "./vnContent";
 
 describe("vnContent runtime parsing", () => {
   it("parses snapshot-level vnRuntime.skillCheckDice", () => {
@@ -1507,5 +1513,160 @@ describe("vnContent runtime parsing", () => {
 
     expect(parsed).not.toBeNull();
     expect(parsed?.socialCatalog?.factions).toBeUndefined();
+  });
+
+  it("keeps parsing schema v8 snapshots without contract metadata", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          schemaVersion: MIN_VN_SCHEMA_WITH_OBSIDIAN_AST,
+          contractMetadata: undefined,
+          scenarios: [
+            {
+              id: "scenario_v8",
+              title: "Scenario V8",
+              startNodeId: "node_v8",
+              nodeIds: ["node_v8"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_v8",
+              scenarioId: "scenario_v8",
+              title: "Node V8",
+              body: "Body",
+              choices: [],
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(parsed).not.toBeNull();
+    expect(parsed?.schemaVersion).toBe(MIN_VN_SCHEMA_WITH_OBSIDIAN_AST);
+  });
+
+  it("parses schema v9 deterministic contract metadata", () => {
+    const result = parseVnSnapshotPayload(JSON.stringify(createTestSnapshot()));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.snapshot.schemaVersion).toBe(
+      MIN_VN_SCHEMA_WITH_CONTRACT_METADATA,
+    );
+    expect(result.snapshot.contractMetadata?.contractVersion).toBe(1);
+    expect(result.snapshot.contractMetadata?.vocabulary.conditions).toEqual(
+      [
+        ...(result.snapshot.contractMetadata?.vocabulary.conditions ?? []),
+      ].sort(),
+    );
+    expect(result.snapshot.contractMetadata?.vocabulary.effects).toEqual(
+      [...(result.snapshot.contractMetadata?.vocabulary.effects ?? [])].sort(),
+    );
+  });
+
+  it("rejects duplicate scenario and node ids during validation", () => {
+    const duplicateScenario = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          scenarios: [
+            {
+              id: "scenario_dup",
+              title: "Scenario Dup A",
+              startNodeId: "node_a",
+              nodeIds: ["node_a"],
+            },
+            {
+              id: "scenario_dup",
+              title: "Scenario Dup B",
+              startNodeId: "node_b",
+              nodeIds: ["node_b"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_a",
+              scenarioId: "scenario_dup",
+              title: "Node A",
+              body: "Body",
+              choices: [],
+            },
+            {
+              id: "node_b",
+              scenarioId: "scenario_dup",
+              title: "Node B",
+              body: "Body",
+              choices: [],
+            },
+          ],
+        }),
+      ),
+    );
+    const duplicateNode = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          scenarios: [
+            {
+              id: "scenario_node_dup",
+              title: "Scenario Node Dup",
+              startNodeId: "node_dup",
+              nodeIds: ["node_dup"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_dup",
+              scenarioId: "scenario_node_dup",
+              title: "Node A",
+              body: "Body",
+              choices: [],
+            },
+            {
+              id: "node_dup",
+              scenarioId: "scenario_node_dup",
+              title: "Node B",
+              body: "Body",
+              choices: [],
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(duplicateScenario).toBeNull();
+    expect(duplicateNode).toBeNull();
+  });
+
+  it("builds runtime indexes without serializing lookup maps", () => {
+    const snapshot = createTestSnapshot({
+      scenarios: [
+        {
+          id: "scenario_indexed",
+          title: "Scenario Indexed",
+          startNodeId: "node_indexed",
+          nodeIds: ["node_indexed"],
+        },
+      ],
+      nodes: [
+        {
+          id: "node_indexed",
+          scenarioId: "scenario_indexed",
+          title: "Node Indexed",
+          body: "Body",
+          choices: [],
+        },
+      ],
+    });
+
+    const index = createVnSnapshotIndex(snapshot);
+
+    expect(index.scenariosById.get("scenario_indexed")).toBe(
+      snapshot.scenarios[0],
+    );
+    expect(index.nodesById.get("node_indexed")).toBe(snapshot.nodes[0]);
+    expect(JSON.stringify(snapshot)).not.toContain("scenariosById");
+    expect(JSON.stringify(snapshot)).not.toContain("nodesById");
   });
 });

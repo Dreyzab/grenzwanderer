@@ -34,6 +34,7 @@ export const CONTENT_IDS = {
     "assistant",
     "inspector",
     "paperboy",
+    "victoria_sterling",
   ]),
   questIds: new Set<string>([
     "quest_banker",

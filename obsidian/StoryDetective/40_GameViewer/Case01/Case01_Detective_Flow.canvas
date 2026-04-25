@@ -1,0 +1,18 @@
+{
+	"nodes":[
+		{"id":"note_start","type":"text","text":"# Freiburg Detective\nScenario Entry Points\n\nOrder: Video -> Train -> Wakeup -> Orientation -> Arrival","x":-2000,"y":-100,"width":300,"height":200},
+		{"id":"video_journey","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md","x":-1600,"y":-100,"width":300,"height":500},
+		{"id":"wakeup","type":"file","file":"40_GameViewer/Sandbox_KA/08_Detective/_runtime/scene_detective_runtime_agency_wakeup.md","x":-1200,"y":-100,"width":300,"height":500},
+		{"id":"orientation","type":"file","file":"40_GameViewer/Sandbox_KA/08_Detective/_runtime/scene_detective_runtime_agency_orientation.md","x":-800,"y":-100,"width":300,"height":500},
+		{"id":"hbf_arrival","type":"file","file":"40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md","x":-400,"y":-100,"width":300,"height":500},
+		{"id":"bank_arrival","type":"file","file":"40_GameViewer/Sandbox_KA/08_Detective/_runtime/scene_detective_runtime_case01_arrival.md","x":0,"y":-100,"width":300,"height":500},
+		{"id":"bank_investigation","type":"file","file":"40_GameViewer/Sandbox_KA/08_Detective/_runtime/scene_detective_runtime_case01_investigation.md","x":400,"y":-100,"width":300,"height":500}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"video_journey","fromSide":"right","toNode":"wakeup","toSide":"left","label":"Flashback Start"},
+		{"id":"e2","fromNode":"wakeup","fromSide":"right","toNode":"orientation","toSide":"left"},
+		{"id":"e3","fromNode":"orientation","fromSide":"right","toNode":"hbf_arrival","toSide":"left","label":"To Freiburg"},
+		{"id":"e4","fromNode":"hbf_arrival","fromSide":"right","toNode":"bank_arrival","toSide":"left"},
+		{"id":"e5","fromNode":"bank_arrival","fromSide":"right","toNode":"bank_investigation","toSide":"left"}
+	]
+}

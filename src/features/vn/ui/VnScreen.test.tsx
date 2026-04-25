@@ -384,7 +384,7 @@ describe("VnScreen critical behavior", () => {
     );
   });
 
-  it("waits for video end before auto-continuing cinematic nodes", async () => {
+  it("allows surface tap to skip cinematic advance (same as video end)", async () => {
     const payloadJson = makeSnapshotPayload(
       [
         {
@@ -444,9 +444,6 @@ describe("VnScreen critical behavior", () => {
       "fullscreen",
     );
     fireEvent.click(screen.getByRole("button", { name: "surface-tap" }));
-    expect(mocks.recordChoiceMock).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole("button", { name: "video-ended" }));
 
     await waitFor(() => {
       expect(mocks.recordChoiceMock).toHaveBeenCalledTimes(1);
@@ -454,6 +451,9 @@ describe("VnScreen critical behavior", () => {
     expect(mocks.recordChoiceMock.mock.calls[0]?.[0]?.choiceId).toBe(
       "AUTO_CONTINUE_NODE_VIDEO",
     );
+
+    fireEvent.click(screen.getByRole("button", { name: "video-ended" }));
+    expect(mocks.recordChoiceMock).toHaveBeenCalledTimes(1);
   });
 
   it("derives letter_overlay layout and hides runtime chrome for letters", () => {
@@ -595,6 +595,74 @@ describe("VnScreen critical behavior", () => {
     expect(screen.getByText("Probe witness")).toBeInTheDocument();
     expect(screen.getByText("Watch quietly")).toBeInTheDocument();
     expect(screen.queryByText("100%")).toBeNull();
+  });
+
+  it("renders Russian VN narrative and choice text from stable content IDs", async () => {
+    mocks.usePlayerFlagsMock.mockReturnValue({ lang_ru: true });
+
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "case01_hbf_arrival",
+          title: "Case 01: Freiburg Arrival",
+          startNodeId: "scene_case01_beat1_atmosphere",
+          nodeIds: ["scene_case01_beat1_atmosphere", "scene_case01_hbf_police"],
+        },
+      ],
+      [
+        {
+          id: "scene_case01_beat1_atmosphere",
+          scenarioId: "case01_hbf_arrival",
+          title: "Hauptbahnhof, Freiburg",
+          body: "Steam folds around the iron columns.",
+          choices: [
+            {
+              id: "CASE01_BEAT1_POLICE",
+              text: "Approach the railway police post.",
+              nextNodeId: "scene_case01_hbf_police",
+            },
+          ],
+        },
+        {
+          id: "scene_case01_hbf_police",
+          scenarioId: "case01_hbf_arrival",
+          title: "Police Post",
+          body: "Police post.",
+          choices: [],
+        },
+      ],
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(50n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::case01_hbf_arrival",
+        playerId: identity("me"),
+        scenarioId: "case01_hbf_arrival",
+        nodeId: "scene_case01_beat1_atmosphere",
+        updatedAt: timestamp(51n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    render(<VnScreen initialScenarioId="case01_hbf_arrival" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("location-name")).toHaveTextContent(
+        "Дело 01: Прибытие во Фрайбург",
+      );
+    });
+    expect(screen.getByTestId("narrative-text")).toHaveTextContent("Фрайбург");
+    expect(
+      screen.getByRole("button", {
+        name: /Обратиться к железнодорожной полиции/i,
+      }),
+    ).toBeInTheDocument();
   });
 
   it("runs cinematic success resolve and commits only after dismiss", async () => {

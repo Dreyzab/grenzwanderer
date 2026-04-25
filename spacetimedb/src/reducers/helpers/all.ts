@@ -35,6 +35,11 @@ import {
   type NarrativeResourceKey,
   type VnAiMode,
 } from "../../../../src/shared/game/narrativeResources";
+import {
+  createVnSnapshotIndex,
+  parseVnSnapshotPayload,
+  type VnSnapshot as SharedVnSnapshot,
+} from "../../../../src/shared/vn-contract";
 
 const IDEMPOTENCY_TTL_MICROS = 86_400_000_000n;
 
@@ -79,9 +84,9 @@ export type VnConditionLeaf =
   | { type: "rumor_state_is"; rumorId: string; status: RumorStateStatus }
   | { type: "career_rank_gte"; rankId: string }
   | { type: "voice_level_gte"; voiceId: string; value: number }
-  | { type: "spirit_state_is"; spiritId: string; state: string }
+  | { type: "spirit_state_is"; spiritId: string; state: SpiritState }
   | { type: "hypothesis_focus_is"; caseId: string; hypothesisId: string }
-  | { type: "thought_state_is"; thoughtId: string; state: string }
+  | { type: "thought_state_is"; thoughtId: string; state: MindThoughtState }
   | { type: "has_controlled_spirit"; entityArchetypeId: string };
 
 export type VnCondition =
@@ -117,6 +122,7 @@ export type VnEffect =
       caseId: string;
       factId: string;
     }
+  | { type: "unlock_mind_thought"; thoughtId: string }
   | { type: "grant_xp"; amount: number }
   | { type: "unlock_group"; groupId: string }
   | { type: "set_quest_stage"; questId: string; stage: number }
@@ -311,6 +317,8 @@ export interface MindPalaceSnapshot {
   hypotheses: MindHypothesisContent[];
 }
 
+export type MindThoughtState = "available" | "researching" | "internalized";
+
 export type MysticAwakeningBand =
   | "suppressed"
   | "fractured"
@@ -318,6 +326,8 @@ export type MysticAwakeningBand =
   | "pierced";
 
 export type SightMode = "rational" | "sensitive" | "ether";
+
+export type SpiritState = "hostile" | "imprisoned" | "controlled" | "destroyed";
 
 export type MysticObservationKind =
   | "sighting"
@@ -989,6 +999,9 @@ const isVnEffect = (value: unknown): value is VnEffect => {
     return (
       typeof effect.caseId === "string" && typeof effect.factId === "string"
     );
+  }
+  if (effect.type === "unlock_mind_thought") {
+    return typeof effect.thoughtId === "string";
   }
   if (effect.type === "grant_xp") {
     return typeof effect.amount === "number";
@@ -2438,107 +2451,16 @@ const parseSocialCatalog = (
 };
 
 export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(payloadJson);
-  } catch (_error) {
-    throw new SenderError("payloadJson must be valid JSON");
-  }
-
-  const payload = asRecord(parsed, "payloadJson");
-  const schemaVersion = asNumber(
-    payload.schemaVersion,
-    "payloadJson.schemaVersion",
-  );
-
-  if (
-    !Array.isArray(payload.scenarios) ||
-    !payload.scenarios.every((entry) => isScenario(entry))
-  ) {
-    throw new SenderError("payloadJson.scenarios has invalid shape");
-  }
-
-  if (
-    !Array.isArray(payload.nodes) ||
-    !payload.nodes.every((entry) => isNode(entry))
-  ) {
-    throw new SenderError("payloadJson.nodes has invalid shape");
-  }
-
-  if (
-    payload.vnRuntime !== undefined &&
-    !isVnRuntimeSettings(payload.vnRuntime)
-  ) {
-    throw new SenderError("payloadJson.vnRuntime has invalid shape");
-  }
-  const vnRuntime =
-    payload.vnRuntime === undefined ? undefined : payload.vnRuntime;
-  const map = parseMapSnapshot(payload.map, schemaVersion, payload.scenarios);
-  const questCatalog = parseQuestCatalog(payload.questCatalog, schemaVersion);
-  const socialCatalog = parseSocialCatalog(
-    payload.socialCatalog,
-    schemaVersion,
-  );
-
-  if (payload.mindPalace === undefined) {
-    if (schemaVersion >= 2) {
-      throw new SenderError(
-        "payloadJson.mindPalace is required for schemaVersion >= 2",
-      );
-    }
-
-    return {
-      schemaVersion,
-      scenarios: payload.scenarios,
-      nodes: payload.nodes,
-      vnRuntime,
-      map,
-      questCatalog,
-      socialCatalog,
-      mindPalace: {
-        cases: [],
-        facts: [],
-        hypotheses: [],
-      },
-    };
-  }
-
-  const mindPalace = asRecord(payload.mindPalace, "payloadJson.mindPalace");
-  const cases = Array.isArray(mindPalace.cases) ? mindPalace.cases : null;
-  const facts = Array.isArray(mindPalace.facts) ? mindPalace.facts : null;
-  const hypotheses = Array.isArray(mindPalace.hypotheses)
-    ? mindPalace.hypotheses
-    : null;
-
-  if (!cases || !cases.every((entry) => isMindCaseContent(entry))) {
-    throw new SenderError("payloadJson.mindPalace.cases has invalid shape");
-  }
-  if (!facts || !facts.every((entry) => isMindFactContent(entry))) {
-    throw new SenderError("payloadJson.mindPalace.facts has invalid shape");
-  }
-  if (
-    !hypotheses ||
-    !hypotheses.every((entry) => isMindHypothesisContent(entry))
-  ) {
+  const result = parseVnSnapshotPayload(payloadJson);
+  if (!result.ok) {
     throw new SenderError(
-      "payloadJson.mindPalace.hypotheses has invalid shape",
+      result.issues
+        .map((issue) => `${issue.path}: ${issue.message}`)
+        .join("; "),
     );
   }
 
-  return {
-    schemaVersion,
-    scenarios: payload.scenarios,
-    nodes: payload.nodes,
-    vnRuntime,
-    map,
-    questCatalog,
-    socialCatalog,
-    mindPalace: {
-      cases,
-      facts,
-      hypotheses,
-    },
-  };
+  return result.snapshot as VnSnapshot;
 };
 
 export const identityKey = (identity: { toHexString(): string }): string =>
@@ -3727,29 +3649,39 @@ export const getScenario = (
   snapshot: VnSnapshot,
   scenarioId: string,
 ): VnScenario => {
-  const scenario = snapshot.scenarios.find((entry) => entry.id === scenarioId);
+  const scenario =
+    createVnSnapshotIndex(
+      snapshot as unknown as SharedVnSnapshot,
+    ).scenariosById.get(scenarioId) ?? null;
   if (!scenario) {
     throw new SenderError(`Unknown scenario: ${scenarioId}`);
   }
-  return scenario;
+  return scenario as VnScenario;
 };
 
 export const resolveDiceMode = (
   snapshot: VnSnapshot,
   scenarioId: string,
 ): VnDiceMode => {
-  const scenario = snapshot.scenarios.find((entry) => entry.id === scenarioId);
+  const scenario = createVnSnapshotIndex(
+    snapshot as unknown as SharedVnSnapshot,
+  ).scenariosById.get(scenarioId);
   return (
-    scenario?.skillCheckDice ?? snapshot.vnRuntime?.skillCheckDice ?? "d20"
+    (scenario as VnScenario | undefined)?.skillCheckDice ??
+    snapshot.vnRuntime?.skillCheckDice ??
+    "d20"
   );
 };
 
 export const getNode = (snapshot: VnSnapshot, nodeId: string): VnNode => {
-  const node = snapshot.nodes.find((entry) => entry.id === nodeId);
+  const node =
+    createVnSnapshotIndex(
+      snapshot as unknown as SharedVnSnapshot,
+    ).nodesById.get(nodeId) ?? null;
   if (!node) {
     throw new SenderError(`Unknown node: ${nodeId}`);
   }
-  return node;
+  return node as VnNode;
 };
 
 export const getMindPalace = (snapshot: VnSnapshot): MindPalaceSnapshot => ({
@@ -5495,6 +5427,15 @@ export const applyEffects = (
       });
       continue;
     }
+    if (effect.type === "unlock_mind_thought") {
+      upsertFlag(ctx, `mind_unlocked::${effect.thoughtId}`, true);
+      emitTelemetry(ctx, "mind_thought_unlocked", {
+        thoughtId: effect.thoughtId,
+        sourceType: source?.sourceType ?? "vn_effect",
+        sourceId: source?.sourceId ?? effect.thoughtId,
+      });
+      continue;
+    }
     if (effect.type === "shift_awakening") {
       const currentAwakening = getVar(ctx, MYSTIC_AWAKENING_VAR);
       const currentBuffer = Math.max(
@@ -6078,104 +6019,7 @@ export const spawnMapEventInternal = (
   return row;
 };
 
-const rightRotate = (value: number, amount: number): number =>
-  (value >>> amount) | (value << (32 - amount));
-
-export const sha256Hex = (input: string): string => {
-  const normalized = unescape(encodeURIComponent(input));
-  const bytes = Array.from(normalized, (char) => char.charCodeAt(0));
-  const bitLength = bytes.length * 8;
-
-  bytes.push(0x80);
-  while (bytes.length % 64 !== 56) {
-    bytes.push(0);
-  }
-
-  const upper = Math.floor(bitLength / 0x100000000);
-  const lower = bitLength >>> 0;
-  for (const shift of [24, 16, 8, 0]) {
-    bytes.push((upper >>> shift) & 0xff);
-  }
-  for (const shift of [24, 16, 8, 0]) {
-    bytes.push((lower >>> shift) & 0xff);
-  }
-
-  const words = new Array<number>(64);
-  const hash = [
-    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c,
-    0x1f83d9ab, 0x5be0cd19,
-  ];
-  const primes = [
-    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
-    0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
-    0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786,
-    0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147,
-    0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
-    0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
-    0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a,
-    0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
-    0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
-  ];
-
-  for (let offset = 0; offset < bytes.length; offset += 64) {
-    for (let index = 0; index < 16; index += 1) {
-      const base = offset + index * 4;
-      words[index] =
-        (bytes[base] << 24) |
-        (bytes[base + 1] << 16) |
-        (bytes[base + 2] << 8) |
-        bytes[base + 3];
-    }
-    for (let index = 16; index < 64; index += 1) {
-      const s0 =
-        rightRotate(words[index - 15], 7) ^
-        rightRotate(words[index - 15], 18) ^
-        (words[index - 15] >>> 3);
-      const s1 =
-        rightRotate(words[index - 2], 17) ^
-        rightRotate(words[index - 2], 19) ^
-        (words[index - 2] >>> 10);
-      words[index] =
-        (((words[index - 16] + s0) | 0) + ((words[index - 7] + s1) | 0)) | 0;
-    }
-
-    let [a, b, c, d, e, f, g, h] = hash;
-    for (let index = 0; index < 64; index += 1) {
-      const s1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
-      const ch = (e & f) ^ (~e & g);
-      const temp1 =
-        (((((h + s1) | 0) + ch) | 0) + ((primes[index] + words[index]) | 0)) |
-        0;
-      const s0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
-      const maj = (a & b) ^ (a & c) ^ (b & c);
-      const temp2 = (s0 + maj) | 0;
-
-      h = g;
-      g = f;
-      f = e;
-      e = (d + temp1) | 0;
-      d = c;
-      c = b;
-      b = a;
-      a = (temp1 + temp2) | 0;
-    }
-
-    hash[0] = (hash[0] + a) | 0;
-    hash[1] = (hash[1] + b) | 0;
-    hash[2] = (hash[2] + c) | 0;
-    hash[3] = (hash[3] + d) | 0;
-    hash[4] = (hash[4] + e) | 0;
-    hash[5] = (hash[5] + f) | 0;
-    hash[6] = (hash[6] + g) | 0;
-    hash[7] = (hash[7] + h) | 0;
-  }
-
-  return hash
-    .map((value) => (value >>> 0).toString(16).padStart(8, "0"))
-    .join("");
-};
+export { sha256Hex } from "./crypto";
 
 export const parseRequiredFactIdsJson = (
   requiredFactIdsJson: string,

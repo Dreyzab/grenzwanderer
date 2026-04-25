@@ -64,6 +64,13 @@ const withScenarioFlowTag = (
     ? { ...tags, systemFlow: "origin_bootstrap" }
     : tags;
 
+const CASE01_HBF_ARRIVAL_SCENARIO_ID = "case01_hbf_arrival";
+const CASE01_OPENING_ARRIVAL_NODE_ID = "scene_case01_opening_arrival_video";
+const CASE01_OPENING_ARRIVAL_CHOICE_ID =
+  "AUTO_CONTINUE_SCENE_CASE01_OPENING_ARRIVAL_VIDEO";
+const CASE01_TRAIN_COMPARTMENT_LETTER_NODE_ID =
+  "scene_case01_train_compartment_letter";
+
 const clampFortuneSpend = (value: number | undefined): number =>
   Math.max(0, Math.min(2, Math.trunc(value ?? 0)));
 
@@ -565,7 +572,13 @@ export const record_choice = spacetimedb.reducer(
       }
     }
 
-    const nextNode = getNode(snapshot, choice.nextNodeId);
+    const nextNodeId =
+      scenarioId === CASE01_HBF_ARRIVAL_SCENARIO_ID &&
+      currentNode.id === CASE01_OPENING_ARRIVAL_NODE_ID &&
+      choice.id === CASE01_OPENING_ARRIVAL_CHOICE_ID
+        ? CASE01_TRAIN_COMPARTMENT_LETTER_NODE_ID
+        : choice.nextNodeId;
+    const nextNode = getNode(snapshot, nextNodeId);
     if (nextNode.scenarioId !== scenarioId) {
       throw new SenderError("Choice points to node outside scenario");
     }

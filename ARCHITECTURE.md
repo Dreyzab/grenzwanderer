@@ -28,7 +28,9 @@ This document defines runtime architecture, content release lifecycle, and repos
 
 4. Content authoring and extraction layer (`obsidian/`, `scripts/extract-vn-content.ts`)
 
-- Narrative source lives in `obsidian/StoryDetective`.
+- Canonical runtime narrative source lives in `obsidian/StoryDetective`.
+- Design and planning documentation lives in `obsidian/Detectiv` and is not a
+  snapshot extraction source.
 - Extractor generates `content/vn/pilot.snapshot.json` and the public copy.
 - Snapshot carries deterministic checksum metadata.
 - Shared authoring/path contract lives in `docs/OBSIDIAN_VN_CONTRACT.md` and `scripts/content-authoring-contract.ts`.

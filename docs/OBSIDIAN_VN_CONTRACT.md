@@ -4,10 +4,14 @@ This document defines the minimum authoring contract that the VN extractor and c
 
 ## Vault Roots
 
-- Narrative vault root is fixed at `obsidian/StoryDetective`.
+- Runtime narrative vault root is fixed at `obsidian/StoryDetective`.
+- Design and planning documentation lives in `obsidian/Detectiv`.
+- Only `obsidian/StoryDetective` is used as the canonical VN extraction source;
+  `obsidian/Detectiv` may reference runtime concepts but is not parsed into
+  snapshots.
 - Case01 onboarding root is fixed at `40_GameViewer/Case01/Plot/01_Onboarding`.
 - Authoritative Obsidian VN runtime scenarios are discovered by `_scenario.md`
-  files under the vault.
+  files under `obsidian/StoryDetective`.
 - Do not rename or move these roots without updating `scripts/content-authoring-contract.ts`.
 
 ## Required Frontmatter

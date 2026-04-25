@@ -1,9 +1,20 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   VnChoice,
   VnNarrativeLayout,
   VnNarrativePresentation,
+  VnSnapshot,
 } from "../../features/vn/types";
+import { VnStrings } from "../../features/i18n/uiStrings";
+import { VnLogBottomSheet } from "../../features/vn/log/VnLogBottomSheet";
+import type { NarrativeLogState } from "../../features/vn/log/useNarrativeLog";
 import { VnNarrativeText } from "../../features/vn/ui/VnNarrativeText";
 import { MapPin } from "lucide-react";
 import {
@@ -12,7 +23,9 @@ import {
 } from "../../features/vn/ui/TypedText";
 
 interface VnNarrativePanelProps {
+  t: VnStrings;
   sceneId?: string;
+  sceneGroupId?: string | null;
   locationName: string;
   characterName?: string;
   narrativeText: string;
@@ -24,6 +37,8 @@ interface VnNarrativePanelProps {
   backgroundVideoSoundPrompt?: boolean;
   narrativeLayout?: VnNarrativeLayout;
   narrativePresentation?: VnNarrativePresentation;
+  logState?: NarrativeLogState;
+  logSnapshot?: VnSnapshot | null;
   letterOverlayRevealDelayMs?: number;
   onChoiceSelect?: (choiceId: string) => void;
   isTyping?: boolean;
@@ -32,16 +47,27 @@ interface VnNarrativePanelProps {
   typedTextRef?: React.RefObject<TypedTextHandle>;
   onSurfaceTap?: () => void;
   onVideoEnded?: () => void;
+  /** Parent marks natural/skip end — pauses the background video element to avoid double audio. */
+  videoPlaybackComplete?: boolean;
   children?: React.ReactNode;
 }
 
 const DEFAULT_LETTER_OVERLAY_REVEAL_DELAY_MS = 2200;
+/** Must match the letter card `duration-*` in Tailwind (transition-all duration-700). */
+const LETTER_CARD_EXPAND_MS = 700;
+/** Split / thought_log: let the new background show before dialogue chrome (tap or this delay). */
+const SPLIT_BG_REVEAL_DELAY_MS = 2000;
+const MANUAL_REVEAL_LETTER_SCENE_IDS = new Set([
+  "scene_case01_train_compartment_letter",
+]);
 
 type SoundPromptPhase = "prompt" | "playing";
 type VideoStatus = "idle" | "loading" | "ready" | "playing" | "ended";
 
 export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
+  t,
   sceneId,
+  sceneGroupId,
   locationName,
   characterName,
   narrativeText,
@@ -52,6 +78,8 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   backgroundVideoSoundPrompt,
   narrativeLayout,
   narrativePresentation,
+  logState,
+  logSnapshot,
   letterOverlayRevealDelayMs,
   onChoiceSelect,
   isTyping,
@@ -60,62 +88,58 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   typedTextRef,
   onSurfaceTap,
   onVideoEnded,
+  videoPlaybackComplete,
   children,
 }) => {
-  const postDebugLog = useCallback(
-    (
-      location: string,
-      message: string,
-      data: Record<string, unknown>,
-      hypothesisId: string,
-      runId = "run1",
-    ) => {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "f85e6b",
-          },
-          body: JSON.stringify({
-            sessionId: "f85e6b",
-            runId,
-            hypothesisId,
-            location,
-            message,
-            data,
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
-    },
-    [],
-  );
-
   const effectiveNarrativeLayout =
     narrativeLayout ??
     (narrativePresentation === "letter" ? "letter_overlay" : "split");
   const isFullscreen = effectiveNarrativeLayout === "fullscreen";
   const isLetterOverlay = effectiveNarrativeLayout === "letter_overlay";
+  const isLogLayout = effectiveNarrativeLayout === "log";
   const isThoughtLog = effectiveNarrativeLayout === "thought_log";
   const isImmersive = isFullscreen || isLetterOverlay;
+  const isSplitLayout = !isFullscreen && !isLetterOverlay;
   const needsSoundPrompt = Boolean(
     backgroundVideoUrl && backgroundVideoSoundPrompt,
   );
   const revealDelayMs =
     letterOverlayRevealDelayMs ?? DEFAULT_LETTER_OVERLAY_REVEAL_DELAY_MS;
+  const isManualRevealLetter =
+    sceneId != null && MANUAL_REVEAL_LETTER_SCENE_IDS.has(sceneId);
+
+  const backgroundVisualKey = useMemo(
+    () =>
+      [sceneId ?? "", backgroundImageUrl ?? "", backgroundVideoUrl ?? ""].join(
+        "\0",
+      ),
+    [sceneId, backgroundImageUrl, backgroundVideoUrl],
+  );
+  const letterSceneKey = isLetterOverlay ? (sceneId ?? "__letter__") : null;
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const letterAutoRevealTimeoutRef = useRef<number | null>(null);
+  const committedLetterSceneKeyRef = useRef<string | null>(letterSceneKey);
+  const splitChromeRevealTimeoutRef = useRef<number | null>(null);
 
   const [soundPromptPhase, setSoundPromptPhase] = useState<SoundPromptPhase>(
     needsSoundPrompt ? "prompt" : "playing",
   );
+  const [splitTextChromeRevealed, setSplitTextChromeRevealed] = useState(false);
   const [videoUnmuted, setVideoUnmuted] = useState(false);
   const [videoStatus, setVideoStatus] = useState<VideoStatus>("idle");
   const [letterRevealed, setLetterRevealed] = useState(!isLetterOverlay);
+  /** After the letter card expand animation; blocks continue + chrome until set. */
+  const [letterRevealSettled, setLetterRevealSettled] =
+    useState(!isLetterOverlay);
+  const enteringNewLetterScene =
+    isLetterOverlay && committedLetterSceneKeyRef.current !== letterSceneKey;
+  const displayedLetterRevealed =
+    enteringNewLetterScene && !isManualRevealLetter ? false : letterRevealed;
+  const displayedLetterRevealSettled =
+    enteringNewLetterScene && !isManualRevealLetter
+      ? false
+      : letterRevealSettled;
 
   const startVideoAfterSoundChoice = useCallback(async (unmuted: boolean) => {
     const video = videoRef.current;
@@ -135,65 +159,183 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     setSoundPromptPhase(needsSoundPrompt ? "prompt" : "playing");
     setVideoUnmuted(false);
     setVideoStatus(backgroundVideoUrl ? "loading" : "idle");
+  }, [backgroundVideoUrl, needsSoundPrompt]);
 
-    if (!isLetterOverlay) {
-      setLetterRevealed(true);
+  const revealSplitNarrativeChrome = useCallback(() => {
+    if (splitChromeRevealTimeoutRef.current != null) {
+      window.clearTimeout(splitChromeRevealTimeoutRef.current);
+      splitChromeRevealTimeoutRef.current = null;
+    }
+    setSplitTextChromeRevealed(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isSplitLayout) {
       return;
     }
-
-    setLetterRevealed(false);
-    const timeoutId = window.setTimeout(() => {
-      setLetterRevealed(true);
-      postDebugLog(
-        "VnNarrativePanel.tsx:letter-reveal",
-        "Letter overlay revealed by timer",
+    if (isLogLayout) {
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
         {
-          sceneId: sceneId ?? null,
-          revealDelayMs,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Debug-Session-Id": "cd5ee0",
+          },
+          body: JSON.stringify({
+            sessionId: "cd5ee0",
+            runId: "post-fix",
+            hypothesisId: "H12",
+            location: "VnNarrativePanel.tsx:splitChromeEffect(log-skip-reset)",
+            message: "Skipped split chrome hide/reveal in log layout",
+            data: {
+              backgroundVisualKey,
+            },
+            timestamp: Date.now(),
+          }),
         },
-        "H3",
-      );
-    }, revealDelayMs);
-
+      ).catch(() => {});
+      // #endregion
+      setSplitTextChromeRevealed(true);
+      return;
+    }
+    // #region agent log
+    fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "cd5ee0",
+      },
+      body: JSON.stringify({
+        sessionId: "cd5ee0",
+        runId: "run3",
+        hypothesisId: "H12",
+        location: "VnNarrativePanel.tsx:splitChromeEffect(reset)",
+        message: "Split chrome hidden before delayed reveal",
+        data: {
+          backgroundVisualKey,
+          isSplitLayout,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+    setSplitTextChromeRevealed(false);
+    if (splitChromeRevealTimeoutRef.current != null) {
+      window.clearTimeout(splitChromeRevealTimeoutRef.current);
+      splitChromeRevealTimeoutRef.current = null;
+    }
+    splitChromeRevealTimeoutRef.current = window.setTimeout(() => {
+      splitChromeRevealTimeoutRef.current = null;
+      setSplitTextChromeRevealed(true);
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Debug-Session-Id": "cd5ee0",
+          },
+          body: JSON.stringify({
+            sessionId: "cd5ee0",
+            runId: "run3",
+            hypothesisId: "H12",
+            location: "VnNarrativePanel.tsx:splitChromeEffect(revealed)",
+            message: "Split chrome revealed after delay",
+            data: {
+              isSplitLayout,
+            },
+            timestamp: Date.now(),
+          }),
+        },
+      ).catch(() => {});
+      // #endregion
+    }, SPLIT_BG_REVEAL_DELAY_MS);
     return () => {
-      window.clearTimeout(timeoutId);
+      if (splitChromeRevealTimeoutRef.current != null) {
+        window.clearTimeout(splitChromeRevealTimeoutRef.current);
+        splitChromeRevealTimeoutRef.current = null;
+      }
     };
+  }, [backgroundVisualKey, isLogLayout, isSplitLayout]);
+
+  useEffect(() => {
+    if (!isLogLayout) {
+      return;
+    }
+    // #region agent log
+    fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "cd5ee0",
+      },
+      body: JSON.stringify({
+        sessionId: "cd5ee0",
+        runId: "run3",
+        hypothesisId: "H13",
+        location: "VnNarrativePanel.tsx:logVisibilityEffect",
+        message: "Log layout visibility state",
+        data: {
+          sceneId: sceneId ?? null,
+          sceneGroupId: sceneGroupId ?? null,
+          splitTextChromeRevealed,
+          hasLogState: Boolean(logState),
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+  }, [isLogLayout, logState, sceneGroupId, sceneId, splitTextChromeRevealed]);
+
+  useLayoutEffect(() => {
+    if (isLetterOverlay) {
+      committedLetterSceneKeyRef.current = letterSceneKey;
+      setLetterRevealed(isManualRevealLetter);
+      setLetterRevealSettled(isManualRevealLetter);
+    } else {
+      committedLetterSceneKeyRef.current = null;
+      setLetterRevealed(true);
+      setLetterRevealSettled(true);
+    }
   }, [
-    backgroundVideoUrl,
+    effectiveNarrativeLayout,
     isLetterOverlay,
-    needsSoundPrompt,
-    postDebugLog,
-    revealDelayMs,
+    isManualRevealLetter,
+    letterSceneKey,
+    narrativePresentation,
     sceneId,
   ]);
 
   useEffect(() => {
-    postDebugLog(
-      "VnNarrativePanel.tsx:scene-init",
-      "Narrative panel scene state",
-      {
-        sceneId: sceneId ?? null,
-        effectiveNarrativeLayout,
-        isImmersive,
-        isLetterOverlay,
-        letterRevealed,
-        backgroundVideoUrl: backgroundVideoUrl ?? null,
-        needsSoundPrompt,
-        soundPromptPhase,
-      },
-      "H2",
-    );
-  }, [
-    backgroundVideoUrl,
-    effectiveNarrativeLayout,
-    isImmersive,
-    isLetterOverlay,
-    letterRevealed,
-    needsSoundPrompt,
-    postDebugLog,
-    sceneId,
-    soundPromptPhase,
-  ]);
+    if (!isLetterOverlay || isManualRevealLetter) {
+      return;
+    }
+    letterAutoRevealTimeoutRef.current = window.setTimeout(() => {
+      letterAutoRevealTimeoutRef.current = null;
+      setLetterRevealed(true);
+    }, revealDelayMs);
+    return () => {
+      if (letterAutoRevealTimeoutRef.current != null) {
+        window.clearTimeout(letterAutoRevealTimeoutRef.current);
+        letterAutoRevealTimeoutRef.current = null;
+      }
+    };
+  }, [isLetterOverlay, isManualRevealLetter, revealDelayMs, sceneId]);
+
+  useEffect(() => {
+    if (!isLetterOverlay || !displayedLetterRevealed) {
+      return;
+    }
+    const id = window.setTimeout(() => {
+      setLetterRevealSettled(true);
+    }, LETTER_CARD_EXPAND_MS);
+    return () => {
+      window.clearTimeout(id);
+    };
+  }, [displayedLetterRevealed, isLetterOverlay, sceneId]);
 
   useEffect(() => {
     if (!backgroundVideoUrl || soundPromptPhase !== "playing") {
@@ -209,21 +351,18 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     videoUnmuted,
   ]);
 
+  useEffect(() => {
+    if (!videoPlaybackComplete || !videoRef.current) {
+      return;
+    }
+    videoRef.current.pause();
+  }, [videoPlaybackComplete, sceneId, backgroundVideoUrl]);
+
   const handleSoundAllow = useCallback(() => {
-    postDebugLog(
-      "VnNarrativePanel.tsx:handleSoundAllow",
-      "Sound prompt allow pressed",
-      {
-        sceneId: sceneId ?? null,
-        videoStatus,
-        hasVideoRef: Boolean(videoRef.current),
-      },
-      "H4",
-    );
     setVideoUnmuted(true);
     setSoundPromptPhase("playing");
     void startVideoAfterSoundChoice(true);
-  }, [postDebugLog, sceneId, startVideoAfterSoundChoice, videoStatus]);
+  }, [startVideoAfterSoundChoice]);
 
   const handleSoundDeny = useCallback(() => {
     setVideoUnmuted(false);
@@ -231,67 +370,54 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     void startVideoAfterSoundChoice(false);
   }, [startVideoAfterSoundChoice]);
 
-  const handleSurfaceInteraction = useCallback(
-    (event?: React.MouseEvent<HTMLElement>) => {
-      postDebugLog(
-        "VnNarrativePanel.tsx:surface-v2",
-        "Surface interaction observed",
-        {
-          sceneId: sceneId ?? null,
-          isLetterOverlay,
-          letterRevealed,
-          soundPromptPhase,
-          targetTag:
-            (event?.target as HTMLElement | null)?.tagName?.toLowerCase() ??
-            null,
-          currentTargetTag:
-            (
-              event?.currentTarget as HTMLElement | null
-            )?.tagName?.toLowerCase() ?? null,
-        },
-        "H6",
-      );
-      if (isLetterOverlay && !letterRevealed) {
-        postDebugLog(
-          "VnNarrativePanel.tsx:surface",
-          "Surface tap blocked before letter reveal",
-          {
-            sceneId: sceneId ?? null,
-            isLetterOverlay,
-            letterRevealed,
-          },
-          "H3",
-        );
-        return;
+  const handleSurfaceInteraction = useCallback(() => {
+    if (isSplitLayout && !splitTextChromeRevealed) {
+      revealSplitNarrativeChrome();
+      return;
+    }
+    if (isLetterOverlay && !displayedLetterRevealed) {
+      if (letterAutoRevealTimeoutRef.current != null) {
+        window.clearTimeout(letterAutoRevealTimeoutRef.current);
+        letterAutoRevealTimeoutRef.current = null;
       }
-      postDebugLog(
-        "VnNarrativePanel.tsx:surface",
-        "Surface tap forwarded to VnScreen",
-        {
-          sceneId: sceneId ?? null,
-          isLetterOverlay,
-          letterRevealed,
-          soundPromptPhase,
-        },
-        "H3",
-      );
-      onSurfaceTap?.();
-    },
-    [
-      isLetterOverlay,
-      letterRevealed,
-      onSurfaceTap,
-      postDebugLog,
-      sceneId,
-      soundPromptPhase,
-    ],
-  );
+      setLetterRevealSettled(false);
+      setLetterRevealed(true);
+      return;
+    }
+    if (
+      isLetterOverlay &&
+      displayedLetterRevealed &&
+      !displayedLetterRevealSettled
+    ) {
+      return;
+    }
+    if (isLetterOverlay && isTyping) {
+      typedTextRef?.current?.finish();
+      return;
+    }
+    onSurfaceTap?.();
+  }, [
+    isSplitLayout,
+    splitTextChromeRevealed,
+    isLetterOverlay,
+    isTyping,
+    displayedLetterRevealed,
+    displayedLetterRevealSettled,
+    typedTextRef,
+    onSurfaceTap,
+    revealSplitNarrativeChrome,
+  ]);
 
   const showVideoLoadingState =
     Boolean(backgroundVideoUrl) &&
     soundPromptPhase === "playing" &&
     videoStatus !== "playing" &&
     videoStatus !== "ended";
+
+  const showSplitBgAdmireLayer =
+    isSplitLayout &&
+    !splitTextChromeRevealed &&
+    (!needsSoundPrompt || soundPromptPhase === "playing");
 
   const narrativeBody = (
     <VnNarrativeText
@@ -315,7 +441,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   return (
     <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-black font-serif text-stone-200 select-none">
       <div
-        className="absolute inset-0 z-0 transition-opacity duration-1000"
+        className="absolute inset-0 z-0 pointer-events-none transition-opacity duration-1000"
         style={{ opacity: soundPromptPhase === "prompt" ? 0 : 1 }}
       >
         {backgroundVideoUrl &&
@@ -365,20 +491,12 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         <div className="absolute inset-0 z-10 pointer-events-none mix-blend-overlay opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIj48ZmlsdGVyIGlkPSJub2lzZSIgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbm9pc2UpIiBvcGFjaXR5PSIxIi8+PC9zdmc+')] brightness-100 contrast-150" />
       </div>
 
-      {isImmersive ? (
-        <div
-          className="absolute inset-0 z-60"
-          onClick={(event) => handleSurfaceInteraction(event)}
-          aria-hidden="true"
-        />
-      ) : null}
-
-      {!isImmersive && (
+      {!isImmersive && splitTextChromeRevealed && (
         <div className="absolute top-0 inset-x-0 p-6 pt-12 flex justify-between items-start z-100 bg-linear-to-b from-black/90 via-black/40 to-transparent pb-32 pointer-events-none border-t-0 border-l-0 border-r-0 border-b-0">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 text-amber-500/90 uppercase tracking-[0.2em] text-[10px] font-bold">
               <MapPin size={12} className="text-amber-500" />
-              <span>Current Location</span>
+              <span>{t.currentLocation}</span>
             </div>
             <h1 className="text-3xl font-display text-white font-bold tracking-tight drop-shadow-2xl opacity-90 m-0">
               {locationName}
@@ -390,24 +508,24 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
 
       {showVideoLoadingState ? (
         <div className="absolute right-5 bottom-5 z-125 rounded-full border border-white/10 bg-black/45 px-4 py-2 text-[11px] uppercase tracking-[0.16em] text-white/80 backdrop-blur-md">
-          Buffering reel
+          {t.bufferingReel}
         </div>
       ) : null}
 
       {backgroundVideoUrl && soundPromptPhase === "prompt" ? (
         <div
-          className="absolute inset-0 z-130 flex items-end justify-center p-5 sm:items-center"
+          className="absolute inset-0 z-130 flex items-center justify-center p-5"
           onClick={(event) => event.stopPropagation()}
         >
           <div className="w-full max-w-md rounded-[1.8rem] border border-white/12 bg-stone-950/90 px-6 py-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl">
             <p className="text-[11px] uppercase tracking-[0.22em] text-amber-300/80">
-              Film Audio
+              {t.filmAudio}
             </p>
             <h2 className="mt-3 text-2xl font-display text-white">
-              Start with sound?
+              {t.startWithSound}
             </h2>
             <p className="mt-3 text-sm leading-6 text-stone-300">
-              This clip can start with audio or continue silently.
+              {t.startWithSoundDescription}
             </p>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <button
@@ -415,28 +533,55 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
                 className="flex-1 rounded-2xl border border-amber-300/30 bg-amber-200/10 px-4 py-3 text-sm font-semibold text-amber-50 transition-colors hover:bg-amber-200/16"
                 onClick={handleSoundAllow}
               >
-                Enable sound
+                {t.enableSound}
               </button>
               <button
                 type="button"
                 className="flex-1 rounded-2xl border border-white/12 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
                 onClick={handleSoundDeny}
               >
-                Without sound
+                {t.withoutSound}
               </button>
             </div>
           </div>
         </div>
       ) : null}
 
-      {children}
+      {showSplitBgAdmireLayer ? (
+        <div
+          className="fixed inset-0 z-[160] cursor-pointer touch-manipulation"
+          role="button"
+          tabIndex={0}
+          aria-label="Show dialogue and continue"
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              revealSplitNarrativeChrome();
+            }
+          }}
+          onClick={revealSplitNarrativeChrome}
+        />
+      ) : null}
+
+      <div
+        className={
+          isLetterOverlay && !displayedLetterRevealSettled
+            ? "pointer-events-none"
+            : undefined
+        }
+      >
+        {children}
+      </div>
 
       {isLetterOverlay ? (
-        <div className="absolute inset-0 z-110 flex items-center justify-center px-4 pt-8 pb-[calc(2rem+4rem+env(safe-area-inset-bottom))] pointer-events-none sm:px-8">
+        <div
+          className="absolute inset-0 z-110 flex cursor-pointer items-center justify-center px-4 pt-8 pb-[calc(2rem+4rem+env(safe-area-inset-bottom))] sm:px-8"
+          onClick={handleSurfaceInteraction}
+        >
           <div
             className={[
               "w-full max-w-[44rem] transform transition-all duration-700 ease-out",
-              letterRevealed
+              displayedLetterRevealed
                 ? "translate-y-0 -rotate-1 scale-100 opacity-100"
                 : "translate-y-10 rotate-2 scale-95 opacity-0",
             ].join(" ")}
@@ -455,10 +600,10 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
                   <div className="flex items-start justify-between gap-5 border-b border-[#7a5830]/30 pb-4">
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#6b4422]">
-                        Private Correspondence
+                        {t.privateCorrespondence}
                       </p>
                       <p className="mt-2 text-[0.72rem] uppercase tracking-[0.2em] text-[#8c6a3d]">
-                        Freiburg i. Br. / Station post
+                        {t.stationPost}
                       </p>
                     </div>
                     <div className="rounded-full border border-[#7a5830]/35 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#6b4422]">
@@ -467,12 +612,12 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
                   </div>
 
                   <div className="mt-5 whitespace-pre-wrap text-[#3c2616]">
-                    {letterRevealed ? letterNarrativeBody : null}
+                    {displayedLetterRevealed ? letterNarrativeBody : null}
                   </div>
 
                   <div className="mt-5 flex items-center justify-between border-t border-[#7a5830]/20 pt-3 text-[0.68rem] uppercase tracking-[0.22em] text-[#8c6a3d]">
-                    <span>Unsealed at arrival</span>
-                    <span>Tap to continue</span>
+                    <span>{t.unsealedAtArrival}</span>
+                    <span>{t.tapToContinue}</span>
                   </div>
                 </div>
               </div>
@@ -481,10 +626,26 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         </div>
       ) : null}
 
-      {!isFullscreen && !isLetterOverlay ? (
+      {isLogLayout && splitTextChromeRevealed && logState ? (
+        <VnLogBottomSheet
+          sceneGroupId={sceneGroupId ?? null}
+          state={logState}
+          snapshot={logSnapshot ?? null}
+          typedTextRef={typedTextRef}
+          choicesSlot={choicesSlot}
+          onTypingChange={onTypingChange}
+          onSegmentComplete={onNarrativeComplete}
+          onSurfaceTap={handleSurfaceInteraction}
+        />
+      ) : null}
+
+      {!isLogLayout &&
+      !isFullscreen &&
+      !isLetterOverlay &&
+      splitTextChromeRevealed ? (
         <div
           className={[
-            "absolute bottom-0 z-150 flex flex-col border-t border-white/10 shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.8)] transition-all duration-700",
+            "absolute bottom-0 z-150 flex flex-col border-t border-white/10 shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.8)]",
             isThoughtLog
               ? "left-0 min-h-[48%] max-h-[78%] w-full sm:left-6 sm:max-w-2xl"
               : "inset-x-0 min-h-[35%] max-h-[65%]",
@@ -513,7 +674,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
                     characterName ? "pt-12" : "py-6"
                   }`,
             ].join(" ")}
-            onClick={(event) => handleSurfaceInteraction(event)}
+            onClick={handleSurfaceInteraction}
           >
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-amber-900/10 via-transparent to-transparent pointer-events-none" />
             <div className="absolute inset-0 bg-stone-950/40 pointer-events-none" />
@@ -546,6 +707,14 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
           {/* Navbar Spacer */}
           <div className="h-[calc(4rem+env(safe-area-inset-bottom))]" />
         </div>
+      ) : null}
+
+      {isImmersive && !isLetterOverlay ? (
+        <div
+          className="absolute inset-0 z-128 cursor-pointer touch-manipulation"
+          onClick={handleSurfaceInteraction}
+          aria-hidden="true"
+        />
       ) : null}
     </div>
   );

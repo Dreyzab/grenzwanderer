@@ -1,4 +1,5 @@
 import type { VnStrings } from "../../i18n/uiStrings";
+import type { UiLanguage } from "../../../shared/hooks/useUiLanguage";
 import type {
   ChoiceDisplayItem,
   InlineStatusCard,
@@ -10,6 +11,7 @@ import { VnChoiceButton } from "./VnChoiceButton";
 
 interface VnChoicesRendererProps {
   t: VnStrings;
+  uiLanguage: UiLanguage;
   reactionCard: InlineStatusCard | null;
   thoughtCard: InlineStatusCard | null;
   providenceThoughtCard: InlineStatusCard | null;
@@ -111,6 +113,7 @@ const InnerVoiceCard = ({ card }: { card: InnerVoiceCardDisplay }) => (
 
 export const VnChoicesRenderer = ({
   t,
+  uiLanguage,
   reactionCard,
   thoughtCard,
   providenceThoughtCard,
@@ -167,6 +170,8 @@ export const VnChoicesRenderer = ({
       <OriginChoiceCards
         choices={visibleChoices}
         disabled={isInteractionLocked}
+        language={uiLanguage}
+        labels={{ flaw: t.originFlaw, signature: t.originSignature }}
         onPick={onOriginPick}
       />
     ) : !showOriginCards &&

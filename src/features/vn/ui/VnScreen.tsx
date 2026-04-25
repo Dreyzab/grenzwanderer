@@ -375,38 +375,13 @@ export const VnScreen = ({
 
   const handleTypingChange = useCallback(
     (typing: boolean) => {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "cd5ee0",
-          },
-          body: JSON.stringify({
-            sessionId: "cd5ee0",
-            runId: "run1",
-            hypothesisId: "H1",
-            location: "VnScreen.tsx:handleTypingChange",
-            message: "Typing state changed from TypedText",
-            data: {
-              typing,
-              nodeId: currentNode?.id ?? null,
-              layout: effectiveNarrativeLayout,
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       setTypingSegment(typing);
       setIsTyping(typing);
       if (!typing) {
         typingFinishedAtRef.current = Date.now();
       }
     },
-    [currentNode?.id, effectiveNarrativeLayout, setTypingSegment],
+    [setTypingSegment, setIsTyping],
   );
   const handleProvidenceExpand = useCallback(async () => {
     if (!activeAiThoughtContext || !activeAiThoughtRequest) {
@@ -585,6 +560,7 @@ export const VnScreen = ({
     mySession,
     myVars,
     selectedScenarioId,
+    setVideoEnded,
     transitionState,
     videoEnded,
   ]);
@@ -592,81 +568,12 @@ export const VnScreen = ({
   const handleSurfaceTap = useCallback(() => {
     const now = Date.now();
     const elapsedSinceTypingFinish = now - typingFinishedAtRef.current;
-    // #region agent log
-    fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "cd5ee0",
-      },
-      body: JSON.stringify({
-        sessionId: "cd5ee0",
-        runId: "run1",
-        hypothesisId: "H2",
-        location: "VnScreen.tsx:handleSurfaceTap(entry)",
-        message: "Surface tap received",
-        data: {
-          isTyping,
-          transitionState,
-          awaitingSkillChoice: Boolean(awaitingSkillChoice),
-          pendingChoiceId: pendingChoiceId ?? null,
-          selectedScenarioId: selectedScenarioId ?? null,
-          elapsedSinceTypingFinish,
-          layout: effectiveNarrativeLayout,
-          currentSegmentIndex: narrativeLog.state.currentSegmentIndex,
-          currentSegmentCount: narrativeLog.state.currentNodeSegments.length,
-        },
-        timestamp: now,
-      }),
-    }).catch(() => {});
-    // #endregion
+
     if (handleActiveResolveInteraction()) {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "cd5ee0",
-          },
-          body: JSON.stringify({
-            sessionId: "cd5ee0",
-            runId: "run2",
-            hypothesisId: "H6",
-            location: "VnScreen.tsx:handleSurfaceTap(resolve-block)",
-            message: "Tap handled by active resolve interaction",
-            data: {},
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       return;
     }
 
     if (transitionState === "handoff_failed") {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "cd5ee0",
-          },
-          body: JSON.stringify({
-            sessionId: "cd5ee0",
-            runId: "run2",
-            hypothesisId: "H7",
-            location: "VnScreen.tsx:handleSurfaceTap(handoff_failed)",
-            message: "Tap ignored because transition is handoff_failed",
-            data: { transitionState },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       return;
     }
 
@@ -679,30 +586,6 @@ export const VnScreen = ({
     }
 
     if (elapsedSinceTypingFinish < TAP_CONTINUE_COOLDOWN_MS) {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "cd5ee0",
-          },
-          body: JSON.stringify({
-            sessionId: "cd5ee0",
-            runId: "run2",
-            hypothesisId: "H8",
-            location: "VnScreen.tsx:handleSurfaceTap(cooldown)",
-            message: "Tap ignored by cooldown",
-            data: {
-              elapsedSinceTypingFinish,
-              cooldownMs: TAP_CONTINUE_COOLDOWN_MS,
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       return;
     }
 
@@ -712,32 +595,6 @@ export const VnScreen = ({
       pendingChoiceId ||
       !selectedScenarioId
     ) {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "cd5ee0",
-          },
-          body: JSON.stringify({
-            sessionId: "cd5ee0",
-            runId: "run2",
-            hypothesisId: "H9",
-            location: "VnScreen.tsx:handleSurfaceTap(flow-blocked)",
-            message: "Tap ignored because flow is blocked",
-            data: {
-              transitionState,
-              awaitingSkillChoice: Boolean(awaitingSkillChoice),
-              pendingChoiceId: pendingChoiceId ?? null,
-              selectedScenarioId: selectedScenarioId ?? null,
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       return;
     }
 
@@ -772,35 +629,6 @@ export const VnScreen = ({
         !autoContinueChoice;
 
       if (shouldRevealLogStateOnly) {
-        // #region agent log
-        fetch(
-          "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Debug-Session-Id": "cd5ee0",
-            },
-            body: JSON.stringify({
-              sessionId: "cd5ee0",
-              runId: "run1",
-              hypothesisId: "H2",
-              location: "VnScreen.tsx:handleSurfaceTap(advanceSegment)",
-              message: "Advancing narrative log segment",
-              data: {
-                currentSegmentIndex: narrativeLog.state.currentSegmentIndex,
-                currentSegmentCount:
-                  narrativeLog.state.currentNodeSegments.length,
-                isFinalSegment,
-                choiceDisplayItemsLength: choiceDisplayItems.length,
-                displayedScenarioCompleted,
-                hasAutoContinueChoice: Boolean(autoContinueChoice),
-              },
-              timestamp: Date.now(),
-            }),
-          },
-        ).catch(() => {});
-        // #endregion
         narrativeLog.advanceSegment();
         markInteractionHandled();
         return;
@@ -813,34 +641,6 @@ export const VnScreen = ({
     }
 
     if (!autoContinueChoice || !currentNode) {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "cd5ee0",
-          },
-          body: JSON.stringify({
-            sessionId: "cd5ee0",
-            runId: "run2",
-            hypothesisId: "H10",
-            location: "VnScreen.tsx:handleSurfaceTap(no-autocontinue)",
-            message: "No auto-continue path after log segment checks",
-            data: {
-              hasAutoContinueChoice: Boolean(autoContinueChoice),
-              hasCurrentNode: Boolean(currentNode),
-              currentSegmentIndex: narrativeLog.state.currentSegmentIndex,
-              currentSegmentCount:
-                narrativeLog.state.currentNodeSegments.length,
-              choiceDisplayItemsLength: choiceDisplayItems.length,
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       return;
     }
 
@@ -863,15 +663,15 @@ export const VnScreen = ({
   }, [
     autoContinueChoice,
     awaitingSkillChoice,
-    choiceEvaluationContext,
     choiceDisplayItems.length,
+    choiceEvaluationContext,
     currentNode,
     displayedScenarioCompleted,
     effectiveNarrativeLayout,
     handleActiveResolveInteraction,
     handleChoiceClick,
-    handleVideoEnded,
     handleStartScenario,
+    handleVideoEnded,
     isTyping,
     markInteractionHandled,
     myFlags,

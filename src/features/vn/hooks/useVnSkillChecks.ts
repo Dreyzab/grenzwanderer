@@ -330,27 +330,6 @@ export function useVnSkillChecks({
 
   const applyChoiceCommit = useCallback(
     async (scenarioId: string, choiceId: string) => {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "e94b20",
-          },
-          body: JSON.stringify({
-            sessionId: "e94b20",
-            runId: "pre-fix",
-            hypothesisId: "H3",
-            location: "useVnSkillChecks.ts:applyChoiceCommit-start",
-            message: "Choice commit starting",
-            data: { scenarioId, choiceId, currentSessionPointer },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       setTransitionState("choice_pending");
       choiceSessionPointerRef.current = currentSessionPointer;
 
@@ -360,27 +339,7 @@ export function useVnSkillChecks({
           scenarioId,
           choiceId,
         });
-        // #region agent log
-        fetch(
-          "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Debug-Session-Id": "e94b20",
-            },
-            body: JSON.stringify({
-              sessionId: "e94b20",
-              runId: "pre-fix",
-              hypothesisId: "H3",
-              location: "useVnSkillChecks.ts:applyChoiceCommit-success",
-              message: "Choice commit completed",
-              data: { scenarioId, choiceId, currentSessionPointer },
-              timestamp: Date.now(),
-            }),
-          },
-        ).catch(() => {});
-        // #endregion
+
         setStatusLine(`${t.choiceApplied}: ${choiceId}`);
         const pendingPointer = choiceSessionPointerRef.current;
         setTimeout(() => {
@@ -521,37 +480,6 @@ export function useVnSkillChecks({
 
   const handleChoiceClick = useCallback(
     async (choice: VnChoice, isLocked: boolean) => {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "e94b20",
-          },
-          body: JSON.stringify({
-            sessionId: "e94b20",
-            runId: "second-pass",
-            hypothesisId: "H6,H10",
-            location: "useVnSkillChecks.ts:handleChoiceClick-entry",
-            message: "Choice click handler entered",
-            data: {
-              selectedScenarioId,
-              currentNodeId: currentNode?.id ?? null,
-              choiceId: choice.id,
-              nextNodeId: choice.nextNodeId ?? null,
-              isLocked,
-              pendingChoiceId: pendingChoiceId ?? null,
-              awaitingSkillChoice: Boolean(awaitingSkillChoice),
-              activeSkillResolve: Boolean(activeSkillResolve),
-              transitionState,
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       if (
         !selectedScenarioId ||
         !currentNode ||

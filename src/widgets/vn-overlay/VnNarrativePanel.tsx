@@ -174,53 +174,10 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
       return;
     }
     if (isLogLayout) {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "cd5ee0",
-          },
-          body: JSON.stringify({
-            sessionId: "cd5ee0",
-            runId: "post-fix",
-            hypothesisId: "H12",
-            location: "VnNarrativePanel.tsx:splitChromeEffect(log-skip-reset)",
-            message: "Skipped split chrome hide/reveal in log layout",
-            data: {
-              backgroundVisualKey,
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       setSplitTextChromeRevealed(true);
       return;
     }
-    // #region agent log
-    fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "cd5ee0",
-      },
-      body: JSON.stringify({
-        sessionId: "cd5ee0",
-        runId: "run3",
-        hypothesisId: "H12",
-        location: "VnNarrativePanel.tsx:splitChromeEffect(reset)",
-        message: "Split chrome hidden before delayed reveal",
-        data: {
-          backgroundVisualKey,
-          isSplitLayout,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
+
     setSplitTextChromeRevealed(false);
     if (splitChromeRevealTimeoutRef.current != null) {
       window.clearTimeout(splitChromeRevealTimeoutRef.current);
@@ -229,29 +186,6 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     splitChromeRevealTimeoutRef.current = window.setTimeout(() => {
       splitChromeRevealTimeoutRef.current = null;
       setSplitTextChromeRevealed(true);
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "cd5ee0",
-          },
-          body: JSON.stringify({
-            sessionId: "cd5ee0",
-            runId: "run3",
-            hypothesisId: "H12",
-            location: "VnNarrativePanel.tsx:splitChromeEffect(revealed)",
-            message: "Split chrome revealed after delay",
-            data: {
-              isSplitLayout,
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
     }, SPLIT_BG_REVEAL_DELAY_MS);
     return () => {
       if (splitChromeRevealTimeoutRef.current != null) {
@@ -259,36 +193,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         splitChromeRevealTimeoutRef.current = null;
       }
     };
-  }, [backgroundVisualKey, isLogLayout, isSplitLayout]);
-
-  useEffect(() => {
-    if (!isLogLayout) {
-      return;
-    }
-    // #region agent log
-    fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "cd5ee0",
-      },
-      body: JSON.stringify({
-        sessionId: "cd5ee0",
-        runId: "run3",
-        hypothesisId: "H13",
-        location: "VnNarrativePanel.tsx:logVisibilityEffect",
-        message: "Log layout visibility state",
-        data: {
-          sceneId: sceneId ?? null,
-          sceneGroupId: sceneGroupId ?? null,
-          splitTextChromeRevealed,
-          hasLogState: Boolean(logState),
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-  }, [isLogLayout, logState, sceneGroupId, sceneId, splitTextChromeRevealed]);
+  }, [isLogLayout, isSplitLayout]);
 
   useLayoutEffect(() => {
     if (isLetterOverlay) {

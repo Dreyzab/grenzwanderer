@@ -6,7 +6,6 @@ type TabId =
   | "character"
   | "map"
   | "mind_palace"
-  | "dev"
   | "command"
   | "battle";
 

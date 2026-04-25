@@ -120,28 +120,6 @@ export function useNarrativeLog(
     const nextSegments = currentNode
       ? parseSpeakerSegments(nextBody, dictionary)
       : [];
-    // #region agent log
-    fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "cd5ee0",
-      },
-      body: JSON.stringify({
-        sessionId: "cd5ee0",
-        runId: "run1",
-        hypothesisId: "H3",
-        location: "useNarrativeLog.ts:useEffect(node sync)",
-        message: "Narrative log node sync",
-        data: {
-          nextNodeId,
-          nextSceneGroupId,
-          nextSegmentsLength: nextSegments.length,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
 
     setState((previous) => {
       if (
@@ -190,61 +168,10 @@ export function useNarrativeLog(
 
   const advanceSegment = useCallback(() => {
     setState((previous) => {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "cd5ee0",
-          },
-          body: JSON.stringify({
-            sessionId: "cd5ee0",
-            runId: "run1",
-            hypothesisId: "H2",
-            location: "useNarrativeLog.ts:advanceSegment(entry)",
-            message: "advanceSegment invoked",
-            data: {
-              currentNodeId: previous.currentNodeId,
-              currentSegmentIndex: previous.currentSegmentIndex,
-              totalSegments: previous.currentNodeSegments.length,
-              isTypingSegment: previous.isTypingSegment,
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       if (
         !previous.currentNodeId ||
         previous.currentSegmentIndex >= previous.currentNodeSegments.length
       ) {
-        // #region agent log
-        fetch(
-          "http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Debug-Session-Id": "cd5ee0",
-            },
-            body: JSON.stringify({
-              sessionId: "cd5ee0",
-              runId: "run1",
-              hypothesisId: "H3",
-              location: "useNarrativeLog.ts:advanceSegment(guard)",
-              message: "advanceSegment early return guard hit",
-              data: {
-                currentNodeId: previous.currentNodeId,
-                currentSegmentIndex: previous.currentSegmentIndex,
-                totalSegments: previous.currentNodeSegments.length,
-              },
-              timestamp: Date.now(),
-            }),
-          },
-        ).catch(() => {});
-        // #endregion
         return previous;
       }
 
@@ -275,24 +202,6 @@ export function useNarrativeLog(
   }, []);
 
   const finishCurrentSegment = useCallback(() => {
-    // #region agent log
-    fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "cd5ee0",
-      },
-      body: JSON.stringify({
-        sessionId: "cd5ee0",
-        runId: "run1",
-        hypothesisId: "H4",
-        location: "useNarrativeLog.ts:finishCurrentSegment",
-        message: "finishCurrentSegment called",
-        data: {},
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
     setState((previous) => ({ ...previous, isTypingSegment: false }));
   }, []);
 

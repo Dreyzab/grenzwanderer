@@ -37,52 +37,12 @@ export function VnLogBottomSheet({
     });
 
   useEffect(() => {
-    // #region agent log
-    fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "cd5ee0",
-      },
-      body: JSON.stringify({
-        sessionId: "cd5ee0",
-        runId: "run3",
-        hypothesisId: "H11",
-        location: "VnLogBottomSheet.tsx:sceneGroupEffect(entry)",
-        message: "Bottom sheet sceneGroup effect triggered",
-        data: {
-          prevSceneGroupId: previousSceneGroupIdRef.current,
-          nextSceneGroupId: sceneGroupId,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
     if (previousSceneGroupIdRef.current === sceneGroupId) {
       return;
     }
 
     previousSceneGroupIdRef.current = sceneGroupId;
-    // #region agent log
-    fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "cd5ee0",
-      },
-      body: JSON.stringify({
-        sessionId: "cd5ee0",
-        runId: "run3",
-        hypothesisId: "H11",
-        location: "VnLogBottomSheet.tsx:sceneGroupEffect(phase-exit)",
-        message: "Bottom sheet phase set to exit due sceneGroup change",
-        data: {
-          sceneGroupId,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
+
     setPhase("exit");
     const exitTimer = window.setTimeout(() => {
       resetToDefault();

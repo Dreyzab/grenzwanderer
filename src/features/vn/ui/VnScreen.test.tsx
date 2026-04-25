@@ -42,12 +42,20 @@ const mocks = vi.hoisted(() => {
     performSkillCheckMock: vi.fn(),
     enqueueAiRequestMock: vi.fn(),
     useIdentityMock: vi.fn(),
-    usePlayerFlagsMock: vi.fn(),
+    usePlayerFlagsMock: vi.fn(() => ({})),
     usePlayerVarsMock: vi.fn(),
     playVnSkillCheckSfxMock: vi.fn(),
     readVnSfxMutedMock: vi.fn(),
     writeVnSfxMutedMock: vi.fn(),
+    stableDictionary: { vn: {}, stats: {}, speakers: {}, origin: {} },
+    useI18nMock: vi.fn(),
   };
+});
+
+mocks.useI18nMock.mockReturnValue({
+  dictionary: mocks.stableDictionary,
+  language: "en",
+  isLoaded: true,
 });
 
 vi.mock("framer-motion", async () => {
@@ -95,6 +103,10 @@ vi.mock("framer-motion", async () => {
     ),
   };
 });
+
+vi.mock("../../i18n/I18nContext", () => ({
+  useI18n: () => mocks.useI18nMock(),
+}));
 
 vi.mock("spacetimedb/react", () => ({
   useTable: (...args: unknown[]) => mocks.useTableMock(...args),
@@ -599,6 +611,23 @@ describe("VnScreen critical behavior", () => {
 
   it("renders Russian VN narrative and choice text from stable content IDs", async () => {
     mocks.usePlayerFlagsMock.mockReturnValue({ lang_ru: true });
+    mocks.useI18nMock.mockReturnValue({
+      language: "ru",
+      dictionary: {
+        vn: {
+          "vn.case01_hbf_arrival.title": "Дело 01: Прибытие во Фрайбург",
+          "vn.case01_hbf_arrival.scene_case01_beat1_atmosphere.body":
+            "Фрайбург встретил его запахом угля и пара.",
+          "vn.case01_hbf_arrival.scene_case01_beat1_atmosphere.choice.CASE01_BEAT1_POLICE":
+            "Обратиться к железнодорожной полиции",
+        },
+        stats: {},
+        speakers: {},
+        origin: {},
+      },
+      isLoaded: true,
+      t: (key: string) => key,
+    });
 
     const payloadJson = makeSnapshotPayload(
       [

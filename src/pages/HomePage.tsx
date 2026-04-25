@@ -19,6 +19,7 @@ import {
   resolveUiLanguage,
   type UiLanguage,
 } from "../shared/hooks/useUiLanguage";
+import { useI18n } from "../features/i18n/I18nContext";
 
 interface HomePageProps {
   onNavigate: (
@@ -139,6 +140,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     useState<CitySelection>("freiburg_1905");
   const [pendingResetOnBegin, setPendingResetOnBegin] = useState(false);
   const [isLanguageUpdating, setIsLanguageUpdating] = useState(false);
+  const { isLoaded } = useI18n();
   const launchInFlightRef = useRef(false);
 
   const activeVersion = useMemo(
@@ -211,6 +213,16 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const isEntryBlocked = entryTarget.kind === "blocked_sync";
   const isFreiburgSelected = selectedCity === "freiburg_1905";
   const pageStatus = isEntryBlocked ? syncStatus : flowStatus;
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-[100dvh] bg-stone-950 flex items-center justify-center">
+        <div className="animate-pulse text-primary font-serif italic text-lg">
+          Synchronizing records...
+        </div>
+      </div>
+    );
+  }
 
   const closeOriginFlow = () => {
     setFlowState("idle");

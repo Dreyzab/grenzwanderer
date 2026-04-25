@@ -1,0 +1,589 @@
+﻿bun : $ bun run release:config:prepare && vitest run src/app/AppShell.test.tsx
+At line:1 char:1
++ bun run test src/app/AppShell.test.tsx > appshell_test_error.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ($ bun run relea...pShell.test.tsx:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+$ bun run scripts/prepare-release-config.ts
+[release-config] wrote default release profile configuration.
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mF:/proje/grenzwanderer/Grenzwanderer[39m
+
+[90mstderr[2m | src/app/AppShell.test.tsx[2m > [22m[2mAppShell URL synchronization[2m > [22m[2mreads initial ta
+b and vnScenario from query
+[22m[39mError: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+Error: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+The above error occurred in the <AppShell> component:
+
+    at AppShell (F:\proje\grenzwanderer\Grenzwanderer\src\app\AppShell.tsx:177:66)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+[90mstderr[2m | src/app/AppShell.test.tsx[2m > [22m[2mAppShell URL synchronization[2m > [22m[2mapplies popstate
+ changes for tab and vnScenario
+[22m[39mError: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+Error: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+The above error occurred in the <AppShell> component:
+
+    at AppShell (F:\proje\grenzwanderer\Grenzwanderer\src\app\AppShell.tsx:177:66)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+[90mstderr[2m | src/app/AppShell.test.tsx[2m > [22m[2mAppShell URL synchronization[2m > [22m[2mwrites updated t
+ab/scenario into query via replaceState
+[22m[39mError: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+Error: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+The above error occurred in the <AppShell> component:
+
+    at AppShell (F:\proje\grenzwanderer\Grenzwanderer\src\app\AppShell.tsx:177:66)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+[90mstderr[2m | src/app/AppShell.test.tsx[2m > [22m[2mAppShell URL synchronization[2m > [22m[2mopens a specific
+ VN scenario from Home callback
+[22m[39mError: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+Error: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+The above error occurred in the <AppShell> component:
+
+    at AppShell (F:\proje\grenzwanderer\Grenzwanderer\src\app\AppShell.tsx:177:66)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+[90mstderr[2m | src/app/AppShell.test.tsx[2m > [22m[2mAppShell URL synchronization[2m > [22m[2mswitches into co
+mmand tab when an active command session appears
+[22m[39mError: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+Error: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+The above error occurred in the <AppShell> component:
+
+    at AppShell (F:\proje\grenzwanderer\Grenzwanderer\src\app\AppShell.tsx:177:66)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+[90mstderr[2m | src/app/AppShell.test.tsx[2m > [22m[2mAppShell URL synchronization[2m > [22m[2mswitches into ba
+ttle tab when an active battle session appears
+[22m[39mError: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+Error: Uncaught [ReferenceError: I18nProvider is not defined]
+    at reportException (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script
+-errors.js:66:24)
+    at innerInvokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\Event
+Target-impl.js:353:9)
+    at invokeEventListeners (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\events\EventTarge
+t-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\event
+s\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\e
+vents\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (F:\proje\grenzwanderer\Grenzwanderer\node_modules\jsdom\lib\jsdom\living\gener
+ated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.devel
+opment.js:4213:16)
+    at invokeGuardedCallback (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:
+4277:31)
+    at beginWork$1 (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (F:\proje\grenzwanderer\Grenzwanderer\node_modules\react-dom\cjs\react-dom.development.js:2659
+9:12) ReferenceError: I18nProvider is not defined
+    at AppShell [90m(F:\proje\grenzwanderer\Grenzwanderer\[39msrc\app\AppShell.tsx:615:6[90m)[39m
+    at renderWithHooks [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.de
+velopment.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\
+react-dom.development.js:20103:13[90m)[39m
+    at beginWork [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\cjs\react-dom.developm
+ent.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom.development.js:4164:14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4m
+jsdom[24m\lib\jsdom\living\generated\EventListener.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\
+living\events\EventTarget-impl.js:350:25[90m)[39m
+    at invokeEventListeners [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib\jsdom\livin
+g\events\EventTarget-impl.js:286:3[90m)[39m
+    at HTMLUnknownElementImpl._dispatch [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m\lib
+\jsdom\living\events\EventTarget-impl.js:233:9[90m)[39m
+    at HTMLUnknownElementImpl.dispatchEvent [90m(F:\proje\grenzwanderer\Grenzwanderer\[39mnode_modules\[4mjsdom[24m
+\lib\jsdom\living\events\EventTarget-impl.js:104:17[90m)[39m
+The above error occurred in the <AppShell> component:
+
+    at AppShell (F:\proje\grenzwanderer\Grenzwanderer\src\app\AppShell.tsx:177:66)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+ [31m❯[39m src/app/AppShell.test.tsx [2m([22m[2m6 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[32m 66[2mms[22m[39m
+[31m   [31m×[31m AppShell URL synchronization[2m > [22mreads initial tab and vnScenario from query[39m[32m 40[2mms[22m[39m
+[31m     → I18nProvider is not defined[39m
+[31m   [31m×[31m AppShell URL synchronization[2m > [22mapplies popstate changes for tab and vnScenario[39m[32m 7[2mms[22m[39m
+[31m     → I18nProvider is not defined[39m
+[31m   [31m×[31m AppShell URL synchronization[2m > [22mwrites updated tab/scenario into query via replaceState[39m[32m 5[2mms[22m[39m
+[31m     → I18nProvider is not defined[39m
+[31m   [31m×[31m AppShell URL synchronization[2m > [22mopens a specific VN scenario from Home callback[39m[32m 4[2mms[22m[39m
+[31m     → I18nProvider is not defined[39m
+[31m   [31m×[31m AppShell URL synchronization[2m > [22mswitches into command tab when an active command session appears[39m[32m 5[2mms[22m[39m
+[31m     → I18nProvider is not defined[39m
+[31m   [31m×[31m AppShell URL synchronization[2m > [22mswitches into battle tab when an active battle session appears[39m[32m 4[2mms[22m[39m
+[31m     → I18nProvider is not defined[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 6 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/app/AppShell.test.tsx[2m > [22mAppShell URL synchronization[2m > [22mreads initial ta
+b and vnScenario from query
+[41m[1m FAIL [22m[49m src/app/AppShell.test.tsx[2m > [22mAppShell URL synchronization[2m > [22mapplies popstate
+ changes for tab and vnScenario
+[41m[1m FAIL [22m[49m src/app/AppShell.test.tsx[2m > [22mAppShell URL synchronization[2m > [22mwrites updated t
+ab/scenario into query via replaceState
+[41m[1m FAIL [22m[49m src/app/AppShell.test.tsx[2m > [22mAppShell URL synchronization[2m > [22mopens a specific
+ VN scenario from Home callback
+[41m[1m FAIL [22m[49m src/app/AppShell.test.tsx[2m > [22mAppShell URL synchronization[2m > [22mswitches into co
+mmand tab when an active command session appears
+[41m[1m FAIL [22m[49m src/app/AppShell.test.tsx[2m > [22mAppShell URL synchronization[2m > [22mswitches into ba
+ttle tab when an active battle session appears
+[31m[1mReferenceError[22m: I18nProvider is not defined[39m
+[36m [2m❯[22m AppShell src/app/AppShell.tsx:[2m615:6[22m[39m
+    [90m613| [39m
+    [90m614| [39m  [35mreturn[39m (
+    [90m615| [39m    [33m<[39m[33mI18nProvider[39m[33m>[39m
+    [90m   | [39m     [31m^[39m
+    [90m616| [39m      [33m<[39m[33mToastProvider[39m[33m>[39m
+    [90m617| [39m        [33m<[39m[33mToaster[39m [33m/[39m[33m>[39m
+[90m [2m❯[22m renderWithHooks node_modules/react-dom/cjs/react-dom.development.js:[2m15486:18[22m[39m
+[90m [2m❯[22m mountIndeterminateComponent node_modules/react-dom/cjs/react-dom.development.js:[2m20103:13[22m[39m
+[90m [2m❯[22m beginWork node_modules/react-dom/cjs/react-dom.development.js:[2m21626:16[22m[39m
+[90m [2m❯[22m beginWork$1 node_modules/react-dom/cjs/react-dom.development.js:[2m27465:14[22m[39m
+[90m [2m❯[22m performUnitOfWork node_modules/react-dom/cjs/react-dom.development.js:[2m26599:12[22m[39m
+[90m [2m❯[22m workLoopSync node_modules/react-dom/cjs/react-dom.development.js:[2m26505:5[22m[39m
+[90m [2m❯[22m renderRootSync node_modules/react-dom/cjs/react-dom.development.js:[2m26473:7[22m[39m
+[90m [2m❯[22m recoverFromConcurrentError node_modules/react-dom/cjs/react-dom.development.js:[2m25889:20[22m[39m
+[90m [2m❯[22m performConcurrentWorkOnRoot node_modules/react-dom/cjs/react-dom.development.js:[2m25789:22[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[90m (6)[39m
+[2m   Start at [22m 19:48:45
+[2m   Duration [22m 1.85s[2m (transform 138ms, setup 137ms, collect 505ms, tests 66ms, environment 724ms, prepare 105ms)[22m
+
+error: script "test" exited with code 1

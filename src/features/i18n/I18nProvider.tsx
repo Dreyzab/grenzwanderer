@@ -1,5 +1,6 @@
 import React, { useEffect, useState, ReactNode } from "react";
 import { useUiLanguage } from "../../shared/hooks/useUiLanguage";
+import { usePlayerFlags } from "../../entities/player/hooks/usePlayerFlags";
 import { I18nContext, I18nDictionary } from "./I18nContext";
 
 interface I18nProviderProps {
@@ -7,7 +8,8 @@ interface I18nProviderProps {
 }
 
 export function I18nProvider({ children }: I18nProviderProps) {
-  const { language } = useUiLanguage();
+  const flags = usePlayerFlags();
+  const language = useUiLanguage(flags);
   const [dictionary, setDictionary] = useState<I18nDictionary | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 

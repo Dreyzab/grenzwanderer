@@ -18,8 +18,13 @@ const mocks = vi.hoisted(() => {
     useIdentityMock: vi.fn(),
     useTableMock: vi.fn(),
     useReducerMock: vi.fn(),
+    useI18nMock: vi.fn(),
   };
 });
+
+vi.mock("../features/i18n/I18nContext", () => ({
+  useI18n: () => mocks.useI18nMock(),
+}));
 
 vi.mock("spacetimedb/react", () => ({
   useTable: (...args: unknown[]) => mocks.useTableMock(...args),
@@ -244,6 +249,13 @@ describe("HomePage Freiburg flow", () => {
         return [state.flagRows, state.flagsReady];
       }
       return [[], true];
+    });
+
+    mocks.useI18nMock.mockReturnValue({
+      language: "en",
+      dictionary: null,
+      isLoaded: true,
+      t: (key: string) => key,
     });
   });
 

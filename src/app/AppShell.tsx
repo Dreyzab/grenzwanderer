@@ -38,6 +38,7 @@ import { usePresenceHeartbeat } from "../shared/spacetime/usePresenceHeartbeat";
 import { postRuntimeDebug } from "../shared/debug/runtimeDebug";
 import { Toaster } from "../shared/ui/Toaster";
 import { Navbar } from "../widgets/navbar/Navbar";
+import { I18nProvider } from "../features/i18n/I18nProvider";
 import "./AppShell.css";
 
 type TabId =

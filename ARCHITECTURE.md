@@ -26,7 +26,14 @@ This document defines runtime architecture, content release lifecycle, and repos
 - Visibility migration source of truth: `scripts/visibility-matrix.ts`
 - Human-readable note: `docs/VISIBILITY_MATRIX.md`
 
-4. Content authoring and extraction layer (`obsidian/`, `scripts/extract-vn-content.ts`)
+4. Internationalization layer (`src/features/i18n`)
+
+- `I18nProvider` manages UI language state and dynamic locale loading.
+- Locales are stored as JSON chunks in `src/features/i18n/locales/`.
+- Narrative content is resolved via stable content IDs (e.g., `vn.scenarioId.nodeId.body`) to decouple logic from translation.
+- Fallback to canonical English content is enforced for missing translations.
+
+5. Content authoring and extraction layer (`obsidian/`, `scripts/extract-vn-content.ts`)
 
 - Canonical runtime narrative source lives in `obsidian/StoryDetective`.
 - Design and planning documentation lives in `obsidian/Detectiv` and is not a

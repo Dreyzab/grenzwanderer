@@ -30,6 +30,7 @@ const mocks = vi.hoisted(() => {
     recordChoice: Symbol("recordChoice"),
     performSkillCheck: Symbol("performSkillCheck"),
     enqueueAiRequest: Symbol("enqueueAiRequest"),
+    enqueueProvidenceDialogue: Symbol("enqueueProvidenceDialogue"),
   };
 
   return {
@@ -41,6 +42,7 @@ const mocks = vi.hoisted(() => {
     recordChoiceMock: vi.fn(),
     performSkillCheckMock: vi.fn(),
     enqueueAiRequestMock: vi.fn(),
+    enqueueProvidenceDialogueMock: vi.fn(),
     useIdentityMock: vi.fn(),
     usePlayerFlagsMock: vi.fn(() => ({})),
     usePlayerVarsMock: vi.fn(),
@@ -250,6 +252,7 @@ describe("VnScreen critical behavior", () => {
     mocks.recordChoiceMock.mockResolvedValue(undefined);
     mocks.performSkillCheckMock.mockResolvedValue(undefined);
     mocks.enqueueAiRequestMock.mockResolvedValue(undefined);
+    mocks.enqueueProvidenceDialogueMock.mockResolvedValue(undefined);
 
     mocks.useReducerMock.mockImplementation((reducer: symbol) => {
       if (reducer === mocks.reducers.startScenario) {
@@ -263,6 +266,9 @@ describe("VnScreen critical behavior", () => {
       }
       if (reducer === mocks.reducers.enqueueAiRequest) {
         return mocks.enqueueAiRequestMock;
+      }
+      if (reducer === mocks.reducers.enqueueProvidenceDialogue) {
+        return mocks.enqueueProvidenceDialogueMock;
       }
       return vi.fn();
     });
@@ -286,6 +292,141 @@ describe("VnScreen critical behavior", () => {
       return [[], true];
     });
   });
+
+  const renderCompletedAiThoughtWithProvidence = async () => {
+    vi.useFakeTimers();
+    mocks.usePlayerVarsMock.mockReturnValue({
+      attr_social: 4,
+      resource_providence: 5,
+    });
+
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_case01_pilot",
+          title: "Case01",
+          startNodeId: "node_start",
+          nodeIds: ["node_start", "node_next"],
+        },
+      ],
+      [
+        {
+          id: "node_start",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Start",
+          body: "Steam and tension hang over the tailor's counter.",
+          choices: [
+            {
+              id: "choice_probe",
+              text: "Lean in and make the tailor talk.",
+              nextNodeId: "node_next",
+              providenceCost: 2,
+              skillCheck: {
+                id: "check_probe",
+                voiceId: "attr_social",
+                difficulty: 8,
+                showChancePercent: true,
+              },
+            },
+          ],
+        },
+        {
+          id: "node_next",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Next",
+          body: "Body",
+          choices: [],
+        },
+      ],
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(8n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_case01_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_start",
+        updatedAt: timestamp(18n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    const view = render(<VnScreen />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Lean in and make/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Roll" }));
+    state.skillResultRows = [
+      {
+        resultKey: "result_probe",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_start",
+        checkId: "check_probe",
+        roll: 9,
+        voiceLevel: 4,
+        difficulty: 8,
+        passed: true,
+        nextNodeId: { tag: "none" },
+        createdAt: timestamp(30n),
+      },
+    ];
+
+    await act(async () => {
+      view.rerender(<VnScreen />);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mocks.enqueueAiRequestMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "surface-tap" }));
+
+    state.aiRequestRows = [
+      {
+        id: 1n,
+        playerId: identity("me"),
+        requestId: "ai-probe",
+        kind: AI_GENERATE_DIALOGUE_KIND,
+        payloadJson: mocks.enqueueAiRequestMock.mock.calls[0]?.[0].payloadJson,
+        status: "completed",
+        responseJson: {
+          tag: "some",
+          value:
+            '{"text":"Push now. He is already leaning.","canonicalVoiceId":"charisma"}',
+        },
+        error: { tag: "none" },
+        createdAt: timestamp(31n),
+        updatedAt: timestamp(32n),
+      },
+    ];
+
+    await act(async () => {
+      view.rerender(<VnScreen />);
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "surface-tap" }));
+      await Promise.resolve();
+    });
+    await act(async () => {
+      view.rerender(<VnScreen />);
+    });
+
+    expect(
+      screen.getByRole("button", { name: /Deepen for 2 Providence/i }),
+    ).toBeInTheDocument();
+
+    return view;
+  };
 
   it("autostarts when authenticated even if the raw session ready flag lags", async () => {
     const payloadJson = makeSnapshotPayload(
@@ -466,6 +607,82 @@ describe("VnScreen critical behavior", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "video-ended" }));
     expect(mocks.recordChoiceMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("blocks duplicate cinematic advance when video end and tap happen in one turn", async () => {
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_case01_pilot",
+          title: "Case01",
+          startNodeId: "node_video",
+          nodeIds: ["node_video", "node_next"],
+        },
+      ],
+      [
+        {
+          id: "node_video",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Arrival Reel",
+          body: "",
+          narrativeLayout: "fullscreen",
+          backgroundVideoUrl: "/VN/start/video/Bahn.mp4",
+          advanceOnVideoEnd: true,
+          choices: [
+            {
+              id: "AUTO_CONTINUE_NODE_VIDEO",
+              text: "Continue.",
+              nextNodeId: "node_next",
+            },
+          ],
+        },
+        {
+          id: "node_next",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Next",
+          body: "Body",
+          choices: [],
+        },
+      ],
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(3n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_case01_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_video",
+        updatedAt: timestamp(10n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    render(<VnScreen />);
+
+    const videoEndedButton = screen.getByRole("button", {
+      name: "video-ended",
+    });
+    const surfaceTapButton = screen.getByRole("button", {
+      name: "surface-tap",
+    });
+
+    act(() => {
+      videoEndedButton.click();
+      surfaceTapButton.click();
+    });
+
+    await waitFor(() => {
+      expect(mocks.recordChoiceMock).toHaveBeenCalledTimes(1);
+    });
+    expect(mocks.recordChoiceMock.mock.calls[0]?.[0]?.choiceId).toBe(
+      "AUTO_CONTINUE_NODE_VIDEO",
+    );
   });
 
   it("derives letter_overlay layout and hides runtime chrome for letters", () => {
@@ -1584,6 +1801,81 @@ describe("VnScreen critical behavior", () => {
     expect(
       screen.getByText("Push now. He is already leaning."),
     ).toBeInTheDocument();
+  });
+
+  it("enqueues a providence dialogue request from a completed base thought", async () => {
+    await renderCompletedAiThoughtWithProvidence();
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: /Deepen for 2 Providence/i }),
+      );
+      await Promise.resolve();
+    });
+    expect(mocks.enqueueProvidenceDialogueMock).toHaveBeenCalledTimes(1);
+
+    const request = mocks.enqueueProvidenceDialogueMock.mock.calls[0]?.[0];
+    expect(request).toMatchObject({
+      scenarioId: "sandbox_case01_pilot",
+      nodeId: "node_start",
+      checkId: "check_probe",
+      choiceId: "choice_probe",
+      providenceCost: 2,
+    });
+    expect(request.requestId).toEqual(expect.any(String));
+    expect(JSON.parse(request.payloadJson)).toMatchObject({
+      source: AI_DIALOGUE_SOURCE_SKILL_CHECK,
+      scenarioId: "sandbox_case01_pilot",
+      nodeId: "node_start",
+      checkId: "check_probe",
+      choiceId: "choice_probe",
+      dialogueLayer: "providence",
+      providenceCost: 2,
+    });
+  });
+
+  it("does not enqueue providence twice while the providence thought is pending", async () => {
+    const view = await renderCompletedAiThoughtWithProvidence();
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: /Deepen for 2 Providence/i }),
+      );
+      await Promise.resolve();
+    });
+    expect(mocks.enqueueProvidenceDialogueMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      view.rerender(<VnScreen />);
+    });
+
+    const deepenButton = screen.getByRole("button", {
+      name: /Deepen for 2 Providence/i,
+    });
+    expect(deepenButton).toBeDisabled();
+    fireEvent.click(deepenButton);
+
+    expect(mocks.enqueueProvidenceDialogueMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("rolls back matching providence context and shows an error when enqueue fails", async () => {
+    mocks.enqueueProvidenceDialogueMock.mockRejectedValueOnce(
+      new Error("No providence left"),
+    );
+    await renderCompletedAiThoughtWithProvidence();
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: /Deepen for 2 Providence/i }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(mocks.enqueueProvidenceDialogueMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("No providence left")).toBeInTheDocument();
+    expect(
+      screen.queryByText("The deeper reading is forming..."),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the active lens badge when a focused hypothesis gates the current node", () => {

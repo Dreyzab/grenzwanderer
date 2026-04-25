@@ -5,18 +5,18 @@ import { usePlayerFlags } from "../../../entities/player/hooks/usePlayerFlags";
 import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
 import { useKarlsruheSceneBackground } from "../../release/sceneGeneration";
 import { getVnStrings } from "../../i18n/uiStrings";
-import { parseGenerateDialoguePayload } from "../../ai/contracts";
 import { useVnAiLogic } from "../hooks/useVnAiLogic";
 import { useVnDerivedState } from "../hooks/useVnDerivedState";
 import { useVnDisplayMapping } from "../hooks/useVnDisplayMapping";
+import { useVnProvidenceExpansion } from "../hooks/useVnProvidenceExpansion";
 import { useVnSkillChecks } from "../hooks/useVnSkillChecks";
+import { useVnSurfaceInteraction } from "../hooks/useVnSurfaceInteraction";
 import { useVnTransitions } from "../hooks/useVnTransitions";
 import { useCurrentNode } from "../hooks/useCurrentNode";
 import { useVnSession } from "../hooks/useVnSession";
 import { LogChoicesRenderer } from "../log/LogChoicesRenderer";
 import { useNarrativeLog } from "../log/useNarrativeLog";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
-import { postRuntimeDebug } from "../../../shared/debug/runtimeDebug";
 import { reducers, tables } from "../../../shared/spacetime/bindings";
 import {
   getScenarioById,
@@ -40,11 +40,7 @@ import {
   writeVnSfxMuted,
 } from "./vnSkillCheckAudio";
 import { VnNarrativePanel } from "../../../widgets/vn-overlay/VnNarrativePanel";
-import {
-  AUTO_CONTINUE_PREFIX,
-  createRequestId,
-  TAP_CONTINUE_COOLDOWN_MS,
-} from "../vnScreenUtils";
+import { AUTO_CONTINUE_PREFIX } from "../vnScreenUtils";
 import type {
   ActiveAiThoughtContext,
   AwaitingSkillChoice,
@@ -205,9 +201,6 @@ export const VnScreen = ({
   );
   const { appendCheckResult, appendChoice, setTypingSegment } = narrativeLog;
 
-  useEffect(() => {
-    setVideoEnded(false);
-  }, [currentNode?.id]);
   const generatedBackgroundUrl =
     useKarlsruheSceneBackground(selectedScenarioId);
   const {
@@ -383,76 +376,15 @@ export const VnScreen = ({
     },
     [setTypingSegment, setIsTyping],
   );
-  const handleProvidenceExpand = useCallback(async () => {
-    if (!activeAiThoughtContext || !activeAiThoughtRequest) {
-      return;
-    }
 
-    const payload = parseGenerateDialoguePayload(
-      typeof activeAiThoughtRequest.payloadJson === "string"
-        ? activeAiThoughtRequest.payloadJson
-        : null,
-    );
-    if (!payload || payload.dialogueLayer !== "base") {
-      return;
-    }
-
-    const providenceCost = Math.max(0, Math.trunc(payload.providenceCost ?? 0));
-    if (providenceCost <= 0) {
-      return;
-    }
-
-    if (
-      activeProvidenceThoughtStatus === "pending" ||
-      activeProvidenceThoughtStatus === "processing" ||
-      activeProvidenceThoughtStatus === "completed"
-    ) {
-      return;
-    }
-
-    const context: ActiveAiThoughtContext = {
-      ...activeAiThoughtContext,
-      dialogueLayer: "providence",
-    };
-
-    setActiveProvidenceThoughtContext(context);
-
-    try {
-      await enqueueProvidenceDialogue({
-        requestId: createRequestId(),
-        scenarioId: payload.scenarioId,
-        nodeId: payload.nodeId,
-        checkId: payload.checkId,
-        choiceId: payload.choiceId,
-        providenceCost,
-        payloadJson: JSON.stringify({
-          ...payload,
-          dialogueLayer: "providence",
-          providenceCost,
-        }),
-      });
-    } catch (caughtError) {
-      setActiveProvidenceThoughtContext((current) =>
-        current?.scenarioId === context.scenarioId &&
-        current?.nodeId === context.nodeId &&
-        current?.checkId === context.checkId &&
-        current?.choiceId === context.choiceId &&
-        current?.dialogueLayer === "providence"
-          ? null
-          : current,
-      );
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Providence dialogue request failed",
-      );
-    }
-  }, [
+  const { handleProvidenceExpand } = useVnProvidenceExpansion({
     activeAiThoughtContext,
     activeAiThoughtRequest,
     activeProvidenceThoughtStatus,
+    setActiveProvidenceThoughtContext,
     enqueueProvidenceDialogue,
-  ]);
+    setError,
+  });
   const {
     reactionCard,
     thoughtCard,
@@ -521,149 +453,10 @@ export const VnScreen = ({
     effectiveNarrativeLayout === "fullscreen" ||
     effectiveNarrativeLayout === "letter_overlay";
 
-  const handleVideoEnded = useCallback(() => {
-    if (videoEnded) {
-      return;
-    }
-
-    setVideoEnded(true);
-
-    if (
-      !currentNode?.advanceOnVideoEnd ||
-      !currentNode.backgroundVideoUrl ||
-      transitionState !== "idle" ||
-      !autoContinueChoice ||
-      !selectedScenarioId ||
-      !mySession
-    ) {
-      return;
-    }
-
-    const isAvailable = isChoiceAvailable(
-      autoContinueChoice,
-      myFlags,
-      myVars,
-      choiceEvaluationContext,
-    );
-    if (!isAvailable) {
-      return;
-    }
-
-    void handleChoiceClick(autoContinueChoice, false);
-  }, [
-    autoContinueChoice,
-    choiceEvaluationContext,
-    currentNode?.advanceOnVideoEnd,
-    currentNode?.backgroundVideoUrl,
-    handleChoiceClick,
-    myFlags,
-    mySession,
-    myVars,
-    selectedScenarioId,
-    setVideoEnded,
-    transitionState,
-    videoEnded,
-  ]);
-
-  const handleSurfaceTap = useCallback(() => {
-    const now = Date.now();
-    const elapsedSinceTypingFinish = now - typingFinishedAtRef.current;
-
-    if (handleActiveResolveInteraction()) {
-      return;
-    }
-
-    if (transitionState === "handoff_failed") {
-      return;
-    }
-
-    if (isTyping) {
-      narrativeLog.finishCurrentSegment();
-      typedTextRef.current?.finish();
-      setIsTyping(false);
-      typingFinishedAtRef.current = Date.now();
-      return;
-    }
-
-    if (elapsedSinceTypingFinish < TAP_CONTINUE_COOLDOWN_MS) {
-      return;
-    }
-
-    if (
-      transitionState !== "idle" ||
-      awaitingSkillChoice ||
-      pendingChoiceId ||
-      !selectedScenarioId
-    ) {
-      return;
-    }
-
-    if (
-      currentNode?.advanceOnVideoEnd &&
-      currentNode.backgroundVideoUrl &&
-      !videoEnded
-    ) {
-      postRuntimeDebug(
-        "VnScreen.tsx:handleSurfaceTap",
-        "Immersive video tap skipped to video end",
-        { nodeId: currentNode.id },
-        "H1",
-        "post-fix",
-      );
-      void handleVideoEnded();
-      return;
-    }
-
-    if (
-      effectiveNarrativeLayout === "log" &&
-      narrativeLog.state.currentSegmentIndex <
-        narrativeLog.state.currentNodeSegments.length
-    ) {
-      const isFinalSegment =
-        narrativeLog.state.currentSegmentIndex + 1 >=
-        narrativeLog.state.currentNodeSegments.length;
-      const shouldRevealLogStateOnly =
-        !isFinalSegment ||
-        choiceDisplayItems.length > 0 ||
-        displayedScenarioCompleted ||
-        !autoContinueChoice;
-
-      if (shouldRevealLogStateOnly) {
-        narrativeLog.advanceSegment();
-        markInteractionHandled();
-        return;
-      }
-    }
-
-    if (displayedScenarioCompleted) {
-      void runCompletionTransition();
-      return;
-    }
-
-    if (!autoContinueChoice || !currentNode) {
-      return;
-    }
-
-    if (!mySession) {
-      void handleStartScenario();
-      return;
-    }
-
-    const isAvailable = isChoiceAvailable(
-      autoContinueChoice,
-      myFlags,
-      myVars,
-      choiceEvaluationContext,
-    );
-    if (!isAvailable) {
-      return;
-    }
-
-    void handleChoiceClick(autoContinueChoice, false);
-  }, [
+  const { handleSurfaceTap, handleVideoEnded } = useVnSurfaceInteraction({
     autoContinueChoice,
     awaitingSkillChoice,
-    choiceDisplayItems.length,
+    choiceDisplayItemCount: choiceDisplayItems.length,
     choiceEvaluationContext,
     currentNode,
     displayedScenarioCompleted,
@@ -671,7 +464,6 @@ export const VnScreen = ({
     handleActiveResolveInteraction,
     handleChoiceClick,
     handleStartScenario,
-    handleVideoEnded,
     isTyping,
     markInteractionHandled,
     myFlags,
@@ -681,9 +473,12 @@ export const VnScreen = ({
     pendingChoiceId,
     runCompletionTransition,
     selectedScenarioId,
+    setIsTyping,
+    setVideoEnded,
     transitionState,
-    videoEnded,
-  ]);
+    typedTextRef,
+    typingFinishedAtRef,
+  });
 
   const handleLoggedChoiceClick = useCallback(
     (choice: VnChoice, isLocked: boolean) => {

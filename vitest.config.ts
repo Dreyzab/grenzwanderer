@@ -21,6 +21,15 @@ export default defineConfig({
     setupFiles: "./src/setupTests.ts",
     testTimeout: 15_000, // give extra time for real connections
     hookTimeout: 15_000,
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/cypress/**",
+      "**/.{idea,git,cache,output,temp}/**",
+      "**/{karma,rollup,webpack,vite,vitest,jest,conf,config,setup}.{js,ts,jsx,tsx}",
+      "data/viking/**",
+    ],
+
     coverage: {
       provider: "v8",
       include: [

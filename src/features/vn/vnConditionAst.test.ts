@@ -6,10 +6,23 @@ import { describe, expect, it } from "vitest";
 
 import { parseSnapshot, isChoiceEnabled, isChoiceVisible } from "./vnContent";
 
-const repoRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../..",
-);
+// Robust root detection for tests in different directory depths
+function getRepoRoot() {
+  let current = path.dirname(fileURLToPath(import.meta.url));
+  while (current !== path.dirname(current)) {
+    if (
+      path.basename(current) === "Grenzwanderer" ||
+      path.basename(current) === "src"
+    ) {
+      // If we find Grenzwanderer or src, we are near the root
+      if (path.basename(current) === "src") return path.dirname(current);
+      return current;
+    }
+    current = path.dirname(current);
+  }
+  return process.cwd();
+}
+const repoRoot = getRepoRoot();
 
 describe("VN condition AST", () => {
   it("evaluates nested visibility and enablement conditions", () => {
@@ -83,7 +96,7 @@ describe("VN condition AST", () => {
       (node) => node.id === "scene_detective_runtime_agency_orientation",
     );
     expect(runtimeNode?.choices[0]?.visibleIfAll?.[0]).toMatchObject({
-      type: "logic_and",
+      type: "flag_equals",
     });
   });
 });

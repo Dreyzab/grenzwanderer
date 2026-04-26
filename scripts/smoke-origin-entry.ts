@@ -145,10 +145,10 @@ const runSmoke = async () =>
           );
           if (
             journalistSessions.length !== 1 ||
-            journalistSessions[0].scenarioId !== "journalist_agency_wakeup"
+            journalistSessions[0].scenarioId !== "case01_hbf_arrival"
           ) {
             throw new Error(
-              `Expected single journalist_agency_wakeup session, got ${JSON.stringify(
+              `Expected single case01_hbf_arrival session, got ${JSON.stringify(
                 journalistSessions.map((row) => ({
                   scenarioId: row.scenarioId,
                   nodeId: row.nodeId,

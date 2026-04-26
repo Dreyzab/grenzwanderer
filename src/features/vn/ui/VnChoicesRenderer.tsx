@@ -60,8 +60,8 @@ const StatusCard = ({ card }: { card: InlineStatusCard }) => (
     <p
       className={
         card.tone === "reaction"
-          ? "mt-2 text-xs uppercase tracking-[0.14em] text-sky-50/85"
-          : "mt-2 text-xs uppercase tracking-[0.14em] text-amber-100/85"
+          ? "mt-2 text-sm uppercase tracking-[0.14em] text-sky-50/85"
+          : "mt-2 text-sm uppercase tracking-[0.14em] text-amber-100/85"
       }
     >
       {card.eyebrow}
@@ -69,8 +69,8 @@ const StatusCard = ({ card }: { card: InlineStatusCard }) => (
     <p
       className={
         card.tone === "reaction"
-          ? "mt-2 text-sm leading-6 text-slate-100/88"
-          : "mt-2 text-sm leading-6 text-stone-100/88"
+          ? "mt-2 text-base leading-relaxed text-slate-100/88"
+          : "mt-2 text-base leading-relaxed text-stone-100/88"
       }
     >
       {card.body}
@@ -105,7 +105,10 @@ const InnerVoiceCard = ({ card }: { card: InnerVoiceCardDisplay }) => (
         {card.label}
       </span>
     </div>
-    <p className="mt-3 text-sm leading-6" style={{ color: card.palette.text }}>
+    <p
+      className="mt-3 text-base leading-relaxed"
+      style={{ color: card.palette.text }}
+    >
       {card.text}
     </p>
   </div>

@@ -997,7 +997,7 @@
       "id": "scene_case01_train_compartment_letter",
       "scenarioId": "case01_hbf_arrival",
       "title": "Orders from the Agency",
-      "body": "Dear detective,\n\nI insist that you reach Freiburg without delay. The matter at the bank is not to be trusted to local vanity, nor to the newspapers that fatten on secondhand panic. A room at Zum Eber is already waiting for you, and the station will offer more silence than answers.\n\nTake that silence seriously. It is rarely innocent.\n\nWith respect,\nMaster",
+      "body": "Dear detective.\n\nI await your swift arrival in Freiburg. I trust your talent shall reveal the truth behind the bank robbery. Your quarters at 'Zum Eber' are prepared.\n\nBut remember... the most obvious path often leads to a dead end.\n\nWith respect,\nMaster",
       "choices": [
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_COMPARTMENT_LETTER",
@@ -8121,5 +8121,5 @@
       }
     ]
   },
-  "checksum": "2b0ab0a76633eee216df7978e33b29222ebae59c2a35d83935734a2e46363887"
+  "checksum": "347dfb8bff6bdff30c396bd50e48a6eb4ebbeb84409e827dd58fb94fe11bb686"
 }

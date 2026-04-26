@@ -242,7 +242,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     titleOverride: "Orders from the Agency",
     bodyOverride:
-      "Dear detective,\n\nI insist that you reach Freiburg without delay. The matter at the bank is not to be trusted to local vanity, nor to the newspapers that fatten on secondhand panic. A room at Zum Eber is already waiting for you, and the station will offer more silence than answers.\n\nTake that silence seriously. It is rarely innocent.\n\nWith respect,\nMaster",
+      "Dear detective.\n\nI await your swift arrival in Freiburg. I trust your talent shall reveal the truth behind the bank robbery. Your quarters at 'Zum Eber' are prepared.\n\nBut remember... the most obvious path often leads to a dead end.\n\nWith respect,\nMaster",
     backgroundUrl: CASE01_TRAIN_COMPARTMENT_BG,
     narrativePresentation: "letter",
     narrativeLayout: "letter_overlay",

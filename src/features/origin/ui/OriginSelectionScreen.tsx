@@ -182,7 +182,7 @@ export const OriginSelectionScreen = ({
             status={status}
             onBack={() => setSelectedProfileId(null)}
             onCancel={onCancel}
-            onReset={onReset}
+            onReset={() => onReset?.()}
             onConfirm={handleConfirm}
           />
         )}
@@ -461,363 +461,364 @@ const DossierCard = ({
   </motion.button>
 );
 
-const OriginDetailView = forwardRef<
-  HTMLDivElement,
-  {
-    disabled: boolean;
-    profile: OriginProfileDefinition;
-    status?: string | null;
-    onBack: () => void;
-    onCancel: () => void;
-    onReset?: () => void;
-    onConfirm: () => void;
-  }
->(function OriginDetailView(
-  { disabled, profile, status, onBack, onCancel, onReset, onConfirm },
-  ref,
-) {
-  const accent = profile.dossier.accentColor;
+interface OriginDetailViewProps {
+  disabled: boolean;
+  profile: OriginProfileDefinition;
+  status?: string | null;
+  onBack: () => void;
+  onCancel: () => void;
+  onReset?: () => void;
+  onConfirm: () => void;
+}
 
-  return (
-    <motion.section
-      ref={ref}
-      initial={{ opacity: 0, x: 60 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 60 }}
-      transition={{ duration: 0.35 }}
-      className="origin-selection-shell relative flex min-h-[100dvh] flex-col overflow-y-auto select-none"
-      style={{ backgroundColor: C.coal }}
-    >
-      <div
-        className="sticky top-0 z-20 px-5 py-3"
-        style={{
-          backgroundColor: `${C.coal}EE`,
-          backdropFilter: "blur(12px)",
-          borderBottom: `1px solid ${C.steel}15`,
-        }}
+const OriginDetailView = forwardRef<HTMLDivElement, OriginDetailViewProps>(
+  function OriginDetailView(
+    { disabled, profile, status, onBack, onCancel, onReset, onConfirm },
+    ref,
+  ) {
+    const accent = profile.dossier.accentColor;
+
+    return (
+      <motion.section
+        ref={ref}
+        initial={{ opacity: 0, x: 60 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 60 }}
+        transition={{ duration: 0.35 }}
+        className="origin-selection-shell relative flex min-h-[100dvh] flex-col overflow-y-auto select-none"
+        style={{ backgroundColor: C.coal }}
       >
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
-          <button
-            type="button"
-            onClick={onBack}
-            className="px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] transition-opacity hover:opacity-80"
-            style={{ color: `${C.bone}CC`, fontFamily: "var(--font-mono)" }}
-          >
-            {"<- BACK"}
-          </button>
-          <div
-            className="text-[10px] uppercase tracking-[0.3em]"
-            style={{ color: `${C.bone}80`, fontFamily: "var(--font-mono)" }}
-          >
-            ORIGIN SELECTION
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            aria-label="Close origin selection"
-            className="flex h-9 w-9 items-center justify-center transition-opacity hover:opacity-80"
-            style={{
-              color: C.bone,
-              border: `1px solid ${C.steel}25`,
-              backgroundColor: `${C.ink}C0`,
-              clipPath: CLIP_BADGE,
-            }}
-          >
-            <X size={16} />
-          </button>
-        </div>
-      </div>
-
-      <div className="relative max-h-[45vh] w-full shrink-0 overflow-hidden aspect-[4/3]">
         <div
-          className="absolute inset-0 bg-cover bg-top"
-          style={{ backgroundImage: `url('${profile.dossier.avatarUrl}')` }}
-        />
-        <div
-          className="absolute inset-0"
+          className="sticky top-0 z-20 px-5 py-3"
           style={{
-            background: `
+            backgroundColor: `${C.coal}EE`,
+            backdropFilter: "blur(12px)",
+            borderBottom: `1px solid ${C.steel}15`,
+          }}
+        >
+          <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] transition-opacity hover:opacity-80"
+              style={{ color: `${C.bone}CC`, fontFamily: "var(--font-mono)" }}
+            >
+              {"<- BACK"}
+            </button>
+            <div
+              className="text-[10px] uppercase tracking-[0.3em]"
+              style={{ color: `${C.bone}80`, fontFamily: "var(--font-mono)" }}
+            >
+              ORIGIN SELECTION
+            </div>
+            <button
+              type="button"
+              onClick={onCancel}
+              aria-label="Close origin selection"
+              className="flex h-9 w-9 items-center justify-center transition-opacity hover:opacity-80"
+              style={{
+                color: C.bone,
+                border: `1px solid ${C.steel}25`,
+                backgroundColor: `${C.ink}C0`,
+                clipPath: CLIP_BADGE,
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        <div className="relative max-h-[45vh] w-full shrink-0 overflow-hidden aspect-[4/3]">
+          <div
+            className="absolute inset-0 bg-cover bg-top"
+            style={{ backgroundImage: `url('${profile.dossier.avatarUrl}')` }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `
               linear-gradient(180deg, transparent 30%, ${C.coal} 95%),
               linear-gradient(0deg, transparent 60%, ${C.coal}40 100%)
             `,
-          }}
-        />
-        <div
-          className="absolute bottom-0 left-0 right-0 h-[2px]"
-          style={{
-            background: `linear-gradient(90deg, ${accent}, transparent 70%)`,
-          }}
-        />
-
-        <div className="absolute bottom-4 left-0 right-0 px-5">
-          <div className="mx-auto w-full max-w-3xl">
-            <div
-              className="mb-1 text-[10px] uppercase tracking-[0.3em]"
-              style={{ color: accent, fontFamily: "var(--font-mono)" }}
-            >
-              {`THE ${profile.id.toUpperCase()}`}
-            </div>
-            <h2
-              className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl"
-              style={{
-                color: C.bone,
-                fontFamily: "var(--font-display)",
-                textShadow: "0 2px 20px rgba(0,0,0,0.6)",
-              }}
-            >
-              {profile.dossier.characterName}
-            </h2>
-            <div
-              className="mt-1 text-xs uppercase tracking-[0.15em]"
-              style={{ color: `${C.bone}AA`, fontFamily: "var(--font-mono)" }}
-            >
-              {`${profile.dossier.cityOrigin} · ${genderLabel(profile.dossier.gender)}, age ${profile.dossier.age}`}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="relative z-10 mx-auto mt-2 flex w-full max-w-3xl flex-col gap-5 px-5 pb-[120px]">
-        {statusStrip(status, onReset)}
-
-        <div
-          className="relative px-4 py-3"
-          style={{
-            backgroundColor: `${accent}0A`,
-            borderLeft: `2px solid ${accent}40`,
-          }}
-        >
-          <div
-            className="mb-2 text-[10px] uppercase tracking-[0.3em]"
-            style={{ color: `${accent}CC`, fontFamily: "var(--font-mono)" }}
-          >
-            THE FREIBURG DOSSIER
-          </div>
-          <p
-            className="text-base italic leading-relaxed"
-            style={{ color: `${C.bone}CC`, fontFamily: "var(--font-serif)" }}
-          >
-            "{profile.dossier.quote}"
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {profile.statEffects.map((stat) => (
-            <div
-              key={stat.key}
-              className="inline-flex items-center gap-2 px-3 py-2 text-xs uppercase tracking-[0.18em]"
-              style={{
-                clipPath: CLIP_BADGE,
-                backgroundColor: `${accent}1F`,
-                border: `1px solid ${accent}40`,
-                color: C.bone,
-                fontFamily: "var(--font-mono)",
-              }}
-            >
-              <GameIcon name={stat.key.replace(/^attr_/, "")} size={14} />
-              <span>{`${stat.key.replace(/^attr_/, "").replace(/_/g, " ")} +${stat.value}`}</span>
-            </div>
-          ))}
-        </div>
-
-        <Section
-          label="SIGNATURE ABILITY"
-          accent={C.brass}
-          icon={<Sparkles size={14} />}
-        >
-          <div className="mb-1 text-base font-bold" style={{ color: C.bone }}>
-            {profile.signature.title}
-          </div>
-          <p
-            className="text-sm leading-relaxed"
-            style={{ color: `${C.bone}CC` }}
-          >
-            {profile.signature.description}
-          </p>
-          <div
-            className="mt-2 inline-block px-2 py-1 text-[10px] uppercase tracking-wider"
-            style={{
-              backgroundColor: `${C.brass}1F`,
-              color: C.brass,
-              border: `1px solid ${C.brass}40`,
-              clipPath: CLIP_BADGE,
-              fontFamily: "var(--font-mono)",
             }}
-          >
-            {profile.signature.passiveLabel}
-          </div>
-        </Section>
-
-        <Section
-          label="FATAL FLAW"
-          accent={C.crimson}
-          icon={getFlawIcon(profile.flaw.icon)}
-        >
+          />
           <div
-            className="mb-1 text-base font-bold"
-            style={{ color: C.crimson }}
-          >
-            {profile.flaw.title}
-          </div>
-          <p
-            className="text-sm leading-relaxed"
-            style={{ color: `${C.bone}CC` }}
-          >
-            {profile.flaw.description}
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <div
-              className="px-2 py-1 text-[10px] uppercase tracking-wider"
-              style={{
-                backgroundColor: `${C.crimson}1F`,
-                color: `${C.crimson}EE`,
-                border: `1px solid ${C.crimson}40`,
-                clipPath: CLIP_BADGE,
-                fontFamily: "var(--font-mono)",
-              }}
-            >
-              {`CHECK: ${profile.flaw.checkVoice.toUpperCase()} DC ${profile.flaw.dc}`}
-            </div>
-            <div
-              className="px-2 py-1 text-[10px] uppercase tracking-wider"
-              style={{
-                backgroundColor: `${C.steel}1F`,
-                color: `${C.bone}CC`,
-                border: `1px solid ${C.steel}40`,
-                clipPath: CLIP_BADGE,
-                fontFamily: "var(--font-mono)",
-              }}
-            >
-              {profile.flaw.durationLabel}
-            </div>
-          </div>
-        </Section>
+            className="absolute bottom-0 left-0 right-0 h-[2px]"
+            style={{
+              background: `linear-gradient(90deg, ${accent}, transparent 70%)`,
+            }}
+          />
 
-        <Section
-          label="ADVANCEMENT PATHS"
-          accent={C.steel}
-          icon={<ChevronRight size={14} />}
-        >
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {profile.tracks.map((track) => (
+          <div className="absolute bottom-4 left-0 right-0 px-5">
+            <div className="mx-auto w-full max-w-3xl">
               <div
-                key={track.id}
-                className="px-3 py-3"
+                className="mb-1 text-[10px] uppercase tracking-[0.3em]"
+                style={{ color: accent, fontFamily: "var(--font-mono)" }}
+              >
+                {`THE ${profile.id.toUpperCase()}`}
+              </div>
+              <h2
+                className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl"
                 style={{
-                  backgroundColor: `${C.steel}0A`,
-                  border: `1px solid ${C.steel}18`,
-                  clipPath: CLIP_BADGE,
+                  color: C.bone,
+                  fontFamily: "var(--font-display)",
+                  textShadow: "0 2px 20px rgba(0,0,0,0.6)",
                 }}
               >
-                <div
-                  className="mb-0.5 text-sm font-bold uppercase"
-                  style={{ color: C.bone, fontFamily: "var(--font-display)" }}
-                >
-                  {track.title}
-                </div>
-                <div
-                  className="text-[10px] uppercase tracking-wide"
-                  style={{
-                    color: `${C.steel}DD`,
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  {track.focus}
-                </div>
-                <p
-                  className="mt-2 text-sm leading-relaxed"
-                  style={{ color: `${C.bone}BB` }}
-                >
-                  {track.description}
-                </p>
+                {profile.dossier.characterName}
+              </h2>
+              <div
+                className="mt-1 text-xs uppercase tracking-[0.15em]"
+                style={{ color: `${C.bone}AA`, fontFamily: "var(--font-mono)" }}
+              >
+                {`${profile.dossier.cityOrigin} · ${genderLabel(profile.dossier.gender)}, age ${profile.dossier.age}`}
+              </div>
+            </div>
+          </div>
+        </div>
 
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {track.steps.map((step, index) => (
-                    <div key={`${track.id}-${step.voice}-${step.requiredXp}`}>
-                      <div className="flex items-center gap-1.5">
-                        <div
-                          className="h-1.5 w-1.5 rounded-full"
-                          style={{ backgroundColor: accent }}
-                        />
-                        <GameIcon
-                          name={step.voice}
-                          size={12}
-                          className="opacity-90"
-                        />
-                        <span
-                          className="text-[10px] uppercase"
-                          style={{
-                            color: `${C.bone}AA`,
-                            fontFamily: "var(--font-mono)",
-                          }}
-                        >
-                          {formatXp(step.requiredXp)}
-                        </span>
-                        {index < track.steps.length - 1 ? (
-                          <span
-                            className="mx-0.5 text-[10px]"
-                            style={{
-                              color: `${C.steel}88`,
-                              fontFamily: "var(--font-mono)",
-                            }}
-                          >
-                            {"->"}
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+        <div className="relative z-10 mx-auto mt-2 flex w-full max-w-3xl flex-col gap-5 px-5 pb-[120px]">
+          {statusStrip(status, onReset)}
 
-                <div
-                  className="mt-3 text-xs italic"
-                  style={{ color: `${C.bone}CC` }}
-                >
-                  {`-> ${track.finalAbilityTitle}`}
-                </div>
-                <p
-                  className="mt-1 text-xs leading-relaxed"
-                  style={{ color: `${C.bone}AA` }}
-                >
-                  {track.finalAbilityDescription}
-                </p>
+          <div
+            className="relative px-4 py-3"
+            style={{
+              backgroundColor: `${accent}0A`,
+              borderLeft: `2px solid ${accent}40`,
+            }}
+          >
+            <div
+              className="mb-2 text-[10px] uppercase tracking-[0.3em]"
+              style={{ color: `${accent}CC`, fontFamily: "var(--font-mono)" }}
+            >
+              THE FREIBURG DOSSIER
+            </div>
+            <p
+              className="text-base italic leading-relaxed"
+              style={{ color: `${C.bone}CC`, fontFamily: "var(--font-serif)" }}
+            >
+              "{profile.dossier.quote}"
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {profile.statEffects.map((stat) => (
+              <div
+                key={stat.key}
+                className="inline-flex items-center gap-2 px-3 py-2 text-xs uppercase tracking-[0.18em]"
+                style={{
+                  clipPath: CLIP_BADGE,
+                  backgroundColor: `${accent}1F`,
+                  border: `1px solid ${accent}40`,
+                  color: C.bone,
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                <GameIcon name={stat.key.replace(/^attr_/, "")} size={14} />
+                <span>{`${stat.key.replace(/^attr_/, "").replace(/_/g, " ")} +${stat.value}`}</span>
               </div>
             ))}
           </div>
-        </Section>
-      </div>
 
-      <div
-        className="fixed bottom-0 left-0 right-0 z-30 px-5 pb-[max(env(safe-area-inset-bottom),1rem)] pt-3 pointer-events-none"
-        style={{
-          background: `linear-gradient(180deg, transparent, ${C.coal}EE 20%, ${C.coal} 100%)`,
-        }}
-      >
-        <div className="pointer-events-auto mx-auto w-full max-w-3xl">
-          <motion.button
-            type="button"
-            disabled={disabled}
-            whileHover={disabled ? undefined : { scale: 1.02 }}
-            whileTap={disabled ? undefined : { scale: 0.97 }}
-            onClick={onConfirm}
-            className="w-full cursor-pointer py-4 text-sm font-extrabold uppercase tracking-[0.2em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "15px",
-              backgroundColor: accent,
-              color: C.bone,
-              clipPath: CLIP_BTN,
-              border: `1px solid ${accent}`,
-              boxShadow: `0 0 30px ${accent}30`,
-            }}
+          <Section
+            label="SIGNATURE ABILITY"
+            accent={C.brass}
+            icon={<Sparkles size={14} />}
           >
-            BEGIN INVESTIGATION
-          </motion.button>
+            <div className="mb-1 text-base font-bold" style={{ color: C.bone }}>
+              {profile.signature.title}
+            </div>
+            <p
+              className="text-sm leading-relaxed"
+              style={{ color: `${C.bone}CC` }}
+            >
+              {profile.signature.description}
+            </p>
+            <div
+              className="mt-2 inline-block px-2 py-1 text-[10px] uppercase tracking-wider"
+              style={{
+                backgroundColor: `${C.brass}1F`,
+                color: C.brass,
+                border: `1px solid ${C.brass}40`,
+                clipPath: CLIP_BADGE,
+                fontFamily: "var(--font-mono)",
+              }}
+            >
+              {profile.signature.passiveLabel}
+            </div>
+          </Section>
+
+          <Section
+            label="FATAL FLAW"
+            accent={C.crimson}
+            icon={getFlawIcon(profile.flaw.icon)}
+          >
+            <div
+              className="mb-1 text-base font-bold"
+              style={{ color: C.crimson }}
+            >
+              {profile.flaw.title}
+            </div>
+            <p
+              className="text-sm leading-relaxed"
+              style={{ color: `${C.bone}CC` }}
+            >
+              {profile.flaw.description}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <div
+                className="px-2 py-1 text-[10px] uppercase tracking-wider"
+                style={{
+                  backgroundColor: `${C.crimson}1F`,
+                  color: `${C.crimson}EE`,
+                  border: `1px solid ${C.crimson}40`,
+                  clipPath: CLIP_BADGE,
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {`CHECK: ${profile.flaw.checkVoice.toUpperCase()} DC ${profile.flaw.dc}`}
+              </div>
+              <div
+                className="px-2 py-1 text-[10px] uppercase tracking-wider"
+                style={{
+                  backgroundColor: `${C.steel}1F`,
+                  color: `${C.bone}CC`,
+                  border: `1px solid ${C.steel}40`,
+                  clipPath: CLIP_BADGE,
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {profile.flaw.durationLabel}
+              </div>
+            </div>
+          </Section>
+
+          <Section
+            label="ADVANCEMENT PATHS"
+            accent={C.steel}
+            icon={<ChevronRight size={14} />}
+          >
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {profile.tracks.map((track) => (
+                <div
+                  key={track.id}
+                  className="px-3 py-3"
+                  style={{
+                    backgroundColor: `${C.steel}0A`,
+                    border: `1px solid ${C.steel}18`,
+                    clipPath: CLIP_BADGE,
+                  }}
+                >
+                  <div
+                    className="mb-0.5 text-sm font-bold uppercase"
+                    style={{ color: C.bone, fontFamily: "var(--font-display)" }}
+                  >
+                    {track.title}
+                  </div>
+                  <div
+                    className="text-[10px] uppercase tracking-wide"
+                    style={{
+                      color: `${C.steel}DD`,
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    {track.focus}
+                  </div>
+                  <p
+                    className="mt-2 text-sm leading-relaxed"
+                    style={{ color: `${C.bone}BB` }}
+                  >
+                    {track.description}
+                  </p>
+
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {track.steps.map((step, index) => (
+                      <div key={`${track.id}-${step.voice}-${step.requiredXp}`}>
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className="h-1.5 w-1.5 rounded-full"
+                            style={{ backgroundColor: accent }}
+                          />
+                          <GameIcon
+                            name={step.voice}
+                            size={12}
+                            className="opacity-90"
+                          />
+                          <span
+                            className="text-[10px] uppercase"
+                            style={{
+                              color: `${C.bone}AA`,
+                              fontFamily: "var(--font-mono)",
+                            }}
+                          >
+                            {formatXp(step.requiredXp)}
+                          </span>
+                          {index < track.steps.length - 1 ? (
+                            <span
+                              className="mx-0.5 text-[10px]"
+                              style={{
+                                color: `${C.steel}88`,
+                                fontFamily: "var(--font-mono)",
+                              }}
+                            >
+                              {"->"}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div
+                    className="mt-3 text-xs italic"
+                    style={{ color: `${C.bone}CC` }}
+                  >
+                    {`-> ${track.finalAbilityTitle}`}
+                  </div>
+                  <p
+                    className="mt-1 text-xs leading-relaxed"
+                    style={{ color: `${C.bone}AA` }}
+                  >
+                    {track.finalAbilityDescription}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Section>
         </div>
-      </div>
-    </motion.section>
-  );
-});
+
+        <div
+          className="fixed bottom-0 left-0 right-0 z-30 px-5 pb-[max(env(safe-area-inset-bottom),1rem)] pt-3 pointer-events-none"
+          style={{
+            background: `linear-gradient(180deg, transparent, ${C.coal}EE 20%, ${C.coal} 100%)`,
+          }}
+        >
+          <div className="pointer-events-auto mx-auto w-full max-w-3xl">
+            <motion.button
+              type="button"
+              disabled={disabled}
+              whileHover={disabled ? undefined : { scale: 1.02 }}
+              whileTap={disabled ? undefined : { scale: 0.97 }}
+              onClick={onConfirm}
+              className="w-full cursor-pointer py-4 text-sm font-extrabold uppercase tracking-[0.2em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "15px",
+                backgroundColor: accent,
+                color: C.bone,
+                clipPath: CLIP_BTN,
+                border: `1px solid ${accent}`,
+                boxShadow: `0 0 30px ${accent}30`,
+              }}
+            >
+              BEGIN INVESTIGATION
+            </motion.button>
+          </div>
+        </div>
+      </motion.section>
+    );
+  },
+);
 
 const Section = ({
   label,

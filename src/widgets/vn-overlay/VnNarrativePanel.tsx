@@ -590,7 +590,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
                 "font-body relative z-10 p-0 text-stone-200",
                 isThoughtLog
                   ? "mx-auto w-full max-w-prose text-[1.02rem] leading-8"
-                  : "text-base sm:text-lg leading-relaxed",
+                  : "text-lg sm:text-xl leading-relaxed",
               ].join(" ")}
             >
               {narrativeBody}

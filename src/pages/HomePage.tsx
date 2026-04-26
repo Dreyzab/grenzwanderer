@@ -103,12 +103,29 @@ const resolveSyncStatus = (
 const hasFreiburgProgressHeuristic = (
   sessions: readonly unknown[],
   flags: Record<string, boolean>,
+  inventory: readonly unknown[],
+  vars: readonly unknown[],
+  quests: readonly unknown[],
+  evidence: readonly unknown[],
 ): boolean => {
-  if (sessions.length === 0 && Object.keys(flags).length === 0) {
+  if (
+    sessions.length === 0 &&
+    Object.keys(flags).length === 0 &&
+    inventory.length === 0 &&
+    vars.length === 0 &&
+    quests.length === 0 &&
+    evidence.length === 0
+  ) {
     return false;
   }
 
-  if (sessions.length > 0) {
+  if (
+    sessions.length > 0 ||
+    inventory.length > 0 ||
+    vars.length > 0 ||
+    quests.length > 0 ||
+    evidence.length > 0
+  ) {
     return true;
   }
 
@@ -132,6 +149,10 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
   const [sessions, sessionsReady] = useTable(tables.myVnSessions);
   const [flagsRows, flagsReady] = useTable(tables.myPlayerFlags);
+  const [inventory, inventoryReady] = useTable(tables.myPlayerInventory);
+  const [vars, varsReady] = useTable(tables.myPlayerVars);
+  const [quests, questsReady] = useTable(tables.myQuests);
+  const [evidence, evidenceReady] = useTable(tables.myEvidence);
 
   const [flowState, setFlowState] = useState<FreiburgFlowState>("idle");
   const [flowStatus, setFlowStatus] = useState<string | null>(null);
@@ -165,15 +186,29 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const contentReady =
     (versionsReady && snapshotsReady) || Boolean(activeVersion && snapshot);
   const playerStateReady =
-    (sessionsReady && flagsReady) || Boolean(isConnected && identityHex);
+    (sessionsReady &&
+      flagsReady &&
+      inventoryReady &&
+      varsReady &&
+      questsReady &&
+      evidenceReady) ||
+    Boolean(isConnected && identityHex);
 
   const playerFlags = useMemo(
     () => buildPlayerFlags(Boolean(identityHex), flagsRows),
     [flagsRows, identityHex],
   );
   const hasAnyPlayerProgress = useMemo(
-    () => hasFreiburgProgressHeuristic(sessions, playerFlags),
-    [playerFlags, sessions],
+    () =>
+      hasFreiburgProgressHeuristic(
+        sessions,
+        playerFlags,
+        inventory,
+        vars,
+        quests,
+        evidence,
+      ),
+    [playerFlags, sessions, inventory, vars, quests, evidence],
   );
   const uiLanguage = useMemo(
     () => resolveUiLanguage(playerFlags),
@@ -348,6 +383,14 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
         error instanceof Error
           ? error.message
           : "Failed to begin Freiburg origin. Please retry.";
+
+      if (message.includes("resetProgress=true")) {
+        setFlowState("confirm_reset");
+        setPendingResetOnBegin(true);
+        setFlowStatus(null);
+        return;
+      }
+
       setFlowStatus(message);
     } finally {
       window.setTimeout(() => {
@@ -501,6 +544,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
           disabled={isEntryBlocked || isLaunching}
           status={isEntryBlocked ? syncStatus : flowStatus}
           onCancel={closeOriginFlow}
+          onReset={() => openOriginSelection(true)}
           onConfirmOrigin={(profileId) => void handleOriginConfirm(profileId)}
         />
       ) : null}

@@ -27,6 +27,7 @@ interface OriginSelectionScreenProps {
   disabled?: boolean;
   status?: string | null;
   onConfirmOrigin: (profileId: string) => void;
+  onReset?: () => void;
   onCancel: () => void;
 }
 
@@ -56,21 +57,53 @@ const FLAW_ICON_MAP = {
   star: Sparkles,
 } as const;
 
-const statusStrip = (status: string | null | undefined) =>
-  status && status.trim().length > 0 ? (
+const statusStrip = (
+  status: string | null | undefined,
+  onReset?: () => void,
+) => {
+  if (!status || status.trim().length === 0) {
+    return null;
+  }
+
+  const isResetRequired = status.includes("resetProgress=true");
+
+  return (
     <div
-      className="mt-4 inline-flex items-center gap-2 px-3 py-2 text-xs"
+      className="mt-4 inline-flex flex-col gap-2 px-3 py-2 text-xs w-full"
       style={{
         color: "rgba(242, 233, 216, 0.9)",
-        backgroundColor: "rgba(166, 28, 47, 0.12)",
-        border: "1px solid rgba(242, 233, 216, 0.08)",
+        backgroundColor: isResetRequired
+          ? "rgba(181, 133, 43, 0.15)"
+          : "rgba(166, 28, 47, 0.12)",
+        border: `1px solid ${isResetRequired ? "rgba(181, 133, 43, 0.3)" : "rgba(242, 233, 216, 0.08)"}`,
         clipPath: CLIP_BADGE,
       }}
     >
-      <AlertCircle size={14} />
-      <span>{status}</span>
+      <div className="flex items-center gap-2">
+        {isResetRequired ? (
+          <TriangleAlert size={14} />
+        ) : (
+          <AlertCircle size={14} />
+        )}
+        <span>{status}</span>
+      </div>
+      {isResetRequired && onReset && (
+        <button
+          type="button"
+          onClick={onReset}
+          className="mt-1 self-end px-2 py-1 text-[10px] uppercase font-bold transition-opacity hover:opacity-80"
+          style={{
+            backgroundColor: C.brass,
+            color: C.coal,
+            clipPath: CLIP_BADGE,
+          }}
+        >
+          Reset and Retry
+        </button>
+      )}
     </div>
-  ) : null;
+  );
+};
 
 const genderLabel = (
   gender: OriginProfileDefinition["dossier"]["gender"],
@@ -88,6 +121,7 @@ export const OriginSelectionScreen = ({
   disabled = false,
   status,
   onConfirmOrigin,
+  onReset,
   onCancel,
 }: OriginSelectionScreenProps) => {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(
@@ -136,6 +170,7 @@ export const OriginSelectionScreen = ({
             disabled={disabled}
             status={status}
             onCancel={onCancel}
+            onReset={onReset}
             onSelect={setSelectedProfileId}
           />
         ) : (
@@ -147,6 +182,7 @@ export const OriginSelectionScreen = ({
             status={status}
             onBack={() => setSelectedProfileId(null)}
             onCancel={onCancel}
+            onReset={onReset}
             onConfirm={handleConfirm}
           />
         )}
@@ -159,11 +195,13 @@ const OriginListView = ({
   disabled,
   status,
   onCancel,
+  onReset,
   onSelect,
 }: {
   disabled: boolean;
   status?: string | null;
   onCancel: () => void;
+  onReset?: () => void;
   onSelect: (profileId: string) => void;
 }) => (
   <motion.section
@@ -243,7 +281,7 @@ const OriginListView = ({
         route, flaw, and baseline investigative strengths.
       </p>
 
-      {statusStrip(status)}
+      {statusStrip(status, onReset)}
 
       <div className="relative mt-4 h-px w-full overflow-hidden">
         <div
@@ -428,13 +466,11 @@ const OriginDetailView = forwardRef<
   {
     disabled: boolean;
     profile: OriginProfileDefinition;
-    status?: string | null;
-    onBack: () => void;
-    onCancel: () => void;
+    onReset: () => void;
     onConfirm: () => void;
   }
 >(function OriginDetailView(
-  { disabled, profile, status, onBack, onCancel, onConfirm },
+  { disabled, profile, status, onBack, onCancel, onReset, onConfirm },
   ref,
 ) {
   const accent = profile.dossier.accentColor;
@@ -539,7 +575,7 @@ const OriginDetailView = forwardRef<
       </div>
 
       <div className="relative z-10 mx-auto mt-2 flex w-full max-w-3xl flex-col gap-5 px-5 pb-[120px]">
-        {statusStrip(status)}
+        {statusStrip(status, onReset)}
 
         <div
           className="relative px-4 py-3"

@@ -466,7 +466,10 @@ const OriginDetailView = forwardRef<
   {
     disabled: boolean;
     profile: OriginProfileDefinition;
-    onReset: () => void;
+    status?: string | null;
+    onBack: () => void;
+    onCancel: () => void;
+    onReset?: () => void;
     onConfirm: () => void;
   }
 >(function OriginDetailView(

@@ -1,6 +1,15 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { OriginSelectionScreen } from "./OriginSelectionScreen";
+import { useI18n } from "../../i18n/I18nContext";
+
+vi.mock("../../i18n/I18nContext", () => ({
+  useI18n: () => ({
+    language: "en",
+    dictionary: null,
+    isLoaded: true,
+  }),
+}));
 
 vi.mock("framer-motion", async () => {
   const React = await import("react");

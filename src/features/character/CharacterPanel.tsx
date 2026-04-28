@@ -275,12 +275,14 @@ const DossierTabButton = ({
   id,
   label,
   onClick,
+  t,
 }: {
   active: boolean;
   icon: LucideIcon;
   id: CharacterTabId;
   label: string;
   onClick: (tabId: CharacterTabId) => void;
+  t: ReturnType<typeof getCharacterStrings>;
 }) => (
   <button
     aria-controls={`character-tabpanel-${id}`}
@@ -439,6 +441,7 @@ const ProfileTab = ({
   panelSubtitle,
   selectedTrack,
   vars,
+  t,
 }: {
   activeOrigin: OriginProfileDefinition | null;
   alignment: PsycheProfileData["alignment"];
@@ -668,6 +671,7 @@ const DevelopmentTab = ({
   primaryVoiceBridgeEntries,
   radarData,
   secondaryVoiceBridgeEntries,
+  t,
 }: {
   attributes: CharacterAttributeCard[];
   primaryVoiceBridgeEntries: CharacterVoiceBridgeRegistryEntry[];
@@ -678,6 +682,7 @@ const DevelopmentTab = ({
     currentValue: number;
     bridge: AttributeVoiceBridgeSummary;
   }>;
+  t: ReturnType<typeof getCharacterStrings>;
 }) => (
   <motion.div
     animate={{ opacity: 1, y: 0 }}
@@ -1023,7 +1028,13 @@ const DevelopmentTab = ({
   </motion.div>
 );
 
-const PsycheTab = ({ profile }: { profile: PsycheProfileData }) => {
+const PsycheTab = ({
+  profile,
+  t,
+}: {
+  profile: PsycheProfileData;
+  t: ReturnType<typeof getCharacterStrings>;
+}) => {
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
@@ -1391,6 +1402,7 @@ const JournalTab = ({
   getObjectivePointLabel,
   observationEntries,
   questJournalEntries,
+  t,
 }: {
   entityKnowledge: Array<{
     id: string;
@@ -1402,6 +1414,7 @@ const JournalTab = ({
   getObjectivePointLabel: (pointId: string) => string;
   observationEntries: CharacterObservationEntry[];
   questJournalEntries: CharacterQuestJournalEntry[];
+  t: ReturnType<typeof getCharacterStrings>;
 }) => (
   <motion.div
     animate={{ opacity: 1, y: 0 }}
@@ -2021,6 +2034,7 @@ export const CharacterPanel = () => {
                   id={tab.id}
                   label={tab.label}
                   onClick={setActiveTab}
+                  t={t}
                 />
               ))}
             </nav>
@@ -2063,6 +2077,7 @@ export const CharacterPanel = () => {
                       primaryVoiceBridgeEntries={primaryVoiceBridgeEntries}
                       radarData={radarData}
                       secondaryVoiceBridgeEntries={secondaryVoiceBridgeEntries}
+                      t={t}
                     />
                   </div>
                 ) : null}
@@ -2073,7 +2088,7 @@ export const CharacterPanel = () => {
                     id="character-tabpanel-psyche"
                     role="tabpanel"
                   >
-                    <PsycheTab profile={profile} />
+                    <PsycheTab profile={profile} t={t} />
                   </div>
                 ) : null}
 
@@ -2088,6 +2103,7 @@ export const CharacterPanel = () => {
                       getObjectivePointLabel={getObjectivePointLabel}
                       observationEntries={observationEntries}
                       questJournalEntries={questJournalEntries}
+                      t={t}
                     />
                   </div>
                 ) : null}

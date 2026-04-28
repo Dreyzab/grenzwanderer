@@ -628,7 +628,9 @@ const nodes: NodeBlueprint[] = [
         text: "Select Deutsch",
         nextNodeId: "scene_backstory_select",
         effects: [
+          { type: "set_flag", key: "lang_en", value: false },
           { type: "set_flag", key: "lang_de", value: true },
+          { type: "set_flag", key: "lang_ru", value: false },
           {
             type: "track_event",
             eventName: "language_selected",
@@ -642,6 +644,8 @@ const nodes: NodeBlueprint[] = [
         nextNodeId: "scene_backstory_select",
         effects: [
           { type: "set_flag", key: "lang_en", value: true },
+          { type: "set_flag", key: "lang_de", value: false },
+          { type: "set_flag", key: "lang_ru", value: false },
           {
             type: "track_event",
             eventName: "language_selected",
@@ -654,6 +658,8 @@ const nodes: NodeBlueprint[] = [
         text: "Select Russian",
         nextNodeId: "scene_backstory_select",
         effects: [
+          { type: "set_flag", key: "lang_en", value: false },
+          { type: "set_flag", key: "lang_de", value: false },
           { type: "set_flag", key: "lang_ru", value: true },
           {
             type: "track_event",
@@ -5565,3 +5571,21 @@ if (contentContractWarnings.length > 0) {
 
 writeMigrationReport();
 console.log(`Migration report written to ${migrationReportPath}`);
+
+if (process.argv.includes("--publish-translations")) {
+  const [{ formatContentTarget, parseContentTargetArgs }, translationsModule] =
+    await Promise.all([
+      import("./content-cli"),
+      import("./content-translations"),
+    ]);
+  const target = parseContentTargetArgs(process.argv.slice(2), () => {
+    console.error(
+      "Usage: bun run content:extract -- --publish-translations [--server local|maincloud] [--db <name>] [--host <uri>]",
+    );
+  });
+  const translations = translationsModule.readLocaleTranslations();
+  await translationsModule.publishTranslations(target, translations);
+  console.log(
+    `Content translations published (${translations.length} rows) to ${formatContentTarget(target)}`,
+  );
+}

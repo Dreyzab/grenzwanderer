@@ -11,7 +11,6 @@ import {
   type VnChoiceEvaluationContext,
 } from "../vnContent";
 import type { VnChoice, VnNarrativeLayout, VnNode } from "../types";
-import { postRuntimeDebug } from "../../../shared/debug/runtimeDebug";
 import { TAP_CONTINUE_COOLDOWN_MS } from "../vnScreenUtils";
 import type { TransitionState } from "../vnScreenTypes";
 import type { NarrativeLogState } from "../log/useNarrativeLog";
@@ -164,13 +163,6 @@ export function useVnSurfaceInteraction({
         return;
       }
 
-      postRuntimeDebug(
-        "useVnSurfaceInteraction.ts:handleSurfaceTap",
-        "Immersive video tap skipped to video end",
-        { nodeId: currentNode.id },
-        "H1",
-        "post-fix",
-      );
       handleVideoEnded();
       return;
     }

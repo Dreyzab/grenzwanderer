@@ -73,16 +73,7 @@ const CLIP_PANEL =
 
 const TAB_TRANSITION = { duration: 0.24, ease: "easeOut" as const };
 
-const DOSSIER_TABS: Array<{
-  id: CharacterTabId;
-  icon: LucideIcon;
-  label: string;
-}> = [
-  { id: "profile", icon: FileText, label: "Profile" },
-  { id: "development", icon: Brain, label: "Development" },
-  { id: "psyche", icon: Fingerprint, label: "Psyche" },
-  { id: "journal", icon: BookOpenText, label: "Journal" },
-];
+// Tabs are now defined within the component to support localization
 
 interface CharacterQuestJournalEntry {
   id: string;
@@ -344,7 +335,7 @@ const DossierTabButton = ({
             fontFamily: "var(--font-mono)",
           }}
         >
-          Dossier
+          {t.dossier}
         </span>
         <span className="mt-0.5 block text-sm font-semibold">{label}</span>
       </span>
@@ -459,6 +450,7 @@ const ProfileTab = ({
   panelSubtitle: string;
   selectedTrack: OriginTrackDefinition | null;
   vars: Record<string, number>;
+  t: ReturnType<typeof getCharacterStrings>;
 }) => {
   const dossierAccent = activeOrigin?.dossier.accentColor ?? C.brass;
 
@@ -474,7 +466,7 @@ const ProfileTab = ({
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.9fr)]">
         <SectionCard
           accent={dossierAccent}
-          eyebrow="Origin Profile"
+          eyebrow={t.originProfile}
           title={activeOrigin?.label ?? "Field Identity Pending"}
         >
           {activeOrigin ? (
@@ -484,26 +476,26 @@ const ProfileTab = ({
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <InfoBlock
-                  label="Identity"
+                  label={t.identity}
                   value={activeOrigin.dossier.characterName}
                 />
                 <InfoBlock
-                  label="Nickname / Login"
+                  label={t.nickname}
                   value={playerNickname?.trim() || "Unassigned"}
                 />
                 <InfoBlock
-                  label="Biometrics"
+                  label={t.biometrics}
                   value={`${getGenderLabel(activeOrigin.dossier.gender)} / ${activeOrigin.dossier.age}`}
                 />
                 <InfoBlock
-                  label="Origin City"
+                  label={t.originCity}
                   value={activeOrigin.dossier.cityOrigin}
                 />
                 <InfoBlock
-                  label="Specialization"
+                  label={t.specialization}
                   value={selectedTrack?.title ?? "Undeclared"}
                 />
-                <InfoBlock label="Scenario" value={activeOrigin.scenarioId} />
+                <InfoBlock label={t.scenario} value={activeOrigin.scenarioId} />
               </div>
               <blockquote
                 className="rounded-[1rem] border border-white/8 bg-black/20 px-4 py-3 italic text-stone-300"
@@ -538,11 +530,14 @@ const ProfileTab = ({
               remains {alignment.label.toLowerCase()}.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
-              <InfoBlock label="Rank" value={agencyCareer.rankLabel} />
-              <InfoBlock label="Standing" value={agencyCareer.standingLabel} />
-              <InfoBlock label="Trend" value={agencyCareer.trendLabel} />
+              <InfoBlock label={t.rank} value={agencyCareer.rankLabel} />
               <InfoBlock
-                label="Service Criteria"
+                label={t.standing}
+                value={agencyCareer.standingLabel}
+              />
+              <InfoBlock label={t.trend} value={agencyCareer.trendLabel} />
+              <InfoBlock
+                label={t.serviceCriteria}
                 value={agencyCareer.criteriaSummary}
               />
             </div>
@@ -552,8 +547,8 @@ const ProfileTab = ({
 
       <SectionCard
         accent={C.amber}
-        eyebrow="Contact Network"
-        title={`${contacts.length} active files`}
+        eyebrow={t.contactNetwork}
+        title={`${contacts.length} ${t.activeFiles}`}
       >
         {contacts.length === 0 ? (
           <p className="text-sm leading-relaxed text-stone-400">
@@ -603,7 +598,7 @@ const ProfileTab = ({
         <div className="grid gap-4 xl:grid-cols-2">
           <SectionCard
             accent={activeOrigin.dossier.accentColor}
-            eyebrow="Signature"
+            eyebrow={t.signature}
             title={activeOrigin.signature.title}
           >
             <div className="space-y-3 text-sm text-stone-300">
@@ -626,19 +621,22 @@ const ProfileTab = ({
 
           <SectionCard
             accent={C.crimson}
-            eyebrow="Flaw"
+            eyebrow={t.flaw}
             title={activeOrigin.flaw.title}
           >
             <div className="space-y-3 text-sm text-stone-300">
               <p className="leading-relaxed">{activeOrigin.flaw.description}</p>
               <div className="grid gap-3 sm:grid-cols-3">
                 <InfoBlock
-                  label="Check Voice"
+                  label={t.checkVoice}
                   value={activeOrigin.flaw.checkVoice}
                 />
-                <InfoBlock label="DC" value={activeOrigin.flaw.dc.toString()} />
                 <InfoBlock
-                  label="Duration"
+                  label={t.dc}
+                  value={activeOrigin.flaw.dc.toString()}
+                />
+                <InfoBlock
+                  label={t.duration}
                   value={activeOrigin.flaw.durationLabel}
                 />
               </div>
@@ -1501,7 +1499,7 @@ const JournalTab = ({
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_320px]">
       <SectionCard
         accent={C.amber}
-        eyebrow="Observation Journal"
+        eyebrow={t.observationJournal}
         title="Anomalous Registry"
       >
         {observationEntries.length === 0 ? (
@@ -1602,6 +1600,21 @@ export const CharacterPanel = () => {
   const [activeTab, setActiveTab] = useState<CharacterTabId>("profile");
   const uiLanguage = useUiLanguage(myFlags);
   const t = useMemo(() => getCharacterStrings(uiLanguage), [uiLanguage]);
+  const dossierTabs = useMemo<
+    Array<{
+      id: CharacterTabId;
+      icon: LucideIcon;
+      label: string;
+    }>
+  >(
+    () => [
+      { id: "profile", icon: FileText, label: t.tabs.profile },
+      { id: "development", icon: Brain, label: t.tabs.development },
+      { id: "psyche", icon: Fingerprint, label: t.tabs.psyche },
+      { id: "journal", icon: BookOpenText, label: t.tabs.journal },
+    ],
+    [t],
+  );
   const activeOrigin = useMemo(
     () => getOriginProfileByFlags(myFlags),
     [myFlags],
@@ -1950,7 +1963,7 @@ export const CharacterPanel = () => {
                 className="mt-2 text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl"
                 style={{ color: C.bone, fontFamily: "var(--font-display)" }}
               >
-                Character Dossier
+                {t.panelTitle}
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-stone-400">
                 {t.panelSubtitle}
@@ -2000,7 +2013,7 @@ export const CharacterPanel = () => {
               className="flex gap-2 overflow-x-auto pb-1 xl:flex-col xl:overflow-visible"
               role="tablist"
             >
-              {DOSSIER_TABS.map((tab) => (
+              {dossierTabs.map((tab) => (
                 <DossierTabButton
                   key={tab.id}
                   active={activeTab === tab.id}
@@ -2034,6 +2047,7 @@ export const CharacterPanel = () => {
                       panelSubtitle={t.panelSubtitle}
                       selectedTrack={selectedTrack}
                       vars={myVars}
+                      t={t}
                     />
                   </div>
                 ) : null}

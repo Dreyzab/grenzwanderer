@@ -31,6 +31,7 @@ export {
   my_vn_sessions,
   my_vn_skill_results,
   worker_ai_requests,
+  content_translations,
 } from "./schema";
 import {
   aggregate_telemetry,
@@ -71,7 +72,11 @@ export {
   grant_xp,
   grant_item,
 } from "./reducers/core";
-export { publish_content, rollback_content } from "./reducers/content";
+export {
+  publish_content,
+  rollback_content,
+  update_translations,
+} from "./reducers/content";
 export {
   record_choice,
   start_scenario,

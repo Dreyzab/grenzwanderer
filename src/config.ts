@@ -26,7 +26,7 @@ export const SPACETIMEDB_HOST =
     : (import.meta.env.VITE_SPACETIMEDB_HOST ??
       (GENERATED_SPACETIMEDB_HOST.length > 0
         ? GENERATED_SPACETIMEDB_HOST
-        : "ws://localhost:3000"));
+        : "ws://localhost:3001"));
 
 export const SPACETIMEDB_DB_NAME =
   import.meta.env.PROD && GENERATED_SPACETIMEDB_DB_NAME.length > 0

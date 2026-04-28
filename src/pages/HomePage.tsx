@@ -13,13 +13,14 @@ import {
 import { parseSnapshot } from "../features/vn/vnContent";
 import { reducers, tables } from "../shared/spacetime/bindings";
 import { useIdentity } from "../shared/spacetime/useIdentity";
-import { postRuntimeDebug } from "../shared/debug/runtimeDebug";
 import { ConfirmationModal } from "../shared/ui/ConfirmationModal";
 import {
   resolveUiLanguage,
   type UiLanguage,
+  writeStoredUiLanguage,
 } from "../shared/hooks/useUiLanguage";
 import { useI18n } from "../features/i18n/I18nContext";
+import { getHomeStrings, getSharedStrings } from "../features/i18n/uiStrings";
 
 interface HomePageProps {
   onNavigate: (
@@ -38,7 +39,7 @@ interface HomePageProps {
 
 type CitySelection = "freiburg_1905" | "karlsruhe_1905";
 type FreiburgFlowState = "idle" | "confirm_reset" | "select_origin";
-type LanguageFlagKey = "lang_ru" | "lang_de";
+type LanguageFlagKey = "lang_en" | "lang_ru" | "lang_de";
 
 const languagePanelStrings: Record<
   UiLanguage,
@@ -84,20 +85,21 @@ const resolveSyncStatus = (
   contentReady: boolean,
   playerStateReady: boolean,
   hasConnectionError: boolean,
+  home: ReturnType<typeof getHomeStrings>,
 ): string => {
   if (hasConnectionError) {
-    return "Connection error. Reconnecting...";
+    return home.connectionError;
   }
   if (!isConnected) {
-    return "Connecting to SpacetimeDB...";
+    return home.connecting;
   }
   if (!contentReady) {
-    return "Syncing content snapshot...";
+    return home.syncingContent;
   }
   if (!playerStateReady) {
-    return "Syncing player state...";
+    return home.syncingPlayer;
   }
-  return "Syncing...";
+  return home.syncingRecords;
 };
 
 const hasFreiburgProgressHeuristic = (
@@ -161,7 +163,9 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     useState<CitySelection>("freiburg_1905");
   const [pendingResetOnBegin, setPendingResetOnBegin] = useState(false);
   const [isLanguageUpdating, setIsLanguageUpdating] = useState(false);
-  const { isLoaded } = useI18n();
+  const { isLoaded, language } = useI18n();
+  const home = getHomeStrings(language);
+  const shared = getSharedStrings(language);
   const launchInFlightRef = useRef(false);
 
   const activeVersion = useMemo(
@@ -244,6 +248,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     contentReady,
     playerStateReady,
     Boolean(connectionError),
+    home,
   );
   const isEntryBlocked = entryTarget.kind === "blocked_sync";
   const isFreiburgSelected = selectedCity === "freiburg_1905";
@@ -253,7 +258,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     return (
       <div className="min-h-[100dvh] bg-stone-950 flex items-center justify-center">
         <div className="animate-pulse text-primary font-serif italic text-lg">
-          Synchronizing records...
+          {home.syncingRecords}
         </div>
       </div>
     );
@@ -283,11 +288,13 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     setFlowStatus(languageUi.switching);
 
     const updates: Array<{ key: LanguageFlagKey; value: boolean }> = [
+      { key: "lang_en", value: nextLanguage === "en" },
       { key: "lang_ru", value: nextLanguage === "ru" },
       { key: "lang_de", value: nextLanguage === "de" },
     ];
 
     try {
+      writeStoredUiLanguage(nextLanguage);
       for (const update of updates) {
         await setFlag(update);
       }
@@ -304,21 +311,8 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   };
 
   const handleContinue = async () => {
-    postRuntimeDebug(
-      "HomePage.tsx:handleContinue",
-      "Continue pressed",
-      {
-        selectedCity,
-        entryTargetKind: entryTarget.kind,
-        entryScenarioId:
-          entryTarget.kind === "start" || entryTarget.kind === "resume"
-            ? entryTarget.scenarioId
-            : null,
-      },
-      "H1",
-    );
     if (!isFreiburgSelected) {
-      setFlowStatus("Karlsruhe flow is not available yet.");
+      setFlowStatus(home.karlsruheNotAvailable);
       return;
     }
 
@@ -337,7 +331,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
 
   const handleNewGame = async () => {
     if (!isFreiburgSelected) {
-      setFlowStatus("Karlsruhe flow is not available yet.");
+      setFlowStatus(home.karlsruheNotAvailable);
       return;
     }
 
@@ -455,11 +449,11 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
           <div className="flex items-center gap-3 mb-2">
             <MapIcon className="w-5 h-5 text-primary" strokeWidth={2.5} />
             <h2 className="text-2xl font-sans text-primary/90 font-bold m-0 tracking-wide">
-              Select City
+              {home.selectCity}
             </h2>
           </div>
           <p className="text-gray-400 text-sm mb-6 m-0">
-            Choose your active region or enter through a gateway QR.
+            {home.selectCityDescription}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
@@ -476,7 +470,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
               }`}
             >
               <Building2 className="w-4 h-4" strokeWidth={2.5} />
-              Freiburg 1905
+              {home.freiburg1905}
             </button>
             <button
               type="button"
@@ -491,7 +485,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
               }`}
             >
               <Landmark className="w-4 h-4" strokeWidth={2.5} />
-              Karlsruhe 1905
+              {home.karlsruhe1905}
             </button>
           </div>
 
@@ -506,7 +500,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
               disabled={isLaunching}
               className="h-12 bg-[#44403c] hover:bg-[#57534e] text-[#f5f5f4] border border-[#57534e] flex items-center justify-center gap-2 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isLaunching ? "Opening..." : "Continue"}
+              {isLaunching ? home.opening : home.continue}
             </button>
             <button
               type="button"
@@ -514,7 +508,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
               disabled={isLaunching}
               className="h-12 bg-[#a16207] hover:bg-[#b45309] text-[#f5f5f4] border border-[#b45309] flex items-center justify-center gap-2 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             >
-              New Game
+              {home.newGame}
             </button>
           </div>
 
@@ -524,16 +518,17 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
             className="w-full h-11 bg-primary/80 hover:bg-primary text-[#f5f5f4] font-bold flex items-center justify-center gap-2 rounded-lg transition-colors"
           >
             <QrCode className="w-4 h-4" strokeWidth={2.5} />
-            Scan Start Code
+            {home.scanStartCode}
           </button>
         </div>
       </main>
 
       {flowState === "confirm_reset" ? (
         <ConfirmationModal
-          title="Start New Game?"
-          description="This will wipe current Freiburg progress and begin a fresh origin route after dossier confirmation."
-          confirmLabel="Confirm Reset"
+          title={home.startNewGameTitle}
+          description={home.startNewGameDescription}
+          confirmLabel={home.confirmReset}
+          cancelLabel={shared.cancel}
           onCancel={closeOriginFlow}
           onConfirm={() => openOriginSelection(true)}
         />

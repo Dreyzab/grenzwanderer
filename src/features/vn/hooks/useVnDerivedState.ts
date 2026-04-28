@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { ENABLE_AI } from "../../../config";
 import type {
   AiRequest,
+  ContentTranslation,
   PlayerAgencyCareer,
   PlayerNpcFavor,
   PlayerNpcState,
@@ -13,6 +14,9 @@ import {
   AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
 } from "../../ai/contracts";
+import { buildVnNodeTranslationKey } from "../../i18n/vnContentTranslations";
+import type { I18nDictionary } from "../../i18n/I18nContext";
+import type { UiLanguage } from "../../../shared/hooks/useUiLanguage";
 import {
   calculateSkillCheckSuccessPercent,
   resolveSkillCheckEffectiveDifficulty,
@@ -95,6 +99,9 @@ interface UseVnDerivedStateParams {
   activeProvidenceThoughtContext: ActiveAiThoughtContext | null;
   activeReactionKey: string | null;
   tSessionHydrating: string;
+  uiLanguage: UiLanguage;
+  contentTranslations: readonly { lang: string; key: string; text: string }[];
+  dictionary: I18nDictionary | null;
 }
 
 export function useVnDerivedState({
@@ -120,6 +127,9 @@ export function useVnDerivedState({
   activeProvidenceThoughtContext,
   activeReactionKey,
   tSessionHydrating,
+  uiLanguage,
+  contentTranslations,
+  dictionary,
 }: UseVnDerivedStateParams) {
   const choiceEvaluationContext = useMemo<VnChoiceEvaluationContext>(() => {
     const favorBalances = new Map<string, number>();
@@ -343,14 +353,37 @@ export function useVnDerivedState({
     if (!currentNode) {
       return sessionReady ? "" : tSessionHydrating;
     }
+    const translationKey = buildVnNodeTranslationKey(
+      selectedScenarioId,
+      currentNode.id,
+      "body",
+    );
+    const serverTranslation = contentTranslations.find(
+      (row) => row.lang === uiLanguage && row.key === translationKey,
+    )?.text;
     if (
       currentNode.narrativePresentation === "letter" ||
       currentNode.narrativeLayout === "letter_overlay"
     ) {
-      return normalizeLetterBody(currentNode.body);
+      const fallback = normalizeLetterBody(currentNode.body);
+      if (serverTranslation) {
+        return normalizeLetterBody(serverTranslation);
+      }
+      return uiLanguage === "en" ? fallback : `WARNING ${fallback}`;
     }
-    return normalizeBody(currentNode.body);
-  }, [currentNode, sessionReady, tSessionHydrating]);
+    const fallback = normalizeBody(currentNode.body);
+    if (serverTranslation) {
+      return normalizeBody(serverTranslation);
+    }
+    return uiLanguage === "en" ? fallback : `WARNING ${fallback}`;
+  }, [
+    contentTranslations,
+    currentNode,
+    selectedScenarioId,
+    sessionReady,
+    tSessionHydrating,
+    uiLanguage,
+  ]);
 
   const currentResolvedBgUrl = useMemo(
     () =>

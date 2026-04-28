@@ -49,6 +49,10 @@ export const CASE01_CANON_FLAG_KEYS = [
   "found_velvet",
   "found_residue",
   "bureau_trace_found",
+  "mother_redhead_secret_potential",
+  "flag_joked_with_mother",
+  "flag_defended_felix",
+  "flag_silent_observation",
 ] as const;
 
 export const CASE01_CANON_VAR_KEYS = [

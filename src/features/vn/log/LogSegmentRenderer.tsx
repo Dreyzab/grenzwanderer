@@ -92,7 +92,7 @@ export function LogSegmentRenderer({
         ) : null}
         <div
           className={[
-            "whitespace-pre-wrap text-[0.98rem] leading-7 sm:text-[1.03rem]",
+            "whitespace-pre-wrap text-[1.3rem] leading-8 sm:text-[1.4rem]",
             categoryTextClassName(segment.category),
           ].join(" ")}
           style={{ color: isInnerVoice ? segment.textColor : undefined }}

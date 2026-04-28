@@ -11,6 +11,51 @@ import {
   syncMindPalaceContentTables,
 } from "./helpers";
 
+type ContentTranslationInput = {
+  key: string;
+  lang: string;
+  text: string;
+};
+
+const SUPPORTED_TRANSLATION_LANGS = new Set(["ru", "de"]);
+
+const parseTranslationsPayload = (
+  translationsJson: string,
+): ContentTranslationInput[] => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(translationsJson);
+  } catch {
+    throw new SenderError("translationsJson must be valid JSON");
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new SenderError("translationsJson must be an array");
+  }
+
+  return parsed.map((entry, index) => {
+    if (!entry || typeof entry !== "object") {
+      throw new SenderError(`translation at index ${index} must be an object`);
+    }
+    const candidate = entry as Record<string, unknown>;
+    const key = candidate.key;
+    const lang = candidate.lang;
+    const text = candidate.text;
+    if (typeof key !== "string" || key.trim().length === 0) {
+      throw new SenderError(`translation at index ${index} has invalid key`);
+    }
+    if (typeof lang !== "string" || !SUPPORTED_TRANSLATION_LANGS.has(lang)) {
+      throw new SenderError(`translation at index ${index} has invalid lang`);
+    }
+    if (typeof text !== "string") {
+      throw new SenderError(`translation at index ${index} has invalid text`);
+    }
+    return { key: key.trim(), lang, text };
+  });
+};
+
+const translationId = (lang: string, key: string): string => `${lang}:${key}`;
+
 export const publish_content = spacetimedb.reducer(
   {
     requestId: t.string(),
@@ -94,6 +139,50 @@ export const publish_content = spacetimedb.reducer(
       version,
       checksum,
       schemaVersion,
+    });
+  },
+);
+
+export const update_translations = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    translationsJson: t.string(),
+  },
+  (ctx, { requestId, translationsJson }) => {
+    ensureAdminIdentity(ctx, "update translations");
+    ensureIdempotent(ctx, requestId, "update_translations");
+
+    const translations = parseTranslationsPayload(translationsJson);
+    const deduped = new Map<string, ContentTranslationInput>();
+    for (const translation of translations) {
+      deduped.set(
+        translationId(translation.lang, translation.key),
+        translation,
+      );
+    }
+
+    for (const [id, translation] of deduped) {
+      const existing = ctx.db.contentTranslation.translationId.find(id);
+      const row = {
+        translationId: id,
+        key: translation.key,
+        lang: translation.lang,
+        text: translation.text,
+        updatedAt: ctx.timestamp,
+      };
+
+      if (existing) {
+        ctx.db.contentTranslation.translationId.update(row);
+      } else {
+        ctx.db.contentTranslation.insert(row);
+      }
+    }
+
+    emitTelemetry(ctx, "translations_updated", {
+      count: String(deduped.size),
+      langs: [...new Set([...deduped.values()].map((entry) => entry.lang))]
+        .sort()
+        .join(","),
     });
   },
 );

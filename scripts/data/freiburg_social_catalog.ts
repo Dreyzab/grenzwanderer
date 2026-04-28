@@ -36,6 +36,28 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       workPointId: "loc_rathaus",
       serviceIds: ["svc_otto_archive_packet"],
     },
+    {
+      id: "npc_mother_hartmann",
+      displayName: "Eleonora Hartmann",
+      factionId: "house_of_pledges",
+      publicRole: "Aristocratic patron",
+      rosterTier: "major",
+      introFlag: "met_mother_intro",
+      homePointId: "loc_agency",
+      workPointId: "loc_agency",
+      serviceIds: [],
+    },
+    {
+      id: "npc_redhead_girl",
+      displayName: "Red-haired Girl",
+      factionId: "city_network",
+      publicRole: "Artistic rebel",
+      rosterTier: "major",
+      introFlag: "met_redhead_intro",
+      homePointId: "loc_workers_pub",
+      workPointId: "loc_workers_pub",
+      serviceIds: [],
+    },
   ],
   services: [
     {

@@ -403,7 +403,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
               <MapPin size={12} className="text-amber-500" />
               <span>{t.currentLocation}</span>
             </div>
-            <h1 className="text-3xl font-display text-white font-bold tracking-tight drop-shadow-2xl opacity-90 m-0">
+            <h1 className="text-4xl font-display text-white font-bold tracking-tight drop-shadow-2xl opacity-90 m-0">
               {locationName}
             </h1>
             <div className="h-px w-24 bg-linear-to-r from-amber-500/50 to-transparent mt-1" />
@@ -495,7 +495,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
               <div className="absolute -inset-4 rounded-[2.5rem] bg-black/30 blur-2xl" />
               <div className="relative overflow-hidden rounded-[1.25rem] border border-[#7a5830]/45 bg-[linear-gradient(135deg,rgba(255,250,229,0.99)_0%,rgba(238,220,178,0.99)_58%,rgba(218,190,139,0.99)_100%)] px-5 py-6 shadow-[0_34px_100px_rgba(0,0,0,0.62),inset_0_0_0_1px_rgba(255,255,255,0.35)] sm:px-12 sm:py-10">
                 <div className="absolute inset-0 bg-[url('/images/paper-texture.png')] opacity-[0.22] mix-blend-multiply" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_12%,rgba(146,94,38,0.16),transparent_30%),radial-gradient(circle_at_86%_78%,rgba(88,47,20,0.18),transparent_34%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_14%,rgba(146,94,38,0.11),transparent_36%),radial-gradient(circle_at_84%_76%,rgba(88,47,20,0.13),transparent_38%)]" />
                 <div className="absolute left-[13%] top-0 h-full w-px bg-[#8b683b]/18" />
                 <div className="absolute inset-x-8 top-6 h-px bg-linear-to-r from-transparent via-[#7a5830]/35 to-transparent sm:inset-x-14" />
                 <div className="absolute inset-x-8 bottom-6 h-px bg-linear-to-r from-transparent via-[#7a5830]/25 to-transparent sm:inset-x-14" />
@@ -516,7 +516,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
                     </div>
                   </div>
 
-                  <div className="mt-5 whitespace-pre-wrap text-[#3c2616]">
+                  <div className="mt-5 whitespace-pre-wrap text-left text-[#2e2319]">
                     {displayedLetterRevealed ? letterNarrativeBody : null}
                   </div>
 
@@ -562,7 +562,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
             <div className="absolute left-0 -top-5 z-20 flex items-end group">
               <div className="absolute left-8 top-full h-4 w-[2px] bg-amber-500/40" />
               <div className="relative px-6 py-2 bg-stone-950 border-l-[3px] border-amber-500 shadow-[0_5px_15px_rgba(0,0,0,0.5)] transform -skew-x-12 origin-bottom-left transition-transform duration-300 group-hover:-skew-x-6">
-                <div className="transform skew-x-12 text-amber-500 font-bold tracking-widest uppercase text-sm">
+                <div className="transform skew-x-12 text-amber-500 font-bold tracking-widest uppercase text-base">
                   {characterName}
                 </div>
                 <div className="absolute -top-px -right-px w-2 h-2 border-t border-r border-amber-500/60" />
@@ -589,8 +589,8 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
               className={[
                 "font-body relative z-10 p-0 text-stone-200",
                 isThoughtLog
-                  ? "mx-auto w-full max-w-prose text-[1.02rem] leading-8"
-                  : "text-lg sm:text-xl leading-relaxed",
+                  ? "mx-auto w-full max-w-prose text-[1.35rem] leading-8"
+                  : "text-2xl sm:text-3xl leading-relaxed",
               ].join(" ")}
             >
               {narrativeBody}

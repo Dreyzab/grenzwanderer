@@ -7,6 +7,14 @@ import {
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AppShell from "./AppShell";
+import { I18nProvider } from "../features/i18n/I18nProvider";
+
+const renderAppShell = () =>
+  render(
+    <I18nProvider>
+      <AppShell />
+    </I18nProvider>,
+  );
 
 const mocks = vi.hoisted(() => ({
   useIdentityMock: vi.fn(),
@@ -134,7 +142,7 @@ describe("AppShell URL synchronization", () => {
   it("reads initial tab and vnScenario from query", async () => {
     window.history.replaceState(null, "", "/?tab=vn&vnScenario=scenario_alpha");
 
-    render(<AppShell />);
+    renderAppShell();
 
     await waitFor(() => {
       expect(screen.getByTestId("vn-page")).toHaveTextContent(
@@ -146,7 +154,7 @@ describe("AppShell URL synchronization", () => {
 
   it("applies popstate changes for tab and vnScenario", async () => {
     window.history.replaceState(null, "", "/?tab=home");
-    render(<AppShell />);
+    renderAppShell();
 
     expect(screen.queryByTestId("vn-page")).not.toBeInTheDocument();
 
@@ -164,7 +172,7 @@ describe("AppShell URL synchronization", () => {
   });
 
   it("writes updated tab/scenario into query via replaceState", async () => {
-    render(<AppShell />);
+    renderAppShell();
 
     fireEvent.click(screen.getByRole("button", { name: "open-vn" }));
 
@@ -174,7 +182,7 @@ describe("AppShell URL synchronization", () => {
   });
 
   it("opens a specific VN scenario from Home callback", async () => {
-    render(<AppShell />);
+    renderAppShell();
 
     fireEvent.click(screen.getByRole("button", { name: "open-freiburg" }));
 
@@ -205,7 +213,7 @@ describe("AppShell URL synchronization", () => {
       return [[], true];
     });
 
-    render(<AppShell />);
+    renderAppShell();
 
     await waitFor(() => {
       expect(screen.getByTestId("command-page")).toBeInTheDocument();
@@ -229,7 +237,7 @@ describe("AppShell URL synchronization", () => {
       return [[], true];
     });
 
-    render(<AppShell />);
+    renderAppShell();
 
     await waitFor(() => {
       expect(screen.getByTestId("battle-page")).toBeInTheDocument();

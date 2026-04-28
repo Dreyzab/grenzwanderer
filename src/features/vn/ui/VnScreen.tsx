@@ -8,6 +8,7 @@ import { getVnStrings } from "../../i18n/uiStrings";
 import { useVnAiLogic } from "../hooks/useVnAiLogic";
 import { useVnDerivedState } from "../hooks/useVnDerivedState";
 import { useVnDisplayMapping } from "../hooks/useVnDisplayMapping";
+import { useI18n } from "../../i18n/I18nContext";
 import { useVnProvidenceExpansion } from "../hooks/useVnProvidenceExpansion";
 import { useVnSkillChecks } from "../hooks/useVnSkillChecks";
 import { useVnSurfaceInteraction } from "../hooks/useVnSurfaceInteraction";
@@ -72,6 +73,7 @@ export const VnScreen = ({
 }: VnScreenProps) => {
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
+  const [contentTranslations] = useTable(tables.contentTranslations);
   const [sessions, sessionsReady] = useTable(tables.myVnSessions);
   const [skillResults] = useTable(tables.myVnSkillResults);
   const [aiRequests] = useTable(tables.myAiRequests);
@@ -111,6 +113,7 @@ export const VnScreen = ({
   const myFlags = usePlayerFlags();
   const myVars = usePlayerVars();
   const uiLanguage = useUiLanguage(myFlags);
+  const { dictionary } = useI18n();
   const t = useMemo(() => getVnStrings(uiLanguage), [uiLanguage]);
 
   const performSkillCheck = useCallback(
@@ -263,6 +266,9 @@ export const VnScreen = ({
     activeProvidenceThoughtContext,
     activeReactionKey,
     tSessionHydrating: t.sessionHydrating,
+    uiLanguage,
+    contentTranslations,
+    dictionary,
   });
   const effectiveBackgroundUrl = generatedBackgroundUrl ?? currentResolvedBgUrl;
   const { handleStartScenario, runCompletionTransition } = useVnTransitions({

@@ -203,17 +203,23 @@ export const VnChoicesRenderer = ({
         <p className="opacity-70 italic text-sm text-center">
           {t.terminalNoChoices}
         </p>
-        {completionRoute && canTriggerCompletion ? (
+        {canTriggerCompletion ? (
           <button
             type="button"
             className="px-4 py-3 rounded-md border border-amber-600/60 bg-amber-800/20 text-amber-100 hover:bg-amber-700/30 transition-colors"
             onClick={onCompletionTransition}
             disabled={isInteractionLocked}
           >
-            {completionRoute.hasExistingSession
-              ? t.openNextScene
-              : t.continueScene}
-            {completionTargetLabel ? `: ${completionTargetLabel}` : ""}
+            {completionRoute ? (
+              <>
+                {completionRoute.hasExistingSession
+                  ? t.openNextScene
+                  : t.continueScene}
+                {completionTargetLabel ? `: ${completionTargetLabel}` : ""}
+              </>
+            ) : (
+              "Return to Map"
+            )}
           </button>
         ) : null}
         <button

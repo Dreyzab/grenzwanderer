@@ -16,7 +16,7 @@ function Assert-Command([string]$Name) {
 function Wait-ForLocalSpacetime([int]$TimeoutSeconds = 45) {
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     while ((Get-Date) -lt $deadline) {
-        if (Test-NetConnection -ComputerName "127.0.0.1" -Port 3000 -InformationLevel Quiet -WarningAction SilentlyContinue) {
+        if (Test-NetConnection -ComputerName "127.0.0.1" -Port 3001 -InformationLevel Quiet -WarningAction SilentlyContinue) {
             return $true
         }
         Start-Sleep -Milliseconds 500
@@ -37,17 +37,17 @@ New-Item -ItemType Directory -Path $logsDir -Force | Out-Null
 
 $startedSpacetime = $false
 $spacetimeProcess = $null
-$localServerRunning = Test-NetConnection -ComputerName "127.0.0.1" -Port 3000 -InformationLevel Quiet -WarningAction SilentlyContinue
+$localServerRunning = Test-NetConnection -ComputerName "127.0.0.1" -Port 3001 -InformationLevel Quiet -WarningAction SilentlyContinue
 
 if (-not $localServerRunning) {
-    Write-Host "Starting local SpacetimeDB on port 3000..."
+    Write-Host "Starting local SpacetimeDB on port 3001..."
 
     $stdoutLog = Join-Path $logsDir "spacetime-start.out.log"
     $stderrLog = Join-Path $logsDir "spacetime-start.err.log"
 
     $spacetimeProcess = Start-Process `
         -FilePath "spacetime" `
-        -ArgumentList "start --listen-addr 127.0.0.1:3000" `
+        -ArgumentList "start --listen-addr 127.0.0.1:3001" `
         -WorkingDirectory $projectRoot `
         -RedirectStandardOutput $stdoutLog `
         -RedirectStandardError $stderrLog `
@@ -60,14 +60,14 @@ if (-not $localServerRunning) {
         if (Test-Path $stderrLog) {
             $errorDetails = Get-Content -Raw $stderrLog
         }
-        throw "Local SpacetimeDB did not become ready on 127.0.0.1:3000. $errorDetails"
+        throw "Local SpacetimeDB did not become ready on 127.0.0.1:3001. $errorDetails"
     }
 
-    Write-Host "Local SpacetimeDB is ready on port 3000."
+    Write-Host "Local SpacetimeDB is ready on port 3001."
     Write-Host "Logs: $stdoutLog"
 }
 else {
-    Write-Host "Local SpacetimeDB is already running on 127.0.0.1:3000."
+    Write-Host "Local SpacetimeDB is already running on 127.0.0.1:3001."
 }
 
 try {
@@ -86,7 +86,7 @@ try {
     if (-not $PreserveDb) {
         Write-Host "Extracting and releasing narrative content (re-seeding)..."
         & bun run content:extract
-        & bun run scripts/content-release.ts --version 0.1.0 --host http://127.0.0.1:3000 --db grezwandererdata
+        & bun run scripts/content-release.ts --version 0.1.0 --host http://127.0.0.1:3001 --db grezwandererdata
     }
 
     Write-Host "Starting frontend dev server on port 5174 with --force..."

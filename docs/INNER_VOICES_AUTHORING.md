@@ -1,5 +1,15 @@
 # Inner Voices Authoring Guide
 
+See also:
+
+- [Inner Parliament Constitution](./INNER_PARLIAMENT_CONSTITUTION.md)
+- [Moral Stress and Identity Formation](./MORAL_STRESS_IDENTITY_FORMATION.md)
+
+Terminology:
+
+- `attr_*` = method voices. They handle detective skills, checks, and AI thought style.
+- `inner_*` = moral factions. They handle motives, conscience, leverage, loyalty, and psyche drift.
+
 ## Voice IDs
 
 - `inner_leader`
@@ -75,3 +85,4 @@ Rules:
 - `attr_*` stays in `skillCheck.voiceId`
 - `voice_level_gte` accepts only skill voices
 - `inner_*` never replaces skill checks in V1
+- Method voices answer "can I do this and how?"; moral factions answer "why do this and what does it make me?"

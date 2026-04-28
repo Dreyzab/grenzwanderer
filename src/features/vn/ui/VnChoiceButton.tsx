@@ -248,7 +248,7 @@ export function VnChoiceButton({
         ) : null}
 
         <span
-          className={`text-lg sm:text-xl leading-snug transition-colors
+          className={`text-xl sm:text-2xl leading-snug transition-colors
                   ${
                     isAction
                       ? isVisited

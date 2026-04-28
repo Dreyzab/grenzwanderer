@@ -2,7 +2,7 @@
   margin: 0;
   color: var(--vn-text-primary);
   font-family: "Crimson Pro", "Times New Roman", serif;
-  font-size: clamp(1.2rem, 2.8vw, 1.55rem);
+  font-size: clamp(1.4rem, 3.2vw, 1.85rem);
   line-height: 1.5;
   letter-spacing: 0.01em;
   white-space: pre-wrap;
@@ -41,29 +41,34 @@
 }
 
 .vn-letter-sheet {
-  --vn-text-primary: #3c2616;
-  --vn-accent: #6d2418;
+  --vn-text-primary: #2e2319;
+  --vn-accent: #5a2518;
 }
 
 .vn-letter-sheet .vn-typed-text {
   color: var(--vn-text-primary);
   font-family:
     "Crimson Pro", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
-  font-size: clamp(1rem, 1.75vw, 1.18rem);
+  font-size: clamp(1.3rem, 2.5vw, 1.6rem);
+  font-style: italic;
   font-weight: 500;
-  line-height: 1.58;
-  letter-spacing: 0.008em;
-  text-shadow: 0 1px 0 rgba(255, 247, 218, 0.46);
+  line-height: 1.72;
+  letter-spacing: 0.018em;
+  text-shadow: 0 1px 0 rgba(255, 250, 235, 0.42);
 }
 
 .vn-letter-sheet .vn-typed-text::first-letter {
-  color: #612416;
+  color: #8f5c22;
   float: left;
   font-family: "Playfair Display", "Crimson Pro", serif;
-  font-size: 3em;
+  font-size: 3.35em;
+  font-style: italic;
   font-weight: 600;
-  line-height: 0.88;
-  margin: 0.08em 0.12em 0 0;
+  line-height: 0.84;
+  margin: 0.05em 0.12em 0 0;
+  text-shadow:
+    0 1px 0 rgba(255, 250, 235, 0.55),
+    0 2px 5px rgba(80, 48, 18, 0.12);
 }
 
 .vn-letter-sheet .vn-typed-text__token {
@@ -79,7 +84,7 @@
 }
 
 .vn-letter-sheet .vn-typed-text__cursor {
-  background: #6d2418;
+  background: var(--vn-accent);
 }
 
 @keyframes vn-typed-token-fade {

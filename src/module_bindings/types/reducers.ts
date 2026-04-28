@@ -55,6 +55,7 @@ import StartScenarioReducer from "../start_scenario_reducer";
 import TrackEventReducer from "../track_event_reducer";
 import TravelToReducer from "../travel_to_reducer";
 import UnlockGroupReducer from "../unlock_group_reducer";
+import UpdateTranslationsReducer from "../update_translations_reducer";
 import ValidateHypothesisReducer from "../validate_hypothesis_reducer";
 import VerifyRumorReducer from "../verify_rumor_reducer";
 
@@ -107,6 +108,7 @@ export type StartScenarioParams = __Infer<typeof StartScenarioReducer>;
 export type TrackEventParams = __Infer<typeof TrackEventReducer>;
 export type TravelToParams = __Infer<typeof TravelToReducer>;
 export type UnlockGroupParams = __Infer<typeof UnlockGroupReducer>;
+export type UpdateTranslationsParams = __Infer<typeof UpdateTranslationsReducer>;
 export type ValidateHypothesisParams = __Infer<typeof ValidateHypothesisReducer>;
 export type VerifyRumorParams = __Infer<typeof VerifyRumorReducer>;
 

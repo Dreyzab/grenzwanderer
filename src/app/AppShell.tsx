@@ -35,10 +35,10 @@ import { ToastProvider } from "../shared/hooks/useToast";
 import { reducers, tables } from "../shared/spacetime/bindings";
 import { useIdentity } from "../shared/spacetime/useIdentity";
 import { usePresenceHeartbeat } from "../shared/spacetime/usePresenceHeartbeat";
-import { postRuntimeDebug } from "../shared/debug/runtimeDebug";
 import { Toaster } from "../shared/ui/Toaster";
 import { Navbar } from "../widgets/navbar/Navbar";
-import { I18nProvider } from "../features/i18n/I18nProvider";
+import { useI18n } from "../features/i18n/I18nContext";
+import { getNavbarStrings, getHomeStrings } from "../features/i18n/uiStrings";
 import "./AppShell.css";
 
 type TabId =
@@ -494,24 +494,7 @@ const AppShell = () => {
     vnScenarioId,
   ]);
 
-  const statusText = useMemo(() => {
-    if (!isActive) {
-      return "Disconnected";
-    }
-    return `Connected as ${identityLabel(identityHex)}`;
-  }, [identityHex, isActive]);
-
   const openVnScenario = (scenarioId: string) => {
-    postRuntimeDebug(
-      "AppShell.tsx:openVnScenario",
-      "Open VN scenario requested",
-      {
-        scenarioId,
-        activeTabBefore: activeTab,
-        vnScenarioIdBefore: vnScenarioId ?? null,
-      },
-      "H1",
-    );
     if (isKarlsruheProfile) {
       setPathname(KARLSRUHE_EVENT_PATHNAME);
     }
@@ -526,17 +509,6 @@ const AppShell = () => {
     }
 
     const safeTab = coerceTabForProfile(tab, RELEASE_PROFILE, vnScenarioId);
-    postRuntimeDebug(
-      "AppShell.tsx:navigateToTab",
-      "Navigate tab requested",
-      {
-        requestedTab: tab,
-        safeTab,
-        vnScenarioId: vnScenarioId ?? null,
-        mapPanel: options?.mapPanel ?? null,
-      },
-      "H1",
-    );
     setActiveTab(safeTab);
     setMapPanel(safeTab === "map" ? options?.mapPanel : undefined);
   };
@@ -599,6 +571,88 @@ const AppShell = () => {
     );
   }
 
+  return (
+    <AppShellInnerWrapper
+      isKarlsruheProfile={isKarlsruheProfile}
+      pathname={pathname}
+      entryGateState={entryGateState}
+      entryGateError={entryGateError}
+      hasKarlsruheGrant={hasKarlsruheGrant}
+      activeTab={activeTab}
+      navigateToTab={navigateToTab}
+      renderTab={renderTab}
+      identityHex={identityHex}
+      isActive={isActive}
+    />
+  );
+};
+
+interface InnerWrapperProps {
+  isKarlsruheProfile: boolean;
+  pathname: string;
+  entryGateState: EntryGateState;
+  entryGateError: string | null;
+  hasKarlsruheGrant: boolean;
+  activeTab: TabId;
+  navigateToTab: (tab: TabId, options?: { mapPanel?: MapPanelId }) => void;
+  renderTab: (tab: TabId) => ReactNode;
+  identityHex: string;
+  isActive: boolean;
+}
+
+const AppShellInnerWrapper = ({
+  isKarlsruheProfile,
+  pathname,
+  entryGateState,
+  entryGateError,
+  hasKarlsruheGrant,
+  activeTab,
+  navigateToTab,
+  renderTab,
+  identityHex,
+  isActive,
+}: InnerWrapperProps) => {
+  const { language } = useI18n();
+  const home = getHomeStrings(language);
+
+  const statusText = useMemo(() => {
+    if (!isActive) {
+      return home.disconnected;
+    }
+    return `${home.connectedAs} ${identityLabel(identityHex)}`;
+  }, [identityHex, isActive, home]);
+
+  const nav = getNavbarStrings(language);
+  const localizedTabs = useMemo(() => {
+    const profile = RELEASE_PROFILE;
+    if (profile === "karlsruhe_event") {
+      return [
+        { id: "map", label: nav.map },
+        { id: "vn", label: nav.vn },
+        { id: "character", label: nav.character },
+      ] as Array<{ id: TabId; label: string }>;
+    }
+    if (profile === "freiburg_detective") {
+      return [
+        { id: "home", label: nav.home },
+        { id: "map", label: nav.map },
+        { id: "vn", label: nav.vn },
+        { id: "command", label: nav.command },
+        { id: "battle", label: nav.battle },
+        { id: "character", label: nav.character },
+        { id: "mind_palace", label: nav.mind_palace },
+      ] as Array<{ id: TabId; label: string }>;
+    }
+    return [
+      { id: "home", label: nav.home },
+      { id: "map", label: nav.map },
+      { id: "command", label: nav.command },
+      { id: "battle", label: nav.battle },
+      { id: "character", label: nav.character },
+      { id: "mind_palace", label: nav.mind_palace },
+    ] as Array<{ id: TabId; label: string }>;
+  }, [nav]);
+
   if (
     isKarlsruheProfile &&
     (pathname !== KARLSRUHE_EVENT_PATHNAME || entryGateState !== "granted")
@@ -613,23 +667,17 @@ const AppShell = () => {
   }
 
   return (
-    <I18nProvider>
-      <ToastProvider>
-        <Toaster />
-        <AppShellInner
-          activeTab={activeTab}
-          setActiveTab={navigateToTab}
-          statusText={statusText}
-          renderTab={renderTab}
-          tabs={tabsByProfile[RELEASE_PROFILE]}
-          subtitle={
-            isKarlsruheProfile
-              ? "Karlsruhe QR Event Release v1"
-              : "Phase 2 MindPalace Vertical Slice"
-          }
-        />
-      </ToastProvider>
-    </I18nProvider>
+    <ToastProvider>
+      <Toaster />
+      <AppShellInner
+        activeTab={activeTab}
+        setActiveTab={navigateToTab}
+        statusText={statusText}
+        renderTab={renderTab}
+        tabs={localizedTabs}
+        subtitle={isKarlsruheProfile ? home.karlsruheRelease : home.phase2Slice}
+      />
+    </ToastProvider>
   );
 };
 

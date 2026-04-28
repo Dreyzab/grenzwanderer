@@ -181,6 +181,18 @@ export const ContentSnapshot = __t.object("ContentSnapshot", {
 });
 export type ContentSnapshot = __Infer<typeof ContentSnapshot>;
 
+export const ContentTranslation = __t.object("ContentTranslation", {
+  translationId: __t.string(),
+  key: __t.string(),
+  lang: __t.string(),
+  text: __t.string(),
+  updatedAt: __t.timestamp(),
+});
+export type ContentTranslation = __Infer<typeof ContentTranslation>;
+
+export const ContentTranslations = __t.object("ContentTranslations", {});
+export type ContentTranslations = __Infer<typeof ContentTranslations>;
+
 export const ContentVersion = __t.object("ContentVersion", {
   version: __t.string(),
   checksum: __t.string(),

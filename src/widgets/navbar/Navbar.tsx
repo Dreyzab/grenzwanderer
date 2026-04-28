@@ -11,6 +11,13 @@ import {
   Swords,
   ChevronDown,
 } from "lucide-react";
+import { useReducer } from "spacetimedb/react";
+import { useI18n } from "../../features/i18n/I18nContext";
+import {
+  type UiLanguage,
+  writeStoredUiLanguage,
+} from "../../shared/hooks/useUiLanguage";
+import { reducers } from "../../shared/spacetime/bindings";
 
 type TabId =
   | "home"
@@ -62,6 +69,8 @@ export const Navbar = <TTab extends string>({
   onTabChange,
   badges,
 }: NavbarProps<TTab>) => {
+  const { language } = useI18n();
+  const setFlag = useReducer(reducers.setFlag);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     try {
       const saved = localStorage.getItem("grenzwanderer_navbar_collapsed");
@@ -114,6 +123,20 @@ export const Navbar = <TTab extends string>({
       : isCollapsed
         ? "calc(100% - 1.5rem - env(safe-area-inset-bottom))"
         : 0;
+
+  const handleLanguageChange = async (nextLanguage: UiLanguage) => {
+    writeStoredUiLanguage(nextLanguage);
+    await setFlag({ key: "lang_en", value: nextLanguage === "en" });
+    await setFlag({ key: "lang_de", value: nextLanguage === "de" });
+    await setFlag({ key: "lang_ru", value: nextLanguage === "ru" });
+  };
+
+  const languageButtonClass = (buttonLanguage: UiLanguage) =>
+    `${
+      language === buttonLanguage
+        ? "text-primary"
+        : "text-stone-500 hover:text-stone-300"
+    } transition-colors border-none bg-transparent shadow-none`;
 
   return (
     <motion.nav
@@ -194,23 +217,29 @@ export const Navbar = <TTab extends string>({
           })}
         </div>
 
-        {/* Language Switcher absolute on large screens */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-3 text-xs font-bold text-stone-500 bg-stone-900/80 border border-stone-700/80 rounded-full px-4 py-2 shadow-lg backdrop-blur-sm">
+        {/* Language Switcher absolute on large screens, fixed bottom right on mobile */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-3 text-[10px] sm:text-xs font-bold text-stone-500 bg-stone-900/90 border border-stone-700/80 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 shadow-lg backdrop-blur-md z-100">
           <button
             type="button"
-            className="text-primary hover:text-primary transition-colors border-none bg-transparent shadow-none"
+            onClick={() => void handleLanguageChange("en")}
+            className={languageButtonClass("en")}
+            aria-pressed={language === "en"}
           >
             EN
           </button>
           <button
             type="button"
-            className="text-stone-500 hover:text-stone-300 transition-colors border-none bg-transparent shadow-none"
+            onClick={() => void handleLanguageChange("de")}
+            className={languageButtonClass("de")}
+            aria-pressed={language === "de"}
           >
             DE
           </button>
           <button
             type="button"
-            className="text-stone-500 hover:text-stone-300 transition-colors border-none bg-transparent shadow-none"
+            onClick={() => void handleLanguageChange("ru")}
+            className={languageButtonClass("ru")}
+            aria-pressed={language === "ru"}
           >
             RU
           </button>

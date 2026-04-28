@@ -11,10 +11,10 @@ describe("VN body normalization", () => {
   it("preserves letter paragraph breaks", () => {
     expect(
       normalizeLetterBody(
-        "Dear detective,\r\n\r\nI insist that you reach Freiburg.\n\n\nWith respect,\nMaster",
+        "Dear detective.\n\nI await your swift arrival in Freiburg.\n\n\nWith respect,\nMaster",
       ),
     ).toBe(
-      "Dear detective,\n\nI insist that you reach Freiburg.\n\nWith respect,\nMaster",
+      "Dear detective.\n\nI await your swift arrival in Freiburg.\n\nWith respect,\nMaster",
     );
   });
 });

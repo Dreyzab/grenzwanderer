@@ -23,6 +23,7 @@ import type {
   CommandOrderHistory,
   CommandPartyMember,
   CommandSession,
+  ContentTranslation,
   PlayerAgencyCareer,
   PlayerEvidence,
   PlayerFactionSignal,
@@ -64,6 +65,7 @@ type ViewDbAliases = {
   myVnSkillResults: BaseDbView["my_vn_skill_results"];
   myAiRequests: BaseDbView["my_ai_requests"];
   workerAiRequests: BaseDbView["worker_ai_requests"];
+  contentTranslations: BaseDbView["content_translations"];
   myMindCases: BaseDbView["my_mind_cases"];
   myMindFacts: BaseDbView["my_mind_facts"];
   myMindHypotheses: BaseDbView["my_mind_hypotheses"];
@@ -98,6 +100,7 @@ const viewDbAliases: Readonly<Record<keyof ViewDbAliases, keyof BaseDbView>> = {
   myVnSkillResults: "my_vn_skill_results",
   myAiRequests: "my_ai_requests",
   workerAiRequests: "worker_ai_requests",
+  contentTranslations: "content_translations",
   myMindCases: "my_mind_cases",
   myMindFacts: "my_mind_facts",
   myMindHypotheses: "my_mind_hypotheses",
@@ -192,6 +195,8 @@ const legacyDbAliases: Readonly<
 
 export const tables = {
   contentSnapshot: queryTables.contentSnapshot,
+  contentTranslation: queryTables.contentTranslation,
+  contentTranslations: queryTables.content_translations,
   contentVersion: queryTables.contentVersion,
   mindCase: queryTables.mindCase,
   mindFact: queryTables.mindFact,
@@ -268,6 +273,7 @@ export const reducers = {
   trackEvent: generatedReducers.trackEvent,
   travelTo: generatedReducers.travelTo,
   unlockGroup: generatedReducers.unlockGroup,
+  updateTranslations: generatedReducers.updateTranslations,
   validateHypothesis: generatedReducers.validateHypothesis,
   verifyRumor: generatedReducers.verifyRumor,
 } as const;
@@ -323,6 +329,7 @@ export type {
   CommandOrderHistory,
   CommandPartyMember,
   CommandSession,
+  ContentTranslation,
   PlayerAgencyCareer,
   PlayerEvidence,
   PlayerFactionSignal,

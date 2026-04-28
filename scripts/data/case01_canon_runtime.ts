@@ -38,6 +38,8 @@ const CASE01_START_VIDEO_BASE_PATH = "/VN/start/video";
 const CASE01_START_IMAGE_BASE_PATH = "/VN/start/image";
 const CASE01_TRAIN_COMPARTMENT_BG = `${CASE01_START_IMAGE_BASE_PATH}/compartment_cinema.png`;
 const CASE01_TRAIN_ASSISTANT_BG = `${CASE01_START_IMAGE_BASE_PATH}/train_assistant.png`;
+const CASE01_TRAIN_DINING_CAR_BG = `${CASE01_START_IMAGE_BASE_PATH}/train_dining_car.png`;
+const CASE01_TRAIN_DINING_CAR_MOTHER_BG = `${CASE01_START_IMAGE_BASE_PATH}/train_dining_car_mother.png`;
 const CASE01_PLATFORM_STILL_BG = `${CASE01_START_IMAGE_BASE_PATH}/Ankommen.png`;
 const CASE01_HBF_BG = `${CASE01_START_IMAGE_BASE_PATH}/HBF.png`;
 const CASE01_NEWSBOY_BG = `${CASE01_START_IMAGE_BASE_PATH}/boy_newspaper_styled.png`;
@@ -59,9 +61,17 @@ export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
       "scene_case01_train_assistant_intro",
       "scene_case01_train_door_creaks",
       "scene_case01_train_assistant_departure",
+      "scene_case01_train_silent_beat",
+      "scene_case01_train_dining_car_intro",
+      "scene_case01_train_dining_car_mother",
+      "scene_case01_train_dining_car_marriage_joke",
+      "scene_case01_train_dining_car_silent_branch",
+      "scene_case01_train_dining_car_intro_self_branch",
+      "scene_case01_train_dining_car_hotel_branch",
       "scene_case01_train_ankommen_video",
       "scene_case01_train_voza_cutscene",
       "scene_case01_train_disembark_journal",
+      "scene_case01_train_platform_parting",
       "scene_case01_beat1_atmosphere",
       "scene_case01_hbf_newsboy",
       "scene_case01_hbf_luggage",
@@ -261,7 +271,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
-      "**[Narrator]**:\nСкрип двери. Помощник замирает в проёме. Его рука на шляпе — как щит против сквозняка в коридоре.\n\n**[Assistant]**:\n— Сэр, газеты молчат. Ни слова о Фрайбурге. Будто город просто вырезали из сегодняшнего дня.\n\n**[inner_cynic]**:\nТишина — это не отсутствие звука. Это присутствие чьей-то очень дорогой воли.",
+      "**[Narrator]**:\nДверь в купе открывается со скрипом, и в проёме возникает высокая фигура с выдающимися скулами, из-за которых вошедший казался намного старше своих лет.\n\n**[Assistant]**:\n— Сэр, я проверил во время остановки: в газетах пусто, по радио тоже тишина.\n\n**[inner_cynic]**:\nТишина — это не отсутствие звука. Это присутствие чьей-то очень дорогой воли.",
     backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
@@ -280,7 +290,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath:
       "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
-      "**[Assistant]**:\n— Ни радио, ни листки. Между биржей и погодой — звенящая пустота. Никто не хочет брать на себя ответственность за первую новость.\n\n**[inner_analyst]**:\nЗаговор молчания требует логистики. Редакторы не бывают такими единодушными бесплатно. Кто-то купил время, чтобы подготовить сцену.\n\n**[Narrator]**:\nСтук колёс по рельсам теперь звучит как обратный отсчёт.",
+      "**[Assistant]**:\n— Вы уверены, что это не розыгрыш?\n\n**[inspector]**:\n— Письмо было доставлено частной службой, а бумага и чернила, используемые в нём, стоят недешево. Что ж, узнаем по прибытии в отель.\n\n**[Assistant]**:\n— Вы правы, сэр. Не стали бы они арендовать нам номер просто так.",
     backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
@@ -299,14 +309,162 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath:
       "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
-      "**[Assistant]**:\n— Почти на месте. Я заберу багаж и матушку, встретимся на выдаче. Не дайте им сбить вас с толку на перроне.\n\n**[Narrator]**:\nКороткий кивок. Дверь захлопывается. Остаток пути ты едешь в компании письма и своего растущего недоверия.",
+      "**[Assistant]**:\n— Мы скоро прибудем на место. Я схожу в вагон-ресторан за матушкой.",
     backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
     characterId: "assistant",
     choices: [
       {
-        id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_ASSISTANT_DEPARTURE",
+        id: "CASE01_TRAIN_ASSISTANT_EAT_TOGETHER",
+        text: "Wait for me! I've worked up an appetite—I need a bite to eat.",
+        nextNodeId: "scene_case01_train_dining_car_intro",
+        effects: [
+          { type: "change_relationship", characterId: "assistant", delta: 1 },
+        ],
+      },
+      {
+        id: "CASE01_TRAIN_ASSISTANT_MEET_LATER",
+        text: "Say nothing",
+        nextNodeId: "scene_case01_train_silent_beat",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_silent_beat",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    bodyOverride:
+      "**[Narrator]**:\nA short nod. The door slams shut. The rest of the journey you spend in the company of the letter and your growing distrust.",
+    backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_assistant",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_SILENT_BEAT",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_ankommen_video",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_dining_car_intro",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    bodyOverride:
+      "**[Narrator]**:\nThe dining car greets you with the chime of crystal and the scent of expensive tobacco. Felix leads the way with confidence through the rows of tables.\n\n**[Assistant]**:\n— Mother always finds company, even on a train. It seems she's already made an acquaintance. Try to be... indulgent with her directness.",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_assistant",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_DINING_CAR_INTRO",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_dining_car_mother",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_dining_car_mother",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    bodyOverride:
+      "**[Narrator]**:\nЗа угловым столиком расположилась матушка Феликса. Она неторопливо потягивала белое вино, внимательно слушая свою спутницу — девушку с ярко-рыжими волосами, которая что-то оживленно рассказывала, активно жестикулируя. Огненный цвет её волос казался вызывающе ярким в приглушенном утреннем свете вагона.\n\n**[Redhead]**:\n— ...и этот чиновник всерьез грозился засудить телеграфную службу, потому что точки в его депеше показались ему «недостаточно почтительными»... Это же просто смешно... Элеонора?\n\n**[Assistant]**:\n— Матушка, мы решили выпить перед прибытием. Не представите нас вашей спутнице?",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_assistant",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_DINING_CAR_MOTHER",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_dining_car_marriage_joke",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_dining_car_marriage_joke",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    bodyOverride:
+      "**[Элеонора]**:\n— Феликс, дорогой, ты так усердно изучаешь эти бумаги, что скоро сам превратишься в архивную пыль. Детектив, скажите ему — разве может мужчина понять город, если он смотрит на него только через газеты? Лотте как раз предлагала провести нам незабываемую экскурсию.\n\n**[Лотте]**:\n— О, Элеонора преувеличивает мой талант экскурсовода. Я лишь люблю найти хорошее место с лучшим блюдом.",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_assistant",
+    skillCheck: {
+      id: "check_case01_dining_car_empathy",
+      voiceId: "attr_empathy",
+      difficulty: 10,
+      showChancePercent: false,
+      passive: true,
+      onSuccess: {
+        effects: [{ type: "grant_xp", amount: 5 }],
+      },
+    },
+    choices: [
+      {
+        id: "CASE01_TRAIN_DINING_SILENT",
+        text: "Stay silent",
+        nextNodeId: "scene_case01_train_dining_car_silent_branch",
+      },
+      {
+        id: "CASE01_TRAIN_DINING_INTRO_SELF",
+        text: "Introduce yourself",
+        nextNodeId: "scene_case01_train_dining_car_intro_self_branch",
+      },
+      {
+        id: "CASE01_TRAIN_DINING_HOTEL",
+        text: "Ask about Zum Eber",
+        nextNodeId: "scene_case01_train_dining_car_hotel_branch",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_dining_car_silent_branch",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    bodyOverride:
+      "**[Assistant]**:\n— Прошу прощения. Феликс Хартманн. Я сопровождаю детектива в этой поездке.\n\n**[Лотте]**:\n— Ох, простите мои манеры. Я — Лотте. Будем знакомы.",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_assistant",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_DINING_SILENT",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_ankommen_video",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_dining_car_intro_self_branch",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    bodyOverride:
+      "**[Detective]**:\n— Разрешите представиться. Детектив [Name]. Прибыл во Фрайбург по делу.\n\n**[Лотте]**:\n— Ох, простите мои манеры. Я — Лотте. Рада встрече.",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_assistant",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_DINING_INTRO_SELF",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_ankommen_video",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_dining_car_hotel_branch",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    bodyOverride:
+      "**[Detective]**:\n— Извините, что перебиваю, но раз уж вы так хорошо знаете город... Вы слышали о гостинице «Zum Eber»?\n\n**[Лотте]**:\n— «У Кабана»? О, это достойное место. Старые камни, тяжелые портьеры и постояльцы, которые предпочитают, чтобы их не беспокоили. Мастер умеет выбирать декорации.",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_assistant",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_DINING_HOTEL",
         text: "Continue.",
         nextNodeId: "scene_case01_train_ankommen_video",
       },
@@ -365,7 +523,61 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_DISEMBARK_JOURNAL",
         text: "Continue.",
+        nextNodeId: "scene_case01_train_platform_parting",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_platform_parting",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    titleOverride: "Parting",
+    bodyOverride:
+      "**[Mother]**:\n— Well, Felix. Freiburg awaits. Don't forget — 'Zum Eber' hotel. Detective, watch over him. He tends to get lost in... details, forgetting the main thing.\n\n**[Redhead]**:\n— See you around, Detective. The city is small. If you look — you'll find.\n\n**[Narrator]**:\nThey vanish into the crowd, leaving behind the scent of expensive tobacco and a trail of unspoken promises.",
+    backgroundUrl: CASE01_PLATFORM_STILL_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "platform_disembark",
+    choices: [
+      {
+        id: "CHOICE_PARTING_SECRET",
+        text: "Continue.",
         nextNodeId: "scene_case01_beat1_atmosphere",
+        visibleIfAny: [
+          { type: "flag_equals", key: "flag_joked_with_mother", value: true },
+          { type: "flag_equals", key: "flag_silent_observation", value: true },
+        ],
+        effects: [
+          {
+            type: "set_flag",
+            key: "mother_redhead_secret_potential",
+            value: true,
+          },
+        ],
+      },
+      {
+        id: "CHOICE_PARTING_NORMAL",
+        text: "Continue.",
+        nextNodeId: "scene_case01_beat1_atmosphere",
+        visibleIfAll: [
+          {
+            type: "logic_not",
+            condition: {
+              type: "logic_or",
+              conditions: [
+                {
+                  type: "flag_equals",
+                  key: "flag_joked_with_mother",
+                  value: true,
+                },
+                {
+                  type: "flag_equals",
+                  key: "flag_silent_observation",
+                  value: true,
+                },
+              ],
+            },
+          },
+        ],
       },
     ],
   },

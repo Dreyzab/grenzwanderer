@@ -227,6 +227,37 @@ export const contentSnapshot = table(
   },
 );
 
+export const contentTranslation = table(
+  {
+    name: "content_translation",
+    public: true,
+    indexes: [
+      {
+        accessor: "content_translation_key",
+        algorithm: "btree",
+        columns: ["key"],
+      },
+      {
+        accessor: "content_translation_lang",
+        algorithm: "btree",
+        columns: ["lang"],
+      },
+      {
+        accessor: "content_translation_lang_key",
+        algorithm: "btree",
+        columns: ["lang", "key"],
+      },
+    ],
+  },
+  {
+    translationId: t.string().primaryKey(),
+    key: t.string(),
+    lang: t.string(),
+    text: t.string(),
+    updatedAt: t.timestamp(),
+  },
+);
+
 export const adminIdentity = table(
   {
     name: "admin_identity",
@@ -1266,6 +1297,7 @@ const spacetimedb = schema({
   vnSkillCheckResult,
   contentVersion,
   contentSnapshot,
+  contentTranslation,
   adminIdentity,
   workerAllowlist,
   idempotencyLog,
@@ -1406,6 +1438,12 @@ export const worker_ai_requests = spacetimedb.view(
       ]),
     ];
   },
+);
+
+export const content_translations = spacetimedb.view(
+  { name: "content_translations", public: true },
+  t.array(contentTranslation.rowType),
+  (ctx) => Array.from(ctx.db.contentTranslation.iter()),
 );
 
 export const my_mind_cases = spacetimedb.view(

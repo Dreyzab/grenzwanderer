@@ -123,9 +123,17 @@
         "scene_case01_train_assistant_intro",
         "scene_case01_train_door_creaks",
         "scene_case01_train_assistant_departure",
+        "scene_case01_train_silent_beat",
+        "scene_case01_train_dining_car_intro",
+        "scene_case01_train_dining_car_mother",
+        "scene_case01_train_dining_car_marriage_joke",
+        "scene_case01_train_dining_car_silent_branch",
+        "scene_case01_train_dining_car_intro_self_branch",
+        "scene_case01_train_dining_car_hotel_branch",
         "scene_case01_train_ankommen_video",
         "scene_case01_train_voza_cutscene",
         "scene_case01_train_disembark_journal",
+        "scene_case01_train_platform_parting",
         "scene_case01_beat1_atmosphere",
         "scene_case01_hbf_newsboy",
         "scene_case01_hbf_luggage",
@@ -1015,7 +1023,7 @@
       "id": "scene_case01_train_assistant_intro",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nСкрип двери. Помощник замирает в проёме. Его рука на шляпе — как щит против сквозняка в коридоре.\n\n**[Assistant]**:\n— Сэр, газеты молчат. Ни слова о Фрайбурге. Будто город просто вырезали из сегодняшнего дня.\n\n**[inner_cynic]**:\nТишина — это не отсутствие звука. Это присутствие чьей-то очень дорогой воли.",
+      "body": "**[Narrator]**:\nДверь в купе открывается со скрипом, и в проёме возникает высокая фигура с выдающимися скулами, из-за которых вошедший казался намного старше своих лет.\n\n**[Assistant]**:\n— Сэр, я проверил во время остановки: в газетах пусто, по радио тоже тишина.\n\n**[inner_cynic]**:\nТишина — это не отсутствие звука. Это присутствие чьей-то очень дорогой воли.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_ASSISTANT_INTRO",
@@ -1032,7 +1040,7 @@
       "id": "scene_case01_train_door_creaks",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Assistant]**:\n— Ни радио, ни листки. Между биржей и погодой — звенящая пустота. Никто не хочет брать на себя ответственность за первую новость.\n\n**[inner_analyst]**:\nЗаговор молчания требует логистики. Редакторы не бывают такими единодушными бесплатно. Кто-то купил время, чтобы подготовить сцену.\n\n**[Narrator]**:\nСтук колёс по рельсам теперь звучит как обратный отсчёт.",
+      "body": "**[Assistant]**:\n— Вы уверены, что это не розыгрыш?\n\n**[inspector]**:\n— Письмо было доставлено частной службой, а бумага и чернила, используемые в нём, стоят недешево. Что ж, узнаем по прибытии в отель.\n\n**[Assistant]**:\n— Вы правы, сэр. Не стали бы они арендовать нам номер просто так.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_DOOR_CREAKS",
@@ -1049,16 +1057,150 @@
       "id": "scene_case01_train_assistant_departure",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Assistant]**:\n— Почти на месте. Я заберу багаж и матушку, встретимся на выдаче. Не дайте им сбить вас с толку на перроне.\n\n**[Narrator]**:\nКороткий кивок. Дверь захлопывается. Остаток пути ты едешь в компании письма и своего растущего недоверия.",
+      "body": "**[Assistant]**:\n— Мы скоро прибудем на место. Я схожу в вагон-ресторан за матушкой.",
       "choices": [
         {
-          "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_ASSISTANT_DEPARTURE",
+          "id": "CASE01_TRAIN_ASSISTANT_EAT_TOGETHER",
+          "text": "Wait for me! I've worked up an appetite—I need a bite to eat.",
+          "nextNodeId": "scene_case01_train_dining_car_intro",
+          "effects": [
+            {
+              "type": "change_relationship",
+              "characterId": "assistant",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE01_TRAIN_ASSISTANT_MEET_LATER",
+          "text": "Say nothing",
+          "nextNodeId": "scene_case01_train_silent_beat"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_assistant.png",
+      "characterId": "assistant",
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_silent_beat",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\nA short nod. The door slams shut. The rest of the journey you spend in the company of the letter and your growing distrust.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_SILENT_BEAT",
           "text": "Continue.",
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
       "backgroundUrl": "/VN/start/image/train_assistant.png",
-      "characterId": "assistant",
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_intro",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\nThe dining car greets you with the chime of crystal and the scent of expensive tobacco. Felix leads the way with confidence through the rows of tables.\n\n**[Assistant]**:\n— Mother always finds company, even on a train. It seems she's already made an acquaintance. Try to be... indulgent with her directness.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_DINING_CAR_INTRO",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_train_dining_car_mother"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car.png",
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_mother",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\nЗа угловым столиком расположилась матушка Феликса. Она неторопливо потягивала белое вино, внимательно слушая свою спутницу — девушку с ярко-рыжими волосами, которая что-то оживленно рассказывала, активно жестикулируя. Огненный цвет её волос казался вызывающе ярким в приглушенном утреннем свете вагона.\n\n**[Redhead]**:\n— ...и этот чиновник всерьез грозился засудить телеграфную службу, потому что точки в его депеше показались ему «недостаточно почтительными»... Это же просто смешно... Элеонора?\n\n**[Assistant]**:\n— Матушка, мы решили выпить перед прибытием. Не представите нас вашей спутнице?",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_DINING_CAR_MOTHER",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_train_dining_car_marriage_joke"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_marriage_joke",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Элеонора]**:\n— Феликс, дорогой, ты так усердно изучаешь эти бумаги, что скоро сам превратишься в архивную пыль. Детектив, скажите ему — разве может мужчина понять город, если он смотрит на него только через газеты? Лотте как раз предлагала провести нам незабываемую экскурсию.\n\n**[Лотте]**:\n— О, Элеонора преувеличивает мой талант экскурсовода. Я лишь люблю найти хорошее место с лучшим блюдом.",
+      "choices": [
+        {
+          "id": "CASE01_TRAIN_DINING_SILENT",
+          "text": "Stay silent",
+          "nextNodeId": "scene_case01_train_dining_car_silent_branch"
+        },
+        {
+          "id": "CASE01_TRAIN_DINING_INTRO_SELF",
+          "text": "Introduce yourself",
+          "nextNodeId": "scene_case01_train_dining_car_intro_self_branch"
+        },
+        {
+          "id": "CASE01_TRAIN_DINING_HOTEL",
+          "text": "Ask about Zum Eber",
+          "nextNodeId": "scene_case01_train_dining_car_hotel_branch"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_silent_branch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Assistant]**:\n— Прошу прощения. Феликс Хартманн. Я сопровождаю детектива в этой поездке.\n\n**[Лотте]**:\n— Ох, простите мои манеры. Я — Лотте. Будем знакомы.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_DINING_SILENT",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_train_ankommen_video"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_intro_self_branch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Detective]**:\n— Разрешите представиться. Детектив [Name]. Прибыл во Фрайбург по делу.\n\n**[Лотте]**:\n— Ох, простите мои манеры. Я — Лотте. Рада встрече.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_DINING_INTRO_SELF",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_train_ankommen_video"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_hotel_branch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Detective]**:\n— Извините, что перебиваю, но раз уж вы так хорошо знаете город... Вы слышали о гостинице «Zum Eber»?\n\n**[Лотте]**:\n— «У Кабана»? О, это достойное место. Старые камни, тяжелые портьеры и постояльцы, которые предпочитают, чтобы их не беспокоили. Мастер умеет выбирать декорации.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_DINING_HOTEL",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_train_ankommen_video"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "sceneGroupId": "train_assistant",
       "narrativeLayout": "log"
     },
@@ -1107,11 +1249,71 @@
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_DISEMBARK_JOURNAL",
           "text": "Continue.",
-          "nextNodeId": "scene_case01_beat1_atmosphere"
+          "nextNodeId": "scene_case01_train_platform_parting"
         }
       ],
       "backgroundUrl": "/VN/start/image/Ankommen.png",
       "characterId": "inspector",
+      "sceneGroupId": "platform_disembark",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_platform_parting",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Parting",
+      "body": "**[Mother]**:\n— Well, Felix. Freiburg awaits. Don't forget — 'Zum Eber' hotel. Detective, watch over him. He tends to get lost in... details, forgetting the main thing.\n\n**[Redhead]**:\n— See you around, Detective. The city is small. If you look — you'll find.\n\n**[Narrator]**:\nThey vanish into the crowd, leaving behind the scent of expensive tobacco and a trail of unspoken promises.",
+      "choices": [
+        {
+          "id": "CHOICE_PARTING_SECRET",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_beat1_atmosphere",
+          "visibleIfAny": [
+            {
+              "type": "flag_equals",
+              "key": "flag_joked_with_mother",
+              "value": true
+            },
+            {
+              "type": "flag_equals",
+              "key": "flag_silent_observation",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "mother_redhead_secret_potential",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "CHOICE_PARTING_NORMAL",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_beat1_atmosphere",
+          "visibleIfAll": [
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "logic_or",
+                "conditions": [
+                  {
+                    "type": "flag_equals",
+                    "key": "flag_joked_with_mother",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_equals",
+                    "key": "flag_silent_observation",
+                    "value": true
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/Ankommen.png",
       "sceneGroupId": "platform_disembark",
       "narrativeLayout": "log"
     },
@@ -5229,8 +5431,18 @@
           "effects": [
             {
               "type": "set_flag",
+              "key": "lang_en",
+              "value": false
+            },
+            {
+              "type": "set_flag",
               "key": "lang_de",
               "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "lang_ru",
+              "value": false
             },
             {
               "type": "track_event",
@@ -5252,6 +5464,16 @@
               "value": true
             },
             {
+              "type": "set_flag",
+              "key": "lang_de",
+              "value": false
+            },
+            {
+              "type": "set_flag",
+              "key": "lang_ru",
+              "value": false
+            },
+            {
               "type": "track_event",
               "eventName": "language_selected",
               "tags": {
@@ -5265,6 +5487,16 @@
           "text": "Select Russian",
           "nextNodeId": "scene_backstory_select",
           "effects": [
+            {
+              "type": "set_flag",
+              "key": "lang_en",
+              "value": false
+            },
+            {
+              "type": "set_flag",
+              "key": "lang_de",
+              "value": false
+            },
             {
               "type": "set_flag",
               "key": "lang_ru",
@@ -8034,6 +8266,28 @@
         "homePointId": "loc_rathaus",
         "workPointId": "loc_rathaus",
         "serviceIds": ["svc_otto_archive_packet"]
+      },
+      {
+        "id": "npc_mother_hartmann",
+        "displayName": "Eleonora Hartmann",
+        "factionId": "house_of_pledges",
+        "publicRole": "Aristocratic patron",
+        "rosterTier": "major",
+        "introFlag": "met_mother_intro",
+        "homePointId": "loc_agency",
+        "workPointId": "loc_agency",
+        "serviceIds": []
+      },
+      {
+        "id": "npc_redhead_girl",
+        "displayName": "Red-haired Girl",
+        "factionId": "city_network",
+        "publicRole": "Artistic rebel",
+        "rosterTier": "major",
+        "introFlag": "met_redhead_intro",
+        "homePointId": "loc_workers_pub",
+        "workPointId": "loc_workers_pub",
+        "serviceIds": []
       }
     ],
     "services": [
@@ -8121,5 +8375,5 @@
       }
     ]
   },
-  "checksum": "347dfb8bff6bdff30c396bd50e48a6eb4ebbeb84409e827dd58fb94fe11bb686"
+  "checksum": "3596c9bd0d4ae10ced94767885cdfd41fd9847e53781aeddd0176e1af363f020"
 }

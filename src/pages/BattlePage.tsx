@@ -8,6 +8,8 @@ import type {
   BattleReturnTab,
   BattleTab,
 } from "../features/battle/model/types";
+import { useUiLanguage } from "../shared/hooks/useUiLanguage";
+import { getBattleStrings } from "../features/i18n/uiStrings";
 
 interface BattlePageProps {
   onNavigateTab: (tab: BattleTab) => void;
@@ -75,6 +77,9 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
   const [combatants, combatantsReady] = useTable(tables.myBattleCombatants);
   const [cards, cardsReady] = useTable(tables.myBattleCards);
   const [history, historyReady] = useTable(tables.myBattleHistory);
+  const [flags] = useTable(tables.myPlayerFlags);
+  const uiLanguage = useUiLanguage(flags);
+  const t = useMemo(() => getBattleStrings(uiLanguage), [uiLanguage]);
   const playBattleCard = useReducer(reducers.playBattleCard);
   const endBattleTurn = useReducer(reducers.endBattleTurn);
   const closeBattleMode = useReducer(reducers.closeBattleMode);
@@ -176,9 +181,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
       });
     } catch (caughtError) {
       setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Unable to play battle card.",
+        caughtError instanceof Error ? caughtError.message : t.playFailed,
       );
     } finally {
       setPendingCardId(null);
@@ -198,9 +201,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
       });
     } catch (caughtError) {
       setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Unable to end battle turn.",
+        caughtError instanceof Error ? caughtError.message : t.turnFailed,
       );
     } finally {
       setIsEndingTurn(false);
@@ -222,9 +223,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
       onNavigateTab(returnTab);
     } catch (caughtError) {
       setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Unable to close battle mode.",
+        caughtError instanceof Error ? caughtError.message : t.closeFailed,
       );
     } finally {
       setIsClosing(false);
@@ -235,8 +234,8 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
     return (
       <section className="panel-section">
         <article className="card compact">
-          <strong>Battle Mode</strong>
-          <p>Synchronising duel state from SpacetimeDB...</p>
+          <strong>{t.modeTitle}</strong>
+          <p>{t.syncingDuel}</p>
         </article>
       </section>
     );
@@ -246,11 +245,8 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
     return (
       <section className="panel-section">
         <article className="card compact">
-          <strong>Battle Mode</strong>
-          <p>
-            No active battle is open. Start one from the banker VN slice or the
-            debug launcher.
-          </p>
+          <strong>{t.modeTitle}</strong>
+          <p>{t.noActiveSession}</p>
         </article>
       </section>
     );
@@ -272,16 +268,16 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
             }}
           >
             <div>
-              <span className="eyebrow">Battle Mode</span>
+              <span className="eyebrow">{t.modeTitle}</span>
               <h2 style={{ margin: "0.4rem 0 0" }}>{activeSession.title}</h2>
             </div>
             <span className="pill-label">
-              Return:{" "}
+              {t.returnLabel}:{" "}
               {returnTab === "vn"
-                ? "Story"
+                ? t.story
                 : returnTab === "dev"
-                  ? "Debug"
-                  : "Map"}
+                  ? t.debug
+                  : t.map}
             </span>
           </div>
           <p style={{ margin: 0, lineHeight: 1.65 }}>
@@ -325,7 +321,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
                   ) : null}
                 </div>
                 <span className="eyebrow">
-                  {combatant.side === "enemy" ? "Opponent" : "Player"}
+                  {combatant.side === "enemy" ? t.opponent : t.player}
                 </span>
               </div>
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
@@ -342,7 +338,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
               </div>
               {combatant.side === "enemy" && combatant.nextIntentLabel ? (
                 <p style={{ margin: 0, lineHeight: 1.55 }}>
-                  <strong>Intent:</strong> {combatant.nextIntentLabel}
+                  <strong>{t.intent}:</strong> {combatant.nextIntentLabel}
                   {combatant.nextIntentSummary
                     ? ` - ${combatant.nextIntentSummary}`
                     : ""}
@@ -370,9 +366,10 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
               flexWrap: "wrap",
             }}
           >
-            <strong>Hand</strong>
+            <strong>{t.hand}</strong>
             <span className="eyebrow">
-              Deck {activeCards.deckCount} | Discard {activeCards.discardCount}
+              {t.deck} {activeCards.deckCount} | {t.discard}{" "}
+              {activeCards.discardCount}
             </span>
           </div>
           <div
@@ -437,9 +434,9 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
             padding: "1rem",
           }}
         >
-          <strong>Recent Transcript</strong>
+          <strong>{t.recentTranscript}</strong>
           {recentHistory.length === 0 ? (
-            <p style={{ margin: 0, opacity: 0.72 }}>No exchanges logged yet.</p>
+            <p style={{ margin: 0, opacity: 0.72 }}>{t.noExchanges}</p>
           ) : (
             <div style={{ display: "grid", gap: "0.55rem" }}>
               {recentHistory.map((entry) => (
@@ -498,7 +495,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
               onClick={() => void handleEndTurn()}
               disabled={isEndingTurn}
             >
-              {isEndingTurn ? "Resolving..." : "End Turn"}
+              {isEndingTurn ? t.resolving : t.endTurn}
             </button>
           ) : null}
           <button
@@ -506,7 +503,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
             onClick={() => void handleClose()}
             disabled={isClosing}
           >
-            {isResolved ? "Return" : "Close Battle"}
+            {isResolved ? t.returnLabel : t.closeBattle}
           </button>
         </div>
       </article>

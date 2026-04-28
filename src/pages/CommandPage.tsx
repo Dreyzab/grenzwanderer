@@ -7,6 +7,8 @@ import type {
   CommandOrder,
   CommandTab,
 } from "../features/command/model/types";
+import { useUiLanguage } from "../shared/hooks/useUiLanguage";
+import { getCommandStrings } from "../features/i18n/uiStrings";
 
 type TabId =
   | "home"
@@ -83,6 +85,9 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
   const [sessions, sessionsReady] = useTable(tables.myCommandSessions);
   const [members, membersReady] = useTable(tables.myCommandParty);
   const [history, historyReady] = useTable(tables.myCommandHistory);
+  const [flags] = useTable(tables.myPlayerFlags);
+  const uiLanguage = useUiLanguage(flags);
+  const t = useMemo(() => getCommandStrings(uiLanguage), [uiLanguage]);
   const issueCommand = useReducer(reducers.issueCommand);
   const resolveCommand = useReducer(reducers.resolveCommand);
   const closeCommandMode = useReducer(reducers.closeCommandMode);
@@ -171,11 +176,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
         requestId: createRequestId(),
       });
     } catch (caughtError) {
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Command order failed.",
-      );
+      setError(caughtError instanceof Error ? caughtError.message : t.failed);
     } finally {
       setPendingOrderId(null);
     }
@@ -196,9 +197,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
       onNavigateTab(returnTab);
     } catch (caughtError) {
       setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Unable to close command mode.",
+        caughtError instanceof Error ? caughtError.message : t.unableToClose,
       );
     } finally {
       setIsClosing(false);
@@ -209,8 +208,8 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
     return (
       <section className="panel-section">
         <article className="card compact">
-          <strong>Command Mode</strong>
-          <p>Synchronising bureau orders from SpacetimeDB...</p>
+          <strong>{t.modeTitle}</strong>
+          <p>{t.syncingOrders}</p>
         </article>
       </section>
     );
@@ -220,11 +219,8 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
     return (
       <section className="panel-section">
         <article className="card compact">
-          <strong>Command Mode</strong>
-          <p>
-            No active command briefing is open. Start one from the agency hub or
-            a story effect that issues `open_command_mode`.
-          </p>
+          <strong>{t.modeTitle}</strong>
+          <p>{t.noActiveSession}</p>
         </article>
       </section>
     );
@@ -246,11 +242,11 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
             }}
           >
             <div>
-              <span className="eyebrow">Command Mode</span>
+              <span className="eyebrow">{t.modeTitle}</span>
               <h2 style={{ margin: "0.4rem 0 0" }}>{activeSession.title}</h2>
             </div>
             <span className="pill-label">
-              Return: {returnTab === "vn" ? "Story" : "Map"}
+              {t.returnLabel}: {returnTab === "vn" ? t.story : t.map}
             </span>
           </div>
           <p style={{ margin: 0, lineHeight: 1.65 }}>
@@ -266,8 +262,10 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
               gap: "1rem",
             }}
           >
-            <strong>Field Team</strong>
-            <span className="eyebrow">{activeMembers.length} actors</span>
+            <strong>{t.fieldTeam}</strong>
+            <span className="eyebrow">
+              {activeMembers.length} {t.actors}
+            </span>
           </div>
           <div
             style={{
@@ -298,11 +296,13 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
                 >
                   <strong>{actor.label}</strong>
                   <span className="eyebrow">
-                    {actor.availability === "available" ? "Ready" : "Locked"}
+                    {actor.availability === "available" ? t.ready : t.locked}
                   </span>
                 </div>
                 <span style={{ opacity: 0.76 }}>{actor.role}</span>
-                <span style={{ fontSize: "0.92rem" }}>Trust {actor.trust}</span>
+                <span style={{ fontSize: "0.92rem" }}>
+                  {t.trust} {actor.trust}
+                </span>
                 {actor.notes ? (
                   <p style={{ margin: 0, opacity: 0.74, lineHeight: 1.55 }}>
                     {actor.notes}
@@ -337,7 +337,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
               gap: "1rem",
             }}
           >
-            <strong>Available Orders</strong>
+            <strong>{t.availableOrders}</strong>
             <span className="eyebrow">{activeSession.phase}</span>
           </div>
           <div style={{ display: "grid", gap: "0.75rem" }}>
@@ -394,7 +394,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
 
         {recentHistory.length > 0 ? (
           <section style={{ display: "grid", gap: "0.7rem" }}>
-            <strong>Recent Orders</strong>
+            <strong>{t.recentOrders}</strong>
             {recentHistory.map((entry) => (
               <article
                 key={entry.historyKey}
@@ -439,9 +439,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
             onClick={() => void handleClose()}
             disabled={isClosing}
           >
-            {activeSession.phase === "result"
-              ? "Return to field"
-              : "Exit command mode"}
+            {activeSession.phase === "result" ? t.returnToField : t.exitCommand}
           </button>
         </div>
       </article>

@@ -83,6 +83,7 @@ import StartScenarioReducer from "./start_scenario_reducer";
 import TrackEventReducer from "./track_event_reducer";
 import TravelToReducer from "./travel_to_reducer";
 import UnlockGroupReducer from "./unlock_group_reducer";
+import UpdateTranslationsReducer from "./update_translations_reducer";
 import ValidateHypothesisReducer from "./validate_hypothesis_reducer";
 import VerifyRumorReducer from "./verify_rumor_reducer";
 
@@ -90,7 +91,9 @@ import VerifyRumorReducer from "./verify_rumor_reducer";
 
 // Import all table schema definitions
 import ContentSnapshotRow from "./content_snapshot_table";
+import ContentTranslationRow from "./content_translation_table";
 import ContentVersionRow from "./content_version_table";
+import ContentTranslationsRow from "./content_translations_table";
 import MindCaseRow from "./mind_case_table";
 import MindFactRow from "./mind_fact_table";
 import MindHypothesisRow from "./mind_hypothesis_table";
@@ -141,6 +144,27 @@ const tablesSchema = __schema({
       { name: 'content_snapshot_checksum_key', constraint: 'unique', columns: ['checksum'] },
     ],
   }, ContentSnapshotRow),
+  contentTranslation: __table({
+    name: 'content_translation',
+    indexes: [
+      { name: 'content_translation_key', algorithm: 'btree', columns: [
+        'key',
+      ] },
+      { name: 'content_translation_lang', algorithm: 'btree', columns: [
+        'lang',
+      ] },
+      { name: 'content_translation_lang_key', algorithm: 'btree', columns: [
+        'lang',
+        'key',
+      ] },
+      { name: 'translationId', algorithm: 'btree', columns: [
+        'translationId',
+      ] },
+    ],
+    constraints: [
+      { name: 'content_translation_translation_id_key', constraint: 'unique', columns: ['translationId'] },
+    ],
+  }, ContentTranslationRow),
   contentVersion: __table({
     name: 'content_version',
     indexes: [
@@ -212,6 +236,13 @@ const tablesSchema = __schema({
       { name: 'mind_hypothesis_hypothesis_id_key', constraint: 'unique', columns: ['hypothesisId'] },
     ],
   }, MindHypothesisRow),
+  content_translations: __table({
+    name: 'content_translations',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, ContentTranslationsRow),
   my_agency_career: __table({
     name: 'my_agency_career',
     indexes: [
@@ -482,6 +513,7 @@ const reducersSchema = __reducers(
   __reducerSchema("track_event", TrackEventReducer),
   __reducerSchema("travel_to", TravelToReducer),
   __reducerSchema("unlock_group", UnlockGroupReducer),
+  __reducerSchema("update_translations", UpdateTranslationsReducer),
   __reducerSchema("validate_hypothesis", ValidateHypothesisReducer),
   __reducerSchema("verify_rumor", VerifyRumorReducer),
 );

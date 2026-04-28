@@ -74,4 +74,14 @@ describe("parseSpeakerSegments", () => {
   it("drops empty speaker blocks", () => {
     expect(parseSpeakerSegments("**[Narrator]**:\n\n")).toEqual([]);
   });
+
+  it("maps inspector marker to player (playable detective voice)", () => {
+    const segments = parseSpeakerSegments(
+      "**[Assistant]**:\nHello.\n\n**[inspector]**:\nMy line.",
+    );
+    expect(segments).toMatchObject([
+      { speaker: "Assistant", category: "npc", text: "Hello." },
+      { speaker: "inspector", category: "player", text: "My line." },
+    ]);
+  });
 });

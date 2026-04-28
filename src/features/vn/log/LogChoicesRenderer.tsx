@@ -158,7 +158,7 @@ export function LogChoicesRenderer({
         <p className="text-sm italic text-stone-300/70">
           {labels.terminalNoChoices}
         </p>
-        {completionRoute && canTriggerCompletion ? (
+        {canTriggerCompletion ? (
           <button
             type="button"
             className="border border-amber-500/50 bg-amber-700/16 px-4 py-3 text-left text-sm text-amber-100 transition-colors hover:bg-amber-700/25 disabled:cursor-not-allowed disabled:opacity-50"
@@ -168,10 +168,16 @@ export function LogChoicesRenderer({
             }}
             disabled={isInteractionLocked}
           >
-            {completionRoute.hasExistingSession
-              ? labels.openNextScene
-              : labels.continueScene}
-            {completionTargetLabel ? `: ${completionTargetLabel}` : ""}
+            {completionRoute ? (
+              <>
+                {completionRoute.hasExistingSession
+                  ? labels.openNextScene
+                  : labels.continueScene}
+                {completionTargetLabel ? `: ${completionTargetLabel}` : ""}
+              </>
+            ) : (
+              "Return to Map"
+            )}
           </button>
         ) : null}
         <button

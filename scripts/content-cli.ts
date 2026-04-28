@@ -12,7 +12,7 @@ export const readArg = (args: string[], name: string): string | null => {
 
 export const getDefaultContentHost = (server: ContentServer): string =>
   server === "local"
-    ? "ws://127.0.0.1:3000"
+    ? "ws://127.0.0.1:3001"
     : "https://maincloud.spacetimedb.com";
 
 export const parseContentServer = (

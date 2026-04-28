@@ -63,6 +63,19 @@ const buildSegment = (
     };
   }
 
+  /** Playable detective / PC lines in Freiburg pilot (marker `**[inspector]**:`). */
+  if (lowerSpeaker === "inspector") {
+    return {
+      speaker: normalizedSpeaker,
+      speakerLabel: getSpeakerLabel(
+        "inspector",
+        formatSpeakerLabel(normalizedSpeaker),
+      ),
+      category: "player",
+      text: normalizedText,
+    };
+  }
+
   if (isInnerVoiceId(normalizedSpeaker)) {
     const definition = INNER_VOICE_DEFINITIONS[normalizedSpeaker];
     return {

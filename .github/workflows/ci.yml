@@ -16,9 +16,9 @@ jobs:
       ADMIN_BOOTSTRAP_CODE: "ci-bootstrap-${{ github.run_id }}-${{ github.run_attempt }}"
       VITE_ENABLE_AI: "false"
       VITE_ENABLE_DEBUG_CONTENT_SEED: "false"
-      VITE_SPACETIMEDB_HOST: "ws://127.0.0.1:3000"
+      VITE_SPACETIMEDB_HOST: "ws://127.0.0.1:3001"
       VITE_SPACETIMEDB_DB_NAME: "grezwandererdata"
-      SMOKE_STDB_HOST: "ws://127.0.0.1:3000"
+      SMOKE_STDB_HOST: "ws://127.0.0.1:3001"
       SMOKE_STDB_DB: "grezwandererdata"
     steps:
       - name: Checkout
@@ -81,9 +81,9 @@ jobs:
 
       - name: Start local SpacetimeDB
         run: |
-          nohup spacetime start > spacetime-start.log 2>&1 &
+          nohup spacetime start --listen-addr 127.0.0.1:3001 > spacetime-start.log 2>&1 &
           for attempt in {1..60}; do
-            if bash -lc ">/dev/tcp/127.0.0.1/3000" >/dev/null 2>&1; then
+            if bash -lc ">/dev/tcp/127.0.0.1/3001" >/dev/null 2>&1; then
               echo "SpacetimeDB is ready."
               exit 0
             fi
@@ -97,7 +97,7 @@ jobs:
         run: bun run spacetime:publish:local:clear
 
       - name: Bootstrap local admin
-        run: bun run bootstrap:admin -- --host ws://127.0.0.1:3000 --db grezwandererdata
+        run: bun run bootstrap:admin -- --host ws://127.0.0.1:3001 --db grezwandererdata
 
       - name: Smoke suite
         run: bun run smoke:all

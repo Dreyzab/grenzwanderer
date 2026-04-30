@@ -69,7 +69,11 @@ const LOCATION_CAST_ENTRIES: LocationCastEntry[] = [
     tone: "operational",
     dramaticFunction: "briefing_hub",
     primaryNpcId: "npc_klein_analyst",
-    supportNpcIds: ["npc_felix_hartmann", "npc_mother_hartmann"],
+    supportNpcIds: [
+      "npc_weber_dispatcher",
+      "npc_felix_hartmann",
+      "npc_mother_hartmann",
+    ],
   },
   {
     locationId: "loc_telephone",

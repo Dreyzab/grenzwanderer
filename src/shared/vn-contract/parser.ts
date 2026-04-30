@@ -391,6 +391,8 @@ const isSkillCheck = (value: unknown): boolean => {
     (isObject(branch) &&
       (branch.nextNodeId === undefined ||
         typeof branch.nextNodeId === "string") &&
+      (branch.inlineText === undefined ||
+        typeof branch.inlineText === "string") &&
       (branch.effects === undefined ||
         (Array.isArray(branch.effects) && branch.effects.every(isEffect))));
   const isCostBranch = (branch: unknown): boolean =>
@@ -1660,11 +1662,13 @@ const parseSocialCatalog = (
         (verificationKind) =>
           verificationKind === "evidence" ||
           verificationKind === "fact" ||
+          verificationKind === "flag_set" ||
           verificationKind === "service_unlock" ||
           verificationKind === "map_unlock",
       ) ||
       (entry.careerCriterionOnVerify !== undefined &&
         entry.careerCriterionOnVerify !== "verified_rumor_chain" &&
+        entry.careerCriterionOnVerify !== "university_contact_established" &&
         entry.careerCriterionOnVerify !== "preserved_source_network" &&
         entry.careerCriterionOnVerify !== "clean_closure")
     ) {
@@ -1678,10 +1682,11 @@ const parseSocialCatalog = (
       leadPointId: entry.leadPointId,
       sourceNpcId: entry.sourceNpcId,
       verifiesOn: entry.verifiesOn as Array<
-        "evidence" | "fact" | "service_unlock" | "map_unlock"
+        "evidence" | "fact" | "flag_set" | "service_unlock" | "map_unlock"
       >,
       careerCriterionOnVerify: entry.careerCriterionOnVerify as
         | "verified_rumor_chain"
+        | "university_contact_established"
         | "preserved_source_network"
         | "clean_closure"
         | undefined,

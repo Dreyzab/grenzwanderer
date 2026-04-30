@@ -57,10 +57,12 @@ export type RumorStateStatus = "registered" | "verified";
 export type RumorVerificationKind =
   | "evidence"
   | "fact"
+  | "flag_set"
   | "service_unlock"
   | "map_unlock";
 export type AgencyServiceCriterionId =
   | "verified_rumor_chain"
+  | "university_contact_established"
   | "preserved_source_network"
   | "clean_closure";
 export type NpcRosterTier = "archetype" | "functional" | "major";
@@ -204,6 +206,7 @@ export type VoicePresenceMode =
 export interface VnSkillCheckOutcomeBranch {
   nextNodeId?: string;
   effects?: VnEffect[];
+  inlineText?: string;
 }
 
 export interface VnSkillCheckCostBranch extends VnSkillCheckOutcomeBranch {
@@ -2351,6 +2354,7 @@ const parseSocialCatalog = (
         (value) =>
           value === "evidence" ||
           value === "fact" ||
+          value === "flag_set" ||
           value === "service_unlock" ||
           value === "map_unlock",
       )
@@ -2362,6 +2366,7 @@ const parseSocialCatalog = (
     if (
       careerCriterionOnVerify !== undefined &&
       careerCriterionOnVerify !== "verified_rumor_chain" &&
+      careerCriterionOnVerify !== "university_contact_established" &&
       careerCriterionOnVerify !== "preserved_source_network" &&
       careerCriterionOnVerify !== "clean_closure"
     ) {

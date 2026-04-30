@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducer, useTable } from "spacetimedb/react";
 import { Building2, Landmark, Map as MapIcon, QrCode } from "lucide-react";
 import {
@@ -167,6 +167,20 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const home = getHomeStrings(language);
   const shared = getSharedStrings(language);
   const launchInFlightRef = useRef(false);
+  const launchResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const isMountedRef = useRef(true);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+      if (launchResetTimeoutRef.current) {
+        window.clearTimeout(launchResetTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   const activeVersion = useMemo(
     () => versions.find((entry) => entry.isActive) ?? null,
@@ -387,10 +401,21 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
 
       setFlowStatus(message);
     } finally {
-      window.setTimeout(() => {
+      if (!isMountedRef.current) {
         launchInFlightRef.current = false;
-        setIsLaunching(false);
-      }, 350);
+      } else {
+        if (launchResetTimeoutRef.current) {
+          window.clearTimeout(launchResetTimeoutRef.current);
+        }
+
+        launchResetTimeoutRef.current = window.setTimeout(() => {
+          launchInFlightRef.current = false;
+          launchResetTimeoutRef.current = null;
+          if (isMountedRef.current) {
+            setIsLaunching(false);
+          }
+        }, 350);
+      }
     }
   };
 

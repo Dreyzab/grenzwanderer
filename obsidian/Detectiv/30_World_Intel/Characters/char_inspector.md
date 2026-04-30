@@ -4,17 +4,18 @@ tags: [character, major]
 tier: major
 runtime_character_id: inspector
 faction: fct_private_inquiry
-aliases: ["Arthur Vance"]
+aliases: ["Elias Thorne", "Arthur Vance"]
 ---
 
-# Arthur Vance
+# Elias Thorne
 
 ## Dossier
 
 - **Role**: Protagonist detective balancing formal law and practical compromise.
-- **Age / Appearance**: 32, trench coat with military posture, tired eyes, precise grooming.
+- **Age / Appearance**: 27, youthful but serious face, dark hair neatly parted, prominent mustache, strong jaw. Wearing a dark heavy trench coat with a high collar.
 - **Archetype**: The Compromised Professional
-- **Origin**: Berlin private bureau, reassigned to Freiburg under financial pressure.
+- **Origin**: Freiburg local, struggling with the city's corruption and his own past.
+- **Portrait**: `images/characters/detective_portrait/detective_portrait.png`
 
 ## Psyche Profile (Parliament Perception)
 
@@ -35,6 +36,9 @@ aliases: ["Arthur Vance"]
 - [[30_World_Intel/Characters/char_bank_manager|char_bank_manager]] - client and probable manipulator.
 - [[30_World_Intel/Characters/char_journalist|char_journalist]] - information ally and reputational threat.
 - [[30_World_Intel/Characters/char_gendarm|char_gendarm]] - procedural friction at street level.
+- [[30_World_Intel/Characters/char_partner|char_partner]] — Felix Hartmann. Mentee and mirror. Mixed motives: genuine care and strategic use of his class literacy.
+- [[30_World_Intel/Characters/char_mother_hartmann|char_mother_hartmann]] — Eleonora Hartmann. Parallel fragility — both manage truth for others and call it prudence.
+- [[30_World_Intel/Characters/char_lotte_weber|char_lotte_weber]] — Lotte Weber. Information channel through the switchboard. Trust determines depth of access.
 - Factions: [[00_Map_Room/MOC_Factions|MOC_Factions]]
 
 ## Evolution

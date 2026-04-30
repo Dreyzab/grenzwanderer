@@ -10,6 +10,7 @@ import type {
 } from "../features/battle/model/types";
 import { useUiLanguage } from "../shared/hooks/useUiLanguage";
 import { getBattleStrings } from "../features/i18n/uiStrings";
+import { usePlayerFlags } from "../entities/player/hooks/usePlayerFlags";
 
 interface BattlePageProps {
   onNavigateTab: (tab: BattleTab) => void;
@@ -77,7 +78,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
   const [combatants, combatantsReady] = useTable(tables.myBattleCombatants);
   const [cards, cardsReady] = useTable(tables.myBattleCards);
   const [history, historyReady] = useTable(tables.myBattleHistory);
-  const [flags] = useTable(tables.myPlayerFlags);
+  const flags = usePlayerFlags();
   const uiLanguage = useUiLanguage(flags);
   const t = useMemo(() => getBattleStrings(uiLanguage), [uiLanguage]);
   const playBattleCard = useReducer(reducers.playBattleCard);

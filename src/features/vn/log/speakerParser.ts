@@ -12,6 +12,8 @@ export interface SpeakerSegment {
   text: string;
   portraitUrl?: string;
   accentColor?: string;
+  accentSoftColor?: string;
+  glowColor?: string;
   textColor?: string;
 }
 
@@ -84,6 +86,8 @@ const buildSegment = (
       category: "inner_voice",
       text: normalizedText,
       accentColor: definition.palette.accent,
+      accentSoftColor: definition.palette.accentSoft,
+      glowColor: definition.palette.glow,
       textColor: definition.palette.text,
     };
   }

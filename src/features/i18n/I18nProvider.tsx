@@ -3,6 +3,7 @@ import { useTable } from "spacetimedb/react";
 import { useUiLanguage } from "../../shared/hooks/useUiLanguage";
 import { usePlayerFlags } from "../../entities/player/hooks/usePlayerFlags";
 import { I18nContext, I18nDictionary } from "./I18nContext";
+import { mergeI18nSection } from "./mergeI18nSection";
 import { tables } from "../../shared/spacetime/bindings";
 
 interface I18nProviderProps {
@@ -60,22 +61,26 @@ export function I18nProvider({ children }: I18nProviderProps) {
         const module = await import(`./locales/${language}.json`);
         const localDictionary = (module.default || module) as I18nDictionary;
         setDictionary({
-          speakers: {
-            ...localDictionary.speakers,
-            ...serverDictionary?.speakers,
-          },
-          stats: {
-            ...localDictionary.stats,
-            ...serverDictionary?.stats,
-          },
-          vn: {
-            ...localDictionary.vn,
-            ...serverDictionary?.vn,
-          },
-          origin: {
-            ...localDictionary.origin,
-            ...serverDictionary?.origin,
-          },
+          speakers: mergeI18nSection(
+            language,
+            localDictionary.speakers,
+            serverDictionary?.speakers,
+          ),
+          stats: mergeI18nSection(
+            language,
+            localDictionary.stats,
+            serverDictionary?.stats,
+          ),
+          vn: mergeI18nSection(
+            language,
+            localDictionary.vn,
+            serverDictionary?.vn,
+          ),
+          origin: mergeI18nSection(
+            language,
+            localDictionary.origin,
+            serverDictionary?.origin,
+          ),
         });
         setIsLoaded(true);
       } catch (error) {

@@ -30,15 +30,29 @@ const NPC_PROFILES: NpcCastProfile[] = [
   {
     id: "npc_weber_dispatcher",
     displayName: "Lotte Weber",
-    publicRole: "Bureau Dispatcher",
+    publicRole: "Chief Telephone Operator",
     sceneNote:
-      "Manages incoming contract files and keeps the duty board current.",
+      "Manages the switchboard and incoming contract files. Reads line traffic the way a hunter reads tracks.",
   },
   {
     id: "npc_klein_analyst",
     displayName: "Marta Klein",
     publicRole: "Case Analyst",
     sceneNote: "Cross-references open files and tracks unresolved threads.",
+  },
+  {
+    id: "npc_felix_hartmann",
+    displayName: "Felix Hartmann",
+    publicRole: "Junior Field Partner",
+    sceneNote:
+      "Legitimate Hartmann son. Legal aspirant torn between procedure and field reality. Subject to apathy under sustained pressure.",
+  },
+  {
+    id: "npc_mother_hartmann",
+    displayName: "Eleonora Hartmann",
+    publicRole: "Aristocratic Patron",
+    sceneNote:
+      "Manages access and reputation through implicit obligation. Never commands — arranges inevitability.",
   },
 ];
 
@@ -54,8 +68,15 @@ const LOCATION_CAST_ENTRIES: LocationCastEntry[] = [
     locationId: "loc_agency",
     tone: "operational",
     dramaticFunction: "briefing_hub",
+    primaryNpcId: "npc_klein_analyst",
+    supportNpcIds: ["npc_felix_hartmann", "npc_mother_hartmann"],
+  },
+  {
+    locationId: "loc_telephone",
+    tone: "guarded",
+    dramaticFunction: "information_relay",
     primaryNpcId: "npc_weber_dispatcher",
-    supportNpcIds: ["npc_klein_analyst"],
+    supportNpcIds: [],
   },
 ];
 

@@ -39,6 +39,81 @@ export function LogSegmentRenderer({
   const isInnerVoice = segment.category === "inner_voice";
   const isPlayer = segment.category === "player";
   const showSpeakerChrome = showSpeaker && !isNarrator && !isPlayer;
+  const renderedText = isTyping ? (
+    <TypedText
+      ref={typedTextRef}
+      text={segment.text}
+      onTypingChange={onTypingChange}
+      onComplete={onComplete}
+    />
+  ) : (
+    segment.text
+  );
+
+  if (isInnerVoice) {
+    const accentColor = segment.accentColor ?? "#fbbf24";
+    const accentSoftColor = segment.accentSoftColor ?? "rgba(251,191,36,0.14)";
+    const glowColor = segment.glowColor ?? "rgba(251,191,36,0.22)";
+    const textColor = segment.textColor ?? "#fef3c7";
+
+    return (
+      <article
+        className={[
+          "transition-opacity duration-500",
+          dimmed ? "opacity-50" : "opacity-100",
+        ].join(" ")}
+        data-testid="vn-inner-voice-segment"
+      >
+        <div
+          className="relative ml-3 max-w-[42rem] overflow-hidden border border-white/10 bg-stone-950/72 px-4 py-4 shadow-[0_18px_42px_rgba(0,0,0,0.42)] backdrop-blur-md sm:ml-8 sm:px-5"
+          style={{
+            borderColor: accentSoftColor,
+            boxShadow: `0 18px 42px rgba(0,0,0,0.42), 0 0 34px ${glowColor}`,
+          }}
+        >
+          <div
+            className="absolute inset-y-0 left-0 w-1"
+            style={{ backgroundColor: accentColor }}
+          />
+          <div
+            className="absolute inset-0 pointer-events-none opacity-70"
+            style={{
+              background: `linear-gradient(120deg, ${accentSoftColor}, transparent 46%)`,
+            }}
+          />
+
+          <div className="relative z-10 flex items-start gap-3">
+            <span
+              className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-full border bg-black/35"
+              style={{
+                borderColor: accentColor,
+                color: accentColor,
+                boxShadow: `0 0 22px ${glowColor}`,
+              }}
+              aria-hidden
+            >
+              <Sparkles size={15} />
+            </span>
+
+            <div className="min-w-0">
+              <div
+                className="mb-2 text-[0.7rem] font-semibold uppercase tracking-[0.2em]"
+                style={{ color: accentColor }}
+              >
+                {segment.speakerLabel}
+              </div>
+              <div
+                className="max-w-[36rem] whitespace-pre-wrap text-[1.22rem] italic leading-8 sm:text-[1.34rem]"
+                style={{ color: textColor }}
+              >
+                {renderedText}
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article
@@ -95,18 +170,8 @@ export function LogSegmentRenderer({
             "whitespace-pre-wrap text-[1.3rem] leading-8 sm:text-[1.4rem]",
             categoryTextClassName(segment.category),
           ].join(" ")}
-          style={{ color: isInnerVoice ? segment.textColor : undefined }}
         >
-          {isTyping ? (
-            <TypedText
-              ref={typedTextRef}
-              text={segment.text}
-              onTypingChange={onTypingChange}
-              onComplete={onComplete}
-            />
-          ) : (
-            segment.text
-          )}
+          {renderedText}
         </div>
       </div>
     </article>

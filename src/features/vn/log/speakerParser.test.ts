@@ -48,6 +48,8 @@ describe("parseSpeakerSegments", () => {
       category: "inner_voice",
       text: "Trust costs more than leverage.",
       accentColor: "#f87171",
+      accentSoftColor: "rgba(248, 113, 113, 0.16)",
+      glowColor: "rgba(248, 113, 113, 0.24)",
       textColor: "#fee2e2",
     });
   });

@@ -447,7 +447,7 @@ export const originProfiles: OriginProfileDefinition[] = [
     ],
     dossier: {
       characterName: "Elias Thorne",
-      age: 35,
+      age: 27,
       gender: "male",
       cityOrigin: "Freiburg",
       quote:

@@ -14,7 +14,10 @@ import {
   AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
 } from "../../ai/contracts";
-import { buildVnNodeTranslationKey } from "../../i18n/vnContentTranslations";
+import {
+  buildVnNodeTranslationKey,
+  resolveTranslatedText,
+} from "../../i18n/vnContentTranslations";
 import type { I18nDictionary } from "../../i18n/I18nContext";
 import type { UiLanguage } from "../../../shared/hooks/useUiLanguage";
 import {
@@ -100,7 +103,6 @@ interface UseVnDerivedStateParams {
   activeReactionKey: string | null;
   tSessionHydrating: string;
   uiLanguage: UiLanguage;
-  contentTranslations: readonly { lang: string; key: string; text: string }[];
   dictionary: I18nDictionary | null;
 }
 
@@ -128,7 +130,6 @@ export function useVnDerivedState({
   activeReactionKey,
   tSessionHydrating,
   uiLanguage,
-  contentTranslations,
   dictionary,
 }: UseVnDerivedStateParams) {
   const choiceEvaluationContext = useMemo<VnChoiceEvaluationContext>(() => {
@@ -358,27 +359,30 @@ export function useVnDerivedState({
       currentNode.id,
       "body",
     );
-    const serverTranslation = contentTranslations.find(
-      (row) => row.lang === uiLanguage && row.key === translationKey,
-    )?.text;
+    const resolvedTranslation = resolveTranslatedText(
+      uiLanguage,
+      translationKey,
+      "",
+      dictionary,
+    );
     if (
       currentNode.narrativePresentation === "letter" ||
       currentNode.narrativeLayout === "letter_overlay"
     ) {
       const fallback = normalizeLetterBody(currentNode.body);
-      if (serverTranslation) {
-        return normalizeLetterBody(serverTranslation);
+      if (resolvedTranslation) {
+        return normalizeLetterBody(resolvedTranslation);
       }
       return uiLanguage === "en" ? fallback : `WARNING ${fallback}`;
     }
     const fallback = normalizeBody(currentNode.body);
-    if (serverTranslation) {
-      return normalizeBody(serverTranslation);
+    if (resolvedTranslation) {
+      return normalizeBody(resolvedTranslation);
     }
     return uiLanguage === "en" ? fallback : `WARNING ${fallback}`;
   }, [
-    contentTranslations,
     currentNode,
+    dictionary,
     selectedScenarioId,
     sessionReady,
     tSessionHydrating,

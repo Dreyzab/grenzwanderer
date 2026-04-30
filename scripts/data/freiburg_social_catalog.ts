@@ -8,11 +8,12 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       id: "npc_weber_dispatcher",
       displayName: "Lotte Weber",
       factionId: "city_chancellery",
-      publicRole: "Bureau dispatcher",
-      rosterTier: "functional",
+      publicRole: "Chief telephone operator",
+      rosterTier: "major",
+      introFlag: "met_redhead_intro",
       homePointId: "loc_agency",
-      workPointId: "loc_agency",
-      serviceIds: [],
+      workPointId: "loc_telephone",
+      serviceIds: ["svc_lotte_switchboard_trace"],
     },
     {
       id: "npc_anna_mahler",
@@ -45,19 +46,23 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       introFlag: "met_mother_intro",
       homePointId: "loc_agency",
       workPointId: "loc_agency",
-      serviceIds: [],
+      serviceIds: [
+        "svc_eleonora_social_introduction",
+        "svc_eleonora_political_cover",
+      ],
     },
     {
-      id: "npc_redhead_girl",
-      displayName: "Red-haired Girl",
-      factionId: "city_network",
-      publicRole: "Artistic rebel",
+      id: "npc_felix_hartmann",
+      displayName: "Felix Hartmann",
+      factionId: "house_of_pledges",
+      publicRole: "Junior field partner",
       rosterTier: "major",
-      introFlag: "met_redhead_intro",
-      homePointId: "loc_workers_pub",
-      workPointId: "loc_workers_pub",
-      serviceIds: [],
+      introFlag: "met_felix_intro",
+      homePointId: "loc_agency",
+      workPointId: "loc_agency",
+      serviceIds: ["svc_felix_legal_analysis"],
     },
+
   ],
   services: [
     {
@@ -97,6 +102,60 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       qualityNote:
         "Provides cross-indexed filing movement notes for follow-up checks.",
     },
+    {
+      id: "svc_eleonora_social_introduction",
+      npcId: "npc_mother_hartmann",
+      role: "social_introduction",
+      label: "Hartmann Salon Introduction",
+      baseAccess:
+        "Available when Eleonora considers the detective a working contact. Requires at least one completed favor or demonstrated discretion.",
+      costNote:
+        "No explicit price. Eleonora remembers every door she opens and expects the detective to remember too.",
+      qualityNote:
+        "Opens house_of_pledges-adjacent events: patronage circles, archival permissions held by aristocratic families, and salon introductions.",
+      consequenceNote:
+        "Creates implicit obligation. Eleonora tracks debts as social architecture, not accounting.",
+    },
+    {
+      id: "svc_eleonora_political_cover",
+      npcId: "npc_mother_hartmann",
+      role: "political_cover",
+      label: "Political Cover",
+      baseAccess:
+        "Available only when active evidence threatens Hartmann family interests or house_of_pledges standing. Case02 and beyond.",
+      unlockFlag: "hartmann_interests_threatened",
+      costNote:
+        "Suppression, redirection, or reframing of damaging material. Price: case integrity, moral stress, and Felix trust if he discovers the arrangement.",
+      qualityNote:
+        "Neutralizes institutional fallout from evidence that would damage Hartmann-adjacent networks.",
+      consequenceNote:
+        "Accepting cover compromises investigative independence. Refusing it damages Eleonora relations and may close house_of_pledges access.",
+    },
+    {
+      id: "svc_lotte_switchboard_trace",
+      npcId: "npc_weber_dispatcher",
+      role: "information",
+      label: "Switchboard Trace",
+      baseAccess:
+        "Available once Lotte trusts the detective enough to share operational patterns. Requires lotte_warning_heeded or equivalent trust threshold.",
+      unlockFlag: "lotte_warning_heeded",
+      qualityNote:
+        "Pattern analysis of telephone traffic reveals communication anomalies around suspects — who called whom, which lines went quiet, which offices redirected.",
+      consequenceNote:
+        "Using switchboard intelligence risks exposing Lotte's access. Careless handling may burn her position.",
+    },
+    {
+      id: "svc_felix_legal_analysis",
+      npcId: "npc_felix_hartmann",
+      role: "information",
+      label: "Legal Analysis",
+      baseAccess:
+        "Available while Felix is an active partner with stable or higher trust. Degrades or becomes unavailable during apathy episodes.",
+      qualityNote:
+        "Cross-references legal precedent, procedural requirements, and institutional jurisdiction. Turns bureaucratic obstacles into investigative leverage.",
+      consequenceNote:
+        "Quality depends on Felix mental state. Instrumentalization without reciprocal investment degrades output over time.",
+    },
   ],
   rumors: [
     {
@@ -107,6 +166,15 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       sourceNpcId: "npc_anna_mahler",
       verifiesOn: ["service_unlock"],
       careerCriterionOnVerify: "verified_rumor_chain",
+    },
+    {
+      id: "rumor_university_network",
+      title: "Faculty Registry Anomaly",
+      caseId: "quest_banker",
+      leadPointId: "loc_student_house",
+      sourceNpcId: "npc_felix_hartmann",
+      verifiesOn: ["flag_set"],
+      careerCriterionOnVerify: "university_contact_established",
     },
   ],
   careerRanks: [

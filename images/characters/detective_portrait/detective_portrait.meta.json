@@ -1,0 +1,10 @@
+{
+  "characterId": "detective",
+  "outfit": "Default",
+  "emotion": "Neutral",
+  "prompt": "Oil painting, Sargent-style broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Elias Thorne, 27-year-old male detective, youthful but serious face, late twenties, dark hair neatly parted, prominent mustache, strong jaw, wearing a dark heavy trench coat with a high collar, sharp eyes, natural diffused daylight, soft shadows, balanced tones, waist-up portrait, elegant posture, Neutral studio light, plain dark backdrop, no other figures, sprite-ready, Masterpiece quality",
+  "promptHash": "elias_thorne_younger",
+  "model": "gemini-3.1-pro-image",
+  "createdAt": "2026-04-29T17:30:00.000Z",
+  "masterAssetPath": "Grenzwanderer/images/characters/detective_portrait/detective_portrait.png"
+}

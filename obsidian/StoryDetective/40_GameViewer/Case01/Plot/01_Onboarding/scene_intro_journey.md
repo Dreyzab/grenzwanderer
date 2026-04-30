@@ -19,6 +19,7 @@ tags:
 | Background | [[scene_intro_journey_bg]]    |
 | Beat 1     | [[scene_intro_journey_beat1]] |
 | Beat 2     | [[scene_intro_journey_beat2]] |
+| Dining Car | [[scene_dining_car]]          |
 
 ## Narrative
 
@@ -27,5 +28,9 @@ and the telegram in your pocket weighs more than paper.
 
 ## Choices
 
-1. Continue to Freiburg Hauptbahnhof.
+1. Follow Felix to the dining car.
+   - Next: [[scene_dining_car]]
+2. Stay in the compartment.
+   - Next: [[scene_hbf_arrival]]
+3. Continue to Freiburg Hauptbahnhof.
    - Next: [[scene_hbf_arrival]]

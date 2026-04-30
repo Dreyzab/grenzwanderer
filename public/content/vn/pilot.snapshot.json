@@ -130,6 +130,9 @@
         "scene_case01_train_dining_car_silent_branch",
         "scene_case01_train_dining_car_intro_self_branch",
         "scene_case01_train_dining_car_hotel_branch",
+        "scene_case01_train_dining_car_wine_beat",
+        "scene_case01_train_dining_car_felix_interrupts",
+        "scene_case01_train_dining_car_eleonora_farewell",
         "scene_case01_train_ankommen_video",
         "scene_case01_train_voza_cutscene",
         "scene_case01_train_disembark_journal",
@@ -397,6 +400,7 @@
       "startNodeId": "scene_intro_journey",
       "nodeIds": [
         "scene_intro_journey",
+        "scene_dining_car",
         "scene_hbf_arrival",
         "scene_hbf_arrival_ch1",
         "scene_hbf_arrival_ch2",
@@ -1152,6 +1156,23 @@
           "nextNodeId": "scene_case01_train_dining_car_hotel_branch"
         }
       ],
+      "passiveChecks": [
+        {
+          "id": "check_case01_dining_car_empathy",
+          "voiceId": "attr_empathy",
+          "difficulty": 10,
+          "showChancePercent": false,
+          "isPassive": true,
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "grant_xp",
+                "amount": 5
+              }
+            ]
+          }
+        }
+      ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "sceneGroupId": "train_assistant",
       "narrativeLayout": "log"
@@ -1165,7 +1186,14 @@
         {
           "id": "AUTO_CONTINUE_DINING_SILENT",
           "text": "Continue.",
-          "nextNodeId": "scene_case01_train_ankommen_video"
+          "nextNodeId": "scene_case01_train_dining_car_wine_beat",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_silent_observation",
+              "value": true
+            }
+          ]
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
@@ -1181,7 +1209,7 @@
         {
           "id": "AUTO_CONTINUE_DINING_INTRO_SELF",
           "text": "Continue.",
-          "nextNodeId": "scene_case01_train_ankommen_video"
+          "nextNodeId": "scene_case01_train_dining_car_wine_beat"
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
@@ -1197,11 +1225,142 @@
         {
           "id": "AUTO_CONTINUE_DINING_HOTEL",
           "text": "Continue.",
-          "nextNodeId": "scene_case01_train_ankommen_video"
+          "nextNodeId": "scene_case01_train_dining_car_wine_beat"
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_wine_beat",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\nЭлеонора делает едва заметный жест — и официант появляется с новым бокалом, словно ждал команды. Она наливает вино с точностью, в которой нет ничего случайного.\n\n**[Элеонора]**:\n— Попробуйте. Маркграфлерланд, урожай прошлого года. Местное — но не стоит его недооценивать. Здесь вообще не стоит недооценивать местное.\n\n**[inner_tradition]**:\nОна наливает вино так, как другие подписывают договоры. Каждый жест — предложение, от которого неудобно отказываться.",
+      "choices": [
+        {
+          "id": "CASE01_WINE_ACCEPT",
+          "text": "Принять бокал.",
+          "nextNodeId": "scene_case01_train_dining_car_felix_interrupts",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_joked_with_mother",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "CASE01_WINE_DECLINE",
+          "text": "Вежливо отклонить.",
+          "nextNodeId": "scene_case01_train_dining_car_felix_interrupts"
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_case01_wine_perception",
+          "voiceId": "attr_perception",
+          "difficulty": 8,
+          "showChancePercent": false,
+          "isPassive": true,
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "grant_xp",
+                "amount": 5
+              }
+            ],
+            "inlineText": "**[Perception — Успех]**:\nЕё пальцы — ухоженные, но не праздные. На безымянном — след от кольца, снятого недавно. Она привыкла управлять тем, что видят другие."
+          }
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_wine.png",
+      "sceneGroupId": "train_dining_car",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_felix_interrupts",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\nДверь вагона-ресторана открывается резче, чем требует механизм. Феликс стоит в проёме — папка с документами под мышкой, воротник чуть сбит набок.\n\n**[Assistant]**:\n— Мы подъезжаем. Кондуктор объявил двадцать минут.\n\n**[Элеонора]**:\n— Двадцать минут — это целая вечность, дорогой. Достаточно, чтобы допить вино и решить судьбу маленького города.\n\n**[Narrator]**:\nФеликс не улыбается. Он смотрит на стол — два бокала, серебряный чайник, Лотте с блокнотом, который она успела убрать, но недостаточно быстро.\n\n**[inner_analyst]**:\nОн считает. Не минуты — степень контроля. Сколько из этого завтрака было спонтанным, а сколько — срежиссировано.",
+      "choices": [
+        {
+          "id": "CASE01_FELIX_DEFEND",
+          "text": "Феликс прав — пора собираться.",
+          "nextNodeId": "scene_case01_train_dining_car_eleonora_farewell",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_defended_felix",
+              "value": true
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "assistant",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE01_FELIX_OBSERVE",
+          "text": "Промолчать и наблюдать.",
+          "nextNodeId": "scene_case01_train_dining_car_eleonora_farewell"
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_case01_felix_empathy",
+          "voiceId": "attr_empathy",
+          "difficulty": 11,
+          "showChancePercent": false,
+          "isPassive": true,
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "grant_xp",
+                "amount": 5
+              }
+            ],
+            "inlineText": "**[Empathy — Успех]**:\nОн не раздражён. Он устал. Устал быть представленным как приложение к матери. Папка под мышкой — не рабочий инструмент. Это щит."
+          }
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_felix.png",
+      "characterId": "assistant",
+      "sceneGroupId": "train_dining_car",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_eleonora_farewell",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Элеонора]**:\n— Что ж. Фрайбург нас ждёт.\n\n**[Narrator]**:\nОна поднимается первой — ни суеты, ни спешки. Лотте складывает блокнот в карман пальто одним привычным движением. Элеонора касается плеча Феликса — мимолётно, как будто поправляя воротник. Он не отстраняется, но и не подаётся навстречу.\n\n**[Лотте]**:\n— До встречи в городе, детектив. Фрайбург маленький. Если искать — найдёте.\n\n**[inner_intuition]**:\nОна сказала «если искать» так, будто знает, что вы будете. И готова к этому.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_ELEONORA_FAREWELL",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_train_ankommen_video"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "met_mother_intro",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "met_felix_intro",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "met_redhead_intro",
+          "value": true
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
     },
     {
@@ -1261,7 +1420,7 @@
       "id": "scene_case01_train_platform_parting",
       "scenarioId": "case01_hbf_arrival",
       "title": "Parting",
-      "body": "**[Mother]**:\n— Well, Felix. Freiburg awaits. Don't forget — 'Zum Eber' hotel. Detective, watch over him. He tends to get lost in... details, forgetting the main thing.\n\n**[Redhead]**:\n— See you around, Detective. The city is small. If you look — you'll find.\n\n**[Narrator]**:\nThey vanish into the crowd, leaving behind the scent of expensive tobacco and a trail of unspoken promises.",
+      "body": "**[Элеонора]**:\n— Что ж, Феликс. Фрайбург не терпит опозданий. Детектив, присмотрите за ним. Он склонен теряться в… деталях, забывая о главном.\n\n**[Лотте]**:\n— Увидимся, детектив. Город маленький. Если будете искать — найдёте.\n\n**[Narrator]**:\nОни уходят в толпу — Элеонора и Лотте, плечом к плечу, негромко разговаривая. Рыжие волосы Лотте — последнее яркое пятно в сером паре перрона. За ними остаётся запах дорогого табака и след невысказанных обещаний.",
       "choices": [
         {
           "id": "CHOICE_PARTING_SECRET",
@@ -1313,7 +1472,7 @@
           ]
         }
       ],
-      "backgroundUrl": "/VN/start/image/Ankommen.png",
+      "backgroundUrl": "/VN/start/image/platform_farewell.png",
       "sceneGroupId": "platform_disembark",
       "narrativeLayout": "log"
     },
@@ -3757,12 +3916,31 @@
       "body": "**[Narrator]**:\n\"Карлсруэ смыло дождем. В купе пахнет пылью и остывшим углем.\"\n\n\n**[inner_cynic]**:\n\"Семь слов в кармане. Семь слов, чтобы ты окончательно сошел с ума.\"\n\n\n**[inner_analyst]**:\n\"Имперский Банк. Это не грабеж, это вызов геометрии порядка.\"\n\n**[Narrator]**:\n\"Скрип железа. Туман за стеклом слишком плотный для обычного утра.\n\nПроводник объявляет: _«Nächster Halt — Freiburg im Breisgau!»_\"\n\n\n**[inner_exile]**:\n\"Фрайбург. Город, который не ждал тебя, но уже подготовил камеру.\"\n\n\n**[Narrator]**:\n\"Перрон. Неоренессанс в копоти. Ты здесь.\"",
       "choices": [
         {
-          "id": "AUTO_CONTINUE_SCENE_INTRO_JOURNEY",
+          "id": "CASE01_SCENE_INTRO_JOURNEY_01",
+          "text": "Follow Felix to the dining car.",
+          "nextNodeId": "scene_dining_car",
+          "choiceType": "action"
+        },
+        {
+          "id": "CASE01_SCENE_INTRO_JOURNEY_02",
+          "text": "Stay in the compartment.",
+          "nextNodeId": "scene_hbf_arrival",
+          "choiceType": "action"
+        },
+        {
+          "id": "CASE01_SCENE_INTRO_JOURNEY_03",
           "text": "Continue to Freiburg Hauptbahnhof.",
           "nextNodeId": "scene_hbf_arrival",
           "choiceType": "action"
         }
       ]
+    },
+    {
+      "id": "scene_dining_car",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "Dining Car — Eleonora, Lotte & Wine",
+      "body": "Detective follows Felix to the dining car. Eleonora and Lotte are already seated at a corner table, wine and tea between them. The scene establishes:\n\n1. **Eleonora's control** — how she manages space, attention, and social architecture\n2. **Lotte's dual identity** — journalist tells (notebook, pen callus) visible to perceptive players\n3. **Felix's fatigue** — the first signs of the apathy mechanic (being presented as an appendage)\n4. **Player agency** — wine acceptance sets `flag_joked_with_mother`, Felix defense sets `flag_defended_felix`",
+      "choices": []
     },
     {
       "id": "scene_hbf_arrival",
@@ -8239,11 +8417,12 @@
         "id": "npc_weber_dispatcher",
         "displayName": "Lotte Weber",
         "factionId": "city_chancellery",
-        "publicRole": "Bureau dispatcher",
-        "rosterTier": "functional",
+        "publicRole": "Chief telephone operator",
+        "rosterTier": "major",
+        "introFlag": "met_redhead_intro",
         "homePointId": "loc_agency",
-        "workPointId": "loc_agency",
-        "serviceIds": []
+        "workPointId": "loc_telephone",
+        "serviceIds": ["svc_lotte_switchboard_trace"]
       },
       {
         "id": "npc_anna_mahler",
@@ -8276,18 +8455,21 @@
         "introFlag": "met_mother_intro",
         "homePointId": "loc_agency",
         "workPointId": "loc_agency",
-        "serviceIds": []
+        "serviceIds": [
+          "svc_eleonora_social_introduction",
+          "svc_eleonora_political_cover"
+        ]
       },
       {
-        "id": "npc_redhead_girl",
-        "displayName": "Red-haired Girl",
-        "factionId": "city_network",
-        "publicRole": "Artistic rebel",
+        "id": "npc_felix_hartmann",
+        "displayName": "Felix Hartmann",
+        "factionId": "house_of_pledges",
+        "publicRole": "Junior field partner",
         "rosterTier": "major",
-        "introFlag": "met_redhead_intro",
-        "homePointId": "loc_workers_pub",
-        "workPointId": "loc_workers_pub",
-        "serviceIds": []
+        "introFlag": "met_felix_intro",
+        "homePointId": "loc_agency",
+        "workPointId": "loc_agency",
+        "serviceIds": ["svc_felix_legal_analysis"]
       }
     ],
     "services": [
@@ -8318,6 +8500,46 @@
         "label": "Archive Packet",
         "baseAccess": "Used from Freiburg civic contacts once the Rathaus route is already warm.",
         "qualityNote": "Provides cross-indexed filing movement notes for follow-up checks."
+      },
+      {
+        "id": "svc_eleonora_social_introduction",
+        "npcId": "npc_mother_hartmann",
+        "role": "social_introduction",
+        "label": "Hartmann Salon Introduction",
+        "baseAccess": "Available when Eleonora considers the detective a working contact. Requires at least one completed favor or demonstrated discretion.",
+        "costNote": "No explicit price. Eleonora remembers every door she opens and expects the detective to remember too.",
+        "qualityNote": "Opens house_of_pledges-adjacent events: patronage circles, archival permissions held by aristocratic families, and salon introductions.",
+        "consequenceNote": "Creates implicit obligation. Eleonora tracks debts as social architecture, not accounting."
+      },
+      {
+        "id": "svc_eleonora_political_cover",
+        "npcId": "npc_mother_hartmann",
+        "role": "political_cover",
+        "label": "Political Cover",
+        "baseAccess": "Available only when active evidence threatens Hartmann family interests or house_of_pledges standing. Case02 and beyond.",
+        "unlockFlag": "hartmann_interests_threatened",
+        "costNote": "Suppression, redirection, or reframing of damaging material. Price: case integrity, moral stress, and Felix trust if he discovers the arrangement.",
+        "qualityNote": "Neutralizes institutional fallout from evidence that would damage Hartmann-adjacent networks.",
+        "consequenceNote": "Accepting cover compromises investigative independence. Refusing it damages Eleonora relations and may close house_of_pledges access."
+      },
+      {
+        "id": "svc_lotte_switchboard_trace",
+        "npcId": "npc_weber_dispatcher",
+        "role": "information",
+        "label": "Switchboard Trace",
+        "baseAccess": "Available once Lotte trusts the detective enough to share operational patterns. Requires lotte_warning_heeded or equivalent trust threshold.",
+        "unlockFlag": "lotte_warning_heeded",
+        "qualityNote": "Pattern analysis of telephone traffic reveals communication anomalies around suspects — who called whom, which lines went quiet, which offices redirected.",
+        "consequenceNote": "Using switchboard intelligence risks exposing Lotte's access. Careless handling may burn her position."
+      },
+      {
+        "id": "svc_felix_legal_analysis",
+        "npcId": "npc_felix_hartmann",
+        "role": "information",
+        "label": "Legal Analysis",
+        "baseAccess": "Available while Felix is an active partner with stable or higher trust. Degrades or becomes unavailable during apathy episodes.",
+        "qualityNote": "Cross-references legal precedent, procedural requirements, and institutional jurisdiction. Turns bureaucratic obstacles into investigative leverage.",
+        "consequenceNote": "Quality depends on Felix mental state. Instrumentalization without reciprocal investment degrades output over time."
       }
     ],
     "rumors": [
@@ -8329,6 +8551,15 @@
         "sourceNpcId": "npc_anna_mahler",
         "verifiesOn": ["service_unlock"],
         "careerCriterionOnVerify": "verified_rumor_chain"
+      },
+      {
+        "id": "rumor_university_network",
+        "title": "Faculty Registry Anomaly",
+        "caseId": "quest_banker",
+        "leadPointId": "loc_student_house",
+        "sourceNpcId": "npc_felix_hartmann",
+        "verifiesOn": ["flag_set"],
+        "careerCriterionOnVerify": "university_contact_established"
       }
     ],
     "careerRanks": [
@@ -8375,5 +8606,5 @@
       }
     ]
   },
-  "checksum": "3596c9bd0d4ae10ced94767885cdfd41fd9847e53781aeddd0176e1af363f020"
+  "checksum": "6f461a2b6599aabd34dd326eb653ca5862ead84f2f0c21dab96c986e96b68472"
 }

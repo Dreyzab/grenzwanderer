@@ -161,6 +161,7 @@ export type VoicePresenceMode =
 export interface VnSkillCheckOutcomeBranch {
   nextNodeId?: string;
   effects?: VnEffect[];
+  inlineText?: string;
 }
 
 export interface VnSkillCheckCostBranch extends VnSkillCheckOutcomeBranch {
@@ -353,10 +354,12 @@ export type RumorStateStatus = "registered" | "verified";
 export type RumorVerificationKind =
   | "evidence"
   | "fact"
+  | "flag_set"
   | "service_unlock"
   | "map_unlock";
 export type AgencyServiceCriterionId =
   | "verified_rumor_chain"
+  | "university_contact_established"
   | "preserved_source_network"
   | "clean_closure";
 export type NpcRosterTier = "archetype" | "functional" | "major";

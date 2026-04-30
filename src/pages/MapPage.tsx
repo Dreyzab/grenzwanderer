@@ -1,9 +1,8 @@
 import { Suspense, lazy, useMemo } from "react";
-import { useTable } from "spacetimedb/react";
 import "../features/map/ui/mapExperience.css";
-import { tables } from "../shared/spacetime/bindings";
 import { useUiLanguage } from "../shared/hooks/useUiLanguage";
 import { getMapStrings } from "../features/i18n/uiStrings";
+import { usePlayerFlags } from "../entities/player/hooks/usePlayerFlags";
 
 const LazyMapView = lazy(async () => {
   const module = await import("../features/map/ui/MapView");
@@ -16,7 +15,7 @@ interface MapPageProps {
 }
 
 export const MapPage = ({ onOpenVnScenario, initialPanel }: MapPageProps) => {
-  const [flags] = useTable(tables.myPlayerFlags);
+  const flags = usePlayerFlags();
   const uiLanguage = useUiLanguage(flags);
   const t = useMemo(() => getMapStrings(uiLanguage), [uiLanguage]);
 

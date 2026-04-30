@@ -73,7 +73,6 @@ export const VnScreen = ({
 }: VnScreenProps) => {
   const [versions, versionsReady] = useTable(tables.contentVersion);
   const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
-  const [contentTranslations] = useTable(tables.contentTranslations);
   const [sessions, sessionsReady] = useTable(tables.myVnSessions);
   const [skillResults] = useTable(tables.myVnSkillResults);
   const [aiRequests] = useTable(tables.myAiRequests);
@@ -267,7 +266,6 @@ export const VnScreen = ({
     activeReactionKey,
     tSessionHydrating: t.sessionHydrating,
     uiLanguage,
-    contentTranslations,
     dictionary,
   });
   const effectiveBackgroundUrl = generatedBackgroundUrl ?? currentResolvedBgUrl;

@@ -45,6 +45,9 @@ const CASE01_HBF_BG = `${CASE01_START_IMAGE_BASE_PATH}/HBF.png`;
 const CASE01_NEWSBOY_BG = `${CASE01_START_IMAGE_BASE_PATH}/boy_newspaper_styled.png`;
 const CASE01_LUGGAGE_BG = `${CASE01_START_IMAGE_BASE_PATH}/bahnhof_luggage_counter_1776719222396.png`;
 const CASE01_POLICE_BG = `${CASE01_START_IMAGE_BASE_PATH}/bahnhof_police_post_1776719605015.png`;
+const CASE01_TRAIN_DINING_CAR_WINE_BG = `${CASE01_START_IMAGE_BASE_PATH}/train_dining_car_wine.png`;
+const CASE01_TRAIN_DINING_CAR_FELIX_BG = `${CASE01_START_IMAGE_BASE_PATH}/train_dining_car_felix.png`;
+const CASE01_PLATFORM_FAREWELL_BG = `${CASE01_START_IMAGE_BASE_PATH}/platform_farewell.png`;
 
 export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
   {
@@ -68,6 +71,9 @@ export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
       "scene_case01_train_dining_car_silent_branch",
       "scene_case01_train_dining_car_intro_self_branch",
       "scene_case01_train_dining_car_hotel_branch",
+      "scene_case01_train_dining_car_wine_beat",
+      "scene_case01_train_dining_car_felix_interrupts",
+      "scene_case01_train_dining_car_eleonora_farewell",
       "scene_case01_train_ankommen_video",
       "scene_case01_train_voza_cutscene",
       "scene_case01_train_disembark_journal",
@@ -391,16 +397,18 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
-    skillCheck: {
-      id: "check_case01_dining_car_empathy",
-      voiceId: "attr_empathy",
-      difficulty: 10,
-      showChancePercent: false,
-      passive: true,
-      onSuccess: {
-        effects: [{ type: "grant_xp", amount: 5 }],
+    passiveChecks: [
+      {
+        id: "check_case01_dining_car_empathy",
+        voiceId: "attr_empathy",
+        difficulty: 10,
+        showChancePercent: false,
+        isPassive: true,
+        onSuccess: {
+          effects: [{ type: "grant_xp", amount: 5 }],
+        },
       },
-    },
+    ],
     choices: [
       {
         id: "CASE01_TRAIN_DINING_SILENT",
@@ -432,7 +440,10 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_DINING_SILENT",
         text: "Continue.",
-        nextNodeId: "scene_case01_train_ankommen_video",
+        nextNodeId: "scene_case01_train_dining_car_wine_beat",
+        effects: [
+          { type: "set_flag", key: "flag_silent_observation", value: true },
+        ],
       },
     ],
   },
@@ -449,7 +460,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_DINING_INTRO_SELF",
         text: "Continue.",
-        nextNodeId: "scene_case01_train_ankommen_video",
+        nextNodeId: "scene_case01_train_dining_car_wine_beat",
       },
     ],
   },
@@ -465,6 +476,108 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     choices: [
       {
         id: "AUTO_CONTINUE_DINING_HOTEL",
+        text: "Continue.",
+        nextNodeId: "scene_case01_train_dining_car_wine_beat",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_dining_car_wine_beat",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    bodyOverride:
+      "**[Narrator]**:\nЭлеонора делает едва заметный жест — и официант появляется с новым бокалом, словно ждал команды. Она наливает вино с точностью, в которой нет ничего случайного.\n\n**[Элеонора]**:\n— Попробуйте. Маркграфлерланд, урожай прошлого года. Местное — но не стоит его недооценивать. Здесь вообще не стоит недооценивать местное.\n\n**[inner_tradition]**:\nОна наливает вино так, как другие подписывают договоры. Каждый жест — предложение, от которого неудобно отказываться.",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_WINE_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_dining_car",
+    passiveChecks: [
+      {
+        id: "check_case01_wine_perception",
+        voiceId: "attr_perception",
+        difficulty: 8,
+        showChancePercent: false,
+        isPassive: true,
+        onSuccess: {
+          effects: [{ type: "grant_xp", amount: 5 }],
+          inlineText:
+            "**[Perception — Успех]**:\nЕё пальцы — ухоженные, но не праздные. На безымянном — след от кольца, снятого недавно. Она привыкла управлять тем, что видят другие.",
+        },
+      },
+    ],
+    choices: [
+      {
+        id: "CASE01_WINE_ACCEPT",
+        text: "Принять бокал.",
+        nextNodeId: "scene_case01_train_dining_car_felix_interrupts",
+        effects: [
+          { type: "set_flag", key: "flag_joked_with_mother", value: true },
+        ],
+      },
+      {
+        id: "CASE01_WINE_DECLINE",
+        text: "Вежливо отклонить.",
+        nextNodeId: "scene_case01_train_dining_car_felix_interrupts",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_dining_car_felix_interrupts",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    bodyOverride:
+      "**[Narrator]**:\nДверь вагона-ресторана открывается резче, чем требует механизм. Феликс стоит в проёме — папка с документами под мышкой, воротник чуть сбит набок.\n\n**[Assistant]**:\n— Мы подъезжаем. Кондуктор объявил двадцать минут.\n\n**[Элеонора]**:\n— Двадцать минут — это целая вечность, дорогой. Достаточно, чтобы допить вино и решить судьбу маленького города.\n\n**[Narrator]**:\nФеликс не улыбается. Он смотрит на стол — два бокала, серебряный чайник, Лотте с блокнотом, который она успела убрать, но недостаточно быстро.\n\n**[inner_analyst]**:\nОн считает. Не минуты — степень контроля. Сколько из этого завтрака было спонтанным, а сколько — срежиссировано.",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_FELIX_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_dining_car",
+    characterId: "assistant",
+    passiveChecks: [
+      {
+        id: "check_case01_felix_empathy",
+        voiceId: "attr_empathy",
+        difficulty: 11,
+        showChancePercent: false,
+        isPassive: true,
+        onSuccess: {
+          effects: [{ type: "grant_xp", amount: 5 }],
+          inlineText:
+            "**[Empathy — Успех]**:\nОн не раздражён. Он устал. Устал быть представленным как приложение к матери. Папка под мышкой — не рабочий инструмент. Это щит.",
+        },
+      },
+    ],
+    choices: [
+      {
+        id: "CASE01_FELIX_DEFEND",
+        text: "Феликс прав — пора собираться.",
+        nextNodeId: "scene_case01_train_dining_car_eleonora_farewell",
+        effects: [
+          { type: "set_flag", key: "flag_defended_felix", value: true },
+          { type: "change_relationship", characterId: "assistant", delta: 1 },
+        ],
+      },
+      {
+        id: "CASE01_FELIX_OBSERVE",
+        text: "Промолчать и наблюдать.",
+        nextNodeId: "scene_case01_train_dining_car_eleonora_farewell",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_dining_car_eleonora_farewell",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    bodyOverride:
+      "**[Элеонора]**:\n— Что ж. Фрайбург нас ждёт.\n\n**[Narrator]**:\nОна поднимается первой — ни суеты, ни спешки. Лотте складывает блокнот в карман пальто одним привычным движением. Элеонора касается плеча Феликса — мимолётно, как будто поправляя воротник. Он не отстраняется, но и не подаётся навстречу.\n\n**[Лотте]**:\n— До встречи в городе, детектив. Фрайбург маленький. Если искать — найдёте.\n\n**[inner_intuition]**:\nОна сказала «если искать» так, будто знает, что вы будете. И готова к этому.",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_dining_car",
+    onEnter: [
+      { type: "set_flag", key: "met_mother_intro", value: true },
+      { type: "set_flag", key: "met_felix_intro", value: true },
+      { type: "set_flag", key: "met_redhead_intro", value: true },
+    ],
+    choices: [
+      {
+        id: "AUTO_CONTINUE_ELEONORA_FAREWELL",
         text: "Continue.",
         nextNodeId: "scene_case01_train_ankommen_video",
       },
@@ -533,8 +646,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
     titleOverride: "Parting",
     bodyOverride:
-      "**[Mother]**:\n— Well, Felix. Freiburg awaits. Don't forget — 'Zum Eber' hotel. Detective, watch over him. He tends to get lost in... details, forgetting the main thing.\n\n**[Redhead]**:\n— See you around, Detective. The city is small. If you look — you'll find.\n\n**[Narrator]**:\nThey vanish into the crowd, leaving behind the scent of expensive tobacco and a trail of unspoken promises.",
-    backgroundUrl: CASE01_PLATFORM_STILL_BG,
+      "**[\u042d\u043b\u0435\u043e\u043d\u043e\u0440\u0430]**:\n\u2014 \u0427\u0442\u043e \u0436, \u0424\u0435\u043b\u0438\u043a\u0441. \u0424\u0440\u0430\u0439\u0431\u0443\u0440\u0433 \u043d\u0435 \u0442\u0435\u0440\u043f\u0438\u0442 \u043e\u043f\u043e\u0437\u0434\u0430\u043d\u0438\u0439. \u0414\u0435\u0442\u0435\u043a\u0442\u0438\u0432, \u043f\u0440\u0438\u0441\u043c\u043e\u0442\u0440\u0438\u0442\u0435 \u0437\u0430 \u043d\u0438\u043c. \u041e\u043d \u0441\u043a\u043b\u043e\u043d\u0435\u043d \u0442\u0435\u0440\u044f\u0442\u044c\u0441\u044f \u0432\u2026 \u0434\u0435\u0442\u0430\u043b\u044f\u0445, \u0437\u0430\u0431\u044b\u0432\u0430\u044f \u043e \u0433\u043b\u0430\u0432\u043d\u043e\u043c.\n\n**[\u041b\u043e\u0442\u0442\u0435]**:\n\u2014 \u0423\u0432\u0438\u0434\u0438\u043c\u0441\u044f, \u0434\u0435\u0442\u0435\u043a\u0442\u0438\u0432. \u0413\u043e\u0440\u043e\u0434 \u043c\u0430\u043b\u0435\u043d\u044c\u043a\u0438\u0439. \u0415\u0441\u043b\u0438 \u0431\u0443\u0434\u0435\u0442\u0435 \u0438\u0441\u043a\u0430\u0442\u044c \u2014 \u043d\u0430\u0439\u0434\u0451\u0442\u0435.\n\n**[Narrator]**:\n\u041e\u043d\u0438 \u0443\u0445\u043e\u0434\u044f\u0442 \u0432 \u0442\u043e\u043b\u043f\u0443 \u2014 \u042d\u043b\u0435\u043e\u043d\u043e\u0440\u0430 \u0438 \u041b\u043e\u0442\u0442\u0435, \u043f\u043b\u0435\u0447\u043e\u043c \u043a \u043f\u043b\u0435\u0447\u0443, \u043d\u0435\u0433\u0440\u043e\u043c\u043a\u043e \u0440\u0430\u0437\u0433\u043e\u0432\u0430\u0440\u0438\u0432\u0430\u044f. \u0420\u044b\u0436\u0438\u0435 \u0432\u043e\u043b\u043e\u0441\u044b \u041b\u043e\u0442\u0442\u0435 \u2014 \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u0435\u0435 \u044f\u0440\u043a\u043e\u0435 \u043f\u044f\u0442\u043d\u043e \u0432 \u0441\u0435\u0440\u043e\u043c \u043f\u0430\u0440\u0435 \u043f\u0435\u0440\u0440\u043e\u043d\u0430. \u0417\u0430 \u043d\u0438\u043c\u0438 \u043e\u0441\u0442\u0430\u0451\u0442\u0441\u044f \u0437\u0430\u043f\u0430\u0445 \u0434\u043e\u0440\u043e\u0433\u043e\u0433\u043e \u0442\u0430\u0431\u0430\u043a\u0430 \u0438 \u0441\u043b\u0435\u0434 \u043d\u0435\u0432\u044b\u0441\u043a\u0430\u0437\u0430\u043d\u043d\u044b\u0445 \u043e\u0431\u0435\u0449\u0430\u043d\u0438\u0439.",
+    backgroundUrl: CASE01_PLATFORM_FAREWELL_BG,
     narrativeLayout: "log",
     sceneGroupId: "platform_disembark",
     choices: [

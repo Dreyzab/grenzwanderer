@@ -167,9 +167,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const home = getHomeStrings(language);
   const shared = getSharedStrings(language);
   const launchInFlightRef = useRef(false);
-  const launchResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const launchResetTimeoutRef = useRef<number | null>(null);
   const isMountedRef = useRef(true);
 
   useEffect(

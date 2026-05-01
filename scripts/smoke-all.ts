@@ -3,9 +3,20 @@ import { getSmokeAllPipeline } from "./acceptance-matrix";
 
 const pipeline = getSmokeAllPipeline();
 const smokeHost = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
+const isLocalResettableSmokeHost = (host: string): boolean => {
+  try {
+    const url = new URL(host);
+    return (
+      (url.hostname === "127.0.0.1" || url.hostname === "localhost") &&
+      (url.port === "3000" || url.port === "3001")
+    );
+  } catch {
+    return false;
+  }
+};
 const shouldResetLocalDb =
   process.env.SMOKE_ALL_RESET_LOCAL_DB !== "0" &&
-  /^wss?:\/\/(?:127\.0\.0\.1|localhost):3000$/i.test(smokeHost);
+  isLocalResettableSmokeHost(smokeHost);
 
 const runBunScript = (script: string): Promise<void> =>
   new Promise((resolve, reject) => {

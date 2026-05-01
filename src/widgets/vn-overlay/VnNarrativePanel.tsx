@@ -1,11 +1,11 @@
 import React, {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   VnChoice,
   VnNarrativeLayout,
@@ -21,10 +21,12 @@ import {
   TypedText,
   type TypedTextHandle,
 } from "../../features/vn/ui/TypedText";
+import { useVnSceneTransition } from "./useVnSceneTransition";
 
 interface VnNarrativePanelProps {
   t: VnStrings;
   sceneId?: string;
+  /** Resolved log coordinator id (same as `logState.sceneGroupId`) — drives bottom-sheet scene transitions only. */
   sceneGroupId?: string | null;
   locationName: string;
   characterName?: string;
@@ -52,14 +54,10 @@ interface VnNarrativePanelProps {
   children?: React.ReactNode;
 }
 
-const DEFAULT_LETTER_OVERLAY_REVEAL_DELAY_MS = 2200;
 /** Must match the letter card `duration-*` in Tailwind (transition-all duration-700). */
 const LETTER_CARD_EXPAND_MS = 700;
-/** Split / thought_log: let the new background show before dialogue chrome (tap or this delay). */
-const SPLIT_BG_REVEAL_DELAY_MS = 2000;
-const MANUAL_REVEAL_LETTER_SCENE_IDS = new Set([
-  "scene_case01_train_compartment_letter",
-]);
+/** Do not block the sound prompt indefinitely if decoding/network fails (e.g. flaky media cache). */
+const SOUND_PROMPT_REVEAL_MAX_WAIT_MS = 2500;
 
 type SoundPromptPhase = "prompt" | "playing";
 type VideoStatus = "idle" | "loading" | "ready" | "playing" | "ended";
@@ -103,43 +101,51 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   const needsSoundPrompt = Boolean(
     backgroundVideoUrl && backgroundVideoSoundPrompt,
   );
-  const revealDelayMs =
-    letterOverlayRevealDelayMs ?? DEFAULT_LETTER_OVERLAY_REVEAL_DELAY_MS;
-  const isManualRevealLetter =
-    sceneId != null && MANUAL_REVEAL_LETTER_SCENE_IDS.has(sceneId);
+  const prefersReducedMotion = useReducedMotion();
 
   const backgroundVisualKey = useMemo(
     () =>
-      [sceneId ?? "", backgroundImageUrl ?? "", backgroundVideoUrl ?? ""].join(
-        "\0",
-      ),
-    [sceneId, backgroundImageUrl, backgroundVideoUrl],
+      [
+        effectiveNarrativeLayout,
+        backgroundImageUrl ?? "",
+        backgroundVideoUrl ?? "",
+        backgroundVideoPosterUrl ?? "",
+        needsSoundPrompt ? "sound-prompt" : "direct",
+      ].join("\0"),
+    [
+      backgroundImageUrl,
+      backgroundVideoPosterUrl,
+      backgroundVideoUrl,
+      effectiveNarrativeLayout,
+      needsSoundPrompt,
+    ],
   );
-  const letterSceneKey = isLetterOverlay ? (sceneId ?? "__letter__") : null;
-
   const videoRef = useRef<HTMLVideoElement>(null);
-  const letterAutoRevealTimeoutRef = useRef<number | null>(null);
-  const committedLetterSceneKeyRef = useRef<string | null>(letterSceneKey);
-  const splitChromeRevealTimeoutRef = useRef<number | null>(null);
 
   const [soundPromptPhase, setSoundPromptPhase] = useState<SoundPromptPhase>(
     needsSoundPrompt ? "prompt" : "playing",
   );
-  const [splitTextChromeRevealed, setSplitTextChromeRevealed] = useState(false);
+  const [soundPromptRevealTimedOut, setSoundPromptRevealTimedOut] =
+    useState(false);
   const [videoUnmuted, setVideoUnmuted] = useState(false);
   const [videoStatus, setVideoStatus] = useState<VideoStatus>("idle");
-  const [letterRevealed, setLetterRevealed] = useState(!isLetterOverlay);
   /** After the letter card expand animation; blocks continue + chrome until set. */
   const [letterRevealSettled, setLetterRevealSettled] =
     useState(!isLetterOverlay);
-  const enteringNewLetterScene =
-    isLetterOverlay && committedLetterSceneKeyRef.current !== letterSceneKey;
-  const displayedLetterRevealed =
-    enteringNewLetterScene && !isManualRevealLetter ? false : letterRevealed;
+
+  const sceneTransition = useVnSceneTransition({
+    visualKey: backgroundVisualKey,
+    layout: effectiveNarrativeLayout,
+    hasImage: Boolean(backgroundImageUrl),
+    hasVideo: Boolean(backgroundVideoUrl),
+    needsSoundPrompt,
+    revealMode: letterOverlayRevealDelayMs == null ? "tap" : "auto",
+    autoRevealAfterMs: letterOverlayRevealDelayMs,
+  });
+  const chromeRevealed = sceneTransition.isChromeRevealed;
   const displayedLetterRevealSettled =
-    enteringNewLetterScene && !isManualRevealLetter
-      ? false
-      : letterRevealSettled;
+    !isLetterOverlay || (chromeRevealed && letterRevealSettled);
+  const backgroundFadeDuration = prefersReducedMotion ? 0.08 : 0.58;
 
   const startVideoAfterSoundChoice = useCallback(async (unmuted: boolean) => {
     const video = videoRef.current;
@@ -159,88 +165,57 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     setSoundPromptPhase(needsSoundPrompt ? "prompt" : "playing");
     setVideoUnmuted(false);
     setVideoStatus(backgroundVideoUrl ? "loading" : "idle");
+    setSoundPromptRevealTimedOut(false);
   }, [backgroundVideoUrl, needsSoundPrompt]);
 
-  const revealSplitNarrativeChrome = useCallback(() => {
-    if (splitChromeRevealTimeoutRef.current != null) {
-      window.clearTimeout(splitChromeRevealTimeoutRef.current);
-      splitChromeRevealTimeoutRef.current = null;
+  useEffect(() => {
+    if (!needsSoundPrompt || soundPromptPhase !== "prompt") {
+      return undefined;
     }
-    setSplitTextChromeRevealed(true);
-  }, []);
+    const timer = window.setTimeout(() => {
+      setSoundPromptRevealTimedOut(true);
+    }, SOUND_PROMPT_REVEAL_MAX_WAIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [needsSoundPrompt, sceneId, backgroundVideoUrl, soundPromptPhase]);
 
-  useLayoutEffect(() => {
-    if (!isSplitLayout) {
-      return;
-    }
-    if (isLogLayout) {
-      setSplitTextChromeRevealed(true);
-      return;
-    }
+  const allowSoundPromptChrome =
+    !needsSoundPrompt ||
+    soundPromptPhase !== "prompt" ||
+    videoStatus === "ready" ||
+    videoStatus === "playing" ||
+    videoStatus === "ended" ||
+    soundPromptRevealTimedOut;
 
-    setSplitTextChromeRevealed(false);
-    if (splitChromeRevealTimeoutRef.current != null) {
-      window.clearTimeout(splitChromeRevealTimeoutRef.current);
-      splitChromeRevealTimeoutRef.current = null;
-    }
-    splitChromeRevealTimeoutRef.current = window.setTimeout(() => {
-      splitChromeRevealTimeoutRef.current = null;
-      setSplitTextChromeRevealed(true);
-    }, SPLIT_BG_REVEAL_DELAY_MS);
-    return () => {
-      if (splitChromeRevealTimeoutRef.current != null) {
-        window.clearTimeout(splitChromeRevealTimeoutRef.current);
-        splitChromeRevealTimeoutRef.current = null;
-      }
-    };
-  }, [isLogLayout, isSplitLayout]);
+  const showSoundPromptSpinner =
+    needsSoundPrompt &&
+    soundPromptPhase === "prompt" &&
+    !allowSoundPromptChrome;
 
-  useLayoutEffect(() => {
-    if (isLetterOverlay) {
-      committedLetterSceneKeyRef.current = letterSceneKey;
-      setLetterRevealed(isManualRevealLetter);
-      setLetterRevealSettled(isManualRevealLetter);
-    } else {
-      committedLetterSceneKeyRef.current = null;
-      setLetterRevealed(true);
+  /** Hide scene art / poster until the player chooses sound — avoids story spoilers on the gate. */
+  const soundGateAwaitingChoice =
+    needsSoundPrompt && soundPromptPhase === "prompt";
+
+  useEffect(() => {
+    if (!isLetterOverlay) {
       setLetterRevealSettled(true);
-    }
-  }, [
-    effectiveNarrativeLayout,
-    isLetterOverlay,
-    isManualRevealLetter,
-    letterSceneKey,
-    narrativePresentation,
-    sceneId,
-  ]);
-
-  useEffect(() => {
-    if (!isLetterOverlay || isManualRevealLetter) {
       return;
     }
-    letterAutoRevealTimeoutRef.current = window.setTimeout(() => {
-      letterAutoRevealTimeoutRef.current = null;
-      setLetterRevealed(true);
-    }, revealDelayMs);
-    return () => {
-      if (letterAutoRevealTimeoutRef.current != null) {
-        window.clearTimeout(letterAutoRevealTimeoutRef.current);
-        letterAutoRevealTimeoutRef.current = null;
-      }
-    };
-  }, [isLetterOverlay, isManualRevealLetter, revealDelayMs, sceneId]);
+
+    setLetterRevealSettled(false);
+  }, [backgroundVisualKey, isLetterOverlay]);
 
   useEffect(() => {
-    if (!isLetterOverlay || !displayedLetterRevealed) {
-      return;
+    if (!isLetterOverlay || !chromeRevealed) {
+      return undefined;
     }
+
     const id = window.setTimeout(() => {
       setLetterRevealSettled(true);
     }, LETTER_CARD_EXPAND_MS);
     return () => {
       window.clearTimeout(id);
     };
-  }, [displayedLetterRevealed, isLetterOverlay, sceneId]);
+  }, [chromeRevealed, isLetterOverlay, sceneId]);
 
   useEffect(() => {
     if (!backgroundVideoUrl || soundPromptPhase !== "playing") {
@@ -266,34 +241,23 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   const handleSoundAllow = useCallback(() => {
     setVideoUnmuted(true);
     setSoundPromptPhase("playing");
+    sceneTransition.markVisualReady();
     void startVideoAfterSoundChoice(true);
-  }, [startVideoAfterSoundChoice]);
+  }, [sceneTransition, startVideoAfterSoundChoice]);
 
   const handleSoundDeny = useCallback(() => {
     setVideoUnmuted(false);
     setSoundPromptPhase("playing");
+    sceneTransition.markVisualReady();
     void startVideoAfterSoundChoice(false);
-  }, [startVideoAfterSoundChoice]);
+  }, [sceneTransition, startVideoAfterSoundChoice]);
 
   const handleSurfaceInteraction = useCallback(() => {
-    if (isSplitLayout && !splitTextChromeRevealed) {
-      revealSplitNarrativeChrome();
+    if (!chromeRevealed) {
+      sceneTransition.revealChrome();
       return;
     }
-    if (isLetterOverlay && !displayedLetterRevealed) {
-      if (letterAutoRevealTimeoutRef.current != null) {
-        window.clearTimeout(letterAutoRevealTimeoutRef.current);
-        letterAutoRevealTimeoutRef.current = null;
-      }
-      setLetterRevealSettled(false);
-      setLetterRevealed(true);
-      return;
-    }
-    if (
-      isLetterOverlay &&
-      displayedLetterRevealed &&
-      !displayedLetterRevealSettled
-    ) {
+    if (isLetterOverlay && !displayedLetterRevealSettled) {
       return;
     }
     if (isLetterOverlay && isTyping) {
@@ -302,15 +266,13 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     }
     onSurfaceTap?.();
   }, [
-    isSplitLayout,
-    splitTextChromeRevealed,
+    chromeRevealed,
     isLetterOverlay,
     isTyping,
-    displayedLetterRevealed,
     displayedLetterRevealSettled,
     typedTextRef,
     onSurfaceTap,
-    revealSplitNarrativeChrome,
+    sceneTransition,
   ]);
 
   const showVideoLoadingState =
@@ -321,7 +283,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
 
   const showSplitBgAdmireLayer =
     isSplitLayout &&
-    !splitTextChromeRevealed &&
+    !chromeRevealed &&
     (!needsSoundPrompt || soundPromptPhase === "playing");
 
   const narrativeBody = (
@@ -345,58 +307,118 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-black font-serif text-stone-200 select-none">
-      <div
-        className="absolute inset-0 z-0 pointer-events-none transition-opacity duration-1000"
-        style={{ opacity: soundPromptPhase === "prompt" ? 0 : 1 }}
-      >
-        {backgroundVideoUrl &&
-          (backgroundVideoPosterUrl || backgroundImageUrl) && (
-            <img
-              src={backgroundVideoPosterUrl ?? backgroundImageUrl}
-              className="absolute inset-0 h-full w-full object-cover brightness-[0.62] sepia-[0.16] contrast-[1.05]"
-              alt="Background"
-            />
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <AnimatePresence initial={false}>
+          {(backgroundVideoUrl || backgroundImageUrl) && (
+            <motion.div
+              key={backgroundVisualKey}
+              className="absolute inset-0"
+              initial={{ opacity: prefersReducedMotion ? 1 : 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: prefersReducedMotion ? 1 : 0 }}
+              transition={{
+                duration: backgroundFadeDuration,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              {backgroundVideoUrl &&
+                (backgroundVideoPosterUrl || backgroundImageUrl) &&
+                !soundGateAwaitingChoice && (
+                  <img
+                    src={backgroundVideoPosterUrl ?? backgroundImageUrl}
+                    className="absolute inset-0 h-full w-full object-cover brightness-[0.62] sepia-[0.16] contrast-[1.05] transition-opacity duration-700 ease-out motion-reduce:transition-none"
+                    alt="Background"
+                  />
+                )}
+
+              {backgroundVideoUrl ? (
+                <video
+                  ref={videoRef}
+                  className={[
+                    "absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-out motion-reduce:transition-none",
+                    soundGateAwaitingChoice ? "opacity-0" : "opacity-100",
+                  ].join(" ")}
+                  src={backgroundVideoUrl}
+                  poster={
+                    soundGateAwaitingChoice
+                      ? undefined
+                      : (backgroundVideoPosterUrl ?? backgroundImageUrl)
+                  }
+                  playsInline
+                  preload="auto"
+                  autoPlay={!needsSoundPrompt}
+                  muted={!videoUnmuted}
+                  onLoadStart={() => setVideoStatus("loading")}
+                  onLoadedData={() => {
+                    setVideoStatus((previous) =>
+                      previous === "playing" || previous === "ended"
+                        ? previous
+                        : "ready",
+                    );
+                  }}
+                  onCanPlay={() => {
+                    setVideoStatus("ready");
+                    sceneTransition.markVisualReady();
+                    if (
+                      soundPromptPhase === "playing" &&
+                      videoRef.current?.paused
+                    ) {
+                      void startVideoAfterSoundChoice(videoUnmuted);
+                    }
+                  }}
+                  onError={() => {
+                    setVideoStatus("ready");
+                    sceneTransition.markVisualReady();
+                  }}
+                  onPlay={() => setVideoStatus("playing")}
+                  onEnded={() => {
+                    setVideoStatus("ended");
+                    onVideoEnded?.();
+                  }}
+                />
+              ) : backgroundImageUrl ? (
+                <img
+                  src={backgroundImageUrl}
+                  className="absolute inset-0 h-full w-full object-cover brightness-[0.62] sepia-[0.16] contrast-[1.05]"
+                  alt="Background"
+                  onLoad={sceneTransition.markVisualReady}
+                  onError={sceneTransition.markVisualReady}
+                />
+              ) : null}
+            </motion.div>
           )}
+        </AnimatePresence>
 
-        {backgroundVideoUrl && (
-          <video
-            ref={videoRef}
-            key={sceneId ?? backgroundVideoUrl}
-            className="absolute inset-0 h-full w-full object-cover"
-            src={backgroundVideoUrl}
-            poster={backgroundVideoPosterUrl ?? backgroundImageUrl}
-            playsInline
-            preload="auto"
-            autoPlay={!needsSoundPrompt}
-            muted={!videoUnmuted}
-            onLoadStart={() => setVideoStatus("loading")}
-            onCanPlay={() => {
-              setVideoStatus("ready");
-              if (soundPromptPhase === "playing" && videoRef.current?.paused) {
-                void startVideoAfterSoundChoice(videoUnmuted);
-              }
-            }}
-            onPlay={() => setVideoStatus("playing")}
-            onEnded={() => {
-              setVideoStatus("ended");
-              onVideoEnded?.();
-            }}
-          />
-        )}
-
-        {!backgroundVideoUrl && backgroundImageUrl && (
-          <img
-            src={backgroundImageUrl}
-            className="absolute inset-0 h-full w-full object-cover brightness-[0.62] sepia-[0.16] contrast-[1.05]"
-            alt="Background"
-          />
-        )}
-
-        <div className="absolute inset-0 bg-linear-to-t from-stone-950 via-transparent to-black/30" />
-        <div className="absolute inset-0 z-10 pointer-events-none mix-blend-overlay opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIj48ZmlsdGVyIGlkPSJub2lzZSIgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbm9pc2UpIiBvcGFjaXR5PSIxIi8+PC9zdmc+')] brightness-100 contrast-150" />
+        {!soundGateAwaitingChoice ? (
+          <>
+            <div className="absolute inset-0 bg-linear-to-t from-stone-950 via-transparent to-black/30" />
+            <div className="absolute inset-0 z-10 pointer-events-none mix-blend-overlay opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIj48ZmlsdGVyIGlkPSJub2lzZSIgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbm9pc2UpIiBvcGFjaXR5PSIxIi8+PC9zdmc+')] brightness-100 contrast-150" />
+          </>
+        ) : null}
       </div>
 
-      {!isImmersive && splitTextChromeRevealed && (
+      {soundGateAwaitingChoice ? (
+        <div
+          className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black px-6 text-center pointer-events-none"
+          aria-hidden
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[url('/images/paper-texture.png')] opacity-[0.04] mix-blend-overlay" />
+          <div className="relative z-10 space-y-3">
+            <div className="relative inline-block">
+              <h1 className="m-0 text-4xl font-sans text-primary tracking-tighter drop-shadow-lg sm:text-6xl md:text-7xl">
+                Grenzwanderer 4
+              </h1>
+              <div className="absolute -inset-4 rounded-full bg-primary/10 blur-3xl -z-10" />
+            </div>
+            <div className="mx-auto h-[2px] w-16 bg-linear-to-r from-transparent via-primary/80 to-transparent opacity-70" />
+            <p className="font-serif text-base italic tracking-wide text-gray-500 md:text-lg">
+              Shadows of the Black Forest
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {!isImmersive && chromeRevealed && (
         <div className="absolute top-0 inset-x-0 p-6 pt-12 flex justify-between items-start z-100 bg-linear-to-b from-black/90 via-black/40 to-transparent pb-32 pointer-events-none border-t-0 border-l-0 border-r-0 border-b-0">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 text-amber-500/90 uppercase tracking-[0.2em] text-[10px] font-bold">
@@ -417,12 +439,31 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         </div>
       ) : null}
 
-      {backgroundVideoUrl && soundPromptPhase === "prompt" ? (
+      {showSoundPromptSpinner ? (
+        <div className="absolute inset-0 z-129 flex items-center justify-center p-6">
+          <div className="rounded-full border border-white/12 bg-black/50 px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] text-white/85 backdrop-blur-md">
+            {t.bufferingReel}
+          </div>
+        </div>
+      ) : null}
+
+      {backgroundVideoUrl &&
+      soundPromptPhase === "prompt" &&
+      allowSoundPromptChrome ? (
         <div
           className="absolute inset-0 z-130 flex items-center justify-center p-5"
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="w-full max-w-md rounded-[1.8rem] border border-white/12 bg-stone-950/90 px-6 py-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+          <motion.div
+            key={sceneId ?? backgroundVideoUrl}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.38,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            className="w-full max-w-md rounded-[1.8rem] border border-white/12 bg-stone-950/90 px-6 py-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+          >
             <p className="text-[11px] uppercase tracking-[0.22em] text-amber-300/80">
               {t.filmAudio}
             </p>
@@ -448,7 +489,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
                 {t.withoutSound}
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       ) : null}
 
@@ -461,10 +502,10 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
-              revealSplitNarrativeChrome();
+              sceneTransition.revealChrome();
             }
           }}
-          onClick={revealSplitNarrativeChrome}
+          onClick={sceneTransition.revealChrome}
         />
       ) : null}
 
@@ -486,7 +527,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
           <div
             className={[
               "w-full max-w-[44rem] transform transition-all duration-700 ease-out",
-              displayedLetterRevealed
+              chromeRevealed
                 ? "translate-y-0 -rotate-1 scale-100 opacity-100"
                 : "translate-y-10 rotate-2 scale-95 opacity-0",
             ].join(" ")}
@@ -517,7 +558,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
                   </div>
 
                   <div className="mt-5 whitespace-pre-wrap text-left text-[#2e2319]">
-                    {displayedLetterRevealed ? letterNarrativeBody : null}
+                    {chromeRevealed ? letterNarrativeBody : null}
                   </div>
 
                   <div className="mt-5 flex items-center justify-between border-t border-[#7a5830]/20 pt-3 text-[0.68rem] uppercase tracking-[0.22em] text-[#8c6a3d]">
@@ -531,7 +572,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         </div>
       ) : null}
 
-      {isLogLayout && splitTextChromeRevealed && logState ? (
+      {isLogLayout && chromeRevealed && logState ? (
         <VnLogBottomSheet
           sceneGroupId={sceneGroupId ?? null}
           state={logState}
@@ -544,10 +585,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         />
       ) : null}
 
-      {!isLogLayout &&
-      !isFullscreen &&
-      !isLetterOverlay &&
-      splitTextChromeRevealed ? (
+      {!isLogLayout && !isFullscreen && !isLetterOverlay && chromeRevealed ? (
         <div
           className={[
             "absolute bottom-0 z-150 flex flex-col border-t border-white/10 shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.8)]",

@@ -1,6 +1,8 @@
 import type { NodeBlueprint, ScenarioBlueprint } from "../vn-blueprint-types";
 import {
   CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+  CASE01_DINING_FLAGS,
+  CASE01_DINING_NODE_IDS,
   CASE01_FINAL_OUTCOME_COMPROMISED,
   CASE01_FINAL_OUTCOME_LAWFUL,
   CASE01_ROUTE_VALUE_COVERT,
@@ -65,15 +67,15 @@ export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
       "scene_case01_train_door_creaks",
       "scene_case01_train_assistant_departure",
       "scene_case01_train_silent_beat",
-      "scene_case01_train_dining_car_intro",
-      "scene_case01_train_dining_car_mother",
-      "scene_case01_train_dining_car_marriage_joke",
-      "scene_case01_train_dining_car_silent_branch",
-      "scene_case01_train_dining_car_intro_self_branch",
-      "scene_case01_train_dining_car_hotel_branch",
-      "scene_case01_train_dining_car_wine_beat",
-      "scene_case01_train_dining_car_felix_interrupts",
-      "scene_case01_train_dining_car_eleonora_farewell",
+      CASE01_DINING_NODE_IDS.intro,
+      CASE01_DINING_NODE_IDS.mother,
+      CASE01_DINING_NODE_IDS.marriageJoke,
+      CASE01_DINING_NODE_IDS.silentBranch,
+      CASE01_DINING_NODE_IDS.introSelfBranch,
+      CASE01_DINING_NODE_IDS.hotelBranch,
+      CASE01_DINING_NODE_IDS.wineBeat,
+      CASE01_DINING_NODE_IDS.felixInterrupts,
+      CASE01_DINING_NODE_IDS.eleonoraFarewell,
       "scene_case01_train_ankommen_video",
       "scene_case01_train_voza_cutscene",
       "scene_case01_train_disembark_journal",
@@ -324,7 +326,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "CASE01_TRAIN_ASSISTANT_EAT_TOGETHER",
         text: "Wait for me! I've worked up an appetite—I need a bite to eat.",
-        nextNodeId: "scene_case01_train_dining_car_intro",
+        nextNodeId: CASE01_DINING_NODE_IDS.intro,
         effects: [
           { type: "change_relationship", characterId: "assistant", delta: 1 },
         ],
@@ -355,7 +357,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     ],
   },
   {
-    id: "scene_case01_train_dining_car_intro",
+    id: CASE01_DINING_NODE_IDS.intro,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
@@ -367,12 +369,12 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_DINING_CAR_INTRO",
         text: "Continue.",
-        nextNodeId: "scene_case01_train_dining_car_mother",
+        nextNodeId: CASE01_DINING_NODE_IDS.mother,
       },
     ],
   },
   {
-    id: "scene_case01_train_dining_car_mother",
+    id: CASE01_DINING_NODE_IDS.mother,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
@@ -380,20 +382,25 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
+    onEnter: [
+      { type: "set_flag", key: CASE01_DINING_FLAGS.metMother, value: true },
+      { type: "set_flag", key: CASE01_DINING_FLAGS.metFelix, value: true },
+      { type: "set_flag", key: CASE01_DINING_FLAGS.metRedhead, value: true },
+    ],
     choices: [
       {
         id: "AUTO_CONTINUE_DINING_CAR_MOTHER",
         text: "Continue.",
-        nextNodeId: "scene_case01_train_dining_car_marriage_joke",
+        nextNodeId: CASE01_DINING_NODE_IDS.marriageJoke,
       },
     ],
   },
   {
-    id: "scene_case01_train_dining_car_marriage_joke",
+    id: CASE01_DINING_NODE_IDS.marriageJoke,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
-      "**[Элеонора]**:\n— Феликс, дорогой, ты так усердно изучаешь эти бумаги, что скоро сам превратишься в архивную пыль. Детектив, скажите ему — разве может мужчина понять город, если он смотрит на него только через газеты? Лотте как раз предлагала провести нам незабываемую экскурсию.\n\n**[Лотте]**:\n— О, Элеонора преувеличивает мой талант экскурсовода. Я лишь люблю найти хорошее место с лучшим блюдом.",
+      "**[Элеонора]**:\n— Разумеется. Детектив, позвольте представить: Лотте, самая бесстрашная знатокиня фрайбургских улиц из всех, кого я успела встретить в этом поезде. А это — мой сын Феликс Хартманн, который так усердно изучает эти бумаги, что скоро сам превратится в архивную пыль.\n\n**[Лотте]**:\n— О, Элеонора преувеличивает мой талант экскурсовода. Я лишь люблю находить хорошие места с лучшим блюдом. Но если детектив захочет понять город не только через газеты, я постараюсь не разочаровать.",
     backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
@@ -413,22 +420,22 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "CASE01_TRAIN_DINING_SILENT",
         text: "Stay silent",
-        nextNodeId: "scene_case01_train_dining_car_silent_branch",
+        nextNodeId: CASE01_DINING_NODE_IDS.silentBranch,
       },
       {
         id: "CASE01_TRAIN_DINING_INTRO_SELF",
         text: "Introduce yourself",
-        nextNodeId: "scene_case01_train_dining_car_intro_self_branch",
+        nextNodeId: CASE01_DINING_NODE_IDS.introSelfBranch,
       },
       {
         id: "CASE01_TRAIN_DINING_HOTEL",
         text: "Ask about Zum Eber",
-        nextNodeId: "scene_case01_train_dining_car_hotel_branch",
+        nextNodeId: CASE01_DINING_NODE_IDS.hotelBranch,
       },
     ],
   },
   {
-    id: "scene_case01_train_dining_car_silent_branch",
+    id: CASE01_DINING_NODE_IDS.silentBranch,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
@@ -440,15 +447,15 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_DINING_SILENT",
         text: "Continue.",
-        nextNodeId: "scene_case01_train_dining_car_wine_beat",
+        nextNodeId: CASE01_DINING_NODE_IDS.wineBeat,
         effects: [
-          { type: "set_flag", key: "flag_silent_observation", value: true },
+          { type: "set_flag", key: CASE01_DINING_FLAGS.silentObservation, value: true },
         ],
       },
     ],
   },
   {
-    id: "scene_case01_train_dining_car_intro_self_branch",
+    id: CASE01_DINING_NODE_IDS.introSelfBranch,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
@@ -460,12 +467,12 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_DINING_INTRO_SELF",
         text: "Continue.",
-        nextNodeId: "scene_case01_train_dining_car_wine_beat",
+        nextNodeId: CASE01_DINING_NODE_IDS.wineBeat,
       },
     ],
   },
   {
-    id: "scene_case01_train_dining_car_hotel_branch",
+    id: CASE01_DINING_NODE_IDS.hotelBranch,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
@@ -477,12 +484,12 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_DINING_HOTEL",
         text: "Continue.",
-        nextNodeId: "scene_case01_train_dining_car_wine_beat",
+        nextNodeId: CASE01_DINING_NODE_IDS.wineBeat,
       },
     ],
   },
   {
-    id: "scene_case01_train_dining_car_wine_beat",
+    id: CASE01_DINING_NODE_IDS.wineBeat,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
@@ -490,6 +497,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_TRAIN_DINING_CAR_WINE_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_dining_car",
+    characterId: "npc_mother_hartmann",
     passiveChecks: [
       {
         id: "check_case01_wine_perception",
@@ -498,7 +506,10 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         showChancePercent: false,
         isPassive: true,
         onSuccess: {
-          effects: [{ type: "grant_xp", amount: 5 }],
+          effects: [
+            { type: "grant_xp", amount: 5 },
+            { type: "set_flag", key: CASE01_DINING_FLAGS.noticedRingRemoved, value: true },
+          ],
           inlineText:
             "**[Perception — Успех]**:\nЕё пальцы — ухоженные, но не праздные. На безымянном — след от кольца, снятого недавно. Она привыкла управлять тем, что видят другие.",
         },
@@ -508,20 +519,20 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "CASE01_WINE_ACCEPT",
         text: "Принять бокал.",
-        nextNodeId: "scene_case01_train_dining_car_felix_interrupts",
+        nextNodeId: CASE01_DINING_NODE_IDS.felixInterrupts,
         effects: [
-          { type: "set_flag", key: "flag_joked_with_mother", value: true },
+          { type: "set_flag", key: CASE01_DINING_FLAGS.jokedWithMother, value: true },
         ],
       },
       {
         id: "CASE01_WINE_DECLINE",
         text: "Вежливо отклонить.",
-        nextNodeId: "scene_case01_train_dining_car_felix_interrupts",
+        nextNodeId: CASE01_DINING_NODE_IDS.felixInterrupts,
       },
     ],
   },
   {
-    id: "scene_case01_train_dining_car_felix_interrupts",
+    id: CASE01_DINING_NODE_IDS.felixInterrupts,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
@@ -538,7 +549,10 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         showChancePercent: false,
         isPassive: true,
         onSuccess: {
-          effects: [{ type: "grant_xp", amount: 5 }],
+          effects: [
+            { type: "grant_xp", amount: 5 },
+            { type: "set_flag", key: CASE01_DINING_FLAGS.noticedFelixApathy, value: true },
+          ],
           inlineText:
             "**[Empathy — Успех]**:\nОн не раздражён. Он устал. Устал быть представленным как приложение к матери. Папка под мышкой — не рабочий инструмент. Это щит.",
         },
@@ -548,21 +562,21 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "CASE01_FELIX_DEFEND",
         text: "Феликс прав — пора собираться.",
-        nextNodeId: "scene_case01_train_dining_car_eleonora_farewell",
+        nextNodeId: CASE01_DINING_NODE_IDS.eleonoraFarewell,
         effects: [
-          { type: "set_flag", key: "flag_defended_felix", value: true },
+          { type: "set_flag", key: CASE01_DINING_FLAGS.defendedFelix, value: true },
           { type: "change_relationship", characterId: "assistant", delta: 1 },
         ],
       },
       {
         id: "CASE01_FELIX_OBSERVE",
         text: "Промолчать и наблюдать.",
-        nextNodeId: "scene_case01_train_dining_car_eleonora_farewell",
+        nextNodeId: CASE01_DINING_NODE_IDS.eleonoraFarewell,
       },
     ],
   },
   {
-    id: "scene_case01_train_dining_car_eleonora_farewell",
+    id: CASE01_DINING_NODE_IDS.eleonoraFarewell,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
@@ -570,11 +584,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_dining_car",
-    onEnter: [
-      { type: "set_flag", key: "met_mother_intro", value: true },
-      { type: "set_flag", key: "met_felix_intro", value: true },
-      { type: "set_flag", key: "met_redhead_intro", value: true },
-    ],
+    characterId: "npc_mother_hartmann",
     choices: [
       {
         id: "AUTO_CONTINUE_ELEONORA_FAREWELL",
@@ -656,8 +666,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         text: "Continue.",
         nextNodeId: "scene_case01_beat1_atmosphere",
         visibleIfAny: [
-          { type: "flag_equals", key: "flag_joked_with_mother", value: true },
-          { type: "flag_equals", key: "flag_silent_observation", value: true },
+          { type: "flag_equals", key: CASE01_DINING_FLAGS.jokedWithMother, value: true },
+          { type: "flag_equals", key: CASE01_DINING_FLAGS.silentObservation, value: true },
         ],
         effects: [
           {
@@ -679,12 +689,12 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
               conditions: [
                 {
                   type: "flag_equals",
-                  key: "flag_joked_with_mother",
+                  key: CASE01_DINING_FLAGS.jokedWithMother,
                   value: true,
                 },
                 {
                   type: "flag_equals",
-                  key: "flag_silent_observation",
+                  key: CASE01_DINING_FLAGS.silentObservation,
                   value: true,
                 },
               ],

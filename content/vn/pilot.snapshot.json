@@ -1130,6 +1130,23 @@
           "nextNodeId": "scene_case01_train_dining_car_marriage_joke"
         }
       ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "met_mother_intro",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "met_felix_intro",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "met_redhead_intro",
+          "value": true
+        }
+      ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "sceneGroupId": "train_assistant",
       "narrativeLayout": "log"
@@ -1138,7 +1155,7 @@
       "id": "scene_case01_train_dining_car_marriage_joke",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Элеонора]**:\n— Феликс, дорогой, ты так усердно изучаешь эти бумаги, что скоро сам превратишься в архивную пыль. Детектив, скажите ему — разве может мужчина понять город, если он смотрит на него только через газеты? Лотте как раз предлагала провести нам незабываемую экскурсию.\n\n**[Лотте]**:\n— О, Элеонора преувеличивает мой талант экскурсовода. Я лишь люблю найти хорошее место с лучшим блюдом.",
+      "body": "**[Элеонора]**:\n— Разумеется. Детектив, позвольте представить: Лотте, самая бесстрашная знатокиня фрайбургских улиц из всех, кого я успела встретить в этом поезде. А это — мой сын Феликс Хартманн, который так усердно изучает эти бумаги, что скоро сам превратится в архивную пыль.\n\n**[Лотте]**:\n— О, Элеонора преувеличивает мой талант экскурсовода. Я лишь люблю находить хорошие места с лучшим блюдом. Но если детектив захочет понять город не только через газеты, я постараюсь не разочаровать.",
       "choices": [
         {
           "id": "CASE01_TRAIN_DINING_SILENT",
@@ -1268,6 +1285,11 @@
               {
                 "type": "grant_xp",
                 "amount": 5
+              },
+              {
+                "type": "set_flag",
+                "key": "noticed_eleonora_ring_removed",
+                "value": true
               }
             ],
             "inlineText": "**[Perception — Успех]**:\nЕё пальцы — ухоженные, но не праздные. На безымянном — след от кольца, снятого недавно. Она привыкла управлять тем, что видят другие."
@@ -1275,6 +1297,7 @@
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car_wine.png",
+      "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
     },
@@ -1319,6 +1342,11 @@
               {
                 "type": "grant_xp",
                 "amount": 5
+              },
+              {
+                "type": "set_flag",
+                "key": "noticed_felix_apathy",
+                "value": true
               }
             ],
             "inlineText": "**[Empathy — Успех]**:\nОн не раздражён. Он устал. Устал быть представленным как приложение к матери. Папка под мышкой — не рабочий инструмент. Это щит."
@@ -1342,24 +1370,8 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "onEnter": [
-        {
-          "type": "set_flag",
-          "key": "met_mother_intro",
-          "value": true
-        },
-        {
-          "type": "set_flag",
-          "key": "met_felix_intro",
-          "value": true
-        },
-        {
-          "type": "set_flag",
-          "key": "met_redhead_intro",
-          "value": true
-        }
-      ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
     },
@@ -5699,6 +5711,65 @@
       "body": "- Entered from [[40_GameViewer/Sandbox_KA/00_Entry/scene_language_select|scene_language_select]]. - Language/config setup completed. - Select starting background flavor for roleplay framing.",
       "choices": [
         {
+          "id": "BACKSTORY_DETECTIVE",
+          "text": "Detective Origin",
+          "nextNodeId": "scene_map_intro",
+          "effects": [
+            {
+              "type": "set_var",
+              "key": "attr_intellect",
+              "value": 3
+            },
+            {
+              "type": "set_var",
+              "key": "attr_perception",
+              "value": 4
+            },
+            {
+              "type": "set_var",
+              "key": "attr_empathy",
+              "value": 1
+            },
+            {
+              "type": "set_flag",
+              "key": "origin_detective",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "flaw_cynic_mistrust",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "ability_crime_scene_reconstruction",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "char_creation_complete",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "track_investigator_xp",
+              "value": 0
+            },
+            {
+              "type": "set_var",
+              "key": "track_occult_sleuth_xp",
+              "value": 0
+            },
+            {
+              "type": "track_event",
+              "eventName": "origin_selected",
+              "tags": {
+                "origin": "detective"
+              }
+            }
+          ]
+        },
+        {
           "id": "BACKSTORY_JOURNALIST",
           "text": "Journalist Origin",
           "nextNodeId": "scene_map_intro",
@@ -5930,65 +6001,6 @@
               "eventName": "origin_selected",
               "tags": {
                 "origin": "archivist"
-              }
-            }
-          ]
-        },
-        {
-          "id": "BACKSTORY_DETECTIVE",
-          "text": "Detective Origin",
-          "nextNodeId": "scene_map_intro",
-          "effects": [
-            {
-              "type": "set_var",
-              "key": "attr_intellect",
-              "value": 3
-            },
-            {
-              "type": "set_var",
-              "key": "attr_perception",
-              "value": 4
-            },
-            {
-              "type": "set_var",
-              "key": "attr_empathy",
-              "value": 1
-            },
-            {
-              "type": "set_flag",
-              "key": "origin_detective",
-              "value": true
-            },
-            {
-              "type": "set_flag",
-              "key": "flaw_cynic_mistrust",
-              "value": true
-            },
-            {
-              "type": "set_flag",
-              "key": "ability_crime_scene_reconstruction",
-              "value": true
-            },
-            {
-              "type": "set_flag",
-              "key": "char_creation_complete",
-              "value": true
-            },
-            {
-              "type": "set_var",
-              "key": "track_investigator_xp",
-              "value": 0
-            },
-            {
-              "type": "set_var",
-              "key": "track_occult_sleuth_xp",
-              "value": 0
-            },
-            {
-              "type": "track_event",
-              "eventName": "origin_selected",
-              "tags": {
-                "origin": "detective"
               }
             }
           ]
@@ -8606,5 +8618,5 @@
       }
     ]
   },
-  "checksum": "6f461a2b6599aabd34dd326eb653ca5862ead84f2f0c21dab96c986e96b68472"
+  "checksum": "cca58ec4d51975703c39634767e1da8f0a5c0c0e13cdc0d6cc78067cc03497f4"
 }

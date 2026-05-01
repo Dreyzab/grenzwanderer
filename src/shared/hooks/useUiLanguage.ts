@@ -34,6 +34,32 @@ export const writeStoredUiLanguage = (language: UiLanguage): void => {
   }
 };
 
+export const inferBrowserUiLanguage = (): UiLanguage => {
+  if (typeof navigator === "undefined") {
+    return "en";
+  }
+
+  const rawList =
+    Array.isArray(navigator.languages) && navigator.languages.length > 0
+      ? navigator.languages
+      : [navigator.language];
+
+  for (const raw of rawList) {
+    if (!raw || typeof raw !== "string") {
+      continue;
+    }
+    const base = raw.toLowerCase().split("-")[0] ?? "";
+    if (base === "ru") {
+      return "ru";
+    }
+    if (base === "de") {
+      return "de";
+    }
+  }
+
+  return "en";
+};
+
 export const resolveUiLanguage = (
   flags: Record<string, boolean>,
   fallback: UiLanguage = "en",
@@ -50,6 +76,24 @@ export const resolveUiLanguage = (
   return fallback;
 };
 
+/** Pure resolution for tests and a single hook implementation. */
+export const resolveEffectiveUiLanguage = (
+  localStored: UiLanguage | null,
+  flags: Record<string, boolean>,
+  browserInfer: () => UiLanguage = inferBrowserUiLanguage,
+): UiLanguage => {
+  if (localStored) {
+    return localStored;
+  }
+
+  const inferred = browserInfer();
+  if (inferred !== "en") {
+    return inferred;
+  }
+
+  return resolveUiLanguage(flags);
+};
+
 export const useUiLanguage = (flags: Record<string, boolean>): UiLanguage => {
   const [localLanguage, setLocalLanguage] = useState<UiLanguage | null>(
     readStoredUiLanguage(),
@@ -64,18 +108,8 @@ export const useUiLanguage = (flags: Record<string, boolean>): UiLanguage => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  return useMemo(() => {
-    // Priority 1: Local storage (immediate feedback on this device)
-    if (localLanguage) {
-      return localLanguage;
-    }
-
-    // Priority 2: Server flags (cross-device preference)
-    if (flags.lang_ru) return "ru";
-    if (flags.lang_de) return "de";
-    if (flags.lang_en) return "en";
-
-    // Priority 3: Hardcoded default
-    return "en";
-  }, [flags, localLanguage]);
+  return useMemo(
+    () => resolveEffectiveUiLanguage(localLanguage, flags),
+    [flags, localLanguage],
+  );
 };

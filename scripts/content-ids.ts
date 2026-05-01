@@ -31,6 +31,8 @@ export const CONTENT_IDS = {
     "npc_major_falk",
     "npc_archivist_otto",
     "npc_weber_dispatcher",
+    "npc_mother_hartmann",
+    "npc_felix_hartmann",
     "assistant",
     "inspector",
     "paperboy",

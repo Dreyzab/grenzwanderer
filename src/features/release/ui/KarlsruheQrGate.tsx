@@ -28,7 +28,7 @@ export const KarlsruheQrGate = ({
   const statusLabel = resolveStatusLabel(state, errorMessage);
 
   return (
-    <div className="min-h-[100dvh] bg-stone-950 text-stone-100 flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-[100dvh] bg-stone-950 text-stone-100 flex items-center justify-center p-6 pt-[calc(3.75rem+env(safe-area-inset-top))] relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,167,79,0.14),transparent_40%),linear-gradient(180deg,rgba(28,25,23,0.96),rgba(12,10,9,1))]" />
       <div className="absolute inset-0 bg-[url('/images/paper-texture.png')] opacity-[0.06] mix-blend-screen" />
       <section className="relative z-10 w-full max-w-xl rounded-[32px] border border-amber-800/30 bg-stone-950/80 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl p-8 md:p-10">

@@ -112,7 +112,7 @@ export const VnScreen = ({
   const myFlags = usePlayerFlags();
   const myVars = usePlayerVars();
   const uiLanguage = useUiLanguage(myFlags);
-  const { dictionary } = useI18n();
+  const { dictionary, localePackReady } = useI18n();
   const t = useMemo(() => getVnStrings(uiLanguage), [uiLanguage]);
 
   const performSkillCheck = useCallback(
@@ -194,11 +194,15 @@ export const VnScreen = ({
     return layout ?? "split";
   }, [currentNode?.narrativeLayout, currentNode?.narrativePresentation]);
 
-  const currentSceneGroupId =
-    currentNode?.sceneGroupId ?? currentNode?.id ?? null;
+  /**
+   * Authored-group input for `useNarrativeLog` only. Passing this to `VnLogBottomSheet`
+   * would false-trigger on nodes without `sceneGroupId` — the sheet must receive
+   * `narrativeLog.state.sceneGroupId` (sticky / resolved coordinator).
+   */
+  const vnExplicitSceneGroupId = currentNode?.sceneGroupId ?? null;
   const narrativeLog = useNarrativeLog(
     currentNode,
-    currentSceneGroupId,
+    vnExplicitSceneGroupId,
     uiLanguage,
   );
   const { appendCheckResult, appendChoice, setTypingSegment } = narrativeLog;
@@ -265,6 +269,8 @@ export const VnScreen = ({
     activeProvidenceThoughtContext,
     activeReactionKey,
     tSessionHydrating: t.sessionHydrating,
+    tTranslationsLoading: t.translationsLoading,
+    localePackReady,
     uiLanguage,
     dictionary,
   });
@@ -565,7 +571,7 @@ export const VnScreen = ({
       <VnNarrativePanel
         t={t}
         sceneId={currentNode?.id}
-        sceneGroupId={currentSceneGroupId}
+        sceneGroupId={narrativeLog.state.sceneGroupId}
         locationName={displayLocationName}
         characterName={speakerLabel === "Narrator" ? undefined : speakerLabel}
         narrativeText={narrativeText}

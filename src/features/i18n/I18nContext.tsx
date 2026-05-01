@@ -12,6 +12,8 @@ export interface I18nState {
   language: UiLanguage;
   dictionary: I18nDictionary | null;
   isLoaded: boolean;
+  /** True when `language === "en"` or locale JSON (and merges) have finished loading. */
+  localePackReady: boolean;
 }
 
 export const I18nContext = createContext<I18nState | null>(null);

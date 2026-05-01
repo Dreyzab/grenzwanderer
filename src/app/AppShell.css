@@ -1,6 +1,8 @@
 ﻿.app-shell {
   min-height: 100vh;
   padding: 1.25rem clamp(1rem, 3vw, 2.25rem) 2rem;
+  /* Space under fixed GlobalLanguageBar (safe-area + bar height) */
+  padding-top: calc(1.25rem + env(safe-area-inset-top) + 3.25rem);
   color: #f8fafc;
   background:
     radial-gradient(

@@ -70,7 +70,7 @@ vi.mock("../pages/HomePage", () => ({
     onOpenVnScenario,
   }: {
     onNavigate: (tab: string) => void;
-    onOpenVnScenario: (scenarioId: string) => void;
+    onOpenVnScenario: (scenarioId: string, options?: unknown) => void;
   }) => (
     <div>
       <button type="button" onClick={() => onNavigate("vn")}>

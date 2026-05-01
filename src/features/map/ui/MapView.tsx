@@ -16,6 +16,7 @@ import MapGL, {
 import { useReducer, useTable } from "spacetimedb/react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./mapExperience.css";
+import type { OpenVnScenarioOptions } from "../../../app/AppShell";
 import { MAPBOX_STYLE, MAPBOX_TOKEN, RELEASE_PROFILE } from "../../../config";
 import { reducers, tables } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
@@ -30,7 +31,10 @@ import { DetectiveHub } from "./DetectiveHub";
 import { DetectiveMapPin } from "./DetectiveMapPin";
 
 interface MapViewProps {
-  onOpenVnScenario: (scenarioId: string) => void;
+  onOpenVnScenario: (
+    scenarioId: string,
+    options?: OpenVnScenarioOptions,
+  ) => void;
   initialPanel?: "qr";
 }
 

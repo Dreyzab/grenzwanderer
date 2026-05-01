@@ -102,6 +102,8 @@ interface UseVnDerivedStateParams {
   activeProvidenceThoughtContext: ActiveAiThoughtContext | null;
   activeReactionKey: string | null;
   tSessionHydrating: string;
+  tTranslationsLoading: string;
+  localePackReady: boolean;
   uiLanguage: UiLanguage;
   dictionary: I18nDictionary | null;
 }
@@ -129,6 +131,8 @@ export function useVnDerivedState({
   activeProvidenceThoughtContext,
   activeReactionKey,
   tSessionHydrating,
+  tTranslationsLoading,
+  localePackReady,
   uiLanguage,
   dictionary,
 }: UseVnDerivedStateParams) {
@@ -354,6 +358,9 @@ export function useVnDerivedState({
     if (!currentNode) {
       return sessionReady ? "" : tSessionHydrating;
     }
+    if (!localePackReady && uiLanguage !== "en") {
+      return tTranslationsLoading;
+    }
     const translationKey = buildVnNodeTranslationKey(
       selectedScenarioId,
       currentNode.id,
@@ -383,9 +390,11 @@ export function useVnDerivedState({
   }, [
     currentNode,
     dictionary,
+    localePackReady,
     selectedScenarioId,
     sessionReady,
     tSessionHydrating,
+    tTranslationsLoading,
     uiLanguage,
   ]);
 

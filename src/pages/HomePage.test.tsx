@@ -255,7 +255,7 @@ describe("HomePage Freiburg flow", () => {
       language: "en",
       dictionary: null,
       isLoaded: true,
-      t: (key: string) => key,
+      localePackReady: true,
     });
   });
 
@@ -326,7 +326,9 @@ describe("HomePage Freiburg flow", () => {
           resetProgress: true,
         }),
       );
-      expect(onOpenVnScenario).toHaveBeenCalledWith("intro_aristocrat");
+      expect(onOpenVnScenario).toHaveBeenCalledWith("intro_aristocrat", {
+        launchCurtain: true,
+      });
     });
   });
 
@@ -472,7 +474,9 @@ describe("HomePage Freiburg flow", () => {
           resetProgress: false,
         }),
       );
-      expect(onOpenVnScenario).toHaveBeenCalledWith("intro_archivist");
+      expect(onOpenVnScenario).toHaveBeenCalledWith("intro_archivist", {
+        launchCurtain: true,
+      });
     });
   });
 });

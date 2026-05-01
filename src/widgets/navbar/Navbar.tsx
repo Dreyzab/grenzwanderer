@@ -11,14 +11,6 @@ import {
   Swords,
   ChevronDown,
 } from "lucide-react";
-import { useReducer } from "spacetimedb/react";
-import { useI18n } from "../../features/i18n/I18nContext";
-import {
-  type UiLanguage,
-  writeStoredUiLanguage,
-} from "../../shared/hooks/useUiLanguage";
-import { reducers } from "../../shared/spacetime/bindings";
-
 type TabId =
   | "home"
   | "vn"
@@ -69,8 +61,6 @@ export const Navbar = <TTab extends string>({
   onTabChange,
   badges,
 }: NavbarProps<TTab>) => {
-  const { language } = useI18n();
-  const setFlag = useReducer(reducers.setFlag);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     try {
       const saved = localStorage.getItem("grenzwanderer_navbar_collapsed");
@@ -80,7 +70,25 @@ export const Navbar = <TTab extends string>({
     }
   });
 
+  /** VN defaults to tucked nav; expands only until user leaves vn or collapses again. */
+  const [vnUserExpanded, setVnUserExpanded] = useState(false);
+  const prevTabRef = useRef<TTab | null>(null);
+
+  const isVnTab = String(activeTab) === "vn";
+  const navCollapsed = isVnTab ? !vnUserExpanded : isCollapsed;
+
   useEffect(() => {
+    const prev = prevTabRef.current;
+    prevTabRef.current = activeTab;
+    if (isVnTab && prev !== null && String(prev) !== "vn") {
+      setVnUserExpanded(false);
+    }
+  }, [activeTab, isVnTab]);
+
+  useEffect(() => {
+    if (isVnTab) {
+      return;
+    }
     try {
       localStorage.setItem(
         "grenzwanderer_navbar_collapsed",
@@ -89,7 +97,7 @@ export const Navbar = <TTab extends string>({
     } catch {
       // ignore
     }
-  }, [isCollapsed]);
+  }, [isCollapsed, isVnTab]);
 
   const navRef = useRef<HTMLElement | null>(null);
   const barRowRef = useRef<HTMLDivElement | null>(null);
@@ -118,25 +126,11 @@ export const Navbar = <TTab extends string>({
   }, [tabs.length]);
 
   const yAnimated =
-    isCollapsed && collapseY > 0
+    navCollapsed && collapseY > 0
       ? collapseY
-      : isCollapsed
+      : navCollapsed
         ? "calc(100% - 1.5rem - env(safe-area-inset-bottom))"
         : 0;
-
-  const handleLanguageChange = async (nextLanguage: UiLanguage) => {
-    writeStoredUiLanguage(nextLanguage);
-    await setFlag({ key: "lang_en", value: nextLanguage === "en" });
-    await setFlag({ key: "lang_de", value: nextLanguage === "de" });
-    await setFlag({ key: "lang_ru", value: nextLanguage === "ru" });
-  };
-
-  const languageButtonClass = (buttonLanguage: UiLanguage) =>
-    `${
-      language === buttonLanguage
-        ? "text-primary"
-        : "text-stone-500 hover:text-stone-300"
-    } transition-colors border-none bg-transparent shadow-none`;
 
   return (
     <motion.nav
@@ -155,13 +149,18 @@ export const Navbar = <TTab extends string>({
         if (collapseY <= 0) return;
         const { offset, velocity } = info;
         const vTh = 280;
-        if (!isCollapsed) {
-          if (offset.y > 48 || velocity.y > vTh) setIsCollapsed(true);
+        if (!navCollapsed) {
+          if (offset.y > 48 || velocity.y > vTh) {
+            if (isVnTab) setVnUserExpanded(false);
+            else setIsCollapsed(true);
+          } else if (isVnTab) setVnUserExpanded(true);
           else setIsCollapsed(false);
-        } else {
-          if (offset.y < -48 || velocity.y < -vTh) setIsCollapsed(false);
-          else setIsCollapsed(true);
-        }
+        } else if (offset.y < -48 || velocity.y < -vTh) {
+          if (isVnTab) setVnUserExpanded(true);
+          else setIsCollapsed(false);
+        } else if (!isVnTab) {
+          setIsCollapsed(true);
+        } else setVnUserExpanded(false);
       }}
       transition={{ type: "spring", damping: 28, stiffness: 280 }}
       className="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-stone-950/95 backdrop-blur-md border-t border-stone-800 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] touch-none"
@@ -171,13 +170,17 @@ export const Navbar = <TTab extends string>({
         <motion.button
           type="button"
           onPointerDown={(e) => dragControls.start(e)}
-          onTap={() => setIsCollapsed((c) => !c)}
+          onTap={() =>
+            isVnTab ? setVnUserExpanded((e) => !e) : setIsCollapsed((c) => !c)
+          }
           className="group relative -top-3 flex h-8 w-20 items-center justify-center rounded-t-2xl border-x border-t border-stone-800 bg-stone-950/95 pb-1 transition-colors hover:bg-stone-900"
-          aria-label={isCollapsed ? "Expand Navigation" : "Collapse Navigation"}
+          aria-label={
+            navCollapsed ? "Expand Navigation" : "Collapse Navigation"
+          }
         >
           <div className="absolute top-1.5 h-1 w-8 rounded-full bg-stone-700 transition-colors group-hover:bg-stone-500" />
           <motion.div
-            animate={{ rotate: isCollapsed ? 180 : 0 }}
+            animate={{ rotate: navCollapsed ? 180 : 0 }}
             className="mt-1 text-stone-500"
           >
             <ChevronDown size={14} />
@@ -215,34 +218,6 @@ export const Navbar = <TTab extends string>({
               </button>
             );
           })}
-        </div>
-
-        {/* Language Switcher absolute on large screens, fixed bottom right on mobile */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-3 text-[10px] sm:text-xs font-bold text-stone-500 bg-stone-900/90 border border-stone-700/80 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 shadow-lg backdrop-blur-md z-100">
-          <button
-            type="button"
-            onClick={() => void handleLanguageChange("en")}
-            className={languageButtonClass("en")}
-            aria-pressed={language === "en"}
-          >
-            EN
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleLanguageChange("de")}
-            className={languageButtonClass("de")}
-            aria-pressed={language === "de"}
-          >
-            DE
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleLanguageChange("ru")}
-            className={languageButtonClass("ru")}
-            aria-pressed={language === "ru"}
-          >
-            RU
-          </button>
         </div>
       </div>
     </motion.nav>

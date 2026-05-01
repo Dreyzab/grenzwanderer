@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import type { ReactNode, RefObject } from "react";
 import type { VnSnapshot } from "../types";
 import type { TypedTextHandle } from "../ui/TypedText";
@@ -35,6 +35,7 @@ export function VnNarrativeLog({
   onSegmentComplete,
 }: VnNarrativeLogProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const entries = useMemo<LogEntry[]>(
     () =>
@@ -58,19 +59,48 @@ export function VnNarrativeLog({
   );
   const currentSegment = currentSegments[state.currentSegmentIndex] ?? null;
   const allSegmentsDone = state.currentSegmentIndex >= currentSegments.length;
+  const choicesVisible = allSegmentsDone && choicesSlot != null;
 
-  useEffect(() => {
+  const scrollToBottom = useCallback(() => {
     const element = scrollRef.current;
     if (!element) {
       return;
     }
-    element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
+    element.scrollTop = element.scrollHeight;
+  }, []);
+
+  const scheduleScrollToBottom = useCallback(() => {
+    scrollToBottom();
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+    const rafId = window.requestAnimationFrame(scrollToBottom);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [scrollToBottom]);
+
+  useLayoutEffect(() => {
+    return scheduleScrollToBottom();
   }, [
+    scheduleScrollToBottom,
     entries.length,
     state.currentSegmentIndex,
     state.currentNodeId,
     allSegmentsDone,
+    choicesVisible,
   ]);
+
+  useLayoutEffect(() => {
+    const target = contentRef.current;
+    if (!target || typeof ResizeObserver === "undefined") {
+      return scheduleScrollToBottom();
+    }
+
+    const observer = new ResizeObserver(() => {
+      scheduleScrollToBottom();
+    });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [scheduleScrollToBottom]);
 
   let previousSpeaker: string | null = null;
 
@@ -79,7 +109,10 @@ export function VnNarrativeLog({
       ref={scrollRef}
       className="vn-log-container h-full overflow-y-auto px-5 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-4 sm:px-8"
     >
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-1">
+      <div
+        ref={contentRef}
+        className="mx-auto flex w-full max-w-3xl flex-col gap-1"
+      >
         {entries.map((entry) => {
           const showSpeaker =
             entry.type !== "segment" ||

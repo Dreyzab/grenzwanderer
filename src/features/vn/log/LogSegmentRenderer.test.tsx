@@ -43,9 +43,10 @@ describe("LogSegmentRenderer", () => {
 
     expect(screen.queryByTestId("vn-inner-voice-segment")).toBeNull();
     expect(screen.getByText("Assistant")).toBeInTheDocument();
-    expect(screen.getByText("No headlines today.")).toHaveClass(
-      "text-stone-100",
-    );
+    // Classes are on the container div in the new UI structure
+    expect(
+      screen.getByText("No headlines today.").closest(".text-stone-100"),
+    ).toBeInTheDocument();
   });
 
   it("keeps narrator text as quiet narrative prose", () => {
@@ -62,9 +63,12 @@ describe("LogSegmentRenderer", () => {
 
     expect(screen.queryByTestId("vn-inner-voice-segment")).toBeNull();
     expect(screen.queryByText("Narrator")).toBeNull();
+    // Classes are on the container div in the new UI structure
     expect(
-      screen.getByText("Steam gathers under the station roof."),
-    ).toHaveClass("italic");
+      screen
+        .getByText("Steam gathers under the station roof.")
+        .closest(".italic"),
+    ).toBeInTheDocument();
   });
 
   it("keeps typed text behavior for inner voice segments", async () => {

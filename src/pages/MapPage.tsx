@@ -1,4 +1,5 @@
 import { Suspense, lazy, useMemo } from "react";
+import type { OpenVnScenarioOptions } from "../app/AppShell";
 import "../features/map/ui/mapExperience.css";
 import { useUiLanguage } from "../shared/hooks/useUiLanguage";
 import { getMapStrings } from "../features/i18n/uiStrings";
@@ -10,7 +11,10 @@ const LazyMapView = lazy(async () => {
 });
 
 interface MapPageProps {
-  onOpenVnScenario: (scenarioId: string) => void;
+  onOpenVnScenario: (
+    scenarioId: string,
+    options?: OpenVnScenarioOptions,
+  ) => void;
   initialPanel?: "qr";
 }
 

@@ -36,6 +36,8 @@ export interface NarrativeLogState {
 interface InternalNarrativeLogState extends NarrativeLogState {
   committedSegmentCount: number;
   sequence: number;
+  /** Keeps implicit (no authored sceneGroupId) chains stable across nodes within one scenario. */
+  implicitChainScenarioId: string | null;
 }
 
 const initialState: InternalNarrativeLogState = {
@@ -47,6 +49,7 @@ const initialState: InternalNarrativeLogState = {
   currentNodeId: null,
   committedSegmentCount: 0,
   sequence: 0,
+  implicitChainScenarioId: null,
 };
 
 const createSegmentEntry = (
@@ -106,7 +109,7 @@ export function useNarrativeLog(
 
   useEffect(() => {
     const nextNodeId = currentNode?.id ?? null;
-    const nextSceneGroupId = sceneGroupId ?? nextNodeId;
+    const nextScenarioId = currentNode?.scenarioId ?? null;
     const nextBody = currentNode
       ? resolveVnNodeText(
           language,
@@ -122,12 +125,31 @@ export function useNarrativeLog(
       : [];
 
     setState((previous) => {
+      const nextSceneGroupId =
+        sceneGroupId != null
+          ? sceneGroupId
+          : previous.implicitChainScenarioId != null &&
+              nextScenarioId != null &&
+              previous.implicitChainScenarioId === nextScenarioId
+            ? (previous.sceneGroupId ?? nextNodeId)
+            : nextNodeId;
+
+      const nextImplicitChainScenarioId =
+        sceneGroupId != null
+          ? nextScenarioId
+          : nextSceneGroupId === nextNodeId &&
+              (previous.implicitChainScenarioId == null ||
+                previous.implicitChainScenarioId !== nextScenarioId)
+            ? nextScenarioId
+            : (previous.implicitChainScenarioId ?? nextScenarioId);
+
       if (
         previous.currentNodeId === nextNodeId &&
         previous.sceneGroupId === nextSceneGroupId
       ) {
         return {
           ...previous,
+          implicitChainScenarioId: nextImplicitChainScenarioId,
           currentNodeSegments: nextSegments,
           isTypingSegment:
             previous.currentSegmentIndex < nextSegments.length &&
@@ -142,6 +164,7 @@ export function useNarrativeLog(
           currentNodeSegments: nextSegments,
           isTypingSegment: nextSegments.length > 0,
           sceneGroupId: nextSceneGroupId,
+          implicitChainScenarioId: nextImplicitChainScenarioId,
         };
       }
 
@@ -155,6 +178,7 @@ export function useNarrativeLog(
         currentSegmentIndex: 0,
         committedSegmentCount: 0,
         isTypingSegment: nextSegments.length > 0,
+        implicitChainScenarioId: nextImplicitChainScenarioId,
       };
     });
   }, [
@@ -258,6 +282,7 @@ export function useNarrativeLog(
     setState((previous) => ({
       ...initialState,
       sceneGroupId: previous.sceneGroupId,
+      implicitChainScenarioId: previous.implicitChainScenarioId,
       currentNodeId: previous.currentNodeId,
       currentNodeSegments: previous.currentNodeSegments,
       isTypingSegment: previous.currentNodeSegments.length > 0,

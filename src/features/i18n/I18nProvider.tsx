@@ -93,8 +93,12 @@ export function I18nProvider({ children }: I18nProviderProps) {
     loadTranslations();
   }, [language, serverDictionary]);
 
+  const localePackReady = language === "en" || isLoaded;
+
   return (
-    <I18nContext.Provider value={{ language, dictionary, isLoaded }}>
+    <I18nContext.Provider
+      value={{ language, dictionary, isLoaded, localePackReady }}
+    >
       {children}
     </I18nContext.Provider>
   );

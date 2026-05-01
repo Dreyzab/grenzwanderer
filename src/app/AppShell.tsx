@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { useReducer, useTable } from "spacetimedb/react";
 import {
   APP_BUILD_TIMESTAMP,
@@ -37,6 +44,7 @@ import { useIdentity } from "../shared/spacetime/useIdentity";
 import { usePresenceHeartbeat } from "../shared/spacetime/usePresenceHeartbeat";
 import { Toaster } from "../shared/ui/Toaster";
 import { Navbar } from "../widgets/navbar/Navbar";
+import { GlobalLanguageBar } from "../widgets/language/GlobalLanguageBar";
 import { useI18n } from "../features/i18n/I18nContext";
 import { getNavbarStrings, getHomeStrings } from "../features/i18n/uiStrings";
 import "./AppShell.css";
@@ -51,6 +59,14 @@ type TabId =
   | "battle";
 
 type MapPanelId = "qr";
+
+export type OpenVnScenarioOptions = Readonly<{ launchCurtain?: boolean }>;
+
+type VnLaunchCoverPhase = "off" | "solid" | "out";
+
+/** Hold before fade so VN can mount and buffer video under opaque black. */
+const VN_LAUNCH_CURTAIN_HOLD_MS = 450;
+const VN_LAUNCH_CURTAIN_FADE_MS = 500;
 
 interface ShellUrlState {
   pathname: string;
@@ -262,6 +278,8 @@ const AppShell = () => {
   const [mapPanel, setMapPanel] = useState<MapPanelId | undefined>(
     initialUrlState.mapPanel,
   );
+  const [vnLaunchCoverPhase, setVnLaunchCoverPhase] =
+    useState<VnLaunchCoverPhase>("off");
   const grantStorageKey = useMemo(
     () => getKarlsruheGrantStorageKey(RELEASE_PROFILE, SPACETIMEDB_DB_NAME),
     [],
@@ -494,13 +512,33 @@ const AppShell = () => {
     vnScenarioId,
   ]);
 
-  const openVnScenario = (scenarioId: string) => {
+  const openVnScenario = (
+    scenarioId: string,
+    options?: OpenVnScenarioOptions,
+  ) => {
     if (isKarlsruheProfile) {
       setPathname(KARLSRUHE_EVENT_PATHNAME);
     }
     setVnScenarioId(scenarioId);
     setMapPanel(undefined);
     setActiveTab("vn");
+    if (options?.launchCurtain) {
+      setVnLaunchCoverPhase("solid");
+    }
+  };
+
+  useEffect(() => {
+    if (vnLaunchCoverPhase !== "solid") {
+      return undefined;
+    }
+    const timer = window.setTimeout(() => {
+      setVnLaunchCoverPhase("out");
+    }, VN_LAUNCH_CURTAIN_HOLD_MS);
+    return () => window.clearTimeout(timer);
+  }, [vnLaunchCoverPhase]);
+
+  const handleVnLaunchCoverTransitionEnd = () => {
+    setVnLaunchCoverPhase("off");
   };
 
   const navigateToTab = (tab: TabId, options?: { mapPanel?: MapPanelId }) => {
@@ -583,6 +621,8 @@ const AppShell = () => {
       renderTab={renderTab}
       identityHex={identityHex}
       isActive={isActive}
+      vnLaunchCoverPhase={vnLaunchCoverPhase}
+      onVnLaunchCoverTransitionEnd={handleVnLaunchCoverTransitionEnd}
     />
   );
 };
@@ -598,6 +638,8 @@ interface InnerWrapperProps {
   renderTab: (tab: TabId) => ReactNode;
   identityHex: string;
   isActive: boolean;
+  vnLaunchCoverPhase: VnLaunchCoverPhase;
+  onVnLaunchCoverTransitionEnd: () => void;
 }
 
 const AppShellInnerWrapper = ({
@@ -611,6 +653,8 @@ const AppShellInnerWrapper = ({
   renderTab,
   identityHex,
   isActive,
+  vnLaunchCoverPhase,
+  onVnLaunchCoverTransitionEnd,
 }: InnerWrapperProps) => {
   const { language } = useI18n();
   const home = getHomeStrings(language);
@@ -658,11 +702,14 @@ const AppShellInnerWrapper = ({
     (pathname !== KARLSRUHE_EVENT_PATHNAME || entryGateState !== "granted")
   ) {
     return (
-      <KarlsruheQrGate
-        state={entryGateState}
-        errorMessage={entryGateError}
-        hasGrant={hasKarlsruheGrant}
-      />
+      <>
+        <GlobalLanguageBar />
+        <KarlsruheQrGate
+          state={entryGateState}
+          errorMessage={entryGateError}
+          hasGrant={hasKarlsruheGrant}
+        />
+      </>
     );
   }
 
@@ -676,6 +723,8 @@ const AppShellInnerWrapper = ({
         renderTab={renderTab}
         tabs={localizedTabs}
         subtitle={isKarlsruheProfile ? home.karlsruheRelease : home.phase2Slice}
+        vnLaunchCoverPhase={vnLaunchCoverPhase}
+        onVnLaunchCoverTransitionEnd={onVnLaunchCoverTransitionEnd}
       />
     </ToastProvider>
   );
@@ -688,6 +737,8 @@ interface AppShellInnerProps {
   renderTab: (tab: TabId) => ReactNode;
   tabs: Array<{ id: TabId; label: string }>;
   subtitle: string;
+  vnLaunchCoverPhase: VnLaunchCoverPhase;
+  onVnLaunchCoverTransitionEnd: () => void;
 }
 
 const AppShellInner = ({
@@ -697,6 +748,8 @@ const AppShellInner = ({
   renderTab,
   tabs,
   subtitle,
+  vnLaunchCoverPhase,
+  onVnLaunchCoverTransitionEnd,
 }: AppShellInnerProps) => {
   useFactDiscoveryToast();
   useHypothesisRewardToast();
@@ -704,6 +757,7 @@ const AppShellInner = ({
   const { hasReadyHypotheses } = useMindPalaceReadiness();
   const isHomeTab = activeTab === "home";
   const isMapTab = activeTab === "map";
+  const hideLanguageBarInVn = activeTab === "vn";
 
   const badges = useMemo(() => {
     const nextBadges: Partial<Record<TabId, boolean>> = {};
@@ -723,6 +777,7 @@ const AppShellInner = ({
             : "app-shell"
       }
     >
+      {!hideLanguageBarInVn ? <GlobalLanguageBar /> : null}
       {!isHomeTab && !isMapTab && (
         <header className="app-header">
           <div>
@@ -758,6 +813,35 @@ const AppShellInner = ({
         onTabChange={setActiveTab}
         badges={badges}
       />
+
+      {vnLaunchCoverPhase !== "off" ? (
+        <div
+          role="presentation"
+          aria-hidden
+          className={[
+            "pointer-events-none fixed inset-0 z-210 bg-black",
+            vnLaunchCoverPhase === "out"
+              ? "opacity-0 transition-opacity"
+              : "opacity-100",
+          ].join(" ")}
+          style={
+            vnLaunchCoverPhase === "out"
+              ? ({
+                  transitionDuration: `${VN_LAUNCH_CURTAIN_FADE_MS}ms`,
+                  transitionTimingFunction: "ease-out",
+                } satisfies CSSProperties)
+              : undefined
+          }
+          onTransitionEnd={(event) => {
+            if (
+              event.propertyName === "opacity" &&
+              vnLaunchCoverPhase === "out"
+            ) {
+              onVnLaunchCoverTransitionEnd();
+            }
+          }}
+        />
+      ) : null}
     </div>
   );
 };

@@ -21,6 +21,29 @@ export const CASE01_ROUTE_VALUE_COVERT = 2;
 export const CASE01_FINAL_OUTCOME_LAWFUL = 1;
 export const CASE01_FINAL_OUTCOME_COMPROMISED = 2;
 
+export const CASE01_DINING_NODE_IDS = {
+  intro: "scene_case01_train_dining_car_intro",
+  mother: "scene_case01_train_dining_car_mother",
+  marriageJoke: "scene_case01_train_dining_car_marriage_joke",
+  silentBranch: "scene_case01_train_dining_car_silent_branch",
+  introSelfBranch: "scene_case01_train_dining_car_intro_self_branch",
+  hotelBranch: "scene_case01_train_dining_car_hotel_branch",
+  wineBeat: "scene_case01_train_dining_car_wine_beat",
+  felixInterrupts: "scene_case01_train_dining_car_felix_interrupts",
+  eleonoraFarewell: "scene_case01_train_dining_car_eleonora_farewell",
+} as const;
+
+export const CASE01_DINING_FLAGS = {
+  jokedWithMother: "flag_joked_with_mother",
+  silentObservation: "flag_silent_observation",
+  defendedFelix: "flag_defended_felix",
+  metMother: "met_mother_intro",
+  metFelix: "met_felix_intro",
+  metRedhead: "met_redhead_intro",
+  noticedRingRemoved: "noticed_eleonora_ring_removed",
+  noticedFelixApathy: "noticed_felix_apathy",
+} as const;
+
 export const CASE01_CANON_FLAG_KEYS = [
   "bank_investigation_complete",
   "mayor_briefing_complete",
@@ -50,12 +73,14 @@ export const CASE01_CANON_FLAG_KEYS = [
   "found_residue",
   "bureau_trace_found",
   "mother_redhead_secret_potential",
-  "met_mother_intro",
-  "met_felix_intro",
-  "met_redhead_intro",
-  "flag_joked_with_mother",
-  "flag_defended_felix",
-  "flag_silent_observation",
+  CASE01_DINING_FLAGS.metMother,
+  CASE01_DINING_FLAGS.metFelix,
+  CASE01_DINING_FLAGS.metRedhead,
+  CASE01_DINING_FLAGS.jokedWithMother,
+  CASE01_DINING_FLAGS.defendedFelix,
+  CASE01_DINING_FLAGS.silentObservation,
+  CASE01_DINING_FLAGS.noticedRingRemoved,
+  CASE01_DINING_FLAGS.noticedFelixApathy,
 ] as const;
 
 export const CASE01_CANON_VAR_KEYS = [

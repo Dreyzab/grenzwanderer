@@ -8,6 +8,7 @@ vi.mock("../../i18n/I18nContext", () => ({
     language: "en",
     dictionary: null,
     isLoaded: true,
+    localePackReady: true,
   }),
 }));
 
@@ -76,11 +77,11 @@ describe("OriginSelectionScreen", () => {
       .filter((button) => (button.textContent ?? "").includes("Origin"));
 
     expect(cardButtons).toHaveLength(5);
-    expect(cardButtons[0]).toHaveTextContent("Journalist Origin");
-    expect(cardButtons[1]).toHaveTextContent("Aristocrat Origin");
-    expect(cardButtons[2]).toHaveTextContent("Veteran Origin");
-    expect(cardButtons[3]).toHaveTextContent("Archivist Origin");
-    expect(cardButtons[4]).toHaveTextContent("Detective Origin");
+    expect(cardButtons[0]).toHaveTextContent("Detective Origin");
+    expect(cardButtons[1]).toHaveTextContent("Journalist Origin");
+    expect(cardButtons[2]).toHaveTextContent("Aristocrat Origin");
+    expect(cardButtons[3]).toHaveTextContent("Veteran Origin");
+    expect(cardButtons[4]).toHaveTextContent("Archivist Origin");
   });
 
   it("transitions from list to detail and back again", () => {

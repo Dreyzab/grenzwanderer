@@ -89,6 +89,10 @@ const homeStrings = {
     disconnected: "Disconnected",
     karlsruheRelease: "Karlsruhe QR Event Release v1",
     phase2Slice: "Phase 2 MindPalace Vertical Slice",
+    languageBarLabel: "Language",
+    languageChooseTitle: "Choose interface language",
+    languageSwitching: "Switching language...",
+    languageSwitchFailed: "Failed to switch language. Retry.",
   },
   ru: {
     syncingRecords: "Синхронизация записей...",
@@ -114,6 +118,10 @@ const homeStrings = {
     disconnected: "Отключено",
     karlsruheRelease: "Событие Карлсруэ (Релиз v1)",
     phase2Slice: "Фаза 2: MindPalace (Вертикальный срез)",
+    languageBarLabel: "Язык",
+    languageChooseTitle: "Выберите язык интерфейса",
+    languageSwitching: "Переключаем язык...",
+    languageSwitchFailed: "Не удалось переключить язык. Повторите.",
   },
   de: {
     syncingRecords: "Datensätze werden synchronisiert...",
@@ -139,6 +147,10 @@ const homeStrings = {
     disconnected: "Getrennt",
     karlsruheRelease: "Karlsruhe QR Event Release v1",
     phase2Slice: "Phase 2 MindPalace Vertical Slice",
+    languageBarLabel: "Sprache",
+    languageChooseTitle: "Interface-Sprache wählen",
+    languageSwitching: "Sprache wird gewechselt...",
+    languageSwitchFailed: "Sprachwechsel fehlgeschlagen. Bitte erneut.",
   },
 } as const;
 
@@ -215,6 +227,7 @@ const vnStrings = {
     returningToMap: "Returning to map...",
     invalidScenarioFallback: "Requested scenario not found, fallback applied",
     sessionHydrating: "Syncing session...",
+    translationsLoading: "Loading translation...",
     vnContentTitle: "VN content is not active",
     vnContentBody:
       "Publish or seed a snapshot in debug mode first, then return to VN screen.",
@@ -275,6 +288,7 @@ const vnStrings = {
     returningToMap: "Возвращение на карту...",
     invalidScenarioFallback: "Запрошенный сценарий не найден, выбран резервный",
     sessionHydrating: "Синхронизация сессии...",
+    translationsLoading: "Загрузка перевода...",
     vnContentTitle: "VN-контент не активен",
     vnContentBody:
       "Опубликуйте или загрузите snapshot в режиме отладки, затем вернитесь на экран VN.",
@@ -337,6 +351,7 @@ const vnStrings = {
     invalidScenarioFallback:
       "Angefordertes Szenario nicht gefunden, Fallback angewendet",
     sessionHydrating: "Sitzung wird synchronisiert...",
+    translationsLoading: "Übersetzung wird geladen...",
     vnContentTitle: "VN-Inhalt ist nicht aktiv",
     vnContentBody:
       "Veröffentlichen oder seeden Sie zuerst einen Snapshot im Debug-Modus und kehren Sie dann zum VN-Bildschirm zurück.",

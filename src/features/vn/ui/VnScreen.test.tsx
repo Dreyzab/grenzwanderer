@@ -58,6 +58,7 @@ mocks.useI18nMock.mockReturnValue({
   dictionary: mocks.stableDictionary,
   language: "en",
   isLoaded: true,
+  localePackReady: true,
 });
 
 vi.mock("framer-motion", async () => {
@@ -843,7 +844,7 @@ describe("VnScreen critical behavior", () => {
         origin: {},
       },
       isLoaded: true,
-      t: (key: string) => key,
+      localePackReady: true,
     });
 
     const payloadJson = makeSnapshotPayload(

@@ -16,6 +16,8 @@ export interface TypedTextHandle {
 export interface TypedTextProps {
   text: string;
   speed?: number;
+  /** Full text immediately, same layout as typed mode (no RAF, cursor, or `onComplete`). */
+  instant?: boolean;
   onComplete?: () => void;
   onTypingChange?: (isTyping: boolean) => void;
 }
@@ -61,7 +63,7 @@ const getVisibleSegments = (
 };
 
 export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
-  ({ text, speed = 12, onComplete, onTypingChange }, ref) => {
+  ({ text, speed = 12, instant = false, onComplete, onTypingChange }, ref) => {
     const [visibleChars, setVisibleChars] = useState(0);
     const completionNotifiedRef = useRef(false);
 
@@ -74,21 +76,27 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
     const frameDelay = Math.max(1, speed);
 
     useEffect(() => {
-      setVisibleChars(0);
       completionNotifiedRef.current = false;
-    }, [text]);
+      setVisibleChars(instant ? totalChars : 0);
+    }, [instant, text, totalChars]);
 
     useEffect(() => {
       const isTyping = visibleChars < totalChars;
       onTypingChange?.(isTyping);
 
+      if (instant) {
+        return;
+      }
       if (!isTyping && !completionNotifiedRef.current) {
         completionNotifiedRef.current = true;
         onComplete?.();
       }
-    }, [onComplete, onTypingChange, totalChars, visibleChars]);
+    }, [instant, onComplete, onTypingChange, totalChars, visibleChars]);
 
     useEffect(() => {
+      if (instant) {
+        return;
+      }
       if (visibleChars >= totalChars) {
         return;
       }
@@ -117,7 +125,7 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
       return () => {
         cancelAnimationFrame(rafId);
       };
-    }, [frameDelay, totalChars, visibleChars]);
+    }, [instant, frameDelay, totalChars, visibleChars]);
 
     useImperativeHandle(
       ref,

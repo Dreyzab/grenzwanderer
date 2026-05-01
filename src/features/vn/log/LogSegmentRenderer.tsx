@@ -39,15 +39,14 @@ export function LogSegmentRenderer({
   const isInnerVoice = segment.category === "inner_voice";
   const isPlayer = segment.category === "player";
   const showSpeakerChrome = showSpeaker && !isNarrator && !isPlayer;
-  const renderedText = isTyping ? (
+  const renderedText = (
     <TypedText
       ref={typedTextRef}
       text={segment.text}
-      onTypingChange={onTypingChange}
-      onComplete={onComplete}
+      instant={!isTyping}
+      onTypingChange={isTyping ? onTypingChange : undefined}
+      onComplete={isTyping ? onComplete : undefined}
     />
-  ) : (
-    segment.text
   );
 
   if (isInnerVoice) {

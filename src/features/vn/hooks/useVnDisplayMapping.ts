@@ -119,7 +119,7 @@ export function useVnDisplayMapping({
   pendingChoiceId,
   getChoiceChancePercent,
 }: UseVnDisplayMappingParams) {
-  const { dictionary } = useI18n();
+  const { dictionary, localePackReady } = useI18n();
 
   const showInlineAiThoughtCard =
     !activeSkillResolve &&
@@ -163,50 +163,59 @@ export function useVnDisplayMapping({
     displayedPresentation?.autoContinueChoice ?? currentAutoContinueChoice;
   const visibleChoices = useMemo(
     () =>
-      localizeVnChoices(
-        uiLanguage,
-        presentationScenarioId,
-        presentationNodeId,
-        baseVisibleChoices,
-        dictionary,
-      ),
-    [
-      baseVisibleChoices,
-      dictionary,
-      presentationNodeId,
-      presentationScenarioId,
-      uiLanguage,
-    ],
-  );
-  const autoContinueChoice = useMemo(
-    () =>
-      baseAutoContinueChoice
-        ? localizeVnChoice(
+      localePackReady || uiLanguage === "en"
+        ? localizeVnChoices(
             uiLanguage,
             presentationScenarioId,
             presentationNodeId,
-            baseAutoContinueChoice,
+            baseVisibleChoices,
             dictionary,
           )
-        : null,
+        : baseVisibleChoices,
     [
-      baseAutoContinueChoice,
+      baseVisibleChoices,
       dictionary,
+      localePackReady,
       presentationNodeId,
       presentationScenarioId,
       uiLanguage,
     ],
   );
+  const autoContinueChoice = useMemo(() => {
+    if (!baseAutoContinueChoice) {
+      return null;
+    }
+    if (!localePackReady && uiLanguage !== "en") {
+      return baseAutoContinueChoice;
+    }
+    return localizeVnChoice(
+      uiLanguage,
+      presentationScenarioId,
+      presentationNodeId,
+      baseAutoContinueChoice,
+      dictionary,
+    );
+  }, [
+    baseAutoContinueChoice,
+    dictionary,
+    localePackReady,
+    presentationNodeId,
+    presentationScenarioId,
+    uiLanguage,
+  ]);
   const baseNarrativeText =
     displayedPresentation?.narrativeText ?? currentNarrativeText;
-  const narrativeText = resolveVnNodeText(
-    uiLanguage,
-    presentationScenarioId,
-    presentationNodeId,
-    "body",
-    baseNarrativeText,
-    dictionary,
-  );
+  const narrativeText =
+    !localePackReady && uiLanguage !== "en"
+      ? t.translationsLoading
+      : resolveVnNodeText(
+          uiLanguage,
+          presentationScenarioId,
+          presentationNodeId,
+          "body",
+          baseNarrativeText,
+          dictionary,
+        );
   const resolvedBgUrl =
     displayedPresentation?.backgroundImageUrl ?? currentResolvedBgUrl;
   const speakerLabel = displayedPresentation

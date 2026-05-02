@@ -16,6 +16,8 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: env.VITE_BASE_PATH || "/",
+    // Default Node/Vite on Windows often binds ::1 only; browsers hitting 127.0.0.1 then fail.
+
     define: {
       __APP_VERSION__: JSON.stringify(buildMetadata.appVersion),
       __APP_COMMIT_SHA__: JSON.stringify(buildMetadata.commitSha),

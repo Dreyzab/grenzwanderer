@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const IMAGE_DIR = "images";
+const IMAGE_DIR = path.join("public", "images");
 const LOC_DIR = path.join(IMAGE_DIR, "locations");
 const CHAR_DIR = path.join(IMAGE_DIR, "characters");
 

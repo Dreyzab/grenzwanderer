@@ -84,6 +84,7 @@ export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
       "scene_case01_hbf_newsboy",
       "scene_case01_hbf_luggage",
       "scene_case01_hbf_police",
+      "scene_case01_hbf_departure",
     ],
   },
   {
@@ -400,7 +401,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
-      "**[Элеонора]**:\n— Разумеется. Детектив, позвольте представить: Лотте, самая бесстрашная знатокиня фрайбургских улиц из всех, кого я успела встретить в этом поезде. А это — мой сын Феликс Хартманн, который так усердно изучает эти бумаги, что скоро сам превратится в архивную пыль.\n\n**[Лотте]**:\n— О, Элеонора преувеличивает мой талант экскурсовода. Я лишь люблю находить хорошие места с лучшим блюдом. Но если детектив захочет понять город не только через газеты, я постараюсь не разочаровать.",
+      "**[Элеонора]**:\n— Разумеется. Позвольте представить: Лотте, лучшая проводница по фрайбургским улочкам из всех, кого я успела встретить в этом поезде. А это — мой сын Феликс Хартманн, который так старательно смотрит в окно, будто пейзаж обязан избавить его от знакомства.\n\n**[Лотте]**:\n— О, Элеонора преувеличивает мой талант экскурсовода. Я лишь люблю находить хорошие места с лучшим блюдом. Но если вам захочется увидеть город шире газетных колонок — постараюсь не разочаровать.\n\n**[inner_analyst]**:\nДевушка умело подыгрывает матери, но взгляд на Феликса — холодный и оценивающий.",
     backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
@@ -429,7 +430,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       },
       {
         id: "CASE01_TRAIN_DINING_HOTEL",
-        text: "Ask about Zum Eber",
+        text: "— Pardon the interruption—since you know the city so well, have you heard of the Zum Eber hotel?",
         nextNodeId: CASE01_DINING_NODE_IDS.hotelBranch,
       },
     ],
@@ -476,7 +477,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
-      "**[Detective]**:\n— Извините, что перебиваю, но раз уж вы так хорошо знаете город... Вы слышали о гостинице «Zum Eber»?\n\n**[Лотте]**:\n— «У Кабана»? О, это достойное место. Старые камни, тяжелые портьеры и постояльцы, которые предпочитают, чтобы их не беспокоили. Мастер умеет выбирать декорации.",
+      "**[Лотте]**:\n— «Boar's Head»? Oh, it's a worthy place—old stone, heavy curtains, guests who'd rather not be disturbed. The Master knows how to pick his sets.",
     backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
@@ -493,7 +494,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
-      "**[Narrator]**:\nЭлеонора делает едва заметный жест — и официант появляется с новым бокалом, словно ждал команды. Она наливает вино с точностью, в которой нет ничего случайного.\n\n**[Элеонора]**:\n— Попробуйте. Маркграфлерланд, урожай прошлого года. Местное — но не стоит его недооценивать. Здесь вообще не стоит недооценивать местное.\n\n**[inner_tradition]**:\nОна наливает вино так, как другие подписывают договоры. Каждый жест — предложение, от которого неудобно отказываться.",
+      "**[Narrator]**:\nЭлеонора делает едва заметный жест — и официант оказывается у стола с бутылкой и парой чистых бокалов, словно только этого и ждал. Он берёт бутылку за основание, оставляет этикетку на виду и льёт медленно, тонкой ровной струёй; в конце бутылка едва поворачивается, и скатерть остаётся чистой.\n\n**[Элеонора]**:\n— Попробуйте. Маркграфлерланд, урожай прошлого года. Местное — но не стоит его недооценивать. Здесь вообще не стоит недооценивать местное.\n\n**[inner_tradition]**:\nОфициант не спрашивает, кому и сколько. Он смотрит на Элеонору — порядок за столом уже установлен.",
     backgroundUrl: CASE01_TRAIN_DINING_CAR_WINE_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_dining_car",
@@ -536,7 +537,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
-      "**[Narrator]**:\nДверь вагона-ресторана открывается резче, чем требует механизм. Феликс стоит в проёме — папка с документами под мышкой, воротник чуть сбит набок.\n\n**[Assistant]**:\n— Мы подъезжаем. Кондуктор объявил двадцать минут.\n\n**[Элеонора]**:\n— Двадцать минут — это целая вечность, дорогой. Достаточно, чтобы допить вино и решить судьбу маленького города.\n\n**[Narrator]**:\nФеликс не улыбается. Он смотрит на стол — два бокала, серебряный чайник, Лотте с блокнотом, который она успела убрать, но недостаточно быстро.\n\n**[inner_analyst]**:\nОн считает. Не минуты — степень контроля. Сколько из этого завтрака было спонтанным, а сколько — срежиссировано.",
+      "**[Narrator]**:\nФеликс первым замечает, как за окнами меняется свет платформы. Он коротко смотрит на часы и говорит тише, чем хотелось бы для возражения.\n\n**[Assistant]**:\n— Мы подъезжаем. Кондуктор объявил двадцать минут.\n\n**[Элеонора]**:\n— Двадцать минут — это целая вечность, дорогой. Достаточно, чтобы допить вино и решить судьбу маленького города.\n\n**[Narrator]**:\nФеликс не улыбается. Его взгляд задерживается на столе: два бокала, серебряный чайник, Лотте с блокнотом, который она успела убрать, но недостаточно быстро.\n\n**[inner_analyst]**:\nОн считает. Не минуты — степень контроля. Сколько из этого завтрака было спонтанным, а сколько — срежиссировано.",
     backgroundUrl: CASE01_TRAIN_DINING_CAR_FELIX_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_dining_car",
@@ -554,7 +555,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
             { type: "set_flag", key: CASE01_DINING_FLAGS.noticedFelixApathy, value: true },
           ],
           inlineText:
-            "**[Empathy — Успех]**:\nОн не раздражён. Он устал. Устал быть представленным как приложение к матери. Папка под мышкой — не рабочий инструмент. Это щит.",
+            "**[Empathy — Успех]**:\nОн не раздражён. Он устал. Устал быть представленным как приложение к матери. Взгляд на часы — не нетерпение, а единственный приличный способ прервать разговор, который за него уже ведут.",
         },
       },
     ],
@@ -742,8 +743,6 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_NEWSBOY_BG,
     narrativeLayout: "log",
     sceneGroupId: "hbf_newsboy",
-    characterId: "paperboy",
-    terminal: true,
     onEnter: [
       {
         type: "set_flag",
@@ -778,7 +777,13 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         tags: { branch: "newsboy", route: "bank" },
       },
     ],
-    choices: [],
+    choices: [
+      {
+        id: "CASE01_HBF_LEAVE_STATION",
+        text: "Continue into Freiburg.",
+        nextNodeId: "scene_case01_hbf_departure",
+      },
+    ],
   },
   {
     id: "scene_case01_hbf_luggage",
@@ -790,7 +795,6 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_LUGGAGE_BG,
     narrativeLayout: "log",
     sceneGroupId: "hbf_luggage",
-    terminal: true,
     onEnter: [
       {
         type: "set_flag",
@@ -825,7 +829,13 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         tags: { branch: "luggage", route: "bank" },
       },
     ],
-    choices: [],
+    choices: [
+      {
+        id: "CASE01_HBF_LEAVE_STATION",
+        text: "Continue into Freiburg.",
+        nextNodeId: "scene_case01_hbf_departure",
+      },
+    ],
   },
   {
     id: "scene_case01_hbf_police",
@@ -837,7 +847,6 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_POLICE_BG,
     narrativeLayout: "log",
     sceneGroupId: "hbf_police",
-    terminal: true,
     onEnter: [
       {
         type: "set_flag",
@@ -872,6 +881,25 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         tags: { branch: "police", route: "rathaus" },
       },
     ],
+    choices: [
+      {
+        id: "CASE01_HBF_LEAVE_STATION",
+        text: "Continue into Freiburg.",
+        nextNodeId: "scene_case01_hbf_departure",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_hbf_departure",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    titleOverride: "Leaving the Hauptbahnhof",
+    bodyOverride:
+      "**[Narrator]**:\nYou shoulder through the tide of travelers — timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Where you go next is yours to choose.",
+    backgroundUrl: CASE01_HBF_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "hbf_hall",
+    terminal: true,
     choices: [],
   },
   {

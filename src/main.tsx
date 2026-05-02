@@ -1,4 +1,4 @@
-﻿import { StrictMode } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { SpacetimeDBProvider } from "spacetimedb/react";
 import { Identity } from "spacetimedb";

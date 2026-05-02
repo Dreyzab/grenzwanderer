@@ -6,7 +6,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { useReducer, useTable } from "spacetimedb/react";
+import { useReducer, useSpacetimeDB, useTable } from "spacetimedb/react";
 import {
   APP_BUILD_TIMESTAMP,
   APP_COMMIT_SHA,
@@ -252,11 +252,9 @@ const identityLabel = (identityHex: string): string => {
 
 const AppShell = () => {
   const { identity, identityHex } = useIdentity();
-  const hasReceivedIdentityRef = useRef(false);
-  if (identity) {
-    hasReceivedIdentityRef.current = true;
-  }
-  const showInitialSpacetimeGate = !identity && !hasReceivedIdentityRef.current;
+  /** Link layer from provider (Stable across Strict Mode); avoid ref+identity mismatch that flashes the blocking gate */
+  const { isActive: dbLinkActive } = useSpacetimeDB();
+  const showInitialSpacetimeGate = !identity && !dbLinkActive;
   const [commandSessions] = useTable(tables.myCommandSessions);
   const [battleSessions] = useTable(tables.myBattleSessions);
   const [vnSessions] = useTable(tables.myVnSessions);
@@ -335,6 +333,45 @@ const AppShell = () => {
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, [grantStorageKey]);
+
+  // #region agent log
+  useEffect(() => {
+    fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "1a1032",
+      },
+      body: JSON.stringify({
+        sessionId: "1a1032",
+        hypothesisId: "H1,H3",
+        location: "AppShell.tsx:gates-tab",
+        message: "Shell state snapshot",
+        data: {
+          releaseProfile: RELEASE_PROFILE,
+          showInitialSpacetimeGate,
+          dbLinkActive,
+          activeTab,
+          pathname,
+          hasIdentity: Boolean(identity),
+          identityHexLen: identityHex?.length ?? 0,
+          isKarlsruheProfile,
+          entryGateState,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  }, [
+    activeTab,
+    entryGateState,
+    identity,
+    identityHex?.length,
+    isKarlsruheProfile,
+    pathname,
+    showInitialSpacetimeGate,
+    dbLinkActive,
+  ]);
+  // #endregion agent log
 
   useEffect(() => {
     writeUrlState(
@@ -658,6 +695,36 @@ const AppShellInnerWrapper = ({
 }: InnerWrapperProps) => {
   const { language } = useI18n();
   const home = getHomeStrings(language);
+
+  // #region agent log
+  useEffect(() => {
+    const gateBranch =
+      isKarlsruheProfile &&
+      (pathname !== KARLSRUHE_EVENT_PATHNAME || entryGateState !== "granted")
+        ? "karlsruhe_qr_gate"
+        : "full_shell";
+    fetch("http://127.0.0.1:7827/ingest/516e26f3-8222-4f1d-b4fe-801d6fa79ab1", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "1a1032",
+      },
+      body: JSON.stringify({
+        sessionId: "1a1032",
+        hypothesisId: "H2",
+        location: "AppShell.tsx:InnerWrapper",
+        message: "Inner wrapper route branch",
+        data: {
+          gateBranch,
+          pathname,
+          entryGateState,
+          activeTab,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  }, [activeTab, entryGateState, isKarlsruheProfile, pathname]);
+  // #endregion agent log
 
   const statusText = useMemo(() => {
     if (!isActive) {

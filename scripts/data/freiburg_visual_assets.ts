@@ -450,6 +450,7 @@ export const buildCase01VisualVariants = (
         const expectedImagePath = toRepoRelativePath(
           path.join(
             repoRoot,
+            "public",
             "images",
             "locations",
             `${expectedBasename}${runtimeExtension}`,
@@ -458,6 +459,7 @@ export const buildCase01VisualVariants = (
         const expectedMetaPath = toRepoRelativePath(
           path.join(
             repoRoot,
+            "public",
             "images",
             "locations",
             `${expectedBasename}.meta.json`,

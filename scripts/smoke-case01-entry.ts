@@ -148,6 +148,7 @@ try {
   const newsboyNode = findNode(snapshot, "scene_case01_hbf_newsboy");
   const luggageNode = findNode(snapshot, "scene_case01_hbf_luggage");
   const policeNode = findNode(snapshot, "scene_case01_hbf_police");
+  const hbfDepartureNode = findNode(snapshot, "scene_case01_hbf_departure");
 
   assert(
     beat1Node.choices.some(
@@ -179,7 +180,18 @@ try {
     ["luggage", luggageNode],
     ["police", policeNode],
   ] as const) {
-    assert(node.terminal === true, `${branchLabel} branch must end on the map`);
+    assert(
+      node.terminal !== true,
+      `${branchLabel} branch must expose a leave-station choice before the terminal hub`,
+    );
+    assert(
+      node.choices.some(
+        (choice) =>
+          choice.id === "CASE01_HBF_LEAVE_STATION" &&
+          choice.nextNodeId === "scene_case01_hbf_departure",
+      ),
+      `${branchLabel} branch must advance to scene_case01_hbf_departure`,
+    );
     assert(
       hasEffect(node.onEnter, {
         type: "set_flag",
@@ -203,6 +215,11 @@ try {
       `${branchLabel} branch must unlock loc_rathaus for map travel`,
     );
   }
+
+  assert(
+    hbfDepartureNode.terminal === true,
+    "Freiburg entry must end on terminal hub node scene_case01_hbf_departure",
+  );
 
   assert(
     hasEffect(newsboyNode.onEnter, {

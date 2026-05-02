@@ -189,13 +189,11 @@ describe("AppShell URL synchronization", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("vn-page")).toHaveTextContent(
-        "vn:origin_journalist_bootstrap",
+        "vn:case01_hbf_arrival",
       );
     });
     expect(window.location.search).toContain("tab=vn");
-    expect(window.location.search).toContain(
-      "vnScenario=origin_journalist_bootstrap",
-    );
+    expect(window.location.search).toContain("vnScenario=case01_hbf_arrival");
   });
 
   it("switches into command tab when an active command session appears", async () => {

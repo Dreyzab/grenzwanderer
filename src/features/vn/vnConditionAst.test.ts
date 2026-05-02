@@ -93,7 +93,7 @@ describe("VN condition AST", () => {
 
     expect(snapshot?.schemaVersion).toBe(9);
     const runtimeNode = snapshot?.nodes.find(
-      (node) => node.id === "scene_detective_runtime_agency_orientation",
+      (node) => node.id === "scene_case01_beat1_atmosphere",
     );
     expect(runtimeNode?.choices[0]?.visibleIfAll?.[0]).toMatchObject({
       type: "flag_equals",

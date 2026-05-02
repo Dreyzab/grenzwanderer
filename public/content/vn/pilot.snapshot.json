@@ -1621,7 +1621,7 @@
             { "type": "set_flag", "key": "flag_paperboy_mercy", "value": true },
             {
               "type": "change_psyche_axis",
-              "axis": "egoism_altruism",
+              "axis": "x",
               "delta": 1
             }
           ]
@@ -1638,7 +1638,7 @@
             },
             {
               "type": "change_psyche_axis",
-              "axis": "individualism_collectivism",
+              "axis": "y",
               "delta": 1
             }
           ]
@@ -1825,7 +1825,7 @@
         {
           "id": "CASE01_HBF_EXIT_BANK",
           "text": "The bank first. Follow the money.",
-          "nextNodeId": null,
+          "nextNodeId": "scene_case01_hbf_exit_final",
           "effects": [
             { "type": "set_flag", "key": "priority_bank_first", "value": true },
             {
@@ -1838,7 +1838,7 @@
         {
           "id": "CASE01_HBF_EXIT_RATHAUS",
           "text": "The Rathaus first. Follow the power.",
-          "nextNodeId": null,
+          "nextNodeId": "scene_case01_hbf_exit_final",
           "effects": [
             {
               "type": "set_flag",
@@ -1861,6 +1861,17 @@
         { "type": "unlock_group", "groupId": "loc_rathaus" },
         { "type": "track_event", "eventName": "case01_hbf_departure" }
       ],
+      "backgroundUrl": "/VN/start/image/HBF.png",
+      "sceneGroupId": "hbf_hall",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_hbf_exit_final",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Freiburg",
+      "body": "The station is behind you. The city is ahead.",
+      "choices": [],
+      "terminal": true,
       "backgroundUrl": "/VN/start/image/HBF.png",
       "sceneGroupId": "hbf_hall",
       "narrativeLayout": "log"

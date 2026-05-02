@@ -29,6 +29,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("spacetimedb/react", () => ({
   useTable: (...args: unknown[]) => mocks.useTableMock(...args),
   useReducer: () => vi.fn(),
+  useSpacetimeDB: () => ({ isActive: true }),
 }));
 
 vi.mock("../shared/spacetime/useIdentity", () => ({

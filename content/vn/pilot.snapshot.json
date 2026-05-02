@@ -139,16 +139,13 @@
         "scene_case01_train_platform_parting",
         "scene_case01_beat1_atmosphere",
         "scene_case01_hbf_newsboy_approach",
-        "scene_case01_hbf_newsboy_buy",
-        "scene_case01_hbf_newsboy_theft",
-        "scene_case01_hbf_newsboy_release",
         "scene_case01_hbf_newsboy_handoff",
-        "scene_case01_hbf_newsboy_observe",
-        "scene_case01_hbf_newsboy_mayor_info",
+        "scene_case01_hbf_newsboy_release",
         "scene_case01_hbf_luggage",
         "scene_case01_hbf_luggage_robbery",
         "scene_case01_hbf_police",
-        "scene_case01_hbf_departure"
+        "scene_case01_hbf_departure",
+        "scene_case01_hbf_exit_final"
       ],
       "mode": "fullscreen",
       "packId": "case01_mainline",
@@ -1509,57 +1506,24 @@
           "visibleIfAll": [
             {
               "type": "flag_equals",
-              "key": "flag_newsboy_done",
-              "value": false
+              "key": "freiburg_case01_mainline_active",
+              "value": true
             }
           ]
         },
         {
           "id": "CASE01_BEAT1_LUGGAGE",
           "text": "Go to the luggage counter.",
-          "nextNodeId": "scene_case01_hbf_luggage",
-          "visibleIfAll": [
-            {
-              "type": "flag_equals",
-              "key": "flag_luggage_done",
-              "value": false
-            },
-            {
-              "type": "flag_equals",
-              "key": "flag_newsboy_done",
-              "value": false
-            }
-          ]
-        },
-        {
-          "id": "CASE01_BEAT1_LUGGAGE_ALT",
-          "text": "Go to the luggage counter.",
-          "nextNodeId": "scene_case01_hbf_luggage_robbery",
-          "visibleIfAll": [
-            {
-              "type": "flag_equals",
-              "key": "flag_luggage_done",
-              "value": false
-            },
-            { "type": "flag_equals", "key": "flag_newsboy_done", "value": true }
-          ]
+          "nextNodeId": "scene_case01_hbf_luggage"
         },
         {
           "id": "CASE01_BEAT1_POLICE",
           "text": "Approach the railway police post.",
-          "nextNodeId": "scene_case01_hbf_police",
-          "visibleIfAll": [
-            {
-              "type": "flag_equals",
-              "key": "flag_paperboy_theft_seen",
-              "value": true
-            },
-            { "type": "flag_equals", "key": "flag_police_done", "value": false }
-          ]
+          "nextNodeId": "scene_case01_hbf_police"
         },
         {
           "id": "CASE01_BEAT1_EXIT",
-          "text": "Step into Freiburg.",
+          "text": "Step out into the city.",
           "nextNodeId": "scene_case01_hbf_departure"
         }
       ],
@@ -1570,107 +1534,34 @@
     {
       "id": "scene_case01_hbf_newsboy_approach",
       "scenarioId": "case01_hbf_arrival",
-      "title": "Evening Edition",
-      "body": "You approach the newspaper boy by the soot-streaked pillar. Up close, his eyes are too quick — they dart from pocket to pocket in the crowd, measuring distances rather than selling headlines. His fingers twitch around the folded papers as if they were tools, not merchandise.\n\nHe notices your attention and forces a grin. 'Evening edition, sir! Fresh off the press — the bank, the vault, everything!' The voice is practiced, but the body betrays him. He is nervous in a way that has nothing to do with selling papers.",
+      "title": "Evening edition",
+      "body": "The boy is nervous. He grips the thin, hurried evening edition like a shield. You notice the bank's name — Bankhaus Krebs — in the headlines. It's too early for official news, too specific for rumor.\n\nSomeone wanted this story told before the dust even settled.",
       "choices": [
         {
-          "id": "CASE01_NEWSBOY_BUY",
-          "text": "Buy a newspaper and read the headlines.",
-          "nextNodeId": "scene_case01_hbf_newsboy_buy"
+          "id": "CASE01_NEWSBOY_INVESTIGATE",
+          "text": "Try to get a closer look at the boy's behavior.",
+          "nextNodeId": "scene_case01_hbf_newsboy_handoff",
+          "passiveChecks": [
+            {
+              "id": "check_newsboy_nerves",
+              "voiceId": "attr_perception",
+              "difficulty": 8,
+              "isPassive": true,
+              "onSuccess": {
+                "effects": [
+                  {
+                    "type": "grant_xp",
+                    "amount": 5
+                  }
+                ]
+              }
+            }
+          ]
         },
-        {
-          "id": "CASE01_NEWSBOY_OBSERVE",
-          "text": "Watch him more carefully.",
-          "nextNodeId": "scene_case01_hbf_newsboy_observe"
-        }
-      ],
-      "backgroundUrl": "/VN/start/image/boy_newspaper_styled.png",
-      "sceneGroupId": "hbf_newsboy",
-      "narrativeLayout": "log"
-    },
-    {
-      "id": "scene_case01_hbf_newsboy_buy",
-      "scenarioId": "case01_hbf_arrival",
-      "title": "Headlines",
-      "body": "You hand over a coin. The headline screams about Bankhaus J.A. Krebs — an open vault, missing securities, and a city that learned the news before the police could shape it. The edition is thin, hurried, and specific where rumor should still be fog.\n\nWhile you read, the boy shifts closer. Too close. His hand moves in a practised arc toward your coat — toward the watch chain in your breast pocket.",
-      "choices": [
-        {
-          "id": "CASE01_NEWSBOY_CATCH",
-          "text": "Grab his wrist.",
-          "nextNodeId": "scene_case01_hbf_newsboy_theft"
-        }
-      ],
-      "onEnter": [
-        { "type": "set_flag", "key": "flag_bought_newspaper", "value": true }
-      ],
-      "backgroundUrl": "/VN/start/image/boy_newspaper_styled.png",
-      "sceneGroupId": "hbf_newsboy",
-      "narrativeLayout": "log"
-    },
-    {
-      "id": "scene_case01_hbf_newsboy_theft",
-      "scenarioId": "case01_hbf_arrival",
-      "title": "Caught",
-      "body": "Your hand closes around his wrist before the fingers reach the chain. The boy freezes — not with surprise, but with the resignation of someone who has been caught before and knows what comes next.\n\nA shadow falls across both of you. Fritz Wendt steps out of the crowd, hat low, eyes already reading the scene. He says nothing. He simply stands there — tall, patient, and waiting for your ruling.\n\n'Please, sir,' the boy whispers. 'I have a sister. She's eight. I didn't mean—' He stops. Even he knows that sentence has no honest ending.",
-      "choices": [
         {
           "id": "CASE01_NEWSBOY_RELEASE",
-          "text": "Let the boy go.",
-          "nextNodeId": "scene_case01_hbf_newsboy_release",
-          "effects": [
-            { "type": "set_flag", "key": "flag_paperboy_mercy", "value": true },
-            {
-              "type": "change_psyche_axis",
-              "axis": "x",
-              "delta": 1
-            }
-          ]
-        },
-        {
-          "id": "CASE01_NEWSBOY_HANDOFF",
-          "text": "Hand him over to the police.",
-          "nextNodeId": "scene_case01_hbf_newsboy_handoff",
-          "effects": [
-            {
-              "type": "set_flag",
-              "key": "flag_paperboy_reported",
-              "value": true
-            },
-            {
-              "type": "change_psyche_axis",
-              "axis": "y",
-              "delta": 1
-            }
-          ]
-        }
-      ],
-      "onEnter": [
-        { "type": "set_flag", "key": "flag_caught_paperboy", "value": true },
-        { "type": "set_flag", "key": "flag_paperboy_theft_seen", "value": true }
-      ],
-      "characterId": "npc_fritz",
-      "backgroundUrl": "/VN/start/image/boy_newspaper_styled.png",
-      "sceneGroupId": "hbf_newsboy",
-      "narrativeLayout": "log"
-    },
-    {
-      "id": "scene_case01_hbf_newsboy_release",
-      "scenarioId": "case01_hbf_arrival",
-      "title": "Mercy",
-      "body": "You release the wrist. The boy pulls back, rubs the red mark, and bolts into the crowd without looking back.\n\nFritz watches him go. 'Let's hope he remembers the grip, not the mercy.' He adjusts his hat. 'The station is still yours to explore, Herr Thorne.'",
-      "choices": [
-        {
-          "id": "CASE01_NEWSBOY_RELEASE_RETURN",
-          "text": "Return to the platform.",
-          "nextNodeId": "scene_case01_beat1_atmosphere"
-        }
-      ],
-      "onEnter": [
-        { "type": "set_flag", "key": "flag_newsboy_done", "value": true },
-        {
-          "type": "track_event",
-          "eventName": "case01_newsboy_resolved",
-          "tags": { "outcome": "mercy" }
+          "text": "Just buy a paper and move on.",
+          "nextNodeId": "scene_case01_hbf_newsboy_release"
         }
       ],
       "backgroundUrl": "/VN/start/image/boy_newspaper_styled.png",
@@ -1680,8 +1571,8 @@
     {
       "id": "scene_case01_hbf_newsboy_handoff",
       "scenarioId": "case01_hbf_arrival",
-      "title": "Order",
-      "body": "Fritz takes the boy by the collar and steers him toward the police post. 'Order is order, even for small fish.' The boy looks back at you with an expression that at his age can still be called hurt. In five years, it will be hatred.\n\nThe platform feels quieter now. Whatever else this city is hiding, at least one small truth has been settled.",
+      "title": "HBF Arrival",
+      "body": "As you reach for a paper, the boy's hand trembles. He's not just selling news; he's watching for someone. Your assistant leans in, a silent shadow that makes the boy stiffen further.\n\n'Go,' you mutter. He doesn't wait for a second invitation.",
       "choices": [
         {
           "id": "CASE01_NEWSBOY_HANDOFF_RETURN",
@@ -1689,57 +1580,20 @@
           "nextNodeId": "scene_case01_beat1_atmosphere"
         }
       ],
-      "onEnter": [
-        { "type": "set_flag", "key": "flag_newsboy_done", "value": true },
-        {
-          "type": "track_event",
-          "eventName": "case01_newsboy_resolved",
-          "tags": { "outcome": "reported" }
-        }
-      ],
-      "backgroundUrl": "/VN/start/image/HBF.png",
-      "sceneGroupId": "hbf_newsboy",
-      "narrativeLayout": "log"
-    },
-    {
-      "id": "scene_case01_hbf_newsboy_observe",
-      "scenarioId": "case01_hbf_arrival",
-      "title": "Reading the Boy",
-      "body": "**[attr_perception]:**\n*He's not selling. He's measuring. Watch the fingers — they count pockets, not coins. The papers are a prop. The real trade is misdirection.*\n\nYou meet the boy's eyes and hold them. No accusation, no authority — just the calm weight of someone who has seen the trick before. The grin collapses.\n\n'You're not a regular traveller, are you,' he says. It is not a question.\n\n'And you are not a regular newspaper boy,' you answer.\n\nHe glances around — checking for uniforms, for anyone who might turn this into trouble. He finds no one. The absence of police loosens his tongue.",
-      "choices": [
-        {
-          "id": "CASE01_NEWSBOY_OBSERVE_CONTINUE",
-          "text": "Let him talk.",
-          "nextNodeId": "scene_case01_hbf_newsboy_mayor_info"
-        }
-      ],
       "backgroundUrl": "/VN/start/image/boy_newspaper_styled.png",
       "sceneGroupId": "hbf_newsboy",
       "narrativeLayout": "log"
     },
     {
-      "id": "scene_case01_hbf_newsboy_mayor_info",
+      "id": "scene_case01_hbf_newsboy_release",
       "scenarioId": "case01_hbf_arrival",
-      "title": "The Mayor's Summons",
-      "body": "'The mayor put out a call this morning,' the boy says, folding his papers tighter. 'Rathaus wants everyone calm. Police got new orders — no talking about the bank, no crowds near Kaiserstraße. They're saying it's routine. It's not routine when they send runners before breakfast.'\n\nHe shrugs. 'I hear things. People forget I'm here.' He taps the stack of papers. 'These sell because someone paid to print them fast. The mayor doesn't like that. That's all I know.'\n\nHe slips away between the trunks before you can ask another question — but the picture is already clearer. The city is not just hiding a crime. It is managing one.",
+      "title": "HBF Arrival",
+      "body": "You take the paper. The ink is still fresh enough to smudge your gloves. The boy scurries away into the steam without looking back.",
       "choices": [
         {
-          "id": "CASE01_NEWSBOY_MAYOR_RETURN",
+          "id": "CASE01_NEWSBOY_RELEASE_RETURN",
           "text": "Return to the platform.",
           "nextNodeId": "scene_case01_beat1_atmosphere"
-        }
-      ],
-      "onEnter": [
-        { "type": "set_flag", "key": "flag_newsboy_done", "value": true },
-        {
-          "type": "set_flag",
-          "key": "flag_mayor_summons_known",
-          "value": true
-        },
-        {
-          "type": "track_event",
-          "eventName": "case01_newsboy_resolved",
-          "tags": { "outcome": "observe" }
         }
       ],
       "backgroundUrl": "/VN/start/image/boy_newspaper_styled.png",
@@ -1750,17 +1604,26 @@
       "id": "scene_case01_hbf_luggage",
       "scenarioId": "case01_hbf_arrival",
       "title": "Luggage Counter",
-      "body": "Felix and Eleonora Hartmann are already at the counter, surrounded by a small fortress of trunks and hat boxes. Eleonora raises a gloved hand and a cab driver materialises from the crowd with the obedience of a man who knows better than to keep such women waiting.\n\n'We will take a carriage and have everything delivered to the hotel,' she announces — to Felix, to the porter, to the air itself. Felix nods, visibly relieved that at least one problem in Freiburg can be solved with money and a firm voice.\n\nBehind the brass grille, one line on the incoming manifest draws your eye: a secured crate from Strasbourg, priority transfer, marked for Bankhaus J.A. Krebs. The clerk pretends not to notice you reading upside down. He notices. He simply prefers not to become part of the story.",
+      "body": "The clerk is counting brass tags. A heavy wooden crate marked for Bankhaus J.A. Krebs sits on a trolley, arriving from Strasbourg under priority seal. It's unusual for a local bank to receive such a delivery on a Sunday morning.\n\nThe clerk notices you lingering and shifts a clipboard to cover the manifest.",
       "choices": [
         {
+          "id": "CASE01_LUGGAGE_PRESS",
+          "text": "Press the clerk about the Strasbourg shipment.",
+          "nextNodeId": "scene_case01_hbf_luggage_robbery",
+          "passiveChecks": [
+            {
+              "id": "check_luggage_clerk_fear",
+              "voiceId": "attr_social",
+              "difficulty": 10,
+              "isPassive": true
+            }
+          ]
+        },
+        {
           "id": "CASE01_LUGGAGE_RETURN",
-          "text": "Return to the platform.",
+          "text": "Step back to the platform.",
           "nextNodeId": "scene_case01_beat1_atmosphere"
         }
-      ],
-      "onEnter": [
-        { "type": "set_flag", "key": "flag_luggage_done", "value": true },
-        { "type": "track_event", "eventName": "case01_hbf_luggage_visited" }
       ],
       "backgroundUrl": "/VN/start/image/bahnhof_luggage_counter_1776719222396.png",
       "sceneGroupId": "hbf_luggage",
@@ -1769,26 +1632,13 @@
     {
       "id": "scene_case01_hbf_luggage_robbery",
       "scenarioId": "case01_hbf_arrival",
-      "title": "Luggage Counter",
-      "body": "Felix and Eleonora Hartmann are already at the counter, surrounded by a small fortress of trunks and hat boxes. Eleonora raises a gloved hand and a cab driver materialises from the crowd with the obedience of a man who knows better than to keep such women waiting.\n\n'We will take a carriage and have everything delivered to the hotel,' she announces — to Felix, to the porter, to the air itself. Felix nods, visibly relieved that at least one problem in Freiburg can be solved with money and a firm voice.\n\nBehind the brass grille, one line on the incoming manifest draws your eye: a secured crate from Strasbourg, priority transfer, marked for Bankhaus J.A. Krebs. The clerk pretends not to notice you reading upside down.\n\nThe newspapers are already screaming about the robbery. If the paperboy on the platform knew, the whole city knows. A secured crate arriving for a bank that has just been robbed — this is not coincidence. This is a schedule.",
+      "title": "HBF Arrival",
+      "body": "The clerk's eyes dart toward the police post. 'I don't know anything about Strasbourg,' he mutters. 'Only that the bank requested priority. If you want to know more, go to the source.'\n\nHe turns his back on you, ending the conversation with a sharp snap of his ledger.",
       "choices": [
         {
           "id": "CASE01_LUGGAGE_ROBBERY_RETURN",
           "text": "Return to the platform.",
           "nextNodeId": "scene_case01_beat1_atmosphere"
-        }
-      ],
-      "onEnter": [
-        { "type": "set_flag", "key": "flag_luggage_done", "value": true },
-        {
-          "type": "set_flag",
-          "key": "flag_robbery_confirmed_by_luggage",
-          "value": true
-        },
-        {
-          "type": "track_event",
-          "eventName": "case01_hbf_luggage_visited",
-          "tags": { "robbery_known": "true" }
         }
       ],
       "backgroundUrl": "/VN/start/image/bahnhof_luggage_counter_1776719222396.png",
@@ -1799,17 +1649,13 @@
       "id": "scene_case01_hbf_police",
       "scenarioId": "case01_hbf_arrival",
       "title": "Police Post",
-      "body": "Two railway policemen keep their voices low, but not low enough. One mutters about an open vault and an untouched window; the other cuts him off with a glance toward the city side of the station. The real fear in their posture is not violence. It is instruction.\n\nWhen they notice you listening, the taller one stiffens and smooths his tunic. 'No loitering. Orders are to keep the platform clear until the Rathaus gives its statement.' He says Rathaus the way a clerk says weather: as the force that decides what may be acknowledged.\n\nSo the city hall is already awake, already managing the shape of the story. If politics is pulling the strings before noon, that thread deserves attention.",
+      "body": "Two officers are deep in low-voiced conversation. They mention an 'open vault' and a 'silent alarm' that didn't ring. Their posture is rigid, eyes scanning the crowd with more than just regular vigilance.\n\nThey are waiting for someone. Or preventing someone from leaving.",
       "choices": [
         {
           "id": "CASE01_POLICE_RETURN",
-          "text": "Return to the platform.",
+          "text": "Mingle back into the crowd.",
           "nextNodeId": "scene_case01_beat1_atmosphere"
         }
-      ],
-      "onEnter": [
-        { "type": "set_flag", "key": "flag_police_done", "value": true },
-        { "type": "track_event", "eventName": "case01_hbf_police_visited" }
       ],
       "backgroundUrl": "/VN/start/image/bahnhof_police_post_1776719605015.png",
       "sceneGroupId": "hbf_police",
@@ -1820,14 +1666,17 @@
       "scenarioId": "case01_hbf_arrival",
       "title": "Leaving the Hauptbahnhof",
       "body": "You shoulder through the tide of travelers — timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Two fronts are burning: the bank robbery and the political pressure from the Rathaus. Where you go first will shape how the city sees you.",
-      "terminal": true,
       "choices": [
         {
           "id": "CASE01_HBF_EXIT_BANK",
           "text": "The bank first. Follow the money.",
           "nextNodeId": "scene_case01_hbf_exit_final",
           "effects": [
-            { "type": "set_flag", "key": "priority_bank_first", "value": true },
+            {
+              "type": "set_flag",
+              "key": "priority_bank_first",
+              "value": true
+            },
             {
               "type": "set_flag",
               "key": "priority_mayor_first",
@@ -1845,7 +1694,11 @@
               "key": "priority_mayor_first",
               "value": true
             },
-            { "type": "set_flag", "key": "priority_bank_first", "value": false }
+            {
+              "type": "set_flag",
+              "key": "priority_bank_first",
+              "value": false
+            }
           ]
         }
       ],
@@ -1855,11 +1708,28 @@
           "key": "case01_onboarding_complete",
           "value": true
         },
-        { "type": "set_flag", "key": "intro_freiburg_done", "value": true },
-        { "type": "set_flag", "key": "case01_priority_locked", "value": true },
-        { "type": "unlock_group", "groupId": "loc_freiburg_bank" },
-        { "type": "unlock_group", "groupId": "loc_rathaus" },
-        { "type": "track_event", "eventName": "case01_hbf_departure" }
+        {
+          "type": "set_flag",
+          "key": "intro_freiburg_done",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "case01_priority_locked",
+          "value": true
+        },
+        {
+          "type": "unlock_group",
+          "groupId": "loc_freiburg_bank"
+        },
+        {
+          "type": "unlock_group",
+          "groupId": "loc_rathaus"
+        },
+        {
+          "type": "track_event",
+          "eventName": "case01_hbf_departure"
+        }
       ],
       "backgroundUrl": "/VN/start/image/HBF.png",
       "sceneGroupId": "hbf_hall",
@@ -1870,8 +1740,8 @@
       "scenarioId": "case01_hbf_arrival",
       "title": "Freiburg",
       "body": "The station is behind you. The city is ahead.",
-      "choices": [],
       "terminal": true,
+      "choices": [],
       "backgroundUrl": "/VN/start/image/HBF.png",
       "sceneGroupId": "hbf_hall",
       "narrativeLayout": "log"
@@ -8817,5 +8687,5 @@
       }
     ]
   },
-  "checksum": "cca58ec4d51975703c39634767e1da8f0a5c0c0e13cdc0d6cc78067cc03497f4"
+  "checksum": "83cb915925e43c1df20be6d9dc272e819489f9e011c93173ec69ff4daffefd63"
 }

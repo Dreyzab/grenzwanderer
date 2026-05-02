@@ -81,10 +81,14 @@ export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
       "scene_case01_train_disembark_journal",
       "scene_case01_train_platform_parting",
       "scene_case01_beat1_atmosphere",
-      "scene_case01_hbf_newsboy",
+      "scene_case01_hbf_newsboy_approach",
+      "scene_case01_hbf_newsboy_handoff",
+      "scene_case01_hbf_newsboy_release",
       "scene_case01_hbf_luggage",
+      "scene_case01_hbf_luggage_robbery",
       "scene_case01_hbf_police",
       "scene_case01_hbf_departure",
+      "scene_case01_hbf_exit_final",
     ],
   },
   {
@@ -719,7 +723,14 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "CASE01_BEAT1_NEWSBOY",
         text: "Speak to the newspaper boy.",
-        nextNodeId: "scene_case01_hbf_newsboy",
+        nextNodeId: "scene_case01_hbf_newsboy_approach",
+        visibleIfAll: [
+          {
+            type: "flag_equals",
+            key: "freiburg_case01_mainline_active",
+            value: true,
+          },
+        ],
       },
       {
         id: "CASE01_BEAT1_LUGGAGE",
@@ -731,57 +742,78 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         text: "Approach the railway police post.",
         nextNodeId: "scene_case01_hbf_police",
       },
+      {
+        id: "CASE01_BEAT1_EXIT",
+        text: "Step out into the city.",
+        nextNodeId: "scene_case01_hbf_departure",
+      },
     ],
   },
   {
-    id: "scene_case01_hbf_newsboy",
+    id: "scene_case01_hbf_newsboy_approach",
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
     titleOverride: "Evening edition",
     bodyOverride:
-      "A newspaper boy is calling fresh headlines beside a soot-streaked pillar. That alone is wrong. Your assistant swore the papers were silent on the robbery, yet here the bank's name is being sold by the armful to late arrivals.\n\nHe keeps one eye on the crowd while he shouts, as if waiting to be corrected for knowing too much. The edition is thin, hurried, and specific where rumor should still be fog. Someone wanted the station to hear about Bankhaus Krebs before the rest of Freiburg could decide how to feel about it.\n\nIf the story is already in print, the bank is no longer only a crime scene. It is the first battleground.",
+      "The boy is nervous. He grips the thin, hurried evening edition like a shield. You notice the bank's name — Bankhaus Krebs — in the headlines. It's too early for official news, too specific for rumor.\n\nSomeone wanted this story told before the dust even settled.",
     backgroundUrl: CASE01_NEWSBOY_BG,
     narrativeLayout: "log",
     sceneGroupId: "hbf_newsboy",
-    onEnter: [
-      {
-        type: "set_flag",
-        key: "case01_onboarding_complete",
-        value: true,
-      },
-      {
-        type: "set_flag",
-        key: "intro_freiburg_done",
-        value: true,
-      },
-      {
-        type: "set_flag",
-        key: "priority_bank_first",
-        value: true,
-      },
-      {
-        type: "set_flag",
-        key: "priority_mayor_first",
-        value: false,
-      },
-      {
-        type: "set_flag",
-        key: "case01_priority_locked",
-        value: true,
-      },
-      { type: "unlock_group", groupId: "loc_freiburg_bank" },
-      { type: "unlock_group", groupId: "loc_rathaus" },
-      {
-        type: "track_event",
-        eventName: "case01_hbf_branch_selected",
-        tags: { branch: "newsboy", route: "bank" },
-      },
-    ],
     choices: [
       {
-        id: "CASE01_HBF_LEAVE_STATION",
-        text: "Continue into Freiburg.",
-        nextNodeId: "scene_case01_hbf_departure",
+        id: "CASE01_NEWSBOY_INVESTIGATE",
+        text: "Try to get a closer look at the boy's behavior.",
+        nextNodeId: "scene_case01_hbf_newsboy_handoff",
+        passiveChecks: [
+          {
+            id: "check_newsboy_nerves",
+            voiceId: "attr_perception",
+            difficulty: 8,
+            isPassive: true,
+            onSuccess: {
+              effects: [{ type: "grant_xp", amount: 5 }],
+            },
+          },
+        ],
+      },
+      {
+        id: "CASE01_NEWSBOY_RELEASE",
+        text: "Just buy a paper and move on.",
+        nextNodeId: "scene_case01_hbf_newsboy_release",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_hbf_newsboy_handoff",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    bodyOverride:
+      "As you reach for a paper, the boy's hand trembles. He's not just selling news; he's watching for someone. Your assistant leans in, a silent shadow that makes the boy stiffen further.\n\n'Go,' you mutter. He doesn't wait for a second invitation.",
+    backgroundUrl: CASE01_NEWSBOY_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "hbf_newsboy",
+    choices: [
+      {
+        id: "CASE01_NEWSBOY_HANDOFF_RETURN",
+        text: "Return to the platform.",
+        nextNodeId: "scene_case01_beat1_atmosphere",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_hbf_newsboy_release",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    bodyOverride:
+      "You take the paper. The ink is still fresh enough to smudge your gloves. The boy scurries away into the steam without looking back.",
+    backgroundUrl: CASE01_NEWSBOY_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "hbf_newsboy",
+    choices: [
+      {
+        id: "CASE01_NEWSBOY_RELEASE_RETURN",
+        text: "Return to the platform.",
+        nextNodeId: "scene_case01_beat1_atmosphere",
       },
     ],
   },
@@ -791,49 +823,45 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
     titleOverride: "Luggage Counter",
     bodyOverride:
-      "Behind the brass grille, the luggage clerk is already tired of everyone in front of him. Trunks, hat boxes, and porters' tags make a little bureaucracy of metal and impatience. In that clutter, one line on the incoming manifest stands out with almost theatrical precision: a secured crate from Strasbourg marked for Bankhaus J.A. Krebs, rushed through as a priority transfer before dawn.\n\nThe clerk pretends not to notice you reading upside down. He notices. He simply prefers not to become part of the story. That, too, is useful.\n\nThe bank did not merely suffer a robbery. It received something first. Whatever Freiburg is hiding, the paper trail starts there.",
+      "The clerk is counting brass tags. A heavy wooden crate marked for Bankhaus J.A. Krebs sits on a trolley, arriving from Strasbourg under priority seal. It's unusual for a local bank to receive such a delivery on a Sunday morning.\n\nThe clerk notices you lingering and shifts a clipboard to cover the manifest.",
     backgroundUrl: CASE01_LUGGAGE_BG,
     narrativeLayout: "log",
     sceneGroupId: "hbf_luggage",
-    onEnter: [
-      {
-        type: "set_flag",
-        key: "case01_onboarding_complete",
-        value: true,
-      },
-      {
-        type: "set_flag",
-        key: "intro_freiburg_done",
-        value: true,
-      },
-      {
-        type: "set_flag",
-        key: "priority_bank_first",
-        value: true,
-      },
-      {
-        type: "set_flag",
-        key: "priority_mayor_first",
-        value: false,
-      },
-      {
-        type: "set_flag",
-        key: "case01_priority_locked",
-        value: true,
-      },
-      { type: "unlock_group", groupId: "loc_freiburg_bank" },
-      { type: "unlock_group", groupId: "loc_rathaus" },
-      {
-        type: "track_event",
-        eventName: "case01_hbf_branch_selected",
-        tags: { branch: "luggage", route: "bank" },
-      },
-    ],
     choices: [
       {
-        id: "CASE01_HBF_LEAVE_STATION",
-        text: "Continue into Freiburg.",
-        nextNodeId: "scene_case01_hbf_departure",
+        id: "CASE01_LUGGAGE_PRESS",
+        text: "Press the clerk about the Strasbourg shipment.",
+        nextNodeId: "scene_case01_hbf_luggage_robbery",
+        passiveChecks: [
+          {
+            id: "check_luggage_clerk_fear",
+            voiceId: "attr_social",
+            difficulty: 10,
+            isPassive: true,
+          },
+        ],
+      },
+      {
+        id: "CASE01_LUGGAGE_RETURN",
+        text: "Step back to the platform.",
+        nextNodeId: "scene_case01_beat1_atmosphere",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_hbf_luggage_robbery",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    bodyOverride:
+      "The clerk's eyes dart toward the police post. 'I don't know anything about Strasbourg,' he mutters. 'Only that the bank requested priority. If you want to know more, go to the source.'\n\nHe turns his back on you, ending the conversation with a sharp snap of his ledger.",
+    backgroundUrl: CASE01_LUGGAGE_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "hbf_luggage",
+    choices: [
+      {
+        id: "CASE01_LUGGAGE_ROBBERY_RETURN",
+        text: "Return to the platform.",
+        nextNodeId: "scene_case01_beat1_atmosphere",
       },
     ],
   },
@@ -843,49 +871,15 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
     titleOverride: "Police Post",
     bodyOverride:
-      "Two railway policemen keep their voices low, but not low enough. One mutters about an open vault and an untouched window; the other cuts him off with a glance toward the city side of the station. The real fear in their posture is not violence. It is instruction.\n\nWhen they notice you listening, the taller one stiffens and smooths his tunic. 'No loitering. Orders are to keep the platform clear until the Rathaus gives its statement.' He says Rathaus the way a clerk says weather: as the force that decides what may be acknowledged.\n\nSo the city hall is already awake, already managing the shape of the story. If politics is pulling the strings before noon, that thread deserves the first hard tug.",
+      "Two officers are deep in low-voiced conversation. They mention an 'open vault' and a 'silent alarm' that didn't ring. Their posture is rigid, eyes scanning the crowd with more than just regular vigilance.\n\nThey are waiting for someone. Or preventing someone from leaving.",
     backgroundUrl: CASE01_POLICE_BG,
     narrativeLayout: "log",
     sceneGroupId: "hbf_police",
-    onEnter: [
-      {
-        type: "set_flag",
-        key: "case01_onboarding_complete",
-        value: true,
-      },
-      {
-        type: "set_flag",
-        key: "intro_freiburg_done",
-        value: true,
-      },
-      {
-        type: "set_flag",
-        key: "priority_bank_first",
-        value: false,
-      },
-      {
-        type: "set_flag",
-        key: "priority_mayor_first",
-        value: true,
-      },
-      {
-        type: "set_flag",
-        key: "case01_priority_locked",
-        value: true,
-      },
-      { type: "unlock_group", groupId: "loc_freiburg_bank" },
-      { type: "unlock_group", groupId: "loc_rathaus" },
-      {
-        type: "track_event",
-        eventName: "case01_hbf_branch_selected",
-        tags: { branch: "police", route: "rathaus" },
-      },
-    ],
     choices: [
       {
-        id: "CASE01_HBF_LEAVE_STATION",
-        text: "Continue into Freiburg.",
-        nextNodeId: "scene_case01_hbf_departure",
+        id: "CASE01_POLICE_RETURN",
+        text: "Mingle back into the crowd.",
+        nextNodeId: "scene_case01_beat1_atmosphere",
       },
     ],
   },
@@ -895,7 +889,57 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
     titleOverride: "Leaving the Hauptbahnhof",
     bodyOverride:
-      "**[Narrator]**:\nYou shoulder through the tide of travelers — timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Where you go next is yours to choose.",
+      "You shoulder through the tide of travelers — timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Two fronts are burning: the bank robbery and the political pressure from the Rathaus. Where you go first will shape how the city sees you.",
+    backgroundUrl: CASE01_HBF_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "hbf_hall",
+    onEnter: [
+      {
+        type: "set_flag",
+        key: "case01_onboarding_complete",
+        value: true,
+      },
+      { "type": "set_flag", "key": "intro_freiburg_done", "value": true },
+      { "type": "set_flag", "key": "case01_priority_locked", "value": true },
+      { "type": "unlock_group", groupId: "loc_freiburg_bank" },
+      { "type": "unlock_group", groupId: "loc_rathaus" },
+      { "type": "track_event", eventName: "case01_hbf_departure" },
+    ],
+    choices: [
+      {
+        id: "CASE01_HBF_EXIT_BANK",
+        text: "The bank first. Follow the money.",
+        nextNodeId: "scene_case01_hbf_exit_final",
+        effects: [
+          { type: "set_flag", key: "priority_bank_first", value: true },
+          {
+            type: "set_flag",
+            key: "priority_mayor_first",
+            value: false,
+          },
+        ],
+      },
+      {
+        id: "CASE01_HBF_EXIT_RATHAUS",
+        text: "The Rathaus first. Follow the power.",
+        nextNodeId: "scene_case01_hbf_exit_final",
+        effects: [
+          {
+            type: "set_flag",
+            key: "priority_mayor_first",
+            value: true,
+          },
+          { "type": "set_flag", "key": "priority_bank_first", "value": false },
+        ],
+      },
+    ],
+  },
+  {
+    id: "scene_case01_hbf_exit_final",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
+    titleOverride: "Freiburg",
+    bodyOverride: "The station is behind you. The city is ahead.",
     backgroundUrl: CASE01_HBF_BG,
     narrativeLayout: "log",
     sceneGroupId: "hbf_hall",

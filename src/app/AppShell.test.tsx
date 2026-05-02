@@ -79,7 +79,7 @@ vi.mock("../pages/HomePage", () => ({
       </button>
       <button
         type="button"
-        onClick={() => onOpenVnScenario("origin_journalist_bootstrap")}
+        onClick={() => onOpenVnScenario("case01_hbf_arrival")}
       >
         open-freiburg
       </button>

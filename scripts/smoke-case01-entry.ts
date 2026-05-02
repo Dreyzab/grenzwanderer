@@ -145,18 +145,19 @@ try {
   );
 
   const beat1Node = findNode(snapshot, "scene_case01_beat1_atmosphere");
-  const newsboyNode = findNode(snapshot, "scene_case01_hbf_newsboy");
+  const newsboyNode = findNode(snapshot, "scene_case01_hbf_newsboy_approach");
   const luggageNode = findNode(snapshot, "scene_case01_hbf_luggage");
   const policeNode = findNode(snapshot, "scene_case01_hbf_police");
   const hbfDepartureNode = findNode(snapshot, "scene_case01_hbf_departure");
+  const hbfExitFinalNode = findNode(snapshot, "scene_case01_hbf_exit_final");
 
   assert(
     beat1Node.choices.some(
       (choice) =>
         choice.id === "CASE01_BEAT1_NEWSBOY" &&
-        choice.nextNodeId === "scene_case01_hbf_newsboy",
+        choice.nextNodeId === "scene_case01_hbf_newsboy_approach",
     ),
-    "scene_case01_beat1_atmosphere must still route to the newsboy branch",
+    "scene_case01_beat1_atmosphere must route to the newsboy branch",
   );
   assert(
     beat1Node.choices.some(
@@ -164,7 +165,7 @@ try {
         choice.id === "CASE01_BEAT1_LUGGAGE" &&
         choice.nextNodeId === "scene_case01_hbf_luggage",
     ),
-    "scene_case01_beat1_atmosphere must still route to the luggage branch",
+    "scene_case01_beat1_atmosphere must route to the luggage branch",
   );
   assert(
     beat1Node.choices.some(
@@ -172,79 +173,87 @@ try {
         choice.id === "CASE01_BEAT1_POLICE" &&
         choice.nextNodeId === "scene_case01_hbf_police",
     ),
-    "scene_case01_beat1_atmosphere must still route to the police branch",
+    "scene_case01_beat1_atmosphere must route to the police branch",
+  );
+  assert(
+    beat1Node.choices.some(
+      (choice) =>
+        choice.id === "CASE01_BEAT1_EXIT" &&
+        choice.nextNodeId === "scene_case01_hbf_departure",
+    ),
+    "scene_case01_beat1_atmosphere must route to the departure node",
   );
 
-  for (const [branchLabel, node] of [
-    ["newsboy", newsboyNode],
-    ["luggage", luggageNode],
+  // Verify Hub & Spoke loopbacks (terminal nodes for spokes must point back to hub)
+  const newsboyHandoff = findNode(snapshot, "scene_case01_hbf_newsboy_handoff");
+  const newsboyRelease = findNode(snapshot, "scene_case01_hbf_newsboy_release");
+  const luggageRobbery = findNode(snapshot, "scene_case01_hbf_luggage_robbery");
+
+  for (const [nodeId, node] of [
+    ["newsboy_handoff", newsboyHandoff],
+    ["newsboy_release", newsboyRelease],
+    ["luggage_robbery", luggageRobbery],
+    ["luggage_standard", luggageNode],
     ["police", policeNode],
   ] as const) {
     assert(
-      node.terminal !== true,
-      `${branchLabel} branch must expose a leave-station choice before the terminal hub`,
-    );
-    assert(
       node.choices.some(
-        (choice) =>
-          choice.id === "CASE01_HBF_LEAVE_STATION" &&
-          choice.nextNodeId === "scene_case01_hbf_departure",
+        (choice) => choice.nextNodeId === "scene_case01_beat1_atmosphere",
       ),
-      `${branchLabel} branch must advance to scene_case01_hbf_departure`,
-    );
-    assert(
-      hasEffect(node.onEnter, {
-        type: "set_flag",
-        key: "case01_onboarding_complete",
-        value: true,
-      }),
-      `${branchLabel} branch must complete onboarding`,
-    );
-    assert(
-      hasEffect(node.onEnter, {
-        type: "unlock_group",
-        groupId: "loc_freiburg_bank",
-      }),
-      `${branchLabel} branch must unlock loc_freiburg_bank for map travel`,
-    );
-    assert(
-      hasEffect(node.onEnter, {
-        type: "unlock_group",
-        groupId: "loc_rathaus",
-      }),
-      `${branchLabel} branch must unlock loc_rathaus for map travel`,
+      `${nodeId} branch must loop back to the atmosphere hub`,
     );
   }
 
+  // Verify Departure node logic
   assert(
-    hbfDepartureNode.terminal === true,
-    "Freiburg entry must end on terminal hub node scene_case01_hbf_departure",
+    hbfDepartureNode.choices.length === 2,
+    "scene_case01_hbf_departure must offer exactly 2 choices (Bank vs Rathaus)",
+  );
+  assert(
+    hbfDepartureNode.choices.every(
+      (choice) => choice.nextNodeId === "scene_case01_hbf_exit_final",
+    ),
+    "Departure choices must advance to the final exit node",
+  );
+  assert(
+    hbfExitFinalNode.terminal === true,
+    "scene_case01_hbf_exit_final must be the terminal node",
   );
 
+  // Onboarding completion and unlocks are now in departure
   assert(
-    hasEffect(newsboyNode.onEnter, {
+    hasEffect(hbfDepartureNode.onEnter, {
       type: "set_flag",
-      key: "priority_bank_first",
+      key: "case01_onboarding_complete",
       value: true,
     }),
-    "newsboy branch must prioritize the bank route",
+    "Departure node must complete onboarding",
   );
   assert(
-    hasEffect(luggageNode.onEnter, {
-      type: "set_flag",
-      key: "priority_bank_first",
-      value: true,
+    hasEffect(hbfDepartureNode.onEnter, {
+      type: "unlock_group",
+      groupId: "loc_freiburg_bank",
     }),
-    "luggage branch must prioritize the bank route",
+    "Departure node must unlock loc_freiburg_bank for map travel",
   );
   assert(
-    hasEffect(policeNode.onEnter, {
-      type: "set_flag",
-      key: "priority_mayor_first",
-      value: true,
+    hasEffect(hbfDepartureNode.onEnter, {
+      type: "unlock_group",
+      groupId: "loc_rathaus",
     }),
-    "police branch must prioritize the Rathaus route",
+    "Departure node must unlock loc_rathaus for map travel",
   );
+
+  // Verify priority flagging in departure choices
+  const bankChoice = hbfDepartureNode.choices.find(
+    (c) => c.id === "CASE01_HBF_EXIT_BANK",
+  );
+  const rathausChoice = hbfDepartureNode.choices.find(
+    (c) => c.id === "CASE01_HBF_EXIT_RATHAUS",
+  );
+
+  assert(bankChoice, "Missing bank priority choice in departure");
+  assert(rathausChoice, "Missing rathaus priority choice in departure");
 
   for (const legacyId of [
     "detective_case1_hbf_arrival",

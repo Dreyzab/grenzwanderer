@@ -66,10 +66,10 @@ const CASE01_BG_CONVERGENCE = `${CASE01_ART_BG_BASE_PATH}/bg_case01_convergence_
 const CASE01_BG_WAREHOUSE = `${CASE01_ART_BG_BASE_PATH}/bg_case01_warehouse_wet_timber.webp`;
 const CASE01_BG_WAREHOUSE_LAWFUL = `${CASE01_ART_BG_BASE_PATH}/bg_case01_warehouse_lawful_seal.webp`;
 const CASE01_BG_WAREHOUSE_COMPROMISED = `${CASE01_ART_BG_BASE_PATH}/bg_case01_warehouse_compromised_ledger.webp`;
-const CASE01_BG_BANK_EXTERIOR = `${CASE01_ART_BG_BASE_PATH}/bg_case01_bank_exterior.webp`;
-const CASE01_BG_BANK_HALL = `${CASE01_ART_BG_BASE_PATH}/bg_case01_bank_hall.webp`;
-const CASE01_BG_BANK_OFFICE = `${CASE01_ART_BG_BASE_PATH}/bg_case01_bank_office.webp`;
-const CASE01_BG_BANK_VAULT = `${CASE01_ART_BG_BASE_PATH}/bg_case01_bank_vault.webp`;
+const CASE01_BG_BANK_EXTERIOR = CASE01_BG_CONVERGENCE;
+const CASE01_BG_BANK_HALL = CASE01_BG_ARCHIVE;
+const CASE01_BG_BANK_OFFICE = CASE01_BG_RATHAUS;
+const CASE01_BG_BANK_VAULT = CASE01_BG_WAREHOUSE_LAWFUL;
 
 const CASE01_DINING_FAREWELL_NODE_IDS = {
   silentDefend: "scene_case01_train_dining_car_eleonora_farewell_silent_defend",

@@ -91,7 +91,7 @@
       ],
       "mode": "fullscreen",
       "packId": "case01_mainline",
-      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_bank_exterior.webp"
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_convergence_city_threshold.webp"
     },
     {
       "id": "case01_convergence",
@@ -714,7 +714,7 @@
           "nextNodeId": "scene_case01_bank_manager"
         }
       ],
-      "backgroundUrl": "/images/scenes/case01/bg_case01_bank_exterior.webp",
+      "backgroundUrl": "/images/scenes/case01/bg_case01_convergence_city_threshold.webp",
       "characterId": "assistant"
     },
     {
@@ -748,7 +748,7 @@
           ]
         }
       ],
-      "backgroundUrl": "/images/scenes/case01/bg_case01_bank_office.webp"
+      "backgroundUrl": "/images/scenes/case01/bg_case01_rathaus_office_pressure.webp"
     },
     {
       "id": "scene_case01_bank_clerk",
@@ -799,7 +799,7 @@
           ]
         }
       ],
-      "backgroundUrl": "/images/scenes/case01/bg_case01_bank_hall.webp"
+      "backgroundUrl": "/images/scenes/case01/bg_case01_archive_reading_room.webp"
     },
     {
       "id": "scene_case01_bank_vault",
@@ -870,7 +870,7 @@
           ]
         }
       ],
-      "backgroundUrl": "/images/scenes/case01/bg_case01_bank_vault.webp"
+      "backgroundUrl": "/images/scenes/case01/bg_case01_warehouse_lawful_seal.webp"
     },
     {
       "id": "scene_case01_bank_conclusion",
@@ -9368,5 +9368,5 @@
       }
     ]
   },
-  "checksum": "ef892fc5a0034a562d536a4a1bf3b959f3bb04d48508bdecac865a6d6cc303b4"
+  "checksum": "f17f22f5a1984f1f0c880e93b49ffd6ba4629f84ed8ea0efe5252b369f92d68b"
 }

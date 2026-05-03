@@ -8,6 +8,7 @@ scene_order:
   - scene_case01_convergence_covert
 mode: overlay
 pack_id: case01_mainline
+default_background_url: /images/scenes/case01/bg_case01_convergence_city_threshold.webp
 default_locale: en
 supported_locales:
   - en

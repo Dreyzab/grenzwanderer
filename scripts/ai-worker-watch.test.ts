@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
   AI_DIALOGUE_SOURCE_SKILL_CHECK,
   type GenerateDialoguePayload,
@@ -292,7 +293,8 @@ describe("ai-worker-watch", () => {
       createClaimToken: vi
         .fn()
         .mockReturnValueOnce("claim-1")
-        .mockReturnValueOnce("claim-2"),
+        .mockReturnValueOnce("claim-2")
+        .mockReturnValueOnce("claim-3"),
       createRequestId: (scope) => `req-${scope}`,
       buildSceneContextImpl: vi.fn(async () => ({
         sceneSnapshot: "Scene snapshot",
@@ -308,7 +310,25 @@ describe("ai-worker-watch", () => {
     });
 
     expect(processed).toBe(1);
-    expect(conn.reducers.claimNextAiRequest).toHaveBeenCalledTimes(2);
+    expect(conn.reducers.claimNextAiRequest).toHaveBeenCalledTimes(3);
+    expect(conn.reducers.claimNextAiRequest).toHaveBeenNthCalledWith(1, {
+      requestId: "req-claim",
+      kind: AI_GENERATE_DIALOGUE_KIND,
+      leaseMs: baseConfig.leaseMs,
+      claimToken: "claim-1",
+    });
+    expect(conn.reducers.claimNextAiRequest).toHaveBeenNthCalledWith(2, {
+      requestId: "req-claim",
+      kind: AI_GENERATE_DIALOGUE_KIND,
+      leaseMs: baseConfig.leaseMs,
+      claimToken: "claim-2",
+    });
+    expect(conn.reducers.claimNextAiRequest).toHaveBeenNthCalledWith(3, {
+      requestId: "req-claim",
+      kind: AI_GENERATE_CHARACTER_REACTION_KIND,
+      leaseMs: baseConfig.leaseMs,
+      claimToken: "claim-3",
+    });
     expect(conn.reducers.completeAiRequest).toHaveBeenCalledTimes(1);
     expect(
       seenQueries.some((query) =>

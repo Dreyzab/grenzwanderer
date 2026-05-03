@@ -136,6 +136,7 @@ const LEGACY_SCENARIO_TO_CURRENT: Record<string, string> = {
   lead_pub: CASE01_SCENARIO_IDS.leadPub,
   interlude_victoria_street: CASE01_SCENARIO_IDS.convergence,
   interlude_lotte_warning: CASE01_SCENARIO_IDS.lotteInterlude,
+  lodging_zum_goldenen_adler: CASE01_SCENARIO_IDS.lodgingZumGoldenenAdler,
   quest_lotte_wires: CASE01_SCENARIO_IDS.lotteInterlude,
   quest_victoria_poetry: "sandbox_case01_pilot",
   encounter_tourist: "sandbox_intro_pilot",
@@ -920,8 +921,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
   {
     id: "loc_pub_deutsche",
     regionId: "FREIBURG_1905",
-    title: "Zum Deutschen Haus",
-    description: "Busy inn popular with locals and travelers.",
+    title: "Zum Goldenen Adler",
+    description:
+      "Reserved inn lodging where Freiburg's first social weather starts to collect.",
     lat: 47.992,
     lng: 7.854,
     image: "/images/locations/loc_pub_deutsche/loc_ganter_brauerei.webp",
@@ -929,7 +931,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     category: "PUBLIC",
     defaultState: "discovered",
     isHiddenInitially: true,
-    legacyScenarioIds: ["encounter_tourist"],
+    legacyScenarioIds: ["lodging_zum_goldenen_adler"],
   },
   {
     id: "loc_red_light",

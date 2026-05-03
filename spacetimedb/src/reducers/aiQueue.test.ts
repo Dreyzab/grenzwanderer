@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
   AI_REQUEST_STATUS_FAILED,
   AI_REQUEST_STATUS_PENDING,
@@ -30,10 +31,10 @@ const row = (
 };
 
 describe("aiQueue", () => {
-  it("accepts only the supported AI kind for v1", () => {
+  it("accepts supported AI kinds", () => {
     expect(isSupportedAiKind(AI_GENERATE_DIALOGUE_KIND)).toBe(true);
+    expect(isSupportedAiKind(AI_GENERATE_CHARACTER_REACTION_KIND)).toBe(true);
     expect(isSupportedAiKind("summary")).toBe(false);
-    expect(isSupportedAiKind("generate_character_reaction")).toBe(false);
   });
 
   it("claims the oldest eligible pending generate_dialogue job", () => {
@@ -47,6 +48,24 @@ describe("aiQueue", () => {
         row({ id: 1n }),
       ],
       AI_GENERATE_DIALOGUE_KIND,
+      1_000n,
+    );
+
+    expect(candidate?.id).toBe(1n);
+  });
+
+  it("claims the oldest eligible pending character reaction job", () => {
+    const candidate = selectClaimCandidate(
+      [
+        row({ id: 5n, kind: AI_GENERATE_DIALOGUE_KIND }),
+        row({
+          id: 3n,
+          kind: AI_GENERATE_CHARACTER_REACTION_KIND,
+          nextRetryAt: timestamp(2_000n),
+        }),
+        row({ id: 1n, kind: AI_GENERATE_CHARACTER_REACTION_KIND }),
+      ],
+      AI_GENERATE_CHARACTER_REACTION_KIND,
       1_000n,
     );
 

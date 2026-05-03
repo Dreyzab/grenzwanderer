@@ -1,11 +1,18 @@
 import React from "react";
 import { NoirTypography } from "../../../shared/ui/NoirTypography";
-import { TypedText, TypedTextHandle } from "./TypedText";
+import {
+  TypedText,
+  type TypedTextHandle,
+  type TypedTextTokenHandler,
+} from "./TypedText";
 
 interface VnNarrativeTextProps {
   text: string;
   speed?: number;
   onComplete?: () => void;
+  onTokenClick?: TypedTextTokenHandler;
+  onTokenEnter?: TypedTextTokenHandler;
+  onTokenLeave?: TypedTextTokenHandler;
   onTypingChange?: (isTyping: boolean) => void;
   typedTextRef?: React.RefObject<TypedTextHandle>;
 }
@@ -14,6 +21,9 @@ export const VnNarrativeText: React.FC<VnNarrativeTextProps> = ({
   text,
   speed,
   onComplete,
+  onTokenClick,
+  onTokenEnter,
+  onTokenLeave,
   onTypingChange,
   typedTextRef,
 }) => {
@@ -26,6 +36,9 @@ export const VnNarrativeText: React.FC<VnNarrativeTextProps> = ({
           text={text}
           speed={speed}
           onComplete={onComplete}
+          onTokenClick={onTokenClick}
+          onTokenEnter={onTokenEnter}
+          onTokenLeave={onTokenLeave}
           onTypingChange={onTypingChange}
         />
       </NoirTypography>

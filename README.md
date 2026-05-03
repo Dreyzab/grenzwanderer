@@ -116,6 +116,7 @@ Snapshot-backed supported flows must pass these content gates before smoke execu
 ```bash
 bun run content:extract
 bun run content:manifest:check
+bun run content:player-keys:check
 bun run content:obsidian:coverage:check
 bun run content:map:metrics:check
 bun run content:drift:verify
@@ -130,6 +131,10 @@ bun run smoke:all
 `smoke:all` is derived from the acceptance matrix. Synthetic contract flows in the matrix explicitly mark extract/manifest/drift gates as `n/a`.
 The Freiburg social loop is covered through `smoke:social-access`, `smoke:rumor-verification`, `smoke:agency-career`, and `smoke:service-unlock`.
 The canonical Case01 runtime path is now `case01_hbf_arrival -> Fritz priority choice -> bank/Mayor -> leads -> convergence -> warehouse finale`. `sandbox_case01_pilot` remains in the snapshot for legacy/debug coverage only.
+
+## AI Runtime Scope
+
+The supported AI queue kind is `generate_dialogue`. `generate_character_reaction` exists as a planned TypeScript contract for the future character-state model, but the SpacetimeDB queue and worker must continue rejecting it until that runtime path is implemented.
 
 ## SpacetimeDB Visibility Matrix
 

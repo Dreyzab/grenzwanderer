@@ -24,7 +24,10 @@ import {
   type SupportedAiKind,
 } from "./aiQueue";
 import {
+  AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
+  parseCharacterReactionProposal,
+  parseGenerateCharacterReactionPayload,
   parseGenerateDialoguePayload,
 } from "../../../src/features/ai/contracts";
 import { RESOURCE_PROVIDENCE_VAR } from "../../../src/shared/game/narrativeResources";
@@ -147,6 +150,20 @@ export const enqueue_ai_request = spacetimedb.reducer(
   },
   (ctx, { requestId, kind, payloadJson }) => {
     const supportedKind = requireSupportedAiKind(kind);
+
+    if (supportedKind === AI_GENERATE_DIALOGUE_KIND) {
+      if (!parseGenerateDialoguePayload(payloadJson)) {
+        throw new SenderError(
+          "payloadJson must contain a valid GenerateDialoguePayload",
+        );
+      }
+    } else if (supportedKind === AI_GENERATE_CHARACTER_REACTION_KIND) {
+      if (!parseGenerateCharacterReactionPayload(payloadJson)) {
+        throw new SenderError(
+          "payloadJson must contain a valid GenerateCharacterReactionPayload",
+        );
+      }
+    }
 
     ensureIdempotent(ctx, requestId, "enqueue_ai_request");
     ensurePlayerProfile(ctx);
@@ -406,6 +423,14 @@ export const complete_ai_request = spacetimedb.reducer(
     );
     if (leaseMutationError) {
       throw new SenderError(leaseMutationError);
+    }
+
+    if (request.kind === AI_GENERATE_CHARACTER_REACTION_KIND) {
+      if (!parseCharacterReactionProposal(normalizedResponseJson)) {
+        throw new SenderError(
+          "responseJson must contain a valid CharacterReactionProposal",
+        );
+      }
     }
 
     ctx.db.aiRequest.id.update({

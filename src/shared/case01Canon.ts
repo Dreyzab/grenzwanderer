@@ -9,6 +9,7 @@ export const CASE01_SCENARIO_IDS = {
   leadPub: "case01_lead_pub",
   estateBranch: "case01_estate_branch",
   lotteInterlude: "case01_lotte_interlude",
+  lodgingZumGoldenenAdler: "case01_lodging_zum_goldenen_adler",
   convergence: "case01_convergence",
   archiveRun: "case01_archive_warrant_run",
   railYardTail: "case01_rail_yard_shadow_tail",
@@ -36,12 +37,18 @@ export const CASE01_DINING_NODE_IDS = {
 export const CASE01_DINING_FLAGS = {
   jokedWithMother: "flag_joked_with_mother",
   silentObservation: "flag_silent_observation",
+  introducedSelf: "flag_dining_intro_self",
+  askedLodgingRoute: "flag_asked_lodging_route",
+  askedZumGoldenenAdler: "flag_asked_zum_goldenen_adler",
+  acceptedEleonoraHospitality: "flag_accepted_eleonora_hospitality",
+  declinedEleonoraHospitality: "flag_declined_eleonora_hospitality",
   defendedFelix: "flag_defended_felix",
   metMother: "met_mother_intro",
   metFelix: "met_felix_intro",
   metRedhead: "met_redhead_intro",
   noticedRingRemoved: "noticed_eleonora_ring_removed",
   noticedFelixApathy: "noticed_felix_apathy",
+  noticedLotteSchedule: "noticed_lotte_schedule",
 } as const;
 
 export const CASE01_CANON_FLAG_KEYS = [
@@ -79,8 +86,15 @@ export const CASE01_CANON_FLAG_KEYS = [
   CASE01_DINING_FLAGS.jokedWithMother,
   CASE01_DINING_FLAGS.defendedFelix,
   CASE01_DINING_FLAGS.silentObservation,
+  CASE01_DINING_FLAGS.introducedSelf,
+  CASE01_DINING_FLAGS.askedLodgingRoute,
+  CASE01_DINING_FLAGS.askedZumGoldenenAdler,
+  CASE01_DINING_FLAGS.acceptedEleonoraHospitality,
+  CASE01_DINING_FLAGS.declinedEleonoraHospitality,
   CASE01_DINING_FLAGS.noticedRingRemoved,
   CASE01_DINING_FLAGS.noticedFelixApathy,
+  CASE01_DINING_FLAGS.noticedLotteSchedule,
+  "flag_spotted_fritz_early",
 ] as const;
 
 export const CASE01_CANON_VAR_KEYS = [

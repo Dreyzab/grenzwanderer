@@ -1,3 +1,8 @@
+import type {
+  MindRequiredVar,
+  VnEffect,
+} from "../../../../src/shared/vn-contract";
+
 export type {
   AgencyServiceCriterionId,
   CareerRankDefinition,
@@ -53,18 +58,38 @@ export type {
 } from "../../../../src/shared/vn-contract";
 
 export type {
+  CommandActorPresentation,
+  CommandMemberAvailability,
+  CommandOrderPresentation,
+} from "./command_scenarios";
+
+export type {
   BattlePhase,
   BattleResultType,
   BattleReturnTab,
   BattleSide,
   BattleSourceTab,
   BattleZone,
-  CommandActorPresentation,
-  CommandMemberAvailability,
-  CommandOrderPresentation,
-  CommandPhase,
-  CommandReturnTab,
-  HypothesisReadiness,
-  MapPoint,
-  MapRegion,
-} from "./all";
+} from "./battle_runtime";
+
+export type {
+  MapPointSnapshot as MapPoint,
+  MapRegionSnapshot as MapRegion,
+} from "../../../../src/shared/vn-contract";
+
+export type CommandReturnTab = "map" | "vn";
+export type CommandPhase =
+  | "briefing"
+  | "orders"
+  | "resolving"
+  | "result"
+  | "closed";
+
+export interface HypothesisReadiness {
+  requiredFacts: string[];
+  requiredVars: MindRequiredVar[];
+  rewardEffects: VnEffect[];
+  missingFacts: string[];
+  failedVarConditions: MindRequiredVar[];
+  ready: boolean;
+}

@@ -1,9 +1,11 @@
+export { discoverFactInternal } from "./mind_discover";
 export {
-  discoverFactInternal,
   ensureMindCaseActive,
   ensureMindFactForCase,
   ensureMindHypothesisForCase,
+} from "./mind_guards";
+export {
   getHypothesisReadiness,
-  syncMindPalaceContentTables,
   validateHypothesisInternal,
-} from "./all";
+} from "./mind_hypothesis";
+export { syncMindPalaceContentTables } from "./mind_sync";

@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  CASE01_DINING_FLAGS,
   CASE01_FINAL_OUTCOME_COMPROMISED,
   CASE01_FINAL_OUTCOME_LAWFUL,
   CASE01_ROUTE_VALUE_COVERT,
@@ -22,7 +23,8 @@ type SnapshotEffect = {
 type SnapshotCondition = {
   type: string;
   key?: string;
-  value?: number;
+  value?: boolean | number;
+  condition?: SnapshotCondition;
 };
 
 type SnapshotChoice = {
@@ -141,6 +143,7 @@ try {
     CASE01_SCENARIO_IDS.leadPub,
     CASE01_SCENARIO_IDS.estateBranch,
     CASE01_SCENARIO_IDS.lotteInterlude,
+    CASE01_SCENARIO_IDS.lodgingZumGoldenenAdler,
     CASE01_SCENARIO_IDS.convergence,
     CASE01_SCENARIO_IDS.warehouseFinale,
   ]) {
@@ -161,6 +164,57 @@ try {
     );
   }
 
+  assert(
+    findNode(snapshot, "scene_case01_mayor_entry").choices.some(
+      (choice) =>
+        choice.id === "CASE01_MAYOR_INDEPENDENT_FOOTING" &&
+        choice.nextNodeId === "scene_case01_mayor_independent_footing" &&
+        (choice.visibleIfAll ?? []).some(
+          (condition) =>
+            condition.type === "flag_equals" &&
+            condition.key === CASE01_DINING_FLAGS.declinedEleonoraHospitality &&
+            condition.value === true,
+        ),
+    ),
+    "Mayor entry must expose an official-footing callback for declined Eleonora hospitality",
+  );
+  assert(
+    findNode(snapshot, "scene_case01_mayor_independent_footing").choices.some(
+      (choice) => choice.nextNodeId === "scene_case01_mayor_dossier",
+    ),
+    "Mayor declined-hospitality callback must route back to the normal dossier branch",
+  );
+  assert(
+    findNode(snapshot, "scene_case01_mayor_dossier").choices.some(
+      (choice) =>
+        choice.id === "CASE01_MAYOR_FELIX_ASIDE" &&
+        choice.nextNodeId === "scene_case01_mayor_felix_aside" &&
+        (choice.visibleIfAll ?? []).some(
+          (condition) =>
+            condition.type === "flag_equals" &&
+            condition.key === CASE01_DINING_FLAGS.defendedFelix &&
+            condition.value === true,
+        ),
+    ),
+    "Mayor dossier must expose a Felix official-cover aside after defending Felix",
+  );
+  assert(
+    findNode(snapshot, "scene_case01_mayor_felix_aside").choices.some(
+      (choice) =>
+        choice.nextNodeId === "scene_case01_mayor_exit" &&
+        hasEffect(choice.effects, {
+          type: "set_flag",
+          key: "met_mayor_first",
+          value: true,
+        }) &&
+        hasEffect(choice.effects, {
+          type: "change_relationship",
+          characterId: "assistant",
+          delta: 1,
+        }),
+    ),
+    "Felix official-cover aside must preserve the normal mayor exit effects",
+  );
   assert(
     hasEffect(findNode(snapshot, "scene_case01_mayor_exit").onEnter, {
       type: "set_flag",
@@ -213,6 +267,68 @@ try {
     "Estate branch must set estate_branch_complete",
   );
   assert(
+    findNode(snapshot, "scene_case01_lotte_warning").choices.some(
+      (choice) =>
+        choice.id === "CASE01_LOTTE_CONFRONT_SCHEDULE" &&
+        choice.nextNodeId === "scene_case01_lotte_schedule_opening" &&
+        (choice.visibleIfAll ?? []).some(
+          (condition) =>
+            condition.type === "flag_equals" &&
+            condition.key === CASE01_DINING_FLAGS.noticedLotteSchedule &&
+            condition.value === true,
+        ),
+    ),
+    "Lotte warning must expose a noticed-schedule confrontation without bypassing the interlude",
+  );
+  assert(
+    findNode(snapshot, "scene_case01_lotte_warning").choices.some(
+      (choice) =>
+        choice.id === "CASE01_LOTTE_LISTENER_OPENING" &&
+        choice.nextNodeId === "scene_case01_lotte_listener_opening" &&
+        (choice.visibleIfAll ?? []).some(
+          (condition) =>
+            condition.type === "flag_equals" &&
+            condition.key === CASE01_DINING_FLAGS.silentObservation &&
+            condition.value === true,
+        ) &&
+        (choice.visibleIfAll ?? []).some(
+          (condition) =>
+            condition.type === "logic_not" &&
+            condition.condition?.type === "flag_equals" &&
+            condition.condition.key ===
+              CASE01_DINING_FLAGS.noticedLotteSchedule &&
+            condition.condition.value === true,
+        ),
+    ),
+    "Lotte warning must expose a listener callback for silent observation while yielding to schedule confrontation",
+  );
+  const lotteListenerOpening = findNode(
+    snapshot,
+    "scene_case01_lotte_listener_opening",
+  );
+  assert(
+    lotteListenerOpening.choices.some(
+      (choice) => choice.nextNodeId === "scene_case01_lotte_trust",
+    ) &&
+      lotteListenerOpening.choices.some(
+        (choice) => choice.nextNodeId === "scene_case01_lotte_distance",
+      ),
+    "Lotte listener callback must still route into trust and distance outcomes",
+  );
+  const lotteScheduleOpening = findNode(
+    snapshot,
+    "scene_case01_lotte_schedule_opening",
+  );
+  assert(
+    lotteScheduleOpening.choices.some(
+      (choice) => choice.nextNodeId === "scene_case01_lotte_trust",
+    ) &&
+      lotteScheduleOpening.choices.some(
+        (choice) => choice.nextNodeId === "scene_case01_lotte_distance",
+      ),
+    "Lotte schedule callback must still route into trust and distance outcomes",
+  );
+  assert(
     hasEffect(findNode(snapshot, "scene_case01_lotte_trust").onEnter, {
       type: "change_relationship",
       characterId: "npc_weber_dispatcher",
@@ -227,6 +343,36 @@ try {
       delta: -1,
     }),
     "Lotte distance branch must penalize the dispatcher relationship",
+  );
+  assert(
+    findNode(snapshot, "scene_case01_zum_goldenen_adler_entry").choices.some(
+      (choice) =>
+        choice.id === "CASE01_zum_goldenen_adler_LOTTE_ROUTE" &&
+        choice.nextNodeId === "scene_case01_zum_goldenen_adler_lotte_route" &&
+        (choice.visibleIfAll ?? []).some(
+          (condition) =>
+            condition.type === "flag_equals" &&
+            condition.key === CASE01_DINING_FLAGS.askedLodgingRoute &&
+            condition.value === true,
+        ),
+    ),
+    "Zum Goldenen Adler must spend the lodging-route flag on a visible Lotte-informed callback",
+  );
+  assert(
+    findNode(
+      snapshot,
+      "scene_case01_zum_goldenen_adler_lotte_route",
+    ).choices.some(
+      (choice) =>
+        choice.id === "CASE01_zum_goldenen_adler_ROUTE_SETTLE" &&
+        choice.nextNodeId === "scene_case01_zum_goldenen_adler_settle",
+    ),
+    "Zum Goldenen Adler lodging callback must route back to the normal settle node",
+  );
+  assert(
+    findNode(snapshot, "scene_case01_zum_goldenen_adler_settle").choices
+      .length === 0,
+    "Zum Goldenen Adler settle node must stay terminal and avoid adding inventory systems",
   );
   assert(
     hasEffect(findNode(snapshot, "scene_case01_convergence_official").onEnter, {

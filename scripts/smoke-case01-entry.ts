@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+  CASE01_DINING_FLAGS,
   CASE01_SCENARIO_IDS,
 } from "../src/shared/case01Canon";
 import { resolveLegacyScenarioId } from "../src/features/map/data/scenario-mapping";
@@ -25,6 +26,15 @@ type SnapshotEffect = {
 type SnapshotChoice = {
   id: string;
   nextNodeId: string;
+  visibleIfAll?: SnapshotCondition[];
+};
+
+type SnapshotCondition = {
+  type: string;
+  key?: string;
+  value?: boolean | number;
+  condition?: SnapshotCondition;
+  conditions?: SnapshotCondition[];
 };
 
 type SnapshotNode = {
@@ -100,6 +110,29 @@ const hasScenarioBinding = (
     ),
   );
 
+const hasFlagEquals = (
+  conditions: SnapshotCondition[] | undefined,
+  key: string,
+  value: boolean,
+): boolean =>
+  (conditions ?? []).some((condition) => {
+    if (
+      condition.type === "flag_equals" &&
+      condition.key === key &&
+      condition.value === value
+    ) {
+      return true;
+    }
+    return (
+      hasFlagEquals(condition.conditions, key, value) ||
+      hasFlagEquals(
+        condition.condition ? [condition.condition] : undefined,
+        key,
+        value,
+      )
+    );
+  });
+
 try {
   const snapshot = readSnapshot();
   const scenarioIds = new Set(
@@ -145,11 +178,90 @@ try {
   );
 
   const beat1Node = findNode(snapshot, "scene_case01_beat1_atmosphere");
-  const newsboyNode = findNode(snapshot, "scene_case01_hbf_newsboy_approach");
+  const partingNode = findNode(snapshot, "scene_case01_train_platform_parting");
+  const introSelfEchoNode = findNode(
+    snapshot,
+    "scene_case01_hbf_echo_intro_self",
+  );
+  const hospitalityEchoNode = findNode(
+    snapshot,
+    "scene_case01_hbf_echo_hospitality_accepted",
+  );
+  findNode(snapshot, "scene_case01_hbf_newsboy_approach");
   const luggageNode = findNode(snapshot, "scene_case01_hbf_luggage");
   const policeNode = findNode(snapshot, "scene_case01_hbf_police");
   const hbfDepartureNode = findNode(snapshot, "scene_case01_hbf_departure");
   const hbfExitFinalNode = findNode(snapshot, "scene_case01_hbf_exit_final");
+
+  assert(
+    partingNode.choices.some(
+      (choice) =>
+        choice.id === "CHOICE_PARTING_INTRO_SELF_ECHO" &&
+        choice.nextNodeId === "scene_case01_hbf_echo_intro_self" &&
+        hasFlagEquals(
+          choice.visibleIfAll,
+          CASE01_DINING_FLAGS.introducedSelf,
+          true,
+        ),
+    ),
+    "Platform parting must route introduced-self players through the HBF manners echo",
+  );
+  assert(
+    introSelfEchoNode.choices.some(
+      (choice) => choice.nextNodeId === "scene_case01_beat1_atmosphere",
+    ),
+    "HBF introduced-self echo must return to the atmosphere hub",
+  );
+  assert(
+    partingNode.choices.some(
+      (choice) =>
+        choice.id === "CHOICE_PARTING_ACCEPTED_HOSPITALITY_ECHO" &&
+        choice.nextNodeId === "scene_case01_hbf_echo_hospitality_accepted" &&
+        hasFlagEquals(
+          choice.visibleIfAll,
+          CASE01_DINING_FLAGS.acceptedEleonoraHospitality,
+          true,
+        ) &&
+        hasFlagEquals(
+          choice.visibleIfAll,
+          CASE01_DINING_FLAGS.introducedSelf,
+          true,
+        ),
+    ),
+    "Platform parting must route accepted-hospitality players through a single HBF manners echo and defer to introduced-self priority",
+  );
+  assert(
+    hospitalityEchoNode.choices.some(
+      (choice) => choice.nextNodeId === "scene_case01_beat1_atmosphere",
+    ),
+    "HBF accepted-hospitality echo must return to the atmosphere hub",
+  );
+  assert(
+    partingNode.choices.some(
+      (choice) =>
+        choice.id === "CHOICE_PARTING_SECRET" &&
+        choice.nextNodeId === "scene_case01_beat1_atmosphere" &&
+        hasFlagEquals(
+          choice.visibleIfAll,
+          CASE01_DINING_FLAGS.acceptedEleonoraHospitality,
+          true,
+        ),
+    ),
+    "Secret platform route must remain reachable while yielding to accepted-hospitality echo",
+  );
+  assert(
+    partingNode.choices.some(
+      (choice) =>
+        choice.id === "CHOICE_PARTING_NORMAL" &&
+        choice.nextNodeId === "scene_case01_beat1_atmosphere" &&
+        hasFlagEquals(
+          choice.visibleIfAll,
+          CASE01_DINING_FLAGS.acceptedEleonoraHospitality,
+          true,
+        ),
+    ),
+    "Normal platform route must remain reachable while yielding to manners echoes",
+  );
 
   assert(
     beat1Node.choices.some(

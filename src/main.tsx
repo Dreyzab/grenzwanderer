@@ -6,6 +6,7 @@ import App from "./App";
 import { I18nProvider } from "./features/i18n/I18nProvider";
 import { SPACETIMEDB_DB_NAME, SPACETIMEDB_HOST } from "./config";
 import { DbConnection, ErrorContext } from "./module_bindings";
+import { PlayerBindingsProvider } from "./entities/player/hooks/usePlayerBindings";
 import {
   captureMonitoringException,
   clearMonitoringIdentity,
@@ -45,9 +46,11 @@ const connectionBuilder = DbConnection.builder()
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <SpacetimeDBProvider connectionBuilder={connectionBuilder}>
-      <I18nProvider>
-        <App />
-      </I18nProvider>
+      <PlayerBindingsProvider>
+        <I18nProvider>
+          <App />
+        </I18nProvider>
+      </PlayerBindingsProvider>
     </SpacetimeDBProvider>
   </StrictMode>,
 );

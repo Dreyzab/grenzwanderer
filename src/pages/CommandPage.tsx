@@ -9,7 +9,7 @@ import type {
 } from "../features/command/model/types";
 import { useUiLanguage } from "../shared/hooks/useUiLanguage";
 import { getCommandStrings } from "../features/i18n/uiStrings";
-import { usePlayerFlags } from "../entities/player/hooks/usePlayerFlags";
+import { usePlayerBindings } from "../entities/player/hooks/usePlayerBindings";
 
 type TabId =
   | "home"
@@ -86,7 +86,7 @@ export const CommandPage = ({ onNavigateTab }: CommandPageProps) => {
   const [sessions, sessionsReady] = useTable(tables.myCommandSessions);
   const [members, membersReady] = useTable(tables.myCommandParty);
   const [history, historyReady] = useTable(tables.myCommandHistory);
-  const flags = usePlayerFlags();
+  const { flags } = usePlayerBindings();
   const uiLanguage = useUiLanguage(flags);
   const t = useMemo(() => getCommandStrings(uiLanguage), [uiLanguage]);
   const issueCommand = useReducer(reducers.issueCommand);

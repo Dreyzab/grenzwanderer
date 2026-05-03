@@ -8,7 +8,7 @@ scene_order:
   - scene_case01_warehouse_compromised
 mode: fullscreen
 pack_id: case01_mainline
-default_background_url: /images/scenes/scene_estate_intro.png
+default_background_url: /images/scenes/case01/bg_case01_warehouse_wet_timber.webp
 default_locale: en
 supported_locales:
   - en

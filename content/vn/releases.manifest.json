@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-05-01T06:31:12.727Z",
+  "updatedAt": "2026-05-03T07:15:29.302Z",
   "releases": [
     {
       "version": "content-v0.0.1+2a6600d5",
@@ -392,6 +392,30 @@
       "schemaVersion": 9,
       "generatedAt": "2026-05-01T06:31:12.726Z",
       "publishedAt": "2026-05-01T06:31:12.726Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.1.0+83cb9159",
+      "checksum": "83cb915925e43c1df20be6d9dc272e819489f9e011c93173ec69ff4daffefd63",
+      "schemaVersion": 9,
+      "generatedAt": "2026-05-02T16:10:33.602Z",
+      "publishedAt": "2026-05-02T16:10:33.602Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.1.0+8f915937",
+      "checksum": "8f9159370a9fda0b6e533b1eb63efbe436c271792b57e7757cb970d573dd04b7",
+      "schemaVersion": 9,
+      "generatedAt": "2026-05-03T07:15:29.301Z",
+      "publishedAt": "2026-05-03T07:15:29.301Z",
       "target": {
         "server": "local",
         "host": "http://127.0.0.1:3001",

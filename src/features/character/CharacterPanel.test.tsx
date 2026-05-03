@@ -112,6 +112,46 @@ vi.mock("../../entities/player/hooks/usePlayerVars", () => ({
   usePlayerVars: () => mocks.usePlayerVarsMock(),
 }));
 
+vi.mock("../../entities/player/hooks/usePlayerBindings", () => ({
+  usePlayerBindings: () => {
+    const [profiles] = mocks.useTableMock(mocks.tablesMock.myPlayerProfile);
+    const [quests] = mocks.useTableMock(mocks.tablesMock.myQuests);
+    const [npcState] = mocks.useTableMock(mocks.tablesMock.myNpcState);
+    const [npcFavors] = mocks.useTableMock(mocks.tablesMock.myNpcFavors);
+    const [factionSignals] = mocks.useTableMock(
+      mocks.tablesMock.myFactionSignals,
+    );
+    const [agencyCareer] = mocks.useTableMock(mocks.tablesMock.myAgencyCareer);
+    return {
+      identityHex: mocks.useIdentityMock().identityHex,
+      flags: mocks.usePlayerFlagsMock(),
+      vars: mocks.usePlayerVarsMock(),
+      profile: profiles[0] ?? null,
+      location: null,
+      inventory: [],
+      quests,
+      relationships: [],
+      npcState,
+      npcFavors,
+      factionSignals,
+      agencyCareer: agencyCareer[0] ?? null,
+      rows: {
+        flags: [],
+        vars: [],
+        profiles,
+        locations: [],
+        inventory: [],
+        quests,
+        relationships: [],
+        npcState,
+        npcFavors,
+        factionSignals,
+        agencyCareer,
+      },
+    };
+  },
+}));
+
 vi.mock("../../config", () => ({
   get ENABLE_DEBUG_CONTENT_SEED() {
     return mocks.debugEnabled;

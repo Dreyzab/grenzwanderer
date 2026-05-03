@@ -26,7 +26,7 @@ import {
 import { ClueNode } from "./nodes/ClueNode";
 import { HypothesisNode } from "./nodes/HypothesisNode";
 import { RedThreadEdge } from "./edges/RedThreadEdge";
-import { usePlayerVars } from "../../entities/player/hooks/usePlayerVars";
+import { usePlayerBindings } from "../../entities/player/hooks/usePlayerBindings";
 
 const nodeTypes = {
   clue: ClueNode,
@@ -43,7 +43,7 @@ const createRequestId = () =>
 export function MindBoardCanvas({ caseId }: { caseId: string }) {
   const { identityHex } = useIdentity();
   const toast = useToast();
-  const varsByKey = usePlayerVars();
+  const { vars: varsByKey } = usePlayerBindings();
 
   const [mindCases] = useTable(tables.mindCase);
   const [mindFacts] = useTable(tables.mindFact);

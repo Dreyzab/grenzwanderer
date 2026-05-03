@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useReducer, useTable } from "spacetimedb/react";
-import { Volume2, VolumeX } from "lucide-react";
-import { usePlayerFlags } from "../../../entities/player/hooks/usePlayerFlags";
-import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
+import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
 import { useKarlsruheSceneBackground } from "../../release/sceneGeneration";
 import { getVnStrings } from "../../i18n/uiStrings";
 import { useVnAiLogic } from "../hooks/useVnAiLogic";
@@ -13,30 +10,27 @@ import { useVnProvidenceExpansion } from "../hooks/useVnProvidenceExpansion";
 import { useVnSkillChecks } from "../hooks/useVnSkillChecks";
 import { useVnSurfaceInteraction } from "../hooks/useVnSurfaceInteraction";
 import { useVnTransitions } from "../hooks/useVnTransitions";
+import { useNextVnVisualPrefetchUrls } from "../hooks/useNextVnVisualPrefetchUrls";
+import { useEffectiveNarrativeLayout } from "../hooks/useEffectiveNarrativeLayout";
+import { useVnContentSnapshot } from "../hooks/useVnContentSnapshot";
+import { useVnScreenSpacetimeBindings } from "../hooks/useVnScreenSpacetimeBindings";
 import { useCurrentNode } from "../hooks/useCurrentNode";
 import { useVnSession } from "../hooks/useVnSession";
-import { LogChoicesRenderer } from "../log/LogChoicesRenderer";
 import { useNarrativeLog } from "../log/useNarrativeLog";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
-import { reducers, tables } from "../../../shared/spacetime/bindings";
-import {
-  getScenarioById,
-  isChoiceAvailable,
-  parseSnapshot,
-} from "../vnContent";
-import type {
-  VnChoice,
-  VnNarrativeLayout,
-  VnScenario,
-  VnSnapshot,
-} from "../types";
-import { VnPassiveCheckBanner } from "./VnPassiveCheckBanner";
-import { VnChoicesRenderer } from "./VnChoicesRenderer";
+import type { VnChoice } from "../types";
 import { VnScreenHeader } from "./VnScreenHeader";
-import { VnSkillCheckResolveOverlay } from "./VnSkillCheckResolveOverlay";
-import type { TypedTextHandle } from "./TypedText";
+import { VnScreenChoicesSlot } from "./VnScreenChoicesSlot";
+import { VnScreenOverlaySlot } from "./VnScreenOverlaySlot";
+import type { TypedTextHandle, TypedTextTokenHandler } from "./TypedText";
+import {
+  VnTokenFeedbackOverlay,
+  type VnTokenFeedback,
+  type VnTokenFeedbackVariant,
+} from "./VnTokenFeedbackOverlay";
 import {
   playVnSkillCheckSfx,
+  playVnTokenSfx,
   readVnSfxMuted,
   writeVnSfxMuted,
 } from "./vnSkillCheckAudio";
@@ -65,30 +59,90 @@ interface VnScreenProps {
   ) => void;
 }
 
+const createVnTokenRequestId = (): string => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `vn-token-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+};
+
+const parseFactTokenPayload = (
+  payload: string,
+): { caseId: string; factId: string } | null => {
+  const [caseId, factId] = payload
+    .split("/")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (!caseId || !factId) {
+    return null;
+  }
+
+  return { caseId, factId };
+};
+
+const parseItemTokenPayload = (
+  payload: string,
+): { itemId: string; quantity: number } | null => {
+  const [itemIdRaw, quantityRaw] = payload.split(":");
+  const itemId = itemIdRaw?.trim() ?? "";
+  if (!itemId) {
+    return null;
+  }
+
+  const parsedQuantity =
+    quantityRaw === undefined ? 1 : Number.parseInt(quantityRaw, 10);
+  const quantity =
+    Number.isFinite(parsedQuantity) && parsedQuantity > 0 ? parsedQuantity : 1;
+
+  return { itemId, quantity };
+};
+
+const toTokenFeedbackVariant = (type: string): VnTokenFeedbackVariant => {
+  if (
+    type === "clue" ||
+    type === "fact" ||
+    type === "lead" ||
+    type === "item"
+  ) {
+    return type;
+  }
+  return "unknown";
+};
+
 export const VnScreen = ({
   onOpenDebug,
   initialScenarioId,
   onScenarioChange,
   onNavigateTab,
 }: VnScreenProps) => {
-  const [versions, versionsReady] = useTable(tables.contentVersion);
-  const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
-  const [sessions, sessionsReady] = useTable(tables.myVnSessions);
-  const [skillResults] = useTable(tables.myVnSkillResults);
-  const [aiRequests] = useTable(tables.myAiRequests);
-  const [questRows] = useTable(tables.myQuests);
-  const [npcStateRows, npcStateReady] = useTable(tables.myNpcState);
-  const [npcFavorRows] = useTable(tables.myNpcFavors);
-  const [agencyCareerRows] = useTable(tables.myAgencyCareer);
-  const [rumorStateRows] = useTable(tables.myRumorState);
-
-  const startScenario = useReducer(reducers.startScenario);
-  const recordChoice = useReducer(reducers.recordChoice);
-  const performSkillCheckReducer = useReducer(reducers.performSkillCheck);
-  const enqueueAiRequest = useReducer(reducers.enqueueAiRequest);
-  const enqueueProvidenceDialogue = useReducer(
-    reducers.enqueueProvidenceDialogue,
-  );
+  const {
+    versions,
+    versionsReady,
+    snapshots,
+    snapshotsReady,
+    sessions,
+    sessionsReady,
+    skillResults,
+    aiRequests,
+    questRows,
+    npcStateRows,
+    npcStateReady,
+    npcFavorRows,
+    agencyCareerRows,
+    rumorStateRows,
+    mindFactRows,
+    evidenceRows,
+    inventoryRows,
+    startScenario,
+    recordChoice,
+    performSkillCheckReducer,
+    enqueueAiRequest,
+    enqueueProvidenceDialogue,
+    discoverFact,
+    grantEvidence,
+    grantItem,
+  } = useVnScreenSpacetimeBindings();
 
   const [selectedScenarioId, setSelectedScenarioId] = useState("");
   const [transitionState, setTransitionState] =
@@ -105,12 +159,17 @@ export const VnScreen = ({
     null,
   );
   const [videoEnded, setVideoEnded] = useState(false);
+  const [tokenFeedback, setTokenFeedback] = useState<VnTokenFeedback | null>(
+    null,
+  );
 
   const typedTextRef = useRef<TypedTextHandle>(null);
   const typingFinishedAtRef = useRef(0);
+  const tokenFeedbackTimerRef = useRef<number | null>(null);
+  const tokenFeedbackIdRef = useRef(0);
+  const pendingTokenActionsRef = useRef<Set<string>>(new Set());
 
-  const myFlags = usePlayerFlags();
-  const myVars = usePlayerVars();
+  const { flags: myFlags, vars: myVars } = usePlayerBindings();
   const uiLanguage = useUiLanguage(myFlags);
   const { dictionary, localePackReady } = useI18n();
   const t = useMemo(() => getVnStrings(uiLanguage), [uiLanguage]);
@@ -133,27 +192,22 @@ export const VnScreen = ({
     writeVnSfxMuted(isSfxMuted);
   }, [isSfxMuted]);
 
-  const activeVersion = useMemo(
-    () => versions.find((entry) => entry.isActive) ?? null,
-    [versions],
-  );
+  useEffect(() => {
+    return () => {
+      if (tokenFeedbackTimerRef.current !== null) {
+        window.clearTimeout(tokenFeedbackTimerRef.current);
+      }
+    };
+  }, []);
 
-  const snapshot = useMemo<VnSnapshot | null>(() => {
-    if (!activeVersion) {
-      return null;
-    }
-
-    const snapshotRow = snapshots.find(
-      (entry) => entry.checksum === activeVersion.checksum,
-    );
-    if (!snapshotRow) {
-      return null;
-    }
-
-    return parseSnapshot(snapshotRow.payloadJson);
-  }, [activeVersion, snapshots]);
-  const contentReady =
-    (versionsReady && snapshotsReady) || Boolean(activeVersion && snapshot);
+  const { activeVersion, contentReady, selectedScenario, snapshot } =
+    useVnContentSnapshot({
+      selectedScenarioId,
+      snapshots,
+      snapshotsReady,
+      versions,
+      versionsReady,
+    });
 
   useEffect(() => {
     setTransitionState("idle");
@@ -162,13 +216,6 @@ export const VnScreen = ({
     setActiveProvidenceThoughtContext(null);
     setActiveReactionKey(null);
   }, [selectedScenarioId]);
-
-  const selectedScenario = useMemo<VnScenario | null>(() => {
-    if (!snapshot || !selectedScenarioId) {
-      return null;
-    }
-    return getScenarioById(snapshot, selectedScenarioId);
-  }, [selectedScenarioId, snapshot]);
 
   const { session: mySession, isReady: sessionReady } =
     useVnSession(selectedScenarioId);
@@ -179,20 +226,7 @@ export const VnScreen = ({
     sessionReady,
   );
 
-  const effectiveNarrativeLayout = useMemo<VnNarrativeLayout>(() => {
-    const layout = currentNode?.narrativeLayout;
-    if (
-      currentNode?.narrativePresentation === "letter" &&
-      (layout === undefined || layout === "split")
-    ) {
-      return "letter_overlay";
-    }
-    if (layout === "split" || layout === "thought_log") {
-      return "log";
-    }
-
-    return layout ?? "split";
-  }, [currentNode?.narrativeLayout, currentNode?.narrativePresentation]);
+  const effectiveNarrativeLayout = useEffectiveNarrativeLayout(currentNode);
 
   /**
    * Authored-group input for `useNarrativeLog` only. Passing this to `VnLogBottomSheet`
@@ -335,6 +369,178 @@ export const VnScreen = ({
   const markInteractionHandled = useCallback(() => {
     typingFinishedAtRef.current = Date.now();
   }, []);
+  const showTokenFeedback = useCallback(
+    (
+      variant: VnTokenFeedbackVariant,
+      label: string,
+      event: Parameters<TypedTextTokenHandler>[1],
+    ) => {
+      const eventLike = event as unknown as {
+        clientX?: number;
+        clientY?: number;
+        currentTarget?: HTMLElement;
+      };
+      const rect = eventLike.currentTarget?.getBoundingClientRect();
+      const x =
+        typeof eventLike.clientX === "number" && eventLike.clientX > 0
+          ? eventLike.clientX
+          : (rect?.left ?? 0) + (rect?.width ?? 0) / 2;
+      const y =
+        typeof eventLike.clientY === "number" && eventLike.clientY > 0
+          ? eventLike.clientY
+          : (rect?.top ?? 0) + (rect?.height ?? 0) / 2;
+
+      tokenFeedbackIdRef.current += 1;
+      setTokenFeedback({
+        id: tokenFeedbackIdRef.current,
+        label,
+        variant,
+        x,
+        y,
+      });
+
+      if (tokenFeedbackTimerRef.current !== null) {
+        window.clearTimeout(tokenFeedbackTimerRef.current);
+      }
+      tokenFeedbackTimerRef.current = window.setTimeout(() => {
+        setTokenFeedback(null);
+        tokenFeedbackTimerRef.current = null;
+      }, 920);
+    },
+    [],
+  );
+  const handleTypedTextTokenClick = useCallback<TypedTextTokenHandler>(
+    (token, event) => {
+      markInteractionHandled();
+      const variant = toTokenFeedbackVariant(token.type);
+      showTokenFeedback(variant, token.text, event);
+      if (!isSfxMuted) {
+        void playVnTokenSfx(variant, false);
+      }
+
+      const run = async () => {
+        if (token.type === "clue") {
+          const evidenceId = token.payload.trim();
+          if (!evidenceId) {
+            setError("Interactive clue token is missing an evidence id.");
+            return;
+          }
+
+          const actionKey = `clue:${evidenceId}`;
+          if (
+            evidenceRows.some((row) => row.evidenceId === evidenceId) ||
+            pendingTokenActionsRef.current.has(actionKey)
+          ) {
+            return;
+          }
+
+          pendingTokenActionsRef.current.add(actionKey);
+          setError(null);
+          try {
+            await grantEvidence({
+              requestId: createVnTokenRequestId(),
+              evidenceId,
+            });
+          } catch (caughtError) {
+            pendingTokenActionsRef.current.delete(actionKey);
+            setError(
+              caughtError instanceof Error
+                ? caughtError.message
+                : "Failed to save clue token.",
+            );
+          }
+          return;
+        }
+
+        if (token.type === "fact" || token.type === "lead") {
+          const parsed = parseFactTokenPayload(token.payload);
+          if (!parsed) {
+            setError(
+              "Interactive fact token must use payload case_id/fact_id.",
+            );
+            return;
+          }
+
+          const actionKey = `fact:${parsed.caseId}:${parsed.factId}`;
+          if (
+            mindFactRows.some(
+              (row) =>
+                row.caseId === parsed.caseId && row.factId === parsed.factId,
+            ) ||
+            pendingTokenActionsRef.current.has(actionKey)
+          ) {
+            return;
+          }
+
+          pendingTokenActionsRef.current.add(actionKey);
+          setError(null);
+          try {
+            await discoverFact({
+              requestId: createVnTokenRequestId(),
+              caseId: parsed.caseId,
+              factId: parsed.factId,
+            });
+          } catch (caughtError) {
+            pendingTokenActionsRef.current.delete(actionKey);
+            setError(
+              caughtError instanceof Error
+                ? caughtError.message
+                : "Failed to save fact token.",
+            );
+          }
+          return;
+        }
+
+        if (token.type === "item") {
+          const parsed = parseItemTokenPayload(token.payload);
+          if (!parsed) {
+            setError("Interactive item token is missing an item id.");
+            return;
+          }
+
+          const actionKey = `item:${parsed.itemId}`;
+          if (
+            inventoryRows.some(
+              (row) => row.itemId === parsed.itemId && row.quantity > 0,
+            ) ||
+            pendingTokenActionsRef.current.has(actionKey)
+          ) {
+            return;
+          }
+
+          pendingTokenActionsRef.current.add(actionKey);
+          setError(null);
+          try {
+            await grantItem({
+              requestId: createVnTokenRequestId(),
+              itemId: parsed.itemId,
+              quantity: parsed.quantity,
+            });
+          } catch (caughtError) {
+            pendingTokenActionsRef.current.delete(actionKey);
+            setError(
+              caughtError instanceof Error
+                ? caughtError.message
+                : "Failed to save item token.",
+            );
+          }
+        }
+      };
+
+      void run();
+    },
+    [
+      discoverFact,
+      evidenceRows,
+      grantEvidence,
+      grantItem,
+      inventoryRows,
+      isSfxMuted,
+      markInteractionHandled,
+      mindFactRows,
+      showTokenFeedback,
+    ],
+  );
   const {
     pendingChoiceId,
     armedSkillChoice,
@@ -415,7 +621,6 @@ export const VnScreen = ({
     activeLensBadgeText,
     internalizedThoughtBadgeText,
     choiceDisplayItems,
-    hasExplicitChoices,
     hasAutoContinueChoice,
   } = useVnDisplayMapping({
     t,
@@ -504,6 +709,14 @@ export const VnScreen = ({
     [appendChoice, effectiveNarrativeLayout, handleChoiceClick],
   );
 
+  const nextVisualUrls = useNextVnVisualPrefetchUrls({
+    autoContinueChoice: currentAutoContinueChoice,
+    currentNode,
+    resolvedBgUrl,
+    snapshot,
+    visibleChoices: currentVisibleChoices,
+  });
+
   if (!activeVersion || !snapshot) {
     return (
       <section className="vn-empty-state">
@@ -528,30 +741,6 @@ export const VnScreen = ({
   const canTriggerCompletion =
     transitionState !== "handoff_in_flight" &&
     transitionState !== "handoff_failed";
-  const logChoicesSlot = (
-    <LogChoicesRenderer
-      choiceDisplayItems={choiceDisplayItems}
-      isInteractionLocked={isInteractionLocked}
-      currentNodePresent={Boolean(currentNode)}
-      displayedScenarioCompleted={displayedScenarioCompleted}
-      canTriggerCompletion={canTriggerCompletion}
-      completionRoute={completionRoute}
-      completionTargetLabel={completionTargetLabel}
-      hasAutoContinueChoice={hasAutoContinueChoice}
-      sessionReady={sessionReady}
-      labels={{
-        terminalNoChoices: t.terminalNoChoices,
-        openNextScene: t.openNextScene,
-        continueScene: t.continueScene,
-        restartScene: t.restartScene,
-        sessionHydrating: t.sessionHydrating,
-        noChoices: t.noChoices,
-      }}
-      onChoiceClick={(choice) => handleLoggedChoiceClick(choice, false)}
-      onCompletionTransition={() => void runCompletionTransition()}
-      onRestartScene={() => void handleStartScenario()}
-    />
-  );
 
   return (
     <section className="vn-screen-root">
@@ -573,12 +762,14 @@ export const VnScreen = ({
         sceneId={currentNode?.id}
         sceneGroupId={narrativeLog.state.sceneGroupId}
         locationName={displayLocationName}
+        characterId={currentNode?.characterId}
         characterName={speakerLabel === "Narrator" ? undefined : speakerLabel}
         narrativeText={narrativeText}
         backgroundImageUrl={resolvedBgUrl ?? undefined}
         backgroundVideoUrl={currentNode?.backgroundVideoUrl}
         backgroundVideoPosterUrl={currentNode?.backgroundVideoPosterUrl}
         backgroundVideoSoundPrompt={currentNode?.backgroundVideoSoundPrompt}
+        nextVisualUrls={nextVisualUrls}
         narrativeLayout={effectiveNarrativeLayout}
         narrativePresentation={currentNode?.narrativePresentation}
         logState={narrativeLog.state}
@@ -587,87 +778,69 @@ export const VnScreen = ({
         onTypingChange={handleTypingChange}
         isTyping={isTyping}
         typedTextRef={typedTextRef}
+        onTokenClick={handleTypedTextTokenClick}
         onSurfaceTap={handleSurfaceTap}
         onVideoEnded={handleVideoEnded}
         videoPlaybackComplete={videoEnded}
         choicesSlot={
-          effectiveNarrativeLayout === "log" ? (
-            logChoicesSlot
-          ) : hideImmersiveChrome ? null : (
-            <VnChoicesRenderer
-              t={t}
-              uiLanguage={uiLanguage}
-              reactionCard={reactionCard}
-              thoughtCard={thoughtCard}
-              providenceThoughtCard={providenceThoughtCard}
-              innerVoiceCards={innerVoiceCards}
-              canExpandThoughtWithProvidence={canExpandThoughtWithProvidence}
-              providenceCtaLabel={providenceCtaLabel}
-              activeLensBadgeText={activeLensBadgeText}
-              internalizedThoughtBadgeText={internalizedThoughtBadgeText}
-              showOriginCards={showOriginCards}
-              visibleChoices={visibleChoices}
-              choiceDisplayItems={choiceDisplayItems}
-              isInteractionLocked={isInteractionLocked}
-              currentNodePresent={Boolean(currentNode)}
-              displayedScenarioCompleted={displayedScenarioCompleted}
-              canTriggerCompletion={canTriggerCompletion}
-              completionRoute={completionRoute}
-              completionTargetLabel={completionTargetLabel}
-              hasAutoContinueChoice={hasAutoContinueChoice}
-              sessionReady={sessionReady}
-              onOriginPick={(choice) => {
-                const isAvailable = isChoiceAvailable(
-                  choice,
-                  myFlags,
-                  myVars,
-                  choiceEvaluationContext,
-                );
-                handleLoggedChoiceClick(choice, !isAvailable || !mySession);
-              }}
-              onChoiceClick={(choice) => handleLoggedChoiceClick(choice, false)}
-              onProvidenceExpand={() => void handleProvidenceExpand()}
-              onCompletionTransition={() => void runCompletionTransition()}
-              onRestartScene={() => void handleStartScenario()}
-            />
-          )
+          <VnScreenChoicesSlot
+            activeLensBadgeText={activeLensBadgeText}
+            canExpandThoughtWithProvidence={canExpandThoughtWithProvidence}
+            canTriggerCompletion={canTriggerCompletion}
+            choiceDisplayItems={choiceDisplayItems}
+            choiceEvaluationContext={choiceEvaluationContext}
+            completionRoute={completionRoute}
+            completionTargetLabel={completionTargetLabel}
+            currentNodePresent={Boolean(currentNode)}
+            displayedScenarioCompleted={displayedScenarioCompleted}
+            effectiveNarrativeLayout={effectiveNarrativeLayout}
+            hasAutoContinueChoice={hasAutoContinueChoice}
+            hideImmersiveChrome={hideImmersiveChrome}
+            innerVoiceCards={innerVoiceCards}
+            internalizedThoughtBadgeText={internalizedThoughtBadgeText}
+            isInteractionLocked={isInteractionLocked}
+            myFlags={myFlags}
+            mySession={mySession}
+            myVars={myVars}
+            providenceCtaLabel={providenceCtaLabel}
+            providenceThoughtCard={providenceThoughtCard}
+            reactionCard={reactionCard}
+            sessionReady={sessionReady}
+            showOriginCards={showOriginCards}
+            t={t}
+            thoughtCard={thoughtCard}
+            uiLanguage={uiLanguage}
+            visibleChoices={visibleChoices}
+            onChoiceClick={handleLoggedChoiceClick}
+            onCompletionTransition={() => void runCompletionTransition()}
+            onProvidenceExpand={() => void handleProvidenceExpand()}
+            onRestartScene={() => void handleStartScenario()}
+          />
         }
       >
-        <VnSkillCheckResolveOverlay
-          state={activeSkillResolve}
-          aiStatus={activeResolveAiStatus}
-          aiThoughtText={activeResolveAiText}
+        <VnScreenOverlaySlot
+          activeResolveAiStatus={activeResolveAiStatus}
+          activeResolveAiText={activeResolveAiText}
+          activeSkillResolve={activeSkillResolve}
           aiThoughtVoiceLabel={activeAiThoughtVoiceLabel}
-          onFortuneSpendChange={handleFortuneSpendChange}
-          onRoll={() => void confirmArmedSkillCheck()}
           canRoll={Boolean(
             armedSkillChoice &&
             activeSkillResolve?.phase === "arming" &&
             !awaitingSkillChoice,
           )}
-          onInteract={handleActiveResolveInteraction}
+          isSfxMuted={isSfxMuted}
+          passiveCheckItems={passiveCheckItems}
+          t={t}
+          onActiveResolveInteraction={handleActiveResolveInteraction}
+          onFortuneSpendChange={handleFortuneSpendChange}
+          onRoll={() => void confirmArmedSkillCheck()}
+          onSfxMutedChange={setIsSfxMuted}
         />
-        {!activeSkillResolve ? (
-          <VnPassiveCheckBanner items={passiveCheckItems} />
-        ) : null}
-        <button
-          type="button"
-          className={["vn-sfx-toggle", isSfxMuted ? "is-muted" : ""].join(" ")}
-          aria-label={
-            isSfxMuted ? t.unmuteSkillCheckAudio : t.muteSkillCheckAudio
-          }
-          onClick={(event) => {
-            event.stopPropagation();
-            setIsSfxMuted((previous) => !previous);
-          }}
-        >
-          {isSfxMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-          <span>SFX</span>
-        </button>
       </VnNarrativePanel>
 
       {statusLine ? <p className="status-line success">{statusLine}</p> : null}
       {error ? <p className="status-line error">{error}</p> : null}
+      <VnTokenFeedbackOverlay feedback={tokenFeedback} />
     </section>
   );
 };

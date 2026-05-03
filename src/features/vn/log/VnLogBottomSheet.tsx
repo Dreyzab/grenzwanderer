@@ -9,7 +9,7 @@ import type { ReactNode, RefObject } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import type { VnSnapshot } from "../types";
-import type { TypedTextHandle } from "../ui/TypedText";
+import type { TypedTextHandle, TypedTextTokenHandler } from "../ui/TypedText";
 import { VnNarrativeLog } from "./VnNarrativeLog";
 import type { NarrativeLogState } from "./useNarrativeLog";
 
@@ -28,6 +28,9 @@ interface VnLogBottomSheetProps {
   onTypingChange?: (typing: boolean) => void;
   onSegmentComplete?: () => void;
   onSurfaceTap?: () => void;
+  onTokenClick?: TypedTextTokenHandler;
+  onTokenEnter?: TypedTextTokenHandler;
+  onTokenLeave?: TypedTextTokenHandler;
 }
 
 const clamp = (value: number, min: number, max: number): number =>
@@ -91,6 +94,9 @@ export function VnLogBottomSheet({
   onTypingChange,
   onSegmentComplete,
   onSurfaceTap,
+  onTokenClick,
+  onTokenEnter,
+  onTokenLeave,
 }: VnLogBottomSheetProps) {
   const previousSceneGroupIdRef = useRef<string | null | undefined>(undefined);
   const [phase, setPhase] = useState<"idle" | "exit" | "enter">("idle");
@@ -298,6 +304,9 @@ export function VnLogBottomSheet({
             choicesSlot={choicesSlot}
             onTypingChange={onTypingChange}
             onSegmentComplete={onSegmentComplete}
+            onTokenClick={onTokenClick}
+            onTokenEnter={onTokenEnter}
+            onTokenLeave={onTokenLeave}
           />
         </div>
       </motion.div>

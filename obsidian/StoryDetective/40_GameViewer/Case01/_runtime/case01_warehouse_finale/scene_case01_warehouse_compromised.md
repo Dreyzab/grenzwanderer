@@ -2,6 +2,7 @@
 id: scene_case01_warehouse_compromised
 type: vn_scene
 status: active
+background_url: /images/scenes/case01/bg_case01_warehouse_compromised_ledger.webp
 ---
 
 # Scene: Compromised Truth

@@ -1,5 +1,4 @@
-const hasCyrillicText = (text: string): boolean =>
-  /[\u0400-\u04FF]/u.test(text);
+import { hasCyrillicText, repairI18nSectionString } from "./ruUtf8Repair";
 
 const shouldUseServerTranslation = (
   language: string,
@@ -29,5 +28,12 @@ export const mergeI18nSection = (
       merged[key] = serverText;
     }
   }
+
+  if (language === "ru" || language === "de") {
+    for (const key of Object.keys(merged)) {
+      merged[key] = repairI18nSectionString(language, merged[key]);
+    }
+  }
+
   return merged;
 };

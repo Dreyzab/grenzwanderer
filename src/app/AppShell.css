@@ -81,6 +81,13 @@
   gap: 1rem;
 }
 
+.app-page-loading {
+  min-height: 12rem;
+  display: grid;
+  place-items: center;
+  color: #cbd5e1;
+}
+
 .app-shell--map {
   min-height: 100dvh;
   padding: 0;

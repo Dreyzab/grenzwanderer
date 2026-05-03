@@ -5,13 +5,24 @@
   useMemo,
   useRef,
   useState,
+  type KeyboardEvent,
+  type MouseEvent,
 } from "react";
-import { parseClueMarkup, type ParsedTypedSegment } from "./TypedTextParser";
+import {
+  parseTypedTextMarkup,
+  type ParsedTypedSegment,
+  type ParsedTypedToken,
+} from "./TypedTextParser";
 import "./TypedText.css";
 
 export interface TypedTextHandle {
   finish: () => void;
 }
+
+export type TypedTextTokenHandler = (
+  token: ParsedTypedToken,
+  event: MouseEvent<HTMLSpanElement>,
+) => void;
 
 export interface TypedTextProps {
   text: string;
@@ -19,6 +30,9 @@ export interface TypedTextProps {
   /** Full text immediately, same layout as typed mode (no RAF, cursor, or `onComplete`). */
   instant?: boolean;
   onComplete?: () => void;
+  onTokenClick?: TypedTextTokenHandler;
+  onTokenEnter?: TypedTextTokenHandler;
+  onTokenLeave?: TypedTextTokenHandler;
   onTypingChange?: (isTyping: boolean) => void;
 }
 
@@ -43,11 +57,16 @@ const getVisibleSegments = (
       continue;
     }
 
-    if (segment.kind === "clue") {
-      output.push({
-        kind: "clue",
+    if (segment.kind === "token") {
+      const token = {
+        ...segment.token,
         text: visibleText,
-        payload: segment.payload,
+      };
+
+      output.push({
+        kind: "token",
+        text: visibleText,
+        token,
       });
     } else {
       output.push({
@@ -63,11 +82,23 @@ const getVisibleSegments = (
 };
 
 export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
-  ({ text, speed = 12, instant = false, onComplete, onTypingChange }, ref) => {
+  (
+    {
+      text,
+      speed = 12,
+      instant = false,
+      onComplete,
+      onTokenClick,
+      onTokenEnter,
+      onTokenLeave,
+      onTypingChange,
+    },
+    ref,
+  ) => {
     const [visibleChars, setVisibleChars] = useState(0);
     const completionNotifiedRef = useRef(false);
 
-    const segments = useMemo(() => parseClueMarkup(text), [text]);
+    const segments = useMemo(() => parseTypedTextMarkup(text), [text]);
     const totalChars = useMemo(
       () => segments.reduce((sum, segment) => sum + segment.text.length, 0),
       [segments],
@@ -143,17 +174,61 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
     );
 
     const isTyping = visibleChars < totalChars;
+    const tokensInteractive = !isTyping;
+
+    const handleTokenKeyDown = (
+      token: ParsedTypedToken,
+      event: KeyboardEvent<HTMLSpanElement>,
+    ) => {
+      if (!tokensInteractive) {
+        return;
+      }
+
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      onTokenClick?.(token, event as unknown as MouseEvent<HTMLSpanElement>);
+    };
 
     return (
       <p className="vn-typed-text" aria-live="polite">
         {visibleSegments.map((segment, index) => {
           const key = `${segment.kind}-${index}`;
-          if (segment.kind === "clue") {
+          if (segment.kind === "token") {
             return (
               <span
-                key={key}
-                className="vn-typed-text__token"
-                data-vn-payload={segment.payload}
+                key={`${key}-${segment.token.key}`}
+                className={[
+                  "vn-typed-text__token",
+                  tokensInteractive ? "is-interactive" : "is-typing",
+                ].join(" ")}
+                data-vn-payload={segment.token.payload}
+                data-vn-token-type={segment.token.type}
+                role={tokensInteractive ? "button" : undefined}
+                tabIndex={tokensInteractive ? 0 : undefined}
+                onClick={(event) => {
+                  if (!tokensInteractive) {
+                    return;
+                  }
+                  event.stopPropagation();
+                  onTokenClick?.(segment.token, event);
+                }}
+                onKeyDown={(event) => handleTokenKeyDown(segment.token, event)}
+                onMouseEnter={(event) => {
+                  if (!tokensInteractive) {
+                    return;
+                  }
+                  onTokenEnter?.(segment.token, event);
+                }}
+                onMouseLeave={(event) => {
+                  if (!tokensInteractive) {
+                    return;
+                  }
+                  onTokenLeave?.(segment.token, event);
+                }}
               >
                 {segment.text}
               </span>

@@ -1,7 +1,9 @@
 import { SenderError } from "spacetimedb/server";
 
-import { parseVnSnapshotPayload } from "../../../../src/shared/vn-contract";
-import type { VnSnapshot } from "./all";
+import {
+  parseVnSnapshotPayload,
+  type VnSnapshot,
+} from "../../../../src/shared/vn-contract";
 
 export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
   const result = parseVnSnapshotPayload(payloadJson);
@@ -16,12 +18,13 @@ export const parseSnapshotPayload = (payloadJson: string): VnSnapshot => {
   return result.snapshot as VnSnapshot;
 };
 
+export { parseStoredMapEventPayload } from "./map_runtime";
+
 export {
   parseBoolean,
   parseNumber,
   parseRequiredFactIdsJson,
   parseRequiredVarsJson,
   parseRewardEffectsJson,
-  parseStoredMapEventPayload,
   parseTagsJsonObject,
-} from "./all";
+} from "./payload_json";

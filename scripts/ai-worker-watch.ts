@@ -1,8 +1,13 @@
 import { buildCanonicalVoicePromptBrief } from "../data/voiceBridge";
+import { SUPPORTED_AI_KINDS } from "../spacetimedb/src/reducers/aiQueue";
 import {
-  AI_GENERATE_DIALOGUE_KIND,
+  AI_GENERATE_CHARACTER_REACTION_KIND,
+  isCharacterReactionProposal,
   isGenerateDialogueResponse,
+  parseGenerateCharacterReactionPayload,
   parseGenerateDialoguePayload,
+  type CharacterReactionProposal,
+  type GenerateCharacterReactionPayload,
   type GenerateDialogueEnvelope,
   type GenerateDialoguePayload,
 } from "../src/features/ai/contracts";
@@ -76,6 +81,10 @@ export interface GeminiDialogueResult {
   response: GenerateDialogueEnvelope;
 }
 
+export interface GeminiCharacterReactionResult {
+  proposal: CharacterReactionProposal;
+}
+
 export interface ProcessClaimedAiRequestDeps {
   fetchImpl?: FetchLike;
   now?: () => number;
@@ -89,6 +98,11 @@ export interface ProcessClaimedAiRequestDeps {
     config: AiWorkerConfig,
     deps: ProcessClaimedAiRequestDeps,
   ) => Promise<GeminiDialogueResult>;
+  generateCharacterReactionImpl?: (
+    payload: GenerateCharacterReactionPayload,
+    config: AiWorkerConfig,
+    deps: ProcessClaimedAiRequestDeps,
+  ) => Promise<GeminiCharacterReactionResult>;
 }
 
 export interface DrainAiQueueDeps extends ProcessClaimedAiRequestDeps {
@@ -601,6 +615,121 @@ export const generateDialogueWithGemini = async (
   };
 };
 
+const buildCharacterReactionSystemPrompt = (): string =>
+  [
+    "You propose a short NPC reaction line for a detective RPG.",
+    "Return exactly one JSON object and nothing else.",
+    "Do not wrap the JSON in markdown fences.",
+    'Shape: {"characterId":"<id>","reactionType":"dialogue"|"lie"|"evasion"|"request"|"conflict"|"silence","text":"...","revealHintFactId?":"<optional>","suggestedEffects?":[]}',
+    "reactionType must match how the NPC handles the stimulus.",
+    "text must be playable dialogue or diegetic narration; stay under ~320 characters.",
+    "Do not invent facts that contradict visibleFacts or the relationship snapshot.",
+    "Prefer subtlety unless reactionType is conflict.",
+  ].join("\n");
+
+const buildCharacterReactionUserPrompt = (
+  payload: GenerateCharacterReactionPayload,
+): string => {
+  const facts =
+    payload.visibleFacts.length > 0
+      ? payload.visibleFacts.map((entry) => `- ${entry}`).join("\n")
+      : "- none";
+  return [
+    `Source: ${payload.source}`,
+    `Character ID: ${payload.characterId}`,
+    `Scenario ID: ${payload.scenarioId}`,
+    `Node ID: ${payload.nodeId ?? "none"}`,
+    `Trust: ${payload.relationshipState.trust}`,
+    `Disposition: ${payload.relationshipState.disposition}`,
+    `Event stimulus:\n${payload.eventText}`,
+    payload.playerPrompt
+      ? `Player prompt / pressure:\n${payload.playerPrompt}`
+      : "",
+    `Visible facts:\n${facts}`,
+    `Set characterId in the JSON to exactly "${payload.characterId}".`,
+  ]
+    .filter((block) => block.length > 0)
+    .join("\n\n");
+};
+
+export const normalizeCharacterReactionProposal = (
+  rawJson: string,
+  expectedCharacterId: string,
+): CharacterReactionProposal => {
+  const parsedRoot = JSON.parse(rawJson) as unknown;
+  if (typeof parsedRoot !== "object" || parsedRoot === null) {
+    throw new GeminiMalformedJsonError(
+      "Gemini JSON payload must be an object for character reactions",
+    );
+  }
+
+  const merged = {
+    ...(parsedRoot as Record<string, unknown>),
+    characterId: expectedCharacterId,
+  };
+
+  if (!isCharacterReactionProposal(merged)) {
+    throw new GeminiMalformedJsonError(
+      "Gemini JSON payload did not match CharacterReactionProposal",
+    );
+  }
+
+  return merged;
+};
+
+export const generateCharacterReactionWithGemini = async (
+  payload: GenerateCharacterReactionPayload,
+  config: AiWorkerConfig,
+  deps: ProcessClaimedAiRequestDeps = {},
+): Promise<GeminiCharacterReactionResult> => {
+  const fetchImpl = deps.fetchImpl ?? fetch;
+
+  const response = await fetchImpl(
+    `${GEMINI_ENDPOINT}/models/${config.geminiModel}:generateContent?key=${config.geminiApiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: buildCharacterReactionSystemPrompt() }],
+        },
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: buildCharacterReactionUserPrompt(payload) }],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+        },
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new GeminiHttpError(
+      `Gemini request failed: ${response.status} ${response.statusText}${errorText ? ` - ${errorText}` : ""}`,
+      response.status,
+    );
+  }
+
+  const rawText = readGeminiText(await response.json());
+  const rawJson = extractJsonObject(rawText);
+  if (!rawJson) {
+    throw new GeminiMalformedJsonError("Gemini response did not contain JSON");
+  }
+
+  const proposal = normalizeCharacterReactionProposal(
+    rawJson,
+    payload.characterId,
+  );
+
+  return { proposal };
+};
+
 export const isRetryableWorkerError = (error: unknown): boolean => {
   if (error instanceof GeminiMalformedJsonError) {
     return true;
@@ -674,8 +803,65 @@ export const processClaimedAiRequest = async (
   const buildSceneContextImpl = deps.buildSceneContextImpl ?? buildSceneContext;
   const generateDialogueImpl =
     deps.generateDialogueImpl ?? generateDialogueWithGemini;
+  const generateCharacterReactionImpl =
+    deps.generateCharacterReactionImpl ?? generateCharacterReactionWithGemini;
   const createRequestId = deps.createRequestId ?? defaultCreateRequestId;
   const retryableLoggerPrefix = `[ai-worker] request ${job.id.toString()}`;
+
+  if (job.kind === AI_GENERATE_CHARACTER_REACTION_KIND) {
+    const reactionPayload = parseGenerateCharacterReactionPayload(
+      job.payloadJson,
+    );
+    if (!reactionPayload) {
+      await conn.reducers.failAiRequest({
+        requestId: createRequestId("invalid_payload", job.id),
+        aiRequestId: job.id,
+        error: "Invalid generate_character_reaction payload JSON",
+      });
+      return;
+    }
+
+    try {
+      const result = await withLeaseHeartbeat(
+        async () =>
+          generateCharacterReactionImpl(reactionPayload, config, deps),
+        async () => {
+          await conn.reducers.renewAiRequestLease({
+            requestId: createRequestId("renew", job.id),
+            aiRequestId: job.id,
+            leaseMs: config.leaseMs,
+          });
+        },
+        Math.max(1_000, Math.floor(config.leaseMs / 2)),
+      );
+
+      await conn.reducers.completeAiRequest({
+        requestId: createRequestId("complete", job.id),
+        aiRequestId: job.id,
+        responseJson: JSON.stringify(result.proposal),
+      });
+    } catch (error) {
+      const retryable =
+        job.attemptCount < config.maxRetries && isRetryableWorkerError(error);
+      const errorMessage = describeFailure(error);
+      logger.warn(`${retryableLoggerPrefix} failed: ${errorMessage}`);
+
+      await conn.reducers.failAiRequest({
+        requestId: createRequestId(retryable ? "retry" : "failed", job.id),
+        aiRequestId: job.id,
+        error: errorMessage,
+        retryDelayMs: retryable
+          ? computeRetryDelayMs(
+              job.attemptCount,
+              config.retryBaseMs,
+              config.retryMaxMs,
+              getRandom(deps.random),
+            )
+          : undefined,
+      });
+    }
+    return;
+  }
 
   const payload = parseGenerateDialoguePayload(job.payloadJson);
   if (!payload) {
@@ -750,23 +936,27 @@ export const drainAiQueueOnce = async (
   const createClaimToken = deps.createClaimToken ?? defaultCreateClaimToken;
   const createRequestId = deps.createRequestId ?? defaultCreateRequestId;
 
-  while (true) {
-    const claimToken = createClaimToken();
-    await conn.reducers.claimNextAiRequest({
-      requestId: createRequestId("claim"),
-      kind: AI_GENERATE_DIALOGUE_KIND,
-      leaseMs: config.leaseMs,
-      claimToken,
-    });
+  for (const kind of SUPPORTED_AI_KINDS) {
+    while (true) {
+      const claimToken = createClaimToken();
+      await conn.reducers.claimNextAiRequest({
+        requestId: createRequestId("claim"),
+        kind,
+        leaseMs: config.leaseMs,
+        claimToken,
+      });
 
-    const job = await fetchClaimedAiRequest(claimToken, config, fetchImpl);
-    if (!job) {
-      return processed;
+      const job = await fetchClaimedAiRequest(claimToken, config, fetchImpl);
+      if (!job) {
+        break;
+      }
+
+      await processClaimedAiRequest(conn, job, config, deps);
+      processed += 1;
     }
-
-    await processClaimedAiRequest(conn, job, config, deps);
-    processed += 1;
   }
+
+  return processed;
 };
 
 export const runAiWorker = async (

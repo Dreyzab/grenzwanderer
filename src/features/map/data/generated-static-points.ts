@@ -804,11 +804,11 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
   },
   {
     "id": "loc_pub_deutsche",
-    "title": "Zum Deutschen Haus",
+    "title": "Zum Goldenen Adler",
     "regionId": "FREIBURG_1905",
     "lat": 47.992,
     "lng": 7.854,
-    "description": "Busy inn popular with locals and travelers.",
+    "description": "Reserved inn lodging where Freiburg's first social weather starts to collect.",
     "image": "/images/locations/loc_pub_deutsche/loc_ganter_brauerei.webp",
     "locationId": "loc_pub_deutsche",
     "category": "PUBLIC",
@@ -824,7 +824,7 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
         "actions": [
           {
             "type": "start_scenario",
-            "scenarioId": "sandbox_intro_pilot"
+            "scenarioId": "case01_lodging_zum_goldenen_adler"
           }
         ]
       },

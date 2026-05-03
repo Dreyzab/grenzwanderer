@@ -447,6 +447,10 @@ const isChoice = (value: unknown): value is VnChoice => {
     (Array.isArray(value.effects) && value.effects.every(isEffect));
   const hasSkillCheck =
     value.skillCheck === undefined || isSkillCheck(value.skillCheck);
+  const hasPassiveChecks =
+    value.passiveChecks === undefined ||
+    (Array.isArray(value.passiveChecks) &&
+      value.passiveChecks.every(isSkillCheck));
   const hasInnerVoiceHints =
     value.innerVoiceHints === undefined ||
     (Array.isArray(value.innerVoiceHints) &&
@@ -466,6 +470,7 @@ const isChoice = (value: unknown): value is VnChoice => {
     (value.aiMode === undefined || isVnAiMode(value.aiMode)) &&
     (value.providenceCost === undefined ||
       typeof value.providenceCost === "number") &&
+    (value.inlineText === undefined || typeof value.inlineText === "string") &&
     hasLegacyConditions &&
     hasVisibleIfAll &&
     hasVisibleIfAny &&
@@ -473,6 +478,7 @@ const isChoice = (value: unknown): value is VnChoice => {
     hasRequireAny &&
     hasEffects &&
     hasSkillCheck &&
+    hasPassiveChecks &&
     hasInnerVoiceHints
   );
 };

@@ -2,19 +2,18 @@ import { SenderError } from "spacetimedb/server";
 
 import {
   createVnSnapshotIndex,
-  type VnSnapshot as SharedVnSnapshot,
+  type MindPalaceSnapshot,
+  type VnDiceMode,
+  type VnNode,
+  type VnScenario,
+  type VnSnapshot,
 } from "../../../../src/shared/vn-contract";
 import { parseSnapshotPayload } from "./parsers";
-import type {
-  MindPalaceSnapshot,
-  VnDiceMode,
-  VnNode,
-  VnScenario,
-  VnSnapshot,
-} from "./all";
 
-const asSharedSnapshot = (snapshot: VnSnapshot): SharedVnSnapshot =>
-  snapshot as unknown as SharedVnSnapshot;
+type IndexedSnapshot = Parameters<typeof createVnSnapshotIndex>[0];
+
+const asSharedSnapshot = (snapshot: VnSnapshot): IndexedSnapshot =>
+  snapshot as unknown as IndexedSnapshot;
 
 export const getActiveSnapshot = (
   ctx: any,

@@ -1,9 +1,9 @@
 import { Suspense, lazy, useMemo } from "react";
-import type { OpenVnScenarioOptions } from "../app/AppShell";
+import type { OpenVnScenarioOptions } from "../shared/navigation/shellNavigationTypes";
 import "../features/map/ui/mapExperience.css";
 import { useUiLanguage } from "../shared/hooks/useUiLanguage";
 import { getMapStrings } from "../features/i18n/uiStrings";
-import { usePlayerFlags } from "../entities/player/hooks/usePlayerFlags";
+import { usePlayerBindings } from "../entities/player/hooks/usePlayerBindings";
 
 const LazyMapView = lazy(async () => {
   const module = await import("../features/map/ui/MapView");
@@ -19,7 +19,7 @@ interface MapPageProps {
 }
 
 export const MapPage = ({ onOpenVnScenario, initialPanel }: MapPageProps) => {
-  const flags = usePlayerFlags();
+  const { flags } = usePlayerBindings();
   const uiLanguage = useUiLanguage(flags);
   const t = useMemo(() => getMapStrings(uiLanguage), [uiLanguage]);
 

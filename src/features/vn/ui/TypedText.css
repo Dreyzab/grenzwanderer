@@ -22,9 +22,16 @@
   animation: vn-typed-token-fade 220ms ease-out;
 }
 
-.vn-typed-text__token:hover {
+.vn-typed-text__token.is-typing {
+  cursor: inherit;
+  pointer-events: none;
+}
+
+.vn-typed-text__token:hover,
+.vn-typed-text__token:focus-visible {
   color: #ffe7ad;
   border-bottom-color: rgba(247, 198, 102, 1);
+  outline: none;
   text-shadow:
     0 0 8px rgba(247, 198, 102, 0.3),
     0 0 18px rgba(247, 198, 102, 0.16);

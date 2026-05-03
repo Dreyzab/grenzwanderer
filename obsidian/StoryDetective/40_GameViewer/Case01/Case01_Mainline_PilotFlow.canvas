@@ -1,0 +1,1129 @@
+{
+	"nodes": [
+		{
+			"id": "note_policy",
+			"type": "text",
+			"text": "# Case 01 mainline (pilot snapshot)\n\nОдин узел = один `nodeId` из `pilot.snapshot.json`.\nФайл Obsidian подключается **только** при точном совпадении frontmatter `id:`.\nСерые текстовые карточки = нет .md в StoryDetective с таким id (расхождение с каноном рантайма).",
+			"x": -4400,
+			"y": -420,
+			"width": 520,
+			"height": 260
+		},
+		{
+			"id": "hdr_origin_detective_bootstrap",
+			"type": "text",
+			"text": "# Origin Bootstrap - Detective\n\n`scenario: origin_detective_bootstrap`\n`mode: fullscreen`\n`pack: system_origin_bootstrap`\n`1 scenes`",
+			"x": -4400,
+			"y": -320,
+			"width": 400,
+			"height": 84
+		},
+		{
+			"id": "n_origin_detective_bootstrap__scene_origin_detective_bootstrap",
+			"type": "text",
+			"text": "## scene_origin_detective_bootstrap\n\nEntry: scene_backstory_select\n\n**Нет .md в StoryDetective** с `id: scene_origin_detective_bootstrap`",
+			"x": -3960,
+			"y": -320,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_hbf_arrival",
+			"type": "text",
+			"text": "# Case 01: Freiburg Arrival\n\n`scenario: case01_hbf_arrival`\n`mode: fullscreen`\n`pack: case01_mainline`\n`29 scenes`",
+			"x": -4400,
+			"y": 240,
+			"width": 400,
+			"height": 196
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_opening_arrival_video",
+			"type": "text",
+			"text": "## scene_case01_opening_arrival_video\n\nApproach by rail\n\n**Нет .md в StoryDetective** с `id: scene_case01_opening_arrival_video`",
+			"x": -3960,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_compartment_cinema",
+			"type": "text",
+			"text": "## scene_case01_train_compartment_cinema\n\nNight compartment\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_compartment_cinema`",
+			"x": -3652,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_compartment_letter",
+			"type": "text",
+			"text": "## scene_case01_train_compartment_letter\n\nOrders from the Agency\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_compartment_letter`",
+			"x": -3344,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_assistant_intro",
+			"type": "text",
+			"text": "## scene_case01_train_assistant_intro\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_assistant_intro`",
+			"x": -3036,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_door_creaks",
+			"type": "text",
+			"text": "## scene_case01_train_door_creaks\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_door_creaks`",
+			"x": -2728,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_assistant_departure",
+			"type": "text",
+			"text": "## scene_case01_train_assistant_departure\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_assistant_departure`",
+			"x": -2420,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_silent_beat",
+			"type": "text",
+			"text": "## scene_case01_train_silent_beat\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_silent_beat`",
+			"x": -2112,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_dining_car_intro",
+			"type": "text",
+			"text": "## scene_case01_train_dining_car_intro\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_dining_car_intro`",
+			"x": -1804,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_dining_car_mother",
+			"type": "text",
+			"text": "## scene_case01_train_dining_car_mother\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_dining_car_mother`",
+			"x": -1496,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_dining_car_marriage_joke",
+			"type": "text",
+			"text": "## scene_case01_train_dining_car_marriage_joke\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_dining_car_marriage_joke`",
+			"x": -1188,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_dining_car_silent_branch",
+			"type": "text",
+			"text": "## scene_case01_train_dining_car_silent_branch\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_dining_car_silent_branch`",
+			"x": -880,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_dining_car_intro_self_branch",
+			"type": "text",
+			"text": "## scene_case01_train_dining_car_intro_self_branch\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_dining_car_intro_self_branch`",
+			"x": -572,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_dining_car_hotel_branch",
+			"type": "text",
+			"text": "## scene_case01_train_dining_car_hotel_branch\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_dining_car_hotel_branch`",
+			"x": -264,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_dining_car_wine_beat",
+			"type": "text",
+			"text": "## scene_case01_train_dining_car_wine_beat\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_dining_car_wine_beat`",
+			"x": 44,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_dining_car_felix_interrupts",
+			"type": "text",
+			"text": "## scene_case01_train_dining_car_felix_interrupts\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_dining_car_felix_interrupts`",
+			"x": 352,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_dining_car_eleonora_farewell",
+			"type": "text",
+			"text": "## scene_case01_train_dining_car_eleonora_farewell\n\nJourney to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_dining_car_eleonora_farewell`",
+			"x": 660,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_ankommen_video",
+			"type": "text",
+			"text": "## scene_case01_train_ankommen_video\n\nApproach to Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_ankommen_video`",
+			"x": 968,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_voza_cutscene",
+			"type": "text",
+			"text": "## scene_case01_train_voza_cutscene\n\nPlatform roll-in\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_voza_cutscene`",
+			"x": 1276,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_disembark_journal",
+			"type": "text",
+			"text": "## scene_case01_train_disembark_journal\n\nOn the platform\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_disembark_journal`",
+			"x": 1584,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_train_platform_parting",
+			"type": "text",
+			"text": "## scene_case01_train_platform_parting\n\nParting\n\n**Нет .md в StoryDetective** с `id: scene_case01_train_platform_parting`",
+			"x": 1892,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_beat1_atmosphere",
+			"type": "text",
+			"text": "## scene_case01_beat1_atmosphere\n\nHauptbahnhof, Freiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_beat1_atmosphere`",
+			"x": 2200,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_hbf_newsboy_approach",
+			"type": "text",
+			"text": "## scene_case01_hbf_newsboy_approach\n\nEvening edition\n\n**Нет .md в StoryDetective** с `id: scene_case01_hbf_newsboy_approach`",
+			"x": 2508,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_hbf_newsboy_handoff",
+			"type": "text",
+			"text": "## scene_case01_hbf_newsboy_handoff\n\nHBF Arrival\n\n**Нет .md в StoryDetective** с `id: scene_case01_hbf_newsboy_handoff`",
+			"x": 2816,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_hbf_newsboy_release",
+			"type": "text",
+			"text": "## scene_case01_hbf_newsboy_release\n\nHBF Arrival\n\n**Нет .md в StoryDetective** с `id: scene_case01_hbf_newsboy_release`",
+			"x": 3124,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_hbf_luggage",
+			"type": "text",
+			"text": "## scene_case01_hbf_luggage\n\nLuggage Counter\n\n**Нет .md в StoryDetective** с `id: scene_case01_hbf_luggage`",
+			"x": 3432,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_hbf_luggage_robbery",
+			"type": "text",
+			"text": "## scene_case01_hbf_luggage_robbery\n\nHBF Arrival\n\n**Нет .md в StoryDetective** с `id: scene_case01_hbf_luggage_robbery`",
+			"x": 3740,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_hbf_police",
+			"type": "text",
+			"text": "## scene_case01_hbf_police\n\nPolice Post\n\n**Нет .md в StoryDetective** с `id: scene_case01_hbf_police`",
+			"x": 4048,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_hbf_departure",
+			"type": "text",
+			"text": "## scene_case01_hbf_departure\n\nLeaving the Hauptbahnhof\n\n**Нет .md в StoryDetective** с `id: scene_case01_hbf_departure`",
+			"x": 4356,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_hbf_arrival__scene_case01_hbf_exit_final",
+			"type": "text",
+			"text": "## scene_case01_hbf_exit_final\n\nFreiburg\n\n**Нет .md в StoryDetective** с `id: scene_case01_hbf_exit_final`",
+			"x": 4664,
+			"y": 240,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_mayor_briefing",
+			"type": "text",
+			"text": "# Case 01: Mayor Briefing\n\n`scenario: case01_mayor_briefing`\n`mode: overlay`\n`pack: case01_mainline`\n`3 scenes`",
+			"x": -4400,
+			"y": 800,
+			"width": 400,
+			"height": 92
+		},
+		{
+			"id": "n_case01_mayor_briefing__scene_case01_mayor_entry",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_mayor_briefing/scene_case01_mayor_entry.md",
+			"x": -3960,
+			"y": 800,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_mayor_briefing__scene_case01_mayor_dossier",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_mayor_briefing/scene_case01_mayor_dossier.md",
+			"x": -3652,
+			"y": 800,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_mayor_briefing__scene_case01_mayor_exit",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_mayor_briefing/scene_case01_mayor_exit.md",
+			"x": -3344,
+			"y": 800,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_bank_investigation",
+			"type": "text",
+			"text": "# Case 01: Bank Investigation\n\n`scenario: case01_bank_investigation`\n`mode: fullscreen`\n`pack: case01_mainline`\n`5 scenes`",
+			"x": -4400,
+			"y": 1360,
+			"width": 400,
+			"height": 100
+		},
+		{
+			"id": "n_case01_bank_investigation__scene_case01_bank_arrival",
+			"type": "text",
+			"text": "## scene_case01_bank_arrival\n\nBankhaus J.A. Krebs\n\n**Нет .md в StoryDetective** с `id: scene_case01_bank_arrival`",
+			"x": -3960,
+			"y": 1360,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_bank_investigation__scene_case01_bank_manager",
+			"type": "text",
+			"text": "## scene_case01_bank_manager\n\nDirector Galdermann\n\n**Нет .md в StoryDetective** с `id: scene_case01_bank_manager`",
+			"x": -3652,
+			"y": 1360,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_bank_investigation__scene_case01_bank_clerk",
+			"type": "text",
+			"text": "## scene_case01_bank_clerk\n\nErnst Vogel\n\n**Нет .md в StoryDetective** с `id: scene_case01_bank_clerk`",
+			"x": -3344,
+			"y": 1360,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_bank_investigation__scene_case01_bank_vault",
+			"type": "text",
+			"text": "## scene_case01_bank_vault\n\nVault Inspection\n\n**Нет .md в StoryDetective** с `id: scene_case01_bank_vault`",
+			"x": -3036,
+			"y": 1360,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_bank_investigation__scene_case01_bank_conclusion",
+			"type": "text",
+			"text": "## scene_case01_bank_conclusion\n\nThree Open Leads\n\n**Нет .md в StoryDetective** с `id: scene_case01_bank_conclusion`",
+			"x": -2728,
+			"y": 1360,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_lead_apothecary",
+			"type": "text",
+			"text": "# Case 01: Apothecary Lead\n\n`scenario: case01_lead_apothecary`\n`mode: overlay`\n`pack: case01_mainline`\n`2 scenes`",
+			"x": -4400,
+			"y": 1920,
+			"width": 400,
+			"height": 88
+		},
+		{
+			"id": "n_case01_lead_apothecary__scene_case01_apothecary_entry",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_lead_apothecary/scene_case01_apothecary_entry.md",
+			"x": -3960,
+			"y": 1920,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_lead_apothecary__scene_case01_apothecary_exit",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_lead_apothecary/scene_case01_apothecary_exit.md",
+			"x": -3652,
+			"y": 1920,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_lead_pub",
+			"type": "text",
+			"text": "# Case 01: Pub Lead\n\n`scenario: case01_lead_pub`\n`mode: overlay`\n`pack: case01_mainline`\n`2 scenes`",
+			"x": -4400,
+			"y": 2480,
+			"width": 400,
+			"height": 88
+		},
+		{
+			"id": "n_case01_lead_pub__scene_case01_pub_entry",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_lead_pub/scene_case01_pub_entry.md",
+			"x": -3960,
+			"y": 2480,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_lead_pub__scene_case01_pub_exit",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_lead_pub/scene_case01_pub_exit.md",
+			"x": -3652,
+			"y": 2480,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_lead_tailor",
+			"type": "text",
+			"text": "# Case 01: Tailor Lead\n\n`scenario: case01_lead_tailor`\n`mode: overlay`\n`pack: case01_mainline`\n`2 scenes`",
+			"x": -4400,
+			"y": 3040,
+			"width": 400,
+			"height": 88
+		},
+		{
+			"id": "n_case01_lead_tailor__scene_case01_tailor_entry",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_lead_tailor/scene_case01_tailor_entry.md",
+			"x": -3960,
+			"y": 3040,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_lead_tailor__scene_case01_tailor_exit",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_lead_tailor/scene_case01_tailor_exit.md",
+			"x": -3652,
+			"y": 3040,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_estate_branch",
+			"type": "text",
+			"text": "# Case 01: Estate Trace\n\n`scenario: case01_estate_branch`\n`mode: overlay`\n`pack: case01_mainline`\n`2 scenes`",
+			"x": -4400,
+			"y": 3600,
+			"width": 400,
+			"height": 88
+		},
+		{
+			"id": "n_case01_estate_branch__scene_case01_estate_entry",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_estate_branch/scene_case01_estate_entry.md",
+			"x": -3960,
+			"y": 3600,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_estate_branch__scene_case01_estate_exit",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_estate_branch/scene_case01_estate_exit.md",
+			"x": -3652,
+			"y": 3600,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_lotte_interlude",
+			"type": "text",
+			"text": "# Case 01: Lotte Interlude\n\n`scenario: case01_lotte_interlude`\n`mode: overlay`\n`pack: case01_mainline`\n`3 scenes`",
+			"x": -4400,
+			"y": 4160,
+			"width": 400,
+			"height": 92
+		},
+		{
+			"id": "n_case01_lotte_interlude__scene_case01_lotte_warning",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_lotte_interlude/scene_case01_lotte_warning.md",
+			"x": -3960,
+			"y": 4160,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_lotte_interlude__scene_case01_lotte_trust",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_lotte_interlude/scene_case01_lotte_trust.md",
+			"x": -3652,
+			"y": 4160,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_lotte_interlude__scene_case01_lotte_distance",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_lotte_interlude/scene_case01_lotte_distance.md",
+			"x": -3344,
+			"y": 4160,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_archive_warrant_run",
+			"type": "text",
+			"text": "# Case 01: Archive Warrant Run\n\n`scenario: case01_archive_warrant_run`\n`mode: overlay`\n`pack: case01_mainline`\n`3 scenes`",
+			"x": -4400,
+			"y": 4720,
+			"width": 400,
+			"height": 92
+		},
+		{
+			"id": "n_case01_archive_warrant_run__scene_case01_archive_entry",
+			"type": "text",
+			"text": "## scene_case01_archive_entry\n\nArchive Warrant Run\n\n**Нет .md в StoryDetective** с `id: scene_case01_archive_entry`",
+			"x": -3960,
+			"y": 4720,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_archive_warrant_run__scene_case01_archive_checks",
+			"type": "text",
+			"text": "## scene_case01_archive_checks\n\nFail-Forward Records\n\n**Нет .md в StoryDetective** с `id: scene_case01_archive_checks`",
+			"x": -3652,
+			"y": 4720,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_archive_warrant_run__scene_case01_archive_exit",
+			"type": "text",
+			"text": "## scene_case01_archive_exit\n\nOfficial Entry Ready\n\n**Нет .md в StoryDetective** с `id: scene_case01_archive_exit`",
+			"x": -3344,
+			"y": 4720,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_rail_yard_shadow_tail",
+			"type": "text",
+			"text": "# Case 01: Rail Yard Shadow Tail\n\n`scenario: case01_rail_yard_shadow_tail`\n`mode: overlay`\n`pack: case01_mainline`\n`3 scenes`",
+			"x": -4400,
+			"y": 5280,
+			"width": 400,
+			"height": 92
+		},
+		{
+			"id": "n_case01_rail_yard_shadow_tail__scene_case01_rail_entry",
+			"type": "text",
+			"text": "## scene_case01_rail_entry\n\nRail Yard Tail\n\n**Нет .md в StoryDetective** с `id: scene_case01_rail_entry`",
+			"x": -3960,
+			"y": 5280,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_rail_yard_shadow_tail__scene_case01_rail_tail",
+			"type": "text",
+			"text": "## scene_case01_rail_tail\n\nCovert Entry Window\n\n**Нет .md в StoryDetective** с `id: scene_case01_rail_tail`",
+			"x": -3652,
+			"y": 5280,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_rail_yard_shadow_tail__scene_case01_rail_exit",
+			"type": "text",
+			"text": "## scene_case01_rail_exit\n\nCovert Entry Ready\n\n**Нет .md в StoryDetective** с `id: scene_case01_rail_exit`",
+			"x": -3344,
+			"y": 5280,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_convergence",
+			"type": "text",
+			"text": "# Case 01: Convergence\n\n`scenario: case01_convergence`\n`mode: overlay`\n`pack: case01_mainline`\n`3 scenes`",
+			"x": -4400,
+			"y": 5840,
+			"width": 400,
+			"height": 92
+		},
+		{
+			"id": "n_case01_convergence__scene_case01_convergence_gate",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_convergence/scene_case01_convergence_gate.md",
+			"x": -3960,
+			"y": 5840,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_convergence__scene_case01_convergence_official",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_convergence/scene_case01_convergence_official.md",
+			"x": -3652,
+			"y": 5840,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_convergence__scene_case01_convergence_covert",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_convergence/scene_case01_convergence_covert.md",
+			"x": -3344,
+			"y": 5840,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "hdr_case01_warehouse_finale",
+			"type": "text",
+			"text": "# Case 01: Warehouse Finale\n\n`scenario: case01_warehouse_finale`\n`mode: fullscreen`\n`pack: case01_mainline`\n`3 scenes`",
+			"x": -4400,
+			"y": 6400,
+			"width": 400,
+			"height": 92
+		},
+		{
+			"id": "n_case01_warehouse_finale__scene_case01_warehouse_entry",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_warehouse_finale/scene_case01_warehouse_entry.md",
+			"x": -3960,
+			"y": 6400,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_warehouse_finale__scene_case01_warehouse_lawful",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_warehouse_finale/scene_case01_warehouse_lawful.md",
+			"x": -3652,
+			"y": 6400,
+			"width": 280,
+			"height": 460
+		},
+		{
+			"id": "n_case01_warehouse_finale__scene_case01_warehouse_compromised",
+			"type": "file",
+			"file": "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_warehouse_finale/scene_case01_warehouse_compromised.md",
+			"x": -3344,
+			"y": 6400,
+			"width": 280,
+			"height": 460
+		}
+	],
+	"edges": [
+		{
+			"id": "e_origin_detective_bootstrap_0_seq",
+			"fromNode": "hdr_origin_detective_bootstrap",
+			"fromSide": "right",
+			"toNode": "n_origin_detective_bootstrap__scene_origin_detective_bootstrap",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_hbf_arrival_0_seq",
+			"fromNode": "hdr_case01_hbf_arrival",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_opening_arrival_video",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_hbf_arrival_1_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_opening_arrival_video",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_compartment_cinema",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_2_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_compartment_cinema",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_compartment_letter",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_3_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_compartment_letter",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_assistant_intro",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_4_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_assistant_intro",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_door_creaks",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_5_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_door_creaks",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_assistant_departure",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_6_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_assistant_departure",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_silent_beat",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_7_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_silent_beat",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_intro",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_8_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_intro",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_mother",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_9_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_mother",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_marriage_joke",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_10_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_marriage_joke",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_silent_branch",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_11_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_silent_branch",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_intro_self_branch",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_12_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_intro_self_branch",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_hotel_branch",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_13_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_hotel_branch",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_wine_beat",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_14_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_wine_beat",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_felix_interrupts",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_15_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_felix_interrupts",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_eleonora_farewell",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_16_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_dining_car_eleonora_farewell",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_ankommen_video",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_17_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_ankommen_video",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_voza_cutscene",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_18_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_voza_cutscene",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_disembark_journal",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_19_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_disembark_journal",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_train_platform_parting",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_20_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_train_platform_parting",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_beat1_atmosphere",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_21_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_beat1_atmosphere",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_hbf_newsboy_approach",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_22_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_hbf_newsboy_approach",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_hbf_newsboy_handoff",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_23_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_hbf_newsboy_handoff",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_hbf_newsboy_release",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_24_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_hbf_newsboy_release",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_hbf_luggage",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_25_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_hbf_luggage",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_hbf_luggage_robbery",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_26_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_hbf_luggage_robbery",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_hbf_police",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_27_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_hbf_police",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_hbf_departure",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_hbf_arrival_28_seq",
+			"fromNode": "n_case01_hbf_arrival__scene_case01_hbf_departure",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_hbf_exit_final",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_mayor_briefing_0_seq",
+			"fromNode": "hdr_case01_mayor_briefing",
+			"fromSide": "right",
+			"toNode": "n_case01_mayor_briefing__scene_case01_mayor_entry",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_mayor_briefing_1_seq",
+			"fromNode": "n_case01_mayor_briefing__scene_case01_mayor_entry",
+			"fromSide": "right",
+			"toNode": "n_case01_mayor_briefing__scene_case01_mayor_dossier",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_mayor_briefing_2_seq",
+			"fromNode": "n_case01_mayor_briefing__scene_case01_mayor_dossier",
+			"fromSide": "right",
+			"toNode": "n_case01_mayor_briefing__scene_case01_mayor_exit",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_bank_investigation_0_seq",
+			"fromNode": "hdr_case01_bank_investigation",
+			"fromSide": "right",
+			"toNode": "n_case01_bank_investigation__scene_case01_bank_arrival",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_bank_investigation_1_seq",
+			"fromNode": "n_case01_bank_investigation__scene_case01_bank_arrival",
+			"fromSide": "right",
+			"toNode": "n_case01_bank_investigation__scene_case01_bank_manager",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_bank_investigation_2_seq",
+			"fromNode": "n_case01_bank_investigation__scene_case01_bank_manager",
+			"fromSide": "right",
+			"toNode": "n_case01_bank_investigation__scene_case01_bank_clerk",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_bank_investigation_3_seq",
+			"fromNode": "n_case01_bank_investigation__scene_case01_bank_clerk",
+			"fromSide": "right",
+			"toNode": "n_case01_bank_investigation__scene_case01_bank_vault",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_bank_investigation_4_seq",
+			"fromNode": "n_case01_bank_investigation__scene_case01_bank_vault",
+			"fromSide": "right",
+			"toNode": "n_case01_bank_investigation__scene_case01_bank_conclusion",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_lead_apothecary_0_seq",
+			"fromNode": "hdr_case01_lead_apothecary",
+			"fromSide": "right",
+			"toNode": "n_case01_lead_apothecary__scene_case01_apothecary_entry",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_lead_apothecary_1_seq",
+			"fromNode": "n_case01_lead_apothecary__scene_case01_apothecary_entry",
+			"fromSide": "right",
+			"toNode": "n_case01_lead_apothecary__scene_case01_apothecary_exit",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_lead_pub_0_seq",
+			"fromNode": "hdr_case01_lead_pub",
+			"fromSide": "right",
+			"toNode": "n_case01_lead_pub__scene_case01_pub_entry",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_lead_pub_1_seq",
+			"fromNode": "n_case01_lead_pub__scene_case01_pub_entry",
+			"fromSide": "right",
+			"toNode": "n_case01_lead_pub__scene_case01_pub_exit",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_lead_tailor_0_seq",
+			"fromNode": "hdr_case01_lead_tailor",
+			"fromSide": "right",
+			"toNode": "n_case01_lead_tailor__scene_case01_tailor_entry",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_lead_tailor_1_seq",
+			"fromNode": "n_case01_lead_tailor__scene_case01_tailor_entry",
+			"fromSide": "right",
+			"toNode": "n_case01_lead_tailor__scene_case01_tailor_exit",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_estate_branch_0_seq",
+			"fromNode": "hdr_case01_estate_branch",
+			"fromSide": "right",
+			"toNode": "n_case01_estate_branch__scene_case01_estate_entry",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_estate_branch_1_seq",
+			"fromNode": "n_case01_estate_branch__scene_case01_estate_entry",
+			"fromSide": "right",
+			"toNode": "n_case01_estate_branch__scene_case01_estate_exit",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_lotte_interlude_0_seq",
+			"fromNode": "hdr_case01_lotte_interlude",
+			"fromSide": "right",
+			"toNode": "n_case01_lotte_interlude__scene_case01_lotte_warning",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_lotte_interlude_1_seq",
+			"fromNode": "n_case01_lotte_interlude__scene_case01_lotte_warning",
+			"fromSide": "right",
+			"toNode": "n_case01_lotte_interlude__scene_case01_lotte_trust",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_lotte_interlude_2_seq",
+			"fromNode": "n_case01_lotte_interlude__scene_case01_lotte_trust",
+			"fromSide": "right",
+			"toNode": "n_case01_lotte_interlude__scene_case01_lotte_distance",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_archive_warrant_run_0_seq",
+			"fromNode": "hdr_case01_archive_warrant_run",
+			"fromSide": "right",
+			"toNode": "n_case01_archive_warrant_run__scene_case01_archive_entry",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_archive_warrant_run_1_seq",
+			"fromNode": "n_case01_archive_warrant_run__scene_case01_archive_entry",
+			"fromSide": "right",
+			"toNode": "n_case01_archive_warrant_run__scene_case01_archive_checks",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_archive_warrant_run_2_seq",
+			"fromNode": "n_case01_archive_warrant_run__scene_case01_archive_checks",
+			"fromSide": "right",
+			"toNode": "n_case01_archive_warrant_run__scene_case01_archive_exit",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_rail_yard_shadow_tail_0_seq",
+			"fromNode": "hdr_case01_rail_yard_shadow_tail",
+			"fromSide": "right",
+			"toNode": "n_case01_rail_yard_shadow_tail__scene_case01_rail_entry",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_rail_yard_shadow_tail_1_seq",
+			"fromNode": "n_case01_rail_yard_shadow_tail__scene_case01_rail_entry",
+			"fromSide": "right",
+			"toNode": "n_case01_rail_yard_shadow_tail__scene_case01_rail_tail",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_rail_yard_shadow_tail_2_seq",
+			"fromNode": "n_case01_rail_yard_shadow_tail__scene_case01_rail_tail",
+			"fromSide": "right",
+			"toNode": "n_case01_rail_yard_shadow_tail__scene_case01_rail_exit",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_convergence_0_seq",
+			"fromNode": "hdr_case01_convergence",
+			"fromSide": "right",
+			"toNode": "n_case01_convergence__scene_case01_convergence_gate",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_convergence_1_seq",
+			"fromNode": "n_case01_convergence__scene_case01_convergence_gate",
+			"fromSide": "right",
+			"toNode": "n_case01_convergence__scene_case01_convergence_official",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_convergence_2_seq",
+			"fromNode": "n_case01_convergence__scene_case01_convergence_official",
+			"fromSide": "right",
+			"toNode": "n_case01_convergence__scene_case01_convergence_covert",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_warehouse_finale_0_seq",
+			"fromNode": "hdr_case01_warehouse_finale",
+			"fromSide": "right",
+			"toNode": "n_case01_warehouse_finale__scene_case01_warehouse_entry",
+			"toSide": "left",
+			"label": "start"
+		},
+		{
+			"id": "e_case01_warehouse_finale_1_seq",
+			"fromNode": "n_case01_warehouse_finale__scene_case01_warehouse_entry",
+			"fromSide": "right",
+			"toNode": "n_case01_warehouse_finale__scene_case01_warehouse_lawful",
+			"toSide": "left"
+		},
+		{
+			"id": "e_case01_warehouse_finale_2_seq",
+			"fromNode": "n_case01_warehouse_finale__scene_case01_warehouse_lawful",
+			"fromSide": "right",
+			"toNode": "n_case01_warehouse_finale__scene_case01_warehouse_compromised",
+			"toSide": "left"
+		},
+		{
+			"id": "e_handoff_0",
+			"fromNode": "n_origin_detective_bootstrap__scene_origin_detective_bootstrap",
+			"fromSide": "right",
+			"toNode": "n_case01_hbf_arrival__scene_case01_opening_arrival_video",
+			"toSide": "left",
+			"label": "→ case01_hbf_arrival"
+		}
+	]
+}

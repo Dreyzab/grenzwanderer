@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import type { ReactNode, RefObject } from "react";
 import type { VnSnapshot } from "../types";
-import type { TypedTextHandle } from "../ui/TypedText";
+import type { TypedTextHandle, TypedTextTokenHandler } from "../ui/TypedText";
 import { LogEntryRenderer } from "./LogEntryRenderer";
 import { LogSegmentRenderer } from "./LogSegmentRenderer";
 import { resolveSpeakerPortrait } from "./speakerRegistry";
@@ -15,6 +15,9 @@ interface VnNarrativeLogProps {
   choicesSlot?: ReactNode;
   onTypingChange?: (typing: boolean) => void;
   onSegmentComplete?: () => void;
+  onTokenClick?: TypedTextTokenHandler;
+  onTokenEnter?: TypedTextTokenHandler;
+  onTokenLeave?: TypedTextTokenHandler;
 }
 
 const withPortrait = (
@@ -33,6 +36,9 @@ export function VnNarrativeLog({
   choicesSlot,
   onTypingChange,
   onSegmentComplete,
+  onTokenClick,
+  onTokenEnter,
+  onTokenLeave,
 }: VnNarrativeLogProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -139,6 +145,9 @@ export function VnNarrativeLog({
             typedTextRef={typedTextRef}
             onTypingChange={onTypingChange}
             onComplete={onSegmentComplete}
+            onTokenClick={onTokenClick}
+            onTokenEnter={onTokenEnter}
+            onTokenLeave={onTokenLeave}
           />
         ) : null}
 

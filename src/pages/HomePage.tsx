@@ -14,7 +14,7 @@ import { parseSnapshot } from "../features/vn/vnContent";
 import { reducers, tables } from "../shared/spacetime/bindings";
 import { useIdentity } from "../shared/spacetime/useIdentity";
 import { ConfirmationModal } from "../shared/ui/ConfirmationModal";
-import type { OpenVnScenarioOptions } from "../app/AppShell";
+import type { OpenVnScenarioOptions } from "../shared/navigation/shellNavigationTypes";
 import { useI18n } from "../features/i18n/I18nContext";
 import { getHomeStrings, getSharedStrings } from "../features/i18n/uiStrings";
 

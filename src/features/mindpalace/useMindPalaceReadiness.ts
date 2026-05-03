@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTable } from "spacetimedb/react";
-import { usePlayerVars } from "../../entities/player/hooks/usePlayerVars";
+import { usePlayerBindings } from "../../entities/player/hooks/usePlayerBindings";
 import { tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
 import {
@@ -22,7 +22,7 @@ export const useMindPalaceReadiness = (): MindPalaceReadiness => {
   const [playerMindFacts] = useTable(tables.myMindFacts);
   const [playerMindHypotheses] = useTable(tables.myMindHypotheses);
 
-  const varsByKey = usePlayerVars();
+  const { vars: varsByKey } = usePlayerBindings();
 
   return useMemo(() => {
     const activeCaseIds = new Set(

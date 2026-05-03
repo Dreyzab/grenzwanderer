@@ -1,6 +1,10 @@
 import { ChevronRight, CircleUserRound, Sparkles } from "lucide-react";
 import type { RefObject } from "react";
-import { TypedText, type TypedTextHandle } from "../ui/TypedText";
+import {
+  TypedText,
+  type TypedTextHandle,
+  type TypedTextTokenHandler,
+} from "../ui/TypedText";
 import type { SpeakerSegment } from "./speakerParser";
 
 interface LogSegmentRendererProps {
@@ -11,6 +15,9 @@ interface LogSegmentRendererProps {
   typedTextRef?: RefObject<TypedTextHandle>;
   onTypingChange?: (typing: boolean) => void;
   onComplete?: () => void;
+  onTokenClick?: TypedTextTokenHandler;
+  onTokenEnter?: TypedTextTokenHandler;
+  onTokenLeave?: TypedTextTokenHandler;
 }
 
 const categoryTextClassName = (category: SpeakerSegment["category"]) => {
@@ -34,6 +41,9 @@ export function LogSegmentRenderer({
   typedTextRef,
   onTypingChange,
   onComplete,
+  onTokenClick,
+  onTokenEnter,
+  onTokenLeave,
 }: LogSegmentRendererProps) {
   const isNarrator = segment.category === "narrator";
   const isInnerVoice = segment.category === "inner_voice";
@@ -46,6 +56,9 @@ export function LogSegmentRenderer({
       instant={!isTyping}
       onTypingChange={isTyping ? onTypingChange : undefined}
       onComplete={isTyping ? onComplete : undefined}
+      onTokenClick={onTokenClick}
+      onTokenEnter={onTokenEnter}
+      onTokenLeave={onTokenLeave}
     />
   );
 
@@ -128,7 +141,11 @@ export function LogSegmentRenderer({
             <img
               src={segment.portraitUrl}
               alt=""
-              className="size-8 rounded-full border border-amber-300/25 object-cover shadow-[0_0_20px_rgba(0,0,0,0.4)]"
+              loading="lazy"
+              decoding="async"
+              width={32}
+              height={32}
+              className="size-8 aspect-square rounded-full border border-amber-300/25 object-cover shadow-[0_0_20px_rgba(0,0,0,0.4)]"
             />
           ) : isInnerVoice ? (
             <span

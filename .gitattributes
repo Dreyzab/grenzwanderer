@@ -1,1 +1,5 @@
 * text=auto eol=lf
+
+# Generated VN snapshot artifacts (smaller PR diffs on GitHub)
+*.snapshot.json linguist-generated=true
+public/content/vn/*.snapshot.json linguist-generated=true

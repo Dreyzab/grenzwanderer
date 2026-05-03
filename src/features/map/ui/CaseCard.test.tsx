@@ -32,12 +32,11 @@ vi.mock("../../vn/vnContent", () => ({
   parseSnapshot: (...args: unknown[]) => mocks.parseSnapshotMock(...args),
 }));
 
-vi.mock("../../../entities/player/hooks/usePlayerFlags", () => ({
-  usePlayerFlags: () => mocks.usePlayerFlagsMock(),
-}));
-
-vi.mock("../../../entities/player/hooks/usePlayerVars", () => ({
-  usePlayerVars: () => mocks.usePlayerVarsMock(),
+vi.mock("../../../entities/player/hooks/usePlayerBindings", () => ({
+  usePlayerBindings: () => ({
+    flags: mocks.usePlayerFlagsMock(),
+    vars: mocks.usePlayerVarsMock(),
+  }),
 }));
 
 const basePoint: RuntimeMapPoint = {

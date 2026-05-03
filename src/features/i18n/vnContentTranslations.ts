@@ -1,5 +1,6 @@
 import type { I18nDictionary } from "./I18nContext";
 import type { UiLanguage } from "../../shared/hooks/useUiLanguage";
+import { repairMojibakeForUiLanguage } from "./ruUtf8Repair";
 import type { VnChoice, VnScenario } from "../vn/types";
 
 export type VnContentField = "title" | "body";
@@ -47,7 +48,8 @@ export const resolveTranslatedText = (
 
   // Check specific sections first, then fallback to general lookup if needed
   // Note: Most keys are already prefixed (e.g. "vn.", "origin.")
-  return dictionary.vn[key] || dictionary.origin[key] || fallback;
+  const translated = dictionary.vn[key] || dictionary.origin[key] || fallback;
+  return repairMojibakeForUiLanguage(language, translated);
 };
 
 export const resolveSpeakerLabel = (
@@ -59,7 +61,10 @@ export const resolveSpeakerLabel = (
   if (language === "en" || !dictionary) {
     return fallback;
   }
-  return dictionary.speakers[speakerId] || fallback;
+  return repairMojibakeForUiLanguage(
+    language,
+    dictionary.speakers[speakerId] || fallback,
+  );
 };
 
 export const resolveStatLabel = (
@@ -71,7 +76,10 @@ export const resolveStatLabel = (
   if (language === "en" || !dictionary) {
     return fallback;
   }
-  return dictionary.stats[statKey] || fallback;
+  return repairMojibakeForUiLanguage(
+    language,
+    dictionary.stats[statKey] || fallback,
+  );
 };
 
 export const resolveVnScenarioTitle = (

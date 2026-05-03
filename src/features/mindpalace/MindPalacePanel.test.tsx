@@ -29,8 +29,10 @@ vi.mock("../../shared/spacetime/useIdentity", () => ({
   useIdentity: () => mocks.useIdentityMock(),
 }));
 
-vi.mock("../../entities/player/hooks/usePlayerVars", () => ({
-  usePlayerVars: () => mocks.usePlayerVarsMock(),
+vi.mock("../../entities/player/hooks/usePlayerBindings", () => ({
+  usePlayerBindings: () => ({
+    vars: mocks.usePlayerVarsMock(),
+  }),
 }));
 
 vi.mock("../../shared/spacetime/bindings", () => ({

@@ -4,6 +4,7 @@ import {
   applyEffects,
   cleanupExpiredMapEvents,
   createEvidenceKey,
+  createHypothesisFocusFlagKey,
   createInventoryKey,
   createQuestKey,
   createUnlockGroupKey,
@@ -22,15 +23,17 @@ import {
   getRumorStatus,
   getVar,
   type MapAction,
-  type MapBinding,
-  type MapCondition,
-  type MapPoint,
-  type MapPointState,
   markMapEventResolved,
   parseStoredMapEventPayload,
   sha256Hex,
   spawnMapEventInternal,
   upsertFlag,
+} from "./helpers";
+import type {
+  MapBinding,
+  MapCondition,
+  MapPoint,
+  MapPointState,
 } from "./helpers";
 import { startScenarioInternal } from "./vn";
 
@@ -197,6 +200,21 @@ const evaluateQrCodeCondition = (
   if (condition.type === "rumor_state_is") {
     return getRumorStatus(ctx, condition.rumorId) === condition.status;
   }
+  if (condition.type === "hypothesis_focus_is") {
+    return getFlag(
+      ctx,
+      createHypothesisFocusFlagKey(condition.caseId, condition.hypothesisId),
+    );
+  }
+  if (condition.type === "thought_state_is") {
+    if (condition.state === "internalized") {
+      return getFlag(ctx, `mind_internalized::${condition.thoughtId}`);
+    }
+    if (condition.state === "researching") {
+      return getFlag(ctx, `mind_researching::${condition.thoughtId}`);
+    }
+    return getFlag(ctx, `mind_unlocked::${condition.thoughtId}`);
+  }
   if (condition.type === "career_rank_gte") {
     return (
       getCurrentPlayerCareerRankOrderCached(ctx, cache) >=
@@ -348,6 +366,21 @@ const evaluateMapCondition = (
     }
     case "rumor_state_is": {
       return getRumorStatus(ctx, condition.rumorId) === condition.status;
+    }
+    case "hypothesis_focus_is": {
+      return getFlag(
+        ctx,
+        createHypothesisFocusFlagKey(condition.caseId, condition.hypothesisId),
+      );
+    }
+    case "thought_state_is": {
+      if (condition.state === "internalized") {
+        return getFlag(ctx, `mind_internalized::${condition.thoughtId}`);
+      }
+      if (condition.state === "researching") {
+        return getFlag(ctx, `mind_researching::${condition.thoughtId}`);
+      }
+      return getFlag(ctx, `mind_unlocked::${condition.thoughtId}`);
     }
     case "career_rank_gte": {
       return (
@@ -656,11 +689,10 @@ export const map_interact = spacetimedb.reducer(
 
     const activeEventRow =
       point === null ? getPlayerActiveMapEventByEventId(ctx, pointId) : null;
-    const runtimePoint =
-      point ??
+    const runtimePoint = (point ??
       (activeEventRow
         ? parseStoredMapEventPayload(activeEventRow.payloadJson).point
-        : null);
+        : null)) as MapPoint | null;
     if (!runtimePoint) {
       rejectMapInteraction(ctx, telemetryBase, "binding_not_found");
       return;

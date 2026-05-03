@@ -9,8 +9,7 @@ import {
 import { getLocationCastPresentation } from "../../../shared/game/locationCastPresentation";
 import { tables } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
-import { usePlayerFlags } from "../../../entities/player/hooks/usePlayerFlags";
-import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
+import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
 import { parseSnapshot } from "../../vn/vnContent";
 import type { RuntimeMapBinding, RuntimeMapPoint } from "../types";
 import {
@@ -48,8 +47,7 @@ export const DetectiveHub = ({
   onClose,
 }: DetectiveHubProps) => {
   const { identityHex } = useIdentity();
-  const myFlags = usePlayerFlags();
-  const myVars = usePlayerVars();
+  const { flags: myFlags, vars: myVars } = usePlayerBindings();
   const [activeTab, setActiveTab] = useState<HubTab>("briefing");
   const [pendingBindingId, setPendingBindingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

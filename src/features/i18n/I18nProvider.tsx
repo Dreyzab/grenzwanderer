@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, ReactNode } from "react";
 import { useTable } from "spacetimedb/react";
 import { useUiLanguage } from "../../shared/hooks/useUiLanguage";
-import { usePlayerFlags } from "../../entities/player/hooks/usePlayerFlags";
+import { usePlayerBindings } from "../../entities/player/hooks/usePlayerBindings";
 import { I18nContext, I18nDictionary } from "./I18nContext";
 import { mergeI18nSection } from "./mergeI18nSection";
 import { tables } from "../../shared/spacetime/bindings";
@@ -11,7 +11,7 @@ interface I18nProviderProps {
 }
 
 export function I18nProvider({ children }: I18nProviderProps) {
-  const flags = usePlayerFlags();
+  const { flags } = usePlayerBindings();
   const language = useUiLanguage(flags);
   const [contentTranslationRows] = useTable(tables.contentTranslations);
   const [dictionary, setDictionary] = useState<I18nDictionary | null>(null);

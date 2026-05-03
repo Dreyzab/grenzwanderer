@@ -16,7 +16,7 @@ import MapGL, {
 import { useReducer, useTable } from "spacetimedb/react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./mapExperience.css";
-import type { OpenVnScenarioOptions } from "../../../app/AppShell";
+import type { OpenVnScenarioOptions } from "../../../shared/navigation/shellNavigationTypes";
 import { MAPBOX_STYLE, MAPBOX_TOKEN, RELEASE_PROFILE } from "../../../config";
 import { reducers, tables } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";

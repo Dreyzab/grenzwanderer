@@ -16,6 +16,17 @@ thread in daylight, the city will pull back in uniform.
 
 ```vn-logic
 choices:
+  - id: CASE01_LOTTE_CONFRONT_SCHEDULE
+    text: Ask why her train notes kept time instead of names.
+    next: scene_case01_lotte_schedule_opening
+    visible_if_all:
+      - flag_equals(noticed_lotte_schedule,true)
+  - id: CASE01_LOTTE_LISTENER_OPENING
+    text: Let the silence do some of the work before you answer.
+    next: scene_case01_lotte_listener_opening
+    visible_if_all:
+      - flag_equals(flag_silent_observation,true)
+      - not(flag_equals(noticed_lotte_schedule,true))
   - id: CASE01_LOTTE_TRUST
     text: Thank her and ask for one more quiet relay.
     next: scene_case01_lotte_trust

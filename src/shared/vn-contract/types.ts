@@ -197,7 +197,9 @@ export interface VnChoice {
   /** Legacy alias for requireAll. Kept for backward compatibility. */
   conditions?: VnCondition[];
   effects?: VnEffect[];
+  inlineText?: string;
   skillCheck?: VnSkillCheck;
+  passiveChecks?: VnSkillCheck[];
   innerVoiceHints?: Array<{
     voiceId: InnerVoiceId;
     stance: "supports" | "opposes";
@@ -350,7 +352,29 @@ export type NpcAvailabilityState =
   | "watching"
   | "on_the_run";
 export type FactionSignalTrend = "rising" | "stable" | "falling";
-export type RumorStateStatus = "registered" | "verified";
+/** Canonical rumor lifecycle; keep in sync with server normalization in `normalizeRumorStatus`. */
+export type RumorStateStatus =
+  | "registered"
+  | "heard"
+  | "logged"
+  | "pursuing"
+  | "verified"
+  | "spent"
+  | "burned";
+
+export type RumorSourceType =
+  | "contact"
+  | "faction"
+  | "briefing"
+  | "witness"
+  | "environment";
+
+export const isRumorSourceType = (value: unknown): value is RumorSourceType =>
+  value === "contact" ||
+  value === "faction" ||
+  value === "briefing" ||
+  value === "witness" ||
+  value === "environment";
 export type RumorVerificationKind =
   | "evidence"
   | "fact"
@@ -464,6 +488,12 @@ export interface RumorTemplate {
   caseId: string;
   leadPointId?: string;
   sourceNpcId?: string;
+  sourceType?: RumorSourceType;
+  factionKey?: string;
+  subject?: string;
+  locationHint?: string;
+  credibility?: number;
+  heatRisk?: number;
   verifiesOn: RumorVerificationKind[];
   careerCriterionOnVerify?: AgencyServiceCriterionId;
 }

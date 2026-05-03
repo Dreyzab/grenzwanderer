@@ -12,5 +12,6 @@ export * from "./helpers/effects";
 export * from "./helpers/map_runtime";
 export * from "./helpers/content_migration";
 export * from "./helpers/command_runtime";
+export { resolveCommandInternal } from "./helpers/command_resolve";
 export * from "./helpers/battle_runtime";
 export * from "./helpers/crypto";

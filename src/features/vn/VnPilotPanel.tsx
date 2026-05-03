@@ -1,7 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { useReducer, useTable } from "spacetimedb/react";
-import { usePlayerFlags } from "../../entities/player/hooks/usePlayerFlags";
-import { usePlayerVars } from "../../entities/player/hooks/usePlayerVars";
+import { usePlayerBindings } from "../../entities/player/hooks/usePlayerBindings";
 import { ENABLE_AI } from "../../config";
 import { reducers, tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
@@ -39,8 +38,7 @@ export const VnPilotPanel = () => {
   const [error, setError] = useState<string | null>(null);
   const [statusLine, setStatusLine] = useState("");
 
-  const myFlags = usePlayerFlags();
-  const myVars = usePlayerVars();
+  const { flags: myFlags, vars: myVars } = usePlayerBindings();
 
   const activeVersion = useMemo(
     () => versions.find((entry) => entry.isActive) ?? null,

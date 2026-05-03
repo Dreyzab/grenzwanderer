@@ -75,7 +75,8 @@
         "scene_case01_archive_exit"
       ],
       "mode": "overlay",
-      "packId": "case01_mainline"
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_archive_reading_room.webp"
     },
     {
       "id": "case01_bank_investigation",
@@ -90,7 +91,7 @@
       ],
       "mode": "fullscreen",
       "packId": "case01_mainline",
-      "defaultBackgroundUrl": "/images/scenes/scene_bank_intro.png"
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_bank_exterior.webp"
     },
     {
       "id": "case01_convergence",
@@ -102,7 +103,8 @@
         "scene_case01_convergence_covert"
       ],
       "mode": "overlay",
-      "packId": "case01_mainline"
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_convergence_city_threshold.webp"
     },
     {
       "id": "case01_estate_branch",
@@ -110,7 +112,8 @@
       "startNodeId": "scene_case01_estate_entry",
       "nodeIds": ["scene_case01_estate_entry", "scene_case01_estate_exit"],
       "mode": "overlay",
-      "packId": "case01_mainline"
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_estate_bureau.webp"
     },
     {
       "id": "case01_hbf_arrival",
@@ -118,7 +121,6 @@
       "startNodeId": "scene_case01_opening_arrival_video",
       "nodeIds": [
         "scene_case01_opening_arrival_video",
-        "scene_case01_train_compartment_cinema",
         "scene_case01_train_compartment_letter",
         "scene_case01_train_assistant_intro",
         "scene_case01_train_door_creaks",
@@ -133,10 +135,24 @@
         "scene_case01_train_dining_car_wine_beat",
         "scene_case01_train_dining_car_felix_interrupts",
         "scene_case01_train_dining_car_eleonora_farewell",
+        "scene_case01_train_dining_car_eleonora_farewell_silent_defend",
+        "scene_case01_train_dining_car_eleonora_farewell_hotel_defend",
+        "scene_case01_train_dining_car_eleonora_farewell_intro_observe",
+        "scene_case01_train_dining_car_eleonora_farewell_silent_observe",
+        "scene_case01_train_dining_car_eleonora_farewell_hotel_observe",
         "scene_case01_train_ankommen_video",
+        "scene_case01_hbf_porter_greeting",
+        "scene_case01_corridor_reflection",
+        "scene_case01_corridor_reflection_hotel_observe",
+        "scene_case01_corridor_reflection_silent_observe",
+        "scene_case01_corridor_reflection_intro_observe",
+        "scene_case01_corridor_reflection_hotel_defend",
+        "scene_case01_corridor_reflection_silent_defend",
         "scene_case01_train_voza_cutscene",
         "scene_case01_train_disembark_journal",
         "scene_case01_train_platform_parting",
+        "scene_case01_hbf_echo_intro_self",
+        "scene_case01_hbf_echo_hospitality_accepted",
         "scene_case01_beat1_atmosphere",
         "scene_case01_hbf_newsboy_approach",
         "scene_case01_hbf_newsboy_handoff",
@@ -160,7 +176,8 @@
         "scene_case01_apothecary_exit"
       ],
       "mode": "overlay",
-      "packId": "case01_mainline"
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_apothecary_counter.webp"
     },
     {
       "id": "case01_lead_pub",
@@ -168,7 +185,8 @@
       "startNodeId": "scene_case01_pub_entry",
       "nodeIds": ["scene_case01_pub_entry", "scene_case01_pub_exit"],
       "mode": "overlay",
-      "packId": "case01_mainline"
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_zum_schlappen_tavern.webp"
     },
     {
       "id": "case01_lead_tailor",
@@ -176,7 +194,21 @@
       "startNodeId": "scene_case01_tailor_entry",
       "nodeIds": ["scene_case01_tailor_entry", "scene_case01_tailor_exit"],
       "mode": "overlay",
-      "packId": "case01_mainline"
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_tailor_workshop.webp"
+    },
+    {
+      "id": "case01_lodging_zum_goldenen_adler",
+      "title": "Case 01: Zum Goldenen Adler Lodging",
+      "startNodeId": "scene_case01_zum_goldenen_adler_entry",
+      "nodeIds": [
+        "scene_case01_zum_goldenen_adler_entry",
+        "scene_case01_zum_goldenen_adler_lotte_route",
+        "scene_case01_zum_goldenen_adler_settle"
+      ],
+      "mode": "overlay",
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_zum_goldenen_adler_lobby.webp"
     },
     {
       "id": "case01_lotte_interlude",
@@ -184,11 +216,14 @@
       "startNodeId": "scene_case01_lotte_warning",
       "nodeIds": [
         "scene_case01_lotte_warning",
+        "scene_case01_lotte_schedule_opening",
+        "scene_case01_lotte_listener_opening",
         "scene_case01_lotte_trust",
         "scene_case01_lotte_distance"
       ],
       "mode": "overlay",
-      "packId": "case01_mainline"
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_telegraph_switchboard.webp"
     },
     {
       "id": "case01_mayor_briefing",
@@ -196,11 +231,14 @@
       "startNodeId": "scene_case01_mayor_entry",
       "nodeIds": [
         "scene_case01_mayor_entry",
+        "scene_case01_mayor_independent_footing",
         "scene_case01_mayor_dossier",
+        "scene_case01_mayor_felix_aside",
         "scene_case01_mayor_exit"
       ],
       "mode": "overlay",
-      "packId": "case01_mainline"
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_rathaus_office_pressure.webp"
     },
     {
       "id": "case01_rail_yard_shadow_tail",
@@ -212,7 +250,8 @@
         "scene_case01_rail_exit"
       ],
       "mode": "overlay",
-      "packId": "case01_mainline"
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_rail_yard_night.webp"
     },
     {
       "id": "case01_warehouse_finale",
@@ -225,7 +264,7 @@
       ],
       "mode": "fullscreen",
       "packId": "case01_mainline",
-      "defaultBackgroundUrl": "/images/scenes/scene_estate_intro.png"
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_warehouse_wet_timber.webp"
     },
     {
       "id": "intro_archivist",
@@ -624,7 +663,8 @@
           "text": "Lock the warrant package and move on the warehouse.",
           "nextNodeId": "scene_case01_archive_exit"
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_archive_ledger_table.webp"
     },
     {
       "id": "scene_case01_archive_exit",
@@ -674,6 +714,7 @@
           "nextNodeId": "scene_case01_bank_manager"
         }
       ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_bank_exterior.webp",
       "characterId": "assistant"
     },
     {
@@ -706,7 +747,8 @@
             }
           ]
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_bank_office.webp"
     },
     {
       "id": "scene_case01_bank_clerk",
@@ -756,7 +798,8 @@
             }
           ]
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_bank_hall.webp"
     },
     {
       "id": "scene_case01_bank_vault",
@@ -826,7 +869,8 @@
             }
           ]
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_bank_vault.webp"
     },
     {
       "id": "scene_case01_bank_conclusion",
@@ -972,33 +1016,7 @@
       "id": "scene_case01_opening_arrival_video",
       "scenarioId": "case01_hbf_arrival",
       "title": "Approach by rail",
-      "body": "",
-      "choices": [
-        {
-          "id": "AUTO_CONTINUE_SCENE_CASE01_OPENING_ARRIVAL_VIDEO",
-          "text": "Continue.",
-          "nextNodeId": "scene_case01_train_compartment_cinema"
-        }
-      ],
-      "onEnter": [
-        {
-          "type": "set_flag",
-          "key": "freiburg_case01_mainline_active",
-          "value": true
-        }
-      ],
-      "backgroundVideoUrl": "/VN/start/video/Bahn.mp4",
-      "backgroundVideoPosterUrl": "/VN/start/image/compartment_cinema.png",
-      "backgroundVideoSoundPrompt": true,
-      "sceneGroupId": "train_bahn_video",
-      "narrativeLayout": "fullscreen",
-      "advanceOnVideoEnd": true
-    },
-    {
-      "id": "scene_case01_train_compartment_cinema",
-      "scenarioId": "case01_hbf_arrival",
-      "title": "Night compartment",
-      "body": "",
+      "body": "**[Элеонора]**:\n— Что ж, Феликс. Фрайбург не терпит опозданий. Детектив, присмотрите за ним. Он склонен теряться в… деталях, забывая о главном.\n\n**[Лотте]**:\n— На перроне лучше не останавливаться, детектив. Здесь даже прощания занимают очередь.\n\n**[Narrator]**:\nОни уходят в толпу — Элеонора и Лотте, плечом к плечу, негромко разговаривая. Рыжие волосы Лотте — последнее яркое пятно в сером паре перрона. За ними остаётся запах дорогого табака и след невысказанных обещаний.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_COMPARTMENT_CINEMA",
@@ -1014,7 +1032,7 @@
       "id": "scene_case01_train_compartment_letter",
       "scenarioId": "case01_hbf_arrival",
       "title": "Orders from the Agency",
-      "body": "Dear detective.\n\nI await your swift arrival in Freiburg. I trust your talent shall reveal the truth behind the bank robbery. Your quarters at 'Zum Eber' are prepared.\n\nBut remember... the most obvious path often leads to a dead end.\n\nWith respect,\nMaster",
+      "body": "Dear detective.\n\nI await your swift arrival in Freiburg. I trust your talent shall reveal the truth behind the bank robbery. Your quarters at 'Zum Goldenen Adler' are prepared.\n\nBut remember... the most obvious path often leads to a dead end.\n\nWith respect,\nMaster",
       "choices": [
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_COMPARTMENT_LETTER",
@@ -1032,7 +1050,7 @@
       "id": "scene_case01_train_assistant_intro",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nДверь в купе открывается со скрипом, и в проёме возникает высокая фигура с выдающимися скулами, из-за которых вошедший казался намного старше своих лет.\n\n**[Assistant]**:\n— Сэр, я проверил во время остановки: в газетах пусто, по радио тоже тишина.\n\n**[inner_cynic]**:\nТишина — это не отсутствие звука. Это присутствие чьей-то очень дорогой воли.",
+      "body": "**[Narrator]**:\nДверь в купе открывается со скрипом, и в проеме возникает высокая фигура с выдающимися скулами, из-за которых вошедший казался намного старше своих лет.\n\n**[Assistant]**:\n— Сэр, я проверил во время остановки: в газетах пусто, по радио тоже тишина.\n\n**[inner_cynic]**:\nТишина — это не отсутствие звука. Это присутствие чьей-то очень дорогой воли.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_ASSISTANT_INTRO",
@@ -1049,7 +1067,7 @@
       "id": "scene_case01_train_door_creaks",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Assistant]**:\n— Вы уверены, что это не розыгрыш?\n\n**[inspector]**:\n— Письмо было доставлено частной службой, а бумага и чернила, используемые в нём, стоят недешево. Что ж, узнаем по прибытии в отель.\n\n**[Assistant]**:\n— Вы правы, сэр. Не стали бы они арендовать нам номер просто так.",
+      "body": "**[Assistant]**:\n— Вы уверены, что это не розыгрыш?\n\n**[inspector]**:\n— Письмо было доставлено частной службой, а бумага и чернила, используемые в нем, стоят недешево. Что ж, узнаем по прибытии в отель.\n\n**[Assistant]**:\n— Вы правы, сэр. Не стали бы они арендовать нам номер просто так.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_DOOR_CREAKS",
@@ -1070,7 +1088,7 @@
       "choices": [
         {
           "id": "CASE01_TRAIN_ASSISTANT_EAT_TOGETHER",
-          "text": "Wait for me! I've worked up an appetite—I need a bite to eat.",
+          "text": "Wait for me! I've worked up an appetite�\u001dI need a bite to eat.",
           "nextNodeId": "scene_case01_train_dining_car_intro",
           "effects": [
             {
@@ -1111,7 +1129,7 @@
       "id": "scene_case01_train_dining_car_intro",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nThe dining car greets you with the chime of crystal and the scent of expensive tobacco. Felix leads the way with confidence through the rows of tables.\n\n**[Assistant]**:\n— Mother always finds company, even on a train. It seems she's already made an acquaintance. Try to be... indulgent with her directness.",
+      "body": "**[Narrator]**:\nThe dining car greets you with the chime of crystal and the scent of expensive tobacco. Felix leads the way with confidence through the rows of tables.\n\n**[Assistant]**:\n�\u001d Mother always finds company, even on a train. It seems she's already made an acquaintance. Try to be... indulgent with her directness.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_DINING_CAR_INTRO",
@@ -1127,7 +1145,7 @@
       "id": "scene_case01_train_dining_car_mother",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nЗа угловым столиком расположилась матушка Феликса. Она неторопливо потягивала белое вино, внимательно слушая свою спутницу — девушку с ярко-рыжими волосами, которая что-то оживленно рассказывала, активно жестикулируя. Огненный цвет её волос казался вызывающе ярким в приглушенном утреннем свете вагона.\n\n**[Redhead]**:\n— ...и этот чиновник всерьез грозился засудить телеграфную службу, потому что точки в его депеше показались ему «недостаточно почтительными»... Это же просто смешно... Элеонора?\n\n**[Assistant]**:\n— Матушка, мы решили выпить перед прибытием. Не представите нас вашей спутнице?",
+      "body": "**[Narrator]**:\nЗа угловым столиком расположилась матушка Феликса. Она неторопливо потягивала белое вино, внимательно слушая свою спутницу — девушку с ярко-рыжими волосами, которая что-то оживленно рассказывала, активно жестикулируя. Огненный цвет ее волос казался вызывающе ярким в приглушенном утреннем свете вагона.\n\n**[Redhead]**:\n— ...и этот чиновник всерьез грозился засадить телеграфную службу, потому что точки в его депеше показались ему «недостаточно почтительными»... Это же просто смешно... Элеонора?\n\n**[Assistant]**:\n— Матушка, мы решили выпить перед прибытием. Не представите нас вашей спутнице?",
       "choices": [
         {
           "id": "AUTO_CONTINUE_DINING_CAR_MOTHER",
@@ -1160,7 +1178,7 @@
       "id": "scene_case01_train_dining_car_marriage_joke",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Элеонора]**:\n— Разумеется. Позвольте представить: Лотте, лучшая проводница по фрайбургским улочкам из всех, кого я успела встретить в этом поезде. А это — мой сын Феликс Хартманн, который так старательно смотрит в окно, будто пейзаж обязан избавить его от знакомства.\n\n**[Лотте]**:\n— О, Элеонора преувеличивает мой талант экскурсовода. Я лишь люблю находить хорошие места с лучшим блюдом. Но если вам захочется увидеть город шире газетных колонок — постараюсь не разочаровать.\n\n**[inner_analyst]**:\nДевушка умело подыгрывает матери, но взгляд на Феликса — холодный и оценивающий.",
+      "body": "**[Элеонора]**:\n— Разумеется. Лотте Ребер. О Фрайбурге она знает улицы, людей и такие двери, которые приличные дома предпочитают не замечать. А это — мой сын Феликс Хартманн. Он смотрит в окно, когда хочет, чтобы разговор обошелся без него.\n\n**[Лотте]**:\n— Элеонора делает из меня почти учреждение. Я всего лишь запоминаю, куда люди торопятся, когда уверяют, что просто гуляют.",
       "choices": [
         {
           "id": "CASE01_TRAIN_DINING_SILENT",
@@ -1174,25 +1192,8 @@
         },
         {
           "id": "CASE01_TRAIN_DINING_HOTEL",
-          "text": "— Pardon the interruption—since you know the city so well, have you heard of the Zum Eber hotel?",
+          "text": "�\u001d Pardon the interruption�\u001dsince you know the city so well, have you heard of the Zum Goldenen Adler hotel?",
           "nextNodeId": "scene_case01_train_dining_car_hotel_branch"
-        }
-      ],
-      "passiveChecks": [
-        {
-          "id": "check_case01_dining_car_empathy",
-          "voiceId": "attr_empathy",
-          "difficulty": 10,
-          "showChancePercent": false,
-          "isPassive": true,
-          "onSuccess": {
-            "effects": [
-              {
-                "type": "grant_xp",
-                "amount": 5
-              }
-            ]
-          }
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
@@ -1203,7 +1204,7 @@
       "id": "scene_case01_train_dining_car_silent_branch",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Assistant]**:\n— Прошу прощения. Феликс Хартманн. Я сопровождаю детектива в этой поездке.\n\n**[Лотте]**:\n— Ох, простите мои манеры. Я — Лотте. Будем знакомы.",
+      "body": "**[Assistant]**:\n— Извините. Это детектив [Name]. Он помогает нам с переездом.\n\n**[Narrator]**:\nФеликс произносит «нам» без всякого тепла, но вовремя: неловкость успевает стать его, а не вашей.\n\n**[Лотте]**:\n— Тогда будем знакомы. Люди, которые умеют молчать за столом, во Фрайбурге долго не останутся незамеченными.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_DINING_SILENT",
@@ -1226,12 +1227,19 @@
       "id": "scene_case01_train_dining_car_intro_self_branch",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Detective]**:\n— Разрешите представиться. Детектив [Name]. Прибыл во Фрайбург по делу.\n\n**[Лотте]**:\n— Ох, простите мои манеры. Я — Лотте. Рада встрече.",
+      "body": "**[Detective]**:\n— Разрешите представиться. Детектив [Name]. Прибыл во Фрайбург по делу.\n\n**[Narrator]**:\nЭлеонора повторяет ваше имя беззвучно, одними губами, будто примеряет его к будущей карточке на столе.\n\n**[Лотте]**:\n— Лотте Ребер. Рада встрече, детектив. По делу — тоже, раз уж оно привело вас в наш вагон.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_DINING_INTRO_SELF",
           "text": "Continue.",
-          "nextNodeId": "scene_case01_train_dining_car_wine_beat"
+          "nextNodeId": "scene_case01_train_dining_car_wine_beat",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_dining_intro_self",
+              "value": true
+            }
+          ]
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
@@ -1242,12 +1250,24 @@
       "id": "scene_case01_train_dining_car_hotel_branch",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Лотте]**:\n— «Boar's Head»? Oh, it's a worthy place—old stone, heavy curtains, guests who'd rather not be disturbed. The Master knows how to pick his sets.",
+      "body": "**[Лотте]**:\n— «Zum Goldenen Adler»? Хороший выбор. Старый камень, тяжелые портьеры, постояльцы, которым нравится, когда их не замечают.\n\n**[Narrator]**:\nОна произносит название без вопроса. Не вспоминает — сверяет.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_DINING_HOTEL",
           "text": "Continue.",
-          "nextNodeId": "scene_case01_train_dining_car_wine_beat"
+          "nextNodeId": "scene_case01_train_dining_car_wine_beat",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_asked_lodging_route",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_asked_zum_goldenen_adler",
+              "value": true
+            }
+          ]
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
@@ -1258,7 +1278,7 @@
       "id": "scene_case01_train_dining_car_wine_beat",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nЭлеонора делает едва заметный жест — и официант оказывается у стола с бутылкой и парой чистых бокалов, словно только этого и ждал. Он берёт бутылку за основание, оставляет этикетку на виду и льёт медленно, тонкой ровной струёй; в конце бутылка едва поворачивается, и скатерть остаётся чистой.\n\n**[Элеонора]**:\n— Попробуйте. Маркграфлерланд, урожай прошлого года. Местное — но не стоит его недооценивать. Здесь вообще не стоит недооценивать местное.\n\n**[inner_tradition]**:\nОфициант не спрашивает, кому и сколько. Он смотрит на Элеонору — порядок за столом уже установлен.",
+      "body": "**[Элеонора]**:\n— Попробуйте. Маркграфлерланд.\n\n**[Narrator]**:\nОфициант берет бутылку за основание, оставляет этикетку на виду и льет медленно, тонкой ровной струйкой. В конце бутылка едва поворачивается, и скатерть остается чистой.\n\n**[Элеонора]**:\n— Не бойтесь — это не экзамен. Пока не экзамен.\n\n**[inner_tradition]**:\nОфициант не спрашивает. Он знает, в чей бокал лить первым.",
       "choices": [
         {
           "id": "CASE01_WINE_ACCEPT",
@@ -1269,13 +1289,25 @@
               "type": "set_flag",
               "key": "flag_joked_with_mother",
               "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_accepted_eleonora_hospitality",
+              "value": true
             }
           ]
         },
         {
           "id": "CASE01_WINE_DECLINE",
-          "text": "Вежливо отклонить.",
-          "nextNodeId": "scene_case01_train_dining_car_felix_interrupts"
+          "text": "Вежливо отклониться.",
+          "nextNodeId": "scene_case01_train_dining_car_felix_interrupts",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_declined_eleonora_hospitality",
+              "value": true
+            }
+          ]
         }
       ],
       "passiveChecks": [
@@ -1310,12 +1342,78 @@
       "id": "scene_case01_train_dining_car_felix_interrupts",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nФеликс первым замечает, как за окнами меняется свет платформы. Он коротко смотрит на часы и говорит тише, чем хотелось бы для возражения.\n\n**[Assistant]**:\n— Мы подъезжаем. Кондуктор объявил двадцать минут.\n\n**[Элеонора]**:\n— Двадцать минут — это целая вечность, дорогой. Достаточно, чтобы допить вино и решить судьбу маленького города.\n\n**[Narrator]**:\nФеликс не улыбается. Его взгляд задерживается на столе: два бокала, серебряный чайник, Лотте с блокнотом, который она успела убрать, но недостаточно быстро.\n\n**[inner_analyst]**:\nОн считает. Не минуты — степень контроля. Сколько из этого завтрака было спонтанным, а сколько — срежиссировано.",
+      "body": "**[Narrator]**:\nЗа перегородкой щелкает микрофон. Кондуктор объявляет: до Фрайбурга двадцать минут.\n\n**[Assistant]**:\n— Двадцать минут. Пора убирать.\n\n**[Narrator]**:\nЭлеонора смотрит на него поверх бокала. Не спорит.\n\n**[Элеонора]**:\n— Хорошо. Убирайте.\n\n**[Narrator]**:\nЛотте закрывает блокнот синхронно с объявлением — ни секундой раньше, ни секундой позже.",
       "choices": [
         {
           "id": "CASE01_FELIX_DEFEND",
-          "text": "Феликс прав — пора собираться.",
+          "text": "Поддержать паузу и помочь свернуть разговор.",
           "nextNodeId": "scene_case01_train_dining_car_eleonora_farewell",
+          "visibleIfAll": [
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "flag_silent_observation",
+                "value": true
+              }
+            },
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "flag_asked_zum_goldenen_adler",
+                "value": true
+              }
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_defended_felix",
+              "value": true
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "assistant",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE01_FELIX_DEFEND_SILENT",
+          "text": "Поддержать паузу и помочь свернуть разговор.",
+          "nextNodeId": "scene_case01_train_dining_car_eleonora_farewell_silent_defend",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_silent_observation",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_defended_felix",
+              "value": true
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "assistant",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE01_FELIX_DEFEND_HOTEL",
+          "text": "Поддержать паузу и помочь свернуть разговор.",
+          "nextNodeId": "scene_case01_train_dining_car_eleonora_farewell_hotel_defend",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_asked_zum_goldenen_adler",
+              "value": true
+            }
+          ],
           "effects": [
             {
               "type": "set_flag",
@@ -1331,8 +1429,71 @@
         },
         {
           "id": "CASE01_FELIX_OBSERVE",
-          "text": "Промолчать и наблюдать.",
-          "nextNodeId": "scene_case01_train_dining_car_eleonora_farewell"
+          "text": "Проследить, что именно убирает Лотте.",
+          "nextNodeId": "scene_case01_train_dining_car_eleonora_farewell_intro_observe",
+          "visibleIfAll": [
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "flag_silent_observation",
+                "value": true
+              }
+            },
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "flag_asked_zum_goldenen_adler",
+                "value": true
+              }
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "noticed_lotte_schedule",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "CASE01_FELIX_OBSERVE_SILENT",
+          "text": "Проследить, что именно убирает Лотте.",
+          "nextNodeId": "scene_case01_train_dining_car_eleonora_farewell_silent_observe",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_silent_observation",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "noticed_lotte_schedule",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "CASE01_FELIX_OBSERVE_HOTEL",
+          "text": "Проследить, что именно убирает Лотте.",
+          "nextNodeId": "scene_case01_train_dining_car_eleonora_farewell_hotel_observe",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_asked_zum_goldenen_adler",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "noticed_lotte_schedule",
+              "value": true
+            }
+          ]
         }
       ],
       "passiveChecks": [
@@ -1367,17 +1528,198 @@
       "id": "scene_case01_train_dining_car_eleonora_farewell",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Элеонора]**:\n— Что ж. Фрайбург нас ждёт.\n\n**[Narrator]**:\nОна поднимается первой — ни суеты, ни спешки. Лотте складывает блокнот в карман пальто одним привычным движением. Элеонора касается плеча Феликса — мимолётно, как будто поправляя воротник. Он не отстраняется, но и не подаётся навстречу.\n\n**[Лотте]**:\n— До встречи в городе, детектив. Фрайбург маленький. Если искать — найдёте.\n\n**[inner_intuition]**:\nОна сказала «если искать» так, будто знает, что вы будете. И готова к этому.",
+      "body": "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, [Name]. Фрайбург маленький — а имена в нём ходят быстрее людей.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_ELEONORA_FAREWELL",
           "text": "Continue.",
-          "nextNodeId": "scene_case01_train_ankommen_video"
+          "nextNodeId": "scene_case01_corridor_reflection"
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_eleonora_farewell_silent_defend",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи. Вы хороший слушатель — для детектива это редкость. Обычно они говорят, пока собеседник не сдастся.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_ELEONORA_FAREWELL_SILENT_DEFEND",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_corridor_reflection_silent_defend"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "characterId": "npc_mother_hartmann",
+      "sceneGroupId": "train_dining_car",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_eleonora_farewell_hotel_defend",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, детектив. «Zum Goldenen Adler» — хороший выбор. Если вдруг переедете, я обычно знаю раньше хозяина.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_ELEONORA_FAREWELL_HOTEL_DEFEND",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_corridor_reflection_hotel_defend"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "characterId": "npc_mother_hartmann",
+      "sceneGroupId": "train_dining_car",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_eleonora_farewell_intro_observe",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Одна строка зачёркнута так ровно, будто это не пометка, а отменённый маршрут.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, [Name]. Фрайбург маленький — а имена в нём ходят быстрее людей.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_ELEONORA_FAREWELL_INTRO_OBSERVE",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_corridor_reflection_intro_observe"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "characterId": "npc_mother_hartmann",
+      "sceneGroupId": "train_dining_car",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_eleonora_farewell_silent_observe",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Одна строка зачёркнута так ровно, будто это не пометка, а отменённый маршрут.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи. Вы хороший слушатель — для детектива это редкость. Обычно они говорят, пока собеседник не сдастся.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_ELEONORA_FAREWELL_SILENT_OBSERVE",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_corridor_reflection_silent_observe"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "characterId": "npc_mother_hartmann",
+      "sceneGroupId": "train_dining_car",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_eleonora_farewell_hotel_observe",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Рядом с нижней строкой стоит ваше имя, ещё без титула.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, детектив. «Zum Goldenen Adler» — хороший выбор. Если вдруг переедете, я обычно знаю раньше хозяина.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_ELEONORA_FAREWELL_HOTEL_OBSERVE",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_corridor_reflection_hotel_observe"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "characterId": "npc_mother_hartmann",
+      "sceneGroupId": "train_dining_car",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_corridor_reflection",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Corridor Reflection",
+      "body": "**[Narrator]**:\nВ купе тихо. Только ритм рельсов и мысли, которые ещё не оформились в вопросы.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION",
+          "text": "Поезд замедляется.",
+          "nextNodeId": "scene_case01_train_ankommen_video"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_corridor",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_corridor_reflection_silent_defend",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Corridor Reflection",
+      "body": "**[Narrator]**:\nФеликс не поблагодарил. Но он заметил — это видно по тому, как он НЕ посмотрел в вашу сторону при прощании. Молчание тоже разведка. Они говорили — вы слушали. Теперь вопрос: что из услышанного пригодится.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION_SILENT_DEFEND",
+          "text": "Поезд замедляется.",
+          "nextNodeId": "scene_case01_train_ankommen_video"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_corridor",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_corridor_reflection_hotel_defend",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Corridor Reflection",
+      "body": "**[Narrator]**:\nФеликс не поблагодарил. Но он заметил — это видно по тому, как он НЕ посмотрел в вашу сторону при прощании.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION_HOTEL_DEFEND",
+          "text": "Поезд замедляется.",
+          "nextNodeId": "scene_case01_train_ankommen_video"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_corridor",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_corridor_reflection_intro_observe",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Corridor Reflection",
+      "body": "**[Narrator]**:\nУсталость Феликса бросалась в глаза. Двадцать минут до Фрайбурга — и он считает каждую.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION_INTRO_OBSERVE",
+          "text": "Поезд замедляется.",
+          "nextNodeId": "scene_case01_train_ankommen_video"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_corridor",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_corridor_reflection_silent_observe",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Corridor Reflection",
+      "body": "**[Narrator]**:\nМолчание тоже разведка. Они говорили — вы слушали. Теперь вопрос: что из услышанного пригодится.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION_SILENT_OBSERVE",
+          "text": "Поезд замедляется.",
+          "nextNodeId": "scene_case01_train_ankommen_video"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_corridor",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_corridor_reflection_hotel_observe",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Corridor Reflection",
+      "body": "**[Narrator]**:\nВ купе тихо. Только ритм рельсов и мысли о гостинице «Zum Goldenen Adler», которая вас ожидает.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION_HOTEL_OBSERVE",
+          "text": "Поезд замедляется.",
+          "nextNodeId": "scene_case01_train_ankommen_video"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
     {
@@ -1401,20 +1743,82 @@
     {
       "id": "scene_case01_train_voza_cutscene",
       "scenarioId": "case01_hbf_arrival",
-      "title": "Platform roll-in",
-      "body": "",
+      "title": "Platform Landing",
+      "body": "**[Narrator]**:\nПар бьёт в лицо, как первое предупреждение. Вокзал Фрайбурга — не карлсруэвская элегантность, а рабочий механизм: чугунные балки, стеклянная крыша в разводах копоти, носильщики с тележками, пахнущие углём и мокрой шерстью.\n\nЧасы над перроном показывают 08:47. Город уже проснулся.\n\n**[attr_encyclopedia]**:\nНеоренессанс. Построено при расширении Баденских железных дорог. Базель в часе пути, Страсбург — в двух. Для контрабанды и побегов — идеальный узел.",
       "choices": [
         {
-          "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_VOZA_CUTSCENE",
-          "text": "Continue.",
-          "nextNodeId": "scene_case01_train_disembark_journal"
+          "id": "AUTO_CONTINUE_VOZA_TO_HBF",
+          "text": "Сойти на платформу.",
+          "nextNodeId": "scene_case01_hbf_porter_greeting"
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_voza_spot_fritz",
+          "voiceId": "attr_perception",
+          "difficulty": 6,
+          "showChancePercent": false,
+          "isPassive": true,
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "grant_xp",
+                "amount": 3
+              },
+              {
+                "type": "set_flag",
+                "key": "flag_spotted_fritz_early",
+                "value": true
+              }
+            ],
+            "inlineText": "**[Perception — Успех]:**\nВ толпе — форма. Не железнодорожная: полицейская. Кто-то ждёт, и ждёт именно вас. Рука в кармане, взгляд по перрону — ищет не вагон, а лицо."
+          }
         }
       ],
       "backgroundVideoUrl": "/VN/start/video/Video_voza_na_peronu.mp4",
       "backgroundVideoPosterUrl": "/VN/start/image/HBF.png",
-      "sceneGroupId": "train_voza_video",
-      "narrativeLayout": "fullscreen",
-      "advanceOnVideoEnd": true
+      "sceneGroupId": "hbf_platform_landing",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_hbf_porter_greeting",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "The Porter",
+      "body": "",
+      "choices": [
+        {
+          "id": "CHOICE_PORTER_HOSPITALITY",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_train_disembark_journal",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_accepted_eleonora_hospitality",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Носильщик]**:\n— Добро пожаловать во Фрайбург, господин. Экипаж госпожи Хартманн ожидает у южного выхода. Позвольте ваш багаж?\n\n**[Narrator]**:\nОн кланяется — не глубоко, но с той профессиональной точностью, которая выдаёт привычку обслуживать тех, кто платит золотом."
+        },
+        {
+          "id": "CHOICE_PORTER_DEFAULT",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_train_disembark_journal",
+          "visibleIfAll": [
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "flag_accepted_eleonora_hospitality",
+                "value": true
+              }
+            }
+          ],
+          "inlineText": "**[Носильщик]**:\n— Извозчики слева, господин. Не задерживайте проход.\n\n**[Narrator]**:\nОн проходит мимо, даже не взглянув на вас. Во Фрайбурге уважение — это валюта, которую вы ещё не заработали."
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/Ankommen.png",
+      "sceneGroupId": "platform_disembark",
+      "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_train_disembark_journal",
@@ -1437,22 +1841,75 @@
       "id": "scene_case01_train_platform_parting",
       "scenarioId": "case01_hbf_arrival",
       "title": "Parting",
-      "body": "**[Элеонора]**:\n— Что ж, Феликс. Фрайбург не терпит опозданий. Детектив, присмотрите за ним. Он склонен теряться в… деталях, забывая о главном.\n\n**[Лотте]**:\n— Увидимся, детектив. Город маленький. Если будете искать — найдёте.\n\n**[Narrator]**:\nОни уходят в толпу — Элеонора и Лотте, плечом к плечу, негромко разговаривая. Рыжие волосы Лотте — последнее яркое пятно в сером паре перрона. За ними остаётся запах дорогого табака и след невысказанных обещаний.",
+      "body": "**[Элеонора]**:\n— Что ж, Феликс. Фрайбург не терпит опозданий. Детектив, присмотрите за ним. Он склонен теряться в… деталях, забывая о главном.\n\n**[Лотте]**:\n— На перроне лучше не останавливаться, детектив. Здесь даже прощания занимают очередь.\n\n**[Narrator]**:\nОни уходят в толпу — Элеонора и Лотте, плечом к плечу, негромко разговаривая. Рыжие волосы Лотте — последнее яркое пятно в сером паре перрона. За ними остаётся запах дорогого табака и след невысказанных обещаний.",
       "choices": [
+        {
+          "id": "CHOICE_PARTING_INTRO_SELF_ECHO",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_hbf_echo_intro_self",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_dining_intro_self",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "CHOICE_PARTING_ACCEPTED_HOSPITALITY_ECHO",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_hbf_echo_hospitality_accepted",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_accepted_eleonora_hospitality",
+              "value": true
+            },
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "flag_dining_intro_self",
+                "value": true
+              }
+            }
+          ]
+        },
         {
           "id": "CHOICE_PARTING_SECRET",
           "text": "Continue.",
           "nextNodeId": "scene_case01_beat1_atmosphere",
-          "visibleIfAny": [
+          "visibleIfAll": [
             {
-              "type": "flag_equals",
-              "key": "flag_joked_with_mother",
-              "value": true
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "flag_dining_intro_self",
+                "value": true
+              }
             },
             {
-              "type": "flag_equals",
-              "key": "flag_silent_observation",
-              "value": true
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "flag_accepted_eleonora_hospitality",
+                "value": true
+              }
+            },
+            {
+              "type": "logic_or",
+              "conditions": [
+                {
+                  "type": "flag_equals",
+                  "key": "flag_joked_with_mother",
+                  "value": true
+                },
+                {
+                  "type": "flag_equals",
+                  "key": "flag_silent_observation",
+                  "value": true
+                }
+              ]
             }
           ],
           "effects": [
@@ -1482,6 +1939,16 @@
                     "type": "flag_equals",
                     "key": "flag_silent_observation",
                     "value": true
+                  },
+                  {
+                    "type": "flag_equals",
+                    "key": "flag_dining_intro_self",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_equals",
+                    "key": "flag_accepted_eleonora_hospitality",
+                    "value": true
                   }
                 ]
               }
@@ -1491,6 +1958,38 @@
       ],
       "backgroundUrl": "/VN/start/image/platform_farewell.png",
       "sceneGroupId": "platform_disembark",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_hbf_echo_intro_self",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Name in Circulation",
+      "body": "A porter checks a card before you can give your name. He does not greet you as a stranger; he makes room as if the station has already been told where to place you.\n\nIt is useful, in the way a locked door is useful when someone else holds the key.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_HBF_ECHO_INTRO_SELF",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_beat1_atmosphere"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/HBF.png",
+      "sceneGroupId": "hbf_hall",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_hbf_echo_hospitality_accepted",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Hartmann Courtesy",
+      "body": "A porter tips his cap before you ask for help. 'The Hartmann party has already passed word,' he says, and lifts your bag with the care reserved for property that belongs near influence.\n\nThe courtesy saves a minute. It also tells you whose shadow reached the platform first.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_HBF_ECHO_HOSPITALITY_ACCEPTED",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_beat1_atmosphere"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/HBF.png",
+      "sceneGroupId": "hbf_hall",
       "narrativeLayout": "log"
     },
     {
@@ -1535,7 +2034,7 @@
       "id": "scene_case01_hbf_newsboy_approach",
       "scenarioId": "case01_hbf_arrival",
       "title": "Evening edition",
-      "body": "The boy is nervous. He grips the thin, hurried evening edition like a shield. You notice the bank's name — Bankhaus Krebs — in the headlines. It's too early for official news, too specific for rumor.\n\nSomeone wanted this story told before the dust even settled.",
+      "body": "The boy is nervous. He grips the thin, hurried evening edition like a shield. You notice the bank's name �\u001d Bankhaus Krebs �\u001d in the headlines. It's too early for official news, too specific for rumor.\n\nSomeone wanted this story told before the dust even settled.",
       "choices": [
         {
           "id": "CASE01_NEWSBOY_INVESTIGATE",
@@ -1665,7 +2164,7 @@
       "id": "scene_case01_hbf_departure",
       "scenarioId": "case01_hbf_arrival",
       "title": "Leaving the Hauptbahnhof",
-      "body": "You shoulder through the tide of travelers — timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Two fronts are burning: the bank robbery and the political pressure from the Rathaus. Where you go first will shape how the city sees you.",
+      "body": "You shoulder through the tide of travelers �\u001d timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Two fronts are burning: the bank robbery and the political pressure from the Rathaus. Where you go first will shape how the city sees you.",
       "choices": [
         {
           "id": "CASE01_HBF_EXIT_BANK",
@@ -1843,11 +2342,90 @@
       ]
     },
     {
+      "id": "scene_case01_zum_goldenen_adler_entry",
+      "scenarioId": "case01_lodging_zum_goldenen_adler",
+      "title": "Scene: Zum Goldenen Adler",
+      "body": "The inn keeps its warmth behind polished wood and practiced discretion. Your room is reserved, your name is legible in the register, and the clerk has already decided which parts of your arrival are ordinary enough to say aloud.",
+      "choices": [
+        {
+          "id": "CASE01_zum_goldenen_adler_LOTTE_ROUTE",
+          "text": "Ask why the route was ready before you arrived.",
+          "nextNodeId": "scene_case01_zum_goldenen_adler_lotte_route",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_asked_lodging_route",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "CASE01_zum_goldenen_adler_SETTLE",
+          "text": "Take the room and keep the inn out of the file for now.",
+          "nextNodeId": "scene_case01_zum_goldenen_adler_settle"
+        }
+      ]
+    },
+    {
+      "id": "scene_case01_zum_goldenen_adler_lotte_route",
+      "scenarioId": "case01_lodging_zum_goldenen_adler",
+      "title": "Scene: Route Already Marked",
+      "body": "The clerk lowers his eyes to the register. \"Fraulein Weber asked whether the room would be aired before the noon rush. She did not ask twice.\" On the blotter lies a timetable corner, folded once. 08:41 is underlined; not in ink, but by pressure. Freiburg has not followed you. ...",
+      "choices": [
+        {
+          "id": "CASE01_zum_goldenen_adler_ROUTE_SETTLE",
+          "text": "Leave the timetable where it is and take the key.",
+          "nextNodeId": "scene_case01_zum_goldenen_adler_settle"
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_zum_goldenen_adler_blotter_timetable.webp"
+    },
+    {
+      "id": "scene_case01_zum_goldenen_adler_settle",
+      "scenarioId": "case01_lodging_zum_goldenen_adler",
+      "title": "Scene: Key Taken",
+      "body": "The key is plain brass, heavier than it looks. Whatever else Zum Goldenen Adler knows, it can wait behind a locked door while the city begins to spend its morning.",
+      "terminal": true,
+      "choices": []
+    },
+    {
       "id": "scene_case01_lotte_warning",
       "scenarioId": "case01_lotte_interlude",
       "title": "Scene: Lotte on the Wire",
       "body": "The telephone line hisses before Lotte Weber speaks. She has seen switchboard traffic redirect itself around your questions, which means somebody knows the investigation is narrowing. Her warning is plain: if you keep pulling the thread in daylight, the city will pull back in ...",
       "choices": [
+        {
+          "id": "CASE01_LOTTE_CONFRONT_SCHEDULE",
+          "text": "Ask why her train notes kept time instead of names.",
+          "nextNodeId": "scene_case01_lotte_schedule_opening",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "noticed_lotte_schedule",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "CASE01_LOTTE_LISTENER_OPENING",
+          "text": "Let the silence do some of the work before you answer.",
+          "nextNodeId": "scene_case01_lotte_listener_opening",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_silent_observation",
+              "value": true
+            },
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "noticed_lotte_schedule",
+                "value": true
+              }
+            }
+          ]
+        },
         {
           "id": "CASE01_LOTTE_TRUST",
           "text": "Thank her and ask for one more quiet relay.",
@@ -1856,6 +2434,44 @@
         {
           "id": "CASE01_LOTTE_DISTANCE",
           "text": "Keep it professional and tell her to stay off the record.",
+          "nextNodeId": "scene_case01_lotte_distance"
+        }
+      ],
+      "characterId": "npc_weber_dispatcher"
+    },
+    {
+      "id": "scene_case01_lotte_schedule_opening",
+      "scenarioId": "case01_lotte_interlude",
+      "title": "Scene: Time on the Wire",
+      "body": "**[Detective]**: -- In the train, you were not taking notes. You were keeping time. **[Lotte]**: -- Time keeps itself. I only mark when people pretend they arrived by chance. The line hisses around her answer. She does not deny the schedule; she only waits to see whether you u...",
+      "choices": [
+        {
+          "id": "CASE01_LOTTE_SCHEDULE_TRUST",
+          "text": "Use the timing and ask for one more quiet relay.",
+          "nextNodeId": "scene_case01_lotte_trust"
+        },
+        {
+          "id": "CASE01_LOTTE_SCHEDULE_DISTANCE",
+          "text": "Keep the timing off the record and set a boundary.",
+          "nextNodeId": "scene_case01_lotte_distance"
+        }
+      ],
+      "characterId": "npc_weber_dispatcher"
+    },
+    {
+      "id": "scene_case01_lotte_listener_opening",
+      "scenarioId": "case01_lotte_interlude",
+      "title": "Scene: Listener on the Wire",
+      "body": "You do not fill the hiss with a question. For three seconds the line carries only the room around her: switchboard clicks, paper shifting, one careful breath. \"Still listening,\" Lotte says. \"Good. Most men only pause long enough to reload their own certainty.\" The warning has ...",
+      "choices": [
+        {
+          "id": "CASE01_LOTTE_LISTENER_TRUST",
+          "text": "Keep the line open and ask for one more quiet relay.",
+          "nextNodeId": "scene_case01_lotte_trust"
+        },
+        {
+          "id": "CASE01_LOTTE_LISTENER_DISTANCE",
+          "text": "Keep the silence professional and tell her to stay off the record.",
           "nextNodeId": "scene_case01_lotte_distance"
         }
       ],
@@ -1920,6 +2536,18 @@
       "body": "The mayor leaves you standing long enough to make the room feel like a test. He wants the panic contained, the council reassured, and the bank matter closed before the newspapers decide City Hall was in on it. The message is polite only because there are clerks listening outsi...",
       "choices": [
         {
+          "id": "CASE01_MAYOR_INDEPENDENT_FOOTING",
+          "text": "Let the Rathaus note that you arrived without Hartmann sponsorship.",
+          "nextNodeId": "scene_case01_mayor_independent_footing",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_declined_eleonora_hospitality",
+              "value": true
+            }
+          ]
+        },
+        {
           "id": "CASE01_MAYOR_PRESS",
           "text": "Ask what the Rathaus is most afraid of.",
           "nextNodeId": "scene_case01_mayor_dossier",
@@ -1938,11 +2566,36 @@
       ]
     },
     {
+      "id": "scene_case01_mayor_independent_footing",
+      "scenarioId": "case01_mayor_briefing",
+      "title": "Scene: Independent Footing",
+      "body": "The mayor's secretary notices the absence before the mayor admits it. No Hartmann carriage waits outside, no borrowed calling card lies on the tray, no soft introduction has crossed the desk ahead of you. \"Good,\" the mayor says at last. \"Then for the next few minutes this can ...",
+      "choices": [
+        {
+          "id": "CASE01_MAYOR_INDEPENDENT_TO_DOSSIER",
+          "text": "Take the cleaner footing and ask what the Rathaus is most afraid of.",
+          "nextNodeId": "scene_case01_mayor_dossier"
+        }
+      ]
+    },
+    {
       "id": "scene_case01_mayor_dossier",
       "scenarioId": "case01_mayor_briefing",
       "title": "Scene: Political Pressure",
       "body": "He gives you three things and pretends they are one: a permit to press deeper into the records later, a warning that Galdermann has friends who pay for silence, and a refusal to say Hartmann's name until you give him something the council can survive hearing in public.",
       "choices": [
+        {
+          "id": "CASE01_MAYOR_FELIX_ASIDE",
+          "text": "Let Felix read the official cover before you accept it.",
+          "nextNodeId": "scene_case01_mayor_felix_aside",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_defended_felix",
+              "value": true
+            }
+          ]
+        },
         {
           "id": "CASE01_MAYOR_TO_BANK",
           "text": "Take the briefing and move to the bank with official cover.",
@@ -1961,6 +2614,32 @@
           ]
         }
       ]
+    },
+    {
+      "id": "scene_case01_mayor_felix_aside",
+      "scenarioId": "case01_mayor_briefing",
+      "title": "Scene: Felix Reads the Cover",
+      "body": "Felix takes the permit as if it might bruise. He reads the mayor's phrasing twice, once for law and once for cowardice. \"This gives you doors,\" he says quietly. \"Not protection. If the Rathaus needs distance later, every sentence here already knows how to step away from you.\" ...",
+      "choices": [
+        {
+          "id": "CASE01_MAYOR_FELIX_TO_BANK",
+          "text": "Take Felix's reading and move to the bank with official cover.",
+          "nextNodeId": "scene_case01_mayor_exit",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "met_mayor_first",
+              "value": true
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "assistant",
+              "delta": 1
+            }
+          ]
+        }
+      ],
+      "characterId": "assistant"
     },
     {
       "id": "scene_case01_mayor_exit",
@@ -2133,7 +2812,8 @@
           "type": "grant_xp",
           "amount": 25
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_warehouse_lawful_seal.webp"
     },
     {
       "id": "scene_case01_warehouse_compromised",
@@ -2167,7 +2847,8 @@
           "type": "grant_xp",
           "amount": 25
         }
-      ]
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_warehouse_compromised_ledger.webp"
     },
     {
       "id": "scene_archivist_intro",
@@ -7431,11 +8112,11 @@
       },
       {
         "id": "loc_pub_deutsche",
-        "title": "Zum Deutschen Haus",
+        "title": "Zum Goldenen Adler",
         "regionId": "FREIBURG_1905",
         "lat": 47.992,
         "lng": 7.854,
-        "description": "Busy inn popular with locals and travelers.",
+        "description": "Reserved inn lodging where Freiburg's first social weather starts to collect.",
         "image": "/images/locations/loc_pub_deutsche/loc_ganter_brauerei.webp",
         "locationId": "loc_pub_deutsche",
         "category": "PUBLIC",
@@ -7451,7 +8132,7 @@
             "actions": [
               {
                 "type": "start_scenario",
-                "scenarioId": "sandbox_intro_pilot"
+                "scenarioId": "case01_lodging_zum_goldenen_adler"
               }
             ]
           },
@@ -8687,5 +9368,5 @@
       }
     ]
   },
-  "checksum": "83cb915925e43c1df20be6d9dc272e819489f9e011c93173ec69ff4daffefd63"
+  "checksum": "ef892fc5a0034a562d536a4a1bf3b959f3bb04d48508bdecac865a6d6cc303b4"
 }

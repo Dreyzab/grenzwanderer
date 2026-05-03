@@ -1,11 +1,19 @@
-export const AI_GENERATE_DIALOGUE_KIND = "generate_dialogue";
+import {
+  AI_GENERATE_CHARACTER_REACTION_KIND,
+  AI_GENERATE_DIALOGUE_KIND,
+} from "../../../src/features/ai/contracts";
+
+export { AI_GENERATE_CHARACTER_REACTION_KIND, AI_GENERATE_DIALOGUE_KIND };
 
 export const AI_REQUEST_STATUS_PENDING = "pending";
 export const AI_REQUEST_STATUS_PROCESSING = "processing";
 export const AI_REQUEST_STATUS_COMPLETED = "completed";
 export const AI_REQUEST_STATUS_FAILED = "failed";
 
-export const SUPPORTED_AI_KINDS = [AI_GENERATE_DIALOGUE_KIND] as const;
+export const SUPPORTED_AI_KINDS = [
+  AI_GENERATE_DIALOGUE_KIND,
+  AI_GENERATE_CHARACTER_REACTION_KIND,
+] as const;
 
 export type SupportedAiKind = (typeof SUPPORTED_AI_KINDS)[number];
 

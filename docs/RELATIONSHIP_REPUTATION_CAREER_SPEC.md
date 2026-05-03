@@ -15,7 +15,7 @@ Define a hybrid social progression model where the player reads clear statuses, 
 - Current faction runtime now supports a canonical 8-faction registry via `socialCatalog.factions`, while legacy `rep_civic`, `rep_underworld`, and `rep_finance` remain compatibility fallback for migration-era psyche summaries.
 - Career specialization foundation already exists in `src/features/character/originProfiles.ts` through origin tracks. Career rank must not become a second parallel specialization tree.
 - Agency hub and map card exposure points already exist in `src/features/map/ui/DetectiveHub.tsx` and `src/features/map/ui/CaseCard.tsx`.
-- Current command-mode content already demonstrates rumor and trust interplay in `spacetimedb/src/reducers/helpers/all.ts`.
+- Current command-mode content already demonstrates rumor and trust interplay in `spacetimedb/src/reducers/helpers/player_progression.ts` and related reducers (`map.ts`, `vn.ts`).
 
 ## Design Principles
 

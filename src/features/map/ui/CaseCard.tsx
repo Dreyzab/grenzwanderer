@@ -8,8 +8,7 @@ import {
 } from "../../../shared/game/socialPresentation";
 import { getLocationCastPresentation } from "../../../shared/game/locationCastPresentation";
 import { tables } from "../../../shared/spacetime/bindings";
-import { usePlayerFlags } from "../../../entities/player/hooks/usePlayerFlags";
-import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
+import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
 import { parseSnapshot } from "../../vn/vnContent";
 import type { SocialCatalogSnapshot } from "../../vn/types";
 import type { RuntimeMapBinding, RuntimeMapPoint } from "../types";
@@ -126,8 +125,7 @@ export const CaseCard = ({
 }: CaseCardProps) => {
   const [versionRows] = useTable(tables.contentVersion);
   const [snapshotRows] = useTable(tables.contentSnapshot);
-  const myFlags = usePlayerFlags();
-  const myVars = usePlayerVars();
+  const { flags: myFlags, vars: myVars } = usePlayerBindings();
   const titleId = useId();
   const [pendingBindingId, setPendingBindingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

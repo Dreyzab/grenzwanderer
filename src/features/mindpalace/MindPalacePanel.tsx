@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useReducer, useTable } from "spacetimedb/react";
-import { usePlayerVars } from "../../entities/player/hooks/usePlayerVars";
+import { usePlayerBindings } from "../../entities/player/hooks/usePlayerBindings";
 import { reducers, tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
 import { MindBoardCanvas } from "../mindboard/MindBoardCanvas";
@@ -19,7 +19,7 @@ const createRequestId = (): string => {
 
 export const MindPalacePanel = () => {
   const { identityHex } = useIdentity();
-  const varsByKey = usePlayerVars();
+  const { vars: varsByKey } = usePlayerBindings();
 
   const [mindCases] = useTable(tables.mindCase);
   const [mindHypotheses] = useTable(tables.mindHypothesis);

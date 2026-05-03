@@ -15,6 +15,11 @@ because there are clerks listening outside the door.
 
 ```vn-logic
 choices:
+  - id: CASE01_MAYOR_INDEPENDENT_FOOTING
+    text: Let the Rathaus note that you arrived without Hartmann sponsorship.
+    next: scene_case01_mayor_independent_footing
+    visible_if_all:
+      - flag_equals(flag_declined_eleonora_hospitality,true)
   - id: CASE01_MAYOR_PRESS
     text: Ask what the Rathaus is most afraid of.
     next: scene_case01_mayor_dossier

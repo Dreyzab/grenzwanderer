@@ -2,6 +2,7 @@
 id: scene_case01_warehouse_lawful
 type: vn_scene
 status: active
+background_url: /images/scenes/case01/bg_case01_warehouse_lawful_seal.webp
 ---
 
 # Scene: Lawful Close

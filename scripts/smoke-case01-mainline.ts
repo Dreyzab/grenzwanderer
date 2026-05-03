@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,7 +16,8 @@ type SnapshotPoint = {
 };
 
 type SnapshotPayload = {
-  scenarios: Array<{ id: string }>;
+  scenarios: Array<{ id: string; defaultBackgroundUrl?: string }>;
+  nodes: Array<{ id: string; scenarioId: string; backgroundUrl?: string }>;
   map?: { points: Array<SnapshotPoint & { regionId: string }> };
 };
 
@@ -66,10 +67,24 @@ const scenarioBindingsForPoint = (
       })),
   );
 
+const assertPublicAssetExists = (assetUrl: string): void => {
+  assert(
+    assetUrl.startsWith("/"),
+    `Asset URL '${assetUrl}' must be root-relative`,
+  );
+  assert(
+    existsSync(path.join(repoRoot, "public", assetUrl.slice(1))),
+    `Missing public asset '${assetUrl}'`,
+  );
+};
+
 try {
   const snapshot = readSnapshot();
   const scenarioIds = new Set(
     snapshot.scenarios.map((scenario) => scenario.id),
+  );
+  const scenarioById = new Map(
+    snapshot.scenarios.map((scenario) => [scenario.id, scenario]),
   );
 
   for (const scenarioId of [
@@ -78,6 +93,7 @@ try {
     CASE01_SCENARIO_IDS.leadPub,
     CASE01_SCENARIO_IDS.estateBranch,
     CASE01_SCENARIO_IDS.lotteInterlude,
+    CASE01_SCENARIO_IDS.lodgingZumGoldenenAdler,
     CASE01_SCENARIO_IDS.archiveRun,
     CASE01_SCENARIO_IDS.railYardTail,
     CASE01_SCENARIO_IDS.warehouseFinale,
@@ -91,6 +107,7 @@ try {
     "loc_pub",
     "loc_freiburg_estate",
     "loc_telephone",
+    "loc_pub_deutsche",
     "loc_freiburg_warehouse",
   ]) {
     findPoint(snapshot, pointId);
@@ -104,6 +121,9 @@ try {
   );
   const telephoneBindings = scenarioBindingsForPoint(
     findPoint(snapshot, "loc_telephone"),
+  );
+  const zumGoldenenAdlerBindings = scenarioBindingsForPoint(
+    findPoint(snapshot, "loc_pub_deutsche"),
   );
   const warehouseBindings = scenarioBindingsForPoint(
     findPoint(snapshot, "loc_freiburg_warehouse"),
@@ -142,10 +162,51 @@ try {
     "loc_telephone must offer the Lotte interlude",
   );
   assert(
+    zumGoldenenAdlerBindings.some(
+      (binding) =>
+        binding.scenarioId === CASE01_SCENARIO_IDS.lodgingZumGoldenenAdler,
+    ),
+    "loc_pub_deutsche must offer the canon Zum Goldenen Adler lodging beat",
+  );
+  assert(
     warehouseBindings.some(
       (binding) => binding.scenarioId === CASE01_SCENARIO_IDS.warehouseFinale,
     ),
     "loc_freiburg_warehouse must start the Case01 finale",
+  );
+
+  for (const scenario of snapshot.scenarios.filter(
+    (entry) =>
+      entry.id.startsWith("case01_") &&
+      entry.id !== CASE01_SCENARIO_IDS.defaultEntry,
+  )) {
+    assert(
+      scenario.defaultBackgroundUrl,
+      `Case01 scenario '${scenario.id}' must define a default background`,
+    );
+    assertPublicAssetExists(scenario.defaultBackgroundUrl ?? "");
+  }
+
+  for (const node of snapshot.nodes.filter((entry) =>
+    entry.scenarioId.startsWith("case01_"),
+  )) {
+    const scenario = scenarioById.get(node.scenarioId);
+    const effectiveBackgroundUrl =
+      node.backgroundUrl ?? scenario?.defaultBackgroundUrl;
+    assert(
+      effectiveBackgroundUrl,
+      `Case01 node '${node.id}' must have an effective background`,
+    );
+    assertPublicAssetExists(effectiveBackgroundUrl ?? "");
+  }
+
+  const warehouseScenario = scenarioById.get(
+    CASE01_SCENARIO_IDS.warehouseFinale,
+  );
+  assert(
+    warehouseScenario?.defaultBackgroundUrl !==
+      "/images/scenes/scene_estate_intro.png",
+    "case01_warehouse_finale must use a warehouse-specific background",
   );
   assert(
     JSON.stringify(staticPointIds) === JSON.stringify(snapshotPointIds),

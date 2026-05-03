@@ -25,7 +25,7 @@ import {
   issueCommandInternal,
   openCommandModeInternal,
   resolveCommandInternal,
-} from "./command_runtime";
+} from "../helpers";
 
 const readOrders = (ctx: ReturnType<typeof createReducerTestContext>) => {
   const session = ctx.db.commandSession.sessionKey.find(
@@ -150,7 +150,7 @@ describe("command_runtime", () => {
     ).toMatchObject({ value: true });
     expect(ctx.db.playerRumorState.rows()[0]).toMatchObject({
       rumorId: "rumor_bank_rail_yard",
-      status: "registered",
+      status: "logged",
     });
     expect(ctx.db.playerAgencyCareer.playerId.find(ctx.sender)).toMatchObject({
       sourceCriterionComplete: true,

@@ -9,6 +9,7 @@ import {
   AI_REQUEST_STATUS_PROCESSING,
 } from "./reducers/aiQueue";
 import { ensureAllowlistedWorker } from "./reducers/helpers";
+import { senderOf, type ReducerContextLike } from "./reducers/helpers/context";
 
 export const playerProfile = table(
   {
@@ -747,8 +748,62 @@ export const playerNpcFavor = table(
     favorKey: t.string().primaryKey(),
     playerId: t.identity(),
     npcId: t.string(),
+    // Denormalized summary of player_favor_ledger for fast favor_balance_gte gating.
+    // Authoritative source for individual obligations is player_favor_ledger.
     balance: t.i32(),
     lastReason: t.string().optional(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+// Per-spec favor obligation entries. Signed `weight` carries direction:
+// positive = NPC owes player, negative = player owes NPC.
+// Aggregated into player_npc_favor.balance by reducer-side recordFavorInternal.
+export const playerFavorLedger = table(
+  {
+    name: "player_favor_ledger",
+    public: false,
+    indexes: [
+      {
+        accessor: "player_favor_ledger_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "player_favor_ledger_npc_id",
+        algorithm: "btree",
+        columns: ["npcId"],
+      },
+      {
+        accessor: "player_favor_ledger_favor_id",
+        algorithm: "btree",
+        columns: ["favorId"],
+      },
+      {
+        accessor: "player_favor_ledger_status",
+        algorithm: "btree",
+        columns: ["status"],
+      },
+    ],
+  },
+  {
+    ledgerEntryKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    // Stable favor id within (playerId, favorId) — used by content/effects to refer to the obligation.
+    favorId: t.string(),
+    npcId: t.string(),
+    // information | access | cover | introduction | protection (per spec table)
+    favorType: t.string(),
+    // Signed magnitude. Sign carries direction; magnitude is the obligation weight.
+    weight: t.i32(),
+    sourceCaseId: t.string().optional(),
+    sourceRumorId: t.string().optional(),
+    note: t.string().optional(),
+    // open | spent | released | burned
+    status: t.string(),
+    createdAt: t.timestamp(),
+    expiresAt: t.timestamp().optional(),
+    resolvedAt: t.timestamp().optional(),
     updatedAt: t.timestamp(),
   },
 );
@@ -837,11 +892,28 @@ export const playerRumorState = table(
     rumorStateKey: t.string().primaryKey(),
     playerId: t.identity(),
     rumorId: t.string(),
+    // heard | logged | pursuing | verified | spent | burned
+    // Legacy "registered" is accepted as an alias for "logged" by evaluate(rumor_state_is).
     status: t.string(),
+    // Per-spec linkedLeadId: optional spawned lead / map event id (usually playerMapEvent.eventId).
     leadPointId: t.string().optional(),
     sourceNpcId: t.string().optional(),
+    // contact | faction | briefing | witness | environment (per spec sourceType)
+    sourceType: t.string().optional(),
+    // Faction whose milieu colors the rumor (canonical 8-faction registry).
+    factionKey: t.string().optional(),
+    // Free-text subject and location hint surfaced to UI dossier.
+    subject: t.string().optional(),
+    locationHint: t.string().optional(),
+    // Hidden tuning. credibility: how much confirmation is still needed; heatRisk: pursuit risk.
+    credibility: t.f64().optional(),
+    heatRisk: t.f64().optional(),
+    // Owning case context (existing). resolvedCaseId records which case eventually consumed the rumor.
     caseId: t.string(),
+    resolvedCaseId: t.string().optional(),
     verificationKind: t.string().optional(),
+    discoveredAt: t.timestamp().optional(),
+    expiresAt: t.timestamp().optional(),
     verifiedAt: t.timestamp().optional(),
     updatedAt: t.timestamp(),
   },
@@ -1319,6 +1391,7 @@ const spacetimedb = schema({
   playerRelationship,
   playerNpcState,
   playerNpcFavor,
+  playerFavorLedger,
   playerFactionSignal,
   playerAgencyCareer,
   playerRumorState,
@@ -1335,9 +1408,6 @@ const spacetimedb = schema({
   playerSpiritState,
 });
 
-const senderOf = (ctx: any) =>
-  typeof ctx.sender === "function" ? ctx.sender() : ctx.sender;
-
 const rowsFromIndex = (
   tableView: any,
   indexAccessorName: string,
@@ -1353,14 +1423,14 @@ const rowsFromIndex = (
 };
 
 const selfScopedByPlayerId = (
-  ctx: any,
+  ctx: ReducerContextLike,
   accessorName: string,
   playerIdIndexAccessorName: string,
 ) =>
   rowsFromIndex(ctx.db[accessorName], playerIdIndexAccessorName, senderOf(ctx));
 
-const ensureRegisteredWorkerView = (ctx: any): void => {
-  const sender = senderOf(ctx);
+const ensureRegisteredWorkerView = (ctx: ReducerContextLike): void => {
+  const sender = senderOf(ctx) as { toHexString(): string };
   ensureAllowlistedWorker(ctx, "read worker ai requests", sender);
   if (!ctx.db.workerIdentity.identity.find(sender)) {
     throw new Error("Only a registered worker can read worker ai requests");
@@ -1507,6 +1577,17 @@ export const my_npc_favors = spacetimedb.view(
   t.array(playerNpcFavor.rowType),
   (ctx) =>
     selfScopedByPlayerId(ctx, "playerNpcFavor", "player_npc_favor_player_id"),
+);
+
+export const my_favor_ledger = spacetimedb.view(
+  { name: "my_favor_ledger", public: true },
+  t.array(playerFavorLedger.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerFavorLedger",
+      "player_favor_ledger_player_id",
+    ),
 );
 
 export const my_faction_signals = spacetimedb.view(

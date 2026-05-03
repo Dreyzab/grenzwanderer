@@ -1,21 +1,4 @@
-import { useMemo } from "react";
-import { useTable } from "spacetimedb/react";
-import { tables } from "../../../shared/spacetime/bindings";
-import { useIdentity } from "../../../shared/spacetime/useIdentity";
+import { usePlayerBindings } from "./usePlayerBindings";
 
-export const usePlayerFlags = (): Record<string, boolean> => {
-  const { identityHex } = useIdentity();
-  const [flags] = useTable(tables.myPlayerFlags);
-
-  return useMemo(() => {
-    if (!identityHex) {
-      return {};
-    }
-
-    const result: Record<string, boolean> = {};
-    for (const row of flags) {
-      result[row.key] = row.value;
-    }
-    return result;
-  }, [flags, identityHex]);
-};
+export const usePlayerFlags = (): Record<string, boolean> =>
+  usePlayerBindings().flags;

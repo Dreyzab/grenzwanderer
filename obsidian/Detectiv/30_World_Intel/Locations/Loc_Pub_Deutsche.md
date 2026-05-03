@@ -7,16 +7,16 @@ tags:
 runtime_location_id: loc_pub_deutsche
 ---
 
-# Zum Deutschen Haus
+# Zum Goldenen Adler
 
 > **ID**: `loc_pub_deutsche`
 > **District**: Schneckenvorstadt
 > **Runtime Type**: `SUPPORT`
-> **Vibe**: _Dense tavern chatter and class friction_
+> **Vibe**: _Reserved lodging, dense tavern chatter, and class friction_
 
 ## Atmosphere (Sensory)
 
-- **Sight**: Crowded benches, travel trunks, cheap posters.
+- **Sight**: Crowded benches, travel trunks, room keys, cheap posters.
 - **Sound**: Accent-rich chatter and table percussion.
 - **Smell**: Beer foam, smoke, soup stock.
 - **Light**: Yellow lamps and kitchen spill light.
@@ -39,7 +39,7 @@ Cross-district inns near rail arteries mixed travelers and locals, making them n
 
 - **locationId**: `loc_pub_deutsche`
 - **Data source**: `apps/server/src/scripts/data/case_01_points.ts`
-- **Bindings**: pub_gossip
+- **Bindings**: `case01_lodging_zum_goldenen_adler`
 
 ## Investigation Hooks
 

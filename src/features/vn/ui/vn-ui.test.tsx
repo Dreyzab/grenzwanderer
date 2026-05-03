@@ -1,12 +1,12 @@
 ﻿import { useRef } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { ChoiceInnerVoiceHintDisplay } from "../vnScreenTypes";
 import type { VnChoice } from "../types";
 import { resolveBackgroundUrl } from "./VnBackgroundResolver";
 import { VnChoiceButton } from "./VnChoiceButton";
 import { TypedText, type TypedTextHandle } from "./TypedText";
-import { parseClueMarkup } from "./TypedTextParser";
+import { parseClueMarkup, parseTypedTextMarkup } from "./TypedTextParser";
 
 describe("vn ui helpers", () => {
   it("parses clue markup into text and clue segments", () => {
@@ -16,10 +16,14 @@ describe("vn ui helpers", () => {
 
     expect(segments).toHaveLength(3);
     expect(segments[0]).toEqual({ kind: "text", text: "Inspect " });
-    expect(segments[1]).toEqual({
-      kind: "clue",
+    expect(segments[1]).toMatchObject({
+      kind: "token",
       text: "Ledger Gap",
-      payload: "fact_ledger_gap",
+      token: {
+        type: "clue",
+        text: "Ledger Gap",
+        payload: "fact_ledger_gap",
+      },
     });
   });
 
@@ -29,11 +33,52 @@ describe("vn ui helpers", () => {
     );
 
     expect(segments).toHaveLength(3);
-    expect(segments[1]).toEqual({
-      kind: "clue",
+    expect(segments[1]).toMatchObject({
+      kind: "token",
       text: "Пар",
-      payload: "ev_station_steam",
+      token: {
+        type: "clue",
+        text: "Пар",
+        payload: "ev_station_steam",
+      },
     });
+  });
+
+  it("parses multiple interactive token types", () => {
+    const segments = parseTypedTextMarkup(
+      "A [fact:Ledger:case_banker/fact_ledger] and [lead:Tailor:case_dog/fact_tailor] plus [item:Key:item_bank_key:1] and [actor:Fritz:npc_fritz]",
+    );
+
+    expect(segments.filter((segment) => segment.kind === "token")).toEqual([
+      expect.objectContaining({
+        token: expect.objectContaining({
+          type: "fact",
+          text: "Ledger",
+          payload: "case_banker/fact_ledger",
+        }),
+      }),
+      expect.objectContaining({
+        token: expect.objectContaining({
+          type: "lead",
+          text: "Tailor",
+          payload: "case_dog/fact_tailor",
+        }),
+      }),
+      expect.objectContaining({
+        token: expect.objectContaining({
+          type: "item",
+          text: "Key",
+          payload: "item_bank_key:1",
+        }),
+      }),
+      expect.objectContaining({
+        token: expect.objectContaining({
+          type: "actor",
+          text: "Fritz",
+          payload: "npc_fritz",
+        }),
+      }),
+    ]);
   });
 
   it("resolves background with node priority over scenario", () => {
@@ -85,8 +130,58 @@ describe("TypedText", () => {
     await waitFor(() => {
       const token = screen.getByText("Пар");
       expect(token).toHaveAttribute("data-vn-payload", "ev_station_steam");
+      expect(token).toHaveAttribute("data-vn-token-type", "clue");
       expect(token).toHaveClass("vn-typed-text__token");
     });
+  });
+
+  it("fires token click and keyboard activation after typing completes", async () => {
+    const onTokenClick = vi.fn();
+    render(
+      <TypedText
+        text="След ведет к [clue:Пар:ev_station_steam]"
+        speed={1}
+        onTokenClick={onTokenClick}
+      />,
+    );
+
+    const token = await screen.findByRole("button", { name: "Пар" });
+    fireEvent.click(token);
+    fireEvent.keyDown(token, { key: "Enter" });
+    fireEvent.keyDown(token, { key: " " });
+
+    expect(onTokenClick).toHaveBeenCalledTimes(3);
+    expect(onTokenClick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "clue",
+        text: "Пар",
+        payload: "ev_station_steam",
+      }),
+      expect.anything(),
+    );
+  });
+
+  it("keeps visible tokens inert while text is still typing", async () => {
+    const onTokenClick = vi.fn();
+    render(
+      <TypedText
+        text="[clue:Long visible token:ev_long] remains unfinished"
+        speed={25}
+        onTokenClick={onTokenClick}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(document.querySelector(".vn-typed-text__token")).toBeTruthy();
+    });
+
+    const token = document.querySelector(
+      ".vn-typed-text__token",
+    ) as HTMLElement;
+    expect(token).toHaveClass("is-typing");
+    fireEvent.click(token);
+
+    expect(onTokenClick).not.toHaveBeenCalled();
   });
 });
 

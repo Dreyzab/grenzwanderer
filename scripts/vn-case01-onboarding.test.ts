@@ -43,21 +43,21 @@ const withFixture = (
 describe("parseCase01Onboarding", () => {
   it("builds deterministic graph, converts clue links, and redirects out-of-scope next", () => {
     const files: Record<string, string> = {
-      "scene_intro_journey.md": `
+      "scene_start_game.md": `
 ---
-id: scene_intro_journey
+id: scene_start_game
 type: vn_scene
 ---
-# Scene Intro
+# Scene Start
 ## Structure
-| Beat 1 | [[scene_intro_journey_beat1]] |
+| Beat 1 | [[scene_start_game_beat1]] |
 ## Choices
 1. Continue
    - Next: [[scene_hbf_arrival]]
 `,
-      "scene_intro_journey_beat1.md": `
+      "scene_start_game_beat1.md": `
 ---
-id: scene_intro_journey_beat1
+id: scene_start_game_beat1
 type: vn_beat
 parent: scene_start_game
 order: 1
@@ -97,17 +97,17 @@ Pick the first lead.
       const second = parseCase01Onboarding(storyRoot);
 
       expect(first.scenarioBlueprint.id).toBe("sandbox_case01_pilot");
-      expect(first.scenarioBlueprint.startNodeId).toBe("scene_intro_journey");
+      expect(first.scenarioBlueprint.startNodeId).toBe("scene_start_game");
       expect(first.scenarioBlueprint.nodeIds).toContain(
         "scene_case01_onboarding_handoff",
       );
       expect(first).toEqual(second);
 
-      const introNode = first.nodeBlueprints.find(
-        (node) => node.id === "scene_intro_journey",
+      const startNode = first.nodeBlueprints.find(
+        (node) => node.id === "scene_start_game",
       );
-      expect(introNode?.choices[0]?.id).toBe("CASE01_SCENE_INTRO_JOURNEY_01");
-      expect(introNode?.bodyOverride).toContain("[clue:Пар:ev_station_steam]");
+      expect(startNode?.choices[0]?.id).toBe("CASE01_SCENE_START_GAME_01");
+      expect(startNode?.bodyOverride).toContain("[clue:Пар:ev_station_steam]");
 
       const mapNode = first.nodeBlueprints.find(
         (node) => node.id === "map_transit",
@@ -120,9 +120,9 @@ Pick the first lead.
 
   it("fails fast when frontmatter type is missing", () => {
     const files: Record<string, string> = {
-      "scene_intro_journey.md": `
+      "scene_start_game.md": `
 ---
-id: scene_intro_journey
+id: scene_start_game
 ---
 # Missing type
 ## Narrative
@@ -144,7 +144,7 @@ Text.
 
     withFixture(files, (storyRoot) => {
       expect(() => parseCase01Onboarding(storyRoot)).toThrow(
-        /scene_intro_journey\.md:1:\d+ \[MISSING_TYPE\]/,
+        /scene_start_game\.md:1:\d+ \[MISSING_TYPE\]/,
       );
     });
   });
@@ -162,9 +162,9 @@ Text.
 
   it("fails fast on invalid Sets syntax with file and line details", () => {
     const files: Record<string, string> = {
-      "scene_intro_journey.md": `
+      "scene_start_game.md": `
 ---
-id: scene_intro_journey
+id: scene_start_game
 type: vn_scene
 ---
 # Intro
@@ -188,16 +188,16 @@ Text.
 
     withFixture(files, (storyRoot) => {
       expect(() => parseCase01Onboarding(storyRoot)).toThrow(
-        /scene_intro_journey\.md:\d+:\d+ \[INVALID_EFFECT_SYNTAX\]/,
+        /scene_start_game\.md:\d+:\d+ \[INVALID_EFFECT_SYNTAX\]/,
       );
     });
   });
 
   it("parses DSL v2 choice gates and skill-check branches", () => {
     const files: Record<string, string> = {
-      "scene_intro_journey.md": `
+      "scene_start_game.md": `
 ---
-id: scene_intro_journey
+id: scene_start_game
 type: vn_scene
 ---
 # Intro
@@ -233,7 +233,7 @@ Text.
     withFixture(files, (storyRoot) => {
       const parsed = parseCase01Onboarding(storyRoot);
       const intro = parsed.nodeBlueprints.find(
-        (node) => node.id === "scene_intro_journey",
+        (node) => node.id === "scene_start_game",
       );
       expect(intro).toBeDefined();
       if (!intro) {
@@ -272,9 +272,9 @@ Text.
 
   it("rejects invalid showchance values", () => {
     const files: Record<string, string> = {
-      "scene_intro_journey.md": `
+      "scene_start_game.md": `
 ---
-id: scene_intro_journey
+id: scene_start_game
 type: vn_scene
 ---
 # Intro
@@ -303,9 +303,9 @@ Text.
 
   it("returns did-you-mean for unknown var key", () => {
     const files: Record<string, string> = {
-      "scene_intro_journey.md": `
+      "scene_start_game.md": `
 ---
-id: scene_intro_journey
+id: scene_start_game
 type: vn_scene
 ---
 # Intro

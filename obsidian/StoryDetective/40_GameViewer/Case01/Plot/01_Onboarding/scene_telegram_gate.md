@@ -27,6 +27,6 @@ _(Только текст телеграммы)_
 
 _(Автоматический переход после прочтения)_
 
-## → Exit
+## → Next
 
-[[scene_character_creation]]
+[[scene_intro_journey]]

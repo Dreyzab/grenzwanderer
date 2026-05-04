@@ -19,6 +19,6 @@ pick your first destination.
 ## Choices
 
 1. Head to the bank route.
-   - Next: [[40_GameViewer/Case01/Plot/02_Briefing/map_first_choice]]
+   - Next: [[scene_case01_onboarding_handoff]]
 2. Head to the Rathaus route.
-   - Next: [[40_GameViewer/Case01/Plot/02_Briefing/map_first_choice]]
+   - Next: [[scene_case01_onboarding_handoff]]

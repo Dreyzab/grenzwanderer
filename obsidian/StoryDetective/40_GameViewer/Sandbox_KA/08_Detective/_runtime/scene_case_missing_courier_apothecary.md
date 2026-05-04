@@ -34,7 +34,7 @@ choices:
     effects:
       - set_flag(courier_child_medical_debt_known,true)
       - add_var(case_missing_courier_evidence,1)
-      - change_relationship(apothecary,1)
+      - change_relationship(npc_apothecary,1)
   - id: CASE_MISSING_COURIER_APOTHECARY_INTIMIDATE
     text: Threaten seizure for non-cooperation and take the ledger by force.
     next: scene_case_missing_courier_station

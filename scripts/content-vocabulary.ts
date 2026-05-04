@@ -109,6 +109,52 @@ const BASE_FLAG_KEYS = new Set<string>([
   "veteran_flashback_controlled",
 ]);
 
+const SANDBOX_FLAG_KEYS = [
+  "case_cityhall_infiltration_unlocked",
+  "case_missing_courier_chain_of_custody_risk",
+  "case_missing_courier_clock_is_political",
+  "case_missing_courier_false_detention",
+  "case_missing_courier_jurisdiction_breach",
+  "case_missing_courier_network_damage",
+  "case_missing_courier_no_false_arrest",
+  "case_missing_courier_procedural_risk",
+  "case_missing_courier_protocol_cover",
+  "case_missing_courier_reputation_penalty",
+  "case_missing_courier_resolved",
+  "case_missing_courier_resolved_compromised",
+  "case_missing_courier_resolved_partial",
+  "case_missing_courier_resolved_success",
+  "case_missing_courier_started",
+  "cityhall_archive_target_known",
+  "cityhall_infiltration_support_strong",
+  "cityhall_infiltration_support_weak",
+  "cityhall_infiltration_time_pressure",
+  "cityhall_leak_chain_documented",
+  "cityhall_leak_chain_incomplete",
+  "cityhall_leak_confirmed",
+  "courier_alibi_window_narrowed",
+  "courier_chain_preserved",
+  "courier_child_medical_debt_known",
+  "courier_clue_registry",
+  "courier_desperation_not_guilt",
+  "courier_found_alive",
+  "courier_handoff_timeline_verified",
+  "courier_intercept_site_confirmed",
+  "courier_motive_ambiguous",
+  "courier_registry_overwrite_fresh",
+  "courier_registry_tamper_theory",
+  "courier_route_confirmed",
+  "courier_scene_noise_high",
+  "courier_second_rider_profiled",
+  "courier_waybill_forged",
+  "courier_waybill_stamp_copy_confirmed",
+  "mayor_grimoire_thread_known",
+];
+
+for (const key of SANDBOX_FLAG_KEYS) {
+  BASE_FLAG_KEYS.add(key);
+}
+
 const BASE_VAR_KEYS = new Set<string>([
   "attr_deception",
   "attr_empathy",
@@ -137,6 +183,15 @@ const BASE_VAR_KEYS = new Set<string>([
   "xp_total",
   "loop_demo_solved",
 ]);
+
+const SANDBOX_VAR_KEYS = [
+  "case_missing_courier_evidence",
+  "case_missing_courier_outcome",
+];
+
+for (const key of SANDBOX_VAR_KEYS) {
+  BASE_VAR_KEYS.add(key);
+}
 
 const BASE_VOICE_IDS = new Set<string>(BASE_SKILL_VOICE_IDS);
 const BASE_PSYCHE_VAR_KEY_SET = new Set<string>(BASE_PSYCHE_VAR_KEYS_ARRAY);

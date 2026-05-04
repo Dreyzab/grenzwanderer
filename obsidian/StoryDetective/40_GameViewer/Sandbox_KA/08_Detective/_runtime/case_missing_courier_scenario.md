@@ -12,6 +12,10 @@ scene_order:
   - scene_case_missing_courier_debrief_success
   - scene_case_missing_courier_debrief_partial
   - scene_case_missing_courier_debrief_compromised
+  - scene_detective_runtime_agency_wakeup
+  - scene_detective_runtime_agency_orientation
+  - scene_detective_runtime_case01_arrival
+  - scene_detective_runtime_case01_investigation
 mode: overlay
 pack_id: sandbox_detective
 default_locale: en

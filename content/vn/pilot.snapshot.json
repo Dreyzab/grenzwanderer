@@ -441,8 +441,11 @@
     {
       "id": "sandbox_case01_pilot",
       "title": "Case 01: Onboarding Pilot",
-      "startNodeId": "scene_intro_journey",
+      "startNodeId": "scene_start_game",
       "nodeIds": [
+        "scene_start_game",
+        "scene_character_creation",
+        "scene_telegram_gate",
         "scene_intro_journey",
         "scene_dining_car",
         "scene_hbf_arrival",
@@ -492,7 +495,16 @@
         "scene_detective_runtime_agency_wakeup",
         "scene_detective_runtime_agency_orientation",
         "scene_detective_runtime_case01_arrival",
-        "scene_detective_runtime_case01_investigation"
+        "scene_detective_runtime_case01_investigation",
+        "scene_case_missing_courier_briefing",
+        "scene_case_missing_courier_registry",
+        "scene_case_missing_courier_apothecary",
+        "scene_case_missing_courier_station",
+        "scene_case_missing_courier_storehouse",
+        "scene_case_missing_courier_annex",
+        "scene_case_missing_courier_debrief_success",
+        "scene_case_missing_courier_debrief_partial",
+        "scene_case_missing_courier_debrief_compromised"
       ],
       "mode": "overlay",
       "packId": "sandbox_detective"
@@ -4672,6 +4684,48 @@
       "backgroundUrl": "/images/scenes/scene_casino_duel.png"
     },
     {
+      "id": "scene_start_game",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "🎮 Start Game",
+      "body": "_10_Narrative layer removed — 40_GameViewer is source of truth_ - Нет (внутренний монолог) - Нет ➡️ 📝 Character Creation",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_START_GAME",
+          "text": "Continue",
+          "nextNodeId": "scene_character_creation",
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "scene_character_creation",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "📝 Character Creation",
+      "body": "_10_Narrative layer removed — 40_GameViewer is source of truth_ - Нет | Choice              | Effect                                   | | ------------------- | ---------------------------------------- | | Распределение очков | Устанавливает начальные статы Parliament | ➡️ 📨 Telegram Gate",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_CHARACTER_CREATION",
+          "text": "Continue",
+          "nextNodeId": "scene_telegram_gate",
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
+      "id": "scene_telegram_gate",
+      "scenarioId": "sandbox_case01_pilot",
+      "title": "📨 Telegram Gate",
+      "body": "**[Narrator]**:\n\"Телеграмма лежит на столе. [clue:Жёлтая бумага:ev_telegram_paper] с\n[clue:официальным штампом:ev_official_stamp] полицейского управления Бадена.\n\nТекст краток, как и положено:\"\n\n\n**[Telegram Text]**:\n\n> \"СРОЧНО ТЧК ОГРАБЛЕНИЕ ИМПЕРСКОГО БАНКА ВО ФРАЙБУРГЕ ТЧК\n> ТРЕБУЕТСЯ СПЕЦИАЛИСТ ТЧК ПРИБЫТЬ НЕМЕДЛЕННО ТЧК\n> ПОДПИСАНО: КОМИССАР ВЕБЕР\"\n\n\n**[Narrator]**:\n\"Фрайбург. Университетский город на границе с Швейцарией.\nИ — судя по всему — твоё следующее дело.\"",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_TELEGRAM_GATE",
+          "text": "Continue",
+          "nextNodeId": "scene_intro_journey",
+          "choiceType": "action"
+        }
+      ]
+    },
+    {
       "id": "scene_intro_journey",
       "scenarioId": "sandbox_case01_pilot",
       "title": "Journey to Freiburg",
@@ -4702,7 +4756,14 @@
       "scenarioId": "sandbox_case01_pilot",
       "title": "Dining Car — Eleonora, Lotte & Wine",
       "body": "Detective follows Felix to the dining car. Eleonora and Lotte are already seated at a corner table, wine and tea between them. The scene establishes:\n\n1. **Eleonora's control** — how she manages space, attention, and social architecture\n2. **Lotte's dual identity** — journalist tells (notebook, pen callus) visible to perceptive players\n3. **Felix's fatigue** — the first signs of the apathy mechanic (being presented as an appendage)\n4. **Player agency** — wine acceptance sets `flag_joked_with_mother`, Felix defense sets `flag_defended_felix`",
-      "choices": []
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_SCENE_DINING_CAR",
+          "text": "Continue",
+          "nextNodeId": "scene_hbf_arrival",
+          "choiceType": "action"
+        }
+      ]
     },
     {
       "id": "scene_hbf_arrival",
@@ -5216,8 +5277,13 @@
       "scenarioId": "sandbox_detective_runtime_pilot",
       "title": "Scene: First Sweep",
       "body": "The first pass through the room is never about brilliance. It is about rhythm: door, ledger, window latch, clerk's shoes, the ash tray nobody admits to using.",
-      "terminal": true,
-      "choices": [],
+      "choices": [
+        {
+          "id": "DETECTIVE_CHECK_MESSAGES",
+          "text": "Finish the sweep and return to the bureau for new dockets.",
+          "nextNodeId": "scene_case_missing_courier_briefing"
+        }
+      ],
       "onEnter": [
         {
           "type": "set_flag",
@@ -5255,6 +5321,765 @@
               }
             ]
           }
+        }
+      ]
+    },
+    {
+      "id": "scene_case_missing_courier_briefing",
+      "scenarioId": "sandbox_detective_runtime_pilot",
+      "title": "Scene: Bureau Briefing",
+      "body": "The morning roster is still wet with ink when the chief drops a courier docket on your desk. The messenger vanished between municipal stops, carrying planning papers that now matter more than the council admits. The room wants speed; your notebook wants sequence.",
+      "choices": [
+        {
+          "id": "CASE_MISSING_COURIER_TO_REGISTRY",
+          "text": "Start with the registry ledger and trace the official handoff.",
+          "nextNodeId": "scene_case_missing_courier_registry",
+          "effects": [
+            {
+              "type": "track_event",
+              "eventName": "case_missing_courier_briefing"
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_BRIEFING_PROTOCOL",
+          "text": "Request written scope to protect evidence handling from interference.",
+          "nextNodeId": "scene_case_missing_courier_registry",
+          "requireAll": [
+            {
+              "type": "var_gte",
+              "key": "attr_intellect",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "case_missing_courier_protocol_cover",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "case_missing_courier_evidence",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "case_missing_courier_started",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "courier_route_confirmed",
+          "value": false
+        },
+        {
+          "type": "set_flag",
+          "key": "courier_found_alive",
+          "value": false
+        },
+        {
+          "type": "set_flag",
+          "key": "cityhall_leak_confirmed",
+          "value": false
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_briefing_risk_language",
+          "voiceId": "attr_intellect",
+          "difficulty": 10,
+          "showChancePercent": true,
+          "karmaSensitive": true,
+          "outcomeModel": "binary",
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "case_missing_courier_clock_is_political",
+                "value": true
+              }
+            ]
+          },
+          "onFail": {
+            "effects": [
+              {
+                "type": "add_tension",
+                "amount": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene_case_missing_courier_registry",
+      "scenarioId": "sandbox_detective_runtime_pilot",
+      "title": "Scene: Registry Desk",
+      "body": "At the municipal registry, the dispatch ledger shows the courier's initials and a stop code scratched over in fresh graphite. The senior clerk swears the route was unchanged; the janitor insists he saw the courier arguing with a second man.",
+      "choices": [
+        {
+          "id": "CASE_MISSING_COURIER_REGISTRY_LOG",
+          "text": "Seize a certified copy of the ledger page and log the overwrite.",
+          "nextNodeId": "scene_case_missing_courier_apothecary",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "courier_route_confirmed",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "case_missing_courier_evidence",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_REGISTRY_PRESS",
+          "text": "Pressure the clerk without proper authority to force a statement.",
+          "nextNodeId": "scene_case_missing_courier_apothecary",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "case_missing_courier_procedural_risk",
+              "value": true
+            },
+            {
+              "type": "add_tension",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_REGISTRY_LEDGER_THEORY",
+          "text": "Compare ink age against dispatch timing and flag a staged edit.",
+          "nextNodeId": "scene_case_missing_courier_apothecary",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "courier_registry_overwrite_fresh",
+              "value": true
+            }
+          ],
+          "requireAll": [
+            {
+              "type": "var_gte",
+              "key": "attr_intellect",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "courier_registry_tamper_theory",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "case_missing_courier_evidence",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "courier_clue_registry",
+          "value": true
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_registry_ink_age",
+          "voiceId": "attr_perception",
+          "difficulty": 11,
+          "showChancePercent": true,
+          "karmaSensitive": true,
+          "outcomeModel": "binary",
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "courier_registry_overwrite_fresh",
+                "value": true
+              },
+              {
+                "type": "add_var",
+                "key": "case_missing_courier_evidence",
+                "value": 1
+              }
+            ]
+          },
+          "onFail": {
+            "effects": [
+              {
+                "type": "add_tension",
+                "amount": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene_case_missing_courier_apothecary",
+      "scenarioId": "sandbox_detective_runtime_pilot",
+      "title": "Scene: Apothecary Lane",
+      "body": "The apothecary keeps receipts in a biscuit tin under the counter. One is marked to the courier's household for a costly fever draught. A neighbor claims he disappeared to gamble; the pharmacist says he begged for delayed payment for his child's medicine. In your notes, one lin...",
+      "choices": [
+        {
+          "id": "CASE_MISSING_COURIER_APOTHECARY_RECEIPT",
+          "text": "Record the medicine debt as motive pressure, not proof of guilt.",
+          "nextNodeId": "scene_case_missing_courier_station",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "courier_child_medical_debt_known",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "case_missing_courier_evidence",
+              "value": 1
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "npc_apothecary",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_APOTHECARY_INTIMIDATE",
+          "text": "Threaten seizure for non-cooperation and take the ledger by force.",
+          "nextNodeId": "scene_case_missing_courier_station",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "case_missing_courier_network_damage",
+              "value": true
+            },
+            {
+              "type": "add_tension",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_APOTHECARY_FAMILY_LINE",
+          "text": "Ask for treatment dates to cross-check whether the courier could be on route.",
+          "nextNodeId": "scene_case_missing_courier_station",
+          "visibleIfAny": [
+            {
+              "type": "flag_equals",
+              "key": "courier_desperation_not_guilt",
+              "value": true
+            }
+          ],
+          "requireAll": [
+            {
+              "type": "var_gte",
+              "key": "attr_intellect",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "courier_alibi_window_narrowed",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "case_missing_courier_evidence",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_apothecary_stress_pattern",
+          "voiceId": "attr_perception",
+          "difficulty": 12,
+          "showChancePercent": true,
+          "karmaSensitive": true,
+          "outcomeModel": "binary",
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "courier_desperation_not_guilt",
+                "value": true
+              }
+            ]
+          },
+          "onFail": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "courier_motive_ambiguous",
+                "value": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene_case_missing_courier_station",
+      "scenarioId": "sandbox_detective_runtime_pilot",
+      "title": "Scene: Station Yard",
+      "body": "Steam rolls low over the coach stand while porters trade rumors for cigarettes. A waybill with municipal markings places the courier on a cart that never cleared the official rail manifest. The driver remembers a second rider; the yard foreman denies any passenger transfer hap...",
+      "choices": [
+        {
+          "id": "CASE_MISSING_COURIER_STATION_WAYBILL",
+          "text": "Register the forged waybill and requisition transport witness signatures.",
+          "nextNodeId": "scene_case_missing_courier_storehouse",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "courier_waybill_forged",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "case_missing_courier_evidence",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_STATION_SHORTCUT",
+          "text": "Ignore rail jurisdiction and detain the driver on the spot.",
+          "nextNodeId": "scene_case_missing_courier_storehouse",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "case_missing_courier_jurisdiction_breach",
+              "value": true
+            },
+            {
+              "type": "add_tension",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_STATION_SECOND_RIDER",
+          "text": "Build a second-rider profile from porter timelines before moving on.",
+          "nextNodeId": "scene_case_missing_courier_storehouse",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "courier_waybill_stamp_copy_confirmed",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "courier_second_rider_profiled",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "case_missing_courier_evidence",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_station_stamp_alignment",
+          "voiceId": "attr_intellect",
+          "difficulty": 12,
+          "showChancePercent": true,
+          "karmaSensitive": true,
+          "outcomeModel": "binary",
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "courier_waybill_stamp_copy_confirmed",
+                "value": true
+              }
+            ]
+          },
+          "onFail": {
+            "effects": [
+              {
+                "type": "add_tension",
+                "amount": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene_case_missing_courier_storehouse",
+      "scenarioId": "sandbox_detective_runtime_pilot",
+      "title": "Scene: Canal Storehouse",
+      "body": "By the canal loading doors you find a torn satchel strap and wax flakes stamped with a municipal seal. The watchman claims he saw no one. Two dockhands whisper he was paid to look away before midnight. Your gut says the scene is dirty, but your training says dirty scenes still...",
+      "choices": [
+        {
+          "id": "CASE_MISSING_COURIER_STOREHOUSE_EVIDENCE",
+          "text": "Bag and log physical traces before questioning anyone further.",
+          "nextNodeId": "scene_case_missing_courier_annex",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "courier_intercept_site_confirmed",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "case_missing_courier_evidence",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_STOREHOUSE_RUSH",
+          "text": "Chase suspects immediately and leave scene logging for later.",
+          "nextNodeId": "scene_case_missing_courier_annex",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "case_missing_courier_chain_of_custody_risk",
+              "value": true
+            },
+            {
+              "type": "add_tension",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_STOREHOUSE_RECONSTRUCT",
+          "text": "Reconstruct the handoff minute by minute from dock labor shifts.",
+          "nextNodeId": "scene_case_missing_courier_annex",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "courier_chain_preserved",
+              "value": true
+            }
+          ],
+          "requireAll": [
+            {
+              "type": "var_gte",
+              "key": "attr_intellect",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "courier_handoff_timeline_verified",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "case_missing_courier_evidence",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_storehouse_scene_order",
+          "voiceId": "attr_perception",
+          "difficulty": 11,
+          "showChancePercent": true,
+          "karmaSensitive": true,
+          "outcomeModel": "binary",
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "courier_chain_preserved",
+                "value": true
+              }
+            ]
+          },
+          "onFail": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "courier_scene_noise_high",
+                "value": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene_case_missing_courier_annex",
+      "scenarioId": "sandbox_detective_runtime_pilot",
+      "title": "Scene: Clerk Annex Audit",
+      "body": "In a side annex lit by one weak oil lamp, duplicate registry books reveal rerouted docket numbers. Someone inside the municipal chain copied internal movement codes. If true, the courier was intercepted with help from an office leak. Your internal argument is simple and cruel:...",
+      "choices": [
+        {
+          "id": "CASE_MISSING_COURIER_ANNEX_BUILD_CASE",
+          "text": "Build a full leak chain before naming suspects in the report.",
+          "nextNodeId": "scene_case_missing_courier_debrief_success",
+          "requireAll": [
+            {
+              "type": "var_gte",
+              "key": "attr_intellect",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "cityhall_leak_confirmed",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "courier_found_alive",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "case_missing_courier_evidence",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_ANNEX_FILE_FAST",
+          "text": "File an urgent partial report to prevent document disappearance.",
+          "nextNodeId": "scene_case_missing_courier_debrief_partial",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "cityhall_archive_target_known",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_ANNEX_BLAME_GUARD",
+          "text": "Close quickly by blaming the watchman without corroboration.",
+          "nextNodeId": "scene_case_missing_courier_debrief_compromised",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "case_missing_courier_false_detention",
+              "value": true
+            },
+            {
+              "type": "add_tension",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE_MISSING_COURIER_ANNEX_TARGET_ARCHIVE",
+          "text": "Prioritize proving the archive target and defer immediate arrests.",
+          "nextNodeId": "scene_case_missing_courier_debrief_partial",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "cityhall_leak_chain_documented",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "cityhall_archive_target_known",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "case_missing_courier_no_false_arrest",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "passiveChecks": [
+        {
+          "id": "check_annex_duplicate_pattern",
+          "voiceId": "attr_intellect",
+          "difficulty": 13,
+          "showChancePercent": true,
+          "karmaSensitive": true,
+          "outcomeModel": "binary",
+          "onSuccess": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "cityhall_leak_chain_documented",
+                "value": true
+              },
+              {
+                "type": "add_var",
+                "key": "case_missing_courier_evidence",
+                "value": 1
+              }
+            ]
+          },
+          "onFail": {
+            "effects": [
+              {
+                "type": "set_flag",
+                "key": "cityhall_leak_chain_incomplete",
+                "value": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene_case_missing_courier_debrief_success",
+      "scenarioId": "sandbox_detective_runtime_pilot",
+      "title": "Scene: Debrief - Full Reconstruction",
+      "body": "The board receives a route map pinned by timestamp, witness signatures, and seal traces. The courier is recovered alive, shaken but cooperative. Your report names an internal leak path and confirms the stolen document stream points toward city hall's restricted archive corridor.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "case_missing_courier_resolved",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "case_missing_courier_resolved_success",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "case_cityhall_infiltration_unlocked",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "cityhall_infiltration_support_strong",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "mayor_grimoire_thread_known",
+          "value": true
+        },
+        {
+          "type": "set_var",
+          "key": "case_missing_courier_outcome",
+          "value": 1
+        },
+        {
+          "type": "grant_xp",
+          "amount": 25
+        }
+      ]
+    },
+    {
+      "id": "scene_case_missing_courier_debrief_partial",
+      "scenarioId": "sandbox_detective_runtime_pilot",
+      "title": "Scene: Debrief - Time-Pressure Transfer",
+      "body": "You cannot prove every hand in the chain, but the route break is clear enough: the papers were redirected to a group preparing a city hall intrusion. The courier's intent remains disputed, and the bureau signs an emergency follow-up order instead of a clean prosecution brief.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "case_missing_courier_resolved",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "case_missing_courier_resolved_partial",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "case_cityhall_infiltration_unlocked",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "cityhall_infiltration_time_pressure",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "mayor_grimoire_thread_known",
+          "value": true
+        },
+        {
+          "type": "set_var",
+          "key": "case_missing_courier_outcome",
+          "value": 2
+        },
+        {
+          "type": "grant_xp",
+          "amount": 20
+        }
+      ]
+    },
+    {
+      "id": "scene_case_missing_courier_debrief_compromised",
+      "scenarioId": "sandbox_detective_runtime_pilot",
+      "title": "Scene: Debrief - Compromised Record",
+      "body": "The report closes fast and leaks faster. The wrong man is held, the leak chain is muddy, and city hall counsel challenges your procedure before the ink dries. Even so, one line survives scrutiny: someone is moving on the archive floor, and you are out of time to wait for a cle...",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "case_missing_courier_resolved",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "case_missing_courier_resolved_compromised",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "case_cityhall_infiltration_unlocked",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "cityhall_infiltration_support_weak",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "mayor_grimoire_thread_known",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "case_missing_courier_reputation_penalty",
+          "value": true
+        },
+        {
+          "type": "set_var",
+          "key": "case_missing_courier_outcome",
+          "value": 3
+        },
+        {
+          "type": "grant_xp",
+          "amount": 15
         }
       ]
     },
@@ -9368,5 +10193,5 @@
       }
     ]
   },
-  "checksum": "f17f22f5a1984f1f0c880e93b49ffd6ba4629f84ed8ea0efe5252b369f92d68b"
+  "checksum": "bc273c61d95123228e87fe1ec3bc049e6ec4500d7845514a94246debb7e93538"
 }

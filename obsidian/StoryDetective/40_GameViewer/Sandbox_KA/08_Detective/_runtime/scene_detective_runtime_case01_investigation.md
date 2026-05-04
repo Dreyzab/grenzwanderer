@@ -12,7 +12,6 @@ The first pass through the room is never about brilliance. It is about rhythm:
 door, ledger, window latch, clerk's shoes, the ash tray nobody admits to using.
 
 ```vn-logic
-terminal: true
 on_enter:
   - set_flag(banker_intro_seen,true)
   - add_var(checks_passed,1)
@@ -29,5 +28,8 @@ passive_checks:
     on_fail:
       effects:
         - add_tension(1)
-choices: []
+choices:
+  - id: DETECTIVE_CHECK_MESSAGES
+    text: Finish the sweep and return to the bureau for new dockets.
+    next: scene_case_missing_courier_briefing
 ```

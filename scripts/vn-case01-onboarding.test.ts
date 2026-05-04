@@ -59,7 +59,7 @@ type: vn_scene
 ---
 id: scene_intro_journey_beat1
 type: vn_beat
-parent: scene_intro_journey
+parent: scene_start_game
 order: 1
 ---
 # Beat 1
@@ -332,6 +332,39 @@ Text.
       expect(() => parseCase01Onboarding(storyRoot)).toThrow(
         /did you mean 'tension'/,
       );
+    });
+  });
+
+  it("supports synthetic choice from '## → Next' section", () => {
+    const files: Record<string, string> = {
+      "scene_start_game.md": `
+---
+id: scene_start_game
+type: vn_scene
+---
+# Start Game
+## → Next
+[[scene_character_creation]]
+`,
+      "scene_character_creation.md": `
+---
+id: scene_character_creation
+type: vn_scene
+---
+# Creation
+## Narrative
+Done.
+`,
+    };
+
+    withFixture(files, (storyRoot) => {
+      const parsed = parseCase01Onboarding(storyRoot);
+      const start = parsed.nodeBlueprints.find(
+        (n) => n.id === "scene_start_game",
+      );
+      expect(start?.choices).toHaveLength(1);
+      expect(start?.choices[0].text).toBe("Continue");
+      expect(start?.choices[0].nextNodeId).toBe("scene_character_creation");
     });
   });
 });

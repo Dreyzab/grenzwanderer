@@ -22,7 +22,7 @@ import {
 
 const ONBOARDING_RELATIVE_ROOT = case01OnboardingRelativeRoot;
 const CASE01_SCENARIO_ID = "sandbox_case01_pilot";
-const CASE01_START_NODE_ID = "scene_intro_journey";
+const CASE01_START_NODE_ID = "scene_start_game";
 const CASE01_HANDOFF_NODE_ID = "scene_case01_onboarding_handoff";
 
 const RUNTIME_NODE_TYPES = new Set([
@@ -1101,6 +1101,27 @@ const parseChoicesSection = (doc: ParsedDoc): ParsedChoiceDraft[] => {
   return choices;
 };
 
+const parseNextSection = (
+  doc: ParsedDoc,
+): { target: string; line: number } | null => {
+  const section =
+    findSection(doc.markdownBody, "→ Next") ||
+    findSection(doc.markdownBody, "Next");
+  if (!section) {
+    return null;
+  }
+
+  const match = section.content.match(/\[\[([^\]]+)\]\]/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    target: normalizeWikiTarget(match[1]),
+    line: doc.contentStartLine + section.line + 1,
+  };
+};
+
 const parsePassiveChecksSection = (
   doc: ParsedDoc,
 ): ParsedPassiveCheckDraft[] => {
@@ -1611,7 +1632,28 @@ export const parseCase01Onboarding = (
     const choiceIds = new Set<string>();
 
     for (const runtimeDoc of runtimeDocs) {
-      const choicesDraft = parseChoicesSection(runtimeDoc);
+      let choicesDraft = parseChoicesSection(runtimeDoc);
+
+      // Support '## → Next' for vn_scene if '## Choices' is missing
+      if (choicesDraft.length === 0 && runtimeDoc.type === "vn_scene") {
+        const nextLink = parseNextSection(runtimeDoc);
+        if (nextLink) {
+          choicesDraft = [
+            {
+              text: "Continue",
+              nextRaw: nextLink.target,
+              effects: [],
+              visibleIfAll: [],
+              visibleIfAny: [],
+              requireAll: [],
+              requireAny: [],
+              line: nextLink.line,
+              column: 1,
+            },
+          ];
+        }
+      }
+
       const preconditions = parseConditionsSection(runtimeDoc, "Preconditions");
       const onEnter = parseEffectsSection(runtimeDoc, "OnEnter");
       const passiveChecksDraft = passiveChecksByParent.get(runtimeDoc.id) ?? [];
@@ -1661,7 +1703,7 @@ export const parseCase01Onboarding = (
           reasonCode: "OUT_OF_SCOPE_NEXT" | "OUT_OF_SCOPE_CHECK_BRANCH",
           reasonMessage: string,
         ): string => {
-          if (rawTarget.length === 0) {
+          if (rawTarget.length === 0 || rawTarget === CASE01_HANDOFF_NODE_ID) {
             return CASE01_HANDOFF_NODE_ID;
           }
           if (runtimeIds.has(rawTarget)) {
@@ -1787,7 +1829,7 @@ export const parseCase01Onboarding = (
     nodeBlueprintsRaw.push({
       id: CASE01_HANDOFF_NODE_ID,
       scenarioId: CASE01_SCENARIO_ID,
-      sourcePath: `${ONBOARDING_RELATIVE_ROOT}/scene_intro_journey.md`,
+      sourcePath: `${ONBOARDING_RELATIVE_ROOT}/scene_start_game.md`,
       terminal: true,
       choices: [],
       onEnter: [
@@ -1804,7 +1846,7 @@ export const parseCase01Onboarding = (
       throw new Case01ParserError({
         code: "MISSING_START_NODE",
         message: `Configured start node '${CASE01_START_NODE_ID}' was not found`,
-        relativePath: `${ONBOARDING_RELATIVE_ROOT}/scene_intro_journey.md`,
+        relativePath: `${ONBOARDING_RELATIVE_ROOT}/scene_start_game.md`,
         line: 1,
         column: 1,
         severity: "error",

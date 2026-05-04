@@ -68,7 +68,7 @@ type ViewDbAliases = {
   myAiRequests: BaseDbView["my_ai_requests"];
   workerAiRequests: BaseDbView["worker_ai_requests"];
   /** Alias for public `content_translation` table (no server view; avoids full-table view materialization on publish). */
-  contentTranslations: BaseDbView["content_translation"];
+  contentTranslations: BaseDbView["contentTranslation"];
   myMindCases: BaseDbView["my_mind_cases"];
   myMindFacts: BaseDbView["my_mind_facts"];
   myMindHypotheses: BaseDbView["my_mind_hypotheses"];
@@ -103,7 +103,7 @@ const viewDbAliases: Readonly<Record<keyof ViewDbAliases, keyof BaseDbView>> = {
   myVnSkillResults: "my_vn_skill_results",
   myAiRequests: "my_ai_requests",
   workerAiRequests: "worker_ai_requests",
-  contentTranslations: "content_translation",
+  contentTranslations: "contentTranslation",
   myMindCases: "my_mind_cases",
   myMindFacts: "my_mind_facts",
   myMindHypotheses: "my_mind_hypotheses",

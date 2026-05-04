@@ -10,6 +10,7 @@
     "dev:all": "powershell -ExecutionPolicy Bypass -File scripts/dev-all.ps1",
     "dev:all:keepdb": "powershell -ExecutionPolicy Bypass -File scripts/dev-all.ps1 -PreserveDb",
     "prepare": "husky",
+    "postinstall": "bun run scripts/patch-spacetimedb-table-defaults.ts",
     "build": "bun run release:config:prepare && tsc -b && vite build",
     "bootstrap:config:prepare": "bun run scripts/prepare-bootstrap-config.ts",
     "release:config:prepare": "bun run scripts/prepare-release-config.ts",

@@ -44,6 +44,9 @@ jobs:
         working-directory: spacetimedb
         run: npm ci
 
+      - name: Patch SpacetimeDB Option None defaults (nested + root node_modules)
+        run: bun run scripts/patch-spacetimedb-table-defaults.ts
+
       - name: Format check
         run: bun run format:check
 

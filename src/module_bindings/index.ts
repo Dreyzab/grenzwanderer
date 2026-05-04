@@ -93,7 +93,6 @@ import VerifyRumorReducer from "./verify_rumor_reducer";
 import ContentSnapshotRow from "./content_snapshot_table";
 import ContentTranslationRow from "./content_translation_table";
 import ContentVersionRow from "./content_version_table";
-import ContentTranslationsRow from "./content_translations_table";
 import MindCaseRow from "./mind_case_table";
 import MindFactRow from "./mind_fact_table";
 import MindHypothesisRow from "./mind_hypothesis_table";
@@ -236,13 +235,6 @@ const tablesSchema = __schema({
       { name: 'mind_hypothesis_hypothesis_id_key', constraint: 'unique', columns: ['hypothesisId'] },
     ],
   }, MindHypothesisRow),
-  content_translations: __table({
-    name: 'content_translations',
-    indexes: [
-    ],
-    constraints: [
-    ],
-  }, ContentTranslationsRow),
   my_agency_career: __table({
     name: 'my_agency_career',
     indexes: [

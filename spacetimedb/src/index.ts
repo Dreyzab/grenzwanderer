@@ -31,7 +31,6 @@ export {
   my_vn_sessions,
   my_vn_skill_results,
   worker_ai_requests,
-  content_translations,
 } from "./schema";
 import {
   aggregate_telemetry,

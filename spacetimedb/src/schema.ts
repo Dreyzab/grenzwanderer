@@ -1550,18 +1550,6 @@ export const worker_ai_requests = spacetimedb.view(
   },
 );
 
-export const content_translations = spacetimedb.view(
-  { name: "content_translations", public: true },
-  t.array(contentTranslation.rowType),
-  (ctx) => {
-    try {
-      return Array.from(ctx.db.contentTranslation.iter());
-    } catch {
-      return [];
-    }
-  },
-);
-
 export const my_mind_cases = spacetimedb.view(
   { name: "my_mind_cases", public: true },
   t.array(playerMindCase.rowType),

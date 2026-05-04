@@ -35,6 +35,7 @@ import type {
   MapPoint,
   MapPointState,
 } from "./helpers";
+import { normalizeRumorStatus } from "./helpers/rumor_status";
 import { startScenarioInternal } from "./vn";
 
 const visitedFlagKey = (pointId: string): string => `VISITED_${pointId}`;
@@ -198,7 +199,10 @@ const evaluateQrCodeCondition = (
     return getAgencyStandingScore(ctx) >= condition.value;
   }
   if (condition.type === "rumor_state_is") {
-    return getRumorStatus(ctx, condition.rumorId) === condition.status;
+    const desired = normalizeRumorStatus(condition.status);
+    return (
+      desired !== null && getRumorStatus(ctx, condition.rumorId) === desired
+    );
   }
   if (condition.type === "hypothesis_focus_is") {
     return getFlag(
@@ -365,7 +369,10 @@ const evaluateMapCondition = (
       return getAgencyStandingScore(ctx) >= condition.value;
     }
     case "rumor_state_is": {
-      return getRumorStatus(ctx, condition.rumorId) === condition.status;
+      const desired = normalizeRumorStatus(condition.status);
+      return (
+        desired !== null && getRumorStatus(ctx, condition.rumorId) === desired
+      );
     }
     case "hypothesis_focus_is": {
       return getFlag(

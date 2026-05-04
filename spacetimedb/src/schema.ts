@@ -8,7 +8,6 @@ import {
   AI_REQUEST_STATUS_PENDING,
   AI_REQUEST_STATUS_PROCESSING,
 } from "./reducers/aiQueue";
-import { ensureAllowlistedWorker } from "./reducers/helpers";
 import { senderOf, type ReducerContextLike } from "./reducers/helpers/context";
 
 export const playerProfile = table(
@@ -1426,11 +1425,27 @@ const selfScopedByPlayerId = (
 ) =>
   rowsFromIndex(ctx.db[accessorName], playerIdIndexAccessorName, senderOf(ctx));
 
-const ensureRegisteredWorkerView = (ctx: ReducerContextLike): void => {
-  const sender = senderOf(ctx) as { toHexString(): string };
-  ensureAllowlistedWorker(ctx, "read worker ai requests", sender);
-  if (!ctx.db.workerIdentity.identity.find(sender)) {
-    throw new Error("Only a registered worker can read worker ai requests");
+/**
+ * Views must not throw during migrations / system materialization. Unauthorized
+ * subscribers get an empty list; real workers still match allowlist + registration.
+ */
+const canReadWorkerAiRequestsView = (ctx: ReducerContextLike): boolean => {
+  try {
+    const senderRaw = senderOf(ctx);
+    if (!senderRaw || typeof senderRaw !== "object") {
+      return false;
+    }
+    const sender = senderRaw as { toHexString?: () => string };
+    if (typeof sender.toHexString !== "function") {
+      return false;
+    }
+    const identity = sender as { toHexString(): string };
+    if (!ctx.db.workerAllowlist.identity.find(identity)) {
+      return false;
+    }
+    return Boolean(ctx.db.workerIdentity.identity.find(identity));
+  } catch {
+    return false;
   }
 };
 
@@ -1492,7 +1507,9 @@ export const worker_ai_requests = spacetimedb.view(
   { name: "worker_ai_requests", public: true },
   t.array(aiRequest.rowType),
   (ctx) => {
-    ensureRegisteredWorkerView(ctx);
+    if (!canReadWorkerAiRequestsView(ctx)) {
+      return [];
+    }
     return [
       ...rowsFromIndex(
         ctx.db.aiRequest,

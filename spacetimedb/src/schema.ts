@@ -1408,22 +1408,44 @@ const rowsFromIndex = (
   tableView: any,
   indexAccessorName: string,
   value: unknown,
-) => {
-  const index = tableView[indexAccessorName];
+): any[] => {
+  if (!tableView) {
+    return [];
+  }
+  const index = tableView[indexAccessorName] as
+    | {
+        find?: (v: unknown) => unknown;
+        filter?: (v: unknown) => Iterable<unknown>;
+      }
+    | undefined;
+  if (!index) {
+    return [];
+  }
   if (typeof index.find === "function") {
     const row = index.find(value);
     return row ? [row] : [];
   }
-
-  return Array.from(index.filter(value));
+  if (typeof index.filter === "function") {
+    return Array.from(index.filter(value));
+  }
+  return [];
 };
 
 const selfScopedByPlayerId = (
   ctx: ReducerContextLike,
   accessorName: string,
   playerIdIndexAccessorName: string,
-) =>
-  rowsFromIndex(ctx.db[accessorName], playerIdIndexAccessorName, senderOf(ctx));
+): any[] => {
+  try {
+    return rowsFromIndex(
+      ctx.db[accessorName],
+      playerIdIndexAccessorName,
+      senderOf(ctx),
+    );
+  } catch {
+    return [];
+  }
+};
 
 /**
  * Views must not throw during migrations / system materialization. Unauthorized
@@ -1507,27 +1529,37 @@ export const worker_ai_requests = spacetimedb.view(
   { name: "worker_ai_requests", public: true },
   t.array(aiRequest.rowType),
   (ctx) => {
-    if (!canReadWorkerAiRequestsView(ctx)) {
+    try {
+      if (!canReadWorkerAiRequestsView(ctx)) {
+        return [];
+      }
+      return [
+        ...rowsFromIndex(
+          ctx.db.aiRequest,
+          "ai_request_status",
+          AI_REQUEST_STATUS_PENDING,
+        ),
+        ...rowsFromIndex(ctx.db.aiRequest, "ai_request_claimed_by_status", [
+          senderOf(ctx),
+          AI_REQUEST_STATUS_PROCESSING,
+        ]),
+      ];
+    } catch {
       return [];
     }
-    return [
-      ...rowsFromIndex(
-        ctx.db.aiRequest,
-        "ai_request_status",
-        AI_REQUEST_STATUS_PENDING,
-      ),
-      ...rowsFromIndex(ctx.db.aiRequest, "ai_request_claimed_by_status", [
-        senderOf(ctx),
-        AI_REQUEST_STATUS_PROCESSING,
-      ]),
-    ];
   },
 );
 
 export const content_translations = spacetimedb.view(
   { name: "content_translations", public: true },
   t.array(contentTranslation.rowType),
-  (ctx) => Array.from(ctx.db.contentTranslation.iter()),
+  (ctx) => {
+    try {
+      return Array.from(ctx.db.contentTranslation.iter());
+    } catch {
+      return [];
+    }
+  },
 );
 
 export const my_mind_cases = spacetimedb.view(

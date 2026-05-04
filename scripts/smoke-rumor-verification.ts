@@ -6,6 +6,7 @@ import {
   getAgencyCareer,
   getFavorBalance,
   getRumorStatus,
+  isRumorRegisteredLike,
   loadPilotSnapshot,
   openAgencyStudentIntro,
   publishPilotSnapshot,
@@ -59,8 +60,9 @@ const runSmoke = async () =>
             nextRequestId,
           );
           if (
-            getRumorStatus(conn, playerHex, "rumor_bank_rail_yard") !==
-            "registered"
+            !isRumorRegisteredLike(
+              getRumorStatus(conn, playerHex, "rumor_bank_rail_yard"),
+            )
           ) {
             throw new Error(
               "Workers' Pub route did not leave the rumor in registered state",

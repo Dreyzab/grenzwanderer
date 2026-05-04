@@ -898,24 +898,21 @@ export const playerRumorState = table(
     // Per-spec linkedLeadId: optional spawned lead / map event id (usually playerMapEvent.eventId).
     leadPointId: t.string().optional(),
     sourceNpcId: t.string().optional(),
-    // contact | faction | briefing | witness | environment (per spec sourceType)
-    sourceType: t.string().optional(),
-    // Faction whose milieu colors the rumor (canonical 8-faction registry).
-    factionKey: t.string().optional(),
-    // Free-text subject and location hint surfaced to UI dossier.
-    subject: t.string().optional(),
-    locationHint: t.string().optional(),
-    // Hidden tuning. credibility: how much confirmation is still needed; heatRisk: pursuit risk.
-    credibility: t.f64().optional(),
-    heatRisk: t.f64().optional(),
-    // Owning case context (existing). resolvedCaseId records which case eventually consumed the rumor.
     caseId: t.string(),
-    resolvedCaseId: t.string().optional(),
     verificationKind: t.string().optional(),
-    discoveredAt: t.timestamp().optional(),
-    expiresAt: t.timestamp().optional(),
     verifiedAt: t.timestamp().optional(),
     updatedAt: t.timestamp(),
+    // Appended columns (must stay after legacy fields for maincloud auto-migration).
+    // contact | faction | briefing | witness | environment (per spec sourceType)
+    sourceType: t.string().optional().default(undefined),
+    factionKey: t.string().optional().default(undefined),
+    subject: t.string().optional().default(undefined),
+    locationHint: t.string().optional().default(undefined),
+    credibility: t.f64().optional().default(undefined),
+    heatRisk: t.f64().optional().default(undefined),
+    resolvedCaseId: t.string().optional().default(undefined),
+    discoveredAt: t.timestamp().optional().default(undefined),
+    expiresAt: t.timestamp().optional().default(undefined),
   },
 );
 

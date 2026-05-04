@@ -6,6 +6,7 @@ import {
   getAgencyCareer,
   getPlayerFlagValue,
   getRumorStatus,
+  isRumorRegisteredLike,
   hasUnlockGroup,
   loadPilotSnapshot,
   openAgencyStudentIntro,
@@ -57,8 +58,9 @@ const runSmoke = async () =>
             nextRequestId,
           );
           if (
-            getRumorStatus(conn, playerHex, "rumor_bank_rail_yard") !==
-            "registered"
+            !isRumorRegisteredLike(
+              getRumorStatus(conn, playerHex, "rumor_bank_rail_yard"),
+            )
           ) {
             throw new Error(
               "Workers' Pub route did not register rumor_bank_rail_yard",

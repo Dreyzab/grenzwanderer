@@ -21,4 +21,13 @@ export default __t.row({
   verificationKind: __t.option(__t.string()).name("verification_kind"),
   verifiedAt: __t.option(__t.timestamp()).name("verified_at"),
   updatedAt: __t.timestamp().name("updated_at"),
+  sourceType: __t.option(__t.string()).name("source_type"),
+  factionKey: __t.option(__t.string()).name("faction_key"),
+  subject: __t.option(__t.string()),
+  locationHint: __t.option(__t.string()).name("location_hint"),
+  credibility: __t.option(__t.f64()),
+  heatRisk: __t.option(__t.f64()).name("heat_risk"),
+  resolvedCaseId: __t.option(__t.string()).name("resolved_case_id"),
+  discoveredAt: __t.option(__t.timestamp()).name("discovered_at"),
+  expiresAt: __t.option(__t.timestamp()).name("expires_at"),
 });

@@ -283,6 +283,10 @@ export const getRumorStatus = (
   return row?.status ?? null;
 };
 
+/** Server stores `logged` for newly registered rumors; legacy paths used `registered`. */
+export const isRumorRegisteredLike = (status: string | null): boolean =>
+  status === "registered" || status === "logged";
+
 export const hasUnlockGroup = (
   conn: DbConnection,
   playerHex: string,

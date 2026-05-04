@@ -374,6 +374,24 @@ export const PlayerFactionSignal = __t.object("PlayerFactionSignal", {
 });
 export type PlayerFactionSignal = __Infer<typeof PlayerFactionSignal>;
 
+export const PlayerFavorLedger = __t.object("PlayerFavorLedger", {
+  ledgerEntryKey: __t.string(),
+  playerId: __t.identity(),
+  favorId: __t.string(),
+  npcId: __t.string(),
+  favorType: __t.string(),
+  weight: __t.i32(),
+  sourceCaseId: __t.option(__t.string()),
+  sourceRumorId: __t.option(__t.string()),
+  note: __t.option(__t.string()),
+  status: __t.string(),
+  createdAt: __t.timestamp(),
+  expiresAt: __t.option(__t.timestamp()),
+  resolvedAt: __t.option(__t.timestamp()),
+  updatedAt: __t.timestamp(),
+});
+export type PlayerFavorLedger = __Infer<typeof PlayerFavorLedger>;
+
 export const PlayerFlag = __t.object("PlayerFlag", {
   flagId: __t.string(),
   playerId: __t.identity(),
@@ -514,6 +532,15 @@ export const PlayerRumorState = __t.object("PlayerRumorState", {
   verificationKind: __t.option(__t.string()),
   verifiedAt: __t.option(__t.timestamp()),
   updatedAt: __t.timestamp(),
+  sourceType: __t.option(__t.string()),
+  factionKey: __t.option(__t.string()),
+  subject: __t.option(__t.string()),
+  locationHint: __t.option(__t.string()),
+  credibility: __t.option(__t.f64()),
+  heatRisk: __t.option(__t.f64()),
+  resolvedCaseId: __t.option(__t.string()),
+  discoveredAt: __t.option(__t.timestamp()),
+  expiresAt: __t.option(__t.timestamp()),
 });
 export type PlayerRumorState = __Infer<typeof PlayerRumorState>;
 

@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 def get_access_token(json_path):
-    with open(json_path, 'r') as f:
+    with open(json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
     private_key = data['private_key']

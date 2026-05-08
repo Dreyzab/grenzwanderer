@@ -2,7 +2,9 @@ import type { FactionDefinition } from "../../../data/factionContract";
 import type {
   InnerVoiceId,
   PsycheAxis,
+  SkillVoiceId,
 } from "../../../data/innerVoiceContract";
+import type { SkillRank } from "../game/skillProgression";
 import type { VnAiMode } from "../game/narrativeResources";
 
 export interface Speaker {
@@ -43,6 +45,7 @@ export type VnConditionLeaf =
   | { type: "thought_state_is"; thoughtId: string; state: MindThoughtState }
   | { type: "career_rank_gte"; rankId: string }
   | { type: "voice_level_gte"; voiceId: string; value: number }
+  | { type: "skill_rank_gte"; skillId: SkillVoiceId; rank: SkillRank }
   | { type: "spirit_state_is"; spiritId: string; state: SpiritState }
   | { type: "has_controlled_spirit"; entityArchetypeId: string };
 
@@ -81,6 +84,7 @@ export type VnEffect =
     }
   | { type: "unlock_mind_thought"; thoughtId: string }
   | { type: "grant_xp"; amount: number }
+  | { type: "grant_skill_xp"; skillId: SkillVoiceId; amount: number }
   | { type: "unlock_group"; groupId: string }
   | { type: "set_quest_stage"; questId: string; stage: number }
   | { type: "change_relationship"; characterId: string; delta: number }
@@ -174,6 +178,7 @@ export interface VnSkillCheck {
   difficulty: number;
   isPassive?: boolean;
   showChancePercent?: boolean;
+  minSkillRank?: SkillRank;
   karmaSensitive?: boolean;
   modifiers?: VnCheckModifier[];
   outcomeModel?: VnOutcomeModel;
@@ -579,6 +584,7 @@ export type MapAction =
   | { type: "set_quest_stage"; questId: string; stage: number }
   | { type: "grant_evidence"; evidenceId: string }
   | { type: "grant_xp"; amount: number }
+  | { type: "grant_skill_xp"; skillId: SkillVoiceId; amount: number }
   | { type: "change_relationship"; characterId: string; delta: number }
   | {
       type: "change_favor_balance";

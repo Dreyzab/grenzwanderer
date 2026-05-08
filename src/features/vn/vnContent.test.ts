@@ -1292,6 +1292,99 @@ describe("vnContent runtime parsing", () => {
     expect(parsed).toBeNull();
   });
 
+  it("parses skill rank gates and check minimum rank requirements", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          scenarios: [
+            {
+              id: "scenario_rank",
+              title: "Rank",
+              startNodeId: "node_rank",
+              nodeIds: ["node_rank"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_rank",
+              scenarioId: "scenario_rank",
+              title: "Node Rank",
+              body: "Body",
+              choices: [
+                {
+                  id: "choice_rank",
+                  text: "Read the blood pattern",
+                  nextNodeId: "node_rank",
+                  requireAll: [
+                    {
+                      type: "skill_rank_gte",
+                      skillId: "attr_forensics",
+                      rank: "B",
+                    },
+                  ],
+                  skillCheck: {
+                    id: "check_rank",
+                    voiceId: "attr_forensics",
+                    difficulty: 10,
+                    minSkillRank: "B",
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(parsed?.nodes[0]?.choices[0]?.requireAll?.[0]).toEqual({
+      type: "skill_rank_gte",
+      skillId: "attr_forensics",
+      rank: "B",
+    });
+    expect(parsed?.nodes[0]?.choices[0]?.skillCheck?.minSkillRank).toBe("B");
+  });
+
+  it("rejects invalid skill rank gates", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          scenarios: [
+            {
+              id: "scenario_rank",
+              title: "Rank",
+              startNodeId: "node_rank",
+              nodeIds: ["node_rank"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_rank",
+              scenarioId: "scenario_rank",
+              title: "Node Rank",
+              body: "Body",
+              choices: [
+                {
+                  id: "choice_rank",
+                  text: "Read the blood pattern",
+                  nextNodeId: "node_rank",
+                  requireAll: [
+                    {
+                      type: "skill_rank_gte",
+                      skillId: "inner_cynic" as any,
+                      rank: "B",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(parsed).toBeNull();
+  });
+
   it("parses mystic snapshot blocks, effects, and map metadata", () => {
     const parsed = parseSnapshot(
       JSON.stringify(

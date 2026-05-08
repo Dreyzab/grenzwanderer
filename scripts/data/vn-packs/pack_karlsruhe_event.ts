@@ -45,7 +45,7 @@ export const PACK_KARLSRUHE_EVENT_NODES: NodeBlueprint[] = [
     titleOverride: "Karlsruhe Hauptbahnhof",
     bodyOverride:
       "Steam from the first morning train hangs over the platform. Victoria Sterling spots you before the porters do, already carrying a folded dispatch case and a list of unfinished meetings.",
-    characterId: "assistant",
+    characterId: "victoria_sterling",
     choices: [
       {
         id: "KA_EVENT_ARRIVAL_FOLLOW_VICTORIA",
@@ -92,7 +92,7 @@ export const PACK_KARLSRUHE_EVENT_NODES: NodeBlueprint[] = [
     titleOverride: "Victoria's Briefing",
     bodyOverride:
       "Victoria taps the paper with one gloved finger. 'Three public fires, one morning. We do not have time for ceremony. Take the city as it is, not as Freiburg trained you to expect it.'",
-    characterId: "assistant",
+    characterId: "victoria_sterling",
     choices: [
       {
         id: "KA_EVENT_BRIEFING_ACCEPT",

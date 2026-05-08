@@ -468,7 +468,7 @@ describe("CharacterPanel", () => {
     });
   });
 
-  it("renders dossier tabs and nests specialized stats under the right core cards", () => {
+  it("renders dossier tabs and nests method voices under patron voice cards", () => {
     render(<CharacterPanel />);
 
     expect(screen.getByRole("tab", { name: /Profile/i })).toBeInTheDocument();
@@ -492,36 +492,48 @@ describe("CharacterPanel", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: /Development/i }));
 
-    expect(screen.getByText("Core Characteristic Radar")).toBeInTheDocument();
+    expect(screen.getByText("Patron Voice Radar")).toBeInTheDocument();
     expect(screen.getByTestId("character-radar")).toBeInTheDocument();
+    expect(screen.getByText("Patron Voices")).toBeInTheDocument();
+
+    const analystCard = screen.getByTestId("patron-voice-inner_analyst");
+    expect(within(analystCard).getByText("Analyst")).toBeInTheDocument();
     expect(
-      screen.getByText("Legacy Attributes -> Canonical Voices"),
+      within(analystCard).getByTestId("method-voice-attr_intellect"),
     ).toBeInTheDocument();
     expect(
-      screen.getAllByText("attr_intellect -> logic").length,
-    ).toBeGreaterThan(0);
-    expect(
-      screen.getByText("The world is a machine. Find the fault line."),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Make them enjoy telling you what hurts them."),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Meaning hides in patterns the rational eye refuses."),
+      within(analystCard).getByTestId("method-voice-attr_encyclopedia"),
     ).toBeInTheDocument();
 
-    const intellectCard = screen.getByTestId("core-attr-attr_intellect");
-    expect(within(intellectCard).getByText("Encyclopedia")).toBeInTheDocument();
-    expect(within(intellectCard).getByText("Perception")).toBeInTheDocument();
+    const manipulatorCard = screen.getByTestId(
+      "patron-voice-inner_manipulator",
+    );
+    expect(within(manipulatorCard).getByText("Manipulator")).toBeInTheDocument();
     expect(
-      within(intellectCard).getByText("Canonical voice: Encyclopedia"),
+      within(manipulatorCard).getByTestId("method-voice-attr_deception"),
     ).toBeInTheDocument();
-    expect(within(intellectCard).getByText("Voice Bridge")).toBeInTheDocument();
-
-    const shadowCard = screen.getByTestId("core-attr-attr_shadow");
-    expect(within(shadowCard).getByText("Deception")).toBeInTheDocument();
+    const deceptionMethod = within(manipulatorCard).getByTestId(
+      "method-voice-attr_deception",
+    );
+    expect(within(deceptionMethod).getByText("A")).toBeInTheDocument();
+    expect(within(deceptionMethod).getByText("0 / 100")).toBeInTheDocument();
+    expect(within(deceptionMethod).getByText("500 XP")).toBeInTheDocument();
     expect(
-      within(shadowCard).getByText("Canonical voice: Deception"),
+      within(deceptionMethod).getByText("B Reliable Read"),
+    ).toBeInTheDocument();
+    expect(
+      within(deceptionMethod).getByText("A Expert Leverage"),
+    ).toBeInTheDocument();
+    expect(
+      within(deceptionMethod).getByText("S Signature Method"),
+    ).toBeInTheDocument();
+    expect(
+      within(deceptionMethod).getByRole("progressbar", {
+        name: /Deception rank progress/i,
+      }),
+    ).toHaveAttribute("aria-valuenow", "0");
+    expect(
+      within(manipulatorCard).getByText("Control the board before anyone else notices the leverage."),
     ).toBeInTheDocument();
   });
 
@@ -565,7 +577,7 @@ describe("CharacterPanel", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: /Psyche/i }));
 
-    expect(screen.getByText("Inner Compass")).toBeInTheDocument();
+    expect(screen.getByText(/Inner Compass/i)).toBeInTheDocument();
     expect(screen.getByTestId("inner-compass")).toBeInTheDocument();
     expect(screen.getAllByText("Leader").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Guide").length).toBeGreaterThan(0);

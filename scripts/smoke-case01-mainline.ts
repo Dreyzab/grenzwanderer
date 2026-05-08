@@ -91,6 +91,10 @@ try {
     CASE01_SCENARIO_IDS.leadTailor,
     CASE01_SCENARIO_IDS.leadApothecary,
     CASE01_SCENARIO_IDS.leadPub,
+    CASE01_SCENARIO_IDS.falseTrailWorkers,
+    CASE01_SCENARIO_IDS.falseTrailPostRoute,
+    CASE01_SCENARIO_IDS.falseTrailGrimoire,
+    CASE01_SCENARIO_IDS.falseTrailConvergence,
     CASE01_SCENARIO_IDS.estateBranch,
     CASE01_SCENARIO_IDS.lotteInterlude,
     CASE01_SCENARIO_IDS.lodgingZumGoldenenAdler,
@@ -105,6 +109,8 @@ try {
     "loc_tailor",
     "loc_apothecary",
     "loc_pub",
+    "loc_hbf",
+    "loc_munster",
     "loc_freiburg_estate",
     "loc_telephone",
     "loc_pub_deutsche",
@@ -118,6 +124,10 @@ try {
   );
   const workersPubBindings = scenarioBindingsForPoint(
     findPoint(snapshot, "loc_workers_pub"),
+  );
+  const hbfBindings = scenarioBindingsForPoint(findPoint(snapshot, "loc_hbf"));
+  const munsterBindings = scenarioBindingsForPoint(
+    findPoint(snapshot, "loc_munster"),
   );
   const telephoneBindings = scenarioBindingsForPoint(
     findPoint(snapshot, "loc_telephone"),
@@ -156,10 +166,37 @@ try {
     "loc_workers_pub must offer the covert rail-yard route",
   );
   assert(
+    workersPubBindings.some(
+      (binding) => binding.scenarioId === CASE01_SCENARIO_IDS.falseTrailWorkers,
+    ),
+    "loc_workers_pub must offer the workers false trail",
+  );
+  assert(
+    hbfBindings.some(
+      (binding) =>
+        binding.scenarioId === CASE01_SCENARIO_IDS.falseTrailPostRoute,
+    ),
+    "loc_hbf must offer the postal route false trail",
+  );
+  assert(
+    munsterBindings.some(
+      (binding) =>
+        binding.scenarioId === CASE01_SCENARIO_IDS.falseTrailGrimoire,
+    ),
+    "loc_munster must offer the grimoire restorer false trail",
+  );
+  assert(
     telephoneBindings.some(
       (binding) => binding.scenarioId === CASE01_SCENARIO_IDS.lotteInterlude,
     ),
     "loc_telephone must offer the Lotte interlude",
+  );
+  assert(
+    telephoneBindings.some(
+      (binding) =>
+        binding.scenarioId === CASE01_SCENARIO_IDS.falseTrailConvergence,
+    ),
+    "loc_telephone must offer the false-trail convergence",
   );
   assert(
     zumGoldenenAdlerBindings.some(

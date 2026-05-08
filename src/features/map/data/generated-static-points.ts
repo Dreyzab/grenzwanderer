@@ -235,6 +235,36 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
         ]
       },
       {
+        "id": "bind_hbf_false_trail_post_route",
+        "trigger": "card_secondary",
+        "label": "Audit the Postal Route",
+        "priority": 122,
+        "intent": "interaction",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "case01_onboarding_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "false_trail_post_route_complete",
+            "value": false
+          }
+        ],
+        "actions": [
+          {
+            "type": "start_scenario",
+            "scenarioId": "case01_false_trail_post_route"
+          }
+        ]
+      },
+      {
         "id": "bind_hbf_verify_rail_yard_rumor",
         "trigger": "card_primary",
         "label": "Verify Rail Yard Whisper",
@@ -605,15 +635,32 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "isHiddenInitially": true,
     "bindings": [
       {
-        "id": "legacy_start_loc_munster",
-        "trigger": "card_primary",
-        "label": "Start Scenario",
-        "priority": 100,
+        "id": "bind_munster_false_trail_grimoire",
+        "trigger": "card_secondary",
+        "label": "Question the Book Restorer",
+        "priority": 112,
         "intent": "interaction",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "case01_onboarding_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "false_trail_grimoire_complete",
+            "value": false
+          }
+        ],
         "actions": [
           {
             "type": "start_scenario",
-            "scenarioId": "sandbox_intro_pilot"
+            "scenarioId": "case01_false_trail_grimoire"
           }
         ]
       },
@@ -1053,6 +1100,36 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "defaultState": "discovered",
     "isHiddenInitially": true,
     "bindings": [
+      {
+        "id": "bind_pub_false_trail_workers",
+        "trigger": "card_secondary",
+        "label": "Question the Workers",
+        "priority": 145,
+        "intent": "interaction",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "case01_onboarding_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "false_trail_workers_complete",
+            "value": false
+          }
+        ],
+        "actions": [
+          {
+            "type": "start_scenario",
+            "scenarioId": "case01_false_trail_workers"
+          }
+        ]
+      },
       {
         "id": "bind_pub_covert_route",
         "trigger": "card_primary",
@@ -1507,6 +1584,101 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "unlockGroup": "loc_telephone",
     "isHiddenInitially": true,
     "bindings": [
+      {
+        "id": "bind_telephone_false_trail_convergence",
+        "trigger": "card_primary",
+        "label": "Assemble the False Trails",
+        "priority": 130,
+        "intent": "objective",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "case01_onboarding_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          },
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "logic_and",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "false_trail_workers_refuted",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "false_trail_post_route_refuted",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "type": "logic_and",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "false_trail_workers_refuted",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "false_trail_grimoire_refuted",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "type": "logic_and",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "false_trail_post_route_refuted",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "false_trail_grimoire_refuted",
+                    "value": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "false_trail_workers_refuted",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "false_trail_post_route_refuted",
+                "value": true
+              }
+            ]
+          },
+          {
+            "type": "flag_is",
+            "key": "false_trail_convergence_complete",
+            "value": false
+          }
+        ],
+        "actions": [
+          {
+            "type": "start_scenario",
+            "scenarioId": "case01_false_trail_convergence"
+          }
+        ]
+      },
       {
         "id": "bind_telephone_lotte_interlude",
         "trigger": "card_primary",

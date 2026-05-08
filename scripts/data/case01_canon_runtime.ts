@@ -142,7 +142,7 @@ export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
     nodeIds: [
       "scene_case01_mayor_entry",
       "scene_case01_mayor_independent_footing",
-      "scene_case01_mayor_dossier",
+      "scene_case01_rathaus_briefing_full",
       "scene_case01_mayor_felix_aside",
       "scene_case01_mayor_exit",
     ],
@@ -327,7 +327,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
-    characterId: "assistant",
+    characterId: "npc_felix_hartmann",
     choices: [
       {
         id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_ASSISTANT_INTRO",
@@ -341,17 +341,60 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath:
       "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
-    bodyOverride: "**[Assistant]**:\n— Вы уверены, что это не розыгрыш?\n\n**[inspector]**:\n— Письмо было доставлено частной службой, а бумага и чернила, используемые в нем, стоят недешево. Что ж, узнаем по прибытии в отель.\n\n**[Assistant]**:\n— Вы правы, сэр. Не стали бы они арендовать нам номер просто так.",
+    bodyOverride: "**[Assistant]**:\n— Вы уверены, что это не розыгрыш?",
     backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
-    characterId: "assistant",
+    characterId: "npc_felix_hartmann",
     choices: [
       {
-        id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_DOOR_CREAKS",
-        text: "Continue.",
+        id: "CASE01_TRAIN_DOOR_CREAKS_LOGIC",
+        text: "Письмо доставлено частной службой, бумага и чернила стоят недешево. Розыгрыш обошелся бы слишком дорого.",
         nextNodeId: "scene_case01_train_assistant_departure",
+        inlineText: "**[Assistant]**:\n— Вы правы, сэр. Не стали бы они арендовать нам номер просто так.",
+        effects: [
+          { type: "add_var", key: "attr_logic", value: 1 }
+        ],
+        innerVoiceHints: [
+          {
+            voiceId: "inner_analyst",
+            stance: "supports",
+            text: "Холодный расчет прежде всего."
+          }
+        ]
       },
+      {
+        id: "CASE01_TRAIN_DOOR_CREAKS_AUTHORITY",
+        text: "Не имеет значения, розыгрыш это или нет. Нам бросили вызов, и мы не имеем права его игнорировать.",
+        nextNodeId: "scene_case01_train_assistant_departure",
+        inlineText: "**[Assistant]**:\n— Полностью согласен, сэр. Мы не можем оставить это без внимания.",
+        effects: [
+          { type: "add_var", key: "attr_authority", value: 1 }
+        ],
+        innerVoiceHints: [
+          {
+            voiceId: "inner_leader",
+            stance: "supports",
+            text: "Дисциплина и долг не терпят сомнений."
+          }
+        ]
+      },
+      {
+        id: "CASE01_TRAIN_DOOR_CREAKS_INTUITION",
+        text: "Что-то мне подсказывает, что за этим письмом кроется нечто гораздо большее, чем кажется на первый взгляд.",
+        nextNodeId: "scene_case01_train_assistant_departure",
+        inlineText: "**[Assistant]**:\n— Ваше чутье вас редко подводит, сэр. Будем настороже.",
+        effects: [
+          { type: "add_var", key: "attr_intuition", value: 1 }
+        ],
+        innerVoiceHints: [
+          {
+            voiceId: "inner_guide",
+            stance: "supports",
+            text: "Слушай свой внутренний голос. Здесь скрыта тайна."
+          }
+        ]
+      }
     ],
   },
   {
@@ -363,14 +406,14 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
-    characterId: "assistant",
+    characterId: "npc_felix_hartmann",
     choices: [
       {
         id: "CASE01_TRAIN_ASSISTANT_EAT_TOGETHER",
         text: "Wait for me! I've worked up an appetite�I need a bite to eat.",
         nextNodeId: CASE01_DINING_NODE_IDS.intro,
         effects: [
-          { type: "change_relationship", characterId: "assistant", delta: 1 },
+          { type: "change_relationship", characterId: "npc_felix_hartmann", delta: 1 },
         ],
       },
       {
@@ -597,7 +640,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_TRAIN_DINING_CAR_FELIX_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_dining_car",
-    characterId: "assistant",
+    characterId: "npc_felix_hartmann",
     passiveChecks: [
       {
         id: "check_case01_felix_empathy",
@@ -640,7 +683,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         ],
         effects: [
           { type: "set_flag", key: CASE01_DINING_FLAGS.defendedFelix, value: true },
-          { type: "change_relationship", characterId: "assistant", delta: 1 },
+          { type: "change_relationship", characterId: "npc_felix_hartmann", delta: 1 },
         ],
       },
       {
@@ -656,7 +699,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         ],
         effects: [
           { type: "set_flag", key: CASE01_DINING_FLAGS.defendedFelix, value: true },
-          { type: "change_relationship", characterId: "assistant", delta: 1 },
+          { type: "change_relationship", characterId: "npc_felix_hartmann", delta: 1 },
         ],
       },
       {
@@ -672,7 +715,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         ],
         effects: [
           { type: "set_flag", key: CASE01_DINING_FLAGS.defendedFelix, value: true },
-          { type: "change_relationship", characterId: "assistant", delta: 1 },
+          { type: "change_relationship", characterId: "npc_felix_hartmann", delta: 1 },
         ],
       },
       {
@@ -1279,7 +1322,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
     titleOverride: "Evening edition",
-    bodyOverride: "The boy is nervous. He grips the thin, hurried evening edition like a shield. You notice the bank's name � Bankhaus Krebs � in the headlines. It's too early for official news, too specific for rumor.\n\nSomeone wanted this story told before the dust even settled.",
+    bodyOverride: "The boy is nervous. He grips the thin, hurried evening edition like a shield. You notice the bank's name -- Bankhaus J.A. Krebs -- in the headlines. It's too early for official news, too specific for rumor.\n\nSomeone wanted this story told before the dust even settled.",
     backgroundUrl: CASE01_NEWSBOY_BG,
     narrativeLayout: "log",
     sceneGroupId: "hbf_newsboy",
@@ -1312,7 +1355,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
     bodyOverride:
-      "As you reach for a paper, the boy's hand trembles. He's not just selling news; he's watching for someone. Your assistant leans in, a silent shadow that makes the boy stiffen further.\n\n'Go,' you mutter. He doesn't wait for a second invitation.",
+      "As you reach for a paper, the boy's hand trembles. He's not just selling news; he's watching for someone. Felix leans in, a silent shadow that makes the boy stiffen further.\n\n'Go,' you mutter. He doesn't wait for a second invitation.",
     backgroundUrl: CASE01_NEWSBOY_BG,
     narrativeLayout: "log",
     sceneGroupId: "hbf_newsboy",
@@ -1475,7 +1518,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing.md",
     titleOverride: "Mayor's Office",
     bodyOverride:
-      "The mayor does not offer you a chair until he has decided what sort of investigator you are. He wants the panic contained, the council reassured, and the bank matter finished before the newspapers decide it was an inside job with friends in City Hall.",
+      "The mayor does not offer you a chair until he has decided what sort of investigator you are. He wants the panic contained, the council reassured, and the bank matter finished before the newspapers decide it was an inside job with friends in City Hall.\n\n'I asked the police to attach a scientific observer,' he says. 'They refused my daughter on grounds of decorum.'\n\nThe door opens before the Polizeidirektor can enjoy the word. Victoria Sterling enters with a sealed sample tube, a strip of black-yellow postal twine, and the look of a woman who has already heard every objection twice.\n\n'The route was bent before the gas reached the bank,' she says. 'If you want a robbery, gentlemen, you will have to explain why it travelled like a delivery.'",
     choices: [
       {
         id: "CASE01_MAYOR_INDEPENDENT_FOOTING",
@@ -1491,14 +1534,29 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       },
       {
         id: "CASE01_MAYOR_PRESS",
-        text: "Ask what the Rathaus is most afraid of.",
-        nextNodeId: "scene_case01_mayor_dossier",
-        effects: [{ type: "grant_xp", amount: 5 }],
+        text: "Ask why the Polizeidirektor refused Victoria's findings.",
+        nextNodeId: "scene_case01_rathaus_briefing_full",
+        effects: [
+          { type: "set_flag", key: "police_refused_victoria", value: true },
+          { type: "set_flag", key: "victoria_introduced", value: true },
+          { type: "grant_evidence", evidenceId: "ev_bureau_control_code" },
+          {
+            type: "discover_fact",
+            caseId: "case_bankhaus_krebs_false_trail",
+            factId: "fact_mayor_control_code",
+          },
+          { type: "grant_xp", amount: 5 },
+        ],
       },
       {
-        id: "CASE01_MAYOR_CLARA",
-        text: "Ask why Clara von Altenburg is already moving around the bank.",
-        nextNodeId: "scene_case01_mayor_dossier",
+        id: "CASE01_MAYOR_VICTORIA_ROUTE",
+        text: "Let Victoria finish the postal-chain argument before anyone interrupts.",
+        nextNodeId: "scene_case01_rathaus_briefing_full",
+        effects: [
+          { type: "set_flag", key: "police_refused_victoria", value: true },
+          { type: "set_flag", key: "victoria_introduced", value: true },
+          { type: "set_var", key: "official_writ_strength", value: 1 },
+        ],
       },
     ],
   },
@@ -1513,7 +1571,48 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "CASE01_MAYOR_INDEPENDENT_TO_DOSSIER",
         text: "Take the cleaner footing and ask what the Rathaus is most afraid of.",
-        nextNodeId: "scene_case01_mayor_dossier",
+        nextNodeId: "scene_case01_rathaus_briefing_full",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_rathaus_briefing_full",
+    scenarioId: CASE01_SCENARIO_IDS.mayorBriefing,
+    sourcePath: "40_GameViewer/Case01/_runtime/case01_mayor_briefing/scene_case01_rathaus_briefing_full.md",
+    titleOverride: "The Rathaus Summit",
+    bodyOverride:
+      "The Oberbuergermeister taps his signet ring against the oak. Victoria stands by the window, a silent analyst in a field uniform. Felix waits with the dossier.\n\n'The Bankhaus Krebs is a pillar of Freiburg,' the Mayor says. 'If a wagon vanishes there, it is a scandal we cannot afford.'",
+    backgroundUrl: CASE01_RATHAUS_BG,
+    choices: [
+      {
+        id: "RATHAUS_ACCEPT_PARTNERSHIP",
+        text: "I accept. Victoria's expertise is the edge this case needs.",
+        nextNodeId: "scene_case01_mayor_exit",
+        effects: [
+          { type: "set_flag", key: "victoria_introduced", value: true },
+          { type: "set_flag", key: "victoria_respected", value: true },
+          { type: "set_var", key: "official_writ_strength", value: 2 },
+          { type: "change_relationship", characterId: "victoria_sterling", delta: 1 },
+        ],
+      },
+      {
+        id: "RATHAUS_PROFESSIONAL_ONLY",
+        text: "I will take the writ and the consultant. Let's keep this strictly professional.",
+        nextNodeId: "scene_case01_mayor_exit",
+        effects: [
+          { type: "set_flag", key: "victoria_introduced", value: true },
+          { type: "set_var", key: "official_writ_strength", value: 1 },
+        ],
+      },
+      {
+        id: "RATHAUS_SKEPTICAL",
+        text: "Is this a request for an investigator or a babysitter, Herr Oberbuergermeister?",
+        nextNodeId: "scene_case01_mayor_exit",
+        effects: [
+          { type: "set_flag", key: "victoria_introduced", value: true },
+          { type: "change_relationship", characterId: "victoria_sterling", delta: -1 },
+          { type: "add_tension", amount: 1 },
+        ],
       },
     ],
   },
@@ -1523,7 +1622,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing.md",
     titleOverride: "Political Pressure",
     bodyOverride:
-      "He gives you three things and pretends they are one: a permit to push into the records later, a warning that Galdermann has friends who pay for silence, and a refusal to say Hartmann's name without first seeing what you can prove.",
+      "The Polizeidirektor calls Victoria 'Frau Sterling' as if widowhood is a more acceptable credential than chemistry. Her jaw tightens only once. The mayor does not look at her when he answers; that is how you learn the request is personal before it is political.\n\nHe gives you three things and pretends they are one: a permit to press deeper into the records later, a warning that Galdermann has friends who pay for silence, and an unofficial attachment of Victoria as private scientific consultant under your responsibility.",
+    characterId: "victoria_sterling",
     choices: [
       {
         id: "CASE01_MAYOR_FELIX_ASIDE",
@@ -1538,12 +1638,51 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         ],
       },
       {
-        id: "CASE01_MAYOR_TO_BANK",
-        text: "Take the briefing and move to the bank with official cover.",
+        id: "CASE01_MAYOR_RESPECT_VICTORIA",
+        text: "Recognize Victoria's chain of custody as the strongest evidence in the room.",
         nextNodeId: "scene_case01_mayor_exit",
         effects: [
           { type: "set_flag", key: "met_mayor_first", value: true },
-          { type: "change_relationship", characterId: "assistant", delta: 1 },
+          { type: "set_flag", key: "police_refused_victoria", value: true },
+          { type: "set_flag", key: "victoria_introduced", value: true },
+          { type: "set_flag", key: "victoria_respected", value: true },
+          { type: "set_var", key: "official_writ_strength", value: 2 },
+          { type: "change_relationship", characterId: "victoria_sterling", delta: 1 },
+        ],
+      },
+      {
+        id: "CASE01_MAYOR_PATRONIZE_VICTORIA",
+        text: "Accept the Oberbuergermeister's daughter as a liability you will manage.",
+        nextNodeId: "scene_case01_mayor_exit",
+        effects: [
+          { type: "set_flag", key: "met_mayor_first", value: true },
+          { type: "set_flag", key: "police_refused_victoria", value: true },
+          { type: "set_flag", key: "victoria_introduced", value: true },
+          { type: "set_var", key: "official_writ_strength", value: 1 },
+          { type: "change_relationship", characterId: "victoria_sterling", delta: -1 },
+        ],
+      },
+      {
+        id: "CASE01_MAYOR_PRESS_WITH_VICTORIA",
+        text: "Use Victoria's postal route to force the Rathaus into a stronger writ.",
+        nextNodeId: "scene_case01_mayor_exit",
+        effects: [
+          { type: "set_flag", key: "met_mayor_first", value: true },
+          { type: "set_flag", key: "police_refused_victoria", value: true },
+          { type: "set_flag", key: "victoria_introduced", value: true },
+          { type: "set_var", key: "official_writ_strength", value: 2 },
+          { type: "add_tension", amount: 1 },
+        ],
+      },
+      {
+        id: "CASE01_MAYOR_TO_BANK",
+        text: "Accept Victoria as a neutral expert and move to the bank.",
+        nextNodeId: "scene_case01_mayor_exit",
+        effects: [
+          { type: "set_flag", key: "met_mayor_first", value: true },
+          { type: "set_flag", key: "police_refused_victoria", value: true },
+          { type: "set_flag", key: "victoria_introduced", value: true },
+          { type: "set_var", key: "official_writ_strength", value: 1 },
         ],
       },
     ],
@@ -1554,8 +1693,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing.md",
     titleOverride: "Felix Reads the Cover",
     bodyOverride:
-      "Felix takes the permit as if it might bruise. He reads the mayor's phrasing twice, once for law and once for cowardice.\n\n'This gives you doors,' he says quietly. 'Not protection. If the Rathaus needs distance later, every sentence here already knows how to step away from you.'\n\nHe hands it back before anyone can ask whether he was helping you or warning himself.",
-    characterId: "assistant",
+      "Felix takes the permit as if it might bruise. He reads the mayor's phrasing twice, once for law and once for cowardice, then glances at Victoria's sample tube.\n\n'This gives you doors,' he says quietly. 'Not protection. If the Rathaus needs distance later, every sentence here already knows how to step away from you.'\n\nHe hands it back before anyone can ask whether he was helping you, warning himself, or telling Victoria that the city will use her work before it respects it.",
+    characterId: "npc_felix_hartmann",
     choices: [
       {
         id: "CASE01_MAYOR_FELIX_TO_BANK",
@@ -1563,7 +1702,11 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         nextNodeId: "scene_case01_mayor_exit",
         effects: [
           { type: "set_flag", key: "met_mayor_first", value: true },
-          { type: "change_relationship", characterId: "assistant", delta: 1 },
+          { type: "set_flag", key: "police_refused_victoria", value: true },
+          { type: "set_flag", key: "victoria_introduced", value: true },
+          { type: "set_flag", key: "victoria_respected", value: true },
+          { type: "set_var", key: "official_writ_strength", value: 2 },
+          { type: "change_relationship", characterId: "victoria_sterling", delta: 1 },
         ],
       },
     ],
@@ -1574,7 +1717,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing.md",
     titleOverride: "Official Writ",
     bodyOverride:
-      "By the time you leave, you have enough paper to open doors and enough political pressure to know those same doors may close behind you.",
+      "By the time you leave, you have enough paper to open doors, enough political pressure to know those same doors may close behind you, and enough ambiguity for the Rathaus to deny it ever appointed Victoria Sterling at all.\n\nThat is the bargain: she enters the bank as your private scientific consultant, not as an officer.",
     terminal: true,
     onEnter: [
       { type: "set_flag", key: "mayor_briefing_complete", value: true },
@@ -1592,21 +1735,23 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/03_Bank/scene_bank_arrival.md",
     titleOverride: "Bankhaus J.A. Krebs",
     bodyOverride:
-      "Cold air clings to the bank's marble steps. Clara von Altenburg intercepts you before the porter can lie about how calm the building is. Inside, the hall is too orderly for a clean robbery and too frightened for an ordinary one.",
+      "Cold air clings to the marble steps of Bankhaus J.A. Krebs. Victoria Sterling is already beside the crooked postal car, not touching the handle, counting the knots in the black-yellow postal twine as if each one has sworn a separate oath.\n\nInside, clerks lower their eyes on schedule. Someone has already decided which version of the robbery the room should survive. With Victoria beside you, the room has to recalculate who is allowed to notice the chemistry.",
     backgroundUrl: CASE01_BG_BANK_EXTERIOR,
-    characterId: "assistant",
+    characterId: "victoria_sterling",
     choices: [
       {
-        id: "CASE01_BANK_WITH_CLARA",
-        text: "Bring Clara with you and let the room react to it.",
+        id: "CASE01_BANK_WITH_VICTORIA",
+        text: "Bring Victoria inside and watch who recalculates around the gas story.",
         nextNodeId: "scene_case01_bank_manager",
         effects: [
-          { type: "change_relationship", characterId: "assistant", delta: 1 },
+          { type: "set_flag", key: "victoria_introduced", value: true },
+          { type: "set_flag", key: "victoria_seen_in_bank", value: true },
+          { type: "change_relationship", characterId: "victoria_sterling", delta: 1 },
         ],
       },
       {
         id: "CASE01_BANK_SOLO",
-        text: "Go in alone and keep Clara watching the floor.",
+        text: "Enter first and make Victoria hold the postal car outside.",
         nextNodeId: "scene_case01_bank_manager",
       },
     ],
@@ -1617,18 +1762,18 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/03_Bank/scene_manager_dialogue.md",
     titleOverride: "Director Galdermann",
     bodyOverride:
-      "Heinrich Galdermann smiles like a man used to restructuring other people's panic. He calls the vault opening an unfortunate internal matter, pushes suspicion toward his clerks, and goes briefly rigid when you mention Hartmann by name.",
+      "Heinrich Galdermann receives you with a smile polished for committees. He calls the open vault an internal matter, nudges suspicion toward frightened clerks, and asks whether Fritz Muller's sealed statements reached you intact. The question arrives too early.",
     backgroundUrl: CASE01_BG_BANK_OFFICE,
     choices: [
       {
         id: "CASE01_BANK_MANAGER_PRESS",
-        text: "Press him on Hartmann and the sealed statements.",
+        text: "Press Galdermann on Hartmann and Fritz Muller's sealed statements.",
         nextNodeId: "scene_case01_bank_clerk",
         effects: [{ type: "set_flag", key: "met_galdermann", value: true }],
       },
       {
         id: "CASE01_BANK_MANAGER_BYPASS",
-        text: "Let the director talk and move to the clerk before he resets the story.",
+        text: "Let Galdermann talk until his procedure starts contradicting itself.",
         nextNodeId: "scene_case01_bank_clerk",
         effects: [{ type: "set_flag", key: "met_galdermann", value: true }],
       },
@@ -1640,12 +1785,12 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/03_Bank/scene_clerk_dialogue.md",
     titleOverride: "Ernst Vogel",
     bodyOverride:
-      "Ernst Vogel looks terrified in the precise way innocence and coercion sometimes overlap. He swears the vault was locked, admits Hartmann had the kind of access no junior clerk should question, and finally blurts out Gustav the canal cleaner saw a black silhouette by the bank before dawn.",
+      "Ernst Vogel has the pale obedience of a man who was told which truth would keep his job. He swears the vault was locked, then admits Hartmann's access was never questioned. Only when you stop rescuing him from silence does Gustav's black silhouette surface.",
     backgroundUrl: CASE01_BG_BANK_HALL,
     choices: [
       {
         id: "CASE01_BANK_CLERK_READ",
-        text: "Read the fear, not the script.",
+        text: "Read Vogel's fear before you read his statement.",
         nextNodeId: "scene_case01_bank_vault",
         skillCheck: {
           id: "check_case01_clerk_empathy",
@@ -1664,7 +1809,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       },
       {
         id: "CASE01_BANK_CLERK_MOVE",
-        text: "Take what he gave you and go straight to the vault.",
+        text: "Take the silhouette and move to the vault.",
         nextNodeId: "scene_case01_bank_vault",
         effects: [{ type: "set_flag", key: "clerk_interviewed", value: true }],
       },
@@ -1676,12 +1821,12 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/03_Bank/scene_vault_inspection.md",
     titleOverride: "Vault Inspection",
     bodyOverride:
-      "The vault door hangs open without any sign of brute force. Dust, velvet, and chemical grit tell three different stories, which is exactly what convinces you they belong to the same job.",
+      "The vault door hangs open without force. Velvet dust clings where no customer should stand, and a sweet chemical grit sits in the lock throat. Metal has no loyalty; it simply refuses Galdermann's tidy story.\n\nVictoria Sterling stops speaking when a pale residue clings to her sample knife. She has seen that notation once before in the sealed remains of her husband's case. The match is not an answer. It is only the old wound learning a new address.",
     backgroundUrl: CASE01_BG_BANK_VAULT,
     choices: [
       {
         id: "CASE01_BANK_VAULT_LOCK",
-        text: "Work the lock and catalogue the insider traces.",
+        text: "Work the lock and catalogue the insider trace.",
         nextNodeId: "scene_case01_bank_conclusion",
         skillCheck: {
           id: "check_case01_vault_logic",
@@ -1700,7 +1845,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       },
       {
         id: "CASE01_BANK_VAULT_AIR",
-        text: "Trust the air and the chemical wrongness in the room.",
+        text: "Trust the chemical wrongness in the vault air.",
         nextNodeId: "scene_case01_bank_conclusion",
         skillCheck: {
           id: "check_case01_vault_intuition",
@@ -1725,7 +1870,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/03_Bank/scene_bank_conclusion.md",
     titleOverride: "Three Open Leads",
     bodyOverride:
-      "Clara lays the structure out cleanly. Velvet points toward a tailor and disguises. Powder points toward a pharmacy and a supply line. Gustav's silhouette points toward a tavern and the night traffic that fed the bank. Freiburg stops being one crime scene and becomes a city of linked lies.",
+      "On the table, three things refuse to become one story: torn velvet, sweet chemical grit, and Gustav's name moving through the night. Victoria looks first to the cloth because grief wants a face. Then she reins herself back to procedure: disguise, supply route, tavern traffic.",
     terminal: true,
     onEnter: [
       {

@@ -1,12 +1,10 @@
-import {
-  canonicalSkillVoiceIdFor,
-  getCanonicalVoiceLabel,
-  getCanonicalVoicePromptProfile,
-} from "../../../../data/voiceBridge";
-import type { CharacterAttributeDefinition } from "../characterScreenModel";
+import type {
+  InnerVoiceId,
+  SkillVoiceId,
+} from "../../../../data/innerVoiceContract";
+import type { VoiceOrDeptId } from "../../../shared/ui/icons/game-icons";
 import type { OriginProfileDefinition } from "../originProfiles";
 import type {
-  AttributeVoiceBridgeSummary,
   CharacterContactEntry,
   CharacterQuestJournalEntry,
 } from "./characterPanel.types";
@@ -102,25 +100,46 @@ export const getSocialTone = (
   };
 };
 
-export const buildAttributeVoiceBridge = (
-  attribute: CharacterAttributeDefinition,
-): AttributeVoiceBridgeSummary | null => {
-  const canonicalVoiceId = canonicalSkillVoiceIdFor(attribute.key);
-  const promptProfile = getCanonicalVoicePromptProfile(attribute.key);
+export const PATRON_VOICE_ICON_BY_ID = {
+  inner_leader: "authority",
+  inner_guide: "empathy",
+  inner_manipulator: "charisma",
+  inner_adapter: "agility",
+  inner_analyst: "logic",
+  inner_cynic: "perception",
+  inner_exile: "occultism",
+  inner_hermit: "tradition",
+} as const satisfies Record<InnerVoiceId, VoiceOrDeptId>;
 
-  if (canonicalVoiceId === attribute.key && !promptProfile) {
-    return null;
-  }
+export const SKILL_VOICE_ICON_BY_ID = {
+  attr_agility: "agility",
+  attr_authority: "authority",
+  attr_charisma: "charisma",
+  attr_composure: "volition",
+  attr_deception: "deception",
+  attr_empathy: "empathy",
+  attr_encyclopedia: "encyclopedia",
+  attr_endurance: "endurance",
+  attr_forensics: "perception",
+  attr_imagination: "imagination",
+  attr_intellect: "intellect",
+  attr_intrusion: "intrusion",
+  attr_intuition: "intuition",
+  attr_logic: "logic",
+  attr_occultism: "occultism",
+  attr_perception: "perception",
+  attr_physical: "physical",
+  attr_poetics: "imagination",
+  attr_psyche: "psyche",
+  attr_shadow: "shadow",
+  attr_social: "social",
+  attr_spirit: "spirit",
+  attr_stealth: "stealth",
+  attr_tradition: "tradition",
+} as const satisfies Record<SkillVoiceId, VoiceOrDeptId>;
 
-  return {
-    legacyVoiceId: attribute.key,
-    canonicalVoiceId,
-    canonicalLabel: getCanonicalVoiceLabel(attribute.key),
-    iconName:
-      canonicalVoiceId.startsWith("attr_") ||
-      canonicalVoiceId.startsWith("inner_")
-        ? attribute.icon
-        : canonicalVoiceId,
-    promptProfile,
-  };
-};
+export const getPatronVoiceIcon = (voiceId: InnerVoiceId): VoiceOrDeptId =>
+  PATRON_VOICE_ICON_BY_ID[voiceId];
+
+export const getSkillVoiceIcon = (skillId: SkillVoiceId): VoiceOrDeptId =>
+  SKILL_VOICE_ICON_BY_ID[skillId];

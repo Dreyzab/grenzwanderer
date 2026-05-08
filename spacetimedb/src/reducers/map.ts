@@ -468,6 +468,13 @@ const toVnEffect = (action: Exclude<MapAction, { type: "start_scenario" }>) => {
   if (action.type === "grant_xp") {
     return { type: "grant_xp", amount: action.amount } as const;
   }
+  if (action.type === "grant_skill_xp") {
+    return {
+      type: "grant_skill_xp",
+      skillId: action.skillId,
+      amount: action.amount,
+    } as const;
+  }
   if (action.type === "change_relationship") {
     return {
       type: "change_relationship",

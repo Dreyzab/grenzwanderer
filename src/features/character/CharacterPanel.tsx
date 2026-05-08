@@ -153,13 +153,8 @@ export const CharacterPanel = () => {
                     role="tabpanel"
                   >
                     <CharacterDevelopmentTab
-                      attributes={vm.attributeCards}
-                      primaryVoiceBridgeEntries={vm.primaryVoiceBridgeEntries}
+                      patronVoiceCards={vm.patronVoiceCards}
                       radarData={vm.radarData}
-                      secondaryVoiceBridgeEntries={
-                        vm.secondaryVoiceBridgeEntries
-                      }
-                      t={vm.t}
                     />
                   </div>
                 ) : null}

@@ -42,7 +42,7 @@ tags:
 
 - **Trigger**: Finding Residue (`found_residue`).
 - **Discovery**: Chalk geometry under the dust.
-- **Clara's Input**: "Patterned, structured, deliberate."
+- **Victoria's Input**: "Patterned, structured, deliberate."
 - **Check**: [[Voice_Occultism|Occultism (DC 14)]]
 - **Success**: "Symbol is a signature or ritual marker."
 - **Reward**: [[40_GameViewer/Case01/_Evidence/ev_occult_circle|Clue: Occult Circle]]

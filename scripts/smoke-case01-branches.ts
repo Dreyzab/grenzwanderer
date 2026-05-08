@@ -18,6 +18,7 @@ type SnapshotEffect = {
   characterId?: string;
   delta?: number;
   groupId?: string;
+  amount?: number;
 };
 
 type SnapshotCondition = {
@@ -136,7 +137,7 @@ try {
       .filter((nodeId): nodeId is string => typeof nodeId === "string"),
   );
 
-  for (const scenarioId of [
+  const authoritativeRuntimeScenarios = [
     CASE01_SCENARIO_IDS.mayorBriefing,
     CASE01_SCENARIO_IDS.leadTailor,
     CASE01_SCENARIO_IDS.leadApothecary,
@@ -146,6 +147,20 @@ try {
     CASE01_SCENARIO_IDS.lodgingZumGoldenenAdler,
     CASE01_SCENARIO_IDS.convergence,
     CASE01_SCENARIO_IDS.warehouseFinale,
+  ];
+  const authoritativeRuntimeScenarioSet = new Set<string>(
+    authoritativeRuntimeScenarios,
+  );
+  const newFalseTrailScenarios = [
+    CASE01_SCENARIO_IDS.falseTrailWorkers,
+    CASE01_SCENARIO_IDS.falseTrailPostRoute,
+    CASE01_SCENARIO_IDS.falseTrailGrimoire,
+    CASE01_SCENARIO_IDS.falseTrailConvergence,
+  ];
+
+  for (const scenarioId of [
+    ...authoritativeRuntimeScenarios,
+    ...newFalseTrailScenarios,
   ]) {
     assert(
       snapshot.scenarios.some((scenario) => scenario.id === scenarioId),
@@ -153,15 +168,17 @@ try {
     );
     const nodes = getScenarioNodes(snapshot, scenarioId);
     assert(nodes.length > 0, `Scenario '${scenarioId}' emitted zero nodes`);
-    assert(
-      nodes.every(
-        (node) =>
-          (typeof node.sourcePath === "string" &&
-            node.sourcePath.startsWith(authoredRuntimePrefix)) ||
-          obsidianRuntimeNodeIds.has(node.id),
-      ),
-      `Scenario '${scenarioId}' must be emitted from authoritative Obsidian runtime files`,
-    );
+    if (authoritativeRuntimeScenarioSet.has(scenarioId)) {
+      assert(
+        nodes.every(
+          (node) =>
+            (typeof node.sourcePath === "string" &&
+              node.sourcePath.startsWith(authoredRuntimePrefix)) ||
+            obsidianRuntimeNodeIds.has(node.id),
+        ),
+        `Scenario '${scenarioId}' must be emitted from authoritative Obsidian runtime files`,
+      );
+    }
   }
 
   assert(
@@ -209,11 +226,91 @@ try {
         }) &&
         hasEffect(choice.effects, {
           type: "change_relationship",
-          characterId: "assistant",
+          characterId: "victoria_sterling",
           delta: 1,
         }),
     ),
     "Felix official-cover aside must preserve the normal mayor exit effects",
+  );
+  const mayorDossierChoices = findNode(
+    snapshot,
+    "scene_case01_mayor_dossier",
+  ).choices;
+  assert(
+    mayorDossierChoices.some(
+      (choice) =>
+        choice.id === "CASE01_MAYOR_RESPECT_VICTORIA" &&
+        choice.nextNodeId === "scene_case01_mayor_exit" &&
+        hasEffect(choice.effects, {
+          type: "set_flag",
+          key: "victoria_respected",
+          value: true,
+        }) &&
+        hasEffect(choice.effects, {
+          type: "set_var",
+          key: "official_writ_strength",
+          value: 2,
+        }) &&
+        hasEffect(choice.effects, {
+          type: "change_relationship",
+          characterId: "victoria_sterling",
+          delta: 1,
+        }),
+    ),
+    "Mayor dossier must reward respecting Victoria's forensic authority",
+  );
+  assert(
+    mayorDossierChoices.some(
+      (choice) =>
+        choice.id === "CASE01_MAYOR_PATRONIZE_VICTORIA" &&
+        choice.nextNodeId === "scene_case01_mayor_exit" &&
+        hasEffect(choice.effects, {
+          type: "set_var",
+          key: "official_writ_strength",
+          value: 1,
+        }) &&
+        hasEffect(choice.effects, {
+          type: "change_relationship",
+          characterId: "victoria_sterling",
+          delta: -1,
+        }),
+    ),
+    "Mayor dossier must penalize patronizing Victoria",
+  );
+  assert(
+    mayorDossierChoices.some(
+      (choice) =>
+        choice.id === "CASE01_MAYOR_PRESS_WITH_VICTORIA" &&
+        choice.nextNodeId === "scene_case01_mayor_exit" &&
+        hasEffect(choice.effects, {
+          type: "set_var",
+          key: "official_writ_strength",
+          value: 2,
+        }) &&
+        hasEffect(choice.effects, {
+          type: "add_tension",
+          amount: 1,
+        }),
+    ),
+    "Mayor dossier must let Victoria's evidence strengthen the writ at a political cost",
+  );
+  assert(
+    findNode(snapshot, "scene_case01_bank_arrival").choices.some(
+      (choice) =>
+        choice.id === "CASE01_BANK_WITH_VICTORIA" &&
+        choice.nextNodeId === "scene_case01_bank_manager" &&
+        hasEffect(choice.effects, {
+          type: "set_flag",
+          key: "victoria_seen_in_bank",
+          value: true,
+        }) &&
+        hasEffect(choice.effects, {
+          type: "change_relationship",
+          characterId: "victoria_sterling",
+          delta: 1,
+        }),
+    ),
+    "Bank arrival must preserve a with-Victoria branch distinct from solo entry",
   );
   assert(
     hasEffect(findNode(snapshot, "scene_case01_mayor_exit").onEnter, {
@@ -246,6 +343,70 @@ try {
       value: true,
     }),
     "Pub branch must set pub_lead_complete",
+  );
+  assert(
+    hasEffect(findNode(snapshot, "scene_case01_workers_exit").onEnter, {
+      type: "set_flag",
+      key: "false_trail_workers_complete",
+      value: true,
+    }),
+    "Workers false trail must mark the worker branch complete",
+  );
+  assert(
+    findNode(snapshot, "scene_case01_workers_rudi").choices.some((choice) =>
+      hasEffect(choice.effects, {
+        type: "set_flag",
+        key: "false_trail_workers_refuted",
+        value: true,
+      }),
+    ),
+    "Workers false trail must let the player refute worker culpability",
+  );
+  assert(
+    hasEffect(findNode(snapshot, "scene_case01_post_route_exit").onEnter, {
+      type: "set_flag",
+      key: "false_trail_post_route_complete",
+      value: true,
+    }),
+    "Postal false trail must mark the route branch complete",
+  );
+  assert(
+    findNode(snapshot, "scene_case01_post_route_weber").choices.some((choice) =>
+      hasEffect(choice.effects, {
+        type: "set_flag",
+        key: "false_trail_post_route_refuted",
+        value: true,
+      }),
+    ),
+    "Postal false trail must let the player refute Weber as the mastermind",
+  );
+  assert(
+    hasEffect(findNode(snapshot, "scene_case01_grimoire_exit").onEnter, {
+      type: "set_flag",
+      key: "false_trail_grimoire_complete",
+      value: true,
+    }),
+    "Grimoire false trail must mark the restorer branch complete",
+  );
+  assert(
+    findNode(snapshot, "scene_case01_grimoire_roth").choices.some((choice) =>
+      hasEffect(choice.effects, {
+        type: "set_flag",
+        key: "false_trail_grimoire_refuted",
+        value: true,
+      }),
+    ),
+    "Grimoire false trail must let the player refute Roth as the mastermind",
+  );
+  assert(
+    hasEffect(
+      findNode(snapshot, "scene_case01_false_trail_convergence_exit").onEnter,
+      {
+        type: "unlock_group",
+        groupId: "loc_freiburg_warehouse",
+      },
+    ),
+    "False-trail convergence must unlock the warehouse route",
   );
   assert(
     hasEffect(

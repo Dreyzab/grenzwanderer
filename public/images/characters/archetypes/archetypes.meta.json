@@ -1,0 +1,20 @@
+{
+  "archetypes": [
+    {
+      "id": "noble_widow_sargent",
+      "name": "Noble Widow (Sargent)",
+      "path": "/images/characters/archetypes/noble_widow_sargent.png",
+      "style": "John Singer Sargent",
+      "description": "High-collared strictly tailored black mourning dress, dark hair swept up, analytical gaze. Perfect for noble NPCs or grieving relatives.",
+      "tags": ["noble", "widow", "mourning", "analytical"]
+    },
+    {
+      "id": "field_agent_sargent",
+      "name": "Field Agent (Sargent)",
+      "path": "/images/characters/archetypes/field_agent_sargent.png",
+      "style": "John Singer Sargent",
+      "description": "Dark heavy wool coat with silver buttons, high collar, moody street background, magnesium flash lighting. Perfect for undercover agents or police consultants.",
+      "tags": ["agent", "uniform", "investigator", "field"]
+    }
+  ]
+}

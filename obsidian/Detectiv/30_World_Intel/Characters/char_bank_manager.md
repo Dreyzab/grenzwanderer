@@ -27,7 +27,7 @@ aliases: ["Heinrich Galdermann"]
 ## Secrets
 
 - **Surface**: Hires Vance to recover trust, assets, and narrative control.
-- **Hidden**: Vault liquidity was compromised before the public robbery narrative.
+- **Hidden**: Vault liquidity was compromised before the public robbery narrative. He orchestrated the daytime heist (disguised as a closed postal vehicle delivery) as a perfect cover-up.
 - **Core**: Only combined Logic and Deception pressure reveals his contingency escape ledger.
 
 ## Relationships

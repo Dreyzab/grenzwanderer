@@ -7,6 +7,8 @@ import type {
   VnEffect,
   VnSkillCheck,
 } from "../src/features/vn/types";
+import { isSkillVoiceId } from "../data/innerVoiceContract";
+import { isSkillRank } from "../src/shared/game/skillProgression";
 import {
   CONDITION_OPERATORS,
   EFFECT_OPERATORS,
@@ -481,6 +483,42 @@ const parseConditionExpression = (
     return { type: "has_item", itemId: args[0] };
   }
 
+  if (operator === "skill_rank_gte") {
+    if (args.length !== 2) {
+      throw makeParserError(
+        doc,
+        line,
+        column,
+        "INVALID_CONDITION_ARITY",
+        "skill_rank_gte expects 2 args: skill_rank_gte(skillId,rank)",
+      );
+    }
+    const skillId = args[0];
+    const rank = args[1];
+    if (!isSkillVoiceId(skillId)) {
+      const suggestion = suggestClosest(skillId, SKILL_VOICE_IDS);
+      throw makeParserError(
+        doc,
+        line,
+        column,
+        "UNKNOWN_SKILL_VOICE",
+        suggestion
+          ? `Unknown skill voice '${skillId}', did you mean '${suggestion}'?`
+          : `Unknown skill voice '${skillId}'`,
+      );
+    }
+    if (!isSkillRank(rank)) {
+      throw makeParserError(
+        doc,
+        line,
+        column,
+        "UNKNOWN_SKILL_RANK",
+        `Unknown skill rank '${rank}'`,
+      );
+    }
+    return { type: "skill_rank_gte", skillId, rank };
+  }
+
   throw makeParserError(
     doc,
     line,
@@ -616,6 +654,36 @@ const parseEffectExpression = (
     return {
       type: "grant_xp",
       amount: parseNumberToken(args[0], doc, line, column, operator),
+    };
+  }
+
+  if (operator === "grant_skill_xp") {
+    if (args.length !== 2) {
+      throw makeParserError(
+        doc,
+        line,
+        column,
+        "INVALID_EFFECT_ARITY",
+        "grant_skill_xp expects 2 args: grant_skill_xp(skillId,amount)",
+      );
+    }
+    const skillId = args[0];
+    if (!isSkillVoiceId(skillId)) {
+      const suggestion = suggestClosest(skillId, SKILL_VOICE_IDS);
+      throw makeParserError(
+        doc,
+        line,
+        column,
+        "UNKNOWN_SKILL_VOICE",
+        suggestion
+          ? `Unknown skill voice '${skillId}', did you mean '${suggestion}'?`
+          : `Unknown skill voice '${skillId}'`,
+      );
+    }
+    return {
+      type: "grant_skill_xp",
+      skillId,
+      amount: parseNumberToken(args[1], doc, line, column, operator),
     };
   }
 
@@ -759,11 +827,24 @@ const parseCheckHeader = (
   }
 
   const showChanceRaw = params.get("showchance");
+  const minSkillRankRaw =
+    params.get("minrank") ?? params.get("minskillrank") ?? params.get("rank");
+  if (minSkillRankRaw !== undefined && !isSkillRank(minSkillRankRaw)) {
+    throw makeParserError(
+      doc,
+      line,
+      column,
+      "UNKNOWN_SKILL_RANK",
+      `Unknown skill rank '${minSkillRankRaw}'`,
+    );
+  }
+  const minSkillRank = minSkillRankRaw === undefined ? undefined : minSkillRankRaw;
 
   return {
     id: checkId,
     voiceId,
     difficulty: parseNumberToken(dcRaw, doc, line, column, "dc"),
+    minSkillRank,
     showChancePercent:
       showChanceRaw === undefined
         ? undefined

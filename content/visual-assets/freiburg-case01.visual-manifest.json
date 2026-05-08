@@ -16,7 +16,9 @@
     "masterRefId": "master_civic_gothic_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_civic_gothic_interior_dialogue",
-    "stateVariantIds": ["investigation"]
+    "stateVariantIds": [
+      "investigation"
+    ]
   },
   {
     "locationId": "loc_freiburg_bank",
@@ -26,7 +28,10 @@
     "masterRefId": "master_civic_gothic_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_civic_gothic_interior_dialogue",
-    "stateVariantIds": ["investigation", "crime_scene"]
+    "stateVariantIds": [
+      "investigation",
+      "crime_scene"
+    ]
   },
   {
     "locationId": "loc_freiburg_estate",
@@ -36,7 +41,10 @@
     "masterRefId": "master_estate_noble_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_estate_noble_interior_dialogue",
-    "stateVariantIds": ["investigation", "memory"]
+    "stateVariantIds": [
+      "investigation",
+      "memory"
+    ]
   },
   {
     "locationId": "loc_freiburg_warehouse",
@@ -46,7 +54,9 @@
     "masterRefId": "master_industrial_rail_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_industrial_rail_interior_dialogue",
-    "stateVariantIds": ["investigation"]
+    "stateVariantIds": [
+      "investigation"
+    ]
   },
   {
     "locationId": "loc_hbf",
@@ -56,7 +66,9 @@
     "masterRefId": "master_industrial_rail_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_industrial_rail_interior_dialogue",
-    "stateVariantIds": ["investigation"]
+    "stateVariantIds": [
+      "investigation"
+    ]
   },
   {
     "locationId": "loc_martinstor",
@@ -84,7 +96,9 @@
     "masterRefId": "master_canal_tavern_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_canal_tavern_interior_dialogue",
-    "stateVariantIds": ["investigation"]
+    "stateVariantIds": [
+      "investigation"
+    ]
   },
   {
     "locationId": "loc_pub_deutsche",
@@ -103,7 +117,9 @@
     "masterRefId": "master_civic_gothic_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_civic_gothic_interior_dialogue",
-    "stateVariantIds": ["investigation"]
+    "stateVariantIds": [
+      "investigation"
+    ]
   },
   {
     "locationId": "loc_red_light",
@@ -113,7 +129,9 @@
     "masterRefId": "master_canal_tavern_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_canal_tavern_interior_dialogue",
-    "stateVariantIds": ["investigation"]
+    "stateVariantIds": [
+      "investigation"
+    ]
   },
   {
     "locationId": "loc_schwabentor",
@@ -132,7 +150,9 @@
     "masterRefId": "master_university_neogothic_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_university_neogothic_interior_dialogue",
-    "stateVariantIds": ["investigation"]
+    "stateVariantIds": [
+      "investigation"
+    ]
   },
   {
     "locationId": "loc_tailor",
@@ -142,7 +162,9 @@
     "masterRefId": "master_civic_gothic_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_civic_gothic_interior_dialogue",
-    "stateVariantIds": ["investigation"]
+    "stateVariantIds": [
+      "investigation"
+    ]
   },
   {
     "locationId": "loc_telephone",
@@ -161,7 +183,9 @@
     "masterRefId": "master_university_neogothic_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_university_neogothic_interior_dialogue",
-    "stateVariantIds": ["investigation"]
+    "stateVariantIds": [
+      "investigation"
+    ]
   },
   {
     "locationId": "loc_uni_med",
@@ -171,7 +195,9 @@
     "masterRefId": "master_university_neogothic_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_university_neogothic_interior_dialogue",
-    "stateVariantIds": ["investigation"]
+    "stateVariantIds": [
+      "investigation"
+    ]
   },
   {
     "locationId": "loc_workers_pub",
@@ -181,6 +207,8 @@
     "masterRefId": "master_industrial_rail_exterior",
     "defaultVariantId": "default",
     "interiorPresetId": "preset_industrial_rail_interior_dialogue",
-    "stateVariantIds": ["investigation"]
+    "stateVariantIds": [
+      "investigation"
+    ]
   }
 ]

@@ -58,6 +58,7 @@ type HarnessProps = {
   selectedScenarioId?: string;
   currentNode?: any;
   mySession?: any;
+  myVars?: Record<string, number>;
   mySkillResults?: SkillCheckResultLike[];
   currentSessionPointer?: string | null;
   isTyping?: boolean;
@@ -86,7 +87,7 @@ function useHarness(props: HarnessProps = {}) {
     transitionState,
     currentSessionPointer: props.currentSessionPointer ?? "session::alpha",
     myFlags: {},
-    myVars: { charisma: 4 },
+    myVars: props.myVars ?? { charisma: 4 },
     choiceEvaluationContext: baseContext as any,
     mySkillResults: props.mySkillResults ?? [],
     currentDiceMode: "d20",
@@ -190,6 +191,32 @@ describe("useVnSkillChecks", () => {
     expect(performSkillCheck).toHaveBeenCalledTimes(1);
   });
 
+  it("skips passive checks whose minimum skill rank is not met", () => {
+    const performSkillCheck = vi.fn().mockResolvedValue(undefined);
+    const currentNode = {
+      ...baseNode,
+      choices: [],
+      passiveChecks: [
+        {
+          id: "passive_locked",
+          voiceId: "attr_forensics",
+          difficulty: 10,
+          minSkillRank: "B",
+        },
+      ],
+    };
+
+    renderHook((props: HarnessProps) => useHarness(props), {
+      initialProps: {
+        currentNode,
+        myVars: { skill_xp_attr_forensics: 399 },
+        performSkillCheck,
+      },
+    });
+
+    expect(performSkillCheck).not.toHaveBeenCalled();
+  });
+
   it("runs the active resolve lifecycle and notifies AI when the result arrives", async () => {
     vi.useFakeTimers();
     const performSkillCheck = vi.fn().mockResolvedValue(undefined);
@@ -276,6 +303,108 @@ describe("useVnSkillChecks", () => {
     });
     expect(result.current.activeSkillResolve?.phase).toBe("result");
     expect(result.current.activeSkillResolve?.passed).toBe(true);
+  });
+
+  it("emits skill XP toast feedback for active method checks", async () => {
+    const methodChoice = {
+      ...baseChoice,
+      skillCheck: {
+        ...baseChoice.skillCheck,
+        voiceId: "attr_deception",
+      },
+    };
+    const performSkillCheck = vi.fn().mockResolvedValue(undefined);
+    const handleResolvedSkillCheck = vi.fn();
+    const { result, rerender } = renderHook(
+      (props: HarnessProps) => useHarness(props),
+      {
+        initialProps: {
+          currentNode: {
+            ...baseNode,
+            choices: [methodChoice],
+          },
+          myVars: {
+            attr_deception: 5,
+            skill_xp_attr_deception: 490,
+          },
+          performSkillCheck,
+          handleResolvedSkillCheck,
+        },
+      },
+    );
+
+    await act(async () => {
+      await result.current.handleChoiceClick(methodChoice as any, false);
+    });
+
+    await act(async () => {
+      await result.current.confirmArmedSkillCheck();
+      await Promise.resolve();
+    });
+
+    const matchedResult: SkillCheckResultLike = {
+      resultKey: "result_deception",
+      playerId: { toHexString: () => "me" },
+      scenarioId: "scenario_alpha",
+      nodeId: "node_start",
+      checkId: "check_probe",
+      roll: 9,
+      voiceLevel: 5,
+      difficulty: 8,
+      passed: true,
+      nextNodeId: { tag: "none" },
+      outcomeGrade: "success",
+      createdAt: timestamp(38n),
+    };
+
+    await act(async () => {
+      rerender({
+        currentNode: {
+          ...baseNode,
+          choices: [methodChoice],
+        },
+        myVars: {
+          attr_deception: 5,
+          skill_xp_attr_deception: 490,
+        },
+        performSkillCheck,
+        handleResolvedSkillCheck,
+        mySkillResults: [matchedResult],
+      } as any);
+      await Promise.resolve();
+    });
+
+    expect(result.current.skillCheckToast?.skillProgress).toMatchObject({
+      skillId: "attr_deception",
+      xpAwarded: 25,
+      xpGained: 25,
+      totalXp: 515,
+      rankUp: true,
+    });
+    expect(result.current.skillCheckToast?.skillProgress?.rankBefore.rank).toBe(
+      "B",
+    );
+    expect(result.current.skillCheckToast?.skillProgress?.rankAfter.rank).toBe(
+      "A",
+    );
+    expect(result.current.statusLine).toBe(
+      "Rank up: Deception B -> A (+25 XP)",
+    );
+    expect(handleResolvedSkillCheck).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        resultKey: "result_deception",
+        skillProgress: expect.objectContaining({
+          totalXp: 515,
+        }),
+      }),
+    );
+
+    act(() => {
+      result.current.clearSkillCheckToast();
+    });
+
+    expect(result.current.skillCheckToast).toBeNull();
   });
 
   it("skips to the result phase when the overlay is tapped mid-animation", async () => {

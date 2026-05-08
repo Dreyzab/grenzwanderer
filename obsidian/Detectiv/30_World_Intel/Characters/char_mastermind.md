@@ -7,7 +7,9 @@ faction: null
 aliases: ["Unknown Mastermind"]
 ---
 
-# Unknown Mastermind
+# Unknown Mastermind (The Architect)
+
+![Portrait](/C:/Users/lol/.gemini/antigravity/brain/023ef4ac-9c35-4e66-b765-9642a676aeff/char_architect_mastermind_portrait_1778174855961.png)
 
 ## Dossier
 
@@ -27,8 +29,8 @@ aliases: ["Unknown Mastermind"]
 ## Secrets
 
 - **Surface**: Known only through indirect traces.
-- **Hidden**: May be composite identity.
-- **Core**: Case 01 should sharpen the profile, not collapse the identity.
+- **Hidden**: True motive for the bank heist was not the embezzled wealth, but a specific private safe deposit box containing an esoteric grimoire (working title: "Разлом" / The Rift).
+- **Core**: Case 01 should sharpen the profile and secure the grimoire, not collapse the identity.
 
 ## Relationships
 

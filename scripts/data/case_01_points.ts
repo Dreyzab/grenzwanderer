@@ -212,6 +212,49 @@ const CASE01_ANY_TWO_LEADS_CONDITION: LegacyMapCondition = {
   ],
 };
 
+const CASE01_ANY_TWO_FALSE_TRAILS_REFUTED_CONDITION: LegacyMapCondition = {
+  type: "logic_or",
+  conditions: [
+    {
+      type: "logic_and",
+      conditions: [
+        { type: "flag_is", key: "false_trail_workers_refuted", value: true },
+        {
+          type: "flag_is",
+          key: "false_trail_post_route_refuted",
+          value: true,
+        },
+      ],
+    },
+    {
+      type: "logic_and",
+      conditions: [
+        { type: "flag_is", key: "false_trail_workers_refuted", value: true },
+        {
+          type: "flag_is",
+          key: "false_trail_grimoire_refuted",
+          value: true,
+        },
+      ],
+    },
+    {
+      type: "logic_and",
+      conditions: [
+        {
+          type: "flag_is",
+          key: "false_trail_post_route_refuted",
+          value: true,
+        },
+        {
+          type: "flag_is",
+          key: "false_trail_grimoire_refuted",
+          value: true,
+        },
+      ],
+    },
+  ],
+};
+
 const CASE01_NO_ROUTE_SELECTED_CONDITION: LegacyMapCondition = {
   type: "var_lte",
   key: "convergence_route",
@@ -384,6 +427,28 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       ],
     },
     {
+      id: "bind_hbf_false_trail_post_route",
+      trigger: "card_secondary",
+      label: "Audit the Postal Route",
+      priority: 122,
+      intent: "interaction",
+      conditions: [
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        { type: "flag_is", key: "bank_investigation_complete", value: true },
+        {
+          type: "flag_is",
+          key: "false_trail_post_route_complete",
+          value: false,
+        },
+      ],
+      actions: [
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.falseTrailPostRoute,
+        },
+      ],
+    },
+    {
       id: "bind_hbf_verify_rail_yard_rumor",
       trigger: "card_primary",
       label: "Verify Rail Yard Whisper",
@@ -531,7 +596,53 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       ],
     },
   ],
+  loc_munster: [
+    {
+      id: "bind_munster_false_trail_grimoire",
+      trigger: "card_secondary",
+      label: "Question the Book Restorer",
+      priority: 112,
+      intent: "interaction",
+      conditions: [
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        { type: "flag_is", key: "bank_investigation_complete", value: true },
+        {
+          type: "flag_is",
+          key: "false_trail_grimoire_complete",
+          value: false,
+        },
+      ],
+      actions: [
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.falseTrailGrimoire,
+        },
+      ],
+    },
+  ],
   loc_workers_pub: [
+    {
+      id: "bind_pub_false_trail_workers",
+      trigger: "card_secondary",
+      label: "Question the Workers",
+      priority: 145,
+      intent: "interaction",
+      conditions: [
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        { type: "flag_is", key: "bank_investigation_complete", value: true },
+        {
+          type: "flag_is",
+          key: "false_trail_workers_complete",
+          value: false,
+        },
+      ],
+      actions: [
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.falseTrailWorkers,
+        },
+      ],
+    },
     {
       id: "bind_pub_covert_route",
       trigger: "card_primary",
@@ -773,6 +884,40 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
     },
   ],
   loc_telephone: [
+    {
+      id: "bind_telephone_false_trail_convergence",
+      trigger: "card_primary",
+      label: "Assemble the False Trails",
+      priority: 130,
+      intent: "objective",
+      conditions: [
+        CASE01_MAINLINE_UNLOCKED_CONDITION,
+        { type: "flag_is", key: "bank_investigation_complete", value: true },
+        CASE01_ANY_TWO_FALSE_TRAILS_REFUTED_CONDITION,
+        {
+          type: "logic_or",
+          conditions: [
+            { type: "flag_is", key: "false_trail_workers_refuted", value: true },
+            {
+              type: "flag_is",
+              key: "false_trail_post_route_refuted",
+              value: true,
+            },
+          ],
+        },
+        {
+          type: "flag_is",
+          key: "false_trail_convergence_complete",
+          value: false,
+        },
+      ],
+      actions: [
+        {
+          type: "start_scenario",
+          scenarioId: CASE01_SCENARIO_IDS.falseTrailConvergence,
+        },
+      ],
+    },
     {
       id: "bind_telephone_lotte_interlude",
       trigger: "card_primary",

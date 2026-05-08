@@ -12,6 +12,10 @@ This document defines the minimum authoring contract that the VN extractor and c
 - Case01 onboarding root is fixed at `40_GameViewer/Case01/Plot/01_Onboarding`.
 - Authoritative Obsidian VN runtime scenarios are discovered by `_scenario.md`
   files under `obsidian/StoryDetective`.
+- Supported Case01 runtime nodes must either have exact StoryDetective
+  frontmatter `id` coverage under `40_GameViewer/Case01` or belong to the
+  explicit `temporary_runtime_bridge` scenario list in
+  `scripts/content-authoring-contract.ts`.
 - Do not rename or move these roots without updating `scripts/content-authoring-contract.ts`.
 
 ## Required Frontmatter
@@ -35,3 +39,6 @@ This document defines the minimum authoring contract that the VN extractor and c
 - Supported Freiburg fallback map data is generated from the extracted snapshot into `src/features/map/data/generated-static-points.ts`; do not hand-maintain a second Freiburg player-facing map source.
 - `tmp/vn-obsidian-migration-report.json` records ownership, locale, and dual-run
   diagnostics for Obsidian runtime scenarios.
+- `obsidian/StoryDetective/40_GameViewer/Case01/CASE01_CANON_LEDGER.md`
+  records the writer-facing Case01 scene ledger, bridge status, and Elias
+  Thorne preservation policy.

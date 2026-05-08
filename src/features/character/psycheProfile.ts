@@ -1,6 +1,7 @@
 import {
   INNER_VOICE_DEFINITIONS,
   type InnerVoiceRole,
+  type InnerVoiceStance,
 } from "../../../data/innerVoiceContract";
 import {
   describeApproach,
@@ -101,9 +102,12 @@ export interface PsycheInnerCompassVoice {
   voiceId: string;
   label: string;
   role: InnerVoiceRole;
+  stance: InnerVoiceStance;
   worldview: string;
   toneDescriptor: string;
   accent: string;
+  reasoning: string;
+  resonance: number;
 }
 
 export interface PsycheInnerCompassSummary {
@@ -374,9 +378,15 @@ const resolveInnerCompass = (
         voiceId: entry.voiceId,
         label: definition.label,
         role: entry.role,
+        stance: entry.stance,
         worldview: definition.worldview,
         toneDescriptor: definition.toneDescriptor,
         accent: definition.palette.accent,
+        reasoning:
+          entry.stance === "supports"
+            ? definition.supportText
+            : definition.opposeText,
+        resonance: entry.resonance,
       };
     }),
   };

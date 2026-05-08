@@ -3,12 +3,14 @@ import {
   PSYCHE_VAR_KEYS as BASE_PSYCHE_VAR_KEYS_ARRAY,
   SKILL_VOICE_IDS as BASE_SKILL_VOICE_IDS,
   SPEAKER_IDS as BASE_SPEAKER_IDS,
+  isSkillVoiceId as isBaseSkillVoiceId,
 } from "../data/innerVoiceContract";
 import { originProfiles } from "./origins.manifest";
 import {
   CASE01_CANON_FLAG_KEYS,
   CASE01_CANON_VAR_KEYS,
 } from "../src/shared/case01Canon";
+import { skillXpVarKeyFor } from "../src/shared/game/skillProgression";
 import { VN_CONDITION_TYPES, VN_EFFECT_TYPES } from "../src/shared/vn-contract";
 
 export const CONDITION_OPERATORS = new Set<string>(VN_CONDITION_TYPES);
@@ -156,10 +158,13 @@ for (const key of SANDBOX_FLAG_KEYS) {
 }
 
 const BASE_VAR_KEYS = new Set<string>([
+  "attr_authority",
   "attr_deception",
   "attr_empathy",
   "attr_encyclopedia",
   "attr_intellect",
+  "attr_intuition",
+  "attr_logic",
   "attr_perception",
   "attr_physical",
   "attr_shadow",
@@ -206,6 +211,10 @@ for (const varKey of CASE01_CANON_VAR_KEYS) {
   BASE_VAR_KEYS.add(varKey);
 }
 
+for (const skillId of BASE_SKILL_VOICE_IDS) {
+  BASE_VAR_KEYS.add(skillXpVarKeyFor(skillId));
+}
+
 for (const profile of originProfiles) {
   BASE_FLAG_KEYS.add(profile.originFlagKey);
   BASE_FLAG_KEYS.add(profile.flawFlagKey);
@@ -217,6 +226,9 @@ for (const profile of originProfiles) {
   }
   for (const stat of profile.statEffects) {
     BASE_VAR_KEYS.add(stat.key);
+    if (isBaseSkillVoiceId(stat.key)) {
+      BASE_VAR_KEYS.add(skillXpVarKeyFor(stat.key));
+    }
     BASE_VOICE_IDS.add(stat.key);
     BASE_SPEAKER_POOL_IDS.add(stat.key);
   }

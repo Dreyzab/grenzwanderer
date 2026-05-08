@@ -1,0 +1,145 @@
+- generic [ref=e6]:
+  - generic [ref=e8]:
+    - generic [ref=e9]: Язык
+    - group "Выберите язык интерфейса" [ref=e10]:
+      - button "EN" [ref=e11]
+      - button "RU" [pressed] [ref=e12]
+      - button "DE" [ref=e13]
+  - main [ref=e15]:
+    - generic [ref=e16]:
+      - main [ref=e17]:
+        - generic [ref=e18]:
+          - heading "Grenzwanderer 4" [level=1] [ref=e20]
+          - paragraph [ref=e23]: Shadows of the Black Forest
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - img [ref=e26]
+            - heading "Выбор города" [level=2] [ref=e28]
+          - paragraph [ref=e29]: Выберите активный регион или войдите через QR-код доступа.
+          - generic [ref=e30]:
+            - button "Фрайбург 1905" [ref=e31]:
+              - img [ref=e32]
+              - text: Фрайбург 1905
+            - button "Карлсруэ 1905" [ref=e36]:
+              - img [ref=e37]
+              - text: Карлсруэ 1905
+          - generic [ref=e39]:
+            - button "Продолжить" [ref=e40]
+            - button "Новая игра" [active] [ref=e41]
+          - button "Сканировать код старта" [ref=e42]:
+            - img [ref=e43]
+            - text: Сканировать код старта
+      - dialog "Выбор происхождения" [ref=e104]:
+        - generic [ref=e105]:
+          - button "Close origin selection" [ref=e106]:
+            - img [ref=e107]
+          - generic [ref=e110]:
+            - generic [ref=e111]: ДЕПАРТАМЕНТ ПОЛИЦИИ ФРАЙБУРГА · 1905
+            - paragraph [ref=e113]: Freiburg 1905
+            - heading "Выбор происхождения" [level=2] [ref=e114]
+            - paragraph [ref=e115]: Выберите досье, которое хотите открыть. Происхождение определяет начальный маршрут, ваш изъян и базовые следственные навыки.
+          - main [ref=e118]:
+            - generic [ref=e119]:
+              - button "1905 Detective Origin Elias Thorne Crime Scene Reconstruction Cynical Mistrust \"Every lie leaves a footprint. You just have to know where to look.\"" [ref=e120] [cursor=pointer]:
+                - generic [ref=e122]:
+                  - generic [ref=e126]: "1905"
+                  - generic [ref=e127]:
+                    - generic [ref=e128]: Detective Origin
+                    - generic [ref=e129]:
+                      - heading "Elias Thorne" [level=3] [ref=e130]
+                      - img [ref=e131]
+                    - generic [ref=e133]:
+                      - generic [ref=e134]:
+                        - img [ref=e135]
+                        - text: Crime Scene Reconstruction
+                      - generic [ref=e138]:
+                        - img [ref=e139]
+                        - text: Cynical Mistrust
+                  - paragraph [ref=e142]: "\"Every lie leaves a footprint. You just have to know where to look.\""
+              - button "1905 Journalist Origin Arthur Vance Nose for a Story Gambling Addiction \"The city lies beautifully. My job is to make it stumble.\"" [ref=e143] [cursor=pointer]:
+                - generic [ref=e145]:
+                  - generic [ref=e149]: "1905"
+                  - generic [ref=e150]:
+                    - generic [ref=e151]: Journalist Origin
+                    - generic [ref=e152]:
+                      - heading "Arthur Vance" [level=3] [ref=e153]
+                      - img [ref=e154]
+                    - generic [ref=e156]:
+                      - generic [ref=e157]:
+                        - img [ref=e158]
+                        - text: Nose for a Story
+                      - generic [ref=e161]:
+                        - img [ref=e162]
+                        - text: Gambling Addiction
+                  - paragraph [ref=e166]: "\"The city lies beautifully. My job is to make it stumble.\""
+              - button "1905 Aristocrat Origin Charlotte von Waldstein Sharp Gaze Claustrophobia \"I was taught to hold a rapier and hold a conversation. Now I learn to hold the truth.\"" [ref=e167] [cursor=pointer]:
+                - generic [ref=e169]:
+                  - generic [ref=e173]: "1905"
+                  - generic [ref=e174]:
+                    - generic [ref=e175]: Aristocrat Origin
+                    - generic [ref=e176]:
+                      - heading "Charlotte von Waldstein" [level=3] [ref=e177]
+                      - img [ref=e178]
+                    - generic [ref=e180]:
+                      - generic [ref=e181]:
+                        - img [ref=e182]
+                        - text: Sharp Gaze
+                      - generic [ref=e185]:
+                        - img [ref=e186]
+                        - text: Claustrophobia
+                  - paragraph [ref=e189]: "\"I was taught to hold a rapier and hold a conversation. Now I learn to hold the truth.\""
+              - button "1905 Veteran Origin Gustav Eisenhart Combat Instinct Alcoholism \"War took everything except the instinct to survive.\"" [ref=e190] [cursor=pointer]:
+                - generic [ref=e192]:
+                  - generic [ref=e196]: "1905"
+                  - generic [ref=e197]:
+                    - generic [ref=e198]: Veteran Origin
+                    - generic [ref=e199]:
+                      - heading "Gustav Eisenhart" [level=3] [ref=e200]
+                      - img [ref=e201]
+                    - generic [ref=e203]:
+                      - generic [ref=e204]:
+                        - img [ref=e205]
+                        - text: Combat Instinct
+                      - generic [ref=e208]:
+                        - img [ref=e209]
+                        - text: Alcoholism
+                  - paragraph [ref=e214]: "\"War took everything except the instinct to survive.\""
+              - button "1905 Archivist Origin Martha Heller Index of Everything Obsessive Archivist \"Every archive hides a truth someone paid to bury.\"" [ref=e215] [cursor=pointer]:
+                - generic [ref=e217]:
+                  - generic [ref=e221]: "1905"
+                  - generic [ref=e222]:
+                    - generic [ref=e223]: Archivist Origin
+                    - generic [ref=e224]:
+                      - heading "Martha Heller" [level=3] [ref=e225]
+                      - img [ref=e226]
+                    - generic [ref=e228]:
+                      - generic [ref=e229]:
+                        - img [ref=e230]
+                        - text: Index of Everything
+                      - generic [ref=e233]:
+                        - img [ref=e234]
+                        - text: Obsessive Archivist
+                  - paragraph [ref=e237]: "\"Every archive hides a truth someone paid to bury.\""
+          - button "Назад" [ref=e240]
+  - navigation [ref=e49]:
+    - button "Collapse Navigation" [ref=e51]:
+      - img [ref=e54]
+    - generic [ref=e57]:
+      - button "Главная" [ref=e58]:
+        - img [ref=e60]
+        - generic [ref=e63]: Главная
+      - button "Карта" [ref=e64]:
+        - img [ref=e66]
+        - generic [ref=e68]: Карта
+      - button "Миссии" [ref=e69]:
+        - img [ref=e71]
+        - generic [ref=e76]: Миссии
+      - button "Дуэль" [ref=e77]:
+        - img [ref=e79]
+        - generic [ref=e88]: Дуэль
+      - button "Досье" [ref=e89]:
+        - img [ref=e91]
+        - generic [ref=e94]: Досье
+      - button "Скан" [ref=e95]:
+        - img [ref=e97]
+        - generic [ref=e103]: Скан

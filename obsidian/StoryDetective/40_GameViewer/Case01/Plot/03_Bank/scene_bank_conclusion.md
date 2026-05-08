@@ -9,7 +9,7 @@ tags:
   - phase/bank_investigation
 ---
 
-# 🏁 Scene: Bank Conclusion
+# Scene: Bank Conclusion
 
 ## Context
 
@@ -19,27 +19,44 @@ tags:
 ## Script
 
 **Trigger**:
-"Ich habe hier genug gesehen." (From [[action_investigate_bank|Bank Hub]])
+"I have seen enough here." (from [[action_investigate_bank|Bank Hub]])
 
-**Text**:
-"Sie haben aus der Bank selbst gesammelt, was Sie konnten. Drei Spuren kristallisieren sich aus dem Chaos heraus:"
+**Narrator**:
+On the table, three things refuse to become one story: torn velvet, sweet
+chemical grit, and Gustav's name moving through the night instead of toward
+home.
 
-### Summary (`bank_conclusion_summary`)
+**Victoria Sterling**:
+"If I were you, Inspector, I would begin with the cloth."
 
-**Speaker**: Clara von Altenburg.
+**Elias Thorne**:
+"That is precisely why I will not let it stand alone."
 
-**Text**:
-"Der [[rote Samt]] weist auf einen [[Schneider oder Kostümbildner]]. Die [[chemischen Rückstände]] erfordern eine [[Analyse in der Apotheke]]. Und der [[Bächleputzer]] trinkt in der [[örtlichen Wirtschaft]]. Zeit, auf die Straßen Freiburgs zu gehen."
+**Logic**:
+The velvet belongs to disguise. The powder belongs to a supply route. The tavern
+belongs to the people who moved both through Freiburg after dark.
 
-## Effects (End of Phase)
+## Lead Functions
 
-1.  **Set Quest Stage**: `case01` -> `leads_open`
-2.  **Unlock Locations**:
-    - `loc_tailor` (Tailor Shop)
-    - `loc_apothecary` (Apothecary)
-    - `loc_pub` (Pub / Wirtschaft)
-3.  **Completion Flag**: `bank_investigation_complete`
+| Lead | Case function | Dramatic pressure |
+| --- | --- | --- |
+| Tailor / costume trail | Identity bundle | Victoria's grief wants a face, but procedure keeps it from becoming tunnel vision. |
+| Apothecary / compound trail | Chemical bundle | Procedure pushes past social preference. |
+| Pub / night traffic trail | Logistics bundle | The working city contradicts the bank's version. |
+
+## Effects
+
+1. Set `bank_investigation_complete`.
+2. Unlock `loc_tailor`, `loc_apothecary`, `loc_pub`, `loc_rathaus`,
+   `loc_freiburg_estate`, and `loc_telephone`.
+3. Grant 20 XP.
+
+## Preservation Notes
+
+Elias keeps the baseline identity: professional, observant, restrained, and
+willing to pressure by procedure. Any sharper reaction here should be expressed
+as player-choice variation later, not as a replacement personality.
 
 ## Next Phase
 
--> **Map: Freiburg (Open City)**
+-> Freiburg open city / lead selection.

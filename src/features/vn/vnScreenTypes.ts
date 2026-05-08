@@ -11,6 +11,7 @@ import type {
   KarmaBand,
   VnAiMode,
 } from "../../shared/game/narrativeResources";
+import type { SkillProgressFeedback } from "../../shared/game/skillProgression";
 
 export interface AwaitingSkillChoice {
   scenarioId: string;
@@ -71,7 +72,21 @@ export type SkillCheckResultLike = {
   difficultyBreakdownJson?: unknown;
   outcomeGrade?: unknown;
   createdAt: unknown;
+  skillProgress?: SkillProgressFeedback;
 };
+
+export interface VnSkillCheckToastData {
+  resultKey: string;
+  checkId: string;
+  voiceLabel: string;
+  choiceText?: string;
+  chancePercent?: number;
+  roll: number;
+  voiceLevel: number;
+  difficulty: number;
+  passed: boolean;
+  skillProgress?: SkillProgressFeedback;
+}
 
 export type SkillCheckAiStatus =
   | "pending"

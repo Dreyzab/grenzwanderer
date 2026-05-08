@@ -1,4 +1,4 @@
-﻿import { useRef } from "react";
+import { useRef } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { ChoiceInnerVoiceHintDisplay } from "../vnScreenTypes";
@@ -212,7 +212,7 @@ describe("VnChoiceButton", () => {
     expect(button).toHaveClass("pointer-events-none");
   });
 
-  it("renders compact inner voice hint chips", () => {
+  it("renders larger inline inner voice badges for choice hints", () => {
     const innerVoiceHints: ChoiceInnerVoiceHintDisplay[] = [
       {
         voiceId: "inner_leader",
@@ -251,9 +251,43 @@ describe("VnChoiceButton", () => {
       />,
     );
 
-    expect(screen.getByText("Leader")).toBeInTheDocument();
-    expect(screen.getByText("supports")).toBeInTheDocument();
-    expect(screen.getByText("Cynic")).toBeInTheDocument();
+    expect(screen.getAllByLabelText("Leader").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("LEA").length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText("Cynic").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("CYN").length).toBeGreaterThan(0);
     expect(screen.getByText("opposes")).toBeInTheDocument();
+    expect(
+      document.querySelector('img[src="/images/voices/leader.png"]'),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector(
+        'img[src="/images/ui/voices/groups/perception.png"]',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("renders skill-check voice badges with shared voice group assets", () => {
+    render(
+      <VnChoiceButton
+        choice={{
+          ...baseChoice,
+          skillCheck: {
+            id: "logic_check",
+            voiceId: "attr_logic",
+            difficulty: 8,
+          },
+        }}
+        chancePercent={72}
+        index={0}
+        onClick={() => undefined}
+      />,
+    );
+
+    expect(screen.getByLabelText("Logic")).toBeInTheDocument();
+    expect(screen.getByText("LOG")).toBeInTheDocument();
+    expect(
+      document.querySelector('img[src="/images/ui/voices/groups/logic.png"]'),
+    ).toBeInTheDocument();
+    expect(screen.getByText("72%")).toBeInTheDocument();
   });
 });

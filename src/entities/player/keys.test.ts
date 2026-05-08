@@ -15,6 +15,7 @@ describe("player key registry", () => {
     expect(isKnownPlayerFlagKey("case_resolved")).toBe(true);
     expect(isKnownPlayerFlagKey("origin_journalist")).toBe(true);
     expect(isKnownPlayerVarKey("attr_intellect")).toBe(true);
+    expect(isKnownPlayerVarKey("skill_xp_attr_intellect")).toBe(true);
     expect(isKnownPlayerVarKey("agency_standing")).toBe(true);
     expect(isKnownPlayerVarKey("rep_underworld")).toBe(true);
   });

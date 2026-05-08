@@ -21,12 +21,18 @@ describe("LogSegmentRenderer", () => {
     );
 
     const thoughtCard = screen.getByTestId("vn-inner-voice-segment");
+    const badge = screen.getByLabelText("Cynic");
     expect(thoughtCard).toBeInTheDocument();
-    expect(screen.getByText("Cynic")).toBeInTheDocument();
-    expect(screen.getByText("Cynic")).toHaveStyle({ color: "#f87171" });
-    expect(screen.getByText("Trust costs more than leverage.")).toHaveStyle({
-      color: "#fee2e2",
-    });
+    expect(badge).toBeInTheDocument();
+    expect(badge).toHaveStyle({ color: "#f87171" });
+    expect(screen.getByText("CYN")).toBeInTheDocument();
+    expect(
+      screen.getByText("Trust costs more than leverage."),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("vn-inline-speaker-badge-image")).toHaveAttribute(
+      "src",
+      "/images/ui/voices/groups/perception.png",
+    );
   });
 
   it("keeps npc dialogue out of thought card styling", () => {
@@ -37,12 +43,18 @@ describe("LogSegmentRenderer", () => {
           speakerLabel: "Assistant",
           category: "npc",
           text: "No headlines today.",
+          portraitUrl: "/VN/start/image/train_assistant.png",
         }}
       />,
     );
 
     expect(screen.queryByTestId("vn-inner-voice-segment")).toBeNull();
-    expect(screen.getByText("Assistant")).toBeInTheDocument();
+    expect(screen.getByLabelText("Assistant")).toBeInTheDocument();
+    expect(screen.getByText("ASST")).toBeInTheDocument();
+    expect(screen.getByTestId("vn-inline-speaker-badge-image")).toHaveAttribute(
+      "src",
+      "/VN/start/image/train_assistant.png",
+    );
     // Classes are on the container div in the new UI structure
     expect(
       screen.getByText("No headlines today.").closest(".text-stone-100"),
@@ -63,6 +75,7 @@ describe("LogSegmentRenderer", () => {
 
     expect(screen.queryByTestId("vn-inner-voice-segment")).toBeNull();
     expect(screen.queryByText("Narrator")).toBeNull();
+    expect(screen.queryByTestId("vn-inline-speaker-badge")).toBeNull();
     // Classes are on the container div in the new UI structure
     expect(
       screen
@@ -91,5 +104,20 @@ describe("LogSegmentRenderer", () => {
     await waitFor(() => {
       expect(onComplete).toHaveBeenCalled();
     });
+  });
+
+  it("falls back to a colored badge when an inner voice has no image asset", () => {
+    render(
+      <LogSegmentRenderer
+        segment={{
+          ...innerVoiceSegment,
+          speaker: "inner_unknown",
+          speakerLabel: "Unknown",
+        }}
+      />,
+    );
+
+    expect(screen.getByLabelText("Unknown")).toBeInTheDocument();
+    expect(screen.queryByTestId("vn-inline-speaker-badge-image")).toBeNull();
   });
 });

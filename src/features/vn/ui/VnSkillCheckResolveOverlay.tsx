@@ -5,6 +5,7 @@ import {
   getSkillCheckVoicePalette,
   formatSkillCheckVoiceLabel,
 } from "../skillCheckPalette";
+import type { SkillProgressFeedback } from "../../../shared/game/skillProgression";
 import type { VnChoice, VnDiceMode } from "../types";
 import "./VnSkillCheckFeedback.css";
 
@@ -53,6 +54,7 @@ export interface VnSkillCheckResolveState {
     delta: number;
   }>;
   nextNodeId?: string | null;
+  skillProgress?: SkillProgressFeedback;
   frozen: FrozenSkillCheckPresentation;
 }
 
@@ -367,6 +369,23 @@ export const VnSkillCheckResolveOverlay = ({
                 <p className="vn-check-resolve__result">
                   {state.passed ? "Success" : "Fail"}
                 </p>
+                {state.skillProgress ? (
+                  <div
+                    className={[
+                      "vn-check-resolve__progress",
+                      state.skillProgress.rankUp ? "is-rank-up" : "",
+                    ].join(" ")}
+                  >
+                    <p className="vn-check-resolve__progress-title">
+                      {state.skillProgress.rankUp
+                        ? `${state.skillProgress.skillLabel} rank up: ${state.skillProgress.rankBefore.rank} -> ${state.skillProgress.rankAfter.rank}`
+                        : `${state.skillProgress.skillLabel} practice +${state.skillProgress.xpGained} XP`}
+                    </p>
+                    <p className="vn-check-resolve__progress-meta">
+                      {`${state.skillProgress.rankAfter.rank} ${state.skillProgress.rankAfter.progress} / ${state.skillProgress.rankAfter.progressMax} | ${state.skillProgress.totalXp} XP`}
+                    </p>
+                  </div>
+                ) : null}
                 {aiStatus && aiStatus !== "failed" ? (
                   <div className="vn-check-resolve__ai">
                     <p className="vn-check-resolve__ai-eyebrow">

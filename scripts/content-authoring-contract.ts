@@ -8,6 +8,20 @@ export interface CoverageRule {
   scenarioIds: string[];
 }
 
+export interface Case01CanonIdentityRule {
+  canonical: string;
+  aliases: string[];
+  severity: "error" | "warning";
+  note: string;
+}
+
+export interface Case01CoverageRule {
+  packId: string;
+  strictDirectoryRelativeToStoryRoot: string;
+  temporaryRuntimeBridgeScenarioIds: string[];
+  identityRules: Case01CanonIdentityRule[];
+}
+
 export type ContentReleaseProfile = "default" | "karlsruhe_event";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -117,6 +131,47 @@ export const obsidianCoverageRules: CoverageRule[] = [
   },
 ];
 
+export const case01CoverageRule: Case01CoverageRule = {
+  packId: "case01_mainline",
+  strictDirectoryRelativeToStoryRoot: "40_GameViewer/Case01",
+  temporaryRuntimeBridgeScenarioIds: [
+    "case01_hbf_arrival",
+    "case01_rail_yard_shadow_tail",
+  ],
+  identityRules: [
+    {
+      canonical: "Elias Thorne",
+      aliases: ["Arthur Vance"],
+      severity: "error",
+      note: "Elias Thorne is the runtime player identity; Arthur Vance is Detectiv/reference only.",
+    },
+    {
+      canonical: "Fritz Muller",
+      aliases: ["Fritz Mueller", "Fritz Müller"],
+      severity: "warning",
+      note: "Supported runtime content should use Fritz Muller; locale/design aliases are reference-only.",
+    },
+    {
+      canonical: "Victoria Sterling",
+      aliases: ["Clara von Altenburg", "Clara Altenburg"],
+      severity: "warning",
+      note: "Clara is a legacy planning shard; supported Case01 scientific companion text should use Victoria Sterling / victoria_sterling. The generic assistant role is compatibility-only.",
+    },
+    {
+      canonical: "Bankhaus J.A. Krebs",
+      aliases: ["Kaiserbank", "Bankhaus Krebs"],
+      severity: "warning",
+      note: "Kaiserbank is a legacy planning label, not the runtime bank name.",
+    },
+    {
+      canonical: "Heinrich Galdermann",
+      aliases: ["Heinrich Haldermann", "Galderman"],
+      severity: "warning",
+      note: "Use Heinrich Galdermann for the Case01 bank manager.",
+    },
+  ],
+};
+
 export const contentSensitivePathPrefixes = [
   `${storyRootRelativePath}/`,
   "scripts/extract-vn-content.ts",
@@ -125,6 +180,7 @@ export const contentSensitivePathPrefixes = [
   "scripts/content-ids.ts",
   "scripts/content-authoring-contract.ts",
   "scripts/content-obsidian-coverage-check.ts",
+  "scripts/content-case01-canon-report.ts",
   "scripts/content-map-metrics.ts",
   "scripts/data/",
   contentSnapshotRelativePath,

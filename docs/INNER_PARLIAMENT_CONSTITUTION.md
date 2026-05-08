@@ -11,6 +11,27 @@ Never collapse these layers. A skill voice can unlock an action; a moral faction
 
 See also: [Moral Stress and Identity Formation](./MORAL_STRESS_IDENTITY_FORMATION.md).
 
+## Skill Affinity Layer
+
+The runtime progression grid maps the 24 current `attr_*` ids onto the 8
+`inner_*` factions as patron voices: three skills per faction. This is a
+progression and UI relationship, not an identity merge.
+
+Use the registry in `data/skillDefinitions.ts` as the source of truth for:
+
+- grouping skills under patron voices on character/progression screens
+- calculating how repeated skill use makes a patron voice louder
+- bridging use-based progression into Inner Parliament presence
+
+The safe mental model is:
+
+- `skillLevel`: practical competence, raised by checks and use
+- `voiceRank`: player-assigned investment at level-up
+- `voiceInfluence`: derived loudness from rank, skill practice, and recent use
+
+This keeps Skyrim-style use progression while preserving the hard boundary:
+skills provide methods, factions provide motives.
+
 ## The 18 Method Voices
 
 The detective parliament is six departments with three voices each.

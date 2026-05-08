@@ -1,5 +1,15 @@
-import type { CanonicalVoicePromptProfile } from "../../../../data/voiceBridge";
-import type { CharacterAttributeDefinition } from "../characterScreenModel";
+import type {
+  InnerVoiceDefinition,
+  InnerVoiceId,
+  SkillVoiceId,
+} from "../../../../data/innerVoiceContract";
+import type {
+  SkillDefinition,
+  SkillProgressionRole,
+} from "../../../../data/skillDefinitions";
+import type { SkillRankPerkDefinition } from "../../../shared/game/skillPerks";
+import type { SkillRankState } from "../../../shared/game/skillProgression";
+import type { VoiceOrDeptId } from "../../../shared/ui/icons/game-icons";
 
 export interface CharacterQuestJournalEntry {
   id: string;
@@ -41,30 +51,27 @@ export interface AgencyCareerSummary {
   criteriaSummary: string;
 }
 
-export interface AttributeVoiceBridgeSummary {
-  legacyVoiceId: string;
-  canonicalVoiceId: string;
-  canonicalLabel: string;
-  iconName: string;
-  promptProfile: CanonicalVoicePromptProfile | null;
+export interface MethodVoiceCard {
+  id: SkillVoiceId;
+  label: string;
+  labelRu: string;
+  rankState: SkillRankState;
+  progressionRole: SkillProgressionRole;
+  descriptionRu: string;
+  iconName: VoiceOrDeptId;
+  definition: SkillDefinition;
+  unlockedPerks: readonly SkillRankPerkDefinition[];
+  nextPerk: SkillRankPerkDefinition | null;
 }
 
-export interface CharacterSpecializedAttributeCard extends CharacterAttributeDefinition {
-  value: number;
-  voiceBridge: AttributeVoiceBridgeSummary | null;
-}
-
-export interface CharacterAttributeCard extends CharacterAttributeDefinition {
-  value: number;
-  voiceBridge: AttributeVoiceBridgeSummary | null;
-  specialized: CharacterSpecializedAttributeCard[];
-}
-
-export interface CharacterVoiceBridgeRegistryEntry {
-  sourceLabel: string;
-  currentValue: number;
-  accent: string;
-  bridge: AttributeVoiceBridgeSummary & {
-    promptProfile: CanonicalVoicePromptProfile;
-  };
+export interface PatronVoiceCard {
+  voiceId: InnerVoiceId;
+  label: string;
+  influence: number;
+  dominanceRank: number;
+  worldview: string;
+  toneDescriptor: string;
+  palette: InnerVoiceDefinition["palette"];
+  iconName: VoiceOrDeptId;
+  methods: MethodVoiceCard[];
 }

@@ -5,6 +5,7 @@ import {
   applyEffects,
   areConditionsSatisfied,
   arePassiveChecksResolved,
+  awardSkillCheckPracticeXp,
   createSessionKey,
   createSkillCheckResultKey,
   emitTelemetry,
@@ -17,6 +18,7 @@ import {
   getScenario,
   getVar,
   isChoiceAllowed,
+  isSkillCheckRankGateSatisfied,
   isNodeEntryAllowed,
   resolveKarmaBand,
   resolveKarmaDifficultyDelta,
@@ -260,6 +262,10 @@ export const perform_skill_check = spacetimedb.reducer(
       );
     }
 
+    if (!isSkillCheckRankGateSatisfied(ctx, check)) {
+      throw new SenderError("Skill rank requirement is not satisfied");
+    }
+
     // Prevent re-rolling the same check
     const resultKey = createSkillCheckResultKey(
       ctx.sender,
@@ -417,6 +423,12 @@ export const perform_skill_check = spacetimedb.reducer(
       createdAt: ctx.timestamp,
     });
 
+    const skillXpAward = awardSkillCheckPracticeXp(ctx, {
+      activeChoice: Boolean(checkOwnerChoice),
+      voiceId: check.voiceId,
+      outcomeGrade,
+    });
+
     // Apply outcome effects
     if (outcome?.effects) {
       applyEffects(ctx, outcome.effects, {
@@ -465,6 +477,8 @@ export const perform_skill_check = spacetimedb.reducer(
       difficultyBreakdown,
       passed,
       outcomeGrade,
+      skillXpAwarded: skillXpAward?.amount ?? 0,
+      skillXpTotal: skillXpAward?.totalXp ?? null,
       margin,
       nextNodeId: nextNodeId ?? null,
       diceMode,

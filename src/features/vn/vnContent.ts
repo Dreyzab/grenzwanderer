@@ -4,6 +4,7 @@ import {
   getScenarioById,
   parseVnSnapshotPayload,
 } from "../../shared/vn-contract";
+import { isSkillRankGateSatisfiedFromVars } from "../../shared/game/skillProgression";
 import type {
   RumorStateStatus,
   VnChoice,
@@ -137,6 +138,13 @@ const evaluateChoiceConditionLeaf = (
       condition.rankId,
     );
     return currentOrder >= requiredOrder;
+  }
+  if (condition.type === "skill_rank_gte") {
+    return isSkillRankGateSatisfiedFromVars(
+      vars,
+      condition.skillId,
+      condition.rank,
+    );
   }
 
   // Client pre-check is advisory; leave server as authority for unsupported

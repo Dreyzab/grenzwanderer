@@ -112,6 +112,32 @@ describe("applyEffects", () => {
     ).toMatchObject({ questId: "quest_side_case", stage: 2 });
   });
 
+  it("applies explicit skill XP grants with clamping and validation", () => {
+    const ctx = createReducerTestContext();
+
+    applyEffects(ctx, [
+      { type: "grant_skill_xp", skillId: "attr_logic", amount: 120 },
+      { type: "grant_skill_xp", skillId: "attr_logic", amount: 900 },
+    ]);
+
+    expect(
+      ctx.db.playerVar.varId.find(playerKey(ctx.sender, "skill_xp_attr_logic")),
+    ).toMatchObject({
+      key: "skill_xp_attr_logic",
+      floatValue: 800,
+    });
+    expect(() =>
+      applyEffects(ctx, [
+        { type: "grant_skill_xp", skillId: "unknown" as any, amount: 10 },
+      ]),
+    ).toThrow(/Unknown skill id/);
+    expect(() =>
+      applyEffects(ctx, [
+        { type: "grant_skill_xp", skillId: "attr_logic", amount: 0 },
+      ]),
+    ).toThrow(/positive/);
+  });
+
   it("unlocks mind thoughts and emits source-aware telemetry", () => {
     const ctx = createReducerTestContext();
 

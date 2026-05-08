@@ -9,6 +9,7 @@ import {
   RESOURCE_KARMA_VAR,
   RESOURCE_PROVIDENCE_VAR,
 } from "../../shared/game/narrativeResources";
+import { SKILL_XP_VAR_KEYS } from "../../shared/game/skillProgression";
 import {
   CASE01_CANON_FLAG_KEYS,
   CASE01_CANON_VAR_KEYS,
@@ -201,6 +202,7 @@ export const PLAYER_FLAG_KEYS = [
 export const PLAYER_VAR_KEYS = [
   ...CASE01_CANON_VAR_KEYS,
   ...SKILL_VOICE_IDS,
+  ...SKILL_XP_VAR_KEYS,
   ...PSYCHE_VAR_KEYS,
   ...Object.values(LEGACY_REPUTATION_VAR_BY_FACTION_ID),
   RESOURCE_PROVIDENCE_VAR,

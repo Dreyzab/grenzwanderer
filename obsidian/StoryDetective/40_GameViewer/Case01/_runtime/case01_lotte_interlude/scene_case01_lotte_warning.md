@@ -12,9 +12,14 @@ character_id: npc_weber_dispatcher
 The telephone line hisses before Lotte Weber speaks. She has seen switchboard
 traffic redirect itself around your questions, which means somebody knows the
 investigation is narrowing. Her warning is plain: if you keep pulling the
-thread in daylight, the city will pull back in uniform.
+thread in daylight, the city will pull back in uniform. Then she lowers her
+voice. When the bank opened, three black-line lamps lit on the board, lines
+that should have stayed dead since 1870. Someone listened to the vault fail,
+and it was not the mayor.
 
 ```vn-logic
+on_enter:
+  - discover_fact(case_bankhaus_krebs_false_trail,fact_lotte_black_lines)
 choices:
   - id: CASE01_LOTTE_CONFRONT_SCHEDULE
     text: Ask why her train notes kept time instead of names.

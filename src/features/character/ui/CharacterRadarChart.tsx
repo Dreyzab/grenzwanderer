@@ -8,15 +8,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { GameIcon } from "../../../shared/ui/icons/game-icons";
-import type {
-  CharacterAttributeDefinition,
-  CharacterAttributeKey,
-} from "../characterScreenModel";
+import type { VoiceOrDeptId } from "../../../shared/ui/icons/game-icons";
 
 export interface CharacterRadarDatum {
-  key: CharacterAttributeKey;
+  key: string;
   label: string;
-  icon: CharacterAttributeDefinition["icon"];
+  icon: VoiceOrDeptId;
   color: string;
   value: number;
 }

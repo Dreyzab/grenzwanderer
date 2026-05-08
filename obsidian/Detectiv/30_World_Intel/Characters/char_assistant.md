@@ -2,7 +2,7 @@
 id: char_assistant
 tags: [character, major]
 tier: major
-runtime_character_id: assistant
+runtime_character_id: victoria_sterling
 faction: fct_university
 aliases: ["Victoria Sterling"]
 ---
@@ -11,10 +11,13 @@ aliases: ["Victoria Sterling"]
 
 ## Dossier
 
-- **Role**: Scientific companion with volatile personal stakes.
+- **Role**: Scientific companion, unofficial Rathaus access key, and volatile personal stakes.
 - **Age / Appearance**: 23, severe lab posture, restless focus.
 - **Archetype**: The Vengeful Analyst
-- **Origin**: University chemistry circles
+- **Origin**: Freiburg university chemistry circles; daughter of the Oberbuergermeister.
+- **Public Name**: Frau Sterling, the married name she kept after her husband's death.
+- **Case01 Status**: Private scientific consultant attached under Elias Thorne's responsibility after the Polizeidirektor refuses to recognize a woman criminologist.
+- **Compatibility Note**: `assistant` is a legacy role key, not a permanent identity. Felix can occupy an early assistant/logistics role; Victoria occupies the scientific consultant role from Rathaus/Bank onward.
 
 ## Psyche Profile (Parliament Perception)
 
@@ -27,12 +30,14 @@ aliases: ["Victoria Sterling"]
 ## Secrets
 
 - **Surface**: Supports forensic branch of case
-- **Hidden**: Keeps unsanctioned notes on prior death
+- **Hidden**: Keeps unsanctioned notes on her husband's prior death
 - **Core**: Volition reveals vigilante impulse
+- **Case01 Rule**: The bank residue can echo the old death, but Case 01 must not solve it outright.
 
 ## Relationships
 
 - [[30_World_Intel/Characters/char_academic|char_academic]] - mentor conflict.
+- [[30_World_Intel/Characters/char_mayor|char_mayor]] - father; protective leverage and political cost.
 - [[30_World_Intel/Characters/char_inspector|char_inspector]] - key investigation axis.
 - Factions: [[00_Map_Room/MOC_Factions|MOC_Factions]]
 

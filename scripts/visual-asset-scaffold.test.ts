@@ -94,4 +94,43 @@ describe("freiburg visual asset scaffold", () => {
       1,
     );
   });
+
+  it("carries the bank investigation visual story into asset prompts", () => {
+    const variants = buildCase01VisualVariants(buildCase01VisualManifest());
+    const bankInvestigation = variants.find(
+      (variant) =>
+        variant.locationId === "loc_freiburg_bank" &&
+        variant.variantId === "investigation",
+    );
+    const bankCrimeScene = variants.find(
+      (variant) =>
+        variant.locationId === "loc_freiburg_bank" &&
+        variant.variantId === "crime_scene",
+    );
+
+    expect(bankInvestigation?.localVisualBrief?.summary).toContain(
+      "postal lead",
+    );
+    expect(bankInvestigation?.localVisualBrief?.mustInclude).toContain(
+      "closed postal car parked awkwardly near the entrance",
+    );
+    expect(bankInvestigation?.localVisualBrief?.mustAvoid).toContain(
+      "opaque green gas cloud",
+    );
+    expect(bankInvestigation?.localVisualBrief?.mustAvoid).toContain(
+      "visible clerks, witnesses, police officers, or character silhouettes",
+    );
+    expect(bankCrimeScene?.localVisualBrief?.continuityMotifs).toContain(
+      "black-yellow postal twine",
+    );
+    expect(bankInvestigation?.promptSlots.s1).toBe(
+      "Oil painting, broad expressive brushstrokes, visible canvas texture",
+    );
+    expect(bankInvestigation?.finalPrompt).toContain(
+      "Masterpiece quality, Avoid: plastic textures",
+    );
+    expect(bankInvestigation?.finalPrompt).toContain(
+      "Empty exterior scene, no people visible",
+    );
+  });
 });

@@ -18,6 +18,7 @@
         "quest_stage_gte",
         "relationship_gte",
         "rumor_state_is",
+        "skill_rank_gte",
         "spirit_state_is",
         "thought_state_is",
         "var_gte",
@@ -39,6 +40,7 @@
         "grant_evidence",
         "grant_influence",
         "grant_item",
+        "grant_skill_xp",
         "grant_xp",
         "imprison_spirit",
         "open_battle_mode",
@@ -110,10 +112,64 @@
       "id": "case01_estate_branch",
       "title": "Case 01: Estate Trace",
       "startNodeId": "scene_case01_estate_entry",
-      "nodeIds": ["scene_case01_estate_entry", "scene_case01_estate_exit"],
+      "nodeIds": [
+        "scene_case01_estate_entry",
+        "scene_case01_estate_exit"
+      ],
       "mode": "overlay",
       "packId": "case01_mainline",
       "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_estate_bureau.webp"
+    },
+    {
+      "id": "case01_false_trail_convergence",
+      "title": "Case 01: Not A Thief, An Engineer",
+      "startNodeId": "scene_case01_false_trail_convergence_entry",
+      "nodeIds": [
+        "scene_case01_false_trail_convergence_entry",
+        "scene_case01_false_trail_convergence_exit"
+      ],
+      "mode": "overlay",
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_convergence_city_threshold.webp"
+    },
+    {
+      "id": "case01_false_trail_grimoire",
+      "title": "Case 01: Restorer's Leak",
+      "startNodeId": "scene_case01_grimoire_entry",
+      "nodeIds": [
+        "scene_case01_grimoire_entry",
+        "scene_case01_grimoire_roth",
+        "scene_case01_grimoire_exit"
+      ],
+      "mode": "overlay",
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/locations/loc_munster/loc_munster.webp"
+    },
+    {
+      "id": "case01_false_trail_post_route",
+      "title": "Case 01: Bent Postal Route",
+      "startNodeId": "scene_case01_post_route_entry",
+      "nodeIds": [
+        "scene_case01_post_route_entry",
+        "scene_case01_post_route_weber",
+        "scene_case01_post_route_exit"
+      ],
+      "mode": "overlay",
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/locations/loc_hbf/loc_hauptbahnhof.webp"
+    },
+    {
+      "id": "case01_false_trail_workers",
+      "title": "Case 01: Workers' False Trail",
+      "startNodeId": "scene_case01_workers_entry",
+      "nodeIds": [
+        "scene_case01_workers_entry",
+        "scene_case01_workers_rudi",
+        "scene_case01_workers_exit"
+      ],
+      "mode": "overlay",
+      "packId": "case01_mainline",
+      "defaultBackgroundUrl": "/images/locations/loc_pub_deutsche/tavern_red_cog.webp"
     },
     {
       "id": "case01_hbf_arrival",
@@ -183,7 +239,10 @@
       "id": "case01_lead_pub",
       "title": "Case 01: Pub Lead",
       "startNodeId": "scene_case01_pub_entry",
-      "nodeIds": ["scene_case01_pub_entry", "scene_case01_pub_exit"],
+      "nodeIds": [
+        "scene_case01_pub_entry",
+        "scene_case01_pub_exit"
+      ],
       "mode": "overlay",
       "packId": "case01_mainline",
       "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_zum_schlappen_tavern.webp"
@@ -192,7 +251,10 @@
       "id": "case01_lead_tailor",
       "title": "Case 01: Tailor Lead",
       "startNodeId": "scene_case01_tailor_entry",
-      "nodeIds": ["scene_case01_tailor_entry", "scene_case01_tailor_exit"],
+      "nodeIds": [
+        "scene_case01_tailor_entry",
+        "scene_case01_tailor_exit"
+      ],
       "mode": "overlay",
       "packId": "case01_mainline",
       "defaultBackgroundUrl": "/images/scenes/case01/bg_case01_tailor_workshop.webp"
@@ -346,8 +408,12 @@
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "sandbox_agency_briefing",
-        "requiredFlagsAll": ["origin_journalist"],
-        "blockedIfFlagsAny": ["agency_briefing_complete"]
+        "requiredFlagsAll": [
+          "origin_journalist"
+        ],
+        "blockedIfFlagsAny": [
+          "agency_briefing_complete"
+        ]
       },
       "packId": "journalist_origin"
     },
@@ -369,12 +435,18 @@
       "id": "origin_detective_bootstrap",
       "title": "Origin Bootstrap - Detective",
       "startNodeId": "scene_origin_detective_bootstrap",
-      "nodeIds": ["scene_origin_detective_bootstrap"],
+      "nodeIds": [
+        "scene_origin_detective_bootstrap"
+      ],
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "case01_hbf_arrival",
-        "requiredFlagsAll": ["origin_detective"],
-        "blockedIfFlagsAny": ["case01_onboarding_complete"]
+        "requiredFlagsAll": [
+          "origin_detective"
+        ],
+        "blockedIfFlagsAny": [
+          "case01_onboarding_complete"
+        ]
       },
       "packId": "system_origin_bootstrap"
     },
@@ -382,12 +454,18 @@
       "id": "origin_journalist_bootstrap",
       "title": "Origin Bootstrap - Journalist",
       "startNodeId": "scene_origin_journalist_bootstrap",
-      "nodeIds": ["scene_origin_journalist_bootstrap"],
+      "nodeIds": [
+        "scene_origin_journalist_bootstrap"
+      ],
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "journalist_agency_wakeup",
-        "requiredFlagsAll": ["origin_journalist"],
-        "blockedIfFlagsAny": ["origin_journalist_handoff_done"]
+        "requiredFlagsAll": [
+          "origin_journalist"
+        ],
+        "blockedIfFlagsAny": [
+          "origin_journalist_handoff_done"
+        ]
       },
       "packId": "system_origin_bootstrap"
     },
@@ -395,7 +473,10 @@
       "id": "sandbox_agency_briefing",
       "title": "Agency Briefing",
       "startNodeId": "scene_agency_briefing_intro",
-      "nodeIds": ["scene_agency_briefing_intro", "scene_agency_briefing_outro"],
+      "nodeIds": [
+        "scene_agency_briefing_intro",
+        "scene_agency_briefing_outro"
+      ],
       "mode": "overlay",
       "packId": "freiburg_agency"
     },
@@ -467,7 +548,10 @@
       "id": "sandbox_city_bootblack_tip",
       "title": "Living City: Bootblack Tip",
       "startNodeId": "scene_city_bootblack_tip",
-      "nodeIds": ["scene_city_bootblack_tip", "scene_city_bootblack_tip_end"],
+      "nodeIds": [
+        "scene_city_bootblack_tip",
+        "scene_city_bootblack_tip_end"
+      ],
       "mode": "overlay",
       "packId": "freiburg_living_city"
     },
@@ -475,7 +559,10 @@
       "id": "sandbox_city_cleaner_tip",
       "title": "Living City: Cleaner Tip",
       "startNodeId": "scene_city_cleaner_tip",
-      "nodeIds": ["scene_city_cleaner_tip", "scene_city_cleaner_tip_end"],
+      "nodeIds": [
+        "scene_city_cleaner_tip",
+        "scene_city_cleaner_tip_end"
+      ],
       "mode": "overlay",
       "packId": "freiburg_living_city"
     },
@@ -483,7 +570,10 @@
       "id": "sandbox_city_student_tip",
       "title": "Living City: Student Tip",
       "startNodeId": "scene_city_student_tip",
-      "nodeIds": ["scene_city_student_tip", "scene_city_student_tip_end"],
+      "nodeIds": [
+        "scene_city_student_tip",
+        "scene_city_student_tip_end"
+      ],
       "mode": "overlay",
       "packId": "freiburg_living_city"
     },
@@ -578,8 +668,12 @@
       "mode": "fullscreen",
       "completionRoute": {
         "nextScenarioId": "journalist_agency_wakeup",
-        "requiredFlagsAll": ["origin_journalist"],
-        "blockedIfFlagsAny": ["origin_journalist_handoff_done"]
+        "requiredFlagsAll": [
+          "origin_journalist"
+        ],
+        "blockedIfFlagsAny": [
+          "origin_journalist_handoff_done"
+        ]
       },
       "packId": "freiburg_intro"
     },
@@ -587,7 +681,10 @@
       "id": "sandbox_loop_demo",
       "title": "Loop Demo Pilot",
       "startNodeId": "scene_loop_demo_intro",
-      "nodeIds": ["scene_loop_demo_intro", "scene_loop_demo_end"],
+      "nodeIds": [
+        "scene_loop_demo_intro",
+        "scene_loop_demo_end"
+      ],
       "mode": "overlay",
       "packId": "system_loop_demo"
     },
@@ -620,7 +717,10 @@
       "id": "sandbox_workers_pub_rumor",
       "title": "Workers Pub Rumor",
       "startNodeId": "scene_workers_pub_rumor",
-      "nodeIds": ["scene_workers_pub_rumor", "scene_workers_pub_rumor_end"],
+      "nodeIds": [
+        "scene_workers_pub_rumor",
+        "scene_workers_pub_rumor_end"
+      ],
       "mode": "overlay",
       "packId": "freiburg_rumors"
     }
@@ -706,38 +806,48 @@
       "id": "scene_case01_bank_arrival",
       "scenarioId": "case01_bank_investigation",
       "title": "Bankhaus J.A. Krebs",
-      "body": "Cold air clings to the bank's marble steps. Clara von Altenburg intercepts you before the porter can lie about how calm the building is. Inside, the hall is too orderly for a clean robbery and too frightened for an ordinary one.",
+      "body": "Cold air clings to the marble steps of Bankhaus J.A. Krebs. A closed postal car sits crooked near the entrance, its rear door not quite latched. Victoria Sterling is already beside it, not touching the handle, counting the knots in the black-yellow postal twine as if each one ...",
       "choices": [
         {
-          "id": "CASE01_BANK_WITH_CLARA",
-          "text": "Bring Clara with you and let the room react to it.",
+          "id": "CASE01_BANK_WITH_VICTORIA",
+          "text": "Bring Victoria inside and watch who recalculates around the gas story.",
           "nextNodeId": "scene_case01_bank_manager",
           "effects": [
             {
+              "type": "set_flag",
+              "key": "victoria_introduced",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "victoria_seen_in_bank",
+              "value": true
+            },
+            {
               "type": "change_relationship",
-              "characterId": "assistant",
+              "characterId": "victoria_sterling",
               "delta": 1
             }
           ]
         },
         {
           "id": "CASE01_BANK_SOLO",
-          "text": "Go in alone and keep Clara watching the floor.",
+          "text": "Enter first and make Victoria hold the postal car outside.",
           "nextNodeId": "scene_case01_bank_manager"
         }
       ],
-      "backgroundUrl": "/images/scenes/case01/bg_case01_convergence_city_threshold.webp",
-      "characterId": "assistant"
+      "backgroundUrl": "/images/locations/loc_freiburg_bank/bank_hall_1905.webp",
+      "characterId": "victoria_sterling"
     },
     {
       "id": "scene_case01_bank_manager",
       "scenarioId": "case01_bank_investigation",
       "title": "Director Galdermann",
-      "body": "Heinrich Galdermann smiles like a man used to restructuring other people's panic. He calls the vault opening an unfortunate internal matter, pushes suspicion toward his clerks, and goes briefly rigid when you mention Hartmann by name.",
+      "body": "Heinrich Galdermann receives you with a smile polished for committees. He calls the open vault a public outrage, names the culprits before you ask, and repeats the phrase \"postal workers\" with the relief of a man handing you a leash. Gas canisters in the lobby, uniforms at the...",
       "choices": [
         {
           "id": "CASE01_BANK_MANAGER_PRESS",
-          "text": "Press him on Hartmann and the sealed statements.",
+          "text": "Press Galdermann on why he remembers the postal workers so clearly.",
           "nextNodeId": "scene_case01_bank_clerk",
           "effects": [
             {
@@ -749,7 +859,7 @@
         },
         {
           "id": "CASE01_BANK_MANAGER_BYPASS",
-          "text": "Let the director talk and move to the clerk before he resets the story.",
+          "text": "Let Galdermann talk until his procedure starts chasing the postal car for you.",
           "nextNodeId": "scene_case01_bank_clerk",
           "effects": [
             {
@@ -760,18 +870,25 @@
           ]
         }
       ],
-      "backgroundUrl": "/images/scenes/case01/bg_case01_rathaus_office_pressure.webp"
+      "backgroundUrl": "/images/locations/loc_freiburg_bank/bank_office.webp"
     },
     {
       "id": "scene_case01_bank_clerk",
       "scenarioId": "case01_bank_investigation",
       "title": "Ernst Vogel",
-      "body": "Ernst Vogel looks terrified in the precise way innocence and coercion sometimes overlap. He swears the vault was locked, admits Hartmann had the kind of access no junior clerk should question, and finally blurts out Gustav the canal cleaner saw a black silhouette by the bank before dawn.",
+      "body": "Ernst Vogel has the pale obedience of a man who was told which truth would keep his job. He swears the gas took everyone at once, then flinches at the ledger book under Galdermann's blotter. The vault money was not there when the first canister hissed. The thieves burned open ...",
       "choices": [
         {
           "id": "CASE01_BANK_CLERK_READ",
-          "text": "Read the fear, not the script.",
+          "text": "Read Vogel's fear until the missing liquidity has a timestamp.",
           "nextNodeId": "scene_case01_bank_vault",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "clerk_interviewed",
+              "value": true
+            }
+          ],
           "skillCheck": {
             "id": "check_case01_clerk_empathy",
             "voiceId": "attr_empathy",
@@ -781,6 +898,11 @@
               "nextNodeId": "scene_case01_bank_vault",
               "effects": [
                 {
+                  "type": "set_flag",
+                  "key": "bank_liquidity_gone_before_raid",
+                  "value": true
+                },
+                {
                   "type": "grant_xp",
                   "amount": 10
                 }
@@ -789,18 +911,46 @@
             "onFail": {
               "nextNodeId": "scene_case01_bank_vault"
             }
-          },
+          }
+        },
+        {
+          "id": "CASE01_BANK_CLERK_TIMELINE",
+          "text": "Rebuild the postal workers' timeline against the gas deployment.",
+          "nextNodeId": "scene_case01_bank_vault",
           "effects": [
             {
               "type": "set_flag",
               "key": "clerk_interviewed",
               "value": true
             }
-          ]
+          ],
+          "skillCheck": {
+            "id": "check_case01_clerk_logic",
+            "voiceId": "attr_logic",
+            "difficulty": 10,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_bank_vault",
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "postal_workers_inside_too_long",
+                  "value": true
+                },
+                {
+                  "type": "grant_xp",
+                  "amount": 10
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_bank_vault"
+            }
+          }
         },
         {
           "id": "CASE01_BANK_CLERK_MOVE",
-          "text": "Take what he gave you and go straight to the vault.",
+          "text": "Take Vogel's fear and move to the vault.",
           "nextNodeId": "scene_case01_bank_vault",
           "effects": [
             {
@@ -811,18 +961,25 @@
           ]
         }
       ],
-      "backgroundUrl": "/images/scenes/case01/bg_case01_archive_reading_room.webp"
+      "backgroundUrl": "/images/locations/loc_freiburg_bank/bank_hall_1905.webp"
     },
     {
       "id": "scene_case01_bank_vault",
       "scenarioId": "case01_bank_investigation",
       "title": "Vault Inspection",
-      "body": "The vault door hangs open without any sign of brute force. Dust, velvet, and chemical grit tell three different stories, which is exactly what convinces you they belong to the same job.",
+      "body": "The main vault seems untouched by force because there was little left worth forcing; the shelves gape clean and nearly empty. Deeper inside, one private deposit box has been methodically melted open, its velvet lining scorched around the absence. Slag and thermite residue coat...",
       "choices": [
         {
           "id": "CASE01_BANK_VAULT_LOCK",
-          "text": "Work the lock and catalogue the insider traces.",
+          "text": "Compare the empty vault shelves with the melted private box.",
           "nextNodeId": "scene_case01_bank_conclusion",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "vault_inspected",
+              "value": true
+            }
+          ],
           "skillCheck": {
             "id": "check_case01_vault_logic",
             "voiceId": "attr_logic",
@@ -833,7 +990,7 @@
               "effects": [
                 {
                   "type": "set_flag",
-                  "key": "found_velvet",
+                  "key": "found_bank_contradiction",
                   "value": true
                 }
               ]
@@ -841,19 +998,19 @@
             "onFail": {
               "nextNodeId": "scene_case01_bank_conclusion"
             }
-          },
+          }
+        },
+        {
+          "id": "CASE01_BANK_VAULT_AIR",
+          "text": "Catalogue the thermite slag and the modified gas canister together.",
+          "nextNodeId": "scene_case01_bank_conclusion",
           "effects": [
             {
               "type": "set_flag",
               "key": "vault_inspected",
               "value": true
             }
-          ]
-        },
-        {
-          "id": "CASE01_BANK_VAULT_AIR",
-          "text": "Trust the air and the chemical wrongness in the room.",
-          "nextNodeId": "scene_case01_bank_conclusion",
+          ],
           "skillCheck": {
             "id": "check_case01_vault_intuition",
             "voiceId": "attr_intuition",
@@ -866,29 +1023,31 @@
                   "type": "set_flag",
                   "key": "found_residue",
                   "value": true
+                },
+                {
+                  "type": "grant_evidence",
+                  "evidenceId": "ev_bureau_forbidden_residue"
+                },
+                {
+                  "type": "discover_fact",
+                  "caseId": "case_bankhaus_krebs_false_trail",
+                  "factId": "fact_victoria_forbidden_residue"
                 }
               ]
             },
             "onFail": {
               "nextNodeId": "scene_case01_bank_conclusion"
             }
-          },
-          "effects": [
-            {
-              "type": "set_flag",
-              "key": "vault_inspected",
-              "value": true
-            }
-          ]
+          }
         }
       ],
-      "backgroundUrl": "/images/scenes/case01/bg_case01_warehouse_lawful_seal.webp"
+      "backgroundUrl": "/images/locations/loc_freiburg_bank/bank_vault.webp"
     },
     {
       "id": "scene_case01_bank_conclusion",
       "scenarioId": "case01_bank_investigation",
       "title": "Three Open Leads",
-      "body": "Clara lays the structure out cleanly. Velvet points toward a tailor and disguises. Powder points toward a pharmacy and a supply line. Gustav's silhouette points toward a tavern and the night traffic that fed the bank. Freiburg stops being one crime scene and becomes a city of linked lies.",
+      "body": "On the table, three cracks refuse to close. Thermite residue points toward a chemist, an engineer, or a supplier with military habits. The gas canister and postal twine point toward a real route someone bent out of shape. The missing liquidity points back through Galdermann's ...",
       "terminal": true,
       "choices": [],
       "onEnter": [
@@ -925,7 +1084,8 @@
           "type": "grant_xp",
           "amount": 20
         }
-      ]
+      ],
+      "backgroundUrl": "/images/locations/loc_freiburg_bank/bank_vault.webp"
     },
     {
       "id": "scene_case01_convergence_gate",
@@ -1025,6 +1185,722 @@
       ]
     },
     {
+      "id": "scene_case01_false_trail_convergence_entry",
+      "scenarioId": "case01_false_trail_convergence",
+      "title": "Three Innocent Culprits",
+      "body": "Lotte lays the slips side by side: river clay, wrong lantern, old military dispatch, book measurements. \"Too many guilty people,\" she says, \"and none of them holding the whole knife. That means someone held it from behind the stage.\" The workers gave noise. The postal route ga...",
+      "choices": [
+        {
+          "id": "CASE01_FALSE_TRAIL_ASSEMBLE",
+          "text": "Assemble the three false centers into one engineering operation.",
+          "nextNodeId": "scene_case01_false_trail_convergence_exit",
+          "effects": [
+            {
+              "type": "discover_fact",
+              "caseId": "case_bankhaus_krebs_false_trail",
+              "factId": "fact_false_trails_are_tools"
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_bankhaus_krebs_false_trail",
+              "factId": "fact_engineer_operation_shape"
+            },
+            {
+              "type": "set_flag",
+              "key": "false_trail_convergence_complete",
+              "value": true
+            },
+            {
+              "type": "grant_xp",
+              "amount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_case01_false_trail_convergence_exit",
+      "scenarioId": "case01_false_trail_convergence",
+      "title": "Warehouse Address",
+      "body": "The conclusion changes the city map. You are no longer searching for the owner of a single clue. You are looking for the only person who could make social noise, postal authority, material science, and an occult target obey one schedule. The warehouse is not merely a destinati...",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "false_trail_convergence_complete",
+          "value": true
+        },
+        {
+          "type": "unlock_group",
+          "groupId": "loc_freiburg_warehouse"
+        }
+      ]
+    },
+    {
+      "id": "scene_case01_grimoire_entry",
+      "scenarioId": "case01_false_trail_grimoire",
+      "title": "Book Restorer",
+      "body": "Emil Roth's workshop smells of glue, candle soot, and the panic of a man who has rehearsed innocence too often. A black scrap lies under a paperweight. It matches the private box lining too well to be coincidence and too poorly to be the stolen book itself. Roth knows Razlom a...",
+      "choices": [
+        {
+          "id": "CASE01_GRIMOIRE_OCCULT",
+          "text": "Ask about the symbol, the breathing leather, and the fear around the binding.",
+          "nextNodeId": "scene_case01_grimoire_roth",
+          "effects": [
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_grimoire_binding_trace"
+            }
+          ],
+          "skillCheck": {
+            "id": "check_case01_grimoire_occult",
+            "voiceId": "attr_spirit",
+            "difficulty": 11,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_grimoire_roth",
+              "effects": [
+                {
+                  "type": "grant_evidence",
+                  "evidenceId": "ev_grimoire_binding_trace"
+                },
+                {
+                  "type": "discover_fact",
+                  "caseId": "case_bankhaus_krebs_false_trail",
+                  "factId": "fact_roth_saw_razlom"
+                },
+                {
+                  "type": "shift_awakening",
+                  "amount": 1,
+                  "exposureDelta": 1
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_grimoire_roth",
+              "effects": [
+                {
+                  "type": "add_tension",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "CASE01_GRIMOIRE_PRACTICAL",
+          "text": "Ask how much it weighed and how fast it could be removed from a box.",
+          "nextNodeId": "scene_case01_grimoire_roth",
+          "effects": [
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_grimoire_binding_trace"
+            }
+          ],
+          "skillCheck": {
+            "id": "check_case01_grimoire_practical",
+            "voiceId": "attr_logic",
+            "difficulty": 10,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_grimoire_roth",
+              "effects": [
+                {
+                  "type": "grant_evidence",
+                  "evidenceId": "ev_technical_grimoire_questions"
+                },
+                {
+                  "type": "discover_fact",
+                  "caseId": "case_bankhaus_krebs_false_trail",
+                  "factId": "fact_grimoire_questions_were_technical"
+                },
+                {
+                  "type": "grant_xp",
+                  "amount": 10
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_grimoire_roth",
+              "effects": [
+                {
+                  "type": "add_tension",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "characterId": "npc_emil_roth"
+    },
+    {
+      "id": "scene_case01_grimoire_roth",
+      "scenarioId": "case01_false_trail_grimoire",
+      "title": "Emil Roth",
+      "body": "Roth finally stops defending his soul and starts defending his trade. He did not steal Razlom. He priced it, admired it, feared it, and spoke too freely in a private salon. \"Collectors ask about provenance. Priests ask about curses. This man asked how much the book weighed.\"",
+      "choices": [
+        {
+          "id": "CASE01_GRIMOIRE_MORAL",
+          "text": "Tell Roth he did not steal the book, but he told a thief how to steal it.",
+          "nextNodeId": "scene_case01_grimoire_exit",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "false_trail_grimoire_refuted",
+              "value": true
+            }
+          ],
+          "skillCheck": {
+            "id": "check_case01_grimoire_moral",
+            "voiceId": "attr_empathy",
+            "difficulty": 11,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_grimoire_exit",
+              "effects": [
+                {
+                  "type": "discover_fact",
+                  "caseId": "case_bankhaus_krebs_false_trail",
+                  "factId": "fact_roth_leaked_razlom"
+                },
+                {
+                  "type": "grant_evidence",
+                  "evidenceId": "ev_technical_grimoire_questions"
+                },
+                {
+                  "type": "grant_xp",
+                  "amount": 10
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_grimoire_exit",
+              "effects": [
+                {
+                  "type": "add_tension",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "CASE01_GRIMOIRE_LEDGER",
+          "text": "Follow the salon note chain instead of the occult panic.",
+          "nextNodeId": "scene_case01_grimoire_exit",
+          "effects": [
+            {
+              "type": "discover_fact",
+              "caseId": "case_bankhaus_krebs_false_trail",
+              "factId": "fact_roth_leaked_razlom"
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_bankhaus_krebs_false_trail",
+              "factId": "fact_grimoire_questions_were_technical"
+            },
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_technical_grimoire_questions"
+            },
+            {
+              "type": "set_flag",
+              "key": "false_trail_grimoire_refuted",
+              "value": true
+            },
+            {
+              "type": "grant_xp",
+              "amount": 10
+            }
+          ]
+        }
+      ],
+      "characterId": "npc_emil_roth"
+    },
+    {
+      "id": "scene_case01_grimoire_exit",
+      "scenarioId": "case01_false_trail_grimoire",
+      "title": "The Book Was A Specification",
+      "body": "Roth is vain, frightened, and useful. He is not the center. The grimoire trail does not point to an ecstatic cultist but to a planner who needed dimensions, heat tolerance, extraction time, and a reason to ignore the money in the vault.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "false_trail_grimoire_complete",
+          "value": true
+        },
+        {
+          "type": "grant_xp",
+          "amount": 15
+        }
+      ]
+    },
+    {
+      "id": "scene_case01_post_route_entry",
+      "scenarioId": "case01_false_trail_post_route",
+      "title": "Route Ledger",
+      "body": "Stationmaster Emil Rapp does not like civilian investigators inside timetable logic. The wrong post lantern changes that. A Sunday carriage was marked like a lawful route, logged like a municipal favor, and moved like an order nobody wanted to countersign. Kaspar Blume watches...",
+      "choices": [
+        {
+          "id": "CASE01_POST_DOCUMENTS",
+          "text": "Cross-check the route journal, lantern color, and departure time.",
+          "nextNodeId": "scene_case01_post_route_weber",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "false_trail_post_route_complete",
+              "value": true
+            }
+          ],
+          "skillCheck": {
+            "id": "check_case01_post_documents",
+            "voiceId": "attr_logic",
+            "difficulty": 11,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_post_route_weber",
+              "effects": [
+                {
+                  "type": "grant_evidence",
+                  "evidenceId": "ev_wrong_post_lantern"
+                },
+                {
+                  "type": "discover_fact",
+                  "caseId": "case_bankhaus_krebs_false_trail",
+                  "factId": "fact_post_route_was_bent"
+                },
+                {
+                  "type": "grant_xp",
+                  "amount": 10
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_post_route_weber",
+              "effects": [
+                {
+                  "type": "add_tension",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "CASE01_POST_KASPAR",
+          "text": "Let Kaspar price the detail the stationmaster will not say aloud.",
+          "nextNodeId": "scene_case01_post_route_weber",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "false_trail_post_route_complete",
+              "value": true
+            }
+          ],
+          "skillCheck": {
+            "id": "check_case01_post_kaspar",
+            "voiceId": "attr_shadow",
+            "difficulty": 10,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_post_route_weber",
+              "effects": [
+                {
+                  "type": "grant_evidence",
+                  "evidenceId": "ev_wrong_post_lantern"
+                },
+                {
+                  "type": "discover_fact",
+                  "caseId": "case_bankhaus_krebs_false_trail",
+                  "factId": "fact_wrong_post_lantern"
+                },
+                {
+                  "type": "grant_xp",
+                  "amount": 10
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_post_route_weber",
+              "effects": [
+                {
+                  "type": "add_heat",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "characterId": "npc_emil_rapp"
+    },
+    {
+      "id": "scene_case01_post_route_weber",
+      "scenarioId": "case01_false_trail_post_route",
+      "title": "Anton Weber",
+      "body": "Anton Weber keeps wiping his hands on a rag that stopped being clean before dawn. His carriage, his driver, his route: all true. His crime is smaller and therefore more frightened. He accepted a stamped order that arrived with enough military grammar to make refusal feel like ...",
+      "choices": [
+        {
+          "id": "CASE01_POST_OBSERVE_SEAL",
+          "text": "Read the old military seal against the new hand that filled the order.",
+          "nextNodeId": "scene_case01_post_route_exit",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "false_trail_post_route_refuted",
+              "value": true
+            }
+          ],
+          "skillCheck": {
+            "id": "check_case01_post_observe_seal",
+            "voiceId": "attr_perception",
+            "difficulty": 11,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_post_route_exit",
+              "effects": [
+                {
+                  "type": "grant_evidence",
+                  "evidenceId": "ev_forged_military_dispatch"
+                },
+                {
+                  "type": "discover_fact",
+                  "caseId": "case_bankhaus_krebs_false_trail",
+                  "factId": "fact_forged_military_dispatch"
+                },
+                {
+                  "type": "grant_xp",
+                  "amount": 10
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_post_route_exit",
+              "effects": [
+                {
+                  "type": "add_tension",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "CASE01_POST_SCANDAL",
+          "text": "Threaten Weber with the public scandal until he gives you the voice.",
+          "nextNodeId": "scene_case01_post_route_exit",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "false_trail_post_route_refuted",
+              "value": true
+            }
+          ],
+          "skillCheck": {
+            "id": "check_case01_post_scandal",
+            "voiceId": "attr_authority",
+            "difficulty": 12,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_post_route_exit",
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "false_trail_post_route_pressure_used",
+                  "value": true
+                },
+                {
+                  "type": "discover_fact",
+                  "caseId": "case_bankhaus_krebs_false_trail",
+                  "factId": "fact_order_giver_had_officer_bearing"
+                },
+                {
+                  "type": "grant_xp",
+                  "amount": 10
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_post_route_exit",
+              "effects": [
+                {
+                  "type": "add_heat",
+                  "amount": 1
+                },
+                {
+                  "type": "change_faction_signal",
+                  "factionId": "civic_order",
+                  "delta": -1,
+                  "reason": "false_trail_post_scandal"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "characterId": "npc_anton_weber"
+    },
+    {
+      "id": "scene_case01_post_route_exit",
+      "scenarioId": "case01_false_trail_post_route",
+      "title": "A Route, Not A Mastermind",
+      "body": "The carriage is guilty of being useful. Weber is guilty of obeying a document that made fear look like duty. The useful part is the shape of the order: someone knew civilian routes, old military seals, and how to make a private contractor move without asking whether the cargo ...",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "false_trail_post_route_complete",
+          "value": true
+        },
+        {
+          "type": "grant_xp",
+          "amount": 15
+        }
+      ]
+    },
+    {
+      "id": "scene_case01_workers_entry",
+      "scenarioId": "case01_false_trail_workers",
+      "title": "Red Cog Tavern",
+      "body": "Anna Mahler lets the tavern look at you before she does. A bootprint sketch, grey river clay, and the word \"thermite\" travel around the room faster than your badge. \"You call it evidence,\" she says. \"I call it a boot belonging to a man who must report for shift in the morning....",
+      "choices": [
+        {
+          "id": "CASE01_WORKERS_SOCIAL",
+          "text": "Say you are not here for a culprit, but for whoever used their noise.",
+          "nextNodeId": "scene_case01_workers_rudi",
+          "effects": [
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_grey_river_clay"
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_bankhaus_krebs_false_trail",
+              "factId": "fact_workers_clay_and_noise"
+            }
+          ],
+          "skillCheck": {
+            "id": "check_case01_workers_social",
+            "voiceId": "attr_social",
+            "difficulty": 10,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_workers_rudi",
+              "effects": [
+                {
+                  "type": "change_favor_balance",
+                  "npcId": "npc_anna_mahler",
+                  "delta": 1,
+                  "reason": "false_trail_workers_respect"
+                },
+                {
+                  "type": "grant_xp",
+                  "amount": 10
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_workers_rudi",
+              "effects": [
+                {
+                  "type": "add_tension",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "CASE01_WORKERS_PRESSURE",
+          "text": "Put thermite, clay, and rail work on the table hard enough to quiet the room.",
+          "nextNodeId": "scene_case01_workers_rudi",
+          "effects": [
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_grey_river_clay"
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_bankhaus_krebs_false_trail",
+              "factId": "fact_workers_clay_and_noise"
+            }
+          ],
+          "skillCheck": {
+            "id": "check_case01_workers_pressure",
+            "voiceId": "attr_authority",
+            "difficulty": 12,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_workers_rudi",
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "false_trail_workers_pressure_used",
+                  "value": true
+                },
+                {
+                  "type": "grant_xp",
+                  "amount": 10
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_workers_rudi",
+              "effects": [
+                {
+                  "type": "add_heat",
+                  "amount": 1
+                },
+                {
+                  "type": "change_favor_balance",
+                  "npcId": "npc_anna_mahler",
+                  "delta": -1,
+                  "reason": "false_trail_workers_pressure"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "CASE01_WORKERS_TECHNICAL",
+          "text": "Explain that rail thermite leaves rough habits; the bank cut was clean.",
+          "nextNodeId": "scene_case01_workers_rudi",
+          "effects": [
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_grey_river_clay"
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_bankhaus_krebs_false_trail",
+              "factId": "fact_workers_clay_and_noise"
+            }
+          ],
+          "skillCheck": {
+            "id": "check_case01_workers_technical",
+            "voiceId": "attr_encyclopedia",
+            "difficulty": 11,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_workers_rudi",
+              "effects": [
+                {
+                  "type": "grant_evidence",
+                  "evidenceId": "ev_thermite_slag_ratio"
+                },
+                {
+                  "type": "discover_fact",
+                  "caseId": "case_bankhaus_krebs_false_trail",
+                  "factId": "fact_thermite_too_clean_for_workers"
+                },
+                {
+                  "type": "grant_xp",
+                  "amount": 10
+                }
+              ]
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_workers_rudi",
+              "effects": [
+                {
+                  "type": "add_tension",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "characterId": "npc_anna_mahler"
+    },
+    {
+      "id": "scene_case01_workers_rudi",
+      "scenarioId": "case01_false_trail_workers",
+      "title": "Rudi Kempf",
+      "body": "Rudi Kempf is angry enough to confess to anything except the thing he did not do. He admits the workers gathered near the bank, admits the signal flare, and admits the shouted timing that made the square useless to witnesses. Then his voice breaks into something colder. \"We ma...",
+      "choices": [
+        {
+          "id": "CASE01_WORKERS_RUDI_NOISE",
+          "text": "Separate their protest rhythm from the vault work.",
+          "nextNodeId": "scene_case01_workers_exit",
+          "effects": [
+            {
+              "type": "discover_fact",
+              "caseId": "case_bankhaus_krebs_false_trail",
+              "factId": "fact_workers_unwitting_cover"
+            },
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_shadow_registry_mark"
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_bankhaus_krebs_false_trail",
+              "factId": "fact_rudi_shadow_registry"
+            },
+            {
+              "type": "set_flag",
+              "key": "false_trail_workers_refuted",
+              "value": true
+            },
+            {
+              "type": "grant_xp",
+              "amount": 10
+            }
+          ]
+        },
+        {
+          "id": "CASE01_WORKERS_RUDI_CARRIAGE",
+          "text": "Ask what moved when everyone watched the shouting.",
+          "nextNodeId": "scene_case01_workers_exit",
+          "effects": [
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_wrong_post_lantern"
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_bankhaus_krebs_false_trail",
+              "factId": "fact_wrong_post_lantern"
+            },
+            {
+              "type": "set_flag",
+              "key": "false_trail_workers_refuted",
+              "value": true
+            },
+            {
+              "type": "grant_xp",
+              "amount": 10
+            }
+          ]
+        }
+      ],
+      "characterId": "npc_rudi_kempf"
+    },
+    {
+      "id": "scene_case01_workers_exit",
+      "scenarioId": "case01_false_trail_workers",
+      "title": "Noise Without Hands",
+      "body": "The tavern does not become friendly. It becomes useful. The clay is real, the thermite association is real, and the street action was real. The center is missing. Someone scheduled the workers like a shield and let Freiburg mistake a crowd for a conspiracy.",
+      "terminal": true,
+      "choices": [],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "false_trail_workers_complete",
+          "value": true
+        },
+        {
+          "type": "grant_xp",
+          "amount": 15
+        }
+      ]
+    },
+    {
       "id": "scene_case01_opening_arrival_video",
       "scenarioId": "case01_hbf_arrival",
       "title": "Approach by rail",
@@ -1071,7 +1947,7 @@
         }
       ],
       "backgroundUrl": "/VN/start/image/train_assistant.png",
-      "characterId": "assistant",
+      "characterId": "npc_felix_hartmann",
       "sceneGroupId": "train_assistant",
       "narrativeLayout": "log"
     },
@@ -1079,16 +1955,71 @@
       "id": "scene_case01_train_door_creaks",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Assistant]**:\n— Вы уверены, что это не розыгрыш?\n\n**[inspector]**:\n— Письмо было доставлено частной службой, а бумага и чернила, используемые в нем, стоят недешево. Что ж, узнаем по прибытии в отель.\n\n**[Assistant]**:\n— Вы правы, сэр. Не стали бы они арендовать нам номер просто так.",
+      "body": "**[Assistant]**:\n— Вы уверены, что это не розыгрыш?",
       "choices": [
         {
-          "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_DOOR_CREAKS",
-          "text": "Continue.",
-          "nextNodeId": "scene_case01_train_assistant_departure"
+          "id": "CASE01_TRAIN_DOOR_CREAKS_LOGIC",
+          "text": "Письмо доставлено частной службой, бумага и чернила стоят недешево. Розыгрыш обошелся бы слишком дорого.",
+          "nextNodeId": "scene_case01_train_assistant_departure",
+          "inlineText": "**[Assistant]**:\n— Вы правы, сэр. Не стали бы они арендовать нам номер просто так.",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "attr_logic",
+              "value": 1
+            }
+          ],
+          "innerVoiceHints": [
+            {
+              "voiceId": "inner_analyst",
+              "stance": "supports",
+              "text": "Холодный расчет прежде всего."
+            }
+          ]
+        },
+        {
+          "id": "CASE01_TRAIN_DOOR_CREAKS_AUTHORITY",
+          "text": "Не имеет значения, розыгрыш это или нет. Нам бросили вызов, и мы не имеем права его игнорировать.",
+          "nextNodeId": "scene_case01_train_assistant_departure",
+          "inlineText": "**[Assistant]**:\n— Полностью согласен, сэр. Мы не можем оставить это без внимания.",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "attr_authority",
+              "value": 1
+            }
+          ],
+          "innerVoiceHints": [
+            {
+              "voiceId": "inner_leader",
+              "stance": "supports",
+              "text": "Дисциплина и долг не терпят сомнений."
+            }
+          ]
+        },
+        {
+          "id": "CASE01_TRAIN_DOOR_CREAKS_INTUITION",
+          "text": "Что-то мне подсказывает, что за этим письмом кроется нечто гораздо большее, чем кажется на первый взгляд.",
+          "nextNodeId": "scene_case01_train_assistant_departure",
+          "inlineText": "**[Assistant]**:\n— Ваше чутье вас редко подводит, сэр. Будем настороже.",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "attr_intuition",
+              "value": 1
+            }
+          ],
+          "innerVoiceHints": [
+            {
+              "voiceId": "inner_guide",
+              "stance": "supports",
+              "text": "Слушай свой внутренний голос. Здесь скрыта тайна."
+            }
+          ]
         }
       ],
       "backgroundUrl": "/VN/start/image/train_assistant.png",
-      "characterId": "assistant",
+      "characterId": "npc_felix_hartmann",
       "sceneGroupId": "train_assistant",
       "narrativeLayout": "log"
     },
@@ -1105,7 +2036,7 @@
           "effects": [
             {
               "type": "change_relationship",
-              "characterId": "assistant",
+              "characterId": "npc_felix_hartmann",
               "delta": 1
             }
           ]
@@ -1117,7 +2048,7 @@
         }
       ],
       "backgroundUrl": "/VN/start/image/train_assistant.png",
-      "characterId": "assistant",
+      "characterId": "npc_felix_hartmann",
       "sceneGroupId": "train_assistant",
       "narrativeLayout": "log"
     },
@@ -1386,7 +2317,7 @@
             },
             {
               "type": "change_relationship",
-              "characterId": "assistant",
+              "characterId": "npc_felix_hartmann",
               "delta": 1
             }
           ]
@@ -1410,7 +2341,7 @@
             },
             {
               "type": "change_relationship",
-              "characterId": "assistant",
+              "characterId": "npc_felix_hartmann",
               "delta": 1
             }
           ]
@@ -1434,7 +2365,7 @@
             },
             {
               "type": "change_relationship",
-              "characterId": "assistant",
+              "characterId": "npc_felix_hartmann",
               "delta": 1
             }
           ]
@@ -1532,7 +2463,7 @@
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car_felix.png",
-      "characterId": "assistant",
+      "characterId": "npc_felix_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
     },
@@ -2046,7 +2977,7 @@
       "id": "scene_case01_hbf_newsboy_approach",
       "scenarioId": "case01_hbf_arrival",
       "title": "Evening edition",
-      "body": "The boy is nervous. He grips the thin, hurried evening edition like a shield. You notice the bank's name �\u001d Bankhaus Krebs �\u001d in the headlines. It's too early for official news, too specific for rumor.\n\nSomeone wanted this story told before the dust even settled.",
+      "body": "The boy is nervous. He grips the thin, hurried evening edition like a shield. You notice the bank's name -- Bankhaus J.A. Krebs -- in the headlines. It's too early for official news, too specific for rumor.\n\nSomeone wanted this story told before the dust even settled.",
       "choices": [
         {
           "id": "CASE01_NEWSBOY_INVESTIGATE",
@@ -2083,7 +3014,7 @@
       "id": "scene_case01_hbf_newsboy_handoff",
       "scenarioId": "case01_hbf_arrival",
       "title": "HBF Arrival",
-      "body": "As you reach for a paper, the boy's hand trembles. He's not just selling news; he's watching for someone. Your assistant leans in, a silent shadow that makes the boy stiffen further.\n\n'Go,' you mutter. He doesn't wait for a second invitation.",
+      "body": "As you reach for a paper, the boy's hand trembles. He's not just selling news; he's watching for someone. Felix leans in, a silent shadow that makes the boy stiffen further.\n\n'Go,' you mutter. He doesn't wait for a second invitation.",
       "choices": [
         {
           "id": "CASE01_NEWSBOY_HANDOFF_RETURN",
@@ -2449,6 +3380,13 @@
           "nextNodeId": "scene_case01_lotte_distance"
         }
       ],
+      "onEnter": [
+        {
+          "type": "discover_fact",
+          "caseId": "case_bankhaus_krebs_false_trail",
+          "factId": "fact_lotte_black_lines"
+        }
+      ],
       "characterId": "npc_weber_dispatcher"
     },
     {
@@ -2561,9 +3499,28 @@
         },
         {
           "id": "CASE01_MAYOR_PRESS",
-          "text": "Ask what the Rathaus is most afraid of.",
+          "text": "Ask why the Polizeidirektor refused Victoria's findings.",
           "nextNodeId": "scene_case01_mayor_dossier",
           "effects": [
+            {
+              "type": "set_flag",
+              "key": "police_refused_victoria",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "victoria_introduced",
+              "value": true
+            },
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_bureau_control_code"
+            },
+            {
+              "type": "discover_fact",
+              "caseId": "case_bankhaus_krebs_false_trail",
+              "factId": "fact_mayor_control_code"
+            },
             {
               "type": "grant_xp",
               "amount": 5
@@ -2571,9 +3528,26 @@
           ]
         },
         {
-          "id": "CASE01_MAYOR_CLARA",
-          "text": "Ask why Clara von Altenburg is already moving around the bank.",
-          "nextNodeId": "scene_case01_mayor_dossier"
+          "id": "CASE01_MAYOR_VICTORIA_ROUTE",
+          "text": "Let Victoria finish the postal-chain argument before anyone interrupts.",
+          "nextNodeId": "scene_case01_mayor_dossier",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "police_refused_victoria",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "victoria_introduced",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "official_writ_strength",
+              "value": 1
+            }
+          ]
         }
       ]
     },
@@ -2594,7 +3568,7 @@
       "id": "scene_case01_mayor_dossier",
       "scenarioId": "case01_mayor_briefing",
       "title": "Scene: Political Pressure",
-      "body": "He gives you three things and pretends they are one: a permit to press deeper into the records later, a warning that Galdermann has friends who pay for silence, and a refusal to say Hartmann's name until you give him something the council can survive hearing in public.",
+      "body": "The Polizeidirektor calls Victoria \"Frau Sterling\" as if widowhood is a more acceptable credential than chemistry. Her jaw tightens only once. The mayor does not look at her when he answers; that is how you learn the request is personal before it is political. He gives you thr...",
       "choices": [
         {
           "id": "CASE01_MAYOR_FELIX_ASIDE",
@@ -2609,8 +3583,8 @@
           ]
         },
         {
-          "id": "CASE01_MAYOR_TO_BANK",
-          "text": "Take the briefing and move to the bank with official cover.",
+          "id": "CASE01_MAYOR_RESPECT_VICTORIA",
+          "text": "Recognize Victoria's chain of custody as the strongest evidence in the room.",
           "nextNodeId": "scene_case01_mayor_exit",
           "effects": [
             {
@@ -2619,19 +3593,130 @@
               "value": true
             },
             {
+              "type": "set_flag",
+              "key": "police_refused_victoria",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "victoria_introduced",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "victoria_respected",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "official_writ_strength",
+              "value": 2
+            },
+            {
               "type": "change_relationship",
-              "characterId": "assistant",
+              "characterId": "victoria_sterling",
               "delta": 1
             }
           ]
+        },
+        {
+          "id": "CASE01_MAYOR_PATRONIZE_VICTORIA",
+          "text": "Accept the Oberbuergermeister's daughter as a liability you will manage.",
+          "nextNodeId": "scene_case01_mayor_exit",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "met_mayor_first",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "police_refused_victoria",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "victoria_introduced",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "official_writ_strength",
+              "value": 1
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "victoria_sterling",
+              "delta": -1
+            }
+          ]
+        },
+        {
+          "id": "CASE01_MAYOR_PRESS_WITH_VICTORIA",
+          "text": "Use Victoria's postal route to force the Rathaus into a stronger writ.",
+          "nextNodeId": "scene_case01_mayor_exit",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "met_mayor_first",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "police_refused_victoria",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "victoria_introduced",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "official_writ_strength",
+              "value": 2
+            },
+            {
+              "type": "add_tension",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE01_MAYOR_TO_BANK",
+          "text": "Accept Victoria as a neutral expert and move to the bank.",
+          "nextNodeId": "scene_case01_mayor_exit",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "met_mayor_first",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "police_refused_victoria",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "victoria_introduced",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "official_writ_strength",
+              "value": 1
+            }
+          ]
         }
-      ]
+      ],
+      "characterId": "victoria_sterling"
     },
     {
       "id": "scene_case01_mayor_felix_aside",
       "scenarioId": "case01_mayor_briefing",
       "title": "Scene: Felix Reads the Cover",
-      "body": "Felix takes the permit as if it might bruise. He reads the mayor's phrasing twice, once for law and once for cowardice. \"This gives you doors,\" he says quietly. \"Not protection. If the Rathaus needs distance later, every sentence here already knows how to step away from you.\" ...",
+      "body": "Felix takes the permit as if it might bruise. He reads the mayor's phrasing twice, once for law and once for cowardice, then glances at Victoria's sample tube. \"This gives you doors,\" he says quietly. \"Not protection. If the Rathaus needs distance later, every sentence here al...",
       "choices": [
         {
           "id": "CASE01_MAYOR_FELIX_TO_BANK",
@@ -2644,20 +3729,40 @@
               "value": true
             },
             {
+              "type": "set_flag",
+              "key": "police_refused_victoria",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "victoria_introduced",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "victoria_respected",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "official_writ_strength",
+              "value": 2
+            },
+            {
               "type": "change_relationship",
-              "characterId": "assistant",
+              "characterId": "victoria_sterling",
               "delta": 1
             }
           ]
         }
       ],
-      "characterId": "assistant"
+      "characterId": "npc_felix_hartmann"
     },
     {
       "id": "scene_case01_mayor_exit",
       "scenarioId": "case01_mayor_briefing",
       "title": "Scene: Official Writ",
-      "body": "By the time you leave, you have enough paper to open doors and enough political pressure to know those same doors may close behind you.",
+      "body": "By the time you leave, you have enough paper to open doors, enough political pressure to know those same doors may close behind you, and enough ambiguity for the Rathaus to deny it ever appointed Victoria Sterling at all. That is the bargain: she enters the bank as your privat...",
       "terminal": true,
       "choices": [],
       "onEnter": [
@@ -3957,7 +5062,7 @@
           ]
         }
       ],
-      "characterId": "assistant"
+      "characterId": "victoria_sterling"
     },
     {
       "id": "scene_karlsruhe_event_arrival_paperboy",
@@ -3996,7 +5101,7 @@
           "nextNodeId": "scene_karlsruhe_event_arrival_unlock"
         }
       ],
-      "characterId": "assistant"
+      "characterId": "victoria_sterling"
     },
     {
       "id": "scene_karlsruhe_event_arrival_unlock",
@@ -4058,6 +5163,21 @@
           "type": "set_var",
           "key": "attr_empathy",
           "value": 1
+        },
+        {
+          "type": "set_var",
+          "key": "skill_xp_attr_intellect",
+          "value": 300
+        },
+        {
+          "type": "set_var",
+          "key": "skill_xp_attr_perception",
+          "value": 400
+        },
+        {
+          "type": "set_var",
+          "key": "skill_xp_attr_empathy",
+          "value": 100
         },
         {
           "type": "set_flag",
@@ -4135,6 +5255,21 @@
           "type": "set_var",
           "key": "attr_deception",
           "value": 2
+        },
+        {
+          "type": "set_var",
+          "key": "skill_xp_attr_encyclopedia",
+          "value": 400
+        },
+        {
+          "type": "set_var",
+          "key": "skill_xp_attr_perception",
+          "value": 300
+        },
+        {
+          "type": "set_var",
+          "key": "skill_xp_attr_deception",
+          "value": 200
         },
         {
           "type": "set_flag",
@@ -6932,7 +8067,11 @@
       ],
       "backgroundUrl": "/images/scenes/scene_evidence_collection.png",
       "voicePresenceMode": "parliament",
-      "activeSpeakers": ["attr_intellect", "attr_perception", "attr_spirit"]
+      "activeSpeakers": [
+        "attr_intellect",
+        "attr_perception",
+        "attr_spirit"
+      ]
     },
     {
       "id": "scene_evidence_collection_beat1",
@@ -7103,7 +8242,11 @@
         }
       ],
       "voicePresenceMode": "parliament",
-      "activeSpeakers": ["inner_leader", "inner_guide", "inner_cynic"]
+      "activeSpeakers": [
+        "inner_leader",
+        "inner_guide",
+        "inner_cynic"
+      ]
     },
     {
       "id": "scene_inner_voice_demo_reflection",
@@ -7151,7 +8294,11 @@
         }
       ],
       "voicePresenceMode": "parliament",
-      "activeSpeakers": ["inner_leader", "inner_guide", "inner_cynic"]
+      "activeSpeakers": [
+        "inner_leader",
+        "inner_guide",
+        "inner_cynic"
+      ]
     },
     {
       "id": "scene_inner_voice_demo_leader",
@@ -7306,6 +8453,21 @@
               "value": 1
             },
             {
+              "type": "set_var",
+              "key": "skill_xp_attr_intellect",
+              "value": 300
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_perception",
+              "value": 400
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_empathy",
+              "value": 100
+            },
+            {
               "type": "set_flag",
               "key": "origin_detective",
               "value": true
@@ -7363,6 +8525,21 @@
               "type": "set_var",
               "key": "attr_deception",
               "value": 2
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_encyclopedia",
+              "value": 400
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_perception",
+              "value": 300
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_deception",
+              "value": 200
             },
             {
               "type": "set_flag",
@@ -7424,6 +8601,21 @@
               "value": 2
             },
             {
+              "type": "set_var",
+              "key": "skill_xp_attr_social",
+              "value": 400
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_deception",
+              "value": 200
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_encyclopedia",
+              "value": 200
+            },
+            {
               "type": "set_flag",
               "key": "origin_aristocrat",
               "value": true
@@ -7483,6 +8675,21 @@
               "value": 2
             },
             {
+              "type": "set_var",
+              "key": "skill_xp_attr_physical",
+              "value": 400
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_perception",
+              "value": 200
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_spirit",
+              "value": 200
+            },
+            {
               "type": "set_flag",
               "key": "origin_veteran",
               "value": true
@@ -7540,6 +8747,21 @@
               "type": "set_var",
               "key": "attr_social",
               "value": 1
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_intellect",
+              "value": 400
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_encyclopedia",
+              "value": 300
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_social",
+              "value": 100
             },
             {
               "type": "set_flag",
@@ -7860,6 +9082,10 @@
         "title": "Banker Ledger Theft"
       },
       {
+        "id": "case_bankhaus_krebs_false_trail",
+        "title": "Bankhaus Krebs: Three Innocent Culprits"
+      },
+      {
         "id": "case_dog_trail",
         "title": "The Dog's Trail"
       }
@@ -7943,6 +9169,182 @@
         }
       },
       {
+        "id": "fact_workers_clay_and_noise",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_choice",
+        "sourceId": "case01_false_trail_workers::scene_case01_workers_entry::CASE01_WORKERS_SOCIAL",
+        "text": "Grey river clay and protest noise connect the workers to the bank square, but not to the vault.",
+        "tags": {
+          "theme": "labor",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_mayor_control_code",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_choice",
+        "sourceId": "case01_mayor_briefing::scene_case01_mayor_entry::CASE01_MAYOR_PRESS",
+        "text": "The mayor's desk carries a folder with the same control code as Weber's telegram, implying a quiet Bureau protocol behind the official summons.",
+        "tags": {
+          "theme": "bureau",
+          "reliability": "medium"
+        }
+      },
+      {
+        "id": "fact_lotte_black_lines",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_on_enter",
+        "sourceId": "case01_lotte_interlude::scene_case01_lotte_warning",
+        "text": "Lotte saw black-line switchboard lamps activate during the bank raid, on lines that officially should not exist.",
+        "tags": {
+          "theme": "bureau",
+          "reliability": "medium"
+        }
+      },
+      {
+        "id": "fact_victoria_forbidden_residue",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_skill_check",
+        "sourceId": "case01_bank_investigation::scene_case01_bank_vault::check_case01_vault_intuition",
+        "text": "Victoria recognizes a vault residue notation from sealed files under her father's roof, not from university chemistry.",
+        "tags": {
+          "theme": "forensics",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_rudi_shadow_registry",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_choice",
+        "sourceId": "case01_false_trail_workers::scene_case01_workers_rudi::CASE01_WORKERS_RUDI_NOISE",
+        "text": "Rudi's union card carries a black registry mark that does not belong to labor or police paperwork.",
+        "tags": {
+          "theme": "registry",
+          "reliability": "medium"
+        }
+      },
+      {
+        "id": "fact_thermite_too_clean_for_workers",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_skill_check",
+        "sourceId": "case01_false_trail_workers::scene_case01_workers_entry::check_case01_workers_technical",
+        "text": "The thermite work at the bank was cleaner than rail-yard habits would normally produce.",
+        "tags": {
+          "theme": "material",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_workers_unwitting_cover",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_choice",
+        "sourceId": "case01_false_trail_workers::scene_case01_workers_rudi::CASE01_WORKERS_RUDI_NOISE",
+        "text": "The workers created noise near the bank but did not enter the vault.",
+        "tags": {
+          "theme": "alibi",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_wrong_post_lantern",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_choice",
+        "sourceId": "case01_false_trail_workers::scene_case01_workers_rudi::CASE01_WORKERS_RUDI_CARRIAGE",
+        "text": "The postal carriage carried a route lantern that did not match its supposed assignment.",
+        "tags": {
+          "theme": "logistics",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_post_route_was_bent",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_skill_check",
+        "sourceId": "case01_false_trail_post_route::scene_case01_post_route_entry::check_case01_post_documents",
+        "text": "The carriage route was altered through paperwork rather than ordinary theft.",
+        "tags": {
+          "theme": "documents",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_forged_military_dispatch",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_skill_check",
+        "sourceId": "case01_false_trail_post_route::scene_case01_post_route_weber::check_case01_post_observe_seal",
+        "text": "The order used an old military seal with newer civilian-route details filled in by another hand.",
+        "tags": {
+          "theme": "documents",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_order_giver_had_officer_bearing",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_skill_check",
+        "sourceId": "case01_false_trail_post_route::scene_case01_post_route_weber::check_case01_post_scandal",
+        "text": "Anton Weber remembers the order-giver as someone who gave commands rather than negotiated terms.",
+        "tags": {
+          "theme": "witness",
+          "reliability": "medium"
+        }
+      },
+      {
+        "id": "fact_roth_saw_razlom",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_skill_check",
+        "sourceId": "case01_false_trail_grimoire::scene_case01_grimoire_entry::check_case01_grimoire_occult",
+        "text": "Emil Roth handled Razlom before the robbery and can identify traces of its binding.",
+        "tags": {
+          "theme": "occult",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_grimoire_questions_were_technical",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_skill_check",
+        "sourceId": "case01_false_trail_grimoire::scene_case01_grimoire_entry::check_case01_grimoire_practical",
+        "text": "The unknown inquirer asked about Razlom's weight, dimensions, and extraction constraints rather than its lore.",
+        "tags": {
+          "theme": "engineering",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_roth_leaked_razlom",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_choice",
+        "sourceId": "case01_false_trail_grimoire::scene_case01_grimoire_roth::CASE01_GRIMOIRE_MORAL",
+        "text": "Roth did not steal Razlom, but he leaked enough about it for a planner to target the private box.",
+        "tags": {
+          "theme": "leak",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_false_trails_are_tools",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_choice",
+        "sourceId": "case01_false_trail_convergence::scene_case01_false_trail_convergence_entry::CASE01_FALSE_TRAIL_ASSEMBLE",
+        "text": "The workers, postal route, and restorer were tools in one operation rather than equal conspirators.",
+        "tags": {
+          "theme": "deduction",
+          "reliability": "high"
+        }
+      },
+      {
+        "id": "fact_engineer_operation_shape",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "sourceType": "vn_choice",
+        "sourceId": "case01_false_trail_convergence::scene_case01_false_trail_convergence_entry::CASE01_FALSE_TRAIL_ASSEMBLE",
+        "text": "The operation required someone who understood military paperwork, routes, thermite, and extraction timing.",
+        "tags": {
+          "theme": "engineering",
+          "reliability": "high"
+        }
+      },
+      {
         "id": "fact_dog_market_route",
         "caseId": "case_dog_trail",
         "sourceType": "vn_on_enter",
@@ -8015,7 +9417,9 @@
         "caseId": "case_loop_demo",
         "key": "loop_demo_solved",
         "text": "The loop demo has been completed successfully.",
-        "requiredFactIds": ["fact_loop_clue"],
+        "requiredFactIds": [
+          "fact_loop_clue"
+        ],
         "requiredVars": [],
         "rewardEffects": [
           {
@@ -8066,6 +9470,146 @@
             "tags": {
               "caseId": "case_banker_theft"
             }
+          }
+        ]
+      },
+      {
+        "id": "hyp_workers_did_it",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "key": "workers_did_it_false",
+        "text": "The workers look guilty because clay, rail thermite, and protest noise all point toward the Red Cog circle.",
+        "requiredFactIds": [
+          "fact_workers_clay_and_noise",
+          "fact_thermite_too_clean_for_workers",
+          "fact_workers_unwitting_cover"
+        ],
+        "requiredVars": [],
+        "rewardEffects": [
+          {
+            "type": "set_flag",
+            "key": "false_trail_workers_refuted",
+            "value": true
+          },
+          {
+            "type": "track_event",
+            "eventName": "mind_case01_workers_false_trail_logged",
+            "tags": {
+              "caseId": "case_bankhaus_krebs_false_trail"
+            }
+          }
+        ]
+      },
+      {
+        "id": "hyp_post_route_logistics",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "key": "post_route_logistics",
+        "text": "The postal contractor supplied the visible transport, but the route was bent by someone with military paperwork habits.",
+        "requiredFactIds": [
+          "fact_wrong_post_lantern",
+          "fact_post_route_was_bent",
+          "fact_forged_military_dispatch"
+        ],
+        "requiredVars": [],
+        "rewardEffects": [
+          {
+            "type": "set_flag",
+            "key": "false_trail_post_route_refuted",
+            "value": true
+          },
+          {
+            "type": "track_event",
+            "eventName": "mind_case01_post_route_logged",
+            "tags": {
+              "caseId": "case_bankhaus_krebs_false_trail"
+            }
+          }
+        ]
+      },
+      {
+        "id": "hyp_grimoire_leak_chain",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "key": "grimoire_leak_chain",
+        "text": "Roth leaked Razlom's existence and physical constraints, but the questions were technical rather than devotional.",
+        "requiredFactIds": [
+          "fact_roth_saw_razlom",
+          "fact_grimoire_questions_were_technical",
+          "fact_roth_leaked_razlom"
+        ],
+        "requiredVars": [],
+        "rewardEffects": [
+          {
+            "type": "set_flag",
+            "key": "false_trail_grimoire_refuted",
+            "value": true
+          },
+          {
+            "type": "track_event",
+            "eventName": "mind_case01_grimoire_leak_logged",
+            "tags": {
+              "caseId": "case_bankhaus_krebs_false_trail"
+            }
+          }
+        ]
+      },
+      {
+        "id": "hyp_military_engineer_operation",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "key": "military_engineer_operation",
+        "text": "The Bankhaus Krebs raid was an engineering operation: workers supplied noise, the post route supplied movement, Roth supplied target data, and thermite supplied precision.",
+        "requiredFactIds": [
+          "fact_workers_unwitting_cover",
+          "fact_forged_military_dispatch",
+          "fact_grimoire_questions_were_technical",
+          "fact_false_trails_are_tools",
+          "fact_engineer_operation_shape"
+        ],
+        "requiredVars": [],
+        "rewardEffects": [
+          {
+            "type": "set_flag",
+            "key": "military_engineer_operation_proven",
+            "value": true
+          },
+          {
+            "type": "set_flag",
+            "key": "warehouse_plan_locked",
+            "value": true
+          },
+          {
+            "type": "unlock_group",
+            "groupId": "loc_freiburg_warehouse"
+          },
+          {
+            "type": "track_event",
+            "eventName": "mind_case01_military_engineer_operation_proven",
+            "tags": {
+              "caseId": "case_bankhaus_krebs_false_trail"
+            }
+          }
+        ]
+      },
+      {
+        "id": "hyp_bureau_protocol_active",
+        "caseId": "case_bankhaus_krebs_false_trail",
+        "key": "bureau_protocol_active",
+        "text": "A quiet Bureau protocol was active around the bank before the city admitted any supernatural jurisdiction.",
+        "requiredFactIds": [
+          "fact_mayor_control_code",
+          "fact_lotte_black_lines",
+          "fact_victoria_forbidden_residue"
+        ],
+        "requiredVars": [],
+        "rewardEffects": [
+          {
+            "type": "track_event",
+            "eventName": "mind_case01_bureau_protocol_active",
+            "tags": {
+              "caseId": "case_bankhaus_krebs_false_trail"
+            }
+          },
+          {
+            "type": "grant_xp",
+            "amount": 10
           }
         ]
       },
@@ -8364,6 +9908,36 @@
                 "tags": {
                   "pointId": "loc_hbf"
                 }
+              }
+            ]
+          },
+          {
+            "id": "bind_hbf_false_trail_post_route",
+            "trigger": "card_secondary",
+            "label": "Audit the Postal Route",
+            "priority": 122,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "case01_onboarding_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "false_trail_post_route_complete",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "case01_false_trail_post_route"
               }
             ]
           },
@@ -8738,15 +10312,32 @@
         "isHiddenInitially": true,
         "bindings": [
           {
-            "id": "legacy_start_loc_munster",
-            "trigger": "card_primary",
-            "label": "Start Scenario",
-            "priority": 100,
+            "id": "bind_munster_false_trail_grimoire",
+            "trigger": "card_secondary",
+            "label": "Question the Book Restorer",
+            "priority": 112,
             "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "case01_onboarding_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "false_trail_grimoire_complete",
+                "value": false
+              }
+            ],
             "actions": [
               {
                 "type": "start_scenario",
-                "scenarioId": "sandbox_intro_pilot"
+                "scenarioId": "case01_false_trail_grimoire"
               }
             ]
           },
@@ -9186,6 +10777,36 @@
         "defaultState": "discovered",
         "isHiddenInitially": true,
         "bindings": [
+          {
+            "id": "bind_pub_false_trail_workers",
+            "trigger": "card_secondary",
+            "label": "Question the Workers",
+            "priority": 145,
+            "intent": "interaction",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "case01_onboarding_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "false_trail_workers_complete",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "case01_false_trail_workers"
+              }
+            ]
+          },
           {
             "id": "bind_pub_covert_route",
             "trigger": "card_primary",
@@ -9641,6 +11262,101 @@
         "isHiddenInitially": true,
         "bindings": [
           {
+            "id": "bind_telephone_false_trail_convergence",
+            "trigger": "card_primary",
+            "label": "Assemble the False Trails",
+            "priority": 130,
+            "intent": "objective",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "case01_onboarding_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "logic_or",
+                "conditions": [
+                  {
+                    "type": "logic_and",
+                    "conditions": [
+                      {
+                        "type": "flag_is",
+                        "key": "false_trail_workers_refuted",
+                        "value": true
+                      },
+                      {
+                        "type": "flag_is",
+                        "key": "false_trail_post_route_refuted",
+                        "value": true
+                      }
+                    ]
+                  },
+                  {
+                    "type": "logic_and",
+                    "conditions": [
+                      {
+                        "type": "flag_is",
+                        "key": "false_trail_workers_refuted",
+                        "value": true
+                      },
+                      {
+                        "type": "flag_is",
+                        "key": "false_trail_grimoire_refuted",
+                        "value": true
+                      }
+                    ]
+                  },
+                  {
+                    "type": "logic_and",
+                    "conditions": [
+                      {
+                        "type": "flag_is",
+                        "key": "false_trail_post_route_refuted",
+                        "value": true
+                      },
+                      {
+                        "type": "flag_is",
+                        "key": "false_trail_grimoire_refuted",
+                        "value": true
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "logic_or",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "false_trail_workers_refuted",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "false_trail_post_route_refuted",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "type": "flag_is",
+                "key": "false_trail_convergence_complete",
+                "value": false
+              }
+            ],
+            "actions": [
+              {
+                "type": "start_scenario",
+                "scenarioId": "case01_false_trail_convergence"
+              }
+            ]
+          },
+          {
             "id": "bind_telephone_lotte_interlude",
             "trigger": "card_primary",
             "label": "Answer Lotte's Warning",
@@ -9735,16 +11451,28 @@
       {
         "id": "route_ghost_undercity",
         "regionId": "FREIBURG_1905",
-        "pointIds": ["loc_munster", "loc_apothecary", "loc_pub"],
+        "pointIds": [
+          "loc_munster",
+          "loc_apothecary",
+          "loc_pub"
+        ],
         "color": "#5d4632",
-        "revealFlagsAll": ["ghost_route_unlocked"]
+        "revealFlagsAll": [
+          "ghost_route_unlocked"
+        ]
       },
       {
         "id": "route_finale_stuhlinger",
         "regionId": "FREIBURG_1905",
-        "pointIds": ["loc_agency", "loc_workers_pub", "loc_freiburg_warehouse"],
+        "pointIds": [
+          "loc_agency",
+          "loc_workers_pub",
+          "loc_freiburg_warehouse"
+        ],
         "color": "#2f3c4f",
-        "revealFlagsAll": ["freiburg_finale_open"]
+        "revealFlagsAll": [
+          "freiburg_finale_open"
+        ]
       }
     ],
     "qrCodeRegistry": [
@@ -9768,7 +11496,9 @@
             "groupId": "loc_freiburg_warehouse"
           }
         ],
-        "requiresFlagsAll": ["agency_briefing_complete"]
+        "requiresFlagsAll": [
+          "agency_briefing_complete"
+        ]
       }
     ],
     "mapEventTemplates": [
@@ -9831,19 +11561,26 @@
           "stage": 1,
           "title": "Initial Briefing",
           "objectiveHint": "Meet Kessler at the bank and open the ledger trail.",
-          "objectivePointIds": ["loc_freiburg_bank"]
+          "objectivePointIds": [
+            "loc_freiburg_bank"
+          ]
         },
         {
           "stage": 2,
           "title": "Cross-Check Leads",
           "objectiveHint": "Revisit the bank after checking external testimonies.",
-          "objectivePointIds": ["loc_freiburg_bank", "loc_hbf"]
+          "objectivePointIds": [
+            "loc_freiburg_bank",
+            "loc_hbf"
+          ]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Banker case archived.",
-          "objectivePointIds": ["loc_freiburg_warehouse"]
+          "objectivePointIds": [
+            "loc_freiburg_warehouse"
+          ]
         }
       ]
     },
@@ -9855,19 +11592,26 @@
           "stage": 1,
           "title": "Open Dog Lead Board",
           "objectiveHint": "Collect initial route intel from Rathaus.",
-          "objectivePointIds": ["loc_rathaus"]
+          "objectivePointIds": [
+            "loc_rathaus"
+          ]
         },
         {
           "stage": 2,
           "title": "Converge Leads",
           "objectiveHint": "Convene in the park after enough witness routes.",
-          "objectivePointIds": ["loc_rathaus", "loc_workers_pub"]
+          "objectivePointIds": [
+            "loc_rathaus",
+            "loc_workers_pub"
+          ]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Dog trail logged and sealed.",
-          "objectivePointIds": ["loc_workers_pub"]
+          "objectivePointIds": [
+            "loc_workers_pub"
+          ]
         }
       ]
     },
@@ -9879,19 +11623,26 @@
           "stage": 1,
           "title": "Estate Survey",
           "objectiveHint": "Open the ghost investigation from the workers' tavern.",
-          "objectivePointIds": ["loc_workers_pub"]
+          "objectivePointIds": [
+            "loc_workers_pub"
+          ]
         },
         {
           "stage": 2,
           "title": "Assemble Proof",
           "objectiveHint": "Correlate bookshelf and floor evidence before accusation.",
-          "objectivePointIds": ["loc_workers_pub", "loc_freiburg_bank"]
+          "objectivePointIds": [
+            "loc_workers_pub",
+            "loc_freiburg_bank"
+          ]
         },
         {
           "stage": 3,
           "title": "Case Closed",
           "objectiveHint": "Ghost case finalized and written into records.",
-          "objectivePointIds": ["loc_freiburg_warehouse"]
+          "objectivePointIds": [
+            "loc_freiburg_warehouse"
+          ]
         }
       ]
     }
@@ -9996,7 +11747,11 @@
         "color": "#374151",
         "layer": "shadow",
         "visibility": "hidden",
-        "signalStateLabels": ["Unseen", "Marked", "Recognized"]
+        "signalStateLabels": [
+          "Unseen",
+          "Marked",
+          "Recognized"
+        ]
       }
     ],
     "npcIdentities": [
@@ -10009,7 +11764,9 @@
         "introFlag": "met_redhead_intro",
         "homePointId": "loc_agency",
         "workPointId": "loc_telephone",
-        "serviceIds": ["svc_lotte_switchboard_trace"]
+        "serviceIds": [
+          "svc_lotte_switchboard_trace"
+        ]
       },
       {
         "id": "npc_anna_mahler",
@@ -10020,7 +11777,10 @@
         "introFlag": "met_anna_intro",
         "homePointId": "loc_workers_pub",
         "workPointId": "loc_agency",
-        "serviceIds": ["svc_anna_whispers", "svc_anna_student_intro"]
+        "serviceIds": [
+          "svc_anna_whispers",
+          "svc_anna_student_intro"
+        ]
       },
       {
         "id": "npc_archivist_otto",
@@ -10031,7 +11791,9 @@
         "introFlag": "met_archivist_intro",
         "homePointId": "loc_rathaus",
         "workPointId": "loc_rathaus",
-        "serviceIds": ["svc_otto_archive_packet"]
+        "serviceIds": [
+          "svc_otto_archive_packet"
+        ]
       },
       {
         "id": "npc_mother_hartmann",
@@ -10056,7 +11818,9 @@
         "introFlag": "met_felix_intro",
         "homePointId": "loc_agency",
         "workPointId": "loc_agency",
-        "serviceIds": ["svc_felix_legal_analysis"]
+        "serviceIds": [
+          "svc_felix_legal_analysis"
+        ]
       }
     ],
     "services": [
@@ -10136,7 +11900,9 @@
         "caseId": "quest_banker",
         "leadPointId": "loc_hbf",
         "sourceNpcId": "npc_anna_mahler",
-        "verifiesOn": ["service_unlock"],
+        "verifiesOn": [
+          "service_unlock"
+        ],
         "careerCriterionOnVerify": "verified_rumor_chain"
       },
       {
@@ -10145,7 +11911,9 @@
         "caseId": "quest_banker",
         "leadPointId": "loc_student_house",
         "sourceNpcId": "npc_felix_hartmann",
-        "verifiesOn": ["flag_set"],
+        "verifiesOn": [
+          "flag_set"
+        ],
         "careerCriterionOnVerify": "university_contact_established"
       }
     ],
@@ -10165,7 +11933,9 @@
         "standingRequired": 15,
         "qualifyingCaseId": "quest_banker",
         "serviceCriteriaNeeded": 2,
-        "privileges": ["Field warrant"]
+        "privileges": [
+          "Field warrant"
+        ]
       },
       {
         "id": "agency_detective",
@@ -10173,7 +11943,9 @@
         "order": 2,
         "standingRequired": 35,
         "serviceCriteriaNeeded": 2,
-        "privileges": ["Priority filing access"]
+        "privileges": [
+          "Priority filing access"
+        ]
       },
       {
         "id": "senior_detective",
@@ -10181,7 +11953,9 @@
         "order": 3,
         "standingRequired": 55,
         "serviceCriteriaNeeded": 2,
-        "privileges": ["Discretionary field command"]
+        "privileges": [
+          "Discretionary field command"
+        ]
       },
       {
         "id": "lead_investigator",
@@ -10189,9 +11963,11 @@
         "order": 4,
         "standingRequired": 75,
         "serviceCriteriaNeeded": 2,
-        "privileges": ["Agency-wide mandate"]
+        "privileges": [
+          "Agency-wide mandate"
+        ]
       }
     ]
   },
-  "checksum": "bc273c61d95123228e87fe1ec3bc049e6ec4500d7845514a94246debb7e93538"
+  "checksum": "cec7e5ee7f6ad69ae3fbb6cc78d3ba1ae9b630cf8bc88838e79fcefc51057e75"
 }

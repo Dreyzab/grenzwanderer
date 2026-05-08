@@ -187,6 +187,7 @@ export const buildActiveSkillResolveState = (
   nextNodeId: matchedResult
     ? unwrapOptionalString(matchedResult.nextNodeId)
     : undefined,
+  skillProgress: matchedResult?.skillProgress,
   frozen: pending.frozen,
 });
 
@@ -204,6 +205,7 @@ export const hydrateResolvedSkillState = (
   baseDifficulty: matchedResult.baseDifficulty ?? base.baseDifficulty,
   fortuneSpend: matchedResult.fortuneSpent ?? base.fortuneSpend,
   nextNodeId: unwrapOptionalString(matchedResult.nextNodeId),
+  skillProgress: matchedResult.skillProgress ?? base.skillProgress,
 });
 
 export const classifyExistingSkillResult = (

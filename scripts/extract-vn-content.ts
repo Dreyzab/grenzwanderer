@@ -409,6 +409,10 @@ const mindCases: MindCaseContent[] = [
     title: "Banker Ledger Theft",
   },
   {
+    id: "case_bankhaus_krebs_false_trail",
+    title: "Bankhaus Krebs: Three Innocent Culprits",
+  },
+  {
     id: "case_dog_trail",
     title: "The Dog's Trail",
   },
@@ -490,6 +494,197 @@ const mindFacts: MindFactContent[] = [
     text: "Anna hands over a cast of the archive master key.",
     tags: {
       theme: "evidence",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_workers_clay_and_noise",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "case01_false_trail_workers::scene_case01_workers_entry::CASE01_WORKERS_SOCIAL",
+    text: "Grey river clay and protest noise connect the workers to the bank square, but not to the vault.",
+    tags: {
+      theme: "labor",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_mayor_control_code",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "case01_mayor_briefing::scene_case01_mayor_entry::CASE01_MAYOR_PRESS",
+    text: "The mayor's desk carries a folder with the same control code as Weber's telegram, implying a quiet Bureau protocol behind the official summons.",
+    tags: {
+      theme: "bureau",
+      reliability: "medium",
+    },
+  },
+  {
+    id: "fact_lotte_black_lines",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_on_enter",
+    sourceId: "case01_lotte_interlude::scene_case01_lotte_warning",
+    text: "Lotte saw black-line switchboard lamps activate during the bank raid, on lines that officially should not exist.",
+    tags: {
+      theme: "bureau",
+      reliability: "medium",
+    },
+  },
+  {
+    id: "fact_victoria_forbidden_residue",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_skill_check",
+    sourceId:
+      "case01_bank_investigation::scene_case01_bank_vault::check_case01_vault_intuition",
+    text: "Victoria recognizes a vault residue notation from sealed files under her father's roof, not from university chemistry.",
+    tags: {
+      theme: "forensics",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_rudi_shadow_registry",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "case01_false_trail_workers::scene_case01_workers_rudi::CASE01_WORKERS_RUDI_NOISE",
+    text: "Rudi's union card carries a black registry mark that does not belong to labor or police paperwork.",
+    tags: {
+      theme: "registry",
+      reliability: "medium",
+    },
+  },
+  {
+    id: "fact_thermite_too_clean_for_workers",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_skill_check",
+    sourceId:
+      "case01_false_trail_workers::scene_case01_workers_entry::check_case01_workers_technical",
+    text: "The thermite work at the bank was cleaner than rail-yard habits would normally produce.",
+    tags: {
+      theme: "material",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_workers_unwitting_cover",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "case01_false_trail_workers::scene_case01_workers_rudi::CASE01_WORKERS_RUDI_NOISE",
+    text: "The workers created noise near the bank but did not enter the vault.",
+    tags: {
+      theme: "alibi",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_wrong_post_lantern",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "case01_false_trail_workers::scene_case01_workers_rudi::CASE01_WORKERS_RUDI_CARRIAGE",
+    text: "The postal carriage carried a route lantern that did not match its supposed assignment.",
+    tags: {
+      theme: "logistics",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_post_route_was_bent",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_skill_check",
+    sourceId:
+      "case01_false_trail_post_route::scene_case01_post_route_entry::check_case01_post_documents",
+    text: "The carriage route was altered through paperwork rather than ordinary theft.",
+    tags: {
+      theme: "documents",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_forged_military_dispatch",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_skill_check",
+    sourceId:
+      "case01_false_trail_post_route::scene_case01_post_route_weber::check_case01_post_observe_seal",
+    text: "The order used an old military seal with newer civilian-route details filled in by another hand.",
+    tags: {
+      theme: "documents",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_order_giver_had_officer_bearing",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_skill_check",
+    sourceId:
+      "case01_false_trail_post_route::scene_case01_post_route_weber::check_case01_post_scandal",
+    text: "Anton Weber remembers the order-giver as someone who gave commands rather than negotiated terms.",
+    tags: {
+      theme: "witness",
+      reliability: "medium",
+    },
+  },
+  {
+    id: "fact_roth_saw_razlom",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_skill_check",
+    sourceId:
+      "case01_false_trail_grimoire::scene_case01_grimoire_entry::check_case01_grimoire_occult",
+    text: "Emil Roth handled Razlom before the robbery and can identify traces of its binding.",
+    tags: {
+      theme: "occult",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_grimoire_questions_were_technical",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_skill_check",
+    sourceId:
+      "case01_false_trail_grimoire::scene_case01_grimoire_entry::check_case01_grimoire_practical",
+    text: "The unknown inquirer asked about Razlom's weight, dimensions, and extraction constraints rather than its lore.",
+    tags: {
+      theme: "engineering",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_roth_leaked_razlom",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "case01_false_trail_grimoire::scene_case01_grimoire_roth::CASE01_GRIMOIRE_MORAL",
+    text: "Roth did not steal Razlom, but he leaked enough about it for a planner to target the private box.",
+    tags: {
+      theme: "leak",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_false_trails_are_tools",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "case01_false_trail_convergence::scene_case01_false_trail_convergence_entry::CASE01_FALSE_TRAIL_ASSEMBLE",
+    text: "The workers, postal route, and restorer were tools in one operation rather than equal conspirators.",
+    tags: {
+      theme: "deduction",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_engineer_operation_shape",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "case01_false_trail_convergence::scene_case01_false_trail_convergence_entry::CASE01_FALSE_TRAIL_ASSEMBLE",
+    text: "The operation required someone who understood military paperwork, routes, thermite, and extraction timing.",
+    tags: {
+      theme: "engineering",
       reliability: "high",
     },
   },
@@ -603,6 +798,114 @@ const mindHypotheses: MindHypothesisContent[] = [
         eventName: "mind_case_banker_solved",
         tags: { caseId: "case_banker_theft" },
       },
+    ],
+  },
+  {
+    id: "hyp_workers_did_it",
+    caseId: "case_bankhaus_krebs_false_trail",
+    key: "workers_did_it_false",
+    text: "The workers look guilty because clay, rail thermite, and protest noise all point toward the Red Cog circle.",
+    requiredFactIds: [
+      "fact_workers_clay_and_noise",
+      "fact_thermite_too_clean_for_workers",
+      "fact_workers_unwitting_cover",
+    ],
+    requiredVars: [],
+    rewardEffects: [
+      { type: "set_flag", key: "false_trail_workers_refuted", value: true },
+      {
+        type: "track_event",
+        eventName: "mind_case01_workers_false_trail_logged",
+        tags: { caseId: "case_bankhaus_krebs_false_trail" },
+      },
+    ],
+  },
+  {
+    id: "hyp_post_route_logistics",
+    caseId: "case_bankhaus_krebs_false_trail",
+    key: "post_route_logistics",
+    text: "The postal contractor supplied the visible transport, but the route was bent by someone with military paperwork habits.",
+    requiredFactIds: [
+      "fact_wrong_post_lantern",
+      "fact_post_route_was_bent",
+      "fact_forged_military_dispatch",
+    ],
+    requiredVars: [],
+    rewardEffects: [
+      { type: "set_flag", key: "false_trail_post_route_refuted", value: true },
+      {
+        type: "track_event",
+        eventName: "mind_case01_post_route_logged",
+        tags: { caseId: "case_bankhaus_krebs_false_trail" },
+      },
+    ],
+  },
+  {
+    id: "hyp_grimoire_leak_chain",
+    caseId: "case_bankhaus_krebs_false_trail",
+    key: "grimoire_leak_chain",
+    text: "Roth leaked Razlom's existence and physical constraints, but the questions were technical rather than devotional.",
+    requiredFactIds: [
+      "fact_roth_saw_razlom",
+      "fact_grimoire_questions_were_technical",
+      "fact_roth_leaked_razlom",
+    ],
+    requiredVars: [],
+    rewardEffects: [
+      { type: "set_flag", key: "false_trail_grimoire_refuted", value: true },
+      {
+        type: "track_event",
+        eventName: "mind_case01_grimoire_leak_logged",
+        tags: { caseId: "case_bankhaus_krebs_false_trail" },
+      },
+    ],
+  },
+  {
+    id: "hyp_military_engineer_operation",
+    caseId: "case_bankhaus_krebs_false_trail",
+    key: "military_engineer_operation",
+    text: "The Bankhaus Krebs raid was an engineering operation: workers supplied noise, the post route supplied movement, Roth supplied target data, and thermite supplied precision.",
+    requiredFactIds: [
+      "fact_workers_unwitting_cover",
+      "fact_forged_military_dispatch",
+      "fact_grimoire_questions_were_technical",
+      "fact_false_trails_are_tools",
+      "fact_engineer_operation_shape",
+    ],
+    requiredVars: [],
+    rewardEffects: [
+      {
+        type: "set_flag",
+        key: "military_engineer_operation_proven",
+        value: true,
+      },
+      { type: "set_flag", key: "warehouse_plan_locked", value: true },
+      { type: "unlock_group", groupId: "loc_freiburg_warehouse" },
+      {
+        type: "track_event",
+        eventName: "mind_case01_military_engineer_operation_proven",
+        tags: { caseId: "case_bankhaus_krebs_false_trail" },
+      },
+    ],
+  },
+  {
+    id: "hyp_bureau_protocol_active",
+    caseId: "case_bankhaus_krebs_false_trail",
+    key: "bureau_protocol_active",
+    text: "A quiet Bureau protocol was active around the bank before the city admitted any supernatural jurisdiction.",
+    requiredFactIds: [
+      "fact_mayor_control_code",
+      "fact_lotte_black_lines",
+      "fact_victoria_forbidden_residue",
+    ],
+    requiredVars: [],
+    rewardEffects: [
+      {
+        type: "track_event",
+        eventName: "mind_case01_bureau_protocol_active",
+        tags: { caseId: "case_bankhaus_krebs_false_trail" },
+      },
+      { type: "grant_xp", amount: 10 },
     ],
   },
   {
@@ -961,6 +1264,14 @@ const validateConditionBlueprint = (
   if ("itemId" in condition) {
     assertAscii(condition.itemId, `${context}.itemId`);
   }
+  if ("skillId" in condition) {
+    assertAscii(condition.skillId, `${context}.skillId`);
+    assertKnownVocabularyKey(
+      SKILL_VOICE_IDS,
+      condition.skillId,
+      `${context}.skillId`,
+    );
+  }
 };
 
 const validateEffectBlueprint = (effect: VnEffect, context: string): void => {
@@ -1100,6 +1411,14 @@ const validateEffectBlueprint = (effect: VnEffect, context: string): void => {
   if ("itemId" in effect) {
     assertAscii(effect.itemId, `effect.itemId in ${context}`);
   }
+  if ("skillId" in effect) {
+    assertAscii(effect.skillId, `effect.skillId in ${context}`);
+    assertKnownVocabularyKey(
+      SKILL_VOICE_IDS,
+      effect.skillId,
+      `effect.skillId in ${context}`,
+    );
+  }
 };
 
 const validateSkillCheck = (check: VnSkillCheck, context: string): void => {
@@ -1110,6 +1429,9 @@ const validateSkillCheck = (check: VnSkillCheck, context: string): void => {
     check.voiceId,
     `skillCheck.voiceId in ${context}`,
   );
+  if (check.minSkillRank) {
+    assertAscii(check.minSkillRank, `skillCheck.minSkillRank in ${context}`);
+  }
 
   for (const [outcome, branch] of [
     ["success", check.onSuccess],

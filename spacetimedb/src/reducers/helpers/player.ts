@@ -11,6 +11,8 @@ export {
 export {
   addToVar,
   addToVarForPlayer,
+  addSkillXp,
+  addSkillXpForPlayer,
   changeAgencyStandingInternal,
   changeFactionSignalInternal,
   changeFavorBalanceInternal,
@@ -25,6 +27,7 @@ export {
   getRelationshipValue,
   getRumorStatus,
   hasPlayerGameplayProgress,
+  getSkillXpForPlayer,
   getVar,
   getVarForPlayer,
   resolveKarmaBand,

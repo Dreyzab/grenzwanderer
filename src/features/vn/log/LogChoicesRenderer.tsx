@@ -1,8 +1,7 @@
-import { ArrowRight, Check, Eye, Lock, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import type { ChoiceDisplayItem } from "../vnScreenTypes";
 import type { VnChoice } from "../types";
-import { formatSkillCheckVoiceLabel } from "../skillCheckPalette";
+import { VnChoiceButton } from "../ui/VnChoiceButton";
 
 interface LogChoicesRendererProps {
   choiceDisplayItems: ChoiceDisplayItem[];
@@ -27,17 +26,6 @@ interface LogChoicesRendererProps {
   onRestartScene: () => void;
 }
 
-const choiceIcon = (choice: VnChoice, isVisited: boolean) => {
-  const type = choice.choiceType || "action";
-  if (type === "inquiry") {
-    return isVisited ? <Check size={16} /> : <MessageCircle size={16} />;
-  }
-  if (type === "flavor") {
-    return <Eye size={16} />;
-  }
-  return <ArrowRight size={16} />;
-};
-
 export function LogChoicesRenderer({
   choiceDisplayItems,
   isInteractionLocked,
@@ -57,14 +45,13 @@ export function LogChoicesRenderer({
 
   if (choiceDisplayItems.length > 0 && currentNodePresent) {
     return (
-      <div className="ml-11 mt-5 flex max-w-2xl flex-col gap-2">
+      <div className="mt-5 flex w-full max-w-2xl flex-col gap-2 sm:pl-2">
         {choiceDisplayItems.map((item) => {
           const disabled =
             isInteractionLocked ||
             item.isLocked ||
             item.isPending ||
             item.hasFailedCheck;
-          const selected = selectedChoiceId === item.choice.id;
           const faded =
             selectedChoiceId !== null && selectedChoiceId !== item.choice.id;
 
@@ -77,74 +64,23 @@ export function LogChoicesRenderer({
               ].join(" ")}
               style={{ transitionDelay: `${item.index * 100}ms` }}
             >
-              {item.innerVoiceHints.length > 0 ? (
-                <div className="mb-2 flex flex-col gap-1">
-                  {item.innerVoiceHints.map((hint) => (
-                    <div
-                      key={`${item.choice.id}-${hint.voiceId}-${hint.stance}`}
-                      className="border-l px-3 py-1.5 text-xs italic"
-                      style={{
-                        borderColor: hint.palette.glowStrong,
-                        color: hint.palette.text,
-                        backgroundColor: hint.palette.accentSoft,
-                      }}
-                    >
-                      <span className="font-semibold uppercase tracking-[0.14em]">
-                        {hint.label}
-                      </span>
-                      <span className="opacity-80">: {hint.text}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-
-              <button
-                type="button"
+              <VnChoiceButton
+                choice={item.choice}
+                index={item.index}
+                isVisited={item.isVisited}
+                isLocked={item.isLocked}
                 disabled={disabled}
-                className={[
-                  "group flex w-full items-start gap-3 border-l-2 px-3 py-2 text-left transition-all duration-200",
-                  item.isLocked
-                    ? "border-red-900/60 bg-red-950/10 text-stone-500"
-                    : selected
-                      ? "border-amber-300 bg-amber-500/16 text-amber-50"
-                      : "border-amber-500/45 bg-black/20 text-stone-100 hover:bg-amber-500/10",
-                  disabled ? "cursor-not-allowed opacity-55" : "cursor-pointer",
-                ].join(" ")}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (disabled) {
-                    return;
-                  }
+                isPending={item.isPending}
+                hasFailedCheck={item.hasFailedCheck}
+                chancePercent={item.chancePercent}
+                innerVoiceHints={item.innerVoiceHints}
+                skillCheckState={item.skillCheckState}
+                onClick={() => {
+                  if (disabled) return;
                   setSelectedChoiceId(item.choice.id);
                   onChoiceClick(item.choice);
                 }}
-              >
-                <span className="mt-1 text-amber-300/85">
-                  {item.isLocked ? (
-                    <Lock size={16} />
-                  ) : (
-                    choiceIcon(item.choice, item.isVisited)
-                  )}
-                </span>
-                <span className="min-w-0 flex-1">
-                  {item.choice.skillCheck ? (
-                    <span className="mb-1 flex flex-wrap items-center gap-2 text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-amber-200/80">
-                      <span>
-                        {formatSkillCheckVoiceLabel(
-                          item.choice.skillCheck.voiceId,
-                        )}{" "}
-                        {item.choice.skillCheck.difficulty}
-                      </span>
-                      {item.chancePercent !== undefined ? (
-                        <span>{item.chancePercent}%</span>
-                      ) : null}
-                    </span>
-                  ) : null}
-                  <span className="block text-[0.96rem] leading-6">
-                    {item.choice.text}
-                  </span>
-                </span>
-              </button>
+              />
             </div>
           );
         })}
@@ -154,7 +90,7 @@ export function LogChoicesRenderer({
 
   if (displayedScenarioCompleted) {
     return (
-      <div className="ml-11 mt-5 flex max-w-xl flex-col gap-3">
+      <div className="mt-5 flex max-w-xl flex-col gap-3 sm:pl-2">
         <p className="text-sm italic text-stone-300/70">
           {labels.terminalNoChoices}
         </p>
@@ -197,7 +133,7 @@ export function LogChoicesRenderer({
 
   if (!sessionReady || !currentNodePresent || !hasAutoContinueChoice) {
     return (
-      <p className="ml-11 mt-5 text-sm italic text-stone-300/60">
+      <p className="mt-5 text-sm italic text-stone-300/60 sm:pl-2">
         {!sessionReady || !currentNodePresent
           ? labels.sessionHydrating
           : labels.noChoices}

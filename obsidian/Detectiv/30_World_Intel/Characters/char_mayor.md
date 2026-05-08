@@ -32,6 +32,7 @@ aliases: ["Otto Winterer II"]
 
 ## Relationships
 
+- [[30_World_Intel/Characters/char_assistant|char_assistant]] - daughter; private scientific leverage and public vulnerability.
 - [[30_World_Intel/Characters/char_noble|char_noble]] - family pressure.
 - [[30_World_Intel/Characters/char_inspector|char_inspector]] - key investigation axis.
 - Factions: [[00_Map_Room/MOC_Factions|MOC_Factions]]

@@ -1,4 +1,5 @@
-import type { PsycheAxis } from "../data/innerVoiceContract";
+import { isSkillVoiceId, type PsycheAxis } from "../data/innerVoiceContract";
+import { isSkillRank } from "../src/shared/game/skillProgression";
 import type {
   AgencyServiceCriterionId,
   MindThoughtState,
@@ -378,6 +379,21 @@ const parseConditionCall = (node: CallNode): VnCondition => {
         voiceId: asString(node.args[0], "voice_level_gte voiceId"),
         value: asNumber(node.args[1], "voice_level_gte value"),
       };
+    case "skill_rank_gte": {
+      const skillId = asString(node.args[0], "skill_rank_gte skillId");
+      const rank = asString(node.args[1], "skill_rank_gte rank");
+      if (!isSkillVoiceId(skillId)) {
+        throw new Error(`Unknown skill id '${skillId}'`);
+      }
+      if (!isSkillRank(rank)) {
+        throw new Error(`Unknown skill rank '${rank}'`);
+      }
+      return {
+        type: "skill_rank_gte",
+        skillId,
+        rank,
+      };
+    }
     case "spirit_state_is":
       return {
         type: "spirit_state_is",
@@ -479,6 +495,17 @@ const parseEffectCall = (node: CallNode): VnEffect => {
         type: "grant_xp",
         amount: asNumber(node.args[0], "grant_xp amount"),
       };
+    case "grant_skill_xp": {
+      const skillId = asString(node.args[0], "grant_skill_xp skillId");
+      if (!isSkillVoiceId(skillId)) {
+        throw new Error(`Unknown skill id '${skillId}'`);
+      }
+      return {
+        type: "grant_skill_xp",
+        skillId,
+        amount: asNumber(node.args[1], "grant_skill_xp amount"),
+      };
+    }
     case "unlock_group":
       return {
         type: "unlock_group",

@@ -2,7 +2,10 @@ import { originProfiles } from "../../character/originProfiles";
 import type { VnSnapshot } from "../types";
 
 const FALLBACK_PORTRAITS: Record<string, string> = {
-  assistant: "/VN/start/image/train_assistant.png",
+  assistant: "/images/characters/assistant/assistant.webp",
+  victoria_sterling: "/images/characters/clara_altenburg/master.png",
+  npc_felix_hartmann: "/Characters/Felix/felix_portrait_fixed_jaw_1776590978986.png",
+  felix_hartmann: "/Characters/Felix/felix_portrait_fixed_jaw_1776590978986.png",
   paperboy: "/VN/start/image/boy_newspaper_styled.png",
   newspaper_boy: "/VN/start/image/boy_newspaper_styled.png",
   newsboy: "/VN/start/image/boy_newspaper_styled.png",

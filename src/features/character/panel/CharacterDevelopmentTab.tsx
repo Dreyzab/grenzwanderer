@@ -1,36 +1,25 @@
 import { motion } from "framer-motion";
-import type { getCharacterStrings } from "../../i18n/uiStrings";
 import { GameIcon } from "../../../shared/ui/icons/game-icons";
 import {
   CharacterRadarChart,
   type CharacterRadarDatum,
 } from "../ui/CharacterRadarChart";
 import { C, CLIP_CARD, TAB_TRANSITION } from "./characterPanel.theme";
-import type {
-  AttributeVoiceBridgeSummary,
-  CharacterAttributeCard,
-  CharacterVoiceBridgeRegistryEntry,
-} from "./characterPanel.types";
+import type { PatronVoiceCard } from "./characterPanel.types";
 import { toLocale } from "./characterPanel.utils";
-import { InfoBlock, SectionCard } from "./characterPanelPrimitives";
+import { SectionCard } from "./characterPanelPrimitives";
+
+const roleLabelById = {
+  method: "Method",
+  compatibility: "Legacy",
+} as const;
 
 export const CharacterDevelopmentTab = ({
-  attributes,
-  primaryVoiceBridgeEntries,
+  patronVoiceCards,
   radarData,
-  secondaryVoiceBridgeEntries,
-  t,
 }: {
-  attributes: CharacterAttributeCard[];
-  primaryVoiceBridgeEntries: CharacterVoiceBridgeRegistryEntry[];
+  patronVoiceCards: PatronVoiceCard[];
   radarData: CharacterRadarDatum[];
-  secondaryVoiceBridgeEntries: Array<{
-    accent: string;
-    sourceLabel: string;
-    currentValue: number;
-    bridge: AttributeVoiceBridgeSummary;
-  }>;
-  t: ReturnType<typeof getCharacterStrings>;
 }) => (
   <motion.div
     animate={{ opacity: 1, y: 0 }}
@@ -40,338 +29,192 @@ export const CharacterDevelopmentTab = ({
     key="development"
     transition={TAB_TRANSITION}
   >
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_320px]">
-      <SectionCard
-        accent={C.amber}
-        eyebrow="Development Diagram"
-        title="Core Characteristic Radar"
-      >
-        <div className="space-y-4">
-          <p className="max-w-2xl text-sm leading-relaxed text-stone-400">
-            The radar shows the six primary characteristics only. Specialized
-            branches stay nested under their parent traits so the screen keeps a
-            clear hierarchy.
-          </p>
-          <CharacterRadarChart data={radarData} />
-        </div>
-      </SectionCard>
-
-      <SectionCard
-        accent={C.brass}
-        eyebrow="Structure"
-        title="Core vs Specialized"
-      >
-        <div className="space-y-3 text-sm text-stone-300">
-          <p className="leading-relaxed text-stone-400">
-            Core characteristics define the overall investigative profile.
-            Specialized attributes remain attached to their parent domain rather
-            than becoming a detached second stat layer.
-          </p>
-          <div className="grid gap-2">
-            {attributes.map((attribute) => (
-              <div
-                key={attribute.key}
-                className="flex items-center justify-between rounded-[0.9rem] border border-white/8 bg-black/20 px-3 py-2"
-              >
-                <span className="flex items-center gap-2 text-sm text-stone-200">
-                  <GameIcon
-                    name={attribute.icon}
-                    size={18}
-                    style={{ color: attribute.accent }}
-                  />
-                  {attribute.label}
-                </span>
-                <strong style={{ color: attribute.accent }}>
-                  {toLocale(attribute.value)}
-                </strong>
-              </div>
-            ))}
-          </div>
-        </div>
-      </SectionCard>
-    </div>
-
     <SectionCard
-      accent={C.crimson}
-      eyebrow="Voice Bridge"
-      title="Legacy Attributes -> Canonical Voices"
+      accent={C.amber}
+      eyebrow="Development Diagram"
+      title="Patron Voice Radar"
     >
-      <div className="space-y-4">
-        <p className="max-w-3xl text-sm leading-relaxed text-stone-400">
-          AI prompts and passive voice presentation now normalize legacy runtime
-          attributes into the canon Inner Parliament registry. The first-wave
-          lore masks below are the prompt source of truth for the player's
-          voice-driven reads.
-        </p>
-
-        {primaryVoiceBridgeEntries.length > 0 ? (
-          <div className="grid gap-4 xl:grid-cols-3">
-            {primaryVoiceBridgeEntries.map((entry) => (
-              <article
-                key={entry.bridge.canonicalVoiceId}
-                className="rounded-[1rem] border border-white/8 bg-black/20 p-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <span
-                      className="flex h-11 w-11 items-center justify-center rounded-[0.9rem] border"
-                      style={{
-                        borderColor: `${entry.accent}55`,
-                        backgroundColor: `${entry.accent}14`,
-                      }}
-                    >
-                      <GameIcon
-                        name={entry.bridge.iconName}
-                        size={22}
-                        style={{ color: entry.accent }}
-                      />
-                    </span>
-                    <div>
-                      <p
-                        className="text-[10px] uppercase tracking-[0.3em]"
-                        style={{
-                          color: entry.accent,
-                          fontFamily: "var(--font-mono)",
-                        }}
-                      >
-                        {entry.bridge.promptProfile.department}
-                      </p>
-                      <h4 className="mt-1 text-lg font-semibold text-stone-100">
-                        {entry.bridge.canonicalLabel}
-                      </h4>
-                    </div>
-                  </div>
-                  <strong
-                    className="text-2xl font-black"
-                    style={{
-                      color: entry.accent,
-                      fontFamily: "var(--font-display)",
-                    }}
-                  >
-                    {toLocale(entry.currentValue)}
-                  </strong>
-                </div>
-
-                <p
-                  className="mt-3 text-[10px] uppercase tracking-[0.28em]"
-                  style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
-                >
-                  {`${entry.bridge.legacyVoiceId} -> ${entry.bridge.canonicalVoiceId}`}
-                </p>
-                <blockquote className="mt-3 border-l-2 border-white/10 pl-3 text-sm italic text-stone-200">
-                  "{entry.bridge.promptProfile.motto}"
-                </blockquote>
-                <p className="mt-3 text-sm leading-relaxed text-stone-300">
-                  {entry.bridge.promptProfile.manners}
-                </p>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <InfoBlock
-                    label="Speech"
-                    value={entry.bridge.promptProfile.speechPattern}
-                  />
-                  <InfoBlock
-                    label="Vocabulary"
-                    value={entry.bridge.promptProfile.vocabulary}
-                  />
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-stone-400">
-                  {entry.bridge.promptProfile.philosophy}
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-stone-500">
-                  Blind spot: {entry.bridge.promptProfile.blindSpot}
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-stone-500">
-                  Stress pattern: {entry.bridge.promptProfile.stressPattern}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {entry.bridge.promptProfile.checkRoles.map((role) => (
-                    <span
-                      key={role}
-                      className="rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.24em]"
-                      style={{
-                        borderColor: `${entry.accent}44`,
-                        color: entry.accent,
-                        backgroundColor: `${entry.accent}12`,
-                        fontFamily: "var(--font-mono)",
-                      }}
-                    >
-                      {role.replace(/_/g, " ")}
-                    </span>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm leading-relaxed text-stone-500">
-            No canonical voice bridges are active for the current character.
-          </p>
-        )}
-
-        {secondaryVoiceBridgeEntries.length > 0 ? (
-          <div className="space-y-2">
-            <p
-              className="text-[10px] uppercase tracking-[0.3em]"
-              style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
-            >
-              Additional normalized branches
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {secondaryVoiceBridgeEntries.map((entry) => (
-                <span
-                  key={entry.bridge.legacyVoiceId}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-black/20 px-3 py-1.5 text-xs text-stone-300"
-                >
-                  <GameIcon
-                    name={entry.bridge.iconName}
-                    size={14}
-                    style={{ color: entry.accent || C.slate }}
-                  />
-                  {`${entry.bridge.legacyVoiceId} -> ${entry.bridge.canonicalLabel} (${toLocale(entry.currentValue)})`}
-                </span>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </div>
+      <CharacterRadarChart data={radarData} />
     </SectionCard>
 
-    <div className="grid gap-4 xl:grid-cols-2">
-      {attributes.map((attribute) => (
-        <article
-          key={attribute.key}
-          className="rounded-[1.2rem] border border-white/8 bg-[rgba(16,14,12,0.68)] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.28)]"
-          data-testid={`core-attr-${attribute.key}`}
-          style={{ clipPath: CLIP_CARD }}
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <span
-                className="flex h-11 w-11 items-center justify-center rounded-[0.9rem] border"
+    <SectionCard accent={C.crimson} eyebrow="Parliament" title="Patron Voices">
+      <div className="grid gap-4 xl:grid-cols-2">
+        {patronVoiceCards.map((voice) => (
+          <article
+            key={voice.voiceId}
+            className="rounded-[1.2rem] border bg-[rgba(16,14,12,0.68)] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.28)]"
+            data-testid={`patron-voice-${voice.voiceId}`}
+            style={{
+              borderColor: `${voice.palette.accent}30`,
+              boxShadow: `0 18px 55px rgba(0,0,0,0.28), 0 0 32px ${voice.palette.glow}`,
+              clipPath: CLIP_CARD,
+            }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <span
+                  className="flex h-12 w-12 items-center justify-center rounded-[0.9rem] border"
+                  style={{
+                    borderColor: `${voice.palette.accent}55`,
+                    backgroundColor: voice.palette.accentSoft,
+                  }}
+                >
+                  <GameIcon
+                    name={voice.iconName}
+                    size={24}
+                    style={{ color: voice.palette.accent }}
+                  />
+                </span>
+                <div>
+                  <p
+                    className="text-[10px] uppercase tracking-[0.3em]"
+                    style={{
+                      color: voice.palette.accent,
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    {`Rank ${voice.dominanceRank}`}
+                  </p>
+                  <h3 className="mt-1 text-xl font-semibold text-stone-100">
+                    {voice.label}
+                  </h3>
+                </div>
+              </div>
+              <strong
+                className="text-3xl font-black"
                 style={{
-                  borderColor: `${attribute.accent}55`,
-                  backgroundColor: `${attribute.accent}14`,
+                  color: voice.palette.accent,
+                  fontFamily: "var(--font-display)",
                 }}
               >
-                <GameIcon
-                  name={attribute.icon}
-                  size={22}
-                  style={{ color: attribute.accent }}
-                />
-              </span>
-              <div>
-                <p
-                  className="text-[10px] uppercase tracking-[0.3em]"
-                  style={{
-                    color: attribute.accent,
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  Core Characteristic
-                </p>
-                <h3 className="mt-1 text-xl font-semibold text-stone-100">
-                  {attribute.label}
-                </h3>
-              </div>
+                {toLocale(voice.influence)}
+              </strong>
             </div>
-            <strong
-              className="text-3xl font-black"
-              style={{
-                color: attribute.accent,
-                fontFamily: "var(--font-display)",
-              }}
-            >
-              {toLocale(attribute.value)}
-            </strong>
-          </div>
 
-          <p className="mt-4 text-sm leading-relaxed text-stone-400">
-            {attribute.description}
-          </p>
+            <p className="mt-4 text-sm leading-relaxed text-stone-300">
+              {voice.worldview}
+            </p>
+            <p className="mt-2 text-xs uppercase tracking-[0.24em] text-stone-500">
+              {voice.toneDescriptor}
+            </p>
 
-          {attribute.voiceBridge ? (
-            <div className="mt-4 rounded-[1rem] border border-white/8 bg-black/20 px-4 py-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-sm text-stone-200">
-                  <GameIcon
-                    name={attribute.voiceBridge.iconName}
-                    size={16}
-                    style={{ color: attribute.accent }}
-                  />
-                  <strong>{attribute.voiceBridge.canonicalLabel}</strong>
-                </div>
-                <span
-                  className="text-[10px] uppercase tracking-[0.3em]"
-                  style={{
-                    color: attribute.accent,
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  Voice Bridge
-                </span>
-              </div>
-              <p className="mt-2 text-xs uppercase tracking-[0.24em] text-stone-500">
-                {`${attribute.voiceBridge.legacyVoiceId} -> ${attribute.voiceBridge.canonicalVoiceId}`}
-              </p>
-              {attribute.voiceBridge.promptProfile ? (
-                <>
-                  <p className="mt-2 text-sm leading-relaxed text-stone-300">
-                    {attribute.voiceBridge.promptProfile.motto}
-                  </p>
-                  <p className="mt-2 text-sm leading-relaxed text-stone-500">
-                    {attribute.voiceBridge.promptProfile.speechPattern};{" "}
-                    {attribute.voiceBridge.promptProfile.vocabulary}
-                  </p>
-                </>
-              ) : null}
-            </div>
-          ) : null}
-
-          {attribute.specialized.length > 0 ? (
             <div className="mt-5 space-y-2">
-              <p
-                className="text-[10px] uppercase tracking-[0.3em]"
-                style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
-              >
-                Specialized Focus
-              </p>
-              {attribute.specialized.map((specialized) => (
+              {voice.methods.map((method) => (
                 <div
-                  key={specialized.key}
-                  className="flex items-center justify-between rounded-[0.95rem] border border-white/8 bg-black/20 px-3 py-2.5"
+                  key={method.id}
+                  className="grid gap-3 rounded-[0.95rem] border border-white/8 bg-black/20 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto]"
+                  data-testid={`method-voice-${method.id}`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex min-w-0 items-start gap-3">
                     <GameIcon
-                      name={specialized.icon}
+                      name={method.iconName}
                       size={18}
-                      style={{ color: specialized.accent }}
+                      style={{ color: voice.palette.accent }}
                     />
-                    <div>
-                      <div className="text-sm font-medium text-stone-100">
-                        {specialized.label}
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-medium text-stone-100">
+                          {method.labelRu}
+                        </span>
+                        <span
+                          className="rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.22em]"
+                          style={{
+                            borderColor: `${voice.palette.accent}35`,
+                            color: voice.palette.accent,
+                            backgroundColor: `${voice.palette.accent}12`,
+                            fontFamily: "var(--font-mono)",
+                          }}
+                        >
+                          {roleLabelById[method.progressionRole]}
+                        </span>
                       </div>
-                      <div className="text-xs text-stone-500">
-                        {specialized.description}
-                      </div>
-                      {specialized.voiceBridge ? (
-                        <div className="mt-1 text-[11px] text-stone-400">
-                          {`Canonical voice: ${specialized.voiceBridge.canonicalLabel}`}
+                      <p className="mt-1 text-sm leading-relaxed text-stone-500">
+                        {method.descriptionRu}
+                      </p>
+                      {method.unlockedPerks.length > 0 ? (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {method.unlockedPerks.map((perk) => (
+                            <span
+                              key={perk.id}
+                              className="rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]"
+                              style={{
+                                borderColor: `${voice.palette.accent}32`,
+                                color: voice.palette.text,
+                                backgroundColor: `${voice.palette.accent}10`,
+                              }}
+                              title={perk.description}
+                            >
+                              {perk.title}
+                            </span>
+                          ))}
                         </div>
                       ) : null}
+                      {method.nextPerk ? (
+                        <p className="mt-2 text-[11px] leading-relaxed text-stone-500">
+                          Next perk:{" "}
+                          <span
+                            className="font-semibold"
+                            style={{ color: voice.palette.accent }}
+                          >
+                            {method.nextPerk.title}
+                          </span>
+                        </p>
+                      ) : (
+                        <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                          Mastered perk track
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <strong
-                    className="text-lg"
-                    style={{ color: specialized.accent }}
-                  >
-                    {toLocale(specialized.value)}
-                  </strong>
+                  <div className="min-w-[8.5rem] self-start sm:text-right">
+                    <div className="flex items-center gap-2 sm:justify-end">
+                      <span
+                        className="flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-sm font-black"
+                        style={{
+                          borderColor: `${voice.palette.accent}45`,
+                          color: voice.palette.accent,
+                          backgroundColor: `${voice.palette.accent}14`,
+                          fontFamily: "var(--font-display)",
+                        }}
+                      >
+                        {method.rankState.rank}
+                      </span>
+                      <span className="text-xs font-medium text-stone-300">
+                        {method.rankState.progress} /{" "}
+                        {method.rankState.progressMax}
+                      </span>
+                    </div>
+                    <div
+                      aria-label={`${method.label} rank progress`}
+                      aria-valuemax={method.rankState.progressMax}
+                      aria-valuemin={0}
+                      aria-valuenow={method.rankState.progress}
+                      className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10"
+                      role="progressbar"
+                    >
+                      <span
+                        className="block h-full rounded-full"
+                        style={{
+                          width: `${Math.min(
+                            100,
+                            (method.rankState.progress /
+                              method.rankState.progressMax) *
+                              100,
+                          )}%`,
+                          backgroundColor: voice.palette.accent,
+                        }}
+                      />
+                    </div>
+                    <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                      {toLocale(method.rankState.totalXp)} XP
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
-          ) : null}
-        </article>
-      ))}
-    </div>
+          </article>
+        ))}
+      </div>
+    </SectionCard>
   </motion.div>
 );

@@ -4,7 +4,10 @@ import {
   LEGACY_REPUTATION_VAR_BY_FACTION_ID,
   isAllowedFactionId,
 } from "../../../../data/factionContract";
-import { PSYCHE_VAR_KEYS } from "../../../../data/innerVoiceContract";
+import {
+  PSYCHE_VAR_KEYS,
+  type SkillVoiceId,
+} from "../../../../data/innerVoiceContract";
 import {
   NARRATIVE_RESOURCE_DEFAULTS,
   isNarrativeResourceKey,
@@ -12,6 +15,12 @@ import {
   resolveKarmaBand as sharedResolveKarmaBand,
   resolveKarmaDifficultyDelta as sharedResolveKarmaDifficultyDelta,
 } from "../../../../src/shared/game/narrativeResources";
+import {
+  SKILL_XP_PER_RANK,
+  isSkillXpVarKey,
+  normalizeSkillXpValue,
+  skillXpVarKeyFor,
+} from "../../../../src/shared/game/skillProgression";
 import type { ReducerContextLike } from "./context";
 import { senderOf } from "./context";
 import {
@@ -84,6 +93,9 @@ const normalizePlayerVarValue = (key: string, floatValue: number): number => {
   if (PSYCHE_VAR_KEYS.includes(key as any)) {
     return clampNumber(floatValue, -100, 100);
   }
+  if (isSkillXpVarKey(key)) {
+    return normalizeSkillXpValue(floatValue);
+  }
   if (isNarrativeResourceKey(key)) {
     return normalizeNarrativeResourceValue(key, floatValue);
   }
@@ -142,6 +154,40 @@ export const addToVarForPlayer = (
   const current = getVarForPlayer(ctx, playerId, key);
   upsertVarForPlayer(ctx, playerId, key, current + delta);
 };
+
+export const getSkillXpForPlayer = (
+  ctx: any,
+  playerId: { toHexString(): string },
+  skillId: SkillVoiceId,
+): number => {
+  const xpKey = skillXpVarKeyFor(skillId);
+  const existing = ctx.db.playerVar.varId.find(createVarKey(playerId, xpKey));
+  if (existing) {
+    return normalizeSkillXpValue(existing.floatValue);
+  }
+
+  return normalizeSkillXpValue(
+    getVarForPlayer(ctx, playerId, skillId) * SKILL_XP_PER_RANK,
+  );
+};
+
+export const addSkillXpForPlayer = (
+  ctx: any,
+  playerId: { toHexString(): string },
+  skillId: SkillVoiceId,
+  amount: number,
+): number => {
+  const current = getSkillXpForPlayer(ctx, playerId, skillId);
+  const next = normalizeSkillXpValue(current + amount);
+  upsertVarForPlayer(ctx, playerId, skillXpVarKeyFor(skillId), next);
+  return next;
+};
+
+export const addSkillXp = (
+  ctx: any,
+  skillId: SkillVoiceId,
+  amount: number,
+): number => addSkillXpForPlayer(ctx, ctx.sender, skillId, amount);
 
 export const ensureNarrativeResourcesForPlayer = (
   ctx: any,

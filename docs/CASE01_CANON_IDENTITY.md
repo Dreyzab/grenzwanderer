@@ -13,6 +13,17 @@ StoryDetective authoring, Detectiv design notes, and OpenViking indexing.
 
 ## Current Canon
 
+### Elias Thorne
+
+- Runtime-canonical display name: `Elias Thorne`
+- Runtime character id: `inspector`
+- Design/reference alias: `Arthur Vance`
+- Rule: supported runtime content must preserve Elias Thorne as the player
+  identity. New depth is added through player-choice alternatives, not by
+  replacing the base character with `Arthur Vance` or another persona.
+- Baseline tone: professional, observant, restrained, and willing to apply
+  procedural pressure without becoming a different character.
+
 ### Lotte
 
 - Runtime-canonical display name: `Lotte Weber`

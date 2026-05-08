@@ -22,6 +22,7 @@ import type { VnChoice } from "../types";
 import { VnScreenHeader } from "./VnScreenHeader";
 import { VnScreenChoicesSlot } from "./VnScreenChoicesSlot";
 import { VnScreenOverlaySlot } from "./VnScreenOverlaySlot";
+import { VnSkillCheckToast } from "./VnSkillCheckToast";
 import type { TypedTextHandle, TypedTextTokenHandler } from "./TypedText";
 import {
   VnTokenFeedbackOverlay,
@@ -548,6 +549,8 @@ export const VnScreen = ({
     failedChoiceKeys,
     visitedChoiceKeys,
     activeSkillResolve,
+    skillCheckToast,
+    clearSkillCheckToast,
     handleChoiceClick,
     handleFortuneSpendChange,
     confirmArmedSkillCheck,
@@ -840,6 +843,10 @@ export const VnScreen = ({
 
       {statusLine ? <p className="status-line success">{statusLine}</p> : null}
       {error ? <p className="status-line error">{error}</p> : null}
+      <VnSkillCheckToast
+        toast={skillCheckToast}
+        onClose={clearSkillCheckToast}
+      />
       <VnTokenFeedbackOverlay feedback={tokenFeedback} />
     </section>
   );

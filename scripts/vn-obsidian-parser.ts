@@ -14,6 +14,7 @@ import {
   parseConditionExpression,
   parseEffectExpression,
 } from "./vn-logic-expression";
+import { isSkillRank } from "../src/shared/game/skillProgression";
 import type {
   BlueprintDiagnostic,
   NodeBlueprint,
@@ -402,6 +403,20 @@ const parseSkillCheck = (
 
   parsed.isPassive = asOptionalBoolean(record.is_passive);
   parsed.showChancePercent = asOptionalBoolean(record.show_chance_percent);
+  const minSkillRank = asOptionalString(record.min_skill_rank);
+  if (minSkillRank !== undefined) {
+    if (!isSkillRank(minSkillRank)) {
+      throw createDiagnostic({
+        code: "PARSE_ERROR",
+        message: "skill_check.min_skill_rank must be F, E, D, C, B, A, S, or SS",
+        relativePath,
+        line: 1,
+        column: 1,
+        severity: "error",
+      });
+    }
+    parsed.minSkillRank = minSkillRank;
+  }
   parsed.karmaSensitive = asOptionalBoolean(record.karma_sensitive);
   parsed.outcomeModel = asOptionalString(record.outcome_model) as
     | VnSkillCheck["outcomeModel"]

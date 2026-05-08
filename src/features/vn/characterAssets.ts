@@ -10,7 +10,8 @@ const CHARACTER_PORTRAITS: Record<string, string> = {
   npc_felix_hartmann:
     "/Characters/Felix/felix_portrait_fixed_jaw_1776590978986.png",
   clara_altenburg: "/images/characters/clara_altenburg/master.png",
-  assistant: "/images/characters/clara_altenburg/master.png",
+  assistant: "/images/characters/assistant/assistant.webp",
+  victoria_sterling: "/Characters/Viktoria/Viktoria_Sargent.webp",
   npc_archivist_otto: "/images/characters/librarian/librarian.webp",
   npc_baroness_elise:
     "/images/characters/aristocrat_portrait/aristocrat_portrait.png",
@@ -67,7 +68,7 @@ export function getCharacterPortrait(
   if (lowerId.includes("operator") || lowerId.includes("dispatcher"))
     return CHARACTER_PORTRAITS.operator;
   if (lowerId.includes("analyst")) return CHARACTER_PORTRAITS.assistant_generic;
-  if (lowerId.includes("assistant")) return CHARACTER_PORTRAITS.assistant; // Maps to Clara/Felix folder eventually
+  if (lowerId.includes("assistant")) return CHARACTER_PORTRAITS.assistant;
   if (lowerId.includes("clerk") || lowerId.includes("worker"))
     return CHARACTER_PORTRAITS.worker;
   if (lowerId.includes("archivist") || lowerId.includes("librarian"))

@@ -62,6 +62,7 @@ import {
   MIN_VN_SCHEMA_WITH_SOCIAL_FACTIONS,
 } from "./schema";
 import { isVnAiMode } from "../game/narrativeResources";
+import { isSkillRank } from "../game/skillProgression";
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -180,6 +181,14 @@ const isCondition = (value: unknown): value is VnCondition => {
       typeof value.value === "number"
     );
   }
+  if (value.type === "skill_rank_gte") {
+    return (
+      typeof value.skillId === "string" &&
+      isSkillVoiceId(value.skillId) &&
+      typeof value.rank === "string" &&
+      isSkillRank(value.rank)
+    );
+  }
   if (value.type === "spirit_state_is") {
     return (
       typeof value.spiritId === "string" &&
@@ -251,6 +260,13 @@ const isEffect = (value: unknown): value is VnEffect => {
   }
   if (value.type === "grant_xp") {
     return typeof value.amount === "number";
+  }
+  if (value.type === "grant_skill_xp") {
+    return (
+      typeof value.skillId === "string" &&
+      isSkillVoiceId(value.skillId) &&
+      typeof value.amount === "number"
+    );
   }
   if (value.type === "unlock_group") {
     return typeof value.groupId === "string";
@@ -409,6 +425,9 @@ const isSkillCheck = (value: unknown): boolean => {
     (value.isPassive === undefined || typeof value.isPassive === "boolean") &&
     (value.showChancePercent === undefined ||
       typeof value.showChancePercent === "boolean") &&
+    (value.minSkillRank === undefined ||
+      (typeof value.minSkillRank === "string" &&
+        isSkillRank(value.minSkillRank))) &&
     (value.karmaSensitive === undefined ||
       typeof value.karmaSensitive === "boolean") &&
     hasModifiers &&
@@ -1056,6 +1075,13 @@ const isMapAction = (value: unknown): value is MapAction => {
   }
   if (value.type === "grant_xp") {
     return typeof value.amount === "number";
+  }
+  if (value.type === "grant_skill_xp") {
+    return (
+      typeof value.skillId === "string" &&
+      isSkillVoiceId(value.skillId) &&
+      typeof value.amount === "number"
+    );
   }
   if (value.type === "grant_influence") {
     return typeof value.amount === "number";

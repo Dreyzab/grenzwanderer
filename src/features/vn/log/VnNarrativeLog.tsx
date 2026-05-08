@@ -108,8 +108,6 @@ export function VnNarrativeLog({
     return () => observer.disconnect();
   }, [scheduleScrollToBottom]);
 
-  let previousSpeaker: string | null = null;
-
   return (
     <div
       ref={scrollRef}
@@ -120,28 +118,13 @@ export function VnNarrativeLog({
         className="mx-auto flex w-full max-w-3xl flex-col gap-1"
       >
         {entries.map((entry) => {
-          const showSpeaker =
-            entry.type !== "segment" ||
-            !entry.segment ||
-            entry.segment.speaker !== previousSpeaker;
-          if (entry.segment) {
-            previousSpeaker = entry.segment.speaker;
-          }
-          return (
-            <LogEntryRenderer
-              key={entry.id}
-              entry={entry}
-              dimmed
-              showSpeaker={showSpeaker}
-            />
-          );
+          return <LogEntryRenderer key={entry.id} entry={entry} dimmed />;
         })}
 
         {currentSegment ? (
           <LogSegmentRenderer
             segment={currentSegment}
             isTyping={state.isTypingSegment}
-            showSpeaker={currentSegment.speaker !== previousSpeaker}
             typedTextRef={typedTextRef}
             onTypingChange={onTypingChange}
             onComplete={onSegmentComplete}

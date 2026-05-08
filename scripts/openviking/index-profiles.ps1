@@ -10,7 +10,7 @@ $projectDir = Join-Path $rootDir "Grenzwanderer"
 $ovVenv = Join-Path $rootDir "ov_venv"
 $ovExe = Join-Path $ovVenv "Scripts\ov.exe"
 $ignoreDirs = "node_modules,dist,.git,.runtime,.spacetime,.spacetime-local-3001,.logs"
-$excludePatterns = "*.log,*.lock,*.png,*.jpg,*.jpeg,*.gif,*.webp,*.mp3,*.wav,*.mp4"
+$excludePatterns = "*.log,*.lock,*.mp3,*.wav,*.mp4,*.canvas"
 
 function Get-ProfileTargets {
     param([string]$Profile)
@@ -44,7 +44,8 @@ function Get-ProfileTargets {
             return @(
                 (Join-Path $projectDir "content"),
                 (Join-Path $projectDir "public\content"),
-                (Join-Path $projectDir "obsidian")
+                (Join-Path $projectDir "obsidian"),
+                (Join-Path $projectDir "public\images")
             )
         }
         "runtime" {
@@ -66,7 +67,8 @@ function Get-ProfileTargets {
                 (Join-Path $projectDir "obsidian\StoryDetective\40_GameViewer\Case01"),
                 (Join-Path $projectDir "scripts\data\case01_canon_runtime.ts"),
                 (Join-Path $projectDir "scripts\data\case_01_points.ts"),
-                (Join-Path $projectDir "content\vn\pilot.snapshot.json")
+                (Join-Path $projectDir "content\vn\pilot.snapshot.json"),
+                (Join-Path $projectDir "public\images")
             )
         }
         "design" {

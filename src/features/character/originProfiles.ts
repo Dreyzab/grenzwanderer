@@ -1,3 +1,5 @@
+import { isSkillVoiceId } from "../../../data/innerVoiceContract";
+import { skillXpVarKeyFor } from "../../shared/game/skillProgression";
 import type { VnEffect } from "../vn/types";
 
 export interface OriginTrackStepDefinition {
@@ -483,6 +485,17 @@ export const buildOriginChoiceEffects = (
       key: stat.key,
       value: stat.value,
     }),
+  ),
+  ...profile.statEffects.flatMap((stat): VnEffect[] =>
+    isSkillVoiceId(stat.key)
+      ? [
+          {
+            type: "set_var",
+            key: skillXpVarKeyFor(stat.key),
+            value: stat.value * 100,
+          },
+        ]
+      : [],
   ),
   { type: "set_flag", key: profile.originFlagKey, value: true },
   { type: "set_flag", key: profile.flawFlagKey, value: true },

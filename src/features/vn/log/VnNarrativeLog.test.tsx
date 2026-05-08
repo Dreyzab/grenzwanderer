@@ -161,4 +161,46 @@ describe("VnNarrativeLog scroll focus", () => {
 
     expect(log.scrollTop).toBe(2200);
   });
+
+  it("keeps an inline speaker badge on repeated speaker entries", () => {
+    const { container } = render(
+      <VnNarrativeLog
+        state={makeState({
+          entries: [
+            {
+              id: "node-a:segment:0",
+              type: "segment",
+              nodeId: "node-a",
+              timestamp: 1,
+              segment: {
+                speaker: "assistant",
+                speakerLabel: "Assistant",
+                category: "npc",
+                text: "First line",
+              },
+            },
+            {
+              id: "node-a:segment:1",
+              type: "segment",
+              nodeId: "node-a",
+              timestamp: 2,
+              segment: {
+                speaker: "assistant",
+                speakerLabel: "Assistant",
+                category: "npc",
+                text: "Second line",
+              },
+            },
+          ],
+          currentNodeSegments: [],
+          currentSegmentIndex: 0,
+        })}
+        snapshot={null}
+      />,
+    );
+
+    expect(
+      container.querySelectorAll('[data-speaker-label="Assistant"]'),
+    ).toHaveLength(2);
+  });
 });

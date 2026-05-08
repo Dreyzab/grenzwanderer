@@ -27,8 +27,8 @@ aliases: ["Herr Adalbert Weiss"]
 ## Secrets
 
 - **Surface**: Sells legal remedies and recovery tonics.
-- **Hidden**: Moves restricted solvents through coded invoices.
-- **Core**: Only Deception route reveals his private buyer key tied to university intermediaries.
+- **Hidden**: Moves restricted solvents and chemicals through coded invoices.
+- **Core**: Supplied the raw magnesium and iron oxide used by the Military Engineer to craft the thermite for the bank heist. Only Deception route reveals his private buyer key tied to the engineer and university intermediaries.
 
 ## Relationships
 

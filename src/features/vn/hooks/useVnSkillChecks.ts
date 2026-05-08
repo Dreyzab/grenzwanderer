@@ -15,6 +15,7 @@ import type {
   AwaitingSkillChoice,
   SkillCheckResultLike,
   TransitionState,
+  VnSkillCheckToastData,
 } from "../vnScreenTypes";
 import { useVnSkillResolveSequence } from "./useVnSkillResolveSequence";
 import type { VnChoice, VnScenario, VnSnapshot } from "../types";
@@ -28,6 +29,18 @@ import {
   resolveKarmaBand,
   resolveKarmaDifficultyDelta,
 } from "../../../shared/game/narrativeResources";
+import {
+  isSkillVoiceId,
+  type SkillVoiceId,
+} from "../../../../data/innerVoiceContract";
+import {
+  isSkillRankGateSatisfiedFromVars,
+  resolveSkillXpFromVars,
+} from "../../../shared/game/skillProgression";
+import {
+  buildSkillProgressFeedback,
+  formatSkillProgressStatus,
+} from "../skillProgressFeedback";
 
 interface UseVnSkillChecksParams {
   selectedScenarioId: string;
@@ -127,9 +140,14 @@ export function useVnSkillChecks({
   const [visitedChoiceKeys, setVisitedChoiceKeys] = useState<
     Record<string, true>
   >({});
+  const [skillCheckToast, setSkillCheckToast] =
+    useState<VnSkillCheckToastData | null>(null);
 
   const passiveInFlightRef = useRef<Set<string>>(new Set());
   const choiceSessionPointerRef = useRef<string | null>(null);
+  const skillXpBaselineRef = useRef<
+    Map<string, { skillId: SkillVoiceId; totalXp: number }>
+  >(new Map());
 
   const {
     activeSkillResolve,
@@ -147,7 +165,9 @@ export function useVnSkillChecks({
     setArmedSkillChoice(null);
     setAwaitingSkillChoice(null);
     setFailedChoiceKeys({});
+    setSkillCheckToast(null);
     choiceSessionPointerRef.current = null;
+    skillXpBaselineRef.current.clear();
     resetResolveSequence();
   }, [resetResolveSequence, selectedScenarioId]);
 
@@ -159,7 +179,9 @@ export function useVnSkillChecks({
     setArmedSkillChoice(null);
     setAwaitingSkillChoice(null);
     setPendingChoiceId(null);
+    setSkillCheckToast(null);
     choiceSessionPointerRef.current = null;
+    skillXpBaselineRef.current.clear();
     resetResolveSequence();
     setTransitionState((previous) =>
       previous === "choice_pending" ? "idle" : previous,
@@ -207,6 +229,17 @@ export function useVnSkillChecks({
       if (alreadyExists || passiveInFlightRef.current.has(key)) {
         continue;
       }
+      if (
+        check.minSkillRank &&
+        (!isSkillVoiceId(check.voiceId) ||
+          !isSkillRankGateSatisfiedFromVars(
+            myVars,
+            check.voiceId,
+            check.minSkillRank,
+          ))
+      ) {
+        continue;
+      }
 
       passiveInFlightRef.current.add(key);
 
@@ -229,6 +262,7 @@ export function useVnSkillChecks({
   }, [
     currentNode,
     mySession,
+    myVars,
     mySkillResults,
     performSkillCheck,
     selectedScenarioId,
@@ -468,14 +502,50 @@ export function useVnSkillChecks({
       return;
     }
 
-    handleResolvedSkillCheck(awaitingSkillChoice, matchedResult);
+    const checkKey = buildCheckKey(
+      awaitingSkillChoice.scenarioId,
+      awaitingSkillChoice.nodeId,
+      awaitingSkillChoice.checkId,
+    );
+    const baseline = skillXpBaselineRef.current.get(checkKey);
+    skillXpBaselineRef.current.delete(checkKey);
+
+    const skillProgress = buildSkillProgressFeedback({
+      pending: awaitingSkillChoice,
+      matchedResult,
+      vars: myVars,
+      baselineXp: baseline?.totalXp,
+    });
+    const matchedResultWithProgress: SkillCheckResultLike = skillProgress
+      ? { ...matchedResult, skillProgress }
+      : matchedResult;
+
+    if (skillProgress) {
+      setSkillCheckToast({
+        resultKey: matchedResult.resultKey,
+        checkId: matchedResult.checkId,
+        voiceLabel: awaitingSkillChoice.voiceLabel,
+        choiceText: awaitingSkillChoice.choiceText,
+        chancePercent: awaitingSkillChoice.chancePercent,
+        roll: matchedResult.roll,
+        voiceLevel: matchedResult.voiceLevel,
+        difficulty: matchedResult.difficulty,
+        passed: matchedResult.passed,
+        skillProgress,
+      });
+      setStatusLine(formatSkillProgressStatus(skillProgress));
+    }
+
+    handleResolvedSkillCheck(awaitingSkillChoice, matchedResultWithProgress);
     setAwaitingSkillChoice(null);
-    applyResolvedResult(awaitingSkillChoice, matchedResult);
+    applyResolvedResult(awaitingSkillChoice, matchedResultWithProgress);
   }, [
     applyResolvedResult,
     awaitingSkillChoice,
     handleResolvedSkillCheck,
+    myVars,
     mySkillResults,
+    setStatusLine,
   ]);
 
   const handleChoiceClick = useCallback(
@@ -618,6 +688,17 @@ export function useVnSkillChecks({
 
     setAwaitingSkillChoice(armedSkillChoice);
     setArmedSkillChoice(null);
+    if (isSkillVoiceId(armedSkillChoice.voiceId)) {
+      const checkKey = buildCheckKey(
+        armedSkillChoice.scenarioId,
+        armedSkillChoice.nodeId,
+        armedSkillChoice.checkId,
+      );
+      skillXpBaselineRef.current.set(checkKey, {
+        skillId: armedSkillChoice.voiceId,
+        totalXp: resolveSkillXpFromVars(myVars, armedSkillChoice.voiceId),
+      });
+    }
 
     try {
       await performSkillCheck({
@@ -627,6 +708,13 @@ export function useVnSkillChecks({
         fortuneSpend: armedSkillChoice.fortuneSpend,
       });
     } catch (caughtError) {
+      skillXpBaselineRef.current.delete(
+        buildCheckKey(
+          armedSkillChoice.scenarioId,
+          armedSkillChoice.nodeId,
+          armedSkillChoice.checkId,
+        ),
+      );
       setAwaitingSkillChoice(null);
       setPendingChoiceId(null);
       resetResolveSequence();
@@ -639,11 +727,16 @@ export function useVnSkillChecks({
   }, [
     activeSkillResolve?.phase,
     armedSkillChoice,
+    myVars,
     performSkillCheck,
     resetResolveSequence,
     selectedScenarioId,
     setError,
   ]);
+
+  const clearSkillCheckToast = useCallback(() => {
+    setSkillCheckToast(null);
+  }, []);
 
   return {
     pendingChoiceId,
@@ -652,6 +745,8 @@ export function useVnSkillChecks({
     failedChoiceKeys,
     visitedChoiceKeys,
     activeSkillResolve,
+    skillCheckToast,
+    clearSkillCheckToast,
     handleChoiceClick,
     handleFortuneSpendChange,
     confirmArmedSkillCheck,

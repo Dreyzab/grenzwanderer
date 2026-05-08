@@ -7,7 +7,17 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTable } from "spacetimedb/react";
-import type { CanonicalVoicePromptProfile } from "../../../../data/voiceBridge";
+import {
+  INNER_VOICE_DEFINITIONS,
+  INNER_VOICE_IDS,
+  SKILL_VOICE_IDS,
+  type SkillVoiceId,
+} from "../../../../data/innerVoiceContract";
+import {
+  rankPatronVoicesByInfluence,
+  SKILL_DEFINITIONS,
+  SKILL_IDS_BY_PATRON_VOICE,
+} from "../../../../data/skillDefinitions";
 import { ENABLE_DEBUG_CONTENT_SEED } from "../../../config";
 import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
 import {
@@ -20,6 +30,14 @@ import {
   getTrustBandPresentation,
   isNpcIdentityRevealed,
 } from "../../../shared/game/socialPresentation";
+import {
+  resolveSkillRank,
+  skillXpVarKeyFor,
+} from "../../../shared/game/skillProgression";
+import {
+  getNextSkillRankPerk,
+  getUnlockedSkillRankPerks,
+} from "../../../shared/game/skillPerks";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
 import { tables } from "../../../shared/spacetime/bindings";
 import { getCharacterStrings } from "../../i18n/uiStrings";
@@ -29,11 +47,7 @@ import {
   resolveUnlockedObservationEntries,
 } from "../../mysticism/model/mysticism";
 import { parseSnapshot } from "../../vn/vnContent";
-import {
-  CORE_CHARACTERISTICS,
-  SPECIALIZED_BY_CORE,
-  type CharacterTabId,
-} from "../characterScreenModel";
+import type { CharacterTabId } from "../characterScreenModel";
 import {
   getOriginProfileByFlags,
   getSelectedOriginTrack,
@@ -42,15 +56,14 @@ import { buildPsycheProfile } from "../psycheProfile";
 import type { CharacterRadarDatum } from "../ui/CharacterRadarChart";
 import type {
   AgencyCareerSummary,
-  AttributeVoiceBridgeSummary,
-  CharacterAttributeCard,
   CharacterContactEntry,
   CharacterObservationEntry,
   CharacterQuestJournalEntry,
-  CharacterVoiceBridgeRegistryEntry,
+  PatronVoiceCard,
 } from "./characterPanel.types";
 import {
-  buildAttributeVoiceBridge,
+  getPatronVoiceIcon,
+  getSkillVoiceIcon,
   normalizeNumber,
   unwrapOptionalString,
 } from "./characterPanel.utils";
@@ -323,79 +336,83 @@ export const useCharacterPanelViewModel = () => {
     [activeSnapshot, myFlags],
   );
 
-  const attributeCards = useMemo<CharacterAttributeCard[]>(
+  const skillXp = useMemo<Partial<Record<SkillVoiceId, number>>>(
     () =>
-      CORE_CHARACTERISTICS.map((attribute) => ({
-        ...attribute,
-        value: myVars[attribute.key] ?? 0,
-        voiceBridge: buildAttributeVoiceBridge(attribute),
-        specialized: (SPECIALIZED_BY_CORE[attribute.key] ?? []).map(
-          (specialized) => ({
-            ...specialized,
-            value: myVars[specialized.key] ?? 0,
-            voiceBridge: buildAttributeVoiceBridge(specialized),
-          }),
-        ),
-      })),
+      SKILL_VOICE_IDS.reduce<Partial<Record<SkillVoiceId, number>>>(
+        (levels, skillId) => {
+          const xpKey = skillXpVarKeyFor(skillId);
+          levels[skillId] =
+            myVars[xpKey] !== undefined
+              ? myVars[xpKey]
+              : (myVars[skillId] ?? 0) * 100;
+          return levels;
+        },
+        {},
+      ),
     [myVars],
   );
 
-  const primaryVoiceBridgeEntries = useMemo<
-    CharacterVoiceBridgeRegistryEntry[]
-  >(
-    () =>
-      attributeCards
-        .filter(
-          (
-            attribute,
-          ): attribute is CharacterAttributeCard & {
-            voiceBridge: AttributeVoiceBridgeSummary & {
-              promptProfile: CanonicalVoicePromptProfile;
-            };
-          } =>
-            attribute.voiceBridge !== null &&
-            attribute.voiceBridge.promptProfile !== null,
-        )
-        .map((attribute) => ({
-          sourceLabel: attribute.label,
-          currentValue: attribute.value,
-          accent: attribute.accent,
-          bridge: attribute.voiceBridge,
-        })),
-    [attributeCards],
+  const rankedPatronVoiceInfluence = useMemo(
+    () => rankPatronVoicesByInfluence({ skillXp }),
+    [skillXp],
   );
 
-  const secondaryVoiceBridgeEntries = useMemo(
-    () =>
-      attributeCards.flatMap((attribute) =>
-        attribute.specialized
-          .filter((specialized) => specialized.voiceBridge !== null)
-          .map((specialized) => ({
-            sourceLabel: specialized.label,
-            currentValue: specialized.value,
-            bridge: specialized.voiceBridge!,
-            accent: specialized.accent,
-          })),
-      ),
-    [attributeCards],
-  );
+  const patronVoiceCards = useMemo<PatronVoiceCard[]>(() => {
+    const influenceByVoice = new Map(
+      rankedPatronVoiceInfluence.map((entry, index) => [
+        entry.voiceId,
+        { ...entry, dominanceRank: index + 1 },
+      ]),
+    );
+
+    return INNER_VOICE_IDS.map((voiceId) => {
+      const definition = INNER_VOICE_DEFINITIONS[voiceId];
+      const influence = influenceByVoice.get(voiceId);
+
+      return {
+        voiceId,
+        label: definition.label,
+        influence: influence?.influence ?? 0,
+        dominanceRank: influence?.dominanceRank ?? INNER_VOICE_IDS.length,
+        worldview: definition.worldview,
+        toneDescriptor: definition.toneDescriptor,
+        palette: definition.palette,
+        iconName: getPatronVoiceIcon(voiceId),
+        methods: SKILL_IDS_BY_PATRON_VOICE[voiceId].map((skillId) => {
+          const skillDefinition = SKILL_DEFINITIONS[skillId];
+          const rankState = resolveSkillRank(skillXp[skillId] ?? 0);
+          return {
+            id: skillId,
+            label: skillDefinition.label,
+            labelRu: skillDefinition.labelRu,
+            rankState,
+            progressionRole: skillDefinition.progressionRole,
+            descriptionRu: skillDefinition.descriptionRu,
+            iconName: getSkillVoiceIcon(skillId),
+            definition: skillDefinition,
+            unlockedPerks: getUnlockedSkillRankPerks(skillId, rankState),
+            nextPerk: getNextSkillRankPerk(skillId, rankState),
+          };
+        }),
+      };
+    });
+  }, [rankedPatronVoiceInfluence, skillXp]);
 
   const radarData = useMemo<CharacterRadarDatum[]>(
     () =>
-      attributeCards.map((attribute) => ({
-        key: attribute.key,
-        label: attribute.label,
-        icon: attribute.icon,
-        color: attribute.accent,
-        value: attribute.value,
+      patronVoiceCards.map((voice) => ({
+        key: voice.voiceId,
+        label: voice.label,
+        icon: voice.iconName,
+        color: voice.palette.accent,
+        value: voice.influence,
       })),
-    [attributeCards],
+    [patronVoiceCards],
   );
 
   return {
     activeOrigin,
     agencyCareerSummary,
-    attributeCards,
     contactEntries,
     debugEnabled: ENABLE_DEBUG_CONTENT_SEED,
     dossierTabs,
@@ -404,12 +421,11 @@ export const useCharacterPanelViewModel = () => {
     myFlags,
     myVars,
     playerNickname,
-    primaryVoiceBridgeEntries,
+    patronVoiceCards,
     profile,
     questJournalEntries,
     observationEntries,
     radarData,
-    secondaryVoiceBridgeEntries,
     selectedTrack,
     t,
   };

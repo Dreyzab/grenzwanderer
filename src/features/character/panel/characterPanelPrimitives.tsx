@@ -117,13 +117,17 @@ export const DossierTabButton = ({
 );
 
 export const InfoBlock = ({
+  className = "",
   label,
   value,
 }: {
+  className?: string;
   label: string;
   value: string;
 }) => (
-  <div className="rounded-[0.95rem] border border-white/8 bg-black/20 px-3 py-2.5">
+  <div
+    className={`rounded-[0.95rem] border border-white/8 bg-black/20 px-3 py-2.5 ${className}`}
+  >
     <div
       className="text-[10px] uppercase tracking-[0.28em] text-stone-500"
       style={{ fontFamily: "var(--font-mono)" }}

@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resolveSkillRank } from "../../../shared/game/skillProgression";
 import {
   VnSkillCheckResolveOverlay,
   type VnSkillCheckResolveState,
@@ -126,6 +127,31 @@ describe("VnSkillCheckResolveOverlay", () => {
 
     expect(screen.getByTestId("vn-skill-dice-fallback")).toBeInTheDocument();
     expect(screen.queryByTestId("vn-skill-dice-scene")).toBeNull();
+  });
+
+  it("renders skill progression feedback in the result panel", () => {
+    render(
+      <VnSkillCheckResolveOverlay
+        state={{
+          ...baseState,
+          phase: "result",
+          skillProgress: {
+            skillId: "attr_deception",
+            skillLabel: "Deception",
+            xpAwarded: 25,
+            xpGained: 25,
+            totalXp: 515,
+            rankBefore: resolveSkillRank(490),
+            rankAfter: resolveSkillRank(515),
+            rankUp: true,
+          },
+        }}
+        onInteract={() => undefined}
+      />,
+    );
+
+    expect(screen.getByText("Deception rank up: B -> A")).toBeInTheDocument();
+    expect(screen.getByText("A 15 / 100 | 515 XP")).toBeInTheDocument();
   });
 
   it("loads the WebGL dice scene when WebGL is available", async () => {

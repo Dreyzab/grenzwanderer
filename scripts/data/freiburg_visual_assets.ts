@@ -58,9 +58,20 @@ export interface Case01VisualVariantStub {
   expectedImagePath: string;
   expectedMetaPath: string;
   promptSlots: {
+    s1: string;
+    s2: string;
     s3: string;
     s4: string;
+    s5: string;
     s6: string;
+    s7: string;
+  };
+  finalPrompt: string;
+  localVisualBrief?: {
+    summary: string;
+    mustInclude: string[];
+    continuityMotifs?: string[];
+    mustAvoid?: string[];
   };
 }
 
@@ -127,6 +138,17 @@ export const VISUAL_ARCHETYPE_S3_PREFIX: Record<
   estate_noble:
     "Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905",
 };
+
+export const SARGENT_STYLE_S1_TEXT =
+  "Oil painting, broad expressive brushstrokes, visible canvas texture";
+
+export const KAISER_ERA_S2_TEXT =
+  "1905 Kaiser-era Germany, historical veracity";
+
+export const VN_BACKGROUND_S5_TEXT = "Wide establishing shot";
+
+export const MASTERPIECE_S7_TEXT =
+  "Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion";
 
 export const VISUAL_STATE_S4_TEXT: Record<VisualStateId, string> = {
   default:
@@ -264,6 +286,115 @@ const LOCATION_STATE_VARIANTS: Partial<Record<string, VisualStateId[]>> = {
   loc_apothecary: ["investigation"],
   loc_pub: ["investigation"],
 };
+
+const LOCAL_VISUAL_BRIEF_BY_LOCATION_VARIANT: Partial<
+  Record<
+    `${string}:${VisualStateId}`,
+    NonNullable<Case01VisualVariantStub["localVisualBrief"]>
+  >
+> = {
+  "loc_freiburg_bank:default": {
+    summary:
+      "Bankhaus J.A. Krebs on Freiburg Muensterplatz before the story visibly breaks: prestige first, unease only in composition.",
+    mustInclude: [
+      "baroque banking facade integrated with Freiburg civic stonework",
+      "brass signage for Bankhaus J.A. Krebs",
+      "wide readable exterior framing suitable for map use",
+    ],
+    continuityMotifs: ["polished brass", "black-yellow postal twine"],
+  },
+  "loc_freiburg_bank:investigation": {
+    summary:
+      "Daylight aftermath at the bank threshold: the postal lead is real but bent out of shape.",
+    mustInclude: [
+      "closed postal car parked awkwardly near the entrance",
+      "rear postal car door not fully latched",
+      "torn route slip or loose postal manifest on the step",
+      "faint haze visible only in sunbeams through the lobby doors",
+      "wet cloths abandoned on mahogany benches, yellowed evidence stains visible as environmental traces",
+    ],
+    continuityMotifs: [
+      "black-yellow postal twine",
+      "brass and marble prestige undercut by chemical residue",
+    ],
+    mustAvoid: [
+      "opaque green gas cloud",
+      "heroic action pose",
+      "crowded scene that blocks the bank entrance",
+      "visible clerks, witnesses, police officers, or character silhouettes",
+    ],
+  },
+  "loc_freiburg_bank:crime_scene": {
+    summary:
+      "Exterior crime-scene variant for the staged raid: the bank is dignified, but the evidence is not.",
+    mustInclude: [
+      "postal car inspection traces without visible investigators",
+      "scraped wheel mark or mud mismatch near the curb",
+      "small evidence tag near black-yellow postal twine",
+      "slightly opened lobby doors with dim marble interior beyond",
+    ],
+    continuityMotifs: [
+      "black-yellow postal twine",
+      "official order performing calm over physical disorder",
+    ],
+    mustAvoid: ["gas mask on public display", "obvious villain silhouette"],
+  },
+  "loc_apothecary:investigation": {
+    summary:
+      "Kiliani's apothecary as controlled order under pressure: perfect labels, one cleaned absence.",
+    mustInclude: [
+      "pharmacy window or threshold with immaculate labeled jars",
+      "raw chemical stock implied through magnesium and sulfur labels",
+      "one shelf or counter patch wiped too clean",
+      "warm amber glass against cold civic stone outside",
+    ],
+    continuityMotifs: ["powder traces", "careful handwriting", "chemical order"],
+    mustAvoid: ["mad-scientist clutter", "explosion imagery"],
+  },
+};
+
+const renderLocalVisualBrief = (
+  brief: Case01VisualVariantStub["localVisualBrief"],
+): string[] => {
+  if (!brief) {
+    return [];
+  }
+
+  const parts = [
+    brief.summary,
+    `Must include: ${brief.mustInclude.join("; ")}`,
+  ];
+  if (brief.continuityMotifs && brief.continuityMotifs.length > 0) {
+    parts.push(`Continuity motifs: ${brief.continuityMotifs.join("; ")}`);
+  }
+  if (brief.mustAvoid && brief.mustAvoid.length > 0) {
+    parts.push(`Avoid locally: ${brief.mustAvoid.join("; ")}`);
+  }
+
+  return parts;
+};
+
+const buildFinalPrompt = (
+  promptSlots: Case01VisualVariantStub["promptSlots"],
+  localVisualBrief: Case01VisualVariantStub["localVisualBrief"],
+): string =>
+  [
+    promptSlots.s1,
+    promptSlots.s2,
+    promptSlots.s3,
+    ...renderLocalVisualBrief(localVisualBrief),
+    promptSlots.s4,
+    promptSlots.s5,
+    promptSlots.s6,
+    promptSlots.s7,
+    "16:9 aspect ratio, high resolution",
+  ].join(", ");
+
+const resolveLocalVisualBrief = (
+  locationId: string,
+  variantId: VisualStateId,
+): Case01VisualVariantStub["localVisualBrief"] =>
+  LOCAL_VISUAL_BRIEF_BY_LOCATION_VARIANT[`${locationId}:${variantId}`];
 
 const locationIdsFromPoints = (
   points: readonly Case01PointSource[],
@@ -470,6 +601,20 @@ export const buildCase01VisualVariants = (
             ? VN_POLICY_S6_TEXT.exterior_aftermath
             : VN_POLICY_S6_TEXT.exterior_empty;
 
+        const localVisualBrief = resolveLocalVisualBrief(
+          entry.locationId,
+          variantId,
+        );
+        const promptSlots = {
+          s1: SARGENT_STYLE_S1_TEXT,
+          s2: KAISER_ERA_S2_TEXT,
+          s3: VISUAL_ARCHETYPE_S3_PREFIX[entry.visualArchetype],
+          s4: VISUAL_STATE_S4_TEXT[variantId],
+          s5: VN_BACKGROUND_S5_TEXT,
+          s6: s6Template,
+          s7: MASTERPIECE_S7_TEXT,
+        };
+
         return {
           locationId: entry.locationId,
           districtId: entry.districtId,
@@ -483,11 +628,9 @@ export const buildCase01VisualVariants = (
           expectedBasename,
           expectedImagePath,
           expectedMetaPath,
-          promptSlots: {
-            s3: VISUAL_ARCHETYPE_S3_PREFIX[entry.visualArchetype],
-            s4: VISUAL_STATE_S4_TEXT[variantId],
-            s6: s6Template,
-          },
+          promptSlots,
+          finalPrompt: buildFinalPrompt(promptSlots, localVisualBrief),
+          ...(localVisualBrief ? { localVisualBrief } : {}),
         };
       });
     })

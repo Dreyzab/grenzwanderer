@@ -212,12 +212,14 @@ Text.
    - If: flag_equals(origin_journalist,true)
    - IfAny: has_evidence(ev_a)
    - Require: var_gte(attr_social,3)
+   - Require: skill_rank_gte(attr_social,B)
    - RequireAny: has_item(lockpick)
    - Next: [[scene_hbf_arrival]]
-   - Check: id=check_probe voice=attr_social dc=8 showchance=true
+   - Check: id=check_probe voice=attr_social dc=8 minrank=B showchance=true
    - OnSuccess: next=[[scene_hbf_arrival]]
    - OnFail: next=[[scene_hbf_arrival]]
    - OnSuccessEffect: add_var( checks_passed , 1 )
+   - OnSuccessEffect: grant_skill_xp(attr_social,25)
 `,
       "scene_hbf_arrival.md": `
 ---
@@ -256,17 +258,26 @@ Text.
       ]);
       expect(choice.requireAll).toEqual([
         { type: "var_gte", key: "attr_social", value: 3 },
+        { type: "skill_rank_gte", skillId: "attr_social", rank: "B" },
       ]);
       expect(choice.requireAny).toEqual([
         { type: "has_item", itemId: "lockpick" },
       ]);
       expect(choice.skillCheck?.id).toBe("check_probe");
+      expect(choice.skillCheck?.minSkillRank).toBe("B");
       expect(choice.skillCheck?.showChancePercent).toBe(true);
-      expect(choice.skillCheck?.onSuccess?.effects?.[0]).toEqual({
-        type: "add_var",
-        key: "checks_passed",
-        value: 1,
-      });
+      expect(choice.skillCheck?.onSuccess?.effects).toEqual([
+        {
+          type: "add_var",
+          key: "checks_passed",
+          value: 1,
+        },
+        {
+          type: "grant_skill_xp",
+          skillId: "attr_social",
+          amount: 25,
+        },
+      ]);
     });
   });
 

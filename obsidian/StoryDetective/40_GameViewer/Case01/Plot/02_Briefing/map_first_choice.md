@@ -9,36 +9,32 @@ tags:
   - phase/briefing
 ---
 
-# 🗺️ Map: First Choice
+# Map: First Choice
 
-## 🖥️ Map Interface
+## Map Interface
 
 **Active Region**: Old Town (Altstadt)
 **Time**: 08:30 AM (Morning)
 
-### 📍 Points of Interest
+## Points of Interest
 
-| Status        | Location       | Description                            |
-| ------------- | -------------- | -------------------------------------- |
-| 🟢 **Active** | **Kaiserbank** | Место преступления. Оцеплено полицией. |
-| 🟢 **Active** | **Rathaus**    | Мэрия. Ожидается официальный визит.    |
-| 🔒 **Locked** | _Tailor Shop_  | Требуется зацепка из Банка             |
-| 🔒 **Locked** | _Pharmacy_     | Требуется химический анализ            |
-
-### 🎒 UI Elements
-
-- **Journal**: Обновлена запись "Case 01 Started"
-- **Inventory**: Доступен (содержит Newspaper, Badge)
-- **Mind Palace**: Недоступен (откроется после первого осмотра)
+| Status | Location | Description |
+| --- | --- | --- |
+| Active | Bankhaus J.A. Krebs | Crime scene, police cordon, postal-car anomaly. |
+| Active | Rathaus | Official briefing with political pressure. |
+| Locked | Tailor Shop | Requires a bank clue. |
+| Locked | Pharmacy | Requires chemical analysis. |
 
 ## Design Note
 
-Первый стратегический выбор игрока — куда идти сначала:
+The first strategic choice is where the player goes after arrival:
 
-- **Bank first**: встреча с Clara на месте преступления
-- **Mayor first**: формальный брифинг с политическим контекстом
+- **Bank first**: meet Victoria at the crime scene and let her forensic pressure
+  enter through evidence rather than office politics.
+- **Mayor first**: reach the Rathaus, witness the police refusal, and receive
+  Victoria as an unofficial scientific consultant.
 
-## → Navigation Choices
+## Navigation Choices
 
-[[40_GameViewer/Case01/Plot/03_Bank/scene_bank_arrival|🏦 Go to Kaiserbank]]
-[[40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing|🏛️ Go to Rathaus]]
+[[40_GameViewer/Case01/Plot/03_Bank/scene_bank_arrival|Go to Bankhaus]]
+[[40_GameViewer/Case01/Plot/02_Briefing/scene_mayor_briefing|Go to Rathaus]]

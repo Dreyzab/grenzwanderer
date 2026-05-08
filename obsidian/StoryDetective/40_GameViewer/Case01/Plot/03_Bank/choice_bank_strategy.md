@@ -13,7 +13,7 @@ tags:
 
 ## Context
 
-Clara and the Inspector summarize the findings. "Lead package is ready."
+Victoria and the Inspector summarize the findings. "Lead package is ready."
 
 ## 🧩 Derived Leads
 

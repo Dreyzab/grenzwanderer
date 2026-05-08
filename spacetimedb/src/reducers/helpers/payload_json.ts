@@ -1,5 +1,6 @@
 import { SenderError } from "spacetimedb/server";
 
+import { isSkillVoiceId } from "../../../../data/innerVoiceContract";
 import type {
   MindRequiredVar,
   MindVarOperator,
@@ -100,6 +101,13 @@ export const isVnEffect = (value: unknown): value is VnEffect => {
   }
   if (effect.type === "grant_xp") {
     return typeof effect.amount === "number";
+  }
+  if (effect.type === "grant_skill_xp") {
+    return (
+      typeof effect.skillId === "string" &&
+      isSkillVoiceId(effect.skillId) &&
+      typeof effect.amount === "number"
+    );
   }
   if (effect.type === "unlock_group") {
     return typeof effect.groupId === "string";

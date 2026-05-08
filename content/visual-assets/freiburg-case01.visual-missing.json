@@ -6,8 +6,13 @@
     "expectedImagePath": "public/images/locations/loc_agency.webp",
     "expectedMetaPath": "public/images/locations/loc_agency.meta.json",
     "runtimeImagePath": "/images/locations/loc_agency/loc_agency.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_agency"],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "runtimeImageSharedWithLocationIds": [
+      "loc_agency"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_apothecary",
@@ -39,7 +44,10 @@
       "loc_uni_chem",
       "loc_uni_med"
     ],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_freiburg_bank",
@@ -48,8 +56,13 @@
     "expectedImagePath": "public/images/locations/loc_bankhaus--crime_scene.webp",
     "expectedMetaPath": "public/images/locations/loc_bankhaus--crime_scene.meta.json",
     "runtimeImagePath": "/images/locations/loc_freiburg_bank/loc_bankhaus.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_bank"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_freiburg_bank",
@@ -58,8 +71,13 @@
     "expectedImagePath": "public/images/locations/loc_bankhaus.webp",
     "expectedMetaPath": "public/images/locations/loc_bankhaus.meta.json",
     "runtimeImagePath": "/images/locations/loc_freiburg_bank/loc_bankhaus.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_bank"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_freiburg_bank",
@@ -68,8 +86,13 @@
     "expectedImagePath": "public/images/locations/loc_bankhaus--investigation.webp",
     "expectedMetaPath": "public/images/locations/loc_bankhaus--investigation.meta.json",
     "runtimeImagePath": "/images/locations/loc_freiburg_bank/loc_bankhaus.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_bank"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_freiburg_estate",
@@ -101,7 +124,10 @@
       "loc_student_house",
       "loc_tailor"
     ],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_freiburg_estate",
@@ -115,7 +141,10 @@
       "loc_student_house",
       "loc_tailor"
     ],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_freiburg_warehouse",
@@ -124,8 +153,13 @@
     "expectedImagePath": "public/images/locations/loc_stuhlinger_warehouse.webp",
     "expectedMetaPath": "public/images/locations/loc_stuhlinger_warehouse.meta.json",
     "runtimeImagePath": "/images/locations/loc_freiburg_warehouse/loc_stuhlinger_warehouse.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_freiburg_warehouse"],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_warehouse"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_freiburg_warehouse",
@@ -134,8 +168,13 @@
     "expectedImagePath": "public/images/locations/loc_stuhlinger_warehouse--investigation.webp",
     "expectedMetaPath": "public/images/locations/loc_stuhlinger_warehouse--investigation.meta.json",
     "runtimeImagePath": "/images/locations/loc_freiburg_warehouse/loc_stuhlinger_warehouse.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_freiburg_warehouse"],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "runtimeImageSharedWithLocationIds": [
+      "loc_freiburg_warehouse"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_hbf",
@@ -144,8 +183,13 @@
     "expectedImagePath": "public/images/locations/loc_hauptbahnhof.webp",
     "expectedMetaPath": "public/images/locations/loc_hauptbahnhof.meta.json",
     "runtimeImagePath": "/images/locations/loc_hbf/loc_hauptbahnhof.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_hbf"],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "runtimeImageSharedWithLocationIds": [
+      "loc_hbf"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_hbf",
@@ -154,8 +198,13 @@
     "expectedImagePath": "public/images/locations/loc_hauptbahnhof--investigation.webp",
     "expectedMetaPath": "public/images/locations/loc_hauptbahnhof--investigation.meta.json",
     "runtimeImagePath": "/images/locations/loc_hbf/loc_hauptbahnhof.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_hbf"],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "runtimeImageSharedWithLocationIds": [
+      "loc_hbf"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_martinstor",
@@ -223,7 +272,10 @@
       "loc_pub_deutsche",
       "loc_workers_pub"
     ],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_pub_deutsche",
@@ -250,7 +302,10 @@
     "expectedImagePath": "public/images/locations/loc_rathaus.webp",
     "expectedMetaPath": "public/images/locations/loc_rathaus.meta.json",
     "runtimeImagePath": "/images/locations/loc_rathaus/loc_rathaus_archiv.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
+    "runtimeImageSharedWithLocationIds": [
+      "loc_rathaus",
+      "loc_telephone"
+    ],
     "issues": [
       "missing_expected_image",
       "missing_expected_meta",
@@ -264,8 +319,14 @@
     "expectedImagePath": "public/images/locations/loc_rathaus--investigation.webp",
     "expectedMetaPath": "public/images/locations/loc_rathaus--investigation.meta.json",
     "runtimeImagePath": "/images/locations/loc_rathaus/loc_rathaus_archiv.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "runtimeImageSharedWithLocationIds": [
+      "loc_rathaus",
+      "loc_telephone"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_red_light",
@@ -274,8 +335,13 @@
     "expectedImagePath": "public/images/locations/loc_suburbs.webp",
     "expectedMetaPath": "public/images/locations/loc_suburbs.meta.json",
     "runtimeImagePath": "/images/locations/loc_misc/loc_suburbs.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_red_light"],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "runtimeImageSharedWithLocationIds": [
+      "loc_red_light"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_red_light",
@@ -284,8 +350,13 @@
     "expectedImagePath": "public/images/locations/loc_suburbs--investigation.webp",
     "expectedMetaPath": "public/images/locations/loc_suburbs--investigation.meta.json",
     "runtimeImagePath": "/images/locations/loc_misc/loc_suburbs.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_red_light"],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "runtimeImageSharedWithLocationIds": [
+      "loc_red_light"
+    ],
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_schwabentor",
@@ -335,7 +406,10 @@
       "loc_student_house",
       "loc_tailor"
     ],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_tailor",
@@ -367,7 +441,10 @@
       "loc_student_house",
       "loc_tailor"
     ],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_telephone",
@@ -376,7 +453,10 @@
     "expectedImagePath": "public/images/locations/loc_telephone.webp",
     "expectedMetaPath": "public/images/locations/loc_telephone.meta.json",
     "runtimeImagePath": "/images/locations/loc_rathaus/loc_rathaus_archiv.webp",
-    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
+    "runtimeImageSharedWithLocationIds": [
+      "loc_rathaus",
+      "loc_telephone"
+    ],
     "issues": [
       "missing_expected_image",
       "missing_expected_meta",
@@ -413,7 +493,10 @@
       "loc_uni_chem",
       "loc_uni_med"
     ],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_uni_med",
@@ -445,7 +528,10 @@
       "loc_uni_chem",
       "loc_uni_med"
     ],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   },
   {
     "locationId": "loc_workers_pub",
@@ -477,6 +563,9 @@
       "loc_pub_deutsche",
       "loc_workers_pub"
     ],
-    "issues": ["missing_expected_image", "missing_expected_meta"]
+    "issues": [
+      "missing_expected_image",
+      "missing_expected_meta"
+    ]
   }
 ]

@@ -25,10 +25,12 @@ vi.mock("spacetimedb/server", () => ({
 
 import {
   areConditionsSatisfied,
+  arePassiveChecksResolved,
   isChoiceAllowed,
   isChoiceEnabled,
   isChoiceVisible,
 } from "./vn_rules";
+import { createSkillCheckResultKey } from "./keys";
 
 describe("vn_rules condition evaluation", () => {
   it("accepts empty condition lists", () => {
@@ -66,7 +68,69 @@ describe("vn_rules condition evaluation", () => {
           spiritId: "spirit_clockmaker",
           state: "controlled",
         },
+        {
+          type: "skill_rank_gte",
+          skillId: "attr_logic",
+          rank: "F",
+        },
       ]),
+    ).toBe(true);
+  });
+
+  it("evaluates skill rank gates from explicit XP and legacy attr fallback", () => {
+    const ctx = createReducerTestContext();
+    insertVar(ctx, "attr_forensics", 4);
+
+    expect(
+      areConditionsSatisfied(ctx, [
+        { type: "skill_rank_gte", skillId: "attr_forensics", rank: "B" },
+      ]),
+    ).toBe(true);
+
+    insertVar(ctx, "skill_xp_attr_forensics", 150);
+
+    expect(
+      areConditionsSatisfied(ctx, [
+        { type: "skill_rank_gte", skillId: "attr_forensics", rank: "B" },
+      ]),
+    ).toBe(false);
+  });
+
+  it("treats rank-gated passive checks below threshold as non-blocking", () => {
+    const ctx = createReducerTestContext();
+    const checks = [
+      {
+        id: "passive_forensics",
+        voiceId: "attr_forensics",
+        difficulty: 8,
+        minSkillRank: "B",
+      },
+    ] as const;
+
+    expect(
+      arePassiveChecksResolved(ctx, "scenario", "node", checks as any),
+    ).toBe(true);
+
+    insertVar(ctx, "skill_xp_attr_forensics", 400);
+    expect(
+      arePassiveChecksResolved(ctx, "scenario", "node", checks as any),
+    ).toBe(false);
+
+    ctx.db.vnSkillCheckResult.insert({
+      resultKey: createSkillCheckResultKey(
+        ctx.sender,
+        "scenario",
+        "node",
+        "passive_forensics",
+      ),
+      playerId: ctx.sender,
+      scenarioId: "scenario",
+      nodeId: "node",
+      checkId: "passive_forensics",
+    });
+
+    expect(
+      arePassiveChecksResolved(ctx, "scenario", "node", checks as any),
     ).toBe(true);
   });
 

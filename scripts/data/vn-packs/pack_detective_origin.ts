@@ -55,7 +55,7 @@ export const PACK_DETECTIVE_ORIGIN_NODES: NodeBlueprint[] = [
     titleOverride: "Bankhaus J.A. Krebs",
     bodyOverride:
       "A grey morning. The Bankhaus sits behind its iron gates. Victoria Sterling waits by the door, a leather satchel pressed to her side.",
-    characterId: "assistant",
+    characterId: "victoria_sterling",
     choices: [
       {
         id: "DETECTIVE_ARRIVAL_ENTER",
@@ -93,7 +93,7 @@ export const PACK_DETECTIVE_ORIGIN_NODES: NodeBlueprint[] = [
     titleOverride: "Vault Corridor",
     bodyOverride:
       "The vault corridor stretches ahead. Victoria has already spread dust patterns across the tiles. A deposit box sits open — no forced entry.",
-    characterId: "assistant",
+    characterId: "victoria_sterling",
     choices: [
       {
         id: "DETECTIVE_INVESTIGATE_LOCKBOX",
@@ -150,7 +150,7 @@ export const PACK_DETECTIVE_ORIGIN_NODES: NodeBlueprint[] = [
         effects: [
           {
             type: "change_relationship",
-            characterId: "assistant",
+            characterId: "victoria_sterling",
             delta: 10,
           },
           {

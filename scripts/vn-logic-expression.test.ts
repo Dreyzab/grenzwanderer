@@ -21,6 +21,12 @@ describe("vn-logic-expression", () => {
         },
       ],
     });
+
+    expect(parseConditionExpression("skill_rank_gte(attr_logic,B)")).toEqual({
+      type: "skill_rank_gte",
+      skillId: "attr_logic",
+      rank: "B",
+    });
   });
 
   it("parses effect expressions with optional args", () => {
@@ -33,6 +39,12 @@ describe("vn-logic-expression", () => {
       npcId: "victoria_sterling",
       delta: 2,
       reason: "detective_briefing",
+    });
+
+    expect(parseEffectExpression("grant_skill_xp(attr_logic,25)")).toEqual({
+      type: "grant_skill_xp",
+      skillId: "attr_logic",
+      amount: 25,
     });
   });
 

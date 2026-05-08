@@ -76,6 +76,8 @@ import {
   RESOURCE_PROVIDENCE_VAR,
   resolveEffectiveFortune,
 } from "../../../shared/game/narrativeResources";
+import { isSkillVoiceId } from "../../../../data/innerVoiceContract";
+import { isSkillRankGateSatisfiedFromVars } from "../../../shared/game/skillProgression";
 
 interface UseVnDerivedStateParams {
   sessions: readonly VnSession[];
@@ -343,6 +345,13 @@ export function useVnDerivedState({
     }
     return checks.some(
       (check: VnSkillCheck) =>
+        (!check.minSkillRank ||
+          (isSkillVoiceId(check.voiceId) &&
+            isSkillRankGateSatisfiedFromVars(
+              myVars,
+              check.voiceId,
+              check.minSkillRank,
+            ))) &&
         !mySkillResults.some((entry) =>
           checkResultMatches(
             entry,
@@ -352,7 +361,7 @@ export function useVnDerivedState({
           ),
         ),
     );
-  }, [currentNode, mySkillResults, selectedScenarioId]);
+  }, [currentNode, mySkillResults, myVars, selectedScenarioId]);
 
   const currentNarrativeText = useMemo(() => {
     if (!currentNode) {

@@ -27,6 +27,7 @@ import {
   upsertVar,
   verifyRumorInternal,
 } from "./player_progression";
+import { grantSkillXpInternal } from "./skill_xp";
 
 const MYSTIC_AWAKENING_VAR = "mystic_awakening";
 const MYSTIC_EXPOSURE_VAR = "mystic_exposure";
@@ -251,6 +252,10 @@ export const applyEffects = (
     // New effects
     if (effect.type === "grant_xp") {
       addToVar(ctx, "xp_total", effect.amount);
+      continue;
+    }
+    if (effect.type === "grant_skill_xp") {
+      grantSkillXpInternal(ctx, effect.skillId, effect.amount);
       continue;
     }
 

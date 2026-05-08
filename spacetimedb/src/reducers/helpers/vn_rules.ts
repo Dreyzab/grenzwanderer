@@ -13,8 +13,14 @@ import {
   getFlag,
   getRelationshipValue,
   getRumorStatus,
+  getSkillXpForPlayer,
   getVar,
 } from "./player";
+import {
+  isSkillRankAtLeast,
+  resolveSkillRank,
+} from "../../../../src/shared/game/skillProgression";
+import { isSkillVoiceId } from "../../../../data/innerVoiceContract";
 import type {
   VnChoice,
   VnCondition,
@@ -138,6 +144,14 @@ const evaluateVnCondition = (ctx: any, condition: VnCondition): boolean => {
   if (condition.type === "voice_level_gte") {
     return Math.floor(getVar(ctx, condition.voiceId)) >= condition.value;
   }
+  if (condition.type === "skill_rank_gte") {
+    return isSkillRankAtLeast(
+      resolveSkillRank(
+        getSkillXpForPlayer(ctx, ctx.sender, condition.skillId),
+      ).rank,
+      condition.rank,
+    );
+  }
   if (condition.type === "spirit_state_is") {
     return getFlag(
       ctx,
@@ -174,6 +188,22 @@ const resolveRequireAll = (
   choice: Pick<VnChoice, "requireAll" | "conditions">,
 ): VnCondition[] | undefined => choice.requireAll ?? choice.conditions;
 
+export const isSkillCheckRankGateSatisfied = (
+  ctx: any,
+  check: Pick<VnSkillCheck, "voiceId" | "minSkillRank">,
+): boolean => {
+  if (!check.minSkillRank) {
+    return true;
+  }
+  if (!isSkillVoiceId(check.voiceId)) {
+    return false;
+  }
+  return isSkillRankAtLeast(
+    resolveSkillRank(getSkillXpForPlayer(ctx, ctx.sender, check.voiceId)).rank,
+    check.minSkillRank,
+  );
+};
+
 export const isChoiceVisible = (
   ctx: any,
   choice: Pick<VnChoice, "visibleIfAll" | "visibleIfAny">,
@@ -207,6 +237,9 @@ export const arePassiveChecksResolved = (
   }
 
   return checks.every((check) => {
+    if (!isSkillCheckRankGateSatisfied(ctx, check)) {
+      return true;
+    }
     const resultKey = createSkillCheckResultKey(
       ctx.sender,
       scenarioId,

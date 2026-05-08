@@ -1,18 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect } from "react";
+import type { VnSkillCheckToastData } from "../vnScreenTypes";
 import "./VnSkillCheckFeedback.css";
-
-export interface VnSkillCheckToastData {
-  resultKey: string;
-  checkId: string;
-  voiceLabel: string;
-  choiceText?: string;
-  chancePercent?: number;
-  roll: number;
-  voiceLevel: number;
-  difficulty: number;
-  passed: boolean;
-}
 
 interface VnSkillCheckToastProps {
   toast: VnSkillCheckToastData | null;
@@ -69,6 +58,23 @@ export const VnSkillCheckToast = ({
           <p className="vn-skill-toast__result">
             {toast.passed ? "Success" : "Fail"}
           </p>
+          {toast.skillProgress ? (
+            <div
+              className={[
+                "vn-skill-toast__progress",
+                toast.skillProgress.rankUp ? "is-rank-up" : "",
+              ].join(" ")}
+            >
+              <p className="vn-skill-toast__progress-title">
+                {toast.skillProgress.rankUp
+                  ? `${toast.skillProgress.skillLabel} rank up: ${toast.skillProgress.rankBefore.rank} -> ${toast.skillProgress.rankAfter.rank}`
+                  : `${toast.skillProgress.skillLabel} practice +${toast.skillProgress.xpGained} XP`}
+              </p>
+              <p className="vn-skill-toast__progress-meta">
+                {`${toast.skillProgress.rankAfter.rank} ${toast.skillProgress.rankAfter.progress} / ${toast.skillProgress.rankAfter.progressMax} | ${toast.skillProgress.totalXp} XP`}
+              </p>
+            </div>
+          ) : null}
         </motion.aside>
       ) : null}
     </AnimatePresence>

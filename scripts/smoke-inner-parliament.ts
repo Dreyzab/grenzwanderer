@@ -142,7 +142,7 @@ try {
             "scene_case01_train_assistant_departure",
             "CASE01_TRAIN_ASSISTANT_LEADER_COMMITMENT",
           ),
-        "conditions_failed",
+        "Choice gating conditions are not satisfied",
       );
     },
   );

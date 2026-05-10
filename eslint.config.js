@@ -9,6 +9,7 @@ export default tseslint.config(
     ignores: [
       "dist",
       "coverage",
+      "data",
       "src/module_bindings",
       "obsidian",
       "src/shared/spacetime/generated_row_schemas",
@@ -26,7 +27,8 @@ export default tseslint.config(
       "react-refresh": reactRefresh,
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },

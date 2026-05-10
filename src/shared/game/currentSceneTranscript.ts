@@ -439,7 +439,7 @@ export const resolveCurrentSceneTranscriptLine = ({
   const hasSpeaker = Boolean(speakerLabel.trim() || characterId);
 
   let speakerKind: TranscriptSpeakerKind = "narrator";
-  let resolvedSpeakerLabel = speakerLabel.trim();
+  let resolvedSpeakerLabel: string;
 
   if (character || (hasSpeaker && !voice)) {
     speakerKind = "character";

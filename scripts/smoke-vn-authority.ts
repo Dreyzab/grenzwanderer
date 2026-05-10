@@ -206,6 +206,7 @@ const expectRejected = async (
     if (!message.includes(expectedMessagePart)) {
       throw new Error(
         `Expected error containing "${expectedMessagePart}" but got "${message}"`,
+        { cause: error },
       );
     }
     rejected = true;

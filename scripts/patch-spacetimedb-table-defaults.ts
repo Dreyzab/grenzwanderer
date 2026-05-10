@@ -55,3 +55,27 @@ if (patchedFiles === 0) {
     "[patch-spacetimedb-table-defaults] no files patched (already patched or spacetimedb not installed)",
   );
 }
+
+const mapboxPointGeometryTypesPath = path.join(
+  repoRoot,
+  "node_modules",
+  "@types",
+  "mapbox__point-geometry",
+  "index.d.ts",
+);
+
+if (!existsSync(mapboxPointGeometryTypesPath)) {
+  const mapboxPointGeometryTypesRoot = path.dirname(
+    mapboxPointGeometryTypesPath,
+  );
+  if (existsSync(mapboxPointGeometryTypesRoot)) {
+    writeFileSync(
+      mapboxPointGeometryTypesPath,
+      '/// <reference types="@mapbox/point-geometry" />\n',
+      "utf8",
+    );
+    console.log(
+      "[patch-spacetimedb-table-defaults] added @types/mapbox__point-geometry stub entrypoint",
+    );
+  }
+}

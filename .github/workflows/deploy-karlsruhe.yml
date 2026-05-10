@@ -19,7 +19,7 @@ jobs:
       STDB_UPDATER_SHA256: "1ec25f3b7060e651887b04492e38257f6ee81e35daf73e52d682d20d50475fbd"
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Verify GCP Secrets
         run: |
@@ -29,12 +29,12 @@ jobs:
           fi
 
       - name: Google Auth
-        uses: google-github-actions/auth@7b53cdc2a387814ed14eec026287aac689ae8c9b # v2.1.9
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2.2.1
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
       - name: Authorize Docker
         run: gcloud auth configure-docker europe-west3-docker.pkg.dev
@@ -46,7 +46,7 @@ jobs:
 
       - name: Deploy to Cloud Run
         if: ${{ vars.APP_CHECK_BYPASS_SECRET_REF == '' }}
-        uses: google-github-actions/deploy-cloudrun@251330ba9a8a34bfbc1622895f42e1d53fd14522 # v2.7.6
+        uses: google-github-actions/deploy-cloudrun@2028e2d7d30a78c6910e0632e48dd561b064884d # v3.0.1
         with:
           service: karlsruhe-scene-gen
           image: europe-west3-docker.pkg.dev/${{ env.PROJECT_ID }}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }}
@@ -64,7 +64,7 @@ jobs:
 
       - name: Deploy to Cloud Run with App Check bypass secret
         if: ${{ vars.APP_CHECK_BYPASS_SECRET_REF != '' }}
-        uses: google-github-actions/deploy-cloudrun@251330ba9a8a34bfbc1622895f42e1d53fd14522 # v2.7.6
+        uses: google-github-actions/deploy-cloudrun@2028e2d7d30a78c6910e0632e48dd561b064884d # v3.0.1
         with:
           service: karlsruhe-scene-gen
           image: europe-west3-docker.pkg.dev/${{ env.PROJECT_ID }}/grenzwanderer/karlsruhe-scene-gen:${{ github.sha }}

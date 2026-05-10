@@ -31,6 +31,7 @@ describe("acceptance matrix", () => {
       { label: "Rumor verification", script: "smoke:rumor-verification" },
       { label: "Agency career", script: "smoke:agency-career" },
       { label: "Service unlock", script: "smoke:service-unlock" },
+      { label: "Inner Parliament D1", script: "smoke:inner-parliament" },
       { label: "MindPalace", script: "smoke:mindpalace" },
       { label: "Dog Deduction", script: "smoke:dog-deduction" },
     ]);

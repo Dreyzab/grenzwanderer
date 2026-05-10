@@ -31,6 +31,8 @@ describe("skillPerks", () => {
   });
 
   it("returns no next perk at SS mastery", () => {
-    expect(getNextSkillRankPerk("attr_logic", resolveSkillRank(800))).toBeNull();
+    expect(
+      getNextSkillRankPerk("attr_logic", resolveSkillRank(800)),
+    ).toBeNull();
   });
 });

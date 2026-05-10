@@ -66,9 +66,7 @@ export const formatSkillProgressStatus = (
   feedback: SkillProgressFeedback,
 ): string => {
   const xpText =
-    feedback.xpGained > 0
-      ? `+${feedback.xpGained} XP`
-      : `+0 XP (cap reached)`;
+    feedback.xpGained > 0 ? `+${feedback.xpGained} XP` : `+0 XP (cap reached)`;
 
   if (feedback.rankUp) {
     return `Rank up: ${feedback.skillLabel} ${feedback.rankBefore.rank} -> ${feedback.rankAfter.rank} (${xpText})`;

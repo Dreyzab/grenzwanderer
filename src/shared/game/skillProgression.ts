@@ -3,16 +3,7 @@ import {
   type SkillVoiceId,
 } from "../../../data/innerVoiceContract";
 
-export const SKILL_RANKS = [
-  "F",
-  "E",
-  "D",
-  "C",
-  "B",
-  "A",
-  "S",
-  "SS",
-] as const;
+export const SKILL_RANKS = ["F", "E", "D", "C", "B", "A", "S", "SS"] as const;
 
 export type SkillRank = (typeof SKILL_RANKS)[number];
 
@@ -51,8 +42,7 @@ export const SKILL_RANK_THRESHOLDS = {
   SS: 700,
 } as const satisfies Record<SkillRank, number>;
 
-export const SKILL_XP_CAP =
-  SKILL_RANK_THRESHOLDS.SS + SKILL_XP_PER_RANK;
+export const SKILL_XP_CAP = SKILL_RANK_THRESHOLDS.SS + SKILL_XP_PER_RANK;
 export const SKILL_CHECK_SUCCESS_XP = 25;
 export const SKILL_CHECK_FAILURE_XP = 35;
 
@@ -107,9 +97,7 @@ export const resolveSkillRank = (totalXp: number): SkillRankState => {
   const progressMax = nextRank
     ? SKILL_RANK_THRESHOLDS[nextRank] - rankStart
     : SKILL_XP_CAP - rankStart;
-  const progress = cappedAtMax
-    ? progressMax
-    : normalizedTotalXp - rankStart;
+  const progress = cappedAtMax ? progressMax : normalizedTotalXp - rankStart;
 
   return {
     totalXp: normalizedTotalXp,

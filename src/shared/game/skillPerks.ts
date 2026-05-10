@@ -24,8 +24,12 @@ export interface SkillRankPerkDefinition {
   description: string;
 }
 
-export const SKILL_PERK_RANKS = ["B", "A", "S", "SS"] as const satisfies
-  readonly SkillRank[];
+export const SKILL_PERK_RANKS = [
+  "B",
+  "A",
+  "S",
+  "SS",
+] as const satisfies readonly SkillRank[];
 
 const SKILL_PERK_TEMPLATES = {
   B: {

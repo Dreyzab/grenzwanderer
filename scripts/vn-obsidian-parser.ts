@@ -408,7 +408,8 @@ const parseSkillCheck = (
     if (!isSkillRank(minSkillRank)) {
       throw createDiagnostic({
         code: "PARSE_ERROR",
-        message: "skill_check.min_skill_rank must be F, E, D, C, B, A, S, or SS",
+        message:
+          "skill_check.min_skill_rank must be F, E, D, C, B, A, S, or SS",
         relativePath,
         line: 1,
         column: 1,

@@ -1313,7 +1313,9 @@ describe("VnScreen critical behavior", () => {
       await vi.advanceTimersByTimeAsync(500);
     });
     expect(screen.getByText("SUCCESS")).toBeInTheDocument();
-    expect(screen.getAllByText(/Roll 7 \+ 4 vs DC 8/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Roll 7 \+ 4 vs DC 8/i).length).toBeGreaterThan(
+      0,
+    );
     expect(screen.getAllByText(/85% predicted/i).length).toBeGreaterThan(0);
     expect(mocks.recordChoiceMock).not.toHaveBeenCalled();
 

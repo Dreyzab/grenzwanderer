@@ -76,6 +76,11 @@ const runPlayerSmoke = async (
             contentPublished = true;
           }
           await subscribeSocialTables(conn);
+          await conn.reducers.beginFreiburgOrigin({
+            requestId: nextRequestId(`origin_${label}`),
+            profileId: "detective",
+            resetProgress: true,
+          });
           await runScenarioPath(
             conn,
             snapshot,

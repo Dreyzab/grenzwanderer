@@ -8,9 +8,7 @@
     "masterRefId": "master_civic_gothic_exterior",
     "interiorPresetId": "preset_civic_gothic_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_agency/loc_agency.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_agency"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_agency"],
     "expectedBasename": "loc_agency",
     "expectedImagePath": "public/images/locations/loc_agency.webp",
     "expectedMetaPath": "public/images/locations/loc_agency.meta.json",
@@ -93,10 +91,7 @@
         "careful handwriting",
         "chemical order"
       ],
-      "mustAvoid": [
-        "mad-scientist clutter",
-        "explosion imagery"
-      ]
+      "mustAvoid": ["mad-scientist clutter", "explosion imagery"]
     }
   },
   {
@@ -108,9 +103,7 @@
     "masterRefId": "master_civic_gothic_exterior",
     "interiorPresetId": "preset_civic_gothic_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_freiburg_bank/loc_bankhaus.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_freiburg_bank"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
     "expectedBasename": "loc_bankhaus--crime_scene",
     "expectedImagePath": "public/images/locations/loc_bankhaus--crime_scene.webp",
     "expectedMetaPath": "public/images/locations/loc_bankhaus--crime_scene.meta.json",
@@ -136,10 +129,7 @@
         "black-yellow postal twine",
         "official order performing calm over physical disorder"
       ],
-      "mustAvoid": [
-        "gas mask on public display",
-        "obvious villain silhouette"
-      ]
+      "mustAvoid": ["gas mask on public display", "obvious villain silhouette"]
     }
   },
   {
@@ -151,9 +141,7 @@
     "masterRefId": "master_civic_gothic_exterior",
     "interiorPresetId": "preset_civic_gothic_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_freiburg_bank/loc_bankhaus.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_freiburg_bank"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
     "expectedBasename": "loc_bankhaus",
     "expectedImagePath": "public/images/locations/loc_bankhaus.webp",
     "expectedMetaPath": "public/images/locations/loc_bankhaus.meta.json",
@@ -174,10 +162,7 @@
         "brass signage for Bankhaus J.A. Krebs",
         "wide readable exterior framing suitable for map use"
       ],
-      "continuityMotifs": [
-        "polished brass",
-        "black-yellow postal twine"
-      ]
+      "continuityMotifs": ["polished brass", "black-yellow postal twine"]
     }
   },
   {
@@ -189,9 +174,7 @@
     "masterRefId": "master_civic_gothic_exterior",
     "interiorPresetId": "preset_civic_gothic_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_freiburg_bank/loc_bankhaus.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_freiburg_bank"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_bank"],
     "expectedBasename": "loc_bankhaus--investigation",
     "expectedImagePath": "public/images/locations/loc_bankhaus--investigation.webp",
     "expectedMetaPath": "public/images/locations/loc_bankhaus--investigation.meta.json",
@@ -319,9 +302,7 @@
     "masterRefId": "master_industrial_rail_exterior",
     "interiorPresetId": "preset_industrial_rail_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_freiburg_warehouse/loc_stuhlinger_warehouse.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_freiburg_warehouse"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_warehouse"],
     "expectedBasename": "loc_stuhlinger_warehouse",
     "expectedImagePath": "public/images/locations/loc_stuhlinger_warehouse.webp",
     "expectedMetaPath": "public/images/locations/loc_stuhlinger_warehouse.meta.json",
@@ -345,9 +326,7 @@
     "masterRefId": "master_industrial_rail_exterior",
     "interiorPresetId": "preset_industrial_rail_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_freiburg_warehouse/loc_stuhlinger_warehouse.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_freiburg_warehouse"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_freiburg_warehouse"],
     "expectedBasename": "loc_stuhlinger_warehouse--investigation",
     "expectedImagePath": "public/images/locations/loc_stuhlinger_warehouse--investigation.webp",
     "expectedMetaPath": "public/images/locations/loc_stuhlinger_warehouse--investigation.meta.json",
@@ -371,9 +350,7 @@
     "masterRefId": "master_industrial_rail_exterior",
     "interiorPresetId": "preset_industrial_rail_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_hbf/loc_hauptbahnhof.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_hbf"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_hbf"],
     "expectedBasename": "loc_hauptbahnhof",
     "expectedImagePath": "public/images/locations/loc_hauptbahnhof.webp",
     "expectedMetaPath": "public/images/locations/loc_hauptbahnhof.meta.json",
@@ -397,9 +374,7 @@
     "masterRefId": "master_industrial_rail_exterior",
     "interiorPresetId": "preset_industrial_rail_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_hbf/loc_hauptbahnhof.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_hbf"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_hbf"],
     "expectedBasename": "loc_hauptbahnhof--investigation",
     "expectedImagePath": "public/images/locations/loc_hauptbahnhof--investigation.webp",
     "expectedMetaPath": "public/images/locations/loc_hauptbahnhof--investigation.meta.json",
@@ -563,10 +538,7 @@
     "masterRefId": "master_civic_gothic_exterior",
     "interiorPresetId": "preset_civic_gothic_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_rathaus/loc_rathaus_archiv.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_rathaus",
-      "loc_telephone"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
     "expectedBasename": "loc_rathaus",
     "expectedImagePath": "public/images/locations/loc_rathaus.webp",
     "expectedMetaPath": "public/images/locations/loc_rathaus.meta.json",
@@ -590,10 +562,7 @@
     "masterRefId": "master_civic_gothic_exterior",
     "interiorPresetId": "preset_civic_gothic_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_rathaus/loc_rathaus_archiv.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_rathaus",
-      "loc_telephone"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
     "expectedBasename": "loc_rathaus--investigation",
     "expectedImagePath": "public/images/locations/loc_rathaus--investigation.webp",
     "expectedMetaPath": "public/images/locations/loc_rathaus--investigation.meta.json",
@@ -617,9 +586,7 @@
     "masterRefId": "master_canal_tavern_exterior",
     "interiorPresetId": "preset_canal_tavern_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_misc/loc_suburbs.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_red_light"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_red_light"],
     "expectedBasename": "loc_suburbs",
     "expectedImagePath": "public/images/locations/loc_suburbs.webp",
     "expectedMetaPath": "public/images/locations/loc_suburbs.meta.json",
@@ -643,9 +610,7 @@
     "masterRefId": "master_canal_tavern_exterior",
     "interiorPresetId": "preset_canal_tavern_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_misc/loc_suburbs.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_red_light"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_red_light"],
     "expectedBasename": "loc_suburbs--investigation",
     "expectedImagePath": "public/images/locations/loc_suburbs--investigation.webp",
     "expectedMetaPath": "public/images/locations/loc_suburbs--investigation.meta.json",
@@ -809,10 +774,7 @@
     "masterRefId": "master_civic_gothic_exterior",
     "interiorPresetId": "preset_civic_gothic_interior_dialogue",
     "runtimeImagePath": "/images/locations/loc_rathaus/loc_rathaus_archiv.webp",
-    "runtimeImageSharedWithLocationIds": [
-      "loc_rathaus",
-      "loc_telephone"
-    ],
+    "runtimeImageSharedWithLocationIds": ["loc_rathaus", "loc_telephone"],
     "expectedBasename": "loc_telephone",
     "expectedImagePath": "public/images/locations/loc_telephone.webp",
     "expectedMetaPath": "public/images/locations/loc_telephone.meta.json",

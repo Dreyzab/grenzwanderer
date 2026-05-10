@@ -10,10 +10,7 @@ vi.mock("spacetimedb/server", () => ({
   SenderError: class SenderError extends Error {},
 }));
 
-import {
-  awardSkillCheckPracticeXp,
-  grantSkillXpInternal,
-} from "./skill_xp";
+import { awardSkillCheckPracticeXp, grantSkillXpInternal } from "./skill_xp";
 
 describe("skill XP backend helpers", () => {
   it("awards active skill-check success practice XP", () => {
@@ -117,8 +114,8 @@ describe("skill XP backend helpers", () => {
     expect(() => grantSkillXpInternal(ctx, "attr_logic", 0)).toThrow(
       /positive/,
     );
-    expect(() =>
-      grantSkillXpInternal(ctx, "attr_logic", Number.NaN),
-    ).toThrow(/finite/);
+    expect(() => grantSkillXpInternal(ctx, "attr_logic", Number.NaN)).toThrow(
+      /finite/,
+    );
   });
 });

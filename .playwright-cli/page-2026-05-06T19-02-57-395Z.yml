@@ -1,38 +1,38 @@
 - generic [ref=e6]:
-  - banner [ref=e385]:
-    - generic [ref=e386]:
-      - heading "Grenzwanderer" [level=1] [ref=e387]
-      - paragraph [ref=e388]: "Фаза 2: MindPalace (Вертикальный срез)"
-    - generic [ref=e389]:
-      - generic [ref=e390]: Подключено как c200a580...5cec
-      - generic "Commit 75fa0d5 - Built 2026-05-06T16:46:55.931Z" [ref=e391]: "Version: 0.2.0"
-  - main:
-    - generic [ref=e392]:
-      - generic:
-        - generic:
-          - img "Background"
-      - button "Выключить звук проверок" [ref=e393]:
-        - img [ref=e394]
-        - generic [ref=e398]: SFX
-  - navigation [ref=e49]:
-    - button "Expand Navigation" [ref=e400]:
-      - img [ref=e54]
-    - generic [ref=e57]:
-      - button "Главная" [ref=e58]:
-        - img [ref=e60]
-        - generic [ref=e63]: Главная
-      - button "Карта" [ref=e64]:
-        - img [ref=e66]
-        - generic [ref=e68]: Карта
-      - button "Миссии" [ref=e69]:
-        - img [ref=e71]
-        - generic [ref=e76]: Миссии
-      - button "Дуэль" [ref=e77]:
-        - img [ref=e79]
-        - generic [ref=e88]: Дуэль
-      - button "Досье" [ref=e89]:
-        - img [ref=e91]
-        - generic [ref=e94]: Досье
-      - button "Скан" [ref=e95]:
-        - img [ref=e97]
-        - generic [ref=e103]: Скан
+    - banner [ref=e385]:
+        - generic [ref=e386]:
+            - heading "Grenzwanderer" [level=1] [ref=e387]
+            - paragraph [ref=e388]: "Фаза 2: MindPalace (Вертикальный срез)"
+        - generic [ref=e389]:
+            - generic [ref=e390]: Подключено как c200a580...5cec
+            - generic "Commit 75fa0d5 - Built 2026-05-06T16:46:55.931Z" [ref=e391]: "Version: 0.2.0"
+    - main:
+        - generic [ref=e392]:
+            - generic:
+                - generic:
+                    - img "Background"
+            - button "Выключить звук проверок" [ref=e393]:
+                - img [ref=e394]
+                - generic [ref=e398]: SFX
+    - navigation [ref=e49]:
+        - button "Expand Navigation" [ref=e400]:
+            - img [ref=e54]
+        - generic [ref=e57]:
+            - button "Главная" [ref=e58]:
+                - img [ref=e60]
+                - generic [ref=e63]: Главная
+            - button "Карта" [ref=e64]:
+                - img [ref=e66]
+                - generic [ref=e68]: Карта
+            - button "Миссии" [ref=e69]:
+                - img [ref=e71]
+                - generic [ref=e76]: Миссии
+            - button "Дуэль" [ref=e77]:
+                - img [ref=e79]
+                - generic [ref=e88]: Дуэль
+            - button "Досье" [ref=e89]:
+                - img [ref=e91]
+                - generic [ref=e94]: Досье
+            - button "Скан" [ref=e95]:
+                - img [ref=e97]
+                - generic [ref=e103]: Скан

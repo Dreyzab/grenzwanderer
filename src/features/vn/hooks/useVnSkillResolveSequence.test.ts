@@ -57,13 +57,13 @@ const matchedResult: SkillCheckResultLike = {
 
 type HarnessProps = {
   isSfxMuted?: boolean;
-  playImpactSfx?: ReturnType<typeof vi.fn>;
+  playImpactSfx?: (passed: boolean) => void | Promise<void>;
 };
 
 function useHarness(props: HarnessProps = {}) {
   return useVnSkillResolveSequence({
     isSfxMuted: props.isSfxMuted ?? false,
-    playImpactSfx: props.playImpactSfx ?? vi.fn(),
+    playImpactSfx: props.playImpactSfx ?? vi.fn<(passed: boolean) => void>(),
   });
 }
 

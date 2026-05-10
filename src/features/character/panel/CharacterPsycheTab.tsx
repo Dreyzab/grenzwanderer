@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
-import { INNER_VOICE_DEFINITIONS, INNER_VOICE_IDS } from "../../../../data/innerVoiceContract";
+import {
+  INNER_VOICE_DEFINITIONS,
+  INNER_VOICE_IDS,
+} from "../../../../data/innerVoiceContract";
 import type { getCharacterStrings } from "../../i18n/uiStrings";
 import type { PsycheProfileData } from "../psycheProfile";
 import { C, TAB_TRANSITION } from "./characterPanel.theme";
@@ -46,34 +49,71 @@ export const CharacterPsycheTab = ({
                   Altruist
                 </div>
 
-                <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full overflow-visible p-8">
+                <svg
+                  viewBox="0 0 100 100"
+                  className="absolute inset-0 h-full w-full overflow-visible p-8"
+                >
                   {/* Grid Lines */}
-                  <line x1="50" y1="0" x2="50" y2="100" stroke="rgba(255,255,255,0.08)" strokeDasharray="2,2" />
-                  <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.08)" strokeDasharray="2,2" />
+                  <line
+                    x1="50"
+                    y1="0"
+                    x2="50"
+                    y2="100"
+                    stroke="rgba(255,255,255,0.08)"
+                    strokeDasharray="2,2"
+                  />
+                  <line
+                    x1="0"
+                    y1="50"
+                    x2="100"
+                    y2="50"
+                    stroke="rgba(255,255,255,0.08)"
+                    strokeDasharray="2,2"
+                  />
 
                   {/* Patron Voices */}
-                  {INNER_VOICE_IDS.map(voiceId => {
+                  {INNER_VOICE_IDS.map((voiceId) => {
                     const def = INNER_VOICE_DEFINITIONS[voiceId];
                     const cx = (def.homePoint.x + 100) / 2;
                     const cy = 100 - (def.homePoint.y + 100) / 2;
-                    
-                    const activeVoice = profile.innerCompass.voices.find(v => v.voiceId === voiceId);
+
+                    const activeVoice = profile.innerCompass.voices.find(
+                      (v) => v.voiceId === voiceId,
+                    );
                     const isActive = !!activeVoice;
 
                     return (
                       <g key={voiceId} transform={`translate(${cx}, ${cy})`}>
-                        <circle r={isActive ? 2.5 : 1.5} fill={def.palette.accent} opacity={isActive ? 1 : 0.25} />
+                        <circle
+                          r={isActive ? 2.5 : 1.5}
+                          fill={def.palette.accent}
+                          opacity={isActive ? 1 : 0.25}
+                        />
                         {isActive && (
-                          <circle r={5} fill="none" stroke={def.palette.accent} strokeWidth={0.5} opacity={0.6} />
+                          <circle
+                            r={5}
+                            fill="none"
+                            stroke={def.palette.accent}
+                            strokeWidth={0.5}
+                            opacity={0.6}
+                          />
                         )}
-                        <text 
-                          y={-4.5} 
-                          textAnchor="middle" 
-                          fill={isActive ? def.palette.text : "rgba(255,255,255,0.3)"} 
-                          fontSize="2.8" 
-                          fontFamily="var(--font-mono)" 
+                        <text
+                          y={-4.5}
+                          textAnchor="middle"
+                          fill={
+                            isActive
+                              ? def.palette.text
+                              : "rgba(255,255,255,0.3)"
+                          }
+                          fontSize="2.8"
+                          fontFamily="var(--font-mono)"
                           className="uppercase tracking-widest"
-                          style={{ filter: isActive ? `drop-shadow(0 0 4px ${def.palette.accent})` : 'none' }}
+                          style={{
+                            filter: isActive
+                              ? `drop-shadow(0 0 4px ${def.palette.accent})`
+                              : "none",
+                          }}
                         >
                           {def.label}
                         </text>
@@ -82,11 +122,11 @@ export const CharacterPsycheTab = ({
                   })}
 
                   {/* Player Position */}
-                  <circle 
-                    cx={profile.innerCompass.axisXPercent} 
+                  <circle
+                    cx={profile.innerCompass.axisXPercent}
                     cy={100 - profile.innerCompass.axisYPercent}
-                    r="2.5" 
-                    fill={C.amber} 
+                    r="2.5"
+                    fill={C.amber}
                     stroke="rgba(0,0,0,0.8)"
                     strokeWidth="0.5"
                     className="shadow-[0_0_18px_rgba(212,167,79,0.8)]"
@@ -131,7 +171,9 @@ export const CharacterPsycheTab = ({
                   />
                 </div>
                 <p className="mt-4 text-xs leading-relaxed text-stone-400">
-                  The approach vector determines whether you act preemptively or wait for the board to change. Your current moral vector is calculated via coordinate proximity.
+                  The approach vector determines whether you act preemptively or
+                  wait for the board to change. Your current moral vector is
+                  calculated via coordinate proximity.
                 </p>
               </div>
             </div>
@@ -168,11 +210,15 @@ export const CharacterPsycheTab = ({
                     </span>
                   </div>
                   <div className="mt-3 flex items-center gap-2">
-                    <span 
+                    <span
                       className="rounded-sm px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em]"
-                      style={{ 
-                        backgroundColor: voice.stance === "supports" ? "rgba(52, 211, 153, 0.15)" : "rgba(248, 113, 113, 0.15)",
-                        color: voice.stance === "supports" ? "#34d399" : "#f87171" 
+                      style={{
+                        backgroundColor:
+                          voice.stance === "supports"
+                            ? "rgba(52, 211, 153, 0.15)"
+                            : "rgba(248, 113, 113, 0.15)",
+                        color:
+                          voice.stance === "supports" ? "#34d399" : "#f87171",
                       }}
                     >
                       {voice.stance}
@@ -187,7 +233,9 @@ export const CharacterPsycheTab = ({
                 </div>
                 <div className="mt-6 border-t border-white/5 pt-4">
                   <p className="text-xs leading-relaxed text-stone-400">
-                    <span className="mb-1.5 block text-[9px] uppercase tracking-[0.2em] text-stone-500">Worldview</span>
+                    <span className="mb-1.5 block text-[9px] uppercase tracking-[0.2em] text-stone-500">
+                      Worldview
+                    </span>
                     {voice.worldview}
                   </p>
                   <p className="mt-2 text-[10px] uppercase tracking-[0.24em] text-stone-600">

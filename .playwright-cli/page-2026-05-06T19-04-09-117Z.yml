@@ -1,116 +1,116 @@
 - generic [ref=e6]:
-  - banner [ref=e385]:
-    - generic [ref=e386]:
-      - heading "Grenzwanderer" [level=1] [ref=e387]
-      - paragraph [ref=e388]: "Фаза 2: MindPalace (Вертикальный срез)"
-    - generic [ref=e389]:
-      - generic [ref=e390]: Подключено как c200a580...5cec
-      - generic "Commit 75fa0d5 - Built 2026-05-06T16:46:55.931Z" [ref=e391]: "Version: 0.2.0"
-  - main [ref=e15]:
-    - generic [ref=e402]:
-      - generic [ref=e428]:
-        - generic [ref=e429]:
-          - text: Сценарий
-          - combobox "Сценарий" [ref=e430]:
-            - 'option "Case 01: Archive Warrant Run"'
-            - 'option "Case 01: Bank Investigation"'
-            - 'option "Case 01: Convergence"'
-            - 'option "Case 01: Estate Trace"'
-            - 'option "Case 01: Freiburg Arrival" [selected]'
-            - 'option "Case 01: Apothecary Lead"'
-            - 'option "Case 01: Pub Lead"'
-            - 'option "Case 01: Tailor Lead"'
-            - 'option "Case 01: Zum Goldenen Adler Lodging"'
-            - 'option "Case 01: Lotte Interlude"'
-            - 'option "Case 01: Mayor Briefing"'
-            - 'option "Case 01: Rail Yard Shadow Tail"'
-            - 'option "Case 01: Warehouse Finale"'
-            - option "Stacks of Omitted Pages"
-            - option "Salon of Debts and Favors"
-            - option "Cafe Riegler – News & Nerves"
-            - option "Barracks Echo"
-            - option "Immersion Bath Wakeup"
-            - option "Karlsruhe Event Arrival"
-            - option "Origin Bootstrap - Detective"
-            - option "Origin Bootstrap - Journalist"
-            - option "Agency Briefing"
-            - option "Agency Promotion Review"
-            - 'option "Agency Service: Anna''s Introduction"'
-            - option "Banker Intro Pilot"
-            - 'option "Case 01: Onboarding Pilot"'
-            - 'option "Living City: Bootblack Tip"'
-            - 'option "Living City: Cleaner Tip"'
-            - 'option "Living City: Student Tip"'
-            - option "Detective Runtime Pilot"
-            - option "Dog Intro Pilot"
-            - option "Ghost Intro Pilot"
-            - option "Inner Voices Demo"
-            - option "Sandbox Intro Pilot"
-            - option "Loop Demo Pilot"
-            - option "Missing Aroma"
-            - option "Student House Access"
-            - option "Workers Pub Rumor"
-        - generic [ref=e431]:
-          - generic [ref=e432]:
-            - generic [ref=e433]:
-              - img [ref=e434]
-              - text: "Провидение: 2"
-            - generic [ref=e439]:
-              - img [ref=e440]
-              - text: "Фортуна: 1"
-            - generic [ref=e445]:
-              - img [ref=e446]
-              - text: "Карма: 0"
-          - button "Начать сценарий" [ref=e452] [cursor=pointer]
-      - generic [ref=e392]:
-        - generic:
-          - generic:
-            - img "Background"
-        - generic:
-          - generic:
-            - generic:
-              - img
-              - generic: Текущая локация
-            - 'heading "Дело 01: Прибытие во Фрайбург" [level=1]'
-        - button "Выключить звук проверок" [ref=e393]:
-          - img [ref=e394]
-          - generic [ref=e398]: SFX
-        - generic [ref=e454]:
-          - button "Collapse narrative log" [ref=e456]:
-            - img [ref=e459]
-          - generic [ref=e464]:
-            - article [ref=e469]:
-              - paragraph [ref=e471]: Дверь в купе открывается со скрипом, и в проеме возникает высокая фигура с выдающимися скулами, из-за которых вошедший казался намного старше своих лет.
-            - article [ref=e477]:
-              - generic [ref=e478]:
-                - generic "Assistant" [ref=e479]:
-                  - generic [ref=e481]: ASSISTANT
-                - paragraph [ref=e482]: "— Сэр, я проверил во время остановки: в газетах пусто, по радио тоже тишина."
-            - article [ref=e465]:
-              - generic [ref=e484]:
-                - generic "Циник" [ref=e485]:
-                  - generic [ref=e487]: ЦИНИК
-                - paragraph [ref=e488]: Тишина — это не отсутствие звука. Это присутствие чьей-то очень дорог
-      - paragraph [ref=e403]: "Выбор применен: AUTO_CONTINUE_SCENE_CASE01_TRAIN_COMPARTMENT_LETTER"
-  - navigation [ref=e49]:
-    - button "Expand Navigation" [ref=e400]:
-      - img [ref=e54]
-    - generic [ref=e57]:
-      - button "Главная" [ref=e58]:
-        - img [ref=e60]
-        - generic [ref=e63]: Главная
-      - button "Карта" [ref=e64]:
-        - img [ref=e66]
-        - generic [ref=e68]: Карта
-      - button "Миссии" [ref=e69]:
-        - img [ref=e71]
-        - generic [ref=e76]: Миссии
-      - button "Дуэль" [ref=e77]:
-        - img [ref=e79]
-        - generic [ref=e88]: Дуэль
-      - button "Досье" [ref=e89]:
-        - img [ref=e91]
-        - generic [ref=e94]: Досье
-      - button "Скан" [ref=e95]:
-        - img [ref=e97]
-        - generic [ref=e103]: Скан
+    - banner [ref=e385]:
+        - generic [ref=e386]:
+            - heading "Grenzwanderer" [level=1] [ref=e387]
+            - paragraph [ref=e388]: "Фаза 2: MindPalace (Вертикальный срез)"
+        - generic [ref=e389]:
+            - generic [ref=e390]: Подключено как c200a580...5cec
+            - generic "Commit 75fa0d5 - Built 2026-05-06T16:46:55.931Z" [ref=e391]: "Version: 0.2.0"
+    - main [ref=e15]:
+        - generic [ref=e402]:
+            - generic [ref=e428]:
+                - generic [ref=e429]:
+                    - text: Сценарий
+                    - combobox "Сценарий" [ref=e430]:
+                        - 'option "Case 01: Archive Warrant Run"'
+                        - 'option "Case 01: Bank Investigation"'
+                        - 'option "Case 01: Convergence"'
+                        - 'option "Case 01: Estate Trace"'
+                        - 'option "Case 01: Freiburg Arrival" [selected]'
+                        - 'option "Case 01: Apothecary Lead"'
+                        - 'option "Case 01: Pub Lead"'
+                        - 'option "Case 01: Tailor Lead"'
+                        - 'option "Case 01: Zum Goldenen Adler Lodging"'
+                        - 'option "Case 01: Lotte Interlude"'
+                        - 'option "Case 01: Mayor Briefing"'
+                        - 'option "Case 01: Rail Yard Shadow Tail"'
+                        - 'option "Case 01: Warehouse Finale"'
+                        - option "Stacks of Omitted Pages"
+                        - option "Salon of Debts and Favors"
+                        - option "Cafe Riegler – News & Nerves"
+                        - option "Barracks Echo"
+                        - option "Immersion Bath Wakeup"
+                        - option "Karlsruhe Event Arrival"
+                        - option "Origin Bootstrap - Detective"
+                        - option "Origin Bootstrap - Journalist"
+                        - option "Agency Briefing"
+                        - option "Agency Promotion Review"
+                        - 'option "Agency Service: Anna''s Introduction"'
+                        - option "Banker Intro Pilot"
+                        - 'option "Case 01: Onboarding Pilot"'
+                        - 'option "Living City: Bootblack Tip"'
+                        - 'option "Living City: Cleaner Tip"'
+                        - 'option "Living City: Student Tip"'
+                        - option "Detective Runtime Pilot"
+                        - option "Dog Intro Pilot"
+                        - option "Ghost Intro Pilot"
+                        - option "Inner Voices Demo"
+                        - option "Sandbox Intro Pilot"
+                        - option "Loop Demo Pilot"
+                        - option "Missing Aroma"
+                        - option "Student House Access"
+                        - option "Workers Pub Rumor"
+                - generic [ref=e431]:
+                    - generic [ref=e432]:
+                        - generic [ref=e433]:
+                            - img [ref=e434]
+                            - text: "Провидение: 2"
+                        - generic [ref=e439]:
+                            - img [ref=e440]
+                            - text: "Фортуна: 1"
+                        - generic [ref=e445]:
+                            - img [ref=e446]
+                            - text: "Карма: 0"
+                    - button "Начать сценарий" [ref=e452] [cursor=pointer]
+            - generic [ref=e392]:
+                - generic:
+                    - generic:
+                        - img "Background"
+                - generic:
+                    - generic:
+                        - generic:
+                            - img
+                            - generic: Текущая локация
+                        - 'heading "Дело 01: Прибытие во Фрайбург" [level=1]'
+                - button "Выключить звук проверок" [ref=e393]:
+                    - img [ref=e394]
+                    - generic [ref=e398]: SFX
+                - generic [ref=e454]:
+                    - button "Collapse narrative log" [ref=e456]:
+                        - img [ref=e459]
+                    - generic [ref=e464]:
+                        - article [ref=e469]:
+                            - paragraph [ref=e471]: Дверь в купе открывается со скрипом, и в проеме возникает высокая фигура с выдающимися скулами, из-за которых вошедший казался намного старше своих лет.
+                        - article [ref=e477]:
+                            - generic [ref=e478]:
+                                - generic "Assistant" [ref=e479]:
+                                    - generic [ref=e481]: ASSISTANT
+                                - paragraph [ref=e482]: "— Сэр, я проверил во время остановки: в газетах пусто, по радио тоже тишина."
+                        - article [ref=e465]:
+                            - generic [ref=e484]:
+                                - generic "Циник" [ref=e485]:
+                                    - generic [ref=e487]: ЦИНИК
+                                - paragraph [ref=e488]: Тишина — это не отсутствие звука. Это присутствие чьей-то очень дорог
+            - paragraph [ref=e403]: "Выбор применен: AUTO_CONTINUE_SCENE_CASE01_TRAIN_COMPARTMENT_LETTER"
+    - navigation [ref=e49]:
+        - button "Expand Navigation" [ref=e400]:
+            - img [ref=e54]
+        - generic [ref=e57]:
+            - button "Главная" [ref=e58]:
+                - img [ref=e60]
+                - generic [ref=e63]: Главная
+            - button "Карта" [ref=e64]:
+                - img [ref=e66]
+                - generic [ref=e68]: Карта
+            - button "Миссии" [ref=e69]:
+                - img [ref=e71]
+                - generic [ref=e76]: Миссии
+            - button "Дуэль" [ref=e77]:
+                - img [ref=e79]
+                - generic [ref=e88]: Дуэль
+            - button "Досье" [ref=e89]:
+                - img [ref=e91]
+                - generic [ref=e94]: Досье
+            - button "Скан" [ref=e95]:
+                - img [ref=e97]
+                - generic [ref=e103]: Скан

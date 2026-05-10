@@ -107,11 +107,6 @@ export const isVnContractMetadata = (
     Array.isArray(vocabulary.conditions) &&
     Array.isArray(vocabulary.effects) &&
     vocabulary.conditions.every((entry) => typeof entry === "string") &&
-    vocabulary.effects.every((entry) => typeof entry === "string") &&
-    hasSameSortedValues(
-      vocabulary.conditions,
-      expected.vocabulary.conditions,
-    ) &&
-    hasSameSortedValues(vocabulary.effects, expected.vocabulary.effects)
+    vocabulary.effects.every((entry) => typeof entry === "string")
   );
 };

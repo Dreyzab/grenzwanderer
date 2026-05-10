@@ -7,7 +7,6 @@ import {
   loadPilotSnapshot,
   publishPilotSnapshot,
   resolveChoiceId,
-  runScenarioPath,
   subscribeSocialTables,
 } from "./social-smoke-helpers";
 
@@ -76,19 +75,20 @@ const runPlayerSmoke = async (
             contentPublished = true;
           }
           await subscribeSocialTables(conn);
-          await runScenarioPath(
-            conn,
-            snapshot,
-            scenarioId,
-            [
-              ...trainEntrySteps,
-              {
-                nodeId: "scene_case01_train_door_creaks",
-                choiceId: routeChoiceId,
-              },
-            ],
-            nextRequestId,
-          );
+          await conn.reducers.beginFreiburgOrigin({
+            requestId: nextRequestId(`origin_${label}`),
+            profileId: "detective",
+            resetProgress: true,
+          });
+          for (const step of [
+            ...trainEntrySteps,
+            {
+              nodeId: "scene_case01_train_door_creaks",
+              choiceId: routeChoiceId,
+            },
+          ]) {
+            await recordChoice(conn, step.nodeId, step.choiceId);
+          }
 
           await assertRoute(conn, playerHex);
 
@@ -142,7 +142,7 @@ try {
             "scene_case01_train_assistant_departure",
             "CASE01_TRAIN_ASSISTANT_LEADER_COMMITMENT",
           ),
-        "conditions_failed",
+        "Choice gating conditions are not satisfied",
       );
     },
   );

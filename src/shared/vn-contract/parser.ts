@@ -1827,112 +1827,199 @@ export type VnSnapshotParseResult =
   | { ok: true; snapshot: VnSnapshot }
   | { ok: false; issues: VnSnapshotParseIssue[] };
 
-const parseSnapshotInternal = (payloadJson: string): VnSnapshot | null => {
+type InternalParseResult =
+  | { ok: true; snapshot: VnSnapshot }
+  | { ok: false; path: string; message: string };
+
+const parseSnapshotInternal = (payloadJson: string): InternalParseResult => {
   let parsed: unknown;
   try {
     parsed = JSON.parse(payloadJson);
-  } catch (_error) {
-    return null;
+  } catch (error) {
+    return {
+      ok: false,
+      path: "payloadJson",
+      message: `JSON parse error: ${error instanceof Error ? error.message : String(error)}`,
+    };
   }
 
   if (!isObject(parsed)) {
-    return null;
+    return {
+      ok: false,
+      path: "root",
+      message: "Snapshot must be an object",
+    };
   }
 
-  if (
-    typeof parsed.schemaVersion !== "number" ||
-    !Array.isArray(parsed.scenarios) ||
-    !Array.isArray(parsed.nodes) ||
-    !parsed.scenarios.every(isScenario) ||
-    !parsed.nodes.every(isNode)
-  ) {
-    return null;
+  if (typeof parsed.schemaVersion !== "number") {
+    return {
+      ok: false,
+      path: "schemaVersion",
+      message: "Missing or invalid schemaVersion",
+    };
+  }
+  if (!Array.isArray(parsed.scenarios)) {
+    return {
+      ok: false,
+      path: "scenarios",
+      message: "scenarios must be an array",
+    };
+  }
+  if (!Array.isArray(parsed.nodes)) {
+    return { ok: false, path: "nodes", message: "nodes must be an array" };
+  }
+
+  for (let i = 0; i < parsed.scenarios.length; i++) {
+    if (!isScenario(parsed.scenarios[i])) {
+      const id = isObject(parsed.scenarios[i])
+        ? String(parsed.scenarios[i].id)
+        : i;
+      return {
+        ok: false,
+        path: `scenarios[${id}]`,
+        message: "Invalid scenario structure",
+      };
+    }
+  }
+
+  for (let i = 0; i < parsed.nodes.length; i++) {
+    if (!isNode(parsed.nodes[i])) {
+      const id = isObject(parsed.nodes[i]) ? String(parsed.nodes[i].id) : i;
+      return {
+        ok: false,
+        path: `nodes[${id}]`,
+        message: "Invalid node structure",
+      };
+    }
   }
 
   if (
     parsed.schemaVersion >= MIN_VN_SCHEMA_WITH_CONTRACT_METADATA &&
     !isVnContractMetadata(parsed.contractMetadata)
   ) {
-    return null;
+    return {
+      ok: false,
+      path: "contractMetadata",
+      message: "Invalid or outdated contract metadata vocabulary",
+    };
   }
 
-  if (!hasUniqueIds(parsed.scenarios) || !hasUniqueIds(parsed.nodes)) {
-    return null;
+  if (!hasUniqueIds(parsed.scenarios)) {
+    return {
+      ok: false,
+      path: "scenarios",
+      message: "Duplicate scenario IDs detected",
+    };
+  }
+  if (!hasUniqueIds(parsed.nodes)) {
+    return { ok: false, path: "nodes", message: "Duplicate node IDs detected" };
   }
 
   const mindPalace = parseMindPalace(parsed.mindPalace);
   if (!mindPalace) {
-    return null;
+    return {
+      ok: false,
+      path: "mindPalace",
+      message: "Invalid mindPalace structure",
+    };
   }
   const mysticism = parseMysticism(parsed.mysticism);
   if (mysticism === null) {
-    return null;
+    return {
+      ok: false,
+      path: "mysticism",
+      message: "Invalid mysticism structure",
+    };
   }
   const vnRuntime = parseVnRuntime(parsed.vnRuntime);
   if (vnRuntime === null) {
-    return null;
+    return {
+      ok: false,
+      path: "vnRuntime",
+      message: "Invalid vnRuntime structure",
+    };
   }
 
   const scenarioIds = new Set(parsed.scenarios.map((scenario) => scenario.id));
   const map = parseMap(parsed.map, parsed.schemaVersion, scenarioIds);
   if (map === null) {
-    return null;
+    return {
+      ok: false,
+      path: "map",
+      message: "Invalid map structure or dangling scenario references",
+    };
   }
   const questCatalog = parseQuestCatalog(
     parsed.questCatalog,
     parsed.schemaVersion,
   );
   if (questCatalog === null) {
-    return null;
+    return {
+      ok: false,
+      path: "questCatalog",
+      message: "Invalid questCatalog structure",
+    };
   }
   const socialCatalog = parseSocialCatalog(
     parsed.socialCatalog,
     parsed.schemaVersion,
   );
   if (socialCatalog === null) {
-    return null;
+    return {
+      ok: false,
+      path: "socialCatalog",
+      message: "Invalid socialCatalog structure",
+    };
   }
+
   if (
     parsed.schemaVersion >= MIN_VN_SCHEMA_WITH_MIND_PALACE &&
     parsed.mindPalace === undefined
   ) {
-    return null;
+    return {
+      ok: false,
+      path: "mindPalace",
+      message: "mindPalace is required for this schema version",
+    };
   }
 
   return {
-    schemaVersion: parsed.schemaVersion,
-    contractMetadata:
-      parsed.schemaVersion >= MIN_VN_SCHEMA_WITH_CONTRACT_METADATA
-        ? createVnContractMetadata()
-        : undefined,
-    scenarios: parsed.scenarios,
-    nodes: parsed.nodes,
-    vnRuntime,
-    mindPalace,
-    mysticism,
-    map,
-    questCatalog,
-    socialCatalog,
+    ok: true,
+    snapshot: {
+      schemaVersion: parsed.schemaVersion,
+      contractMetadata:
+        parsed.schemaVersion >= MIN_VN_SCHEMA_WITH_CONTRACT_METADATA
+          ? createVnContractMetadata()
+          : undefined,
+      scenarios: parsed.scenarios,
+      nodes: parsed.nodes,
+      vnRuntime,
+      mindPalace,
+      mysticism,
+      map,
+      questCatalog,
+      socialCatalog,
+    },
   };
 };
 
 export const parseVnSnapshotPayload = (
   payloadJson: string,
 ): VnSnapshotParseResult => {
-  const snapshot = parseSnapshotInternal(payloadJson);
-  if (!snapshot) {
+  const result = parseSnapshotInternal(payloadJson);
+  if (!result.ok) {
     return {
       ok: false,
       issues: [
         {
-          path: "payloadJson",
-          message: "Invalid VN snapshot payload",
+          path: result.path,
+          message: result.message,
         },
       ],
     };
   }
 
-  return { ok: true, snapshot };
+  return { ok: true, snapshot: result.snapshot };
 };
 
 export const parseSnapshot = (payloadJson: string): VnSnapshot | null => {

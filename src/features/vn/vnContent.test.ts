@@ -1340,7 +1340,7 @@ describe("vnContent runtime parsing", () => {
                   conditions: [
                     {
                       type: "inner_voice_rank_gte",
-                      voiceId: "attr_logic",
+                      voiceId: "attr_logic" as any,
                       value: 1,
                     },
                   ],
@@ -1381,7 +1381,7 @@ describe("vnContent runtime parsing", () => {
                   effects: [
                     {
                       type: "change_inner_voice_rank",
-                      voiceId: "attr_logic",
+                      voiceId: "attr_logic" as any,
                       delta: 1,
                     },
                   ],

@@ -838,7 +838,8 @@ const parseCheckHeader = (
       `Unknown skill rank '${minSkillRankRaw}'`,
     );
   }
-  const minSkillRank = minSkillRankRaw === undefined ? undefined : minSkillRankRaw;
+  const minSkillRank =
+    minSkillRankRaw === undefined ? undefined : minSkillRankRaw;
 
   return {
     id: checkId,
@@ -1995,6 +1996,8 @@ export const parseCase01Onboarding = (
     if (error instanceof Case01ParserError) {
       throw error;
     }
-    throw new Error(`Case01 parser failed: ${String(error)}`);
+    throw new Error(`Case01 parser failed: ${String(error)}`, {
+      cause: error,
+    });
   }
 };

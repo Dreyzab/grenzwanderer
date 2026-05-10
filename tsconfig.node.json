@@ -4,6 +4,7 @@
     "target": "ES2022",
     "lib": ["ES2023"],
     "types": ["node", "vite/client"],
+    "typeRoots": ["./src/types", "./node_modules/@types", "./node_modules"],
     "module": "ESNext",
     "skipLibCheck": true,
     /* Bundler mode */

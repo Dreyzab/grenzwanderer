@@ -17,6 +17,23 @@ const TARGET_SUBPATHS = [
 
 const MARKER_FROM = /if \(meta\.defaultValue\) \{/g;
 const MARKER_TO = 'if ("defaultValue" in meta) {';
+const INDEX_LOOKUP_FROM =
+  "const index_id = sys.index_id_from_name(indexDef.sourceName);";
+const INDEX_LOOKUP_TO = `const index_id = (() => {
+      try {
+        return sys.index_id_from_name(indexDef.sourceName);
+      } catch (error) {
+        const snakeName = indexDef.sourceName.replace(/[A-Z]/g, (char) => \`_\${char.toLowerCase()}\`);
+        if (snakeName !== indexDef.sourceName) {
+          try {
+            return sys.index_id_from_name(snakeName);
+          } catch {
+            // Throw the original lookup failure to preserve SpacetimeDB's normal error shape.
+          }
+        }
+        throw error;
+      }
+    })();`;
 
 const roots = [
   path.join(repoRoot, "node_modules", "spacetimedb"),
@@ -35,10 +52,10 @@ for (const root of roots) {
       continue;
     }
     const before = readFileSync(filePath, "utf8");
-    if (!before.includes("meta.defaultValue")) {
-      continue;
+    let after = before.replace(MARKER_FROM, MARKER_TO);
+    if (sub === path.join("dist", "server", "index.mjs")) {
+      after = after.replace(INDEX_LOOKUP_FROM, INDEX_LOOKUP_TO);
     }
-    const after = before.replace(MARKER_FROM, MARKER_TO);
     if (after === before) {
       continue;
     }
@@ -54,4 +71,28 @@ if (patchedFiles === 0) {
   console.log(
     "[patch-spacetimedb-table-defaults] no files patched (already patched or spacetimedb not installed)",
   );
+}
+
+const mapboxPointGeometryTypesPath = path.join(
+  repoRoot,
+  "node_modules",
+  "@types",
+  "mapbox__point-geometry",
+  "index.d.ts",
+);
+
+if (!existsSync(mapboxPointGeometryTypesPath)) {
+  const mapboxPointGeometryTypesRoot = path.dirname(
+    mapboxPointGeometryTypesPath,
+  );
+  if (existsSync(mapboxPointGeometryTypesRoot)) {
+    writeFileSync(
+      mapboxPointGeometryTypesPath,
+      '/// <reference types="@mapbox/point-geometry" />\n',
+      "utf8",
+    );
+    console.log(
+      "[patch-spacetimedb-table-defaults] added @types/mapbox__point-geometry stub entrypoint",
+    );
+  }
 }

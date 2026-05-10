@@ -65,7 +65,7 @@ jobs:
           VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           VITE_RELEASE_PROFILE: "freiburg_detective"
-          VITE_SPACETIMEDB_HOST: "https://maincloud.spacetimedb.com"
+          VITE_SPACETIMEDB_HOST: "wss://maincloud.spacetimedb.com"
           VITE_SPACETIMEDB_DB_NAME: "grezwandererdata"
         run: bun run build:freiburg
 

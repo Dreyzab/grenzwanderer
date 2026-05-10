@@ -510,6 +510,77 @@ const mindFacts: MindFactContent[] = [
     },
   },
   {
+    id: "fact_workers_pub_rail_yard_whisper",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "sandbox_workers_pub_rumor::scene_workers_pub_rumor::WORKERS_PUB_RUMOR_PURSUE",
+    text: "The Workers' Pub rumor names the rail-yard window as the next place the bank story can be tested.",
+    tags: {
+      theme: "rumor",
+      reliability: "medium",
+    },
+  },
+  {
+    id: "fact_inner_leader_route_committed",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "case01_hbf_arrival::scene_case01_train_assistant_departure::CASE01_TRAIN_ASSISTANT_LEADER_COMMITMENT",
+    text: "The detective's Leader voice takes formal command of the train compartment before Freiburg can split the party.",
+    tags: {
+      theme: "inner_parliament",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_rail_yard_whisper_verified",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "map_action",
+    sourceId: "loc_hbf::bind_hbf_verify_rail_yard_rumor",
+    text: "The Hauptbahnhof verification turns the rail-yard whisper into an actionable lead.",
+    tags: {
+      theme: "verification",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_anna_student_network_committed",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "sandbox_agency_service_unlock::scene_agency_service_unlock::AGENCY_SERVICE_UNLOCK_CONFIRM",
+    text: "Anna commits her student-house channel to the banker file, spending a social obligation on controlled access.",
+    tags: {
+      theme: "source_network",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_student_house_channel_opened",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "sandbox_student_house_access::scene_student_house_access::STUDENT_HOUSE_PRESENT_INTRODUCTION",
+    text: "The student-house route opens under Anna's name and gives the investigation a social path into the university quarter.",
+    tags: {
+      theme: "access",
+      reliability: "high",
+    },
+  },
+  {
+    id: "fact_agency_promotion_review_filed",
+    caseId: "case_bankhaus_krebs_false_trail",
+    sourceType: "vn_choice",
+    sourceId:
+      "sandbox_agency_promotion_review::scene_agency_promotion_review::AGENCY_PROMOTION_REVIEW_CONFIRM",
+    text: "The agency promotion review records the verified rumor chain, preserved source network, and clean closure as one Freiburg service packet.",
+    tags: {
+      theme: "career",
+      reliability: "high",
+    },
+  },
+  {
     id: "fact_mayor_control_code",
     caseId: "case_bankhaus_krebs_false_trail",
     sourceType: "vn_choice",

@@ -1194,8 +1194,20 @@ describe("vnContent runtime parsing", () => {
                       text: "Protect the courier.",
                     },
                   ],
+                  requireAll: [
+                    {
+                      type: "inner_voice_rank_gte",
+                      voiceId: "inner_leader",
+                      value: 1,
+                    },
+                  ],
                   effects: [
                     { type: "change_psyche_axis", axis: "y", delta: 12 },
+                    {
+                      type: "change_inner_voice_rank",
+                      voiceId: "inner_leader",
+                      delta: 1,
+                    },
                   ],
                 },
               ],
@@ -1218,6 +1230,16 @@ describe("vnContent runtime parsing", () => {
     expect(parsed?.nodes[0]?.choices[0]?.effects?.[0]).toMatchObject({
       type: "change_psyche_axis",
       axis: "y",
+    });
+    expect(parsed?.nodes[0]?.choices[0]?.requireAll?.[0]).toMatchObject({
+      type: "inner_voice_rank_gte",
+      voiceId: "inner_leader",
+      value: 1,
+    });
+    expect(parsed?.nodes[0]?.choices[0]?.effects?.[1]).toMatchObject({
+      type: "change_inner_voice_rank",
+      voiceId: "inner_leader",
+      delta: 1,
     });
   });
 
@@ -1279,6 +1301,88 @@ describe("vnContent runtime parsing", () => {
                       type: "voice_level_gte",
                       voiceId: "inner_cynic",
                       value: 2,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(parsed).toBeNull();
+  });
+
+  it("rejects skill voices in inner_voice_rank_gte conditions", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          scenarios: [
+            {
+              id: "scenario_inner",
+              title: "Inner",
+              startNodeId: "node_inner",
+              nodeIds: ["node_inner"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_inner",
+              scenarioId: "scenario_inner",
+              title: "Node Inner",
+              body: "Body",
+              choices: [
+                {
+                  id: "choice_inner",
+                  text: "Choose",
+                  nextNodeId: "node_inner",
+                  conditions: [
+                    {
+                      type: "inner_voice_rank_gte",
+                      voiceId: "attr_logic",
+                      value: 1,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(parsed).toBeNull();
+  });
+
+  it("rejects skill voices in inner rank effects", () => {
+    const parsed = parseSnapshot(
+      JSON.stringify(
+        createTestSnapshot({
+          scenarios: [
+            {
+              id: "scenario_inner",
+              title: "Inner",
+              startNodeId: "node_inner",
+              nodeIds: ["node_inner"],
+            },
+          ],
+          nodes: [
+            {
+              id: "node_inner",
+              scenarioId: "scenario_inner",
+              title: "Node Inner",
+              body: "Body",
+              choices: [
+                {
+                  id: "choice_inner",
+                  text: "Choose",
+                  nextNodeId: "node_inner",
+                  effects: [
+                    {
+                      type: "change_inner_voice_rank",
+                      voiceId: "attr_logic",
+                      delta: 1,
                     },
                   ],
                 },

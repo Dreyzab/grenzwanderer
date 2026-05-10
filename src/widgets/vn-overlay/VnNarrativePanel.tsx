@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { AnimatePresence, useReducedMotion } from "framer-motion";
 import { VnLogBottomSheet } from "../../features/vn/log/VnLogBottomSheet";
 import { MapPin } from "lucide-react";
@@ -9,7 +15,6 @@ import { VnNarrativeBackgroundVisuals } from "./VnNarrativeBackgroundVisuals";
 import { VnFilmSoundPromptOverlay } from "./VnFilmSoundPromptOverlay";
 import { VnLetterNarrativeLayer } from "./VnLetterNarrativeLayer";
 import { VnSplitNarrativeDock } from "./VnSplitNarrativeDock";
-import { LETTER_CARD_EXPAND_MS } from "./vnNarrativePanelConstants";
 import type { VnNarrativePanelProps } from "./vnNarrativePanel.types";
 
 export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
@@ -75,7 +80,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
       needsSoundPrompt,
     ],
   );
-  /** After the letter card expand animation; blocks continue + chrome until set. */
+  /** Letter overlay: blocks surface continue until chrome is revealed and settled. */
   const [letterRevealSettled, setLetterRevealSettled] =
     useState(!isLetterOverlay);
 
@@ -137,17 +142,11 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     setLetterRevealSettled(false);
   }, [backgroundVisualKey, isLetterOverlay]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isLetterOverlay || !chromeRevealed) {
-      return undefined;
+      return;
     }
-
-    const id = window.setTimeout(() => {
-      setLetterRevealSettled(true);
-    }, LETTER_CARD_EXPAND_MS);
-    return () => {
-      window.clearTimeout(id);
-    };
+    setLetterRevealSettled(true);
   }, [chromeRevealed, isLetterOverlay, sceneId]);
 
   const handleSurfaceInteraction = useCallback(() => {

@@ -1,6 +1,9 @@
 import { SenderError } from "spacetimedb/server";
 
-import { isSkillVoiceId } from "../../../../data/innerVoiceContract";
+import {
+  isInnerVoiceId,
+  isSkillVoiceId,
+} from "../../../../data/innerVoiceContract";
 import type {
   MindRequiredVar,
   MindVarOperator,
@@ -214,6 +217,13 @@ export const isVnEffect = (value: unknown): value is VnEffect => {
       (effect.axis === "x" ||
         effect.axis === "y" ||
         effect.axis === "approach") &&
+      typeof effect.delta === "number"
+    );
+  }
+  if (effect.type === "change_inner_voice_rank") {
+    return (
+      typeof effect.voiceId === "string" &&
+      isInnerVoiceId(effect.voiceId) &&
       typeof effect.delta === "number"
     );
   }

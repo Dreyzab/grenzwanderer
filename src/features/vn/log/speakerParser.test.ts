@@ -29,7 +29,7 @@ describe("parseSpeakerSegments", () => {
       },
       {
         speaker: "Assistant",
-        speakerLabel: "Assistant",
+        speakerLabel: "Felix",
         category: "npc",
         text: "No headlines today.",
       },

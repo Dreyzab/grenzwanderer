@@ -473,6 +473,11 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
           reason: "validated_bank_rail_yard_whisper",
         },
         {
+          type: "discover_fact",
+          caseId: "case_bankhaus_krebs_false_trail",
+          factId: "fact_rail_yard_whisper_verified",
+        },
+        {
           type: "track_event",
           eventName: "bank_rail_yard_rumor_verified",
           tags: { pointId: "loc_hbf" },
@@ -530,6 +535,10 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
       actions: [
         { type: "set_quest_stage", questId: "quest_banker", stage: 3 },
         { type: "set_flag", key: "bank_investigation_complete", value: true },
+        {
+          type: "record_service_criterion",
+          criterionId: "clean_closure",
+        },
       ],
     },
   ],

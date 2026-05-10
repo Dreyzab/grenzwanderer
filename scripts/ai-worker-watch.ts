@@ -13,6 +13,11 @@ import {
 } from "../src/features/ai/contracts";
 import { buildSceneContext, type SceneContext } from "./ai-context-builder";
 import {
+  captureBackendException,
+  flushBackendMonitoring,
+  initializeBackendMonitoring,
+} from "./backend-monitoring";
+import {
   connectOperatorConnection,
   ensureWorkerAccess,
   getOperatorToken,
@@ -118,6 +123,23 @@ const DEFAULT_RETRY_BASE_MS = 5_000;
 const DEFAULT_RETRY_MAX_MS = 60_000;
 
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta";
+
+const captureAiJobFailure = (
+  error: unknown,
+  job: ClaimedAiRequest,
+  retryable: boolean,
+): void => {
+  if (retryable) {
+    return;
+  }
+
+  captureBackendException(error, {
+    "ai.kind": job.kind,
+    "ai.request_id": job.requestId,
+    "ai.request_db_id": job.id.toString(),
+    "ai.retryable": "false",
+  });
+};
 
 export class GeminiHttpError extends Error {
   constructor(
@@ -813,6 +835,15 @@ export const processClaimedAiRequest = async (
       job.payloadJson,
     );
     if (!reactionPayload) {
+      captureBackendException(
+        new Error("Invalid generate_character_reaction payload JSON"),
+        {
+          "ai.kind": job.kind,
+          "ai.request_id": job.requestId,
+          "ai.request_db_id": job.id.toString(),
+          "ai.failure": "invalid_payload",
+        },
+      );
       await conn.reducers.failAiRequest({
         requestId: createRequestId("invalid_payload", job.id),
         aiRequestId: job.id,
@@ -845,6 +876,7 @@ export const processClaimedAiRequest = async (
         job.attemptCount < config.maxRetries && isRetryableWorkerError(error);
       const errorMessage = describeFailure(error);
       logger.warn(`${retryableLoggerPrefix} failed: ${errorMessage}`);
+      captureAiJobFailure(error, job, retryable);
 
       await conn.reducers.failAiRequest({
         requestId: createRequestId(retryable ? "retry" : "failed", job.id),
@@ -865,6 +897,15 @@ export const processClaimedAiRequest = async (
 
   const payload = parseGenerateDialoguePayload(job.payloadJson);
   if (!payload) {
+    captureBackendException(
+      new Error("Invalid generate_dialogue payload JSON"),
+      {
+        "ai.kind": job.kind,
+        "ai.request_id": job.requestId,
+        "ai.request_db_id": job.id.toString(),
+        "ai.failure": "invalid_payload",
+      },
+    );
     await conn.reducers.failAiRequest({
       requestId: createRequestId("invalid_payload", job.id),
       aiRequestId: job.id,
@@ -909,6 +950,7 @@ export const processClaimedAiRequest = async (
       job.attemptCount < config.maxRetries && isRetryableWorkerError(error);
     const errorMessage = describeFailure(error);
     logger.warn(`${retryableLoggerPrefix} failed: ${errorMessage}`);
+    captureAiJobFailure(error, job, retryable);
 
     await conn.reducers.failAiRequest({
       requestId: createRequestId(retryable ? "retry" : "failed", job.id),
@@ -993,6 +1035,11 @@ export const runAiWorker = async (
         logger.info(`[ai-worker] processed ${processed} AI request(s)`);
       }
     } catch (error) {
+      captureBackendException(error, {
+        "ai.worker.phase": "loop",
+        "spacetimedb.db": config.database,
+        "spacetimedb.host": config.host,
+      });
       logger.error(
         `[ai-worker] loop failure: ${describeFailure(error)}. reconnecting after ${config.pollMs}ms`,
       );
@@ -1016,6 +1063,7 @@ const usage = (): void => {
       "  OPS_STDB_HOST / OPS_STDB_DB / SPACETIMEDB_OPERATOR_TOKEN",
       "  AI_WORKER_GEMINI_MODEL / AI_WORKER_POLL_MS / AI_WORKER_LEASE_MS",
       "  AI_WORKER_MAX_RETRIES / AI_WORKER_RETRY_BASE_MS / AI_WORKER_RETRY_MAX_MS",
+      "  SENTRY_ENABLED / SENTRY_DSN / SENTRY_ENVIRONMENT / SENTRY_TRACES_SAMPLE_RATE",
     ].join("\n"),
   );
 };
@@ -1029,12 +1077,23 @@ export const main = async (
   }
 
   const config = resolveAiWorkerConfig(args);
+  initializeBackendMonitoring({
+    serviceName: "ai-worker",
+    tags: {
+      "spacetimedb.host": config.host,
+      "spacetimedb.db": config.database,
+      "gemini.model": config.geminiModel,
+    },
+  });
   await runAiWorker(config, args);
 };
 
 if (import.meta.main) {
   main().catch((error) => {
+    captureBackendException(error, { "ai.worker.phase": "fatal" });
     console.error("[ai-worker] fatal:", error);
-    process.exitCode = 1;
+    flushBackendMonitoring().finally(() => {
+      process.exitCode = 1;
+    });
   });
 }

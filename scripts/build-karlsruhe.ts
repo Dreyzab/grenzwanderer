@@ -10,6 +10,13 @@ const env = {
   VITE_SPACETIMEDB_DB_NAME:
     process.env.VITE_SPACETIMEDB_DB_NAME ?? "grezwandererdata-karlsruhe",
   VITE_SCENE_GEN_BASE_URL: process.env.VITE_SCENE_GEN_BASE_URL ?? "/api",
+  VITE_APP_CHECK_ENABLED: process.env.VITE_APP_CHECK_ENABLED ?? "false",
+  VITE_FIREBASE_API_KEY: process.env.VITE_FIREBASE_API_KEY ?? "",
+  VITE_FIREBASE_APP_ID: process.env.VITE_FIREBASE_APP_ID ?? "",
+  VITE_FIREBASE_PROJECT_ID:
+    process.env.VITE_FIREBASE_PROJECT_ID ?? "detective-prod-8f6f0",
+  VITE_RECAPTCHA_ENTERPRISE_SITE_KEY:
+    process.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY ?? "",
 };
 
 const run = (command: string[]) => {

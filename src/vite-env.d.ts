@@ -4,6 +4,11 @@ interface ImportMetaEnv {
   readonly VITE_RELEASE_PROFILE?: string;
   readonly VITE_KARLSRUHE_ENTRY_TOKEN?: string;
   readonly VITE_SCENE_GEN_BASE_URL?: string;
+  readonly VITE_APP_CHECK_ENABLED?: string;
+  readonly VITE_FIREBASE_API_KEY?: string;
+  readonly VITE_FIREBASE_APP_ID?: string;
+  readonly VITE_FIREBASE_PROJECT_ID?: string;
+  readonly VITE_RECAPTCHA_ENTERPRISE_SITE_KEY?: string;
   readonly VITE_SPACETIMEDB_HOST?: string;
   readonly VITE_SPACETIMEDB_DB_NAME?: string;
   readonly VITE_ENABLE_AI?: string;

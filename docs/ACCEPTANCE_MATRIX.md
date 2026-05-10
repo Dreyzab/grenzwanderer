@@ -21,17 +21,15 @@ Do not hand-maintain a second matrix in docs. Update the script first, then sync
 
 Current supported player-facing scope is Freiburg only. Karlsruhe is still outside the supported flow set until it has its own matrix entry and smoke coverage.
 
-Current Freiburg social flows in the matrix:
+> [!NOTE]
+> **P0 Baseline Freeze (2026-05-09)**: The generated matrix currently reports 15 supported flows: 3 runtime contracts and 12 player flows. Any drift reported by the manifest, map metrics, or snapshot consistency gates is a blocking quality failure.
 
-- `freiburg_social_access`
-- `freiburg_rumor_verification`
-- `freiburg_agency_career_progression`
-- `freiburg_service_unlock`
+Do not copy the generated table into this document. Run `bun run acceptance:matrix` for the exact current flow ids, entry paths, smoke commands, and gate profile.
 
-Current Case01 canon in the matrix:
+Current P0 summary:
 
-- canonical default entry: `case01_hbf_arrival`
-- supported mainline: `case01_hbf_arrival -> bank/Mayor priority -> leads -> convergence -> finale`
-- authored branch coverage: `Mayor/lead/estate -> Lotte interlude -> convergence_route -> warehouse outcome`
-- `sandbox_case01_pilot`, `sandbox_banker_pilot`, `sandbox_dog_pilot`, and `sandbox_ghost_pilot` remain side/dev content and are not the supported Case01 mainline
-- canonical Case01 branch contracts are `bureau_trace_found`, `convergence_route`, and `case01_final_outcome`
+- Runtime authority contracts cover VN, map, and battle reducer/runtime behavior.
+- Freiburg player-facing coverage includes origin entry, Case01 entry/mainline/branches, banker duel, dog deduction, and the social loop.
+- Freiburg social coverage includes social access, rumor verification, agency career progression, and service unlock.
+- Inner Parliament D1 is covered through the Freiburg train moral choice, server-authoritative voice rank, leader-gated follow-up, and Mind Palace fact bridge.
+- Mind Palace remains covered as a synthetic contract loop with snapshot gates marked `n/a`.

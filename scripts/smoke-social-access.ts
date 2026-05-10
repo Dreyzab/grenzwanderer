@@ -5,6 +5,7 @@ import {
   ensureBriefingReady,
   getAgencyCareer,
   getPlayerFlagValue,
+  hasMindFact,
   getRumorStatus,
   isRumorRegisteredLike,
   hasUnlockGroup,
@@ -17,7 +18,6 @@ import {
   subscribeSocialTables,
   verifyRailYardRumor,
 } from "./social-smoke-helpers";
-import { getOperatorToken, persistOperatorToken } from "./spacetime-operator";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
@@ -32,10 +32,8 @@ const runSmoke = async () =>
     DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .withToken(getOperatorToken(host, database))
-      .onConnect(async (conn, _identity, token) => {
+      .onConnect(async (conn) => {
         try {
-          persistOperatorToken(host, database, token);
           const identity = conn.identity;
           if (!identity) {
             throw new Error("Missing connection identity");
@@ -106,6 +104,13 @@ const runSmoke = async () =>
           if (!getPlayerFlagValue(conn, playerHex, "student_house_accessed")) {
             throw new Error(
               "Student house VN path did not set student_house_accessed",
+            );
+          }
+          if (
+            !hasMindFact(conn, playerHex, "fact_student_house_channel_opened")
+          ) {
+            throw new Error(
+              "Student house VN path did not discover the student-house channel fact",
             );
           }
 

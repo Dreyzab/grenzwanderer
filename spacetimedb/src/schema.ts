@@ -8,6 +8,7 @@ import {
   AI_REQUEST_STATUS_PENDING,
   AI_REQUEST_STATUS_PROCESSING,
 } from "./reducers/aiQueue";
+import { canReadWorkerQueue } from "./reducers/helpers/auth";
 import { senderOf, type ReducerContextLike } from "./reducers/helpers/context";
 
 export const playerProfile = table(
@@ -358,6 +359,18 @@ export const telemetryAggregate = table(
     tagsHash: t.string(),
     count: t.u64(),
     sumValue: t.f64(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+export const telemetryAggregateCheckpoint = table(
+  {
+    name: "telemetry_aggregate_checkpoint",
+    public: false,
+  },
+  {
+    checkpointKey: t.string().primaryKey(),
+    nextBucketStart: t.timestamp(),
     updatedAt: t.timestamp(),
   },
 );
@@ -1371,6 +1384,7 @@ const spacetimedb = schema({
   idempotencyLog,
   telemetryEvent,
   telemetryAggregate,
+  telemetryAggregateCheckpoint,
   aiRequest,
   workerIdentity,
   mindCase,
@@ -1447,30 +1461,6 @@ const selfScopedByPlayerId = (
   }
 };
 
-/**
- * Views must not throw during migrations / system materialization. Unauthorized
- * subscribers get an empty list; real workers still match allowlist + registration.
- */
-const canReadWorkerAiRequestsView = (ctx: ReducerContextLike): boolean => {
-  try {
-    const senderRaw = senderOf(ctx);
-    if (!senderRaw || typeof senderRaw !== "object") {
-      return false;
-    }
-    const sender = senderRaw as { toHexString?: () => string };
-    if (typeof sender.toHexString !== "function") {
-      return false;
-    }
-    const identity = sender as { toHexString(): string };
-    if (!ctx.db.workerAllowlist.identity.find(identity)) {
-      return false;
-    }
-    return Boolean(ctx.db.workerIdentity.identity.find(identity));
-  } catch {
-    return false;
-  }
-};
-
 export const my_player_profile = spacetimedb.view(
   { name: "my_player_profile", public: true },
   t.array(playerProfile.rowType),
@@ -1530,7 +1520,7 @@ export const worker_ai_requests = spacetimedb.view(
   t.array(aiRequest.rowType),
   (ctx) => {
     try {
-      if (!canReadWorkerAiRequestsView(ctx)) {
+      if (!canReadWorkerQueue(ctx)) {
         return [];
       }
       return [

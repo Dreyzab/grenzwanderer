@@ -91,6 +91,11 @@ export const PACK_FREIBURG_SOCIAL_NODES: NodeBlueprint[] = [
             criterionId: "preserved_source_network",
           },
           {
+            type: "discover_fact",
+            caseId: "case_bankhaus_krebs_false_trail",
+            factId: "fact_anna_student_network_committed",
+          },
+          {
             type: "track_event",
             eventName: "agency_service_student_intro_unlocked",
             tags: { serviceId: "svc_anna_student_intro" },
@@ -161,6 +166,11 @@ export const PACK_FREIBURG_SOCIAL_NODES: NodeBlueprint[] = [
             reason: "student_house_entry_logged",
           },
           {
+            type: "discover_fact",
+            caseId: "case_bankhaus_krebs_false_trail",
+            factId: "fact_student_house_channel_opened",
+          },
+          {
             type: "track_event",
             eventName: "student_house_access_opened",
             tags: { pointId: "loc_student_house" },
@@ -215,6 +225,11 @@ export const PACK_FREIBURG_SOCIAL_NODES: NodeBlueprint[] = [
             type: "change_agency_standing",
             delta: 2,
             reason: "promotion_review_filed",
+          },
+          {
+            type: "discover_fact",
+            caseId: "case_bankhaus_krebs_false_trail",
+            factId: "fact_agency_promotion_review_filed",
           },
           {
             type: "track_event",

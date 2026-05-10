@@ -1,7 +1,8 @@
-import { createHash } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
+import * as Sentry from "@sentry/node";
 
 const PORT = Number(process.env.PORT ?? "8080");
 const CACHE_ROOT =
@@ -10,6 +11,136 @@ const CACHE_ROOT =
 const PROMPT_VERSION = process.env.SCENE_GEN_PROMPT_VERSION ?? "karlsruhe-v1";
 const RELEASE_PROFILE =
   process.env.SCENE_GEN_RELEASE_PROFILE ?? "karlsruhe_event";
+const SENTRY_DSN = process.env.SENTRY_DSN ?? "";
+const SENTRY_ENABLED =
+  String(process.env.SENTRY_ENABLED ?? "false").toLowerCase() === "true" &&
+  SENTRY_DSN.length > 0;
+const SENTRY_TRACES_SAMPLE_RATE = Number(
+  process.env.SENTRY_TRACES_SAMPLE_RATE ?? "0",
+);
+
+const APP_CHECK_ENFORCE =
+  String(process.env.APP_CHECK_ENFORCE ?? "false").toLowerCase() === "true";
+const APP_CHECK_PROJECT_NUMBER = process.env.APP_CHECK_PROJECT_NUMBER ?? "";
+const APP_CHECK_BYPASS_SECRET = process.env.APP_CHECK_BYPASS_SECRET ?? "";
+
+if (SENTRY_ENABLED) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    enabled: true,
+    environment:
+      process.env.SENTRY_ENVIRONMENT ?? process.env.NODE_ENV ?? "production",
+    release: process.env.SENTRY_RELEASE ?? process.env.K_REVISION,
+    tracesSampleRate: Number.isFinite(SENTRY_TRACES_SAMPLE_RATE)
+      ? SENTRY_TRACES_SAMPLE_RATE
+      : 0,
+  });
+
+  Sentry.setTag("service", "karlsruhe-scene-gen");
+  Sentry.setTag("release_profile", RELEASE_PROFILE);
+  Sentry.setTag("prompt_version", PROMPT_VERSION);
+  Sentry.setTag("cloud_run.service", process.env.K_SERVICE ?? "unknown");
+  Sentry.setTag("cloud_run.revision", process.env.K_REVISION ?? "unknown");
+  Sentry.setTag("app_check.enforce", APP_CHECK_ENFORCE ? "true" : "false");
+}
+
+class BadRequestError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "BadRequestError";
+  }
+}
+
+// Lazy-init firebase-admin App Check on first request so unrelated cold starts
+// (e.g. /healthz) stay fast. Init failures are retried on later requests.
+let appCheckInit = null;
+const getAppCheckVerifier = () => {
+  if (appCheckInit) {
+    return appCheckInit;
+  }
+  if (!APP_CHECK_PROJECT_NUMBER) {
+    return Promise.resolve(null);
+  }
+  appCheckInit = (async () => {
+    const [{ initializeApp, getApps }, { getAppCheck }] = await Promise.all([
+      import("firebase-admin/app"),
+      import("firebase-admin/app-check"),
+    ]);
+    if (getApps().length === 0) {
+      initializeApp({ projectId: APP_CHECK_PROJECT_NUMBER });
+    }
+    return getAppCheck();
+  })().catch((error) => {
+    appCheckInit = null;
+    throw error;
+  });
+  return appCheckInit;
+};
+
+const constantTimeEqual = (a, b) => {
+  if (typeof a !== "string" || typeof b !== "string") {
+    return false;
+  }
+  const aBuf = Buffer.from(a, "utf8");
+  const bBuf = Buffer.from(b, "utf8");
+  if (aBuf.length !== bBuf.length) {
+    return false;
+  }
+  return timingSafeEqual(aBuf, bBuf);
+};
+
+const verifyAppCheck = async (request) => {
+  if (!APP_CHECK_PROJECT_NUMBER && !APP_CHECK_BYPASS_SECRET) {
+    if (APP_CHECK_ENFORCE) {
+      return { ok: false, reason: "verifier_unconfigured" };
+    }
+    // Feature off entirely: no project number configured, no bypass secret.
+    // Return ok=true so this code path is invisible until an operator enables
+    // it via the runbook; avoids pre-rollout Sentry noise.
+    return { ok: true, source: "disabled" };
+  }
+
+  if (APP_CHECK_BYPASS_SECRET) {
+    const provided = request.headers["x-appcheck-bypass"];
+    if (
+      typeof provided === "string" &&
+      constantTimeEqual(provided, APP_CHECK_BYPASS_SECRET)
+    ) {
+      return { ok: true, source: "bypass" };
+    }
+  }
+
+  const token = request.headers["x-firebase-appcheck"];
+  if (!token || typeof token !== "string") {
+    return { ok: false, reason: "missing_token" };
+  }
+
+  let verifier;
+  try {
+    verifier = await getAppCheckVerifier();
+  } catch (error) {
+    return {
+      ok: false,
+      reason: "verifier_init_failed",
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
+  }
+
+  if (!verifier) {
+    return { ok: false, reason: "verifier_unconfigured" };
+  }
+
+  try {
+    await verifier.verifyToken(token);
+    return { ok: true, source: "appcheck" };
+  } catch (error) {
+    return {
+      ok: false,
+      reason: "invalid_token",
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
+  }
+};
 
 const SCENE_PROMPTS = {
   karlsruhe_event_arrival:
@@ -28,6 +159,19 @@ const respondJson = (response, statusCode, payload) => {
     "cache-control": "no-store",
   });
   response.end(`${JSON.stringify(payload)}\n`);
+};
+
+const captureException = (error, tags = {}) => {
+  if (!SENTRY_ENABLED) {
+    return;
+  }
+
+  Sentry.withScope((scope) => {
+    for (const [key, value] of Object.entries(tags)) {
+      scope.setTag(key, value);
+    }
+    Sentry.captureException(error);
+  });
 };
 
 const safeSegment = (value) =>
@@ -145,10 +289,16 @@ const parseRequestBody = async (request) => {
 
   const rawBody = Buffer.concat(chunks).toString("utf8");
   if (!rawBody) {
-    throw new Error("Request body is required");
+    throw new BadRequestError("Request body is required");
   }
 
-  const parsed = JSON.parse(rawBody);
+  let parsed;
+  try {
+    parsed = JSON.parse(rawBody);
+  } catch (_error) {
+    throw new BadRequestError("Request body must be valid JSON");
+  }
+
   if (
     !parsed ||
     typeof parsed.caseId !== "string" ||
@@ -156,7 +306,7 @@ const parseRequestBody = async (request) => {
     typeof parsed.scenarioId !== "string" ||
     parsed.mode !== "prompt_only"
   ) {
-    throw new Error(
+    throw new BadRequestError(
       "Body must include { caseId, pointId, scenarioId, mode: 'prompt_only' }",
     );
   }
@@ -186,14 +336,51 @@ const server = createServer(async (request, response) => {
     (url.pathname === "/scene/generate" ||
       url.pathname === "/api/scene/generate")
   ) {
+    const verification = await verifyAppCheck(request);
+    if (!verification.ok) {
+      if (SENTRY_ENABLED) {
+        Sentry.withScope((scope) => {
+          scope.setTag("app_check.reason", verification.reason);
+          scope.setTag(
+            "app_check.enforced",
+            APP_CHECK_ENFORCE ? "true" : "false",
+          );
+          scope.setTag("http.path", url.pathname);
+          if (verification.error) {
+            Sentry.captureException(verification.error);
+          } else {
+            Sentry.captureMessage(
+              `app_check.${verification.reason}`,
+              "warning",
+            );
+          }
+        });
+      }
+      if (APP_CHECK_ENFORCE) {
+        respondJson(response, 401, {
+          error: "App Check verification required",
+        });
+        return;
+      }
+    }
+
     try {
       const payload = await parseRequestBody(request);
       const result = ensureSceneResult(payload);
       respondJson(response, 200, result);
     } catch (error) {
-      respondJson(response, 400, {
-        error: error instanceof Error ? error.message : "Invalid request",
-      });
+      if (error instanceof BadRequestError) {
+        respondJson(response, 400, { error: error.message });
+      } else {
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            "http.method": request.method,
+            "http.path": url.pathname,
+          },
+        );
+        respondJson(response, 500, { error: "Scene generation failed" });
+      }
     }
     return;
   }
@@ -205,4 +392,30 @@ server.listen(PORT, () => {
   console.log(
     `[scene-gen] listening on :${PORT} releaseProfile=${RELEASE_PROFILE} promptVersion=${PROMPT_VERSION}`,
   );
+});
+
+server.on("error", (error) => {
+  captureException(error, { "server.phase": "listen" });
+});
+
+process.on("unhandledRejection", (reason) => {
+  captureException(
+    reason instanceof Error
+      ? reason
+      : new Error(`Unhandled rejection: ${String(reason)}`),
+    { "process.phase": "unhandled_rejection" },
+  );
+});
+
+process.on("uncaughtException", (error) => {
+  captureException(error, { "process.phase": "uncaught_exception" });
+  Sentry.flush(2_000).finally(() => {
+    process.exit(1);
+  });
+});
+
+process.on("SIGTERM", () => {
+  Sentry.flush(2_000).finally(() => {
+    process.exit(0);
+  });
 });

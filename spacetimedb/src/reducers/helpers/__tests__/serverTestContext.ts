@@ -124,6 +124,7 @@ export const createReducerTestDb = () => ({
   playerLocation: createTestTable("playerId", "playerId"),
   adminIdentity: createTestTable("identity", "identity"),
   workerAllowlist: createTestTable("identity", "identity"),
+  workerIdentity: createTestTable("identity", "identity"),
   vnSession: createTestTable("sessionKey", "sessionKey"),
   vnSkillCheckResult: createTestTable("resultKey", "resultKey"),
   playerFlag: createTestTable("flagId", "flagId"),

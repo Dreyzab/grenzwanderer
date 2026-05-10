@@ -230,6 +230,23 @@ export const acceptanceFlows: AcceptanceFlow[] = [
       "Verifies that a service defined in socialCatalog is not decorative and writes real runtime effects into map state.",
   },
   {
+    id: "freiburg_inner_parliament_d1",
+    label: "Freiburg Inner Parliament D1",
+    kind: "player_flow",
+    entryPath:
+      "case01_hbf_arrival train moral choice -> inner voice rank -> leader-gated follow-up -> Mind Palace fact",
+    smokeCommand: "smoke:inner-parliament",
+    smokeLabel: "Inner Parliament D1",
+    includeInSmokeAll: true,
+    gates: {
+      extract: true,
+      manifest: true,
+      drift: true,
+    },
+    notes:
+      "Locks the first deterministic inner voice rank loop without changing parliament speaker selection.",
+  },
+  {
     id: "mind_palace_loop",
     label: "Mind Palace loop",
     kind: "player_flow",

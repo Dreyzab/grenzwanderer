@@ -3,7 +3,10 @@ import type { ReactNode, RefObject } from "react";
 import type { VnSnapshot } from "../types";
 import type { TypedTextHandle, TypedTextTokenHandler } from "../ui/TypedText";
 import { LogEntryRenderer } from "./LogEntryRenderer";
-import { LogSegmentRenderer } from "./LogSegmentRenderer";
+import {
+  LogSegmentRenderer,
+  type PlayerProfileForLog,
+} from "./LogSegmentRenderer";
 import { resolveSpeakerPortrait } from "./speakerRegistry";
 import type { SpeakerSegment } from "./speakerParser";
 import type { LogEntry, NarrativeLogState } from "./useNarrativeLog";
@@ -13,12 +16,23 @@ interface VnNarrativeLogProps {
   snapshot: VnSnapshot | null;
   typedTextRef?: RefObject<TypedTextHandle>;
   choicesSlot?: ReactNode;
+  playerProfile?: PlayerProfileForLog | null;
   onTypingChange?: (typing: boolean) => void;
   onSegmentComplete?: () => void;
   onTokenClick?: TypedTextTokenHandler;
   onTokenEnter?: TypedTextTokenHandler;
   onTokenLeave?: TypedTextTokenHandler;
 }
+
+const speakerIdForEntry = (entry: LogEntry): string | null => {
+  if (entry.type === "segment" && entry.segment) {
+    return entry.segment.speaker;
+  }
+  if (entry.type === "player_choice") {
+    return "player";
+  }
+  return null;
+};
 
 const withPortrait = (
   segment: SpeakerSegment,
@@ -34,6 +48,7 @@ export function VnNarrativeLog({
   snapshot,
   typedTextRef,
   choicesSlot,
+  playerProfile,
   onTypingChange,
   onSegmentComplete,
   onTokenClick,
@@ -66,6 +81,15 @@ export function VnNarrativeLog({
   const currentSegment = currentSegments[state.currentSegmentIndex] ?? null;
   const allSegmentsDone = state.currentSegmentIndex >= currentSegments.length;
   const choicesVisible = allSegmentsDone && choicesSlot != null;
+
+  const lastCommittedSpeakerId =
+    entries.length > 0 ? speakerIdForEntry(entries[entries.length - 1]) : null;
+  const previousCurrentSpeakerId =
+    state.currentSegmentIndex > 0
+      ? (currentSegments[state.currentSegmentIndex - 1]?.speaker ?? null)
+      : null;
+  const currentPreviousSpeakerId =
+    previousCurrentSpeakerId ?? lastCommittedSpeakerId;
 
   const scrollToBottom = useCallback(() => {
     const element = scrollRef.current;
@@ -117,14 +141,28 @@ export function VnNarrativeLog({
         ref={contentRef}
         className="mx-auto flex w-full max-w-3xl flex-col gap-1"
       >
-        {entries.map((entry) => {
-          return <LogEntryRenderer key={entry.id} entry={entry} dimmed />;
+        {entries.map((entry, index) => {
+          const previousEntry = index > 0 ? entries[index - 1] : null;
+          const previousSpeakerId = previousEntry
+            ? speakerIdForEntry(previousEntry)
+            : null;
+          return (
+            <LogEntryRenderer
+              key={entry.id}
+              entry={entry}
+              dimmed
+              previousSpeakerId={previousSpeakerId}
+              playerProfile={playerProfile}
+            />
+          );
         })}
 
         {currentSegment ? (
           <LogSegmentRenderer
             segment={currentSegment}
             isTyping={state.isTypingSegment}
+            previousSpeakerId={currentPreviousSpeakerId}
+            playerProfile={playerProfile}
             typedTextRef={typedTextRef}
             onTypingChange={onTypingChange}
             onComplete={onSegmentComplete}

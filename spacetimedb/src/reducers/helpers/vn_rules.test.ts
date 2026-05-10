@@ -49,6 +49,7 @@ describe("vn_rules condition evaluation", () => {
     insertInventory(ctx, "item_warrant", 1);
     insertFlag(ctx, "mind_unlocked::thought_archive_pattern", true);
     insertFlag(ctx, "spirit_state_spirit_clockmaker::controlled", true);
+    insertVar(ctx, "inner_voice_rank_inner_leader", 1);
 
     expect(
       areConditionsSatisfied(ctx, [
@@ -72,6 +73,11 @@ describe("vn_rules condition evaluation", () => {
           type: "skill_rank_gte",
           skillId: "attr_logic",
           rank: "F",
+        },
+        {
+          type: "inner_voice_rank_gte",
+          voiceId: "inner_leader",
+          value: 1,
         },
       ]),
     ).toBe(true);
@@ -150,6 +156,11 @@ describe("vn_rules condition evaluation", () => {
     expect(
       areConditionsSatisfied(ctx, [
         { type: "has_evidence", evidenceId: "missing_evidence" },
+      ]),
+    ).toBe(false);
+    expect(
+      areConditionsSatisfied(ctx, [
+        { type: "inner_voice_rank_gte", voiceId: "inner_leader", value: 1 },
       ]),
     ).toBe(false);
   });

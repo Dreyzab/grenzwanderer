@@ -5,6 +5,7 @@ import {
   expectRejected,
   getAgencyCareer,
   getFavorBalance,
+  hasMindFact,
   getRumorStatus,
   isRumorRegisteredLike,
   loadPilotSnapshot,
@@ -14,7 +15,6 @@ import {
   subscribeSocialTables,
   verifyRailYardRumor,
 } from "./social-smoke-helpers";
-import { getOperatorToken, persistOperatorToken } from "./spacetime-operator";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
@@ -29,10 +29,8 @@ const runSmoke = async () =>
     DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .withToken(getOperatorToken(host, database))
-      .onConnect(async (conn, _identity, token) => {
+      .onConnect(async (conn) => {
         try {
-          persistOperatorToken(host, database, token);
           const identity = conn.identity;
           if (!identity) {
             throw new Error("Missing connection identity");
@@ -73,6 +71,13 @@ const runSmoke = async () =>
               "Workers' Pub route did not create Anna favor balance",
             );
           }
+          if (
+            !hasMindFact(conn, playerHex, "fact_workers_pub_rail_yard_whisper")
+          ) {
+            throw new Error(
+              "Workers' Pub route did not discover the rail-yard whisper fact",
+            );
+          }
 
           await expectRejected(
             () => openAgencyStudentIntro(conn, nextRequestId),
@@ -101,6 +106,13 @@ const runSmoke = async () =>
           if (agencyCareer.standingScore < 10) {
             throw new Error(
               `Rumor verification should raise standing to at least 10; got ${agencyCareer.standingScore}`,
+            );
+          }
+          if (
+            !hasMindFact(conn, playerHex, "fact_rail_yard_whisper_verified")
+          ) {
+            throw new Error(
+              "Rumor verification did not discover the verified rail-yard fact",
             );
           }
 

@@ -11,8 +11,8 @@ Operational procedure for publishing and rolling back VN content snapshots using
 - Fresh snapshot generated:
   - `bun run content:extract`
 - Expected runtime schema:
-  - writer emits `schemaVersion: 6`
-  - current release baseline is schema `6`.
+  - writer emits `schemaVersion: 9`
+  - current release baseline is schema `9`.
 
 ## Release Procedure
 
@@ -26,15 +26,15 @@ bun run content:manifest:check
 
 ```bash
 bun run quality:loop-poc
-bun run content:obsidian:coverage:check
-bun run content:map:metrics:check
+# Note: quality:loop-poc includes lint/test/build plus content extraction, player-key, Obsidian coverage, and map metrics checks.
+
 bun run smoke:case01-entry
 bun run smoke:case01-mainline
 bun run smoke:case01-branches
 bun run test
 ```
 
-Note: `checklist.py` is not part of this repository; use script-based gates above.
+Optional workspace audit helper: if `.agent/scripts/checklist.py` exists outside the repo checkout, it can be used as an additional local review aid. It is not part of the required repository release procedure.
 
 3. Validate local snapshot artifact consistency:
 
@@ -66,11 +66,11 @@ Release payload contract:
 
 - CLI publishes the full snapshot payload (`schemaVersion`, `scenarios`, `nodes`, `vnRuntime`, `mindPalace`, `map`, `questCatalog`, `socialCatalog` when present).
 - Snapshot metadata fields (`checksum`, `generatedAt`) are excluded from reducer payload before publish.
-- `VnChoice` gating fields in schema `6`:
+- `VnChoice` gating fields in schema `9`:
   - `visibleIfAll`, `visibleIfAny` control visibility.
   - `requireAll`, `requireAny` control enablement.
   - legacy `conditions` remains read-only alias for `requireAll`.
-- Freiburg social payload in schema `6` includes:
+- Freiburg social payload in schema `9` includes:
   - `socialCatalog.npcIdentities`
   - `socialCatalog.services`
   - `socialCatalog.rumors`

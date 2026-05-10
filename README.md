@@ -2,7 +2,10 @@
 
 Grenzwanderer is a private SpacetimeDB + React project focused on VN runtime, map gameplay, and content-driven progression.
 
-Current supported player-facing city: Freiburg. Karlsruhe remains intentionally unavailable in the supported flow set.
+Current supported player-facing city: Freiburg (Case 01). Karlsruhe remains intentionally unavailable in the supported flow set.
+
+> [!IMPORTANT]
+> **P0 Baseline Freeze (2026-05-09)**: This repository is currently in a Baseline Freeze state. Documentation, content snapshots, and core runtime logic are synchronized for the Freiburg Case 01 mainline. Secondary technical hardening is deferred to PR2.
 
 ## Toolchain
 
@@ -96,14 +99,17 @@ bun run quality:release
 Content-heavy gate:
 
 ```bash
-bun run quality:loop-poc
+bun run content:gate:local
 ```
+
+This regenerates default content artifacts, runs the focused Case01 smoke pack, and verifies artifact consistency. Use `bun run smoke:all` for the full acceptance-matrix smoke pipeline.
 
 ## Acceptance Matrix
 
-Supported flow source of truth:
+The project maintains an authoritative set of **14 supported flows** (Freiburg-only).
+See [docs/ACCEPTANCE_MATRIX.md](docs/ACCEPTANCE_MATRIX.md) for details.
 
-- `scripts/acceptance-matrix.ts`
+Supported flow source of truth: `scripts/acceptance-matrix.ts`.
 
 Inspect the current matrix:
 

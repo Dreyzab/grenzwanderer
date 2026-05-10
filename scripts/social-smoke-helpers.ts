@@ -3,7 +3,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { DbConnection } from "../src/shared/spacetime/bindings";
-import { ensureAdminAccess } from "./spacetime-operator";
+import {
+  connectOperatorConnection,
+  ensureAdminAccess,
+  getOperatorToken,
+} from "./spacetime-operator";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -132,14 +136,38 @@ export const publishPilotSnapshot = async (
   nextRequestId: (suffix: string) => string,
   versionPrefix: string,
 ): Promise<void> => {
-  await ensureAdminAccess(conn);
-  await conn.reducers.publishContent({
+  const publishPayload = {
     requestId: nextRequestId("publish"),
     version: `${versionPrefix}_${Date.now()}`,
     checksum: snapshot.checksum,
     schemaVersion: snapshot.schemaVersion,
     payloadJson: snapshot.payloadJson,
-  });
+  };
+
+  const publishWithConnection = async (
+    targetConn: DbConnection,
+  ): Promise<void> => {
+    await ensureAdminAccess(targetConn);
+    await targetConn.reducers.publishContent(publishPayload);
+  };
+
+  try {
+    await publishWithConnection(conn);
+    return;
+  } catch (error) {
+    const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
+    const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
+    if (!getOperatorToken(host, database)) {
+      throw error;
+    }
+
+    const operatorConn = await connectOperatorConnection(host, database);
+    try {
+      await publishWithConnection(operatorConn);
+    } finally {
+      operatorConn.disconnect();
+    }
+  }
 };
 
 export const subscribeSocialTables = async (
@@ -151,11 +179,13 @@ export const subscribeSocialTables = async (
       .onApplied(() => resolve())
       .subscribe([
         "SELECT * FROM my_player_flags",
+        "SELECT * FROM my_player_vars",
         "SELECT * FROM my_unlock_groups",
         "SELECT * FROM my_map_events",
         "SELECT * FROM my_npc_favors",
         "SELECT * FROM my_agency_career",
         "SELECT * FROM my_rumor_state",
+        "SELECT * FROM my_mind_facts",
         "SELECT * FROM my_quests",
         "SELECT * FROM my_player_location",
         "SELECT * FROM my_vn_sessions",
@@ -231,6 +261,17 @@ export const getPlayerFlagValue = (
       row.value === true,
   );
 
+export const getPlayerVarValue = (
+  conn: DbConnection,
+  playerHex: string,
+  key: string,
+): number => {
+  const row = [...conn.db.playerVar.iter()].find(
+    (entry) => entry.playerId.toHexString() === playerHex && entry.key === key,
+  );
+  return row ? Number(row.floatValue) : 0;
+};
+
 export const getFavorBalance = (
   conn: DbConnection,
   playerHex: string,
@@ -295,6 +336,16 @@ export const hasUnlockGroup = (
   [...conn.db.playerUnlockGroup.iter()].some(
     (entry) =>
       entry.playerId.toHexString() === playerHex && entry.groupId === groupId,
+  );
+
+export const hasMindFact = (
+  conn: DbConnection,
+  playerHex: string,
+  factId: string,
+): boolean =>
+  [...conn.db.playerMindFact.iter()].some(
+    (entry) =>
+      entry.playerId.toHexString() === playerHex && entry.factId === factId,
   );
 
 export const getQuestStage = (

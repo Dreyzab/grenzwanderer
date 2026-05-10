@@ -1,21 +1,31 @@
-import { ChevronRight, CircleUserRound, Sparkles } from "lucide-react";
-import type { RefObject } from "react";
+import {
+  ChevronRight,
+  CircleUserRound,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
+import { useState, type CSSProperties, type RefObject } from "react";
 import {
   TypedText,
   type TypedTextHandle,
   type TypedTextTokenHandler,
 } from "../ui/TypedText";
-import {
-  resolveVoiceAvatarUrl,
-  VnInlineSpeakerBadge,
-} from "../ui/VnInlineSpeakerBadge";
+import { resolveVoiceAvatarUrl } from "../ui/VnInlineSpeakerBadge";
 import type { SpeakerSegment } from "./speakerParser";
+
+export interface PlayerProfileForLog {
+  name: string;
+  avatarUrl?: string | null;
+  accentColor?: string;
+}
 
 interface LogSegmentRendererProps {
   segment: SpeakerSegment;
   dimmed?: boolean;
   isTyping?: boolean;
   showSpeaker?: boolean;
+  previousSpeakerId?: string | null;
+  playerProfile?: PlayerProfileForLog | null;
   typedTextRef?: RefObject<TypedTextHandle>;
   onTypingChange?: (typing: boolean) => void;
   onComplete?: () => void;
@@ -23,6 +33,8 @@ interface LogSegmentRendererProps {
   onTokenEnter?: TypedTextTokenHandler;
   onTokenLeave?: TypedTextTokenHandler;
 }
+
+const PLAYER_DEFAULT_ACCENT = "#e7e5e4";
 
 const categoryTextClassName = (category: SpeakerSegment["category"]) => {
   if (category === "narrator") {
@@ -32,15 +44,77 @@ const categoryTextClassName = (category: SpeakerSegment["category"]) => {
     return "italic";
   }
   if (category === "player") {
-    return "font-semibold text-amber-200";
+    return "font-semibold text-amber-100";
   }
   return "text-stone-100";
 };
+
+interface SpeakerHeaderProps {
+  avatarUrl?: string | null;
+  name: string;
+  accentColor: string;
+  fallbackIcon: LucideIcon;
+  ariaLabel: string;
+}
+
+function SpeakerHeader({
+  avatarUrl,
+  name,
+  accentColor,
+  fallbackIcon: FallbackIcon,
+  ariaLabel,
+}: SpeakerHeaderProps) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(avatarUrl) && !imageFailed;
+
+  return (
+    <>
+      <span
+        aria-label={ariaLabel}
+        className="float-left mr-3 mb-0.5 flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-white/10 bg-black/45"
+        data-testid="vn-speaker-avatar"
+        data-speaker-label={ariaLabel}
+        style={{ borderColor: `${accentColor}33` }}
+        title={ariaLabel}
+      >
+        {showImage ? (
+          <img
+            alt=""
+            className="size-full object-cover"
+            data-testid="vn-speaker-avatar-image"
+            decoding="async"
+            loading="lazy"
+            src={avatarUrl ?? undefined}
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <FallbackIcon
+            aria-hidden="true"
+            className="opacity-90"
+            size={20}
+            strokeWidth={2.2}
+            style={{ color: accentColor }}
+          />
+        )}
+      </span>
+      <span
+        className="mb-1 block text-[0.66rem] leading-none font-bold uppercase tracking-[0.18em] drop-shadow-md"
+        data-testid="vn-speaker-name"
+        style={{ color: accentColor }}
+      >
+        {name}
+      </span>
+    </>
+  );
+}
 
 export function LogSegmentRenderer({
   segment,
   dimmed = false,
   isTyping = false,
+  showSpeaker = true,
+  previousSpeakerId,
+  playerProfile,
   typedTextRef,
   onTypingChange,
   onComplete,
@@ -51,6 +125,7 @@ export function LogSegmentRenderer({
   const isNarrator = segment.category === "narrator";
   const isInnerVoice = segment.category === "inner_voice";
   const isPlayer = segment.category === "player";
+
   const renderedText = (
     <TypedText
       ref={typedTextRef}
@@ -84,11 +159,17 @@ export function LogSegmentRenderer({
     );
   }
 
+  const collapsed =
+    !isInnerVoice &&
+    (!showSpeaker ||
+      (previousSpeakerId != null && previousSpeakerId === segment.speaker));
+
   if (isInnerVoice) {
     const accentColor = segment.accentColor ?? "#fbbf24";
     const accentSoftColor = segment.accentSoftColor ?? "rgba(251,191,36,0.14)";
     const glowColor = segment.glowColor ?? "rgba(251,191,36,0.22)";
     const textColor = segment.textColor ?? "#fef3c7";
+    const avatarUrl = resolveVoiceAvatarUrl(segment.speaker);
 
     return (
       <article
@@ -99,7 +180,7 @@ export function LogSegmentRenderer({
         data-testid="vn-inner-voice-segment"
       >
         <div
-          className="relative max-w-[42rem] overflow-hidden border border-white/10 bg-stone-950/72 px-4 py-4 shadow-[0_18px_42px_rgba(0,0,0,0.42)] backdrop-blur-md sm:px-5"
+          className="relative max-w-2xl overflow-hidden border border-white/10 bg-stone-950/72 px-4 py-4 shadow-[0_18px_42px_rgba(0,0,0,0.42)] backdrop-blur-md sm:px-5"
           style={{
             borderColor: accentSoftColor,
             boxShadow: `0 18px 42px rgba(0,0,0,0.42), 0 0 34px ${glowColor}`,
@@ -116,38 +197,39 @@ export function LogSegmentRenderer({
             }}
           />
 
-          <div className="relative z-10 flex items-start gap-3">
-            <VnInlineSpeakerBadge
+          <div
+            className={[
+              "relative z-10 overflow-hidden whitespace-pre-wrap text-[1.22rem] leading-8 sm:text-[1.34rem] [&_.vn-typed-text]:leading-[1.2]",
+              categoryTextClassName(segment.category),
+            ].join(" ")}
+            style={{ color: textColor } satisfies CSSProperties}
+          >
+            <SpeakerHeader
+              ariaLabel={segment.speakerLabel}
               accentColor={accentColor}
-              accentSoftColor={accentSoftColor}
-              className="shrink-0 mt-0.5"
+              avatarUrl={avatarUrl}
               fallbackIcon={Sparkles}
-              glowColor={glowColor}
-              imageUrl={resolveVoiceAvatarUrl(segment.speaker)}
-              label={segment.speakerLabel}
-              labelMode="short"
-              size="lg"
+              name={segment.speakerLabel.toUpperCase()}
             />
-            <div
-              className={[
-                "min-w-0 flex-1 whitespace-pre-wrap text-[1.22rem] leading-8 sm:text-[1.34rem]",
-                categoryTextClassName(segment.category),
-              ].join(" ")}
-              style={{ color: textColor }}
-            >
-              {renderedText}
-            </div>
+            {renderedText}
           </div>
         </div>
       </article>
     );
   }
 
-  const accentColor = isPlayer ? "#fcd34d" : (segment.accentColor ?? "#fbbf24");
-  const accentSoftColor = isPlayer
-    ? "rgba(251, 191, 36, 0.18)"
-    : (segment.accentSoftColor ?? "rgba(251, 191, 36, 0.16)");
-  const avatarUrl = isPlayer ? null : segment.portraitUrl;
+  const baseAccent = isPlayer
+    ? (playerProfile?.accentColor ?? PLAYER_DEFAULT_ACCENT)
+    : (segment.accentColor ?? "#fbbf24");
+  const avatarUrl = isPlayer
+    ? (playerProfile?.avatarUrl ?? null)
+    : (segment.portraitUrl ?? null);
+  const displayName = isPlayer
+    ? (playerProfile?.name ?? segment.speakerLabel ?? "You").toUpperCase()
+    : segment.speakerLabel.toUpperCase();
+  const ariaLabel = isPlayer
+    ? (playerProfile?.name ?? segment.speakerLabel ?? "You")
+    : segment.speakerLabel;
 
   return (
     <article
@@ -156,28 +238,22 @@ export function LogSegmentRenderer({
         dimmed ? "opacity-50" : "opacity-100",
       ].join(" ")}
     >
-      <div className="flex items-start gap-3">
-        <VnInlineSpeakerBadge
-          accentColor={accentColor}
-          accentSoftColor={accentSoftColor}
-          className="shrink-0 mt-0.5"
-          fallbackIcon={isPlayer ? ChevronRight : CircleUserRound}
-          glowColor={
-            isPlayer ? "rgba(251, 191, 36, 0.36)" : "rgba(251, 191, 36, 0.28)"
-          }
-          imageUrl={avatarUrl}
-          label={isPlayer ? "You" : segment.speakerLabel}
-          labelMode="short"
-          size="md"
-        />
-        <div
-          className={[
-            "min-w-0 flex-1 whitespace-pre-wrap text-[1.3rem] leading-8 sm:text-[1.4rem]",
-            categoryTextClassName(segment.category),
-          ].join(" ")}
-        >
-          {renderedText}
-        </div>
+      <div
+        className={[
+          "overflow-hidden whitespace-pre-wrap text-[1.3rem] leading-8 sm:text-[1.4rem] [&_.vn-typed-text]:leading-[1.2]",
+          categoryTextClassName(segment.category),
+        ].join(" ")}
+      >
+        {!collapsed ? (
+          <SpeakerHeader
+            ariaLabel={ariaLabel}
+            accentColor={baseAccent}
+            avatarUrl={avatarUrl}
+            fallbackIcon={isPlayer ? ChevronRight : CircleUserRound}
+            name={displayName}
+          />
+        ) : null}
+        {renderedText}
       </div>
     </article>
   );

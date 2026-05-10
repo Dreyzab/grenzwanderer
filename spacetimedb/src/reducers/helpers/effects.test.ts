@@ -138,6 +138,60 @@ describe("applyEffects", () => {
     ).toThrow(/positive/);
   });
 
+  it("applies inner voice rank deltas with clamping and telemetry", () => {
+    const ctx = createReducerTestContext();
+    const rankKey = "inner_voice_rank_inner_leader";
+
+    applyEffects(
+      ctx,
+      [
+        {
+          type: "change_inner_voice_rank",
+          voiceId: "inner_leader",
+          delta: 2,
+        },
+      ],
+      { sourceType: "vn_choice", sourceId: "scenario::node::choice" },
+    );
+
+    expect(
+      ctx.db.playerVar.varId.find(playerKey(ctx.sender, rankKey)),
+    ).toMatchObject({
+      key: rankKey,
+      floatValue: 2,
+    });
+
+    applyEffects(
+      ctx,
+      [
+        {
+          type: "change_inner_voice_rank",
+          voiceId: "inner_leader",
+          delta: 10,
+        },
+      ],
+      { sourceType: "vn_choice", sourceId: "scenario::node::choice_boost" },
+    );
+
+    expect(
+      ctx.db.playerVar.varId.find(playerKey(ctx.sender, rankKey)),
+    ).toMatchObject({
+      key: rankKey,
+      floatValue: 5,
+    });
+    expect(ctx.db.telemetryEvent.rows()).toHaveLength(2);
+    expect(ctx.db.telemetryEvent.rows()[1]).toMatchObject({
+      eventName: "inner_voice_rank_changed",
+      tagsJson: JSON.stringify({
+        voiceId: "inner_leader",
+        delta: 10,
+        nextRank: 5,
+        sourceType: "vn_choice",
+        sourceId: "scenario::node::choice_boost",
+      }),
+    });
+  });
+
   it("unlocks mind thoughts and emits source-aware telemetry", () => {
     const ctx = createReducerTestContext();
 

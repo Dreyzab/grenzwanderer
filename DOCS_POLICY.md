@@ -4,6 +4,8 @@
 
 Keep architecture, release procedures, environment expectations, and Git/GitHub governance synchronized with the codebase.
 
+- **P0 Baseline Freeze (2026-05-09)**: Documents must reflect the "Freiburg-only" supported scope. Karlsruhe-related documentation is maintained for migration history but is not part of the active quality gate.
+
 ## Source Of Truth
 
 - Runtime behavior: `src/` and `spacetimedb/src/`
@@ -12,6 +14,12 @@ Keep architecture, release procedures, environment expectations, and Git/GitHub 
 - Architecture boundaries: `ARCHITECTURE.md`
 - Supported flow acceptance: `scripts/acceptance-matrix.ts` and `docs/ACCEPTANCE_MATRIX.md`
 - Migration mapping: `docs/MIGRATION_BRIDGE_DETECTIV0.md`
+
+## State Separation Policy
+
+- **Content State:** Defined by `content/vn/*.snapshot.json`, `content/vn/releases.manifest.json`, and authoritative SpacetimeDB table snapshots. These are treated as _data artifacts_ that follow a release/rollback lifecycle.
+- **Code & Architecture State:** Defined by `src/`, `spacetimedb/src/`, `ARCHITECTURE.md`, and `ACCEPTANCE_MATRIX.md`. These follow standard git branching and logic-driven quality gates.
+- **Rule:** Content state changes must not introduce breaking changes to the current `acceptance-matrix.ts` runtime contract without a synchronized code update.
 
 ## Mandatory Documentation Updates
 

@@ -78,6 +78,9 @@ export const CharacterDevelopmentTab = ({
                   <h3 className="mt-1 text-xl font-semibold text-stone-100">
                     {voice.label}
                   </h3>
+                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                    {`Voice rank ${voice.voiceRank}`}
+                  </p>
                 </div>
               </div>
               <strong

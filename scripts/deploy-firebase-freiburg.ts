@@ -34,8 +34,12 @@ console.log(
 
 run(["bun", "run", "build:freiburg"]);
 run([
-  "npx",
+  "bun",
+  "x",
+  "--no-install",
+  "-p",
   "firebase-tools",
+  "firebase",
   "deploy",
   "--only",
   "hosting:freiburg-event",

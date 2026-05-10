@@ -377,6 +377,7 @@ describe("CharacterPanel", () => {
       mystic_exposure: 2,
       mystic_rationalist_buffer: 6,
       mystic_sight_mode_tier: 1,
+      inner_voice_rank_inner_leader: 2,
     });
 
     mocks.parseSnapshotMock.mockReturnValue(fullSnapshot);
@@ -496,8 +497,12 @@ describe("CharacterPanel", () => {
     expect(screen.getByTestId("character-radar")).toBeInTheDocument();
     expect(screen.getByText("Patron Voices")).toBeInTheDocument();
 
+    const leaderCard = screen.getByTestId("patron-voice-inner_leader");
+    expect(within(leaderCard).getByText("Voice rank 2")).toBeInTheDocument();
+
     const analystCard = screen.getByTestId("patron-voice-inner_analyst");
     expect(within(analystCard).getByText("Analyst")).toBeInTheDocument();
+    expect(within(analystCard).getByText("Voice rank 0")).toBeInTheDocument();
     expect(
       within(analystCard).getByTestId("method-voice-attr_intellect"),
     ).toBeInTheDocument();
@@ -508,7 +513,9 @@ describe("CharacterPanel", () => {
     const manipulatorCard = screen.getByTestId(
       "patron-voice-inner_manipulator",
     );
-    expect(within(manipulatorCard).getByText("Manipulator")).toBeInTheDocument();
+    expect(
+      within(manipulatorCard).getByText("Manipulator"),
+    ).toBeInTheDocument();
     expect(
       within(manipulatorCard).getByTestId("method-voice-attr_deception"),
     ).toBeInTheDocument();
@@ -533,7 +540,9 @@ describe("CharacterPanel", () => {
       }),
     ).toHaveAttribute("aria-valuenow", "0");
     expect(
-      within(manipulatorCard).getByText("Control the board before anyone else notices the leverage."),
+      within(manipulatorCard).getByText(
+        "Control the board before anyone else notices the leverage.",
+      ),
     ).toBeInTheDocument();
   });
 

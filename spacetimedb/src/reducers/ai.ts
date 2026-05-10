@@ -10,6 +10,7 @@ import {
   ensureNarrativeResources,
   ensurePlayerProfile,
   ensureNarrativeResourcesForPlayer,
+  ensureRegisteredWorker,
   getVarForPlayer,
 } from "./helpers";
 import {
@@ -33,22 +34,6 @@ import {
 import { RESOURCE_PROVIDENCE_VAR } from "../../../src/shared/game/narrativeResources";
 
 const MICROS_PER_MILLISECOND = 1_000n;
-
-const requireRegisteredWorker = (
-  ctx: any,
-  operation: string,
-): { workerHex: string } => {
-  ensureAllowlistedWorker(ctx, operation);
-
-  const worker = ctx.db.workerIdentity.identity.find(ctx.sender);
-  if (!worker) {
-    throw new SenderError(`Only a registered worker can ${operation}`);
-  }
-
-  return {
-    workerHex: ctx.sender.toHexString(),
-  };
-};
 
 const requireNonEmptyString = (value: string, fieldName: string): string => {
   const normalized = value.trim();
@@ -306,7 +291,7 @@ export const claim_next_ai_request = spacetimedb.reducer(
     claimToken: t.string(),
   },
   (ctx, { requestId, kind, leaseMs, claimToken }) => {
-    const { workerHex } = requireRegisteredWorker(ctx, "claim ai requests");
+    const { workerHex } = ensureRegisteredWorker(ctx, "claim ai requests");
     const supportedKind = requireSupportedAiKind(kind);
     const normalizedClaimToken = requireNonEmptyString(
       claimToken,
@@ -360,7 +345,7 @@ export const renew_ai_request_lease = spacetimedb.reducer(
     leaseMs: t.u32(),
   },
   (ctx, { requestId, aiRequestId, leaseMs }) => {
-    const { workerHex } = requireRegisteredWorker(
+    const { workerHex } = ensureRegisteredWorker(
       ctx,
       "renew ai request leases",
     );
@@ -401,7 +386,7 @@ export const complete_ai_request = spacetimedb.reducer(
     responseJson: t.string(),
   },
   (ctx, { requestId, aiRequestId, responseJson }) => {
-    const { workerHex } = requireRegisteredWorker(ctx, "complete ai requests");
+    const { workerHex } = ensureRegisteredWorker(ctx, "complete ai requests");
     const normalizedResponseJson = requireNonEmptyString(
       responseJson,
       "responseJson",
@@ -459,7 +444,7 @@ export const fail_ai_request = spacetimedb.reducer(
     retryDelayMs: t.u32().optional(),
   },
   (ctx, { requestId, aiRequestId, error, retryDelayMs }) => {
-    const { workerHex } = requireRegisteredWorker(ctx, "fail ai requests");
+    const { workerHex } = ensureRegisteredWorker(ctx, "fail ai requests");
     const normalizedError = requireNonEmptyString(error, "error");
     const retryDelayMicros =
       retryDelayMs === undefined

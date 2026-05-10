@@ -465,6 +465,15 @@ const toVnEffect = (action: Exclude<MapAction, { type: "start_scenario" }>) => {
   if (action.type === "grant_evidence") {
     return { type: "grant_evidence", evidenceId: action.evidenceId } as const;
   }
+  if (action.type === "discover_fact") {
+    return {
+      type: "discover_fact",
+      caseId: action.caseId,
+      factId: action.factId,
+      sourceType: action.sourceType,
+      sourceId: action.sourceId,
+    } as const;
+  }
   if (action.type === "grant_xp") {
     return { type: "grant_xp", amount: action.amount } as const;
   }

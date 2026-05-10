@@ -15,21 +15,20 @@ const innerVoiceSegment: SpeakerSegment = {
 };
 
 describe("LogSegmentRenderer", () => {
-  it("renders inner voices as thought cards with persistent label chrome", () => {
+  it("renders inner voices as thought cards with named speaker header", () => {
     render(
       <LogSegmentRenderer segment={innerVoiceSegment} showSpeaker={false} />,
     );
 
     const thoughtCard = screen.getByTestId("vn-inner-voice-segment");
-    const badge = screen.getByLabelText("Cynic");
+    const avatar = screen.getByLabelText("Cynic");
     expect(thoughtCard).toBeInTheDocument();
-    expect(badge).toBeInTheDocument();
-    expect(badge).toHaveStyle({ color: "#f87171" });
-    expect(screen.getByText("CYN")).toBeInTheDocument();
+    expect(avatar).toBeInTheDocument();
+    expect(screen.getByText("CYNIC")).toHaveStyle({ color: "#f87171" });
     expect(
       screen.getByText("Trust costs more than leverage."),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("vn-inline-speaker-badge-image")).toHaveAttribute(
+    expect(screen.getByTestId("vn-speaker-avatar-image")).toHaveAttribute(
       "src",
       "/images/ui/voices/groups/perception.png",
     );
@@ -40,22 +39,22 @@ describe("LogSegmentRenderer", () => {
       <LogSegmentRenderer
         segment={{
           speaker: "Assistant",
-          speakerLabel: "Assistant",
+          speakerLabel: "Felix",
           category: "npc",
           text: "No headlines today.",
-          portraitUrl: "/VN/start/image/train_assistant.png",
+          portraitUrl:
+            "/Characters/Felix/felix_portrait_fixed_jaw_1776590978986.png",
         }}
       />,
     );
 
     expect(screen.queryByTestId("vn-inner-voice-segment")).toBeNull();
-    expect(screen.getByLabelText("Assistant")).toBeInTheDocument();
-    expect(screen.getByText("ASST")).toBeInTheDocument();
-    expect(screen.getByTestId("vn-inline-speaker-badge-image")).toHaveAttribute(
+    expect(screen.getByLabelText("Felix")).toBeInTheDocument();
+    expect(screen.getByText("FELIX")).toBeInTheDocument();
+    expect(screen.getByTestId("vn-speaker-avatar-image")).toHaveAttribute(
       "src",
-      "/VN/start/image/train_assistant.png",
+      "/Characters/Felix/felix_portrait_fixed_jaw_1776590978986.png",
     );
-    // Classes are on the container div in the new UI structure
     expect(
       screen.getByText("No headlines today.").closest(".text-stone-100"),
     ).toBeInTheDocument();
@@ -75,8 +74,7 @@ describe("LogSegmentRenderer", () => {
 
     expect(screen.queryByTestId("vn-inner-voice-segment")).toBeNull();
     expect(screen.queryByText("Narrator")).toBeNull();
-    expect(screen.queryByTestId("vn-inline-speaker-badge")).toBeNull();
-    // Classes are on the container div in the new UI structure
+    expect(screen.queryByTestId("vn-speaker-avatar")).toBeNull();
     expect(
       screen
         .getByText("Steam gathers under the station roof.")
@@ -118,6 +116,53 @@ describe("LogSegmentRenderer", () => {
     );
 
     expect(screen.getByLabelText("Unknown")).toBeInTheDocument();
-    expect(screen.queryByTestId("vn-inline-speaker-badge-image")).toBeNull();
+    expect(screen.queryByTestId("vn-speaker-avatar-image")).toBeNull();
+  });
+
+  it("collapses avatar and name when previous segment shares the speaker", () => {
+    render(
+      <LogSegmentRenderer
+        previousSpeakerId="Assistant"
+        segment={{
+          speaker: "Assistant",
+          speakerLabel: "Felix",
+          category: "npc",
+          text: "Are you sure this is no prank?",
+          portraitUrl:
+            "/Characters/Felix/felix_portrait_fixed_jaw_1776590978986.png",
+        }}
+      />,
+    );
+
+    expect(screen.queryByTestId("vn-speaker-avatar")).toBeNull();
+    expect(screen.queryByText("FELIX")).toBeNull();
+    expect(
+      screen.getByText("Are you sure this is no prank?"),
+    ).toBeInTheDocument();
+  });
+
+  it("renders player lines using the supplied originProfile name and avatar", () => {
+    render(
+      <LogSegmentRenderer
+        playerProfile={{
+          name: "Elias Thorne",
+          avatarUrl:
+            "/images/characters/detective_portrait/detective_portrait.png",
+        }}
+        segment={{
+          speaker: "player",
+          speakerLabel: "You",
+          category: "player",
+          text: "Someone wants our attention.",
+        }}
+      />,
+    );
+
+    expect(screen.getByLabelText("Elias Thorne")).toBeInTheDocument();
+    expect(screen.getByText("ELIAS THORNE")).toBeInTheDocument();
+    expect(screen.getByTestId("vn-speaker-avatar-image")).toHaveAttribute(
+      "src",
+      "/images/characters/detective_portrait/detective_portrait.png",
+    );
   });
 });

@@ -48,6 +48,17 @@ export const SCENE_GEN_BASE_URL =
   import.meta.env.VITE_SCENE_GEN_BASE_URL ??
   (RELEASE_PROFILE === "karlsruhe_event" ? "/api" : "");
 
+export const APP_CHECK_ENABLED =
+  String(import.meta.env.VITE_APP_CHECK_ENABLED ?? "false").toLowerCase() ===
+  "true";
+
+export const FIREBASE_API_KEY = import.meta.env.VITE_FIREBASE_API_KEY ?? "";
+export const FIREBASE_APP_ID = import.meta.env.VITE_FIREBASE_APP_ID ?? "";
+export const FIREBASE_PROJECT_ID =
+  import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "";
+export const RECAPTCHA_ENTERPRISE_SITE_KEY =
+  import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY ?? "";
+
 export const ENABLE_AI =
   String(import.meta.env.VITE_ENABLE_AI ?? "false").toLowerCase() === "true";
 

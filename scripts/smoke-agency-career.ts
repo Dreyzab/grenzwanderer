@@ -5,6 +5,7 @@ import {
   ensureBriefingReady,
   getAgencyCareer,
   getPlayerFlagValue,
+  hasMindFact,
   getQuestStage,
   loadPilotSnapshot,
   openAgencyStudentIntro,
@@ -14,7 +15,6 @@ import {
   subscribeSocialTables,
   verifyRailYardRumor,
 } from "./social-smoke-helpers";
-import { getOperatorToken, persistOperatorToken } from "./spacetime-operator";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
@@ -29,10 +29,8 @@ const runSmoke = async () =>
     DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .withToken(getOperatorToken(host, database))
-      .onConnect(async (conn, _identity, token) => {
+      .onConnect(async (conn) => {
         try {
-          persistOperatorToken(host, database, token);
           const identity = conn.identity;
           if (!identity) {
             throw new Error("Missing connection identity");
@@ -83,10 +81,11 @@ const runSmoke = async () =>
           }
           if (
             !agencyCareer.rumorCriterionComplete ||
-            !agencyCareer.sourceCriterionComplete
+            !agencyCareer.sourceCriterionComplete ||
+            !agencyCareer.cleanClosureCriterionComplete
           ) {
             throw new Error(
-              "Career progression path did not retain both social service criteria",
+              "Career progression path did not retain all Freiburg service criteria",
             );
           }
           if (agencyCareer.rankId !== "junior_detective") {
@@ -119,6 +118,13 @@ const runSmoke = async () =>
             )
           ) {
             throw new Error("Career-rank-gated agency review did not complete");
+          }
+          if (
+            !hasMindFact(conn, playerHex, "fact_agency_promotion_review_filed")
+          ) {
+            throw new Error(
+              "Career review did not discover the promotion-review Mind Palace fact",
+            );
           }
 
           finished = true;

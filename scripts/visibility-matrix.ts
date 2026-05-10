@@ -179,6 +179,14 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "Telemetry rollups are operational analytics artifacts, not player-facing runtime state.",
   ),
   entry(
+    "telemetry_aggregate_checkpoint",
+    "telemetryAggregateCheckpoint",
+    "operational-private",
+    "no client read path",
+    "wave1-operational",
+    "Singleton watermark row driving incremental telemetry aggregation; backend-only state with no player surface.",
+  ),
+  entry(
     "ai_request",
     "aiRequest",
     "operational-private",

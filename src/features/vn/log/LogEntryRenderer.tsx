@@ -1,17 +1,24 @@
 import { Dice5 } from "lucide-react";
-import { LogSegmentRenderer } from "./LogSegmentRenderer";
+import {
+  LogSegmentRenderer,
+  type PlayerProfileForLog,
+} from "./LogSegmentRenderer";
 import type { LogEntry } from "./useNarrativeLog";
 
 interface LogEntryRendererProps {
   entry: LogEntry;
   dimmed?: boolean;
   showSpeaker?: boolean;
+  previousSpeakerId?: string | null;
+  playerProfile?: PlayerProfileForLog | null;
 }
 
 export function LogEntryRenderer({
   entry,
   dimmed = false,
   showSpeaker = true,
+  previousSpeakerId,
+  playerProfile,
 }: LogEntryRendererProps) {
   if (entry.type === "segment" && entry.segment) {
     return (
@@ -19,6 +26,8 @@ export function LogEntryRenderer({
         segment={entry.segment}
         dimmed={dimmed}
         showSpeaker={showSpeaker}
+        previousSpeakerId={previousSpeakerId}
+        playerProfile={playerProfile}
       />
     );
   }
@@ -28,9 +37,11 @@ export function LogEntryRenderer({
       <LogSegmentRenderer
         dimmed={dimmed}
         showSpeaker={false}
+        previousSpeakerId={previousSpeakerId}
+        playerProfile={playerProfile}
         segment={{
           speaker: "player",
-          speakerLabel: "You",
+          speakerLabel: playerProfile?.name ?? "You",
           category: "player",
           text: entry.choiceText,
         }}

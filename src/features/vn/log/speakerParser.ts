@@ -92,12 +92,14 @@ const buildSegment = (
     };
   }
 
+  const defaultNpcLabel =
+    lowerSpeaker === "assistant"
+      ? "Felix"
+      : formatSpeakerLabel(normalizedSpeaker);
+
   return {
     speaker: normalizedSpeaker,
-    speakerLabel: getSpeakerLabel(
-      normalizedSpeaker,
-      formatSpeakerLabel(normalizedSpeaker),
-    ),
+    speakerLabel: getSpeakerLabel(normalizedSpeaker, defaultNpcLabel),
     category: lowerSpeaker.startsWith("inner_") ? "inner_voice" : "npc",
     text: normalizedText,
   };

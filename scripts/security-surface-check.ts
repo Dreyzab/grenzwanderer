@@ -23,6 +23,7 @@ const operationalPrivateRelations = [
   "idempotency_log",
   "telemetry_event",
   "telemetry_aggregate",
+  "telemetry_aggregate_checkpoint",
   "ai_request",
   "worker_identity",
 ] as const;

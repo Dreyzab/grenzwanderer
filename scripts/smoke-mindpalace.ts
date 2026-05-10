@@ -1,16 +1,19 @@
 import { createHash } from "node:crypto";
 import { DbConnection } from "../src/shared/spacetime/bindings";
+import { createVnContractMetadata } from "../src/shared/vn-contract";
 import {
+  connectOperatorConnection,
   ensureAdminAccess,
-  getOperatorToken,
-  persistOperatorToken,
 } from "./spacetime-operator";
 
 const host = process.env.SMOKE_STDB_HOST ?? "ws://127.0.0.1:3000";
 const database = process.env.SMOKE_STDB_DB ?? "grezwandererdata";
+const schemaVersion = 9;
+const runId = String(Date.now());
 
 const payload = {
-  schemaVersion: 2,
+  schemaVersion,
+  contractMetadata: createVnContractMetadata(),
   scenarios: [
     {
       id: "mind_smoke_scenario",
@@ -109,55 +112,76 @@ const payload = {
       },
     ],
   },
+  map: {
+    defaultRegionId: "mind_smoke_region",
+    regions: [
+      {
+        id: "mind_smoke_region",
+        name: "Mind Smoke Region",
+        geoCenterLat: 47.9959,
+        geoCenterLng: 7.8522,
+        zoom: 13,
+      },
+    ],
+    points: [],
+  },
+  questCatalog: [],
 };
 
 const payloadJson = JSON.stringify(payload);
 const checksum = createHash("sha256").update(payloadJson, "utf8").digest("hex");
 
-const runSmoke = async () =>
-  new Promise<void>((resolve, reject) => {
+const publishMindPayload = async (): Promise<void> => {
+  const conn = await connectOperatorConnection(host, database);
+  try {
+    await ensureAdminAccess(conn);
+    await conn.reducers.publishContent({
+      requestId: `mind_publish_${runId}`,
+      version: `mind_smoke_${runId}`,
+      checksum,
+      schemaVersion,
+      payloadJson,
+    });
+  } finally {
+    conn.disconnect();
+  }
+};
+
+const runSmoke = async () => {
+  await publishMindPayload();
+
+  return new Promise<void>((resolve, reject) => {
     let finished = false;
 
     const builder = DbConnection.builder()
       .withUri(host)
       .withDatabaseName(database)
-      .withToken(getOperatorToken(host, database))
-      .onConnect(async (conn, _identity, token) => {
+      .onConnect(async (conn) => {
         try {
-          persistOperatorToken(host, database, token);
-          await ensureAdminAccess(conn);
-          await conn.reducers.publishContent({
-            requestId: "mind_publish_1",
-            version: "mind_smoke_v1",
-            checksum,
-            schemaVersion: 2,
-            payloadJson,
-          });
-
           await conn.reducers.startMindCase({
-            requestId: "mind_case_start_1",
+            requestId: `mind_case_start_${runId}`,
             caseId: "mind_smoke_case",
           });
 
           await conn.reducers.startScenario({
-            requestId: "mind_start_scenario_1",
+            requestId: `mind_start_scenario_${runId}`,
             scenarioId: "mind_smoke_scenario",
           });
 
           await conn.reducers.recordChoice({
-            requestId: "mind_choice_record_1",
+            requestId: `mind_choice_record_a_${runId}`,
             scenarioId: "mind_smoke_scenario",
             choiceId: "mind_choice_a",
           });
 
           await conn.reducers.recordChoice({
-            requestId: "mind_choice_record_2",
+            requestId: `mind_choice_record_b_${runId}`,
             scenarioId: "mind_smoke_scenario",
             choiceId: "mind_choice_b",
           });
 
           await conn.reducers.discoverFact({
-            requestId: "mind_discover_noop_1",
+            requestId: `mind_discover_noop_${runId}`,
             caseId: "mind_smoke_case",
             factId: "mind_fact_1",
           });
@@ -165,7 +189,7 @@ const runSmoke = async () =>
           let duplicateDiscoverRejected = false;
           try {
             await conn.reducers.discoverFact({
-              requestId: "mind_discover_noop_1",
+              requestId: `mind_discover_noop_${runId}`,
               caseId: "mind_smoke_case",
               factId: "mind_fact_1",
             });
@@ -180,7 +204,7 @@ const runSmoke = async () =>
           }
 
           await conn.reducers.validateHypothesis({
-            requestId: "mind_validate_1",
+            requestId: `mind_validate_${runId}`,
             caseId: "mind_smoke_case",
             hypothesisId: "mind_hyp_1",
           });
@@ -188,7 +212,7 @@ const runSmoke = async () =>
           let repeatedValidateRejected = false;
           try {
             await conn.reducers.validateHypothesis({
-              requestId: "mind_validate_2",
+              requestId: `mind_validate_repeat_${runId}`,
               caseId: "mind_smoke_case",
               hypothesisId: "mind_hyp_1",
             });
@@ -221,6 +245,7 @@ const runSmoke = async () =>
 
     builder.build();
   });
+};
 
 try {
   await runSmoke();

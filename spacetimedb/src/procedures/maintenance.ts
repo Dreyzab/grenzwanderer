@@ -2,12 +2,18 @@ import { ScheduleAt, Timestamp } from "spacetimedb";
 import type { ReducerExport } from "spacetimedb/server";
 import { table, t } from "spacetimedb/server";
 import type moduleSchema from "../schema";
+import {
+  TELEMETRY_AGGREGATION_DEFAULTS,
+  planTelemetryAggregation,
+} from "./telemetryAggregation";
 
 const ONE_MINUTE_MICROS = 60_000_000n;
 const FIVE_MINUTES_MICROS = 5n * ONE_MINUTE_MICROS;
 const FIFTEEN_MINUTES_MICROS = 15n * ONE_MINUTE_MICROS;
 const ONE_DAY_MICROS = 86_400_000_000n;
 const SEVEN_DAYS_MICROS = 7n * ONE_DAY_MICROS;
+
+const TELEMETRY_AGGREGATE_CHECKPOINT_KEY = "default";
 
 type MaintenanceReducer = ReducerExport<any, any>;
 type AppSchema = typeof moduleSchema;
@@ -65,16 +71,6 @@ export const telemetryCleanupSchedule = table(
   },
 );
 
-export const fnv1a = (value: string): string => {
-  let hash = 0x811c9dc5;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 0x01000193);
-  }
-
-  return (hash >>> 0).toString(16).padStart(8, "0");
-};
-
 const scheduleNextIdempotencyCleanup = (ctx: any): void => {
   ctx.db.idempotencyCleanupSchedule.insert({
     scheduledId: 0n,
@@ -101,15 +97,6 @@ const scheduleNextTelemetryCleanup = (ctx: any): void => {
     ),
   });
 };
-
-const toBucketStartMicros = (microsSinceUnixEpoch: bigint): bigint =>
-  (microsSinceUnixEpoch / ONE_MINUTE_MICROS) * ONE_MINUTE_MICROS;
-
-const buildAggregateKey = (
-  bucketStartMicros: bigint,
-  eventName: string,
-  tagsHash: string,
-): string => `${bucketStartMicros.toString()}::${eventName}::${tagsHash}`;
 
 export let cleanup_idempotency_log: MaintenanceReducer;
 export let aggregate_telemetry: MaintenanceReducer;
@@ -150,53 +137,25 @@ export const register_maintenance_reducers = (spacetimedb: AppSchema): void => {
         void _scheduledId;
 
         const nowMicros = ctx.timestamp.microsSinceUnixEpoch;
-        const cutoffMicros = nowMicros - SEVEN_DAYS_MICROS;
-
-        const aggregateMap = new Map<
-          string,
-          {
-            bucketStartMicros: bigint;
-            eventName: string;
-            tagsHash: string;
-            count: bigint;
-            sumValue: number;
-          }
-        >();
-
-        for (const event of ctx.db.telemetryEvent.iter()) {
-          if (event.createdAt.microsSinceUnixEpoch < cutoffMicros) {
-            continue;
-          }
-
-          const bucketStartMicros = toBucketStartMicros(
-            event.createdAt.microsSinceUnixEpoch,
+        const checkpointRow =
+          ctx.db.telemetryAggregateCheckpoint.checkpointKey.find(
+            TELEMETRY_AGGREGATE_CHECKPOINT_KEY,
           );
-          const tagsHash = fnv1a(event.tagsJson);
-          const aggregateKey = buildAggregateKey(
-            bucketStartMicros,
-            event.eventName,
-            tagsHash,
-          );
+        const existingWatermarkMicros =
+          checkpointRow?.nextBucketStart.microsSinceUnixEpoch ?? null;
 
-          const existing = aggregateMap.get(aggregateKey);
-          if (existing) {
-            existing.count += 1n;
-            existing.sumValue += event.value ?? 0;
-            continue;
-          }
+        const plan = planTelemetryAggregation(
+          nowMicros,
+          ctx.db.telemetryEvent.iter(),
+          existingWatermarkMicros,
+        );
 
-          aggregateMap.set(aggregateKey, {
-            bucketStartMicros,
-            eventName: event.eventName,
-            tagsHash,
-            count: 1n,
-            sumValue: event.value ?? 0,
-          });
-        }
-
-        for (const [aggregateKey, aggregate] of aggregateMap.entries()) {
+        // Each finalized bucket is upserted exactly once across the lifetime
+        // of the module. The update branch only runs if a previous attempt
+        // crashed between insert and checkpoint advance.
+        for (const aggregate of plan.aggregates) {
           const row = {
-            aggregateKey,
+            aggregateKey: aggregate.aggregateKey,
             bucketStart: new Timestamp(aggregate.bucketStartMicros),
             eventName: aggregate.eventName,
             tagsHash: aggregate.tagsHash,
@@ -205,8 +164,9 @@ export const register_maintenance_reducers = (spacetimedb: AppSchema): void => {
             updatedAt: ctx.timestamp,
           };
 
-          const existing =
-            ctx.db.telemetryAggregate.aggregateKey.find(aggregateKey);
+          const existing = ctx.db.telemetryAggregate.aggregateKey.find(
+            aggregate.aggregateKey,
+          );
           if (existing) {
             ctx.db.telemetryAggregate.aggregateKey.update({
               ...existing,
@@ -217,9 +177,28 @@ export const register_maintenance_reducers = (spacetimedb: AppSchema): void => {
           }
         }
 
+        const checkpointTimestamp = new Timestamp(plan.nextCheckpointMicros);
+        if (checkpointRow) {
+          ctx.db.telemetryAggregateCheckpoint.checkpointKey.update({
+            ...checkpointRow,
+            nextBucketStart: checkpointTimestamp,
+            updatedAt: ctx.timestamp,
+          });
+        } else {
+          ctx.db.telemetryAggregateCheckpoint.insert({
+            checkpointKey: TELEMETRY_AGGREGATE_CHECKPOINT_KEY,
+            nextBucketStart: checkpointTimestamp,
+            updatedAt: ctx.timestamp,
+          });
+        }
+
+        const retentionCutoffMicros =
+          nowMicros - TELEMETRY_AGGREGATION_DEFAULTS.retentionMicros;
         const staleAggregateRows: string[] = [];
         for (const aggregate of ctx.db.telemetryAggregate.iter()) {
-          if (aggregate.bucketStart.microsSinceUnixEpoch < cutoffMicros) {
+          if (
+            aggregate.bucketStart.microsSinceUnixEpoch < retentionCutoffMicros
+          ) {
             staleAggregateRows.push(aggregate.aggregateKey);
           }
         }

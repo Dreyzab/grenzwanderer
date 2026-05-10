@@ -181,6 +181,13 @@ const isCondition = (value: unknown): value is VnCondition => {
       typeof value.value === "number"
     );
   }
+  if (value.type === "inner_voice_rank_gte") {
+    return (
+      typeof value.voiceId === "string" &&
+      isInnerVoiceId(value.voiceId) &&
+      typeof value.value === "number"
+    );
+  }
   if (value.type === "skill_rank_gte") {
     return (
       typeof value.skillId === "string" &&
@@ -365,6 +372,13 @@ const isEffect = (value: unknown): value is VnEffect => {
   if (value.type === "change_psyche_axis") {
     return (
       (value.axis === "x" || value.axis === "y" || value.axis === "approach") &&
+      typeof value.delta === "number"
+    );
+  }
+  if (value.type === "change_inner_voice_rank") {
+    return (
+      typeof value.voiceId === "string" &&
+      isInnerVoiceId(value.voiceId) &&
       typeof value.delta === "number"
     );
   }
@@ -1072,6 +1086,15 @@ const isMapAction = (value: unknown): value is MapAction => {
   }
   if (value.type === "grant_evidence") {
     return typeof value.evidenceId === "string";
+  }
+  if (value.type === "discover_fact") {
+    return (
+      typeof value.caseId === "string" &&
+      typeof value.factId === "string" &&
+      (value.sourceType === undefined ||
+        typeof value.sourceType === "string") &&
+      (value.sourceId === undefined || typeof value.sourceId === "string")
+    );
   }
   if (value.type === "grant_xp") {
     return typeof value.amount === "number";

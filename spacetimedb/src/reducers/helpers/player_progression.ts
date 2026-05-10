@@ -5,6 +5,8 @@ import {
   isAllowedFactionId,
 } from "../../../../data/factionContract";
 import {
+  isInnerVoiceRankVarKey,
+  normalizeInnerVoiceRank,
   PSYCHE_VAR_KEYS,
   type SkillVoiceId,
 } from "../../../../data/innerVoiceContract";
@@ -92,6 +94,9 @@ const clampNumber = (value: number, min: number, max: number): number =>
 const normalizePlayerVarValue = (key: string, floatValue: number): number => {
   if (PSYCHE_VAR_KEYS.includes(key as any)) {
     return clampNumber(floatValue, -100, 100);
+  }
+  if (isInnerVoiceRankVarKey(key)) {
+    return normalizeInnerVoiceRank(floatValue);
   }
   if (isSkillXpVarKey(key)) {
     return normalizeSkillXpValue(floatValue);

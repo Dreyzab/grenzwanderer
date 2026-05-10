@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { RELEASE_PROFILE, SCENE_GEN_BASE_URL } from "../../config";
+import { getSceneGenAppCheckToken } from "../../shared/appCheck";
 import type { SceneGenerationResult } from "./types";
 import { getKarlsruheSceneContext } from "./karlsruheSceneCatalog";
 
@@ -41,11 +42,17 @@ const requestSceneGeneration = async (context: {
     throw new Error("Scene generation base URL is not configured");
   }
 
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+  };
+  const appCheckToken = await getSceneGenAppCheckToken();
+  if (appCheckToken) {
+    headers["X-Firebase-AppCheck"] = appCheckToken;
+  }
+
   const response = await fetch(`${SCENE_GEN_BASE_URL}/scene/generate`, {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-    },
+    headers,
     body: JSON.stringify(context),
   });
 

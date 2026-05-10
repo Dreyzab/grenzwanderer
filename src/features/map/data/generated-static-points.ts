@@ -289,6 +289,11 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
             "reason": "validated_bank_rail_yard_whisper"
           },
           {
+            "type": "discover_fact",
+            "caseId": "case_bankhaus_krebs_false_trail",
+            "factId": "fact_rail_yard_whisper_verified"
+          },
+          {
             "type": "track_event",
             "eventName": "bank_rail_yard_rumor_verified",
             "tags": {
@@ -414,6 +419,10 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
             "type": "set_flag",
             "key": "bank_investigation_complete",
             "value": true
+          },
+          {
+            "type": "record_service_criterion",
+            "criterionId": "clean_closure"
           }
         ]
       },

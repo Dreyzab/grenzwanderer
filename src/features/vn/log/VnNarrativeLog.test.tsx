@@ -95,7 +95,7 @@ describe("VnNarrativeLog scroll focus", () => {
               timestamp: 1,
               segment: {
                 speaker: "assistant",
-                speakerLabel: "Assistant",
+                speakerLabel: "Felix",
                 category: "npc",
                 text: "Old line",
               },
@@ -122,7 +122,7 @@ describe("VnNarrativeLog scroll focus", () => {
               timestamp: 1,
               segment: {
                 speaker: "assistant",
-                speakerLabel: "Assistant",
+                speakerLabel: "Felix",
                 category: "npc",
                 text: "Old line",
               },
@@ -162,7 +162,7 @@ describe("VnNarrativeLog scroll focus", () => {
     expect(log.scrollTop).toBe(2200);
   });
 
-  it("keeps an inline speaker badge on repeated speaker entries", () => {
+  it("collapses the speaker header on repeated consecutive speaker entries", () => {
     const { container } = render(
       <VnNarrativeLog
         state={makeState({
@@ -174,7 +174,7 @@ describe("VnNarrativeLog scroll focus", () => {
               timestamp: 1,
               segment: {
                 speaker: "assistant",
-                speakerLabel: "Assistant",
+                speakerLabel: "Felix",
                 category: "npc",
                 text: "First line",
               },
@@ -186,7 +186,7 @@ describe("VnNarrativeLog scroll focus", () => {
               timestamp: 2,
               segment: {
                 speaker: "assistant",
-                speakerLabel: "Assistant",
+                speakerLabel: "Felix",
                 category: "npc",
                 text: "Second line",
               },
@@ -200,7 +200,7 @@ describe("VnNarrativeLog scroll focus", () => {
     );
 
     expect(
-      container.querySelectorAll('[data-speaker-label="Assistant"]'),
-    ).toHaveLength(2);
+      container.querySelectorAll('[data-speaker-label="Felix"]'),
+    ).toHaveLength(1);
   });
 });

@@ -1,6 +1,14 @@
 import { spawn } from "node:child_process";
 
 const port = 48123;
+const appCheckBypassSecret = process.env.APP_CHECK_BYPASS_SECRET ?? "";
+
+const sceneGenHeaders = (): Record<string, string> => ({
+  "content-type": "application/json",
+  ...(appCheckBypassSecret
+    ? { "X-AppCheck-Bypass": appCheckBypassSecret }
+    : {}),
+});
 
 const waitForHealth = async () => {
   for (let attempt = 0; attempt < 20; attempt += 1) {
@@ -42,7 +50,7 @@ try {
 
   const firstResponse = await fetch(`http://127.0.0.1:${port}/scene/generate`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: sceneGenHeaders(),
     body: JSON.stringify(requestBody),
   });
   if (!firstResponse.ok) {
@@ -56,7 +64,7 @@ try {
     `http://127.0.0.1:${port}/scene/generate`,
     {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: sceneGenHeaders(),
       body: JSON.stringify(requestBody),
     },
   );
@@ -84,7 +92,7 @@ try {
     `http://127.0.0.1:${port}/scene/generate`,
     {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: sceneGenHeaders(),
       body: JSON.stringify({ mode: "prompt_only" }),
     },
   );

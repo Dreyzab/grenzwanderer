@@ -26,10 +26,14 @@ vi.mock("spacetimedb/server", () => ({
 }));
 
 import {
+  canReadWorkerQueue,
   ensureAdminIdentity,
   ensureAllowlistedWorker,
+  ensureRegisteredWorker,
   hasAdminIdentity,
+  hasAllowlistedWorker,
   hasAnyAdminIdentity,
+  hasRegisteredWorker,
 } from "./auth";
 import {
   createBattleCardInstanceKey,
@@ -187,10 +191,16 @@ describe("server helper facades", () => {
 
     expect(hasAnyAdminIdentity(ctx)).toBe(false);
     expect(hasAdminIdentity(ctx)).toBe(false);
+    expect(hasAllowlistedWorker(ctx)).toBe(false);
+    expect(hasRegisteredWorker(ctx)).toBe(false);
+    expect(canReadWorkerQueue(ctx)).toBe(false);
     expect(() => ensureAdminIdentity(ctx, "publish content")).toThrow(
       "Only an admin identity can publish content",
     );
     expect(() => ensureAllowlistedWorker(ctx, "claim jobs")).toThrow(
+      "Only an allowlisted worker can claim jobs",
+    );
+    expect(() => ensureRegisteredWorker(ctx, "claim jobs")).toThrow(
       "Only an allowlisted worker can claim jobs",
     );
 
@@ -199,8 +209,20 @@ describe("server helper facades", () => {
 
     expect(hasAnyAdminIdentity(ctx)).toBe(true);
     expect(hasAdminIdentity(ctx)).toBe(true);
+    expect(hasAllowlistedWorker(ctx)).toBe(true);
+    expect(hasRegisteredWorker(ctx)).toBe(false);
+    expect(canReadWorkerQueue(ctx)).toBe(false);
     expect(() => ensureAdminIdentity(ctx, "publish content")).not.toThrow();
     expect(() => ensureAllowlistedWorker(ctx, "claim jobs")).not.toThrow();
+    expect(() => ensureRegisteredWorker(ctx, "claim jobs")).toThrow(
+      "Only a registered worker can claim jobs",
+    );
+
+    ctx.db.workerIdentity.insert({ identity: ctx.sender });
+
+    expect(hasRegisteredWorker(ctx)).toBe(true);
+    expect(canReadWorkerQueue(ctx)).toBe(true);
+    expect(() => ensureRegisteredWorker(ctx, "claim jobs")).not.toThrow();
   });
 
   it("mutates player profile, flags, vars, location, telemetry, and idempotency", () => {

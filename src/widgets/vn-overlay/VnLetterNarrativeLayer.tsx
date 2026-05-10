@@ -37,7 +37,7 @@ export const VnLetterNarrativeLayer = ({
   >
     <div
       className={[
-        "w-full max-w-[44rem] transform transition-all duration-700 ease-out",
+        "w-full max-w-[44rem] transform",
         chromeRevealed
           ? "translate-y-0 -rotate-1 scale-100 opacity-100"
           : "translate-y-10 rotate-2 scale-95 opacity-0",

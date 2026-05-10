@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import type { VnSnapshot } from "../types";
 import type { TypedTextHandle, TypedTextTokenHandler } from "../ui/TypedText";
+import type { PlayerProfileForLog } from "./LogSegmentRenderer";
 import { VnNarrativeLog } from "./VnNarrativeLog";
 import type { NarrativeLogState } from "./useNarrativeLog";
 
@@ -24,6 +25,7 @@ interface VnLogBottomSheetProps {
   state: NarrativeLogState;
   snapshot: VnSnapshot | null;
   choicesSlot?: ReactNode;
+  playerProfile?: PlayerProfileForLog | null;
   typedTextRef?: RefObject<TypedTextHandle>;
   onTypingChange?: (typing: boolean) => void;
   onSegmentComplete?: () => void;
@@ -90,6 +92,7 @@ export function VnLogBottomSheet({
   state,
   snapshot,
   choicesSlot,
+  playerProfile,
   typedTextRef,
   onTypingChange,
   onSegmentComplete,
@@ -302,6 +305,7 @@ export function VnLogBottomSheet({
             snapshot={snapshot}
             typedTextRef={typedTextRef}
             choicesSlot={choicesSlot}
+            playerProfile={playerProfile}
             onTypingChange={onTypingChange}
             onSegmentComplete={onSegmentComplete}
             onTokenClick={onTokenClick}

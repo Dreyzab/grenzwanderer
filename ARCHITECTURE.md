@@ -4,6 +4,14 @@
 
 This document defines runtime architecture, content release lifecycle, and repository governance boundaries for Grenzwanderer.
 
+## Governance: P0 Baseline Freeze
+
+The project follows a "Snapshot-First" governance model for narrative content:
+
+- **Baseline**: `content-v0.1.0` is the authoritative P0 freeze.
+- **Scope**: Only Freiburg (Case 01) is supported in the default acceptance path. Karlsruhe assets remain outside the supported Freiburg release gate until they have their own accepted matrix entry and smoke coverage.
+- **Verification**: `bun run content:drift:verify` ensures code-backed data matches extracted snapshots.
+
 ## Runtime Layers
 
 1. Client layer (`src/`)
@@ -52,7 +60,8 @@ This document defines runtime architecture, content release lifecycle, and repos
   - one smoke command;
   - whether `content:extract`, `content:manifest:check`, and `content:drift:verify` are required.
 - `scripts/smoke-all.ts` is derived from the acceptance matrix instead of maintaining its own list.
-- Snapshot-backed acceptance flows currently cover Freiburg origin entry, Case01 canonical entry, Case01 mainline, Freiburg dog deduction closure, and the Freiburg social loop.
+- **P0 Baseline (2026-05-09)**: The matrix currently defines **14 authoritative flows** (3 runtime contracts, 11 player flows).
+- Snapshot-backed acceptance flows cover Freiburg origin entry, Case01 canonical entry, Case01 mainline, Freiburg dog deduction closure, and the Freiburg social loop.
 - The canonical default Freiburg runtime entry is now `case01_hbf_arrival`, which drives Fritz's priority choice and the supported Case01 mainline. `sandbox_case01_pilot` remains snapshot-backed legacy/debug content rather than the supported runtime path.
 - Synthetic contract flows cover reducer/runtime authority checks where extracted content is intentionally not required.
 - Freiburg is the only supported city in the current player-facing path. Karlsruhe remains explicitly unavailable.

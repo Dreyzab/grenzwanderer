@@ -156,3 +156,15 @@ obsidian/.obsidian/
 .spacetime/
 spacetimedb/src/generated/
 temp-log.txt
+
+# Credentials / service-account / operator tokens (defense-in-depth — never commit)
+gha-creds-*.json
+*.operator-token
+gcp-key*.json
+gcp-credentials*.json
+*-keyfirebase.json
+serviceAccount*.json
+firebase-adminsdk-*.json
+client_secret*.json
+*-credentials.json
+credentials.json

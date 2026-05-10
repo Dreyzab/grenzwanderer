@@ -1,8 +1,5 @@
 import type React from "react";
 
-/** Must match the letter card `duration-*` in Tailwind (transition-all duration-700). */
-export const LETTER_CARD_EXPAND_MS = 700;
-
 /** Do not block the sound prompt indefinitely if decoding/network fails (e.g. flaky media cache). */
 export const SOUND_PROMPT_REVEAL_MAX_WAIT_MS = 2500;
 

@@ -11,6 +11,9 @@ import {
   INNER_VOICE_DEFINITIONS,
   INNER_VOICE_IDS,
   SKILL_VOICE_IDS,
+  innerVoiceRankVarKeyFor,
+  normalizeInnerVoiceRank,
+  type InnerVoiceId,
   type SkillVoiceId,
 } from "../../../../data/innerVoiceContract";
 import {
@@ -352,10 +355,18 @@ export const useCharacterPanelViewModel = () => {
     [myVars],
   );
 
-  const rankedPatronVoiceInfluence = useMemo(
-    () => rankPatronVoicesByInfluence({ skillXp }),
-    [skillXp],
-  );
+  const rankedPatronVoiceInfluence = useMemo(() => {
+    const voiceRanks = INNER_VOICE_IDS.reduce<
+      Partial<Record<InnerVoiceId, number>>
+    >((ranks, voiceId) => {
+      ranks[voiceId] = normalizeInnerVoiceRank(
+        myVars[innerVoiceRankVarKeyFor(voiceId)] ?? 0,
+      );
+      return ranks;
+    }, {});
+
+    return rankPatronVoicesByInfluence({ skillXp, voiceRanks });
+  }, [myVars, skillXp]);
 
   const patronVoiceCards = useMemo<PatronVoiceCard[]>(() => {
     const influenceByVoice = new Map(
@@ -373,6 +384,7 @@ export const useCharacterPanelViewModel = () => {
         voiceId,
         label: definition.label,
         influence: influence?.influence ?? 0,
+        voiceRank: influence?.voiceRank ?? 0,
         dominanceRank: influence?.dominanceRank ?? INNER_VOICE_IDS.length,
         worldview: definition.worldview,
         toneDescriptor: definition.toneDescriptor,

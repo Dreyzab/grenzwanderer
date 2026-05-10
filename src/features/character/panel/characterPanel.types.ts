@@ -68,6 +68,7 @@ export interface PatronVoiceCard {
   voiceId: InnerVoiceId;
   label: string;
   influence: number;
+  voiceRank: number;
   dominanceRank: number;
   worldview: string;
   toneDescriptor: string;

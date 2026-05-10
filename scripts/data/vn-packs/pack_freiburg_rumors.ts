@@ -34,6 +34,11 @@ export const PACK_FREIBURG_RUMORS_NODES: NodeBlueprint[] = [
             reason: "workers_pub_rumor_chain",
           },
           {
+            type: "discover_fact",
+            caseId: "case_bankhaus_krebs_false_trail",
+            factId: "fact_workers_pub_rail_yard_whisper",
+          },
+          {
             type: "track_event",
             eventName: "workers_pub_rumor_registered",
             tags: { rumorId: "rumor_bank_rail_yard" },

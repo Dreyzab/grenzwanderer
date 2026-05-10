@@ -20,7 +20,10 @@ import {
   isSkillRankAtLeast,
   resolveSkillRank,
 } from "../../../../src/shared/game/skillProgression";
-import { isSkillVoiceId } from "../../../../data/innerVoiceContract";
+import {
+  innerVoiceRankVarKeyFor,
+  isSkillVoiceId,
+} from "../../../../data/innerVoiceContract";
 import type {
   VnChoice,
   VnCondition,
@@ -144,11 +147,16 @@ const evaluateVnCondition = (ctx: any, condition: VnCondition): boolean => {
   if (condition.type === "voice_level_gte") {
     return Math.floor(getVar(ctx, condition.voiceId)) >= condition.value;
   }
+  if (condition.type === "inner_voice_rank_gte") {
+    return (
+      Math.floor(getVar(ctx, innerVoiceRankVarKeyFor(condition.voiceId))) >=
+      condition.value
+    );
+  }
   if (condition.type === "skill_rank_gte") {
     return isSkillRankAtLeast(
-      resolveSkillRank(
-        getSkillXpForPlayer(ctx, ctx.sender, condition.skillId),
-      ).rank,
+      resolveSkillRank(getSkillXpForPlayer(ctx, ctx.sender, condition.skillId))
+        .rank,
       condition.rank,
     );
   }

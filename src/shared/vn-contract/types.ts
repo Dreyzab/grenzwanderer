@@ -45,6 +45,7 @@ export type VnConditionLeaf =
   | { type: "thought_state_is"; thoughtId: string; state: MindThoughtState }
   | { type: "career_rank_gte"; rankId: string }
   | { type: "voice_level_gte"; voiceId: string; value: number }
+  | { type: "inner_voice_rank_gte"; voiceId: InnerVoiceId; value: number }
   | { type: "skill_rank_gte"; skillId: SkillVoiceId; rank: SkillRank }
   | { type: "spirit_state_is"; spiritId: string; state: SpiritState }
   | { type: "has_controlled_spirit"; entityArchetypeId: string };
@@ -128,6 +129,7 @@ export type VnEffect =
   | { type: "apply_rationalist_buffer"; amount: number }
   | { type: "tag_entity_signature"; signatureId: string }
   | { type: "change_psyche_axis"; axis: PsycheAxis; delta: number }
+  | { type: "change_inner_voice_rank"; voiceId: InnerVoiceId; delta: number }
   | { type: "subjugate_spirit"; spiritId: string }
   | { type: "destroy_spirit"; spiritId: string }
   | { type: "imprison_spirit"; spiritId: string; requiredItemId?: string }
@@ -583,6 +585,13 @@ export type MapAction =
   | { type: "unlock_group"; groupId: string }
   | { type: "set_quest_stage"; questId: string; stage: number }
   | { type: "grant_evidence"; evidenceId: string }
+  | {
+      type: "discover_fact";
+      caseId: string;
+      factId: string;
+      sourceType?: string;
+      sourceId?: string;
+    }
   | { type: "grant_xp"; amount: number }
   | { type: "grant_skill_xp"; skillId: SkillVoiceId; amount: number }
   | { type: "change_relationship"; characterId: string; delta: number }

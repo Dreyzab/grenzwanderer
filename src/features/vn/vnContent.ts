@@ -4,6 +4,7 @@ import {
   getScenarioById,
   parseVnSnapshotPayload,
 } from "../../shared/vn-contract";
+import { innerVoiceRankVarKeyFor } from "../../../data/innerVoiceContract";
 import { isSkillRankGateSatisfiedFromVars } from "../../shared/game/skillProgression";
 import type {
   RumorStateStatus,
@@ -144,6 +145,11 @@ const evaluateChoiceConditionLeaf = (
       vars,
       condition.skillId,
       condition.rank,
+    );
+  }
+  if (condition.type === "inner_voice_rank_gte") {
+    return (
+      (vars[innerVoiceRankVarKeyFor(condition.voiceId)] ?? 0) >= condition.value
     );
   }
 

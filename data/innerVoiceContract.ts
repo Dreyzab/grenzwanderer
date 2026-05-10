@@ -13,6 +13,9 @@ export type PsycheAxis = "x" | "y" | "approach";
 
 export const APPROACH_WEIGHT = 0.6;
 export const INNER_VOICE_SILENCE_THRESHOLD = 0.005;
+export const INNER_VOICE_RANK_VAR_PREFIX = "inner_voice_rank_";
+export const INNER_VOICE_RANK_MIN = 0;
+export const INNER_VOICE_RANK_MAX = 5;
 
 export const SKILL_VOICE_IDS = [
   "attr_agility",
@@ -55,6 +58,8 @@ export const INNER_VOICE_IDS = [
 ] as const;
 
 export type InnerVoiceId = (typeof INNER_VOICE_IDS)[number];
+export type InnerVoiceRankVarKey =
+  `${typeof INNER_VOICE_RANK_VAR_PREFIX}${InnerVoiceId}`;
 export type SpeakerId = SkillVoiceId | InnerVoiceId;
 export type InnerVoiceStance = "supports" | "opposes";
 export type InnerVoiceRole = "dominant" | "support" | "counter";
@@ -62,6 +67,9 @@ export type InnerVoiceRole = "dominant" | "support" | "counter";
 const PSYCHE_VAR_KEY_SET = new Set<string>(PSYCHE_VAR_KEYS);
 const SKILL_VOICE_ID_SET = new Set<string>(SKILL_VOICE_IDS);
 const INNER_VOICE_ID_SET = new Set<string>(INNER_VOICE_IDS);
+export const INNER_VOICE_RANK_VAR_KEYS = INNER_VOICE_IDS.map(
+  (voiceId) => `${INNER_VOICE_RANK_VAR_PREFIX}${voiceId}` as const,
+) as readonly InnerVoiceRankVarKey[];
 
 export const SPEAKER_IDS = [
   ...SKILL_VOICE_IDS,
@@ -69,6 +77,9 @@ export const SPEAKER_IDS = [
 ] as const satisfies readonly SpeakerId[];
 
 const SPEAKER_ID_SET = new Set<string>(SPEAKER_IDS);
+const INNER_VOICE_RANK_VAR_KEY_SET = new Set<string>(
+  INNER_VOICE_RANK_VAR_KEYS,
+);
 
 export interface InnerVoicePalette {
   accent: string;
@@ -226,6 +237,25 @@ export const isSkillVoiceId = (value: string): value is SkillVoiceId =>
 
 export const isInnerVoiceId = (value: string): value is InnerVoiceId =>
   INNER_VOICE_ID_SET.has(value);
+
+export const innerVoiceRankVarKeyFor = (
+  voiceId: InnerVoiceId,
+): InnerVoiceRankVarKey => `${INNER_VOICE_RANK_VAR_PREFIX}${voiceId}`;
+
+export const isInnerVoiceRankVarKey = (
+  value: string,
+): value is InnerVoiceRankVarKey => INNER_VOICE_RANK_VAR_KEY_SET.has(value);
+
+export const normalizeInnerVoiceRank = (value: number): number => {
+  if (!Number.isFinite(value)) {
+    return INNER_VOICE_RANK_MIN;
+  }
+
+  return Math.min(
+    INNER_VOICE_RANK_MAX,
+    Math.max(INNER_VOICE_RANK_MIN, Math.trunc(value)),
+  );
+};
 
 export const isSpeakerId = (value: string): value is SpeakerId =>
   SPEAKER_ID_SET.has(value);

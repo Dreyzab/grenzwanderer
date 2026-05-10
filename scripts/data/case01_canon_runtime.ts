@@ -353,7 +353,12 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         nextNodeId: "scene_case01_train_assistant_departure",
         inlineText: "**[Assistant]**:\n— Вы правы, сэр. Не стали бы они арендовать нам номер просто так.",
         effects: [
-          { type: "add_var", key: "attr_logic", value: 1 }
+          { type: "add_var", key: "attr_logic", value: 1 },
+          {
+            type: "change_inner_voice_rank",
+            voiceId: "inner_analyst",
+            delta: 1,
+          },
         ],
         innerVoiceHints: [
           {
@@ -369,7 +374,12 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         nextNodeId: "scene_case01_train_assistant_departure",
         inlineText: "**[Assistant]**:\n— Полностью согласен, сэр. Мы не можем оставить это без внимания.",
         effects: [
-          { type: "add_var", key: "attr_authority", value: 1 }
+          { type: "add_var", key: "attr_authority", value: 1 },
+          {
+            type: "change_inner_voice_rank",
+            voiceId: "inner_leader",
+            delta: 1,
+          },
         ],
         innerVoiceHints: [
           {
@@ -385,7 +395,12 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         nextNodeId: "scene_case01_train_assistant_departure",
         inlineText: "**[Assistant]**:\n— Ваше чутье вас редко подводит, сэр. Будем настороже.",
         effects: [
-          { type: "add_var", key: "attr_intuition", value: 1 }
+          { type: "add_var", key: "attr_intuition", value: 1 },
+          {
+            type: "change_inner_voice_rank",
+            voiceId: "inner_guide",
+            delta: 1,
+          },
         ],
         innerVoiceHints: [
           {
@@ -409,11 +424,47 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     characterId: "npc_felix_hartmann",
     choices: [
       {
+        id: "CASE01_TRAIN_ASSISTANT_LEADER_COMMITMENT",
+        text: "Give Felix a clear order: keep the compartment together until Freiburg.",
+        nextNodeId: CASE01_DINING_NODE_IDS.intro,
+        visibleIfAll: [
+          { type: "inner_voice_rank_gte", voiceId: "inner_leader", value: 1 },
+        ],
+        innerVoiceHints: [
+          {
+            voiceId: "inner_leader",
+            stance: "supports",
+            text: "A group survives the crossing when someone accepts command.",
+          },
+          {
+            voiceId: "inner_cynic",
+            stance: "opposes",
+            text: "Authority makes you visible before the city has shown its teeth.",
+          },
+        ],
+        effects: [
+          {
+            type: "discover_fact",
+            caseId: "case_bankhaus_krebs_false_trail",
+            factId: "fact_inner_leader_route_committed",
+          },
+          {
+            type: "track_event",
+            eventName: "inner_leader_train_commitment",
+            tags: { voiceId: "inner_leader" },
+          },
+        ],
+      },
+      {
         id: "CASE01_TRAIN_ASSISTANT_EAT_TOGETHER",
         text: "Wait for me! I've worked up an appetite�I need a bite to eat.",
         nextNodeId: CASE01_DINING_NODE_IDS.intro,
         effects: [
-          { type: "change_relationship", characterId: "npc_felix_hartmann", delta: 1 },
+          {
+            type: "change_relationship",
+            characterId: "npc_felix_hartmann",
+            delta: 1,
+          },
         ],
       },
       {
@@ -1027,7 +1078,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
     titleOverride: "Platform Landing",
     bodyOverride:
-      "**[Narrator]**:\nПар бьёт в лицо, как первое предупреждение. Вокзал Фрайбурга — не карлсруэвская элегантность, а рабочий механизм: чугунные балки, стеклянная крыша в разводах копоти, носильщики с тележками, пахнущие углём и мокрой шерстью.\n\nЧасы над перроном показывают 08:47. Город уже проснулся.\n\n**[attr_encyclopedia]**:\nНеоренессанс. Построено при расширении Баденских железных дорог. Базель в часе пути, Страсбург — в двух. Для контрабанды и побегов — идеальный узел.",
+      "**[Narrator]**:\nПар бьёт в лицо — отдых кончился. Вокзал грубый: чугунные балки, стекло в копоти, носильщики с тележками; пахнет углём и мокрой шерстью.\n\nЧасы над перроном показывают 08:47. Город уже на ногах — и не обязан был подстраиваться под ваше пробуждение.\n\n**[attr_encyclopedia]**:\nНеоренессанс. Построено при расширении Баденских железных дорог. Базель в часе пути, Страсбург — в двух. Для контрабанды и побегов — идеальный узел.",
     backgroundVideoUrl: `${CASE01_START_VIDEO_BASE_PATH}/Video_voza_na_peronu.mp4`,
     backgroundVideoPosterUrl: CASE01_HBF_BG,
     narrativeLayout: "log",
@@ -1582,7 +1633,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     titleOverride: "The Rathaus Summit",
     bodyOverride:
       "The Oberbuergermeister taps his signet ring against the oak. Victoria stands by the window, a silent analyst in a field uniform. Felix waits with the dossier.\n\n'The Bankhaus Krebs is a pillar of Freiburg,' the Mayor says. 'If a wagon vanishes there, it is a scandal we cannot afford.'",
-    backgroundUrl: CASE01_RATHAUS_BG,
+    backgroundUrl: CASE01_BG_RATHAUS,
     choices: [
       {
         id: "RATHAUS_ACCEPT_PARTNERSHIP",

@@ -1,4 +1,7 @@
-import { resolvePsycheVarKey } from "../../../../data/innerVoiceContract";
+import {
+  innerVoiceRankVarKeyFor,
+  resolvePsycheVarKey,
+} from "../../../../data/innerVoiceContract";
 import { openBattleModeInternal } from "./battle_runtime";
 import { openCommandModeInternal } from "./command_runtime";
 import {
@@ -246,6 +249,18 @@ export const applyEffects = (
     }
     if (effect.type === "change_psyche_axis") {
       addToVar(ctx, resolvePsycheVarKey(effect.axis), effect.delta);
+      continue;
+    }
+    if (effect.type === "change_inner_voice_rank") {
+      const rankKey = innerVoiceRankVarKeyFor(effect.voiceId);
+      addToVar(ctx, rankKey, effect.delta);
+      emitTelemetry(ctx, "inner_voice_rank_changed", {
+        voiceId: effect.voiceId,
+        delta: effect.delta,
+        nextRank: getVar(ctx, rankKey),
+        sourceType: source?.sourceType ?? "vn_effect",
+        sourceId: source?.sourceId ?? effect.voiceId,
+      });
       continue;
     }
 

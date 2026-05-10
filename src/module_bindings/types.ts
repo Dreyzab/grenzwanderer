@@ -581,6 +581,13 @@ export const TelemetryAggregate = __t.object("TelemetryAggregate", {
 });
 export type TelemetryAggregate = __Infer<typeof TelemetryAggregate>;
 
+export const TelemetryAggregateCheckpoint = __t.object("TelemetryAggregateCheckpoint", {
+  checkpointKey: __t.string(),
+  nextBucketStart: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+});
+export type TelemetryAggregateCheckpoint = __Infer<typeof TelemetryAggregateCheckpoint>;
+
 export const TelemetryAggregateSchedule = __t.object("TelemetryAggregateSchedule", {
   scheduledId: __t.u64(),
   scheduledAt: __t.scheduleAt(),

@@ -63,12 +63,24 @@ type HarnessProps = {
   currentSessionPointer?: string | null;
   isTyping?: boolean;
   isSfxMuted?: boolean;
-  performSkillCheck?: ReturnType<typeof vi.fn>;
-  recordChoice?: ReturnType<typeof vi.fn>;
-  playImpactSfx?: ReturnType<typeof vi.fn>;
-  markInteractionHandled?: ReturnType<typeof vi.fn>;
-  interruptTyping?: ReturnType<typeof vi.fn>;
-  handleResolvedSkillCheck?: ReturnType<typeof vi.fn>;
+  performSkillCheck?: (input: {
+    requestId: string;
+    scenarioId: string;
+    checkId: string;
+    fortuneSpend?: number;
+  }) => Promise<unknown>;
+  recordChoice?: (input: {
+    requestId: string;
+    scenarioId: string;
+    choiceId: string;
+  }) => Promise<unknown>;
+  playImpactSfx?: (passed: boolean) => void | Promise<void>;
+  markInteractionHandled?: () => void;
+  interruptTyping?: () => void;
+  handleResolvedSkillCheck?: (
+    pending: any,
+    matchedResult: SkillCheckResultLike,
+  ) => void;
 };
 
 function useHarness(props: HarnessProps = {}) {
@@ -92,16 +104,38 @@ function useHarness(props: HarnessProps = {}) {
     mySkillResults: props.mySkillResults ?? [],
     currentDiceMode: "d20",
     isTyping: props.isTyping ?? false,
-    interruptTyping: props.interruptTyping ?? vi.fn(),
+    interruptTyping: props.interruptTyping ?? vi.fn<() => void>(),
     isSfxMuted: props.isSfxMuted ?? false,
-    playImpactSfx: props.playImpactSfx ?? vi.fn(),
-    markInteractionHandled: props.markInteractionHandled ?? vi.fn(),
+    playImpactSfx: props.playImpactSfx ?? vi.fn<(passed: boolean) => void>(),
+    markInteractionHandled: props.markInteractionHandled ?? vi.fn<() => void>(),
     getChoiceChancePercent: () => 85,
     getChoiceEffectiveDifficulty: () => 8,
-    handleResolvedSkillCheck: props.handleResolvedSkillCheck ?? vi.fn(),
+    handleResolvedSkillCheck:
+      props.handleResolvedSkillCheck ??
+      vi.fn<(pending: any, matchedResult: SkillCheckResultLike) => void>(),
     performSkillCheck:
-      props.performSkillCheck ?? vi.fn().mockResolvedValue(undefined),
-    recordChoice: props.recordChoice ?? vi.fn().mockResolvedValue(undefined),
+      props.performSkillCheck ??
+      vi
+        .fn<
+          (input: {
+            requestId: string;
+            scenarioId: string;
+            checkId: string;
+            fortuneSpend?: number;
+          }) => Promise<unknown>
+        >()
+        .mockResolvedValue(undefined),
+    recordChoice:
+      props.recordChoice ??
+      vi
+        .fn<
+          (input: {
+            requestId: string;
+            scenarioId: string;
+            choiceId: string;
+          }) => Promise<unknown>
+        >()
+        .mockResolvedValue(undefined),
     setTransitionState,
     setStatusLine,
     setError,

@@ -12,6 +12,7 @@
     "allowImportingTsExtensions": true,
     "noImplicitAny": true,
     "moduleResolution": "bundler",
+    "types": [],
     "isolatedDeclarations": false,
 
     // This library is ESM-only, do not import commonjs modules

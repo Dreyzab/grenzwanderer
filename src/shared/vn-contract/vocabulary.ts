@@ -75,13 +75,6 @@ export const VN_CONDITION_TYPE_SET: ReadonlySet<string> = new Set(
 );
 export const VN_EFFECT_TYPE_SET: ReadonlySet<string> = new Set(VN_EFFECT_TYPES);
 
-const hasSameSortedValues = (
-  left: readonly string[],
-  right: readonly string[],
-): boolean =>
-  left.length === right.length &&
-  left.every((entry, index) => entry === right[index]);
-
 export const createVnContractMetadata = (): VnContractMetadata => ({
   contractVersion: VN_CONTRACT_VERSION,
   vocabulary: {
@@ -98,7 +91,6 @@ export const isVnContractMetadata = (
   }
   const metadata = value as Record<string, unknown>;
   const vocabulary = metadata.vocabulary as Record<string, unknown> | undefined;
-  const expected = createVnContractMetadata();
 
   return (
     metadata.contractVersion === VN_CONTRACT_VERSION &&

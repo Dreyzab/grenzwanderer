@@ -7,7 +7,6 @@ import {
   loadPilotSnapshot,
   publishPilotSnapshot,
   resolveChoiceId,
-  runScenarioPath,
   subscribeSocialTables,
 } from "./social-smoke-helpers";
 
@@ -81,19 +80,15 @@ const runPlayerSmoke = async (
             profileId: "detective",
             resetProgress: true,
           });
-          await runScenarioPath(
-            conn,
-            snapshot,
-            scenarioId,
-            [
-              ...trainEntrySteps,
-              {
-                nodeId: "scene_case01_train_door_creaks",
-                choiceId: routeChoiceId,
-              },
-            ],
-            nextRequestId,
-          );
+          for (const step of [
+            ...trainEntrySteps,
+            {
+              nodeId: "scene_case01_train_door_creaks",
+              choiceId: routeChoiceId,
+            },
+          ]) {
+            await recordChoice(conn, step.nodeId, step.choiceId);
+          }
 
           await assertRoute(conn, playerHex);
 

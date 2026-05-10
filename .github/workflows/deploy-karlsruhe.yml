@@ -116,7 +116,7 @@ jobs:
         run: bun run build:karlsruhe
         env:
           VITE_RELEASE_PROFILE: karlsruhe_event
-          VITE_SPACETIMEDB_HOST: https://maincloud.spacetimedb.com
+          VITE_SPACETIMEDB_HOST: wss://maincloud.spacetimedb.com
           VITE_SPACETIMEDB_DB_NAME: grezwandererdata-karlsruhe
           VITE_SCENE_GEN_BASE_URL: /api
           VITE_APP_CHECK_ENABLED: ${{ vars.APP_CHECK_FRONTEND_ENABLED || 'false' }}

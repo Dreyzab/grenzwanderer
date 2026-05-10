@@ -20,13 +20,25 @@ const parseReleaseProfile = (
     ? (value as ReleaseProfile)
     : fallback;
 
-export const SPACETIMEDB_HOST =
+const normalizeSpacetimeHost = (host: string): string => {
+  if (host.startsWith("https://")) {
+    return `wss://${host.slice("https://".length)}`;
+  }
+  if (host.startsWith("http://")) {
+    return `ws://${host.slice("http://".length)}`;
+  }
+  return host;
+};
+
+const rawSpacetimeHost =
   import.meta.env.PROD && GENERATED_SPACETIMEDB_HOST.length > 0
     ? GENERATED_SPACETIMEDB_HOST
     : (import.meta.env.VITE_SPACETIMEDB_HOST ??
       (GENERATED_SPACETIMEDB_HOST.length > 0
         ? GENERATED_SPACETIMEDB_HOST
         : "ws://localhost:3001"));
+
+export const SPACETIMEDB_HOST = normalizeSpacetimeHost(rawSpacetimeHost);
 
 export const SPACETIMEDB_DB_NAME =
   import.meta.env.PROD && GENERATED_SPACETIMEDB_DB_NAME.length > 0

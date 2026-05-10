@@ -28,7 +28,7 @@ const releaseProfile = resolveProfile();
 const spacetimeHost =
   releaseProfile === "karlsruhe_event" ||
   releaseProfile === "freiburg_detective"
-    ? "https://maincloud.spacetimedb.com"
+    ? "wss://maincloud.spacetimedb.com"
     : (process.env.VITE_SPACETIMEDB_HOST?.trim() ?? "");
 
 const spacetimeDbName =

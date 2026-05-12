@@ -186,6 +186,7 @@
         "scene_case01_train_silent_beat",
         "scene_case01_train_dining_car_intro",
         "scene_case01_train_dining_car_mother",
+        "scene_case01_train_dining_car_mother_reaction",
         "scene_case01_train_dining_car_marriage_joke",
         "scene_case01_train_dining_car_silent_branch",
         "scene_case01_train_dining_car_intro_self_branch",
@@ -2143,12 +2144,12 @@
       "id": "scene_case01_train_dining_car_mother",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nЗа угловым столиком расположилась матушка Феликса. Она неторопливо потягивала белое вино, внимательно слушая свою спутницу — девушку с ярко-рыжими волосами, которая что-то оживленно рассказывала, активно жестикулируя. Огненный цвет ее волос казался вызывающе ярким в приглушенном утреннем свете вагона.\n\n**[Redhead]**:\n— ...и этот чиновник всерьез грозился засадить телеграфную службу, потому что точки в его депеше показались ему «недостаточно почтительными»... Это же просто смешно... Элеонора?\n\n**[Assistant]**:\n— Матушка, мы решили выпить перед прибытием. Не представите нас вашей спутнице?",
+      "body": "**[Narrator]**:\nЗа угловым столиком расположилась матушка Феликса. Она неторопливо потягивала белое вино, внимательно слушая свою спутницу — девушку с ярко-рыжими волосами, которая что-то оживленно рассказывала, активно жестикулируя. Огненный цвет ее волос казался вызывающе ярким в приглушенном утреннем свете вагона.\n\n**[Redhead]**:\n— ...и этот чиновник всерьез грозился засудить телеграфную службу, потому что точки в его депеше показались ему «недостаточно почтительными»... Это же просто смешно... Элеонора?",
       "choices": [
         {
           "id": "AUTO_CONTINUE_DINING_CAR_MOTHER",
           "text": "Continue.",
-          "nextNodeId": "scene_case01_train_dining_car_marriage_joke"
+          "nextNodeId": "scene_case01_train_dining_car_mother_reaction"
         }
       ],
       "onEnter": [
@@ -2169,6 +2170,22 @@
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_mother_reaction",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Journey to Freiburg",
+      "body": "**[Assistant]**:\n— Матушка, мы решили выпить перед прибытием. Не представите нас вашей спутнице?",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_DINING_CAR_MOTHER_REACTION",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_train_dining_car_marriage_joke"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother_attentive_eye_contact.png",
       "sceneGroupId": "train_assistant",
       "narrativeLayout": "log"
     },
@@ -2194,7 +2211,7 @@
           "nextNodeId": "scene_case01_train_dining_car_hotel_branch"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "sceneGroupId": "train_assistant",
       "narrativeLayout": "log"
     },
@@ -2217,7 +2234,7 @@
           ]
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "sceneGroupId": "train_assistant",
       "narrativeLayout": "log"
     },
@@ -2240,7 +2257,7 @@
           ]
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "sceneGroupId": "train_assistant",
       "narrativeLayout": "log"
     },
@@ -2268,7 +2285,7 @@
           ]
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "sceneGroupId": "train_assistant",
       "narrativeLayout": "log"
     },
@@ -2534,7 +2551,7 @@
           "nextNodeId": "scene_case01_corridor_reflection"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2551,7 +2568,7 @@
           "nextNodeId": "scene_case01_corridor_reflection_silent_defend"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2568,7 +2585,7 @@
           "nextNodeId": "scene_case01_corridor_reflection_hotel_defend"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2585,7 +2602,7 @@
           "nextNodeId": "scene_case01_corridor_reflection_intro_observe"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2602,7 +2619,7 @@
           "nextNodeId": "scene_case01_corridor_reflection_silent_observe"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2619,7 +2636,7 @@
           "nextNodeId": "scene_case01_corridor_reflection_hotel_observe"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2636,7 +2653,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -2652,7 +2669,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -2668,7 +2685,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -2684,7 +2701,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -2700,7 +2717,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -2716,7 +2733,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -12119,5 +12136,5 @@
       }
     ]
   },
-  "checksum": "5ecbf783c24417c83d5a70f1ac253f745fa34d74dda287943980369f72910aa3"
+  "checksum": "5b4fd1eab78efacacf0018e39ee5e6e8bd559090d5388ad7bc5bec639e242fb3"
 }

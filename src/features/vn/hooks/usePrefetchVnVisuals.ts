@@ -1,58 +1,17 @@
 import { useEffect, useMemo, useRef } from "react";
+import {
+  DEFAULT_PREFETCH_IDLE_TIMEOUT_MS,
+  prefetchImagesSync,
+  scheduleIdlePrefetch,
+  shouldSkipPrefetchForConnection,
+} from "../prefetch/prefetchImageAssets";
 
-const MAX_PREFETCH = 3;
-const DECODE_BUDGET = 1;
-const PREFETCH_IDLE_TIMEOUT_MS = 250;
+const DEFAULT_MAX_PREFETCH = 3;
 
-interface NetworkInformationLike {
-  effectiveType?: string;
-  saveData?: boolean;
-}
-
-type NavigatorWithConnection = Navigator & {
-  connection?: NetworkInformationLike;
-};
-
-type WindowWithIdleCallback = Window &
-  typeof globalThis & {
-    cancelIdleCallback?: (handle: number) => void;
-    requestIdleCallback?: (
-      callback: () => void,
-      options?: { timeout?: number },
-    ) => number;
-  };
-
-const shouldSkipPrefetchForConnection = (): boolean => {
-  if (typeof navigator === "undefined") {
-    return false;
-  }
-
-  const connection = (navigator as NavigatorWithConnection).connection;
-  return (
-    connection?.saveData === true ||
-    connection?.effectiveType === "slow-2g" ||
-    connection?.effectiveType === "2g"
-  );
-};
-
-const scheduleIdlePrefetch = (callback: () => void): (() => void) => {
-  if (typeof window === "undefined") {
-    return () => undefined;
-  }
-
-  const browserWindow = window as WindowWithIdleCallback;
-  if (browserWindow.requestIdleCallback && browserWindow.cancelIdleCallback) {
-    const id = browserWindow.requestIdleCallback(callback, {
-      timeout: PREFETCH_IDLE_TIMEOUT_MS,
-    });
-    return () => browserWindow.cancelIdleCallback?.(id);
-  }
-
-  const id = browserWindow.setTimeout(callback, PREFETCH_IDLE_TIMEOUT_MS);
-  return () => browserWindow.clearTimeout(id);
-};
-
-const normalizePrefetchQueue = (urls: readonly string[]): string[] => {
+const normalizePrefetchQueue = (
+  urls: readonly string[],
+  maxPrefetch: number,
+): string[] => {
   const seen = new Set<string>();
   const normalized: string[] = [];
 
@@ -65,7 +24,7 @@ const normalizePrefetchQueue = (urls: readonly string[]): string[] => {
     seen.add(trimmed);
     normalized.push(trimmed);
 
-    if (normalized.length >= MAX_PREFETCH) {
+    if (normalized.length >= maxPrefetch) {
       break;
     }
   }
@@ -73,12 +32,22 @@ const normalizePrefetchQueue = (urls: readonly string[]): string[] => {
   return normalized;
 };
 
+export interface UsePrefetchVnVisualsOptions {
+  /** Max simultaneous image prefetches per effect tick. Defaults to 3. */
+  maxPrefetch?: number;
+}
+
 export function usePrefetchVnVisuals(
   urls: readonly string[] | undefined,
   enabled: boolean,
+  options?: UsePrefetchVnVisualsOptions,
 ): void {
+  const maxPrefetch = options?.maxPrefetch ?? DEFAULT_MAX_PREFETCH;
   const generationRef = useRef(0);
-  const queue = useMemo(() => normalizePrefetchQueue(urls ?? []), [urls]);
+  const queue = useMemo(
+    () => normalizePrefetchQueue(urls ?? [], maxPrefetch),
+    [urls, maxPrefetch],
+  );
   const queueKey = queue.join("\0");
 
   useEffect(() => {
@@ -89,52 +58,19 @@ export function usePrefetchVnVisuals(
       return undefined;
     }
 
-    const activeImages = new Set<HTMLImageElement>();
-    const releaseImage = (img: HTMLImageElement) => {
-      img.onload = null;
-      img.onerror = null;
-      activeImages.delete(img);
-    };
+    let prefetchHandle: ReturnType<typeof prefetchImagesSync> | null = null;
 
     const cancelIdle = scheduleIdlePrefetch(() => {
       if (generationRef.current !== generation) {
         return;
       }
 
-      queue.forEach((url, index) => {
-        const img = new Image();
-        activeImages.add(img);
-        img.decoding = "async";
-
-        img.onload = () => {
-          if (generationRef.current !== generation) {
-            releaseImage(img);
-            return;
-          }
-
-          if (index < DECODE_BUDGET && typeof img.decode === "function") {
-            void img
-              .decode()
-              .catch(() => undefined)
-              .finally(() => releaseImage(img));
-            return;
-          }
-
-          releaseImage(img);
-        };
-
-        img.onerror = () => releaseImage(img);
-        img.src = url;
-      });
-    });
+      prefetchHandle = prefetchImagesSync(queue, { decodeBudget: 1 });
+    }, DEFAULT_PREFETCH_IDLE_TIMEOUT_MS);
 
     return () => {
       cancelIdle();
-      activeImages.forEach((img) => {
-        releaseImage(img);
-        img.removeAttribute("src");
-      });
-      activeImages.clear();
+      prefetchHandle?.cancel();
     };
   }, [enabled, queue, queueKey]);
 }

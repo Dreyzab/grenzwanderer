@@ -10,6 +10,7 @@ import { useKarlsruheEntryGate } from "./useKarlsruheEntryGate";
 import { useShellNavigation } from "./useShellNavigation";
 import { useShellSessionAutoTabs } from "./useShellSessionAutoTabs";
 import { useVnLaunchCurtain } from "./useVnLaunchCurtain";
+import { DebugOverlay, devLogger } from "../shared/devtools";
 import "./AppShell.css";
 
 const AppShell = () => {
@@ -58,6 +59,14 @@ const AppShell = () => {
   });
 
   useEffect(() => {
+    devLogger.navigation(`tab=${activeTab}`, {
+      pathname,
+      vnScenarioId,
+      entryGateState,
+    });
+  }, [activeTab, pathname, vnScenarioId, entryGateState]);
+
+  useEffect(() => {
     logShellDebug({
       hypothesisId: "H1,H3",
       location: "AppShell.tsx:gates-tab",
@@ -90,6 +99,7 @@ const AppShell = () => {
       <div className="app-shell app-shell-loading">
         <h1>Grenzwanderer</h1>
         <p>Connecting to SpacetimeDB...</p>
+        <DebugOverlay />
       </div>
     );
   }
@@ -117,6 +127,7 @@ const AppShell = () => {
         setVnScenarioId={setVnScenarioId}
         vnScenarioId={vnScenarioId}
       />
+      <DebugOverlay />
     </ShellChrome>
   );
 };

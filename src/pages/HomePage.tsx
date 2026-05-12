@@ -10,6 +10,7 @@ import {
   resolveFreiburgEntryTarget,
   type FreiburgEntryTarget,
 } from "../features/vn/entry/freiburgEntry";
+import { useHomeEntryVisualPrefetch } from "../features/vn/prefetch/useHomeEntryVisualPrefetch";
 import { parseSnapshot } from "../features/vn/vnContent";
 import { reducers, tables } from "../shared/spacetime/bindings";
 import { useIdentity } from "../shared/spacetime/useIdentity";
@@ -173,6 +174,9 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
 
     return parseSnapshot(snapshotRow.payloadJson);
   }, [activeVersion, snapshots]);
+
+  useHomeEntryVisualPrefetch(snapshot, Boolean(snapshot));
+
   const contentReady =
     (versionsReady && snapshotsReady) || Boolean(activeVersion && snapshot);
   const playerStateReady =

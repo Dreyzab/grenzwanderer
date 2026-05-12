@@ -29,6 +29,7 @@ export const CASE01_FINAL_OUTCOME_COMPROMISED = 2;
 export const CASE01_DINING_NODE_IDS = {
   intro: "scene_case01_train_dining_car_intro",
   mother: "scene_case01_train_dining_car_mother",
+  motherReaction: "scene_case01_train_dining_car_mother_reaction",
   marriageJoke: "scene_case01_train_dining_car_marriage_joke",
   silentBranch: "scene_case01_train_dining_car_silent_branch",
   introSelfBranch: "scene_case01_train_dining_car_intro_self_branch",

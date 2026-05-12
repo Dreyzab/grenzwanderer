@@ -13,6 +13,7 @@ import {
   initializeMonitoring,
   setMonitoringIdentity,
 } from "./shared/monitoring/sentry";
+import { installDevLogger } from "./shared/devtools";
 import "./index.css";
 
 const TOKEN_KEY = `${SPACETIMEDB_HOST}/${SPACETIMEDB_DB_NAME}/auth_token`;
@@ -35,6 +36,7 @@ const retryWithoutStoredToken = () => {
 };
 
 initializeMonitoring();
+installDevLogger();
 
 const onConnect = (_conn: DbConnection, identity: Identity, token: string) => {
   connectedOnce = true;

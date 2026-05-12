@@ -42,6 +42,8 @@ const CASE01_TRAIN_COMPARTMENT_BG = `${CASE01_START_IMAGE_BASE_PATH}/compartment
 const CASE01_TRAIN_ASSISTANT_BG = `${CASE01_START_IMAGE_BASE_PATH}/train_assistant.png`;
 const CASE01_TRAIN_DINING_CAR_BG = `${CASE01_START_IMAGE_BASE_PATH}/train_dining_car.png`;
 const CASE01_TRAIN_DINING_CAR_MOTHER_BG = `${CASE01_START_IMAGE_BASE_PATH}/train_dining_car_mother.png`;
+const CASE01_TRAIN_DINING_CAR_MOTHER_EYE_CONTACT_BG = `${CASE01_START_IMAGE_BASE_PATH}/train_dining_car_mother_attentive_eye_contact.png`;
+const CASE01_TRAIN_DINING_CAR_GROUP_BG = `${CASE01_START_IMAGE_BASE_PATH}/train_dining_car_group.png`;
 const CASE01_PLATFORM_STILL_BG = `${CASE01_START_IMAGE_BASE_PATH}/Ankommen.png`;
 const CASE01_HBF_BG = `${CASE01_START_IMAGE_BASE_PATH}/HBF.png`;
 const CASE01_NEWSBOY_BG = `${CASE01_START_IMAGE_BASE_PATH}/boy_newspaper_styled.png`;
@@ -96,6 +98,7 @@ export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
       "scene_case01_train_silent_beat",
       CASE01_DINING_NODE_IDS.intro,
       CASE01_DINING_NODE_IDS.mother,
+      CASE01_DINING_NODE_IDS.motherReaction,
       CASE01_DINING_NODE_IDS.marriageJoke,
       CASE01_DINING_NODE_IDS.silentBranch,
       CASE01_DINING_NODE_IDS.introSelfBranch,
@@ -512,7 +515,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     id: CASE01_DINING_NODE_IDS.mother,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
-    bodyOverride: "**[Narrator]**:\nЗа угловым столиком расположилась матушка Феликса. Она неторопливо потягивала белое вино, внимательно слушая свою спутницу — девушку с ярко-рыжими волосами, которая что-то оживленно рассказывала, активно жестикулируя. Огненный цвет ее волос казался вызывающе ярким в приглушенном утреннем свете вагона.\n\n**[Redhead]**:\n— ...и этот чиновник всерьез грозился засадить телеграфную службу, потому что точки в его депеше показались ему «недостаточно почтительными»... Это же просто смешно... Элеонора?\n\n**[Assistant]**:\n— Матушка, мы решили выпить перед прибытием. Не представите нас вашей спутнице?",
+    bodyOverride: "**[Narrator]**:\nЗа угловым столиком расположилась матушка Феликса. Она неторопливо потягивала белое вино, внимательно слушая свою спутницу — девушку с ярко-рыжими волосами, которая что-то оживленно рассказывала, активно жестикулируя. Огненный цвет ее волос казался вызывающе ярким в приглушенном утреннем свете вагона.\n\n**[Redhead]**:\n— ...и этот чиновник всерьез грозился засудить телеграфную службу, потому что точки в его депеше показались ему «недостаточно почтительными»... Это же просто смешно... Элеонора?",
     backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
@@ -525,6 +528,22 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_DINING_CAR_MOTHER",
         text: "Continue.",
+        nextNodeId: CASE01_DINING_NODE_IDS.motherReaction,
+      },
+    ],
+  },
+  {
+    id: CASE01_DINING_NODE_IDS.motherReaction,
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    bodyOverride: "**[Assistant]**:\n— Матушка, мы решили выпить перед прибытием. Не представите нас вашей спутнице?",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_EYE_CONTACT_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_assistant",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_DINING_CAR_MOTHER_REACTION",
+        text: "Continue.",
         nextNodeId: CASE01_DINING_NODE_IDS.marriageJoke,
       },
     ],
@@ -533,8 +552,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     id: CASE01_DINING_NODE_IDS.marriageJoke,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     bodyOverride: "**[Элеонора]**:\n— Разумеется. Лотте Ребер. О Фрайбурге она знает улицы, людей и такие двери, которые приличные дома предпочитают не замечать. А это — мой сын Феликс Хартманн. Он смотрит в окно, когда хочет, чтобы разговор обошелся без него.\n\n**[Лотте]**:\n— Элеонора делает из меня почти учреждение. Я всего лишь запоминаю, куда люди торопятся, когда уверяют, что просто гуляют.",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
     choices: [
@@ -560,7 +579,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride: "**[Assistant]**:\n— Извините. Это детектив [Name]. Он помогает нам с переездом.\n\n**[Narrator]**:\nФеликс произносит «нам» без всякого тепла, но вовремя: неловкость успевает стать его, а не вашей.\n\n**[Лотте]**:\n— Тогда будем знакомы. Люди, которые умеют молчать за столом, во Фрайбурге долго не останутся незамеченными.",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
     choices: [
@@ -583,7 +602,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride: "**[Detective]**:\n— Разрешите представиться. Детектив [Name]. Прибыл во Фрайбург по делу.\n\n**[Narrator]**:\nЭлеонора повторяет ваше имя беззвучно, одними губами, будто примеряет его к будущей карточке на столе.\n\n**[Лотте]**:\n— Лотте Ребер. Рада встрече, детектив. По делу — тоже, раз уж оно привело вас в наш вагон.",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
     choices: [
@@ -606,7 +625,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride: "**[Лотте]**:\n— «Zum Goldenen Adler»? Хороший выбор. Старый камень, тяжелые портьеры, постояльцы, которым нравится, когда их не замечают.\n\n**[Narrator]**:\nОна произносит название без вопроса. Не вспоминает — сверяет.",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
     choices: [
@@ -844,7 +863,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride: "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, [Name]. Фрайбург маленький — а имена в нём ходят быстрее людей.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_dining_car",
     characterId: "npc_mother_hartmann",
@@ -862,7 +881,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
       "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи. Вы хороший слушатель — для детектива это редкость. Обычно они говорят, пока собеседник не сдастся.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_dining_car",
     characterId: "npc_mother_hartmann",
@@ -880,7 +899,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
       "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, детектив. «Zum Goldenen Adler» — хороший выбор. Если вдруг переедете, я обычно знаю раньше хозяина.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_dining_car",
     characterId: "npc_mother_hartmann",
@@ -898,7 +917,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride:
       "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Одна строка зачёркнута так ровно, будто это не пометка, а отменённый маршрут.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, [Name]. Фрайбург маленький — а имена в нём ходят быстрее людей.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_dining_car",
     characterId: "npc_mother_hartmann",
@@ -915,7 +934,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride: "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Одна строка зачёркнута так ровно, будто это не пометка, а отменённый маршрут.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи. Вы хороший слушатель — для детектива это редкость. Обычно они говорят, пока собеседник не сдастся.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_dining_car",
     characterId: "npc_mother_hartmann",
@@ -932,7 +951,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     bodyOverride: "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Рядом с нижней строкой стоит ваше имя, ещё без титула.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, детектив. «Zum Goldenen Adler» — хороший выбор. Если вдруг переедете, я обычно знаю раньше хозяина.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_dining_car",
     characterId: "npc_mother_hartmann",
@@ -951,7 +970,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     titleOverride: "Corridor Reflection",
     bodyOverride:
       "**[Narrator]**:\nВ купе тихо. Только ритм рельсов и мысли, которые ещё не оформились в вопросы.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_corridor",
     choices: [
@@ -969,7 +988,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     titleOverride: "Corridor Reflection",
     bodyOverride:
       "**[Narrator]**:\nФеликс не поблагодарил. Но он заметил — это видно по тому, как он НЕ посмотрел в вашу сторону при прощании. Молчание тоже разведка. Они говорили — вы слушали. Теперь вопрос: что из услышанного пригодится.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_corridor",
     choices: [
@@ -987,7 +1006,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     titleOverride: "Corridor Reflection",
     bodyOverride:
       "**[Narrator]**:\nФеликс не поблагодарил. Но он заметил — это видно по тому, как он НЕ посмотрел в вашу сторону при прощании.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_corridor",
     choices: [
@@ -1005,7 +1024,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     titleOverride: "Corridor Reflection",
     bodyOverride:
       "**[Narrator]**:\nУсталость Феликса бросалась в глаза. Двадцать минут до Фрайбурга — и он считает каждую.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_corridor",
     choices: [
@@ -1023,7 +1042,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     titleOverride: "Corridor Reflection",
     bodyOverride:
       "**[Narrator]**:\nМолчание тоже разведка. Они говорили — вы слушали. Теперь вопрос: что из услышанного пригодится.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_corridor",
     choices: [
@@ -1041,7 +1060,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     titleOverride: "Corridor Reflection",
     bodyOverride:
       "**[Narrator]**:\nВ купе тихо. Только ритм рельсов и мысли о гостинице «Zum Goldenen Adler», которая вас ожидает.\n\n**[inner_intuition]**:\nТри попутчика. Один обед. Достаточно ли этого, чтобы понять — стоит ли им доверять? Или правильнее — стоит ли, чтобы они начали доверять вам?",
-    backgroundUrl: CASE01_TRAIN_DINING_CAR_MOTHER_BG,
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_corridor",
     choices: [

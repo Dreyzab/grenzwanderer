@@ -252,18 +252,52 @@ describe("VnChoiceButton", () => {
     );
 
     expect(screen.getAllByLabelText("Leader").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("LEA").length).toBeGreaterThan(0);
-    expect(screen.getAllByLabelText("Cynic").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("CYN").length).toBeGreaterThan(0);
-    expect(screen.getByText("opposes")).toBeInTheDocument();
+    // Compact pill: no 3-letter code, no inline stance text — only the portrait.
+    expect(screen.queryByText("LEA")).toBeNull();
+    expect(screen.queryByText("CYN")).toBeNull();
+    expect(screen.queryByText("opposes")).toBeNull();
+    const primary = document.querySelector(
+      '[data-testid="choice-primary-voice"]',
+    );
+    expect(primary).toHaveAttribute("data-stance", "supports");
+    expect(primary).toHaveAttribute("data-voice-id", "inner_leader");
     expect(
       document.querySelector('img[src="/images/voices/leader.png"]'),
     ).toBeInTheDocument();
-    expect(
-      document.querySelector(
-        'img[src="/images/ui/voices/groups/perception.png"]',
-      ),
-    ).toBeInTheDocument();
+  });
+
+  it("reveals the primary inner-voice hint thought when the avatar is clicked", () => {
+    const innerVoiceHints: ChoiceInnerVoiceHintDisplay[] = [
+      {
+        voiceId: "inner_cynic",
+        label: "Cynic",
+        text: "Do not give leverage away.",
+        stance: "opposes",
+        palette: {
+          accent: "#f87171",
+          accentSoft: "rgba(248, 113, 113, 0.16)",
+          accentBorder: "rgba(248, 113, 113, 0.45)",
+          glow: "rgba(248, 113, 113, 0.18)",
+          glowStrong: "rgba(248, 113, 113, 0.36)",
+          text: "#fee2e2",
+        },
+      },
+    ];
+
+    render(
+      <VnChoiceButton
+        choice={baseChoice}
+        index={0}
+        innerVoiceHints={innerVoiceHints}
+        onClick={() => undefined}
+      />,
+    );
+
+    expect(screen.queryByText("Do not give leverage away.")).toBeNull();
+    const trigger = screen.getByRole("button", { name: "Cynic" });
+    fireEvent.click(trigger);
+    expect(screen.getByText("Do not give leverage away.")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("renders skill-check voice badges with shared voice group assets", () => {
@@ -283,8 +317,9 @@ describe("VnChoiceButton", () => {
       />,
     );
 
-    expect(screen.getByLabelText("Logic")).toBeInTheDocument();
-    expect(screen.getByText("LOG")).toBeInTheDocument();
+    // Skill check has no hint — the compact avatar is decorative (aria-hidden via wrapper),
+    // but the portrait image still renders.
+    expect(screen.getByTestId("choice-primary-avatar")).toBeInTheDocument();
     expect(
       document.querySelector('img[src="/images/ui/voices/groups/logic.png"]'),
     ).toBeInTheDocument();

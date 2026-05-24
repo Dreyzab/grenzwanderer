@@ -59,6 +59,10 @@ const FREIBURG_ORIGIN_ALLOWLIST = {
     choiceId: "BACKSTORY_ARCHIVIST",
     scenarioId: "intro_archivist",
   },
+  witch: {
+    choiceId: "BACKSTORY_WITCH",
+    scenarioId: "case01_hbf_arrival",
+  },
   detective: {
     choiceId: "BACKSTORY_DETECTIVE",
     scenarioId: "case01_hbf_arrival",

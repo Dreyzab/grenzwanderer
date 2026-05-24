@@ -13,6 +13,7 @@ Keep architecture, release procedures, environment expectations, and Git/GitHub 
 - Content release process: `README.md` and `docs/CONTENT_RELEASE_RUNBOOK.md`
 - Architecture boundaries: `ARCHITECTURE.md`
 - Supported flow acceptance: `scripts/acceptance-matrix.ts` and `docs/ACCEPTANCE_MATRIX.md`
+- AI runtime scope: `src/features/ai/contracts.ts`, `spacetimedb/src/reducers/ai*.ts`, `scripts/ai-worker-watch.ts`, and `ARCHITECTURE.md`
 - Migration mapping: `docs/MIGRATION_BRIDGE_DETECTIV0.md`
 
 ## State Separation Policy
@@ -30,6 +31,7 @@ Update docs in the same PR when changing any of:
 - release and content scripts (`scripts/content-*.ts`)
 - build metadata or version wiring (`package.json`, `vite.config.ts`, `src/config.ts`)
 - supported flow entry paths or smoke/gate wiring (`src/pages/HomePage.tsx`, `scripts/smoke-*.ts`, `scripts/acceptance-matrix.ts`)
+- supported AI queue kinds, AI response schemas, or worker completion semantics (`src/features/ai/contracts.ts`, `spacetimedb/src/reducers/ai*.ts`, `scripts/ai-worker-watch.ts`)
 - CI, PR, or release workflows (`.github/workflows/*.yml`)
 - release automation config (`.release-please*.json`)
 - content extraction contract (`scripts/extract-vn-content.ts`)
@@ -61,13 +63,20 @@ Update docs in the same PR when changing any of:
 - `docs/ACCEPTANCE_MATRIX.md`
 - this file
 
-5. CI or governance change
+5. Supported AI queue kind or AI output contract change
+
+- `README.md`
+- `ARCHITECTURE.md`
+- `docs/ACCEPTANCE_MATRIX.md` if smoke coverage changes
+- `docs/INVARIANTS.md` if the display-only boundary changes
+
+6. CI or governance change
 
 - `README.md`
 - `docs/GIT_RELEASE_GOVERNANCE.md`
 - this file if the documentation rule itself changes
 
-6. Detectiv0 parity or migration update
+7. Detectiv0 parity or migration update
 
 - `docs/MIGRATION_BRIDGE_DETECTIV0.md`
 

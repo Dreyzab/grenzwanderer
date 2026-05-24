@@ -228,6 +228,48 @@ const runSmoke = async () =>
             );
           }
 
+          await conn.reducers.beginFreiburgOrigin({
+            requestId: request("witch_with_reset"),
+            profileId: "witch",
+            resetProgress: true,
+          });
+
+          const witchSessions = [...conn.db.vnSession.iter()].filter(
+            (row) => row.playerId.toHexString() === playerHex,
+          );
+          if (
+            witchSessions.length !== 1 ||
+            witchSessions[0].scenarioId !== "case01_hbf_arrival"
+          ) {
+            throw new Error(
+              `Expected single case01_hbf_arrival session after witch reset, got ${JSON.stringify(
+                witchSessions.map((row) => ({
+                  scenarioId: row.scenarioId,
+                  nodeId: row.nodeId,
+                })),
+              )}`,
+            );
+          }
+
+          const witchFlags = [...conn.db.playerFlag.iter()].filter(
+            (row) => row.playerId.toHexString() === playerHex,
+          );
+          if (
+            !witchFlags.some(
+              (row) => row.key === "origin_witch" && row.value,
+            ) ||
+            !witchFlags.some(
+              (row) => row.key === "ability_spiritual_veil_sight" && row.value,
+            ) ||
+            !witchFlags.some(
+              (row) => row.key === "flaw_blood_curse" && row.value,
+            )
+          ) {
+            throw new Error(
+              "Expected witch origin, Veil Sight, and Blood Curse flags after begin reducer",
+            );
+          }
+
           finished = true;
           conn.disconnect();
           resolve();

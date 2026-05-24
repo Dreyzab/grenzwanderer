@@ -1,10 +1,14 @@
 import {
   matchesSkillCheckThought,
   parseCharacterReactionProposal,
+  parseDirectorStepProposal,
   parseGenerateCharacterReactionPayload,
+  parseDmTurnProposal,
   parseGenerateDialogueEnvelope,
   parseGenerateDialoguePayload,
   parseGenerateDialogueResponse,
+  parseGenerateDmTurnPayload,
+  parseGenerateDirectorStepPayload,
 } from "../ai/contracts";
 import type { SceneResultEnvelope } from "../ai/sceneResultEnvelope";
 import { canonicalVoiceIdFor } from "../ai/voiceCanonicalization";
@@ -311,6 +315,34 @@ export const aiRequestMatchesContext = (
     timestampMicros(entry.createdAt) >= context.resultCreatedAtMicros
   );
 };
+
+export const directorRequestMatchesContext = (
+  entry: { payloadJson: unknown },
+  scenarioId: string,
+  nodeId: string,
+): boolean => {
+  const payload = parseGenerateDirectorStepPayload(
+    typeof entry.payloadJson === "string" ? entry.payloadJson : null,
+  );
+  return payload?.scenarioId === scenarioId && payload?.nodeId === nodeId;
+};
+
+export const parseDirectorStepResponse = (value: unknown) =>
+  parseDirectorStepProposal(value);
+
+export const dmTurnRequestMatchesContext = (
+  entry: { payloadJson: unknown },
+  scenarioId: string,
+  nodeId: string,
+): boolean => {
+  const payload = parseGenerateDmTurnPayload(
+    typeof entry.payloadJson === "string" ? entry.payloadJson : null,
+  );
+  return payload?.scenarioId === scenarioId && payload?.nodeId === nodeId;
+};
+
+export const parseDmTurnResponse = (value: unknown) =>
+  parseDmTurnProposal(value);
 
 export const reactionRequestMatchesContext = (
   entry: { payloadJson: unknown; createdAt: unknown },

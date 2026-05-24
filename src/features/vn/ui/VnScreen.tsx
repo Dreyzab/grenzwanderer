@@ -9,6 +9,7 @@ import { useI18n } from "../../i18n/I18nContext";
 import { useVnProvidenceExpansion } from "../hooks/useVnProvidenceExpansion";
 import { useVnSkillChecks } from "../hooks/useVnSkillChecks";
 import { useVnSurfaceInteraction } from "../hooks/useVnSurfaceInteraction";
+import { useVnTutorialState } from "../hooks/useVnTutorialState";
 import { useVnTransitions } from "../hooks/useVnTransitions";
 import { useNextVnVisualPrefetchUrls } from "../hooks/useNextVnVisualPrefetchUrls";
 import { useEffectiveNarrativeLayout } from "../hooks/useEffectiveNarrativeLayout";
@@ -19,6 +20,7 @@ import { useVnSession } from "../hooks/useVnSession";
 import { useNarrativeLog } from "../log/useNarrativeLog";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
 import type { VnChoice } from "../types";
+import type { GenerateDialoguePayload } from "../../ai/contracts";
 import { VnScreenHeader } from "./VnScreenHeader";
 import { VnScreenChoicesSlot } from "./VnScreenChoicesSlot";
 import { VnScreenOverlaySlot } from "./VnScreenOverlaySlot";
@@ -29,6 +31,8 @@ import {
   type VnTokenFeedback,
   type VnTokenFeedbackVariant,
 } from "./VnTokenFeedbackOverlay";
+import { VnJournalEntryToast } from "./VnJournalEntryToast";
+import { VnDmSidePanel } from "./VnDmSidePanel";
 import {
   playVnSkillCheckSfx,
   playVnTokenSfx,
@@ -145,6 +149,15 @@ export const VnScreen = ({
     grantItem,
   } = useVnScreenSpacetimeBindings();
 
+  /** Set of fact keys already discovered (for tutorial state). */
+  const discoveredFactKeys = useMemo(() => {
+    const keys = new Set<string>();
+    for (const row of mindFactRows) {
+      keys.add(`${row.caseId}/${row.factId}`);
+    }
+    return keys;
+  }, [mindFactRows]);
+
   const [selectedScenarioId, setSelectedScenarioId] = useState("");
   const [transitionState, setTransitionState] =
     useState<TransitionState>("idle");
@@ -159,6 +172,8 @@ export const VnScreen = ({
   const [activeReactionKey, setActiveReactionKey] = useState<string | null>(
     null,
   );
+  const [highlightProvidenceTrigger, setHighlightProvidenceTrigger] =
+    useState(0);
   const [videoEnded, setVideoEnded] = useState(false);
   const [tokenFeedback, setTokenFeedback] = useState<VnTokenFeedback | null>(
     null,
@@ -169,6 +184,11 @@ export const VnScreen = ({
   const tokenFeedbackTimerRef = useRef<number | null>(null);
   const tokenFeedbackIdRef = useRef(0);
   const pendingTokenActionsRef = useRef<Set<string>>(new Set());
+  const tutorialActionsRef = useRef<{
+    startRecordingFact: (factPayload: string) => void;
+    showJournalToast: (factPayload: string) => void;
+    failRecordingFact: (factPayload: string) => void;
+  } | null>(null);
 
   const { flags: myFlags, vars: myVars } = usePlayerBindings();
   const uiLanguage = useUiLanguage(myFlags);
@@ -231,7 +251,7 @@ export const VnScreen = ({
 
   /**
    * Authored-group input for `useNarrativeLog` only. Passing this to `VnLogBottomSheet`
-   * would false-trigger on nodes without `sceneGroupId` — the sheet must receive
+   * would false-trigger on nodes without `sceneGroupId` - the sheet must receive
    * `narrativeLog.state.sceneGroupId` (sticky / resolved coordinator).
    */
   const vnExplicitSceneGroupId = currentNode?.sceneGroupId ?? null;
@@ -254,6 +274,10 @@ export const VnScreen = ({
     mySkillResults,
     myAiRequests,
     myReactionRequests,
+    myDirectorRequests,
+    activeDirectorProposal,
+    activeDmTurnRequest,
+    activeDmTurnProposal,
     currentDiceMode,
     completionRoute,
     isScenarioCompleted,
@@ -310,6 +334,15 @@ export const VnScreen = ({
     dictionary,
   });
   const effectiveBackgroundUrl = generatedBackgroundUrl ?? currentResolvedBgUrl;
+  const dmVisibleFacts = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          [...visibleFactsByCharacterId.values()].flatMap((entries) => entries),
+        ),
+      ).sort(),
+    [visibleFactsByCharacterId],
+  );
   const { handleStartScenario, runCompletionTransition } = useVnTransitions({
     snapshot,
     activeVersionChecksum: activeVersion?.checksum ?? null,
@@ -347,6 +380,7 @@ export const VnScreen = ({
     questRows,
     myAiRequests,
     myReactionRequests,
+    myDirectorRequests,
     visibleFactsByCharacterId,
     trustByNpcId,
     enqueueAiRequest,
@@ -412,6 +446,22 @@ export const VnScreen = ({
   );
   const handleTypedTextTokenClick = useCallback<TypedTextTokenHandler>(
     (token, event) => {
+      if (token.type === "fact" || token.type === "lead") {
+        const parsed = parseFactTokenPayload(token.payload);
+        if (parsed) {
+          const actionKey = `fact:${parsed.caseId}:${parsed.factId}`;
+          if (
+            mindFactRows.some(
+              (row) =>
+                row.caseId === parsed.caseId && row.factId === parsed.factId,
+            ) ||
+            pendingTokenActionsRef.current.has(actionKey)
+          ) {
+            return;
+          }
+        }
+      }
+
       markInteractionHandled();
       const variant = toTokenFeedbackVariant(token.type);
       showTokenFeedback(variant, token.text, event);
@@ -474,6 +524,7 @@ export const VnScreen = ({
           }
 
           pendingTokenActionsRef.current.add(actionKey);
+          tutorialActionsRef.current?.startRecordingFact(token.payload);
           setError(null);
           try {
             await discoverFact({
@@ -481,8 +532,11 @@ export const VnScreen = ({
               caseId: parsed.caseId,
               factId: parsed.factId,
             });
+            // Trigger journal entry toast with fact metadata
+            tutorialActionsRef.current?.showJournalToast(token.payload.trim());
           } catch (caughtError) {
             pendingTokenActionsRef.current.delete(actionKey);
+            tutorialActionsRef.current?.failRecordingFact(token.payload);
             setError(
               caughtError instanceof Error
                 ? caughtError.message
@@ -604,6 +658,7 @@ export const VnScreen = ({
     enqueueProvidenceDialogue,
     setError,
   });
+
   const {
     reactionCard,
     thoughtCard,
@@ -667,9 +722,93 @@ export const VnScreen = ({
     getChoiceChancePercent,
   });
 
+  const handleInsufficientTokens = useCallback(() => {
+    setHighlightProvidenceTrigger((prev) => prev + 1);
+  }, []);
+
+  const handleCustomSubmit = useCallback(
+    async (choice: VnChoice, text: string) => {
+      if (!mySession || !currentNode) return;
+      if (narrativeResources.providence < 1) {
+        setHighlightProvidenceTrigger((prev) => prev + 1);
+        return;
+      }
+      setError(null);
+
+      const checkId = `${choice.id}_custom`;
+      const context: ActiveAiThoughtContext = {
+        scenarioId: selectedScenarioId,
+        nodeId: currentNode.id,
+        checkId,
+        choiceId: choice.id,
+        dialogueLayer: "providence",
+        voiceId: "narrator",
+        choiceText: text,
+        resultCreatedAtMicros: BigInt(Date.now()) * 1000n,
+      };
+
+      setActiveProvidenceThoughtContext(context);
+
+      try {
+        const payload: GenerateDialoguePayload = {
+          source: "vn_skill_check",
+          scenarioId: selectedScenarioId,
+          nodeId: currentNode.id,
+          checkId,
+          choiceId: choice.id,
+          voiceId: "narrator",
+          choiceText: text,
+          dialogueLayer: "providence",
+          providenceCost: 1,
+          passed: true,
+          roll: 20,
+          difficulty: 0,
+          voiceLevel: 1,
+          locationName: displayLocationName || "",
+          narrativeText: currentNode.body || "",
+        };
+
+        await enqueueProvidenceDialogue({
+          requestId: createVnTokenRequestId(),
+          scenarioId: selectedScenarioId,
+          nodeId: currentNode.id,
+          checkId,
+          choiceId: choice.id,
+          providenceCost: 1,
+          payloadJson: JSON.stringify(payload),
+        });
+      } catch (caughtError) {
+        setActiveProvidenceThoughtContext((current) =>
+          current?.scenarioId === context.scenarioId &&
+          current?.nodeId === context.nodeId &&
+          current?.checkId === context.checkId &&
+          current?.choiceId === context.choiceId &&
+          current?.dialogueLayer === "providence"
+            ? null
+            : current,
+        );
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Failed to submit custom action.",
+        );
+      }
+    },
+    [
+      mySession,
+      currentNode,
+      narrativeResources.providence,
+      selectedScenarioId,
+      displayLocationName,
+      enqueueProvidenceDialogue,
+      setError,
+    ],
+  );
+
   const hideImmersiveChrome =
     effectiveNarrativeLayout === "fullscreen" ||
     effectiveNarrativeLayout === "letter_overlay";
+  const isWitchDmMode = Boolean(myFlags.origin_witch);
 
   const { handleSurfaceTap, handleVideoEnded } = useVnSurfaceInteraction({
     autoContinueChoice,
@@ -697,6 +836,25 @@ export const VnScreen = ({
     typedTextRef,
     typingFinishedAtRef,
   });
+
+  const tutorialState = useVnTutorialState({
+    narrativeText,
+    isLetterOverlay: effectiveNarrativeLayout === "letter_overlay",
+    discoveredFactKeys,
+  });
+  tutorialActionsRef.current = {
+    startRecordingFact: tutorialState.startRecordingFact,
+    showJournalToast: tutorialState.showJournalToast,
+    failRecordingFact: tutorialState.failRecordingFact,
+  };
+
+  /** Wraps surface tap to intercept for tutorial tooltip on letter overlays. */
+  const handleSurfaceTapWithTutorial = useCallback(() => {
+    if (tutorialState.interceptContinue()) {
+      return;
+    }
+    handleSurfaceTap();
+  }, [handleSurfaceTap, tutorialState]);
 
   const handleLoggedChoiceClick = useCallback(
     (choice: VnChoice, isLocked: boolean) => {
@@ -757,6 +915,7 @@ export const VnScreen = ({
           onScenarioChange={setSelectedScenarioId}
           onStartScenario={handleStartScenario}
           onOpenDebug={onOpenDebug}
+          highlightProvidenceTrigger={highlightProvidenceTrigger}
         />
       ) : null}
 
@@ -782,7 +941,10 @@ export const VnScreen = ({
         isTyping={isTyping}
         typedTextRef={typedTextRef}
         onTokenClick={handleTypedTextTokenClick}
-        onSurfaceTap={handleSurfaceTap}
+        onSurfaceTap={handleSurfaceTapWithTutorial}
+        tokenStateByPayload={tutorialState.tokenStateByPayload}
+        showTutorialTooltip={tutorialState.showTooltip}
+        onDismissTutorialTooltip={tutorialState.dismissTooltip}
         onVideoEnded={handleVideoEnded}
         videoPlaybackComplete={videoEnded}
         choicesSlot={
@@ -814,8 +976,11 @@ export const VnScreen = ({
             thoughtCard={thoughtCard}
             uiLanguage={uiLanguage}
             visibleChoices={visibleChoices}
+            providenceCount={narrativeResources.providence}
             onChoiceClick={handleLoggedChoiceClick}
             onCompletionTransition={() => void runCompletionTransition()}
+            onCustomSubmit={handleCustomSubmit}
+            onInsufficientTokens={handleInsufficientTokens}
             onProvidenceExpand={() => void handleProvidenceExpand()}
             onRestartScene={() => void handleStartScenario()}
           />
@@ -843,11 +1008,47 @@ export const VnScreen = ({
 
       {statusLine ? <p className="status-line success">{statusLine}</p> : null}
       {error ? <p className="status-line error">{error}</p> : null}
+      {activeDirectorProposal ? (
+        <aside
+          className="vn-director-card"
+          data-testid="vn-director-card"
+          data-step-type={activeDirectorProposal.stepType}
+          data-return-beat={activeDirectorProposal.suggestedReturnBeatId}
+        >
+          <p className="vn-director-card__framing">
+            {activeDirectorProposal.framingText}
+          </p>
+          {activeDirectorProposal.bridgeText ? (
+            <p className="vn-director-card__bridge">
+              {activeDirectorProposal.bridgeText}
+            </p>
+          ) : null}
+        </aside>
+      ) : null}
+      {isWitchDmMode ? (
+        <VnDmSidePanel
+          scenarioId={selectedScenarioId}
+          nodeId={currentNode?.id}
+          narrativeResources={narrativeResources}
+          myFlags={myFlags}
+          myVars={myVars}
+          visibleFacts={dmVisibleFacts}
+          activeRequest={activeDmTurnRequest}
+          activeProposal={activeDmTurnProposal}
+          enqueueAiRequest={enqueueAiRequest}
+          onError={setError}
+        />
+      ) : null}
       <VnSkillCheckToast
         toast={skillCheckToast}
         onClose={clearSkillCheckToast}
       />
       <VnTokenFeedbackOverlay feedback={tokenFeedback} />
+      <VnJournalEntryToast
+        toast={tutorialState.journalToast}
+        t={t}
+        onDismiss={tutorialState.clearJournalToast}
+      />
     </section>
   );
 };

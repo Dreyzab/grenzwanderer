@@ -180,13 +180,16 @@
       "nodeIds": [
         "scene_case01_opening_arrival_video",
         "scene_case01_train_compartment_letter",
+        "scene_case01_train_compartment_letter_witch",
+        "scene_case01_train_assistant_intro_witch",
+        "scene_case01_train_dining_car_intro_witch",
+        "scene_case01_train_dining_car_lotte_monologue_witch",
         "scene_case01_train_assistant_intro",
         "scene_case01_train_door_creaks",
         "scene_case01_train_assistant_departure",
         "scene_case01_train_silent_beat",
         "scene_case01_train_dining_car_intro",
         "scene_case01_train_dining_car_mother",
-        "scene_case01_train_dining_car_mother_reaction",
         "scene_case01_train_dining_car_marriage_joke",
         "scene_case01_train_dining_car_silent_branch",
         "scene_case01_train_dining_car_intro_self_branch",
@@ -220,9 +223,33 @@
         "scene_case01_hbf_luggage_robbery",
         "scene_case01_hbf_police",
         "scene_case01_hbf_departure",
+        "scene_case01_hbf_luggage_incident_witch",
+        "scene_case01_witch_bureau_entry",
+        "scene_case01_witch_bureau_master_meeting",
+        "scene_case01_witch_bureau_exit",
+        "scene_case01_witch_estate_handoff",
+        "scene_case01_estate_arrival_witch",
+        "scene_case01_baroness_office_witch",
+        "scene_case01_baroness_office_cut_trigger",
+        "scene_case01_baroness_office_feed_coverup",
+        "scene_case01_estate_vaults_witch",
+        "scene_case01_ghost_showdown_witch",
+        "scene_case01_night_alley_witch",
+        "scene_case01_night_alley_escalation",
+        "scene_case01_hotel_morning_witch",
+        "scene_case01_hotel_copper_trace_witch",
+        "scene_case01_lobby_crossover_witch",
         "scene_case01_hbf_exit_final"
       ],
       "mode": "fullscreen",
+      "completionRoutes": [
+        {
+          "nextScenarioId": "sandbox_ghost_pilot",
+          "requiredFlagsAll": [
+            "origin_witch_handoff_done"
+          ]
+        }
+      ],
       "packId": "case01_mainline",
       "defaultBackgroundUrl": "/VN/start/image/HBF.png"
     },
@@ -264,7 +291,7 @@
     },
     {
       "id": "case01_lodging_zum_goldenen_adler",
-      "title": "Case 01: Zum Goldenen Adler Lodging",
+      "title": "Case 01: Zum Eber Lodging",
       "startNodeId": "scene_case01_zum_goldenen_adler_entry",
       "nodeIds": [
         "scene_case01_zum_goldenen_adler_entry",
@@ -1912,7 +1939,29 @@
         {
           "id": "AUTO_CONTINUE_SCENE_CASE01_TRAIN_COMPARTMENT_CINEMA",
           "text": "Continue.",
-          "nextNodeId": "scene_case01_train_compartment_letter"
+          "nextNodeId": "scene_case01_train_compartment_letter",
+          "visibleIfAll": [
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "origin_witch",
+                "value": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "CASE01_WITCH_START_TO_LETTER",
+          "text": "Continue.",
+          "nextNodeId": "scene_case01_train_compartment_letter_witch",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "origin_witch",
+              "value": true
+            }
+          ]
         }
       ],
       "backgroundUrl": "/VN/start/image/compartment_cinema.png",
@@ -1936,6 +1985,205 @@
       "narrativePresentation": "letter",
       "narrativeLayout": "letter_overlay",
       "letterOverlayRevealDelayMs": 2800
+    },
+    {
+      "id": "scene_case01_train_compartment_letter_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Recruitment Invitation",
+      "body": "Дитя мое.\n\nБюро приветствует ваше прибытие во Фрайбург. Город полон не только обычных тайн, но и тех, что прячутся за духовной завесой. Ваш дар видеть следы по ту сторону будет полезен, но помните: дар, оставленный без узды, быстро становится долгом.\n\nПо прибытии вы можете пройти в секретный отдел Бюро под вокзалом. Мастер ожидает вас лично. Если же зов особняка окажется сильнее, направляйтесь прямо к Гранд-Эстейт: там тревожен не только человеческий страх, но и подлинное присутствие духа.\n\nНе кормите Проклятие Крови поспешностью. Во Фрайбурге даже шепот умеет возвращаться свидетелем.\n\nС уважением,\n[fact:Master:case01/master]",
+      "choices": [
+        {
+          "id": "WITCH_LETTER_VEIL_FOCUS",
+          "text": "[Veil Sight] Настроиться на восковую печать конверта.",
+          "nextNodeId": "scene_case01_train_assistant_intro_witch",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": 15
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_read_envelope_echo",
+              "value": true
+            }
+          ],
+          "inlineText": "**[attr_spirit]**:\nВы закрываете глаза и касаетесь пальцами холодного воска. В сознании вспыхивает резкий, торопливый силуэт Мастера. Он запечатывал это письмо в спешке, озираясь на шорох шагов за дверью архива. Письмо было отправлено в самый последний момент перед тем, как тени сгустились."
+        },
+        {
+          "id": "WITCH_LETTER_DRINK_BRANDY",
+          "text": "[Drinking Flaw] Сделать добрый глоток бренди из дорожной фляжки.",
+          "nextNodeId": "scene_case01_train_assistant_intro_witch",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": -15
+            },
+            {
+              "type": "add_var",
+              "key": "witch_alcohol_aftertaste",
+              "value": 1
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_drank_brandy_early",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nОбжигающая жидкость прокатывается по горлу. Жжение в жилах отступает, проклятие крови неохотно затихает, погружаясь в дремоту. Но в висках остается легкий, расплывчатый шум, а в мыслях — едва заметная дымка."
+        },
+        {
+          "id": "WITCH_LETTER_OPEN_MUNDANE",
+          "text": "Открыть конверт обычным способом.",
+          "nextNodeId": "scene_case01_train_assistant_intro_witch"
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/compartment_cinema.png",
+      "sceneGroupId": "train_compartment",
+      "narrativePresentation": "letter",
+      "narrativeLayout": "letter_overlay",
+      "letterOverlayRevealDelayMs": 2800
+    },
+    {
+      "id": "scene_case01_train_assistant_intro_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Сын",
+      "body": "**[Narrator]**:\nДверь купе со скрипом отъезжает. В проеме стоит Феликс — твой помощник и твой единственный сын. Он выглядит усталым после ночного дежурства, но его лицо светлеет, когда он видит тебя.\n\n**[Феликс]**:\n— Матушка! Ну слава Богу, ты здорова. Ты выглядишь... невероятно. Воздух Фрайбурга еще даже не коснулся нас, а ты уже словно расцвела. Никто в целом мире не дал бы тебе твоих лет.\n\n**[inner_cynic]**:\nОн рад обманываться. Рад верить, что это просто «хорошее здоровье», а не тяжелое проклятие, которое поддерживает твою молодость за счет чужого тепла. Пусть верит. Правда сломает его.",
+      "choices": [
+        {
+          "id": "WITCH_TRAIN_ADJUST_SCARF",
+          "text": "Поправить Феликсу сбившийся воротник пальто.",
+          "nextNodeId": "scene_case01_train_dining_car_intro_witch",
+          "effects": [
+            {
+              "type": "change_relationship",
+              "characterId": "npc_felix_hartmann",
+              "delta": 1
+            },
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": 10
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nТы ласково тянешься к его шее, чтобы поправить сбившийся воротник пальто. Твои пальцы бережно и уверенно разглаживают жесткую шерсть, но Феликс мгновенно замирает, его плечи каменно напрягаются.\n\nЭтот жест заботы для него — не просто тепло, а привычные тиски контроля. Он чувствует себя пятилетним мальчиком, оставшимся без отца под железной волей матери, которая привыкла единолично решать его судьбу. В твоем ласковом движении сквозит непререкаемая власть, не терпящая возражений.\n\nТвои пальцы слегка задерживаются на его шее, и сквозь ткань ты чувствуешь быстрый, испуганный стук его пульса. На секунду проклятие внутри тебя отзывается глухим, холодным уколом соматической жажды, но ты держишь его в узде. Твои губы приближаются к его уху, и ты шепчешь мягко, но с той леденящей сталью, от которой у него с детства подгибались колени:\n\n**[Элеонора]**:\n— *И не вздумай заблудиться на перроне, Феликс... Ты ведь знаешь, как тяжело мне без тебя.*\n\nФеликс сглатывает слюну, его дыхание перехватывает. В его глазах нет страха перед неведомым чудовищем — это глубокий, укоренившийся страх взрослого сына перед матерью-тираном, против которой он никогда не смел поднять голоса. Семейный ошейник затягивается привычно туго.\n\nТы с теплой, безупречной улыбкой отпускаешь его воротник и разглаживаешь складки на его плечах, словно ничего не произошло.\n\n**[Феликс]**:\n— Д-да, матушка... Я... я только схожу в вагон-ресторан, проверю, всё ли готово к нашему прибытию. И... посмотрю свежие газеты. Я быстро.\n\nОн поспешно кивает, делает шаг назад и с явным облегчением скрывается за дверью купе, спасаясь от твоего удушающего присутствия."
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_assistant.png",
+      "characterId": "npc_felix_hartmann",
+      "sceneGroupId": "train_assistant",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_intro_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Вагон-ресторан",
+      "body": "**[Narrator]**:\nВагон-ресторан встречает тебя звоном хрусталя, ароматом дорогого табака и тем особенным утренним светом, в котором проклятие в твоих жилах кажется почти приличной тайной.\n\nЗа угловым столиком тебя уже ждет Лотте Вебер. Огненный цвет ее волос кажется вызывающе ярким в приглушенном свете вагона. Она оживленно рассказывает что-то, её перчатки небрежно лежат рядом с маленьким дорожным блокнотом.\n\n**[Лотте]**:\n— ...и этот чиновник всерьез грозился засудить телеграфную службу, потому что точки в его депеше показались ему «недостаточно почтительными»... Это же просто смешно... Элеонора?",
+      "choices": [
+        {
+          "id": "WITCH_LOTTE_INTRO_RATIONAL",
+          "text": "«Паузы вообще редко принимают жалобы...» (Безупречная светская маска).",
+          "nextNodeId": "scene_case01_train_dining_car_lotte_monologue_witch",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_witch_lotte_rational",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Элеонора]**:\n— Паузы вообще редко принимают жалобы, дорогая Лотте. Зато иногда они говорят больше слов, особенно если слово проходит через Rathaus раньше объявления.\n\n**[Лотте]**:\n— О, вы как всегда на редкость практичны, Элеонора! Хотя... вы подозрительно хорошо осведомлены для пассажирки, которой достался последний столик.\n\n**[Элеонора]**:\n— Во Фрайбурге случайности тоже резервируют заранее.\n\n**[Narrator]**:\nТы сохраняешь идеальную осанку и тепло улыбаешься, хотя под столом твои ледяные пальцы судорожно сжимают шелковый платок, преодолевая остаточную дрожь проклятия."
+        },
+        {
+          "id": "WITCH_LOTTE_INTRO_SOMATIC",
+          "text": "[Veil Sight] Вслушаться в пульсацию крови Лотте и увести тему глубже.",
+          "nextNodeId": "scene_case01_train_dining_car_lotte_monologue_witch",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": -10
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_lotte_somatic",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nНа долю секунды ты прикрываешь глаза, настраивая восприятие. Живая, горячая, невероятно чистая кровь Лотте пульсирует в ритме ее быстрой речи. Твое проклятие внутри жадно впитывает это тепло на расстоянии. Ледяное онемение в твоих пальцах неохотно отступает.\n\n**[Элеонора]**:\n— Паузы вообще редко принимают жалобы. В них слышен подлинный ритм города... Ритм, который Ратуша так пытается заглушить официальными объявлениями.\n\n**[Лотте]**:\n— Вы говорите так загадочно, Элеонора... Словно слышите этот ритм сквозь стены. Но вы удивительно хорошо осведомлены для простой пассажирки.\n\n**[Элеонора]**:\n— Во Фрайбурге случайности тоже резервируют заранее."
+        },
+        {
+          "id": "WITCH_LOTTE_INTRO_MARRIAGE",
+          "text": "Оценить Лотте как потенциальную партию для Феликса.",
+          "nextNodeId": "scene_case01_train_dining_car_lotte_monologue_witch",
+          "effects": [
+            {
+              "type": "change_relationship",
+              "characterId": "npc_felix_hartmann",
+              "delta": 1
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_lotte_marriage_match",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nТы внимательно разглядываешь Лотте. Яркая, проницательная, знающая улицы Фрайбурга как свои пять пальцев. Она могла бы стать идеальным якорем для Феликса, удерживая его от глупостей и укрепляя влияние вашей семьи.\n\n**[Элеонора]**:\n— Паузы вообще редко принимают жалобы. Но они бесценны, чтобы разглядеть истинный характер человека. Того, кто слишком торопится их заполнить.\n\n**[Лотте]**:\n— Ох, вы намекаете на моего чиновника? Или... на вашего Феликса, который до сих пор робеет зайти в вагон-ресторан?\n\n**[Элеонора]**:\n— Феликс ценит умеренность. Но ему не помешала бы спутница, способная научить его спонтанности. Во Фрайбурге случайности тоже резервируют заранее."
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_dining_car",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_train_dining_car_lotte_monologue_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Радость жизни",
+      "body": "**[Лотте]**:\n— Слушай, Элеонора. Рядом многие вообще не ощущают праздника жизни. А вот мы едем, смотри, это уже счастье. Мы разговариваем — это тоже счастье, посмотри вокруг.\n\n**[Narrator]**:\nЛотте на мгновение задерживает взгляд на соседнем столике, где пожилой господин в традиционном баденском платье уныло смотрит в окно.\n\n**[Лотте]**:\n— Да понимает ли он, что он избранник? От одного этого с ума можно сойти. Избранник мироздания! Вынули на секунду из небытия — и через секунду опять вечная тьма несуществования. Да ведь он вопить от радости должен, что живёт, а ему скучно... Элеонора?",
+      "choices": [
+        {
+          "id": "WITCH_LOTTE_MONOLOGUE_CYNIC",
+          "text": "«Вечная тьма хотя бы не требует от нас восторгов...» (Философский цинизм).",
+          "nextNodeId": "scene_case01_train_ankommen_video",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": 5
+            }
+          ],
+          "inlineText": "**[inner_cynic]**:\nИзбранники мироздания... Она не знает, о чем говорит. Те, кто вырван из тьмы силой проклятия, платят за каждый день чужим теплом. И в этом нет никакой радости. Только вечный, изнуряющий голод.\n\n**[Элеонора]**:\n— Вечная тьма хотя бы не требует от нас восторгов, дорогая Лотте. А жизнь... жизнь — это слишком дорогой кредит, проценты по которому приходится выплачивать каждую секунду. Не сутулься, пожалуйста, это портит осанку.\n\n**[Лотте]**:\n— Умеешь ты отрезвить, Элеонора... Но, признаться, в твоих словах есть какая-то... леденящая правда.\n\n**[Narrator]**:\nЗа перегородкой щелкает динамик. Кондуктор объявляет: до Фрайбурга двадцать минут. В дверях вагона показывается Феликс, а за его плечом — высокий незнакомец с цепким взглядом ищейки."
+        },
+        {
+          "id": "WITCH_LOTTE_MONOLOGUE_GRIEF",
+          "text": "Коснуться ее теплой руки, разделяя мгновение, но удерживая дистанцию.",
+          "nextNodeId": "scene_case01_train_ankommen_video",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": -10
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nТы мягко кладешь свою холодную руку на ее теплую ладонь. Чистое человеческое тепло Лотте проникает сквозь пальцы, на мгновение возвращая покой. Ты вспоминаешь своего покойного мужа, его руки, которые остывали точно так же, унося остатки твоей смертной жизни... Ты аккуратно убираешь ладонь.\n\n**[Элеонора]**:\n— Радость жизни — редкий дар, Лотте. Тебе повезло сохранить его. Но будь осторожна: во Фрайбурге холодные ветры гасят даже самые яркие костры. И... не сутулься, прошу тебя.\n\n**[Лотте]**:\n— Спасибо, Элеонора. С тобой тепло... даже когда ты пытаешься казаться ледяной скалой.\n\n**[Narrator]**:\nРаздается свисток поезда. Кондуктор объявляет скорое прибытие. Дверь вагона-ресторана открывается, и Феликс заходит внутрь, ведя за собой высокого мужчину в дорожном пальто."
+        },
+        {
+          "id": "WITCH_LOTTE_MONOLOGUE_PRACTICAL",
+          "text": "Осадить ее юношеский идеализм практическим замечанием.",
+          "nextNodeId": "scene_case01_train_ankommen_video",
+          "effects": [
+            {
+              "type": "change_relationship",
+              "characterId": "npc_felix_hartmann",
+              "delta": 1
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nЮность любит громкие слова о мироздании и небытии, потому что еще не видела ни того, ни другого вплотную.\n\n**[Элеонора]**:\n— Этот «избранник» просто думает о ценах на баденское зерно, Лотте. Жизнь взрослого человека состоит из счетов, обязательств и расписаний, а не только из воплей радости. Не сутулься, за столом это выглядит крайне неприлично.\n\n**[Лотте]**:\n— Ох, Элеонора, ты неисправима! Счета и пошлины — вот твое мироздание.\n\n**[Narrator]**:\nКолеса поезда замедляют свой ход на стрелках. Кондуктор объявляет о скором прибытии во Фрайбург. В проеме вагона-ресторана появляется Феликс, сопровождаемый высоким господином с цепким взглядом детектива."
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/train_dining_car_old_badener.png",
+      "sceneGroupId": "train_dining_car",
+      "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_train_assistant_intro",
@@ -2087,7 +2335,7 @@
         },
         {
           "id": "CASE01_TRAIN_ASSISTANT_EAT_TOGETHER",
-          "text": "Wait for me! I've worked up an appetite�\u001dI need a bite to eat.",
+          "text": "Wait for me! I've worked up an appetite - I need a bite to eat.",
           "nextNodeId": "scene_case01_train_dining_car_intro",
           "effects": [
             {
@@ -2128,7 +2376,7 @@
       "id": "scene_case01_train_dining_car_intro",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nThe dining car greets you with the chime of crystal and the scent of expensive tobacco. Felix leads the way with confidence through the rows of tables.\n\n**[Assistant]**:\n�\u001d Mother always finds company, even on a train. It seems she's already made an acquaintance. Try to be... indulgent with her directness.",
+      "body": "**[Narrator]**:\nВагон-ресторан встречает вас звоном хрусталя, дорогим табаком и тем особенным утренним светом, в котором случайности выглядят почти прилично. У окна остается один свободный столик, хотя свободным он, кажется, был оставлен заранее.\n\n**[Assistant]**:\n— Матушка всегда находит компанию, даже в поезде. Если она уже выбрала вино, значит разговор начался до нашего прихода. Постарайтесь быть... снисходительны к ее прямоте.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_DINING_CAR_INTRO",
@@ -2137,19 +2385,19 @@
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car.png",
-      "sceneGroupId": "train_assistant",
+      "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_train_dining_car_mother",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nЗа угловым столиком расположилась матушка Феликса. Она неторопливо потягивала белое вино, внимательно слушая свою спутницу — девушку с ярко-рыжими волосами, которая что-то оживленно рассказывала, активно жестикулируя. Огненный цвет ее волос казался вызывающе ярким в приглушенном утреннем свете вагона.\n\n**[Redhead]**:\n— ...и этот чиновник всерьез грозился засудить телеграфную службу, потому что точки в его депеше показались ему «недостаточно почтительными»... Это же просто смешно... Элеонора?",
+      "body": "**[Narrator]**:\nЗа угловым столиком сидит Элеонора Хартманн. Перед ней белое вино, раскрытая карточка вин и рыжеволосая спутница, чьи перчатки лежат не на коленях, а рядом с маленьким блокнотом. В блокноте нет сплетен: только 08:12, 08:27, 08:41 и одна строка, зачеркнутая так ровно, будто отмененный маршрут тоже можно убрать с лица города.\n\n**[Лотте]**:\n— ...и этот чиновник всерьез грозился засудить телеграфную службу, потому что точки в его депеше показались ему «недостаточно почтительными». Я сказала, что паузы, к сожалению, не принимают жалоб.\n\n**[Элеонора]**:\n— Паузы вообще редко принимают жалобы. Зато иногда говорят больше слов, особенно если слово проходит через Rathaus раньше объявления.\n\n**[Лотте]**:\n— Вы удивительно хорошо осведомлены для пассажирки, которой случайно достался последний столик.\n\n**[Элеонора]**:\n— Во Фрайбурге случайности тоже резервируют заранее.\n\n**[Assistant]**:\n— Матушка, мы решили выпить перед прибытием. Не представите нас вашей спутнице?",
       "choices": [
         {
           "id": "AUTO_CONTINUE_DINING_CAR_MOTHER",
           "text": "Continue.",
-          "nextNodeId": "scene_case01_train_dining_car_mother_reaction"
+          "nextNodeId": "scene_case01_train_dining_car_marriage_joke"
         }
       ],
       "onEnter": [
@@ -2170,30 +2418,14 @@
         }
       ],
       "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
-      "sceneGroupId": "train_assistant",
-      "narrativeLayout": "log"
-    },
-    {
-      "id": "scene_case01_train_dining_car_mother_reaction",
-      "scenarioId": "case01_hbf_arrival",
-      "title": "Journey to Freiburg",
-      "body": "**[Assistant]**:\n— Матушка, мы решили выпить перед прибытием. Не представите нас вашей спутнице?",
-      "choices": [
-        {
-          "id": "AUTO_CONTINUE_DINING_CAR_MOTHER_REACTION",
-          "text": "Continue.",
-          "nextNodeId": "scene_case01_train_dining_car_marriage_joke"
-        }
-      ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_mother_attentive_eye_contact.png",
-      "sceneGroupId": "train_assistant",
+      "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_train_dining_car_marriage_joke",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Элеонора]**:\n— Разумеется. Лотте Ребер. О Фрайбурге она знает улицы, людей и такие двери, которые приличные дома предпочитают не замечать. А это — мой сын Феликс Хартманн. Он смотрит в окно, когда хочет, чтобы разговор обошелся без него.\n\n**[Лотте]**:\n— Элеонора делает из меня почти учреждение. Я всего лишь запоминаю, куда люди торопятся, когда уверяют, что просто гуляют.",
+      "body": "**[Элеонора]**:\n— Разумеется. Лотте Вебер. О Фрайбурге она знает улицы, людей и такие двери, которые приличные дома предпочитают не замечать. Еще говорят, она помнит не слова, а паузы между звонками, что гораздо опаснее. А это — мой сын Феликс Хартманн. Он смотрит в окно, когда хочет, чтобы разговор обошелся без него.\n\n**[Лотте]**:\n— Элеонора делает из меня почти учреждение. На самом деле я всего лишь берегу источники лучше, чем продаю сведения. Это, как выяснилось, редкая городская привычка.",
       "choices": [
         {
           "id": "CASE01_TRAIN_DINING_SILENT",
@@ -2207,19 +2439,19 @@
         },
         {
           "id": "CASE01_TRAIN_DINING_HOTEL",
-          "text": "�\u001d Pardon the interruption�\u001dsince you know the city so well, have you heard of the Zum Goldenen Adler hotel?",
+          "text": "Pardon the interruption - since you know the city so well, have you heard of the Zum Goldenen Adler hotel?",
           "nextNodeId": "scene_case01_train_dining_car_hotel_branch"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
-      "sceneGroupId": "train_assistant",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother_stare.png",
+      "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_train_dining_car_silent_branch",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Assistant]**:\n— Извините. Это детектив [Name]. Он помогает нам с переездом.\n\n**[Narrator]**:\nФеликс произносит «нам» без всякого тепла, но вовремя: неловкость успевает стать его, а не вашей.\n\n**[Лотте]**:\n— Тогда будем знакомы. Люди, которые умеют молчать за столом, во Фрайбурге долго не останутся незамеченными.",
+      "body": "**[Assistant]**:\n— Извините. Это детектив [Name]. Он помогает нам с переездом.\n\n**[Narrator]**:\nФеликс произносит «нам» без всякого тепла, но вовремя: неловкость успевает стать его, а не вашей.\n\n**[Лотте]**:\n— Тогда будем знакомы. Люди, которые умеют молчать за столом, во Фрайбурге долго не останутся незамеченными. Иногда именно они первыми слышат, где провод дрожит.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_DINING_SILENT",
@@ -2234,15 +2466,15 @@
           ]
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
-      "sceneGroupId": "train_assistant",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_train_dining_car_intro_self_branch",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Detective]**:\n— Разрешите представиться. Детектив [Name]. Прибыл во Фрайбург по делу.\n\n**[Narrator]**:\nЭлеонора повторяет ваше имя беззвучно, одними губами, будто примеряет его к будущей карточке на столе.\n\n**[Лотте]**:\n— Лотте Ребер. Рада встрече, детектив. По делу — тоже, раз уж оно привело вас в наш вагон.",
+      "body": "**[Detective]**:\n— Разрешите представиться. Детектив [Name]. Прибыл во Фрайбург по делу.\n\n**[Narrator]**:\nЭлеонора повторяет ваше имя беззвучно, одними губами, будто примеряет его к будущей карточке на столе.\n\n**[Лотте]**:\n— Лотте Вебер. Рада встрече, детектив. По делу — тоже, раз уж оно привело вас в наш вагон. У дел есть привычка приходить раньше официальных писем.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_DINING_INTRO_SELF",
@@ -2257,15 +2489,15 @@
           ]
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
-      "sceneGroupId": "train_assistant",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_train_dining_car_hotel_branch",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Лотте]**:\n— «Zum Goldenen Adler»? Хороший выбор. Старый камень, тяжелые портьеры, постояльцы, которым нравится, когда их не замечают.\n\n**[Narrator]**:\nОна произносит название без вопроса. Не вспоминает — сверяет.",
+      "body": "**[Лотте]**:\n— «Zum Goldenen Adler»? Хороший выбор. Старый камень, тяжелые портьеры, постояльцы, которым нравится, когда их не замечают.\n\n**[Narrator]**:\nОна произносит название без вопроса. Не вспоминает — сверяет. Элеонора чуть заметно улыбается: для нее это не фокус, а подтверждение, что нужный человек сел за нужный столик.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_DINING_HOTEL",
@@ -2285,15 +2517,15 @@
           ]
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
-      "sceneGroupId": "train_assistant",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
+      "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
     },
     {
       "id": "scene_case01_train_dining_car_wine_beat",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Элеонора]**:\n— Попробуйте. Маркграфлерланд.\n\n**[Narrator]**:\nОфициант берет бутылку за основание, оставляет этикетку на виду и льет медленно, тонкой ровной струйкой. В конце бутылка едва поворачивается, и скатерть остается чистой.\n\n**[Элеонора]**:\n— Не бойтесь — это не экзамен. Пока не экзамен.\n\n**[inner_tradition]**:\nОфициант не спрашивает. Он знает, в чей бокал лить первым.",
+      "body": "**[Элеонора]**:\n— Попробуйте. Маркграфлерланд.\n\n**[Narrator]**:\nОфициант берет бутылку за основание, оставляет этикетку на виду и льет медленно, тонкой ровной струйкой. В конце бутылка едва поворачивается, и скатерть остается чистой.\n\n**[Лотте]**:\n— Деньги мне не нужны, если вы к этому ведете.\n\n**[Элеонора]**:\n— Нет. Деньги покупают сведения. Мне интереснее люди, которые умеют не выдавать источник. Иногда им требуется не плата, а прикрытие.\n\n**[Лотте]**:\n— А вам — предупреждение, если городская сеть начнет шевелиться вокруг Феликса.\n\n**[Элеонора]**:\n— Вот теперь это почти похоже на разговор.\n\n**[inner_tradition]**:\nОфициант не спрашивает. Он знает, в чей бокал лить первым.",
       "choices": [
         {
           "id": "CASE01_WINE_ACCEPT",
@@ -2357,7 +2589,7 @@
       "id": "scene_case01_train_dining_car_felix_interrupts",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nЗа перегородкой щелкает микрофон. Кондуктор объявляет: до Фрайбурга двадцать минут.\n\n**[Assistant]**:\n— Двадцать минут. Пора убирать.\n\n**[Narrator]**:\nЭлеонора смотрит на него поверх бокала. Не спорит.\n\n**[Элеонора]**:\n— Хорошо. Убирайте.\n\n**[Narrator]**:\nЛотте закрывает блокнот синхронно с объявлением — ни секундой раньше, ни секундой позже.",
+      "body": "**[Лотте]**:\n— Некоторые люди узнали о банковском кризисе раньше, чем должны были. Не из газет. Не из банка. По паузам в чужих звонках.\n\n**[Элеонора]**:\n— Во Фрайбурге раннее знание почти всегда означает долг.\n\n**[Narrator]**:\nЛотте почти спрашивает, знает ли сам Феликс, зачем мать привезла его во Фрайбург. В этот момент за перегородкой щелкает микрофон.\n\n**[Assistant]**:\n— Двадцать минут. Пора убирать.\n\n**[Narrator]**:\nЭлеонора смотрит на сына поверх бокала. Не спорит.\n\n**[Элеонора]**:\n— Хорошо. Убирайте.\n\n**[Narrator]**:\nЛотте закрывает блокнот синхронно с объявлением — ни секундой раньше, ни секундой позже. На верхней странице успевает мелькнуть не фраза, а дисциплина: 08:12, 08:27, 08:41.",
       "choices": [
         {
           "id": "CASE01_FELIX_DEFEND",
@@ -2543,7 +2775,7 @@
       "id": "scene_case01_train_dining_car_eleonora_farewell",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, [Name]. Фрайбург маленький — а имена в нём ходят быстрее людей.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
+      "body": "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолетно, будто поправляя воротник, но взгляд ее остается на Лотте.\n\n**[Лотте]**:\n— До встречи, [Name]. Фрайбург маленький — а имена в нем ходят быстрее людей.\n\n**[Narrator]**:\nДоговор не произнесен вслух: Лотте получает обещание прикрытия, если проводная сеть станет опасной для ее источников; Элеонора получает право быть предупрежденной, если эта сеть шевельнется вокруг Феликса.\n\n**[Элеонора]**:\n— Фрайбург нас ждет. Впрочем, Фрайбург всегда ждет.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_ELEONORA_FAREWELL",
@@ -2551,7 +2783,7 @@
           "nextNodeId": "scene_case01_corridor_reflection"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2560,7 +2792,7 @@
       "id": "scene_case01_train_dining_car_eleonora_farewell_silent_defend",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи. Вы хороший слушатель — для детектива это редкость. Обычно они говорят, пока собеседник не сдастся.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
+      "body": "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолетно, будто поправляя воротник, но взгляд ее остается на Лотте.\n\n**[Лотте]**:\n— До встречи. Вы хороший слушатель — для детектива это редкость. Обычно они говорят, пока собеседник не сдастся.\n\n**[Narrator]**:\nДоговор не произнесен вслух: Лотте получает обещание прикрытия, если проводная сеть станет опасной для ее источников; Элеонора получает право быть предупрежденной, если эта сеть шевельнется вокруг Феликса.\n\n**[Элеонора]**:\n— Фрайбург нас ждет. Впрочем, Фрайбург всегда ждет.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_ELEONORA_FAREWELL_SILENT_DEFEND",
@@ -2568,7 +2800,7 @@
           "nextNodeId": "scene_case01_corridor_reflection_silent_defend"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2577,7 +2809,7 @@
       "id": "scene_case01_train_dining_car_eleonora_farewell_hotel_defend",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, детектив. «Zum Goldenen Adler» — хороший выбор. Если вдруг переедете, я обычно знаю раньше хозяина.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
+      "body": "**[Narrator]**:\nОна поднимается первой. Лотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолетно, будто поправляя воротник, но взгляд ее остается на Лотте.\n\n**[Лотте]**:\n— До встречи, детектив. «Zum Goldenen Adler» — хороший выбор. Если вдруг переедете, я обычно знаю раньше хозяина.\n\n**[Narrator]**:\nДоговор не произнесен вслух: Лотте получает обещание прикрытия, если проводная сеть станет опасной для ее источников; Элеонора получает право быть предупрежденной, если эта сеть шевельнется вокруг Феликса.\n\n**[Элеонора]**:\n— Фрайбург нас ждет. Впрочем, Фрайбург всегда ждет.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_ELEONORA_FAREWELL_HOTEL_DEFEND",
@@ -2585,7 +2817,7 @@
           "nextNodeId": "scene_case01_corridor_reflection_hotel_defend"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2594,7 +2826,7 @@
       "id": "scene_case01_train_dining_car_eleonora_farewell_intro_observe",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Одна строка зачёркнута так ровно, будто это не пометка, а отменённый маршрут.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, [Name]. Фрайбург маленький — а имена в нём ходят быстрее людей.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
+      "body": "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Рядом с 08:27 тонко приписано «Bankhaus/Rathaus»; нижняя строка зачеркнута так ровно, будто это не пометка, а отмененный маршрут.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолетно, будто поправляя воротник, но взгляд ее остается на Лотте.\n\n**[Лотте]**:\n— До встречи, [Name]. Фрайбург маленький — а имена в нем ходят быстрее людей.\n\n**[Narrator]**:\nДоговор не произнесен вслух: Лотте получает обещание прикрытия, если проводная сеть станет опасной для ее источников; Элеонора получает право быть предупрежденной, если эта сеть шевельнется вокруг Феликса.\n\n**[Элеонора]**:\n— Фрайбург нас ждет. Впрочем, Фрайбург всегда ждет.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_ELEONORA_FAREWELL_INTRO_OBSERVE",
@@ -2602,7 +2834,7 @@
           "nextNodeId": "scene_case01_corridor_reflection_intro_observe"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2611,7 +2843,7 @@
       "id": "scene_case01_train_dining_car_eleonora_farewell_silent_observe",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Одна строка зачёркнута так ровно, будто это не пометка, а отменённый маршрут.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи. Вы хороший слушатель — для детектива это редкость. Обычно они говорят, пока собеседник не сдастся.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
+      "body": "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Рядом с 08:27 тонко приписано «Bankhaus/Rathaus»; нижняя строка зачеркнута так ровно, будто это не пометка, а отмененный маршрут.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолетно, будто поправляя воротник, но взгляд ее остается на Лотте.\n\n**[Лотте]**:\n— До встречи. Вы хороший слушатель — для детектива это редкость. Обычно они говорят, пока собеседник не сдастся.\n\n**[Narrator]**:\nДоговор не произнесен вслух: Лотте получает обещание прикрытия, если проводная сеть станет опасной для ее источников; Элеонора получает право быть предупрежденной, если эта сеть шевельнется вокруг Феликса.\n\n**[Элеонора]**:\n— Фрайбург нас ждет. Впрочем, Фрайбург всегда ждет.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_ELEONORA_FAREWELL_SILENT_OBSERVE",
@@ -2619,7 +2851,7 @@
           "nextNodeId": "scene_case01_corridor_reflection_silent_observe"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2628,7 +2860,7 @@
       "id": "scene_case01_train_dining_car_eleonora_farewell_hotel_observe",
       "scenarioId": "case01_hbf_arrival",
       "title": "Journey to Freiburg",
-      "body": "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Рядом с нижней строкой стоит ваше имя, ещё без титула.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолётно, будто поправляя воротник.\n\n**[Лотте]**:\n— До встречи, детектив. «Zum Goldenen Adler» — хороший выбор. Если вдруг переедете, я обычно знаю раньше хозяина.\n\n**[Элеонора]**:\n— Фрайбург нас ждёт. Впрочем, Фрайбург всегда ждёт.",
+      "body": "**[Narrator]**:\nВы успеваете увидеть страницу: не фразы, а столбик времени — 08:12, 08:27, 08:41. Рядом с 08:27 тонко приписано «Bankhaus/Rathaus»; ниже стоит «Zum Goldenen Adler» и ваше имя, еще без титула.\n\nЛотте убирает блокнот в карман пальто — не в сумку. Элеонора касается плеча Феликса: мимолетно, будто поправляя воротник, но взгляд ее остается на Лотте.\n\n**[Лотте]**:\n— До встречи, детектив. «Zum Goldenen Adler» — хороший выбор. Если вдруг переедете, я обычно знаю раньше хозяина.\n\n**[Narrator]**:\nДоговор не произнесен вслух: Лотте получает обещание прикрытия, если проводная сеть станет опасной для ее источников; Элеонора получает право быть предупрежденной, если эта сеть шевельнется вокруг Феликса.\n\n**[Элеонора]**:\n— Фрайбург нас ждет. Впрочем, Фрайбург всегда ждет.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_ELEONORA_FAREWELL_HOTEL_OBSERVE",
@@ -2636,7 +2868,7 @@
           "nextNodeId": "scene_case01_corridor_reflection_hotel_observe"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "characterId": "npc_mother_hartmann",
       "sceneGroupId": "train_dining_car",
       "narrativeLayout": "log"
@@ -2653,7 +2885,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -2669,7 +2901,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -2685,7 +2917,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -2701,7 +2933,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -2717,7 +2949,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -2733,7 +2965,7 @@
           "nextNodeId": "scene_case01_train_ankommen_video"
         }
       ],
-      "backgroundUrl": "/VN/start/image/train_dining_car_group.png",
+      "backgroundUrl": "/VN/start/image/train_dining_car_mother.png",
       "sceneGroupId": "train_corridor",
       "narrativeLayout": "log"
     },
@@ -2762,9 +2994,31 @@
       "body": "**[Narrator]**:\nПар бьёт в лицо — отдых кончился. Вокзал грубый: чугунные балки, стекло в копоти, носильщики с тележками; пахнет углём и мокрой шерстью.\n\nЧасы над перроном показывают 08:47. Город уже на ногах — и не обязан был подстраиваться под ваше пробуждение.\n\n**[attr_encyclopedia]**:\nНеоренессанс. Построено при расширении Баденских железных дорог. Базель в часе пути, Страсбург — в двух. Для контрабанды и побегов — идеальный узел.",
       "choices": [
         {
-          "id": "AUTO_CONTINUE_VOZA_TO_HBF",
+          "id": "CHOICE_VOZA_TO_HBF_DETECTIVE",
           "text": "Сойти на платформу.",
-          "nextNodeId": "scene_case01_hbf_porter_greeting"
+          "nextNodeId": "scene_case01_hbf_porter_greeting",
+          "visibleIfAll": [
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "origin_witch",
+                "value": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "CHOICE_VOZA_TO_HBF_WITCH",
+          "text": "Сойти на платформу.",
+          "nextNodeId": "scene_case01_hbf_luggage_incident_witch",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "origin_witch",
+              "value": true
+            }
+          ]
         }
       ],
       "passiveChecks": [
@@ -3036,9 +3290,31 @@
           "nextNodeId": "scene_case01_hbf_police"
         },
         {
-          "id": "CASE01_BEAT1_EXIT",
+          "id": "CASE01_BEAT1_EXIT_NON_WITCH",
           "text": "Step out into the city.",
-          "nextNodeId": "scene_case01_hbf_departure"
+          "nextNodeId": "scene_case01_hbf_departure",
+          "visibleIfAll": [
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "origin_witch",
+                "value": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "CASE01_BEAT1_EXIT_WITCH",
+          "text": "Step out into the city.",
+          "nextNodeId": "scene_case01_hbf_luggage_incident_witch",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "origin_witch",
+              "value": true
+            }
+          ]
         }
       ],
       "backgroundUrl": "/VN/start/image/HBF.png",
@@ -3179,12 +3455,22 @@
       "id": "scene_case01_hbf_departure",
       "scenarioId": "case01_hbf_arrival",
       "title": "Leaving the Hauptbahnhof",
-      "body": "You shoulder through the tide of travelers �\u001d timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Two fronts are burning: the bank robbery and the political pressure from the Rathaus. Where you go first will shape how the city sees you.",
+      "body": "You shoulder through the tide of travelers - timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Two fronts are burning: the bank robbery and the political pressure from the Rathaus. For Eleanor Vance, a third front waits in the old estate: a real spirit and the living hands that learned to hide behind it.",
       "choices": [
         {
           "id": "CASE01_HBF_EXIT_BANK",
           "text": "The bank first. Follow the money.",
           "nextNodeId": "scene_case01_hbf_exit_final",
+          "visibleIfAll": [
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "origin_witch",
+                "value": true
+              }
+            }
+          ],
           "effects": [
             {
               "type": "set_flag",
@@ -3202,6 +3488,16 @@
           "id": "CASE01_HBF_EXIT_RATHAUS",
           "text": "The Rathaus first. Follow the power.",
           "nextNodeId": "scene_case01_hbf_exit_final",
+          "visibleIfAll": [
+            {
+              "type": "logic_not",
+              "condition": {
+                "type": "flag_equals",
+                "key": "origin_witch",
+                "value": true
+              }
+            }
+          ],
           "effects": [
             {
               "type": "set_flag",
@@ -3212,6 +3508,37 @@
               "type": "set_flag",
               "key": "priority_bank_first",
               "value": false
+            }
+          ]
+        },
+        {
+          "id": "CASE01_HBF_EXIT_WITCH_GHOST",
+          "text": "Направиться к заброшенному особняку Гранд-Эстейт.",
+          "nextNodeId": "scene_case01_witch_estate_handoff",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "origin_witch",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "origin_witch_handoff_done",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "CASE01_HBF_EXIT_WITCH_BUREAU",
+          "text": "Принять приглашение и войти в секретный отдел Бюро.",
+          "nextNodeId": "scene_case01_witch_bureau_entry",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "origin_witch",
+              "value": true
             }
           ]
         }
@@ -3250,6 +3577,250 @@
       "narrativeLayout": "log"
     },
     {
+      "id": "scene_case01_hbf_luggage_incident_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Инцидент на перроне",
+      "body": "**[Narrator]**:\nНа выходе к привокзальной площади суета сгущается. Феликс пытается снять тяжелый дорожный сундук с багажной тележки, но латунный засов заедает. Он дергает сильнее — и нелюдимый носильщик Карл, пытавшийся помочь, с шипением отдергивает руку. Латунное ребро тележки распороло ему ладонь.\n\nГустая теплая кровь начинает быстро капать на холодный металл. В висках у Элеоноры мгновенно раздается стук, а в мыслях просыпается жгучий, непреодолимый голод проклятия. Внутренние голоса в голове начинают спорить.\n\n**[inner_cynic]**:\nКапли на латуни чужие и бесплатные. Возьми их сейчас, чтобы дома не смотреть на горло собственного сына.\n\n**[inner_guide]**:\nУдержи зверя. Кровь слуги — легкий путь, но он свяжет тебя долгом, который придется отдавать здесь же во Фрайбурге. Помоги ему.",
+      "choices": [
+        {
+          "id": "WITCH_HBF_BLOOD_ABSORB",
+          "text": "[Blood Absorption] Незаметно коснуться латунного обода и впитать свежие капли крови.",
+          "nextNodeId": "scene_case01_hbf_departure",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": -20
+            },
+            {
+              "type": "add_var",
+              "key": "witch_blood_power",
+              "value": 1
+            },
+            {
+              "type": "add_var",
+              "key": "witch_blood_debt",
+              "value": 16
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_absorbed_hbf_blood",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nПальцы в тонкой лайковой перчатке скользят по исцарапанному металлу, собирая горячую влагу. Мгновенное облегчение прокатывается по телу, туша пожар в венах. Тьма внутри благодарно сжимается, утихая. Голод отступает.\n\n**[inner_cynic]**:\nТы взяла то, что принадлежало городу. Теперь твои руки останутся чистыми, когда ты снова коснешься Феликса."
+        },
+        {
+          "id": "WITCH_HBF_BLOOD_IGNORE",
+          "text": "Проигнорировать зов, достать платок и помочь Карлу перевязать руку.",
+          "nextNodeId": "scene_case01_hbf_departure",
+          "effects": [
+            {
+              "type": "change_relationship",
+              "characterId": "npc_felix_hartmann",
+              "delta": 1
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "npc_karl_servant",
+              "delta": 10
+            },
+            {
+              "type": "grant_xp",
+              "amount": 10
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_helped_karl_hbf",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nТы сжимаешь кулаки, заставляя себя дышать ровно. Жажда жжет горло, но ты достаешь платок и бережно перевязываешь Карлу ладонь. Феликс смотрит на тебя с теплой благодарностью.\n\n**[Assistant]**:\n— Спасибо, матушка. Без твоей заботы тут все бы залило кровью.\n\n**[inner_guide]**:\nЧистый поступок. Вы сохранили человечность, хоть огонь проклятия все еще жжет грудь."
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "met_karl_servant_intro",
+          "value": true
+        }
+      ],
+      "backgroundUrl": "/VN/start/image/HBF.png",
+      "sceneGroupId": "hbf_hall",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_witch_bureau_entry",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Секретный отдел Бюро",
+      "body": "**[Narrator]**:\nДождь у вокзала шумит над головой, когда неприметная дверь между газетным киоском и багажной конторой открывается без ручки. За ней не лестница, а узкий механический лифт: латунные рычаги, масляный запах, стеклянная шкала с делениями, которых нет ни в одном городском плане.\n\nКабина опускается в темноту под Фрайбургом. На стенах мелькают архивные печати, высушенная лаванда и старые карточки с именами людей, которые предпочли бы остаться слухами.\n\n**[inner_guide]**:\nЗдесь безопаснее, чем на улице. Но безопасность Бюро похожа на запертую книгу: она защищает только тех, кто знает, какую страницу нельзя открывать.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_WITCH_BUREAU_ENTRY",
+          "text": "Войти в кабинет Мастера.",
+          "nextNodeId": "scene_case01_witch_bureau_master_meeting"
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_estate_bureau.webp",
+      "sceneGroupId": "hbf_hall",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_witch_bureau_master_meeting",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Встреча с Мастером",
+      "body": "**[Master]**:\n— Проходите, дитя. Фрайбург любит притворяться городом расписаний и счетов, но сегодня он говорит языком холодных комнат и неучтенной крови.\n\n**[Narrator]**:\nМастер сидит за массивным столом из темного дуба. Рядом с ним под стеклянным колпаком лежит тусклый, сочащийся багровым светом осколок древнего алтарного камня — сырой оккультный реликт, от которого пахнет старой медью и грозой. Рядом стоит склянка с официальным, стерильным химическим составом Бюро — подавителем проклятия.\n\nМастер отворачивается к шкафу, чтобы достать документы дела Гранд-Эстейт. На мгновение ты остаешься один на один с его столом.\n\n**[inner_cynic]**:\nПодавитель излечит симптомы и успокоит огонь в венах, но сделает твою силу блеклой. А вот этот осколок... один короткий жест, одно прикосновение — и его сырая мощь станет твоей. Но если Мастер заметит колебание завесы, твоему положению в Бюро конец.",
+      "choices": [
+        {
+          "id": "WITCH_BUREAU_MASTER_DRINK_SUPPRESSANT",
+          "text": "[Chemical Suppressant] Выпить официальную сыворотку Бюро со стола.",
+          "nextNodeId": "scene_case01_witch_bureau_exit",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": -25
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_took_suppressant",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nТы откупориваешь флакон и выпиваешь безвкусную, ледяную жидкость. Внутренний зверь разочарованно затихает, скованный алхимическими цепями Бюро. Жилы пустеют, но голова становится кристально чистой.\n\n**[Master]**:\n*(поворачиваясь с папкой документов)*\n— Разумный выбор, Элеонора. Дисциплина — наше главное оружие против безумия ковенов. Гранд-Эстейт требует точности. Найдите правду и не позволяйте Проклятию Крови решать за вас."
+        },
+        {
+          "id": "WITCH_BUREAU_MASTER_SIPHON_RELIC",
+          "text": "[Stealth / Occultism] Секретно поглотить силу реликта, пока Мастер отвернулся.",
+          "nextNodeId": "scene_case01_witch_bureau_exit",
+          "skillCheck": {
+            "id": "check_witch_steal_relic",
+            "voiceId": "attr_spirit",
+            "difficulty": 11,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_witch_bureau_exit",
+              "effects": [
+                {
+                  "type": "add_var",
+                  "key": "witch_blood_curse_pressure",
+                  "value": 15
+                },
+                {
+                  "type": "add_var",
+                  "key": "witch_blood_power",
+                  "value": 2
+                },
+                {
+                  "type": "grant_xp",
+                  "amount": 20
+                },
+                {
+                  "type": "set_flag",
+                  "key": "flag_witch_siphoned_relic",
+                  "value": true
+                }
+              ],
+              "inlineText": "**[Narrator]**:\nТвоя рука молниеносно скользит к стеклянному колпаку. Ты едва касаешься холодного стекла, но твоя воля пробивает преграду. Багровое свечение реликта мгновенно втягивается в твои пальцы. Твои вены вздуваются от дикой, необузданной силы, проклятие крови воет от восторга.\n\nТы успеваешь убрать руку за мгновение до того, как Мастер поворачивается. Он бросает быстрый взгляд на прибор на столе, хмурится, но ничего не говорит.\n\n**[inner_cynic]**:\nПрекрасно. Сила бурлит в теле. Ты готова к любым кошмарам Гранд-Эстейт."
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_witch_bureau_exit",
+              "effects": [
+                {
+                  "type": "add_var",
+                  "key": "witch_blood_curse_pressure",
+                  "value": 20
+                },
+                {
+                  "type": "add_var",
+                  "key": "witch_blood_power",
+                  "value": 2
+                },
+                {
+                  "type": "add_var",
+                  "key": "checks_failed",
+                  "value": 1
+                },
+                {
+                  "type": "set_flag",
+                  "key": "flag_witch_siphoned_relic",
+                  "value": true
+                },
+                {
+                  "type": "set_flag",
+                  "key": "flag_witch_master_suspicious",
+                  "value": true
+                }
+              ],
+              "inlineText": "**[Narrator]**:\nТы тянешься к реликту, но впитывание происходит слишком резко. Воздух в кабинете с сухим треском электризуется, латунные стрелки приборов на столе сходят с ума. Мастер оборачивается на звук.\n\nЕго глаза сужаются, когда он видит твои пальцы, еще окутанные багровой дымкой, и поблекший, серый камень под стеклом.\n\n**[Master]**:\n— Глупо, Элеонора. Очень глупо. Воровство у Бюро — это не просто дерзость, это долг, который ты будешь выплачивать собственной кровью. Запомни это.\n\n**[inner_guide]**:\nМастер всё понял. Твой секрет раскрыт, а доверие Бюро подорвано."
+            }
+          }
+        },
+        {
+          "id": "WITCH_BUREAU_MASTER_COMPOSURE",
+          "text": "Сохранять спокойствие и ждать возвращения Мастера.",
+          "nextNodeId": "scene_case01_witch_bureau_exit",
+          "inlineText": "**[Narrator]**:\nТы стоишь неподвижно, сложив руки на сумочке. Ни склянка, ни реликт не заставляют тебя дрогнуть. Мастер поворачивается с папкой в руках, удовлетворенно кивая твоему спокойствию.\n\n**[Master]**:\n— Ваша выдержка делает вам честь, Элеонора. В Гранд-Эстейт вам понадобится именно такая холодная голова. Не поддавайтесь панике, найдите обе правды и возвращайтесь с отчетом."
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "met_bureau_master_intro",
+          "value": true
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_estate_bureau.webp",
+      "sceneGroupId": "hbf_hall",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_witch_bureau_exit",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Напутствие",
+      "body": "**[Narrator]**:\nМастер делает жест рукой, отпуская вас. Потайной ход выводит не обратно к билетным кассам, а к узкой служебной двери под аркой, откуда видна дорога к окраине города.\n\nТам, за мокрыми садами и темными аллеями, стоит Гранд-Эстейт. Дом ждет не обвинителя и не спасителя, а свидетельницу, способную выдержать две истины сразу.\n\n**[inner_guide]**:\nЗавеса там истончилась. Пора узнать, кто умер, кто лжет и кто пьет страх вместо вина.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_WITCH_BUREAU_EXIT",
+          "text": "Направиться к Гранд-Эстейт.",
+          "nextNodeId": "scene_case01_witch_estate_handoff"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "origin_witch_handoff_done",
+          "value": true
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_estate_bureau.webp",
+      "sceneGroupId": "hbf_hall",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_witch_estate_handoff",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Дорога к Гранд-Эстейт",
+      "body": "**[Narrator]**:\nФрайбург остается за спиной: мокрые стекла вокзала, газетные крики, городская суета, которая делает вид, что мир состоит только из расписаний.\n\nДорога к Гранд-Эстейт темнеет между садами. Над крышами особняка висит неподвижная полоса тумана, слишком ровная для погоды. Там есть дух. И там есть живые люди, которым этот дух очень удобен.\n\n**[inner_guide]**:\nТеперь начинается расследование, Элеонор. Сначала слушаем дом. Потом — тех, кто научился говорить его голосом.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_WITCH_ESTATE_HANDOFF",
+          "text": "Прибыть к воротам поместья.",
+          "nextNodeId": "scene_case01_estate_arrival_witch"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "origin_witch_handoff_done",
+          "value": true
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_estate_approach.webp",
+      "sceneGroupId": "witch_grand_estate",
+      "narrativeLayout": "log"
+    },
+    {
       "id": "scene_case01_hbf_exit_final",
       "scenarioId": "case01_hbf_arrival",
       "title": "Freiburg",
@@ -3258,6 +3829,794 @@
       "choices": [],
       "backgroundUrl": "/VN/start/image/HBF.png",
       "sceneGroupId": "hbf_hall",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_estate_arrival_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Поместье Гранд-Эстейт",
+      "body": "**[Narrator]**:\nСумерки лениво опускаются на Фрайбург, когда твой экипаж подъезжает к кованым воротам поместья Гранд-Эстейт. Феликс остался в отеле «Zum Goldenen Adler» распаковывать чемоданы, полностью уверенный, что его мать занимается скучными юридическими тонкостями.\n\nОн не знает о твоей двойной жизни. Он не знает о секретном Бюро по борьбе с мистикой. Для него Фрайбург — это шанс на новую жизнь. Для тебя — новое поле битвы.\n\nТы расправляешь складки своего пальто, прижимая к груди кожаную папку с официальной печатью прикомандированного инспектора Бюро. Баронесса Элиза уже ждет тебя в своем кабинете.",
+      "choices": [
+        {
+          "id": "AUTO_CONTINUE_ESTATE_ARRIVAL_WITCH",
+          "text": "Войти в поместье.",
+          "nextNodeId": "scene_case01_baroness_office_witch"
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_estate_gates.webp",
+      "sceneGroupId": "witch_grand_estate",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_baroness_office_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Кабинет Баронессы",
+      "body": "**[Narrator]**:\nВ кабинете Баронессы тепло и пахнет дорогим воском. Камин тихо потрескивает, отбрасывая длинные тени на дубовые панели. Баронесса Элиза фон Альтенбург — властная женщина с холодным прищуром — сидит за массивным столом, перебирая письма костяным ножом для бумаги.\n\n**[Баронесса Элиза]**:\n— Рада приветствовать вас, госпожа Вэнс. В Бюро прислали весьма... выдающегося инспектора. Признаться, я удивлена, что ваше ведомство заинтересовалось моими делами. Или слухи о «холодных сквозняках» в погребе теперь приравнены к государственной измене?",
+      "choices": [
+        {
+          "id": "WITCH_BARONESS_PRESS",
+          "text": "«Бюро расследует любые аномалии, Баронесса. Особенно те, что мешают экспорту.»",
+          "nextNodeId": "scene_case01_baroness_office_cut_trigger",
+          "inlineText": "**[Элеонора]**:\n— Бюро расследует любые аномалии, Баронесса. Особенно те, что мешают вашему экспорту. Давайте опустим формальности. Что именно произошло в вашем погребе?\n\n**[Narrator]**:\nБаронесса бледнеет, но быстро берет себя в руки. Шантаж Бюро пугает её сильнее, чем мертвецы."
+        },
+        {
+          "id": "WITCH_BARONESS_BRIBE",
+          "text": "Предложить Баронессе негласный компромисс.",
+          "nextNodeId": "scene_case01_baroness_office_cut_trigger",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_witch_baroness_deal",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Элеонора]**:\n— Давайте будем откровенны. Я могу составить отчет так, что Бюро спишет всё на температурные перепады... Если вы поможете списать долги моей семьи в Банкхаусе Кребса.\n\n**[Баронесса Элиза]** *(понижая голос)*:\n— Вы на редкость практичная женщина, Элеонора. Считайте, что сделка заключена... Но сперва избавьте меня от Фридриха в погребе. Он мешает моим людям."
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_baroness_study.webp",
+      "characterId": "npc_baroness_elise",
+      "sceneGroupId": "witch_grand_estate",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_baroness_office_cut_trigger",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Порез",
+      "body": "**[Narrator]**:\nБаронесса Элиза с силой проводит костяным ножом по плотному конверту очередного письма. Внезапно лезвие срывается и глубоко врезается в её указательный палец. Она с шипением роняет нож.\n\n**[Баронесса Элиза]**:\n— Ах!.. Черт бы взял эту дешевую бумагу...\n\n**[Narrator]**:\nНа лакированное дерево стола начинает быстро капать густая, ярко-алая кровь. В прохладной тишине кабинета ты буквально физически чувствуешь исходящий от неё соматический жар.\n\nВ твоем сознании мгновенно вспыхивает ледяной огонь Зверя. Пальцы сводит судорогой от голода проклятия.",
+      "choices": [
+        {
+          "id": "WITCH_BARONESS_RESIST_SUPPRESSANT",
+          "text": "[Composure] Сдержать Зверя (Супрессант активен).",
+          "nextNodeId": "scene_case01_estate_vaults_witch",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_witch_took_suppressant",
+              "value": true
+            }
+          ],
+          "passiveChecks": [
+            {
+              "id": "check_baroness_resist_easy",
+              "voiceId": "attr_composure",
+              "difficulty": 4,
+              "showChancePercent": false,
+              "isPassive": true,
+              "onSuccess": {
+                "effects": [
+                  {
+                    "type": "add_var",
+                    "key": "witch_blood_curse_pressure",
+                    "value": 20
+                  },
+                  {
+                    "type": "set_flag",
+                    "key": "flag_witch_somatic_exhaustion",
+                    "value": true
+                  }
+                ],
+                "inlineText": "**[Composure — Успех]**:\nСупрессант Мастера действует. Ты сжимаешь кулаки, усмиряя вспышку голода. Твое лицо остается безупречной маской благородства. Ты протягиваешь ей свой платок.\n\n**[Элеонора]**:\n— Позвольте, Баронесса. Рана глубокая. Будьте осторожны с серебряными лезвиями.\n\n**[Narrator]**:\nТы сохраняешь идеальную маску, но тело сковывает дикий озноб: ты получаешь дебафф «Соматическое истощение» (-2 к физическим действиям в подземельях)."
+              },
+              "onFailure": {
+                "effects": [
+                  {
+                    "type": "set_flag",
+                    "key": "flag_witch_baroness_suspicious",
+                    "value": true
+                  }
+                ],
+                "inlineText": "**[Composure — Провал]**:\nДаже под супрессантом твои глаза хищно расширяются, впиваясь в рану. Твои руки дрожат. Баронесса замечает этот жуткий, нечеловеческий взгляд и в испуге прижимает порезанную руку к груди, бледнея от подозрения."
+              }
+            }
+          ]
+        },
+        {
+          "id": "WITCH_BARONESS_RESIST_RELIC",
+          "text": "[Composure] Сдержать Зверя (Зверь взвинчен реликвией).",
+          "nextNodeId": "scene_case01_estate_vaults_witch",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_witch_siphoned_relic",
+              "value": true
+            }
+          ],
+          "passiveChecks": [
+            {
+              "id": "check_baroness_resist_hard",
+              "voiceId": "attr_composure",
+              "difficulty": 9,
+              "showChancePercent": false,
+              "isPassive": true,
+              "onSuccess": {
+                "effects": [
+                  {
+                    "type": "add_var",
+                    "key": "witch_blood_curse_pressure",
+                    "value": 20
+                  },
+                  {
+                    "type": "set_flag",
+                    "key": "flag_witch_somatic_exhaustion",
+                    "value": true
+                  }
+                ],
+                "inlineText": "**[Composure — Успех]**:\nНевероятным усилием воли ты подавляешь бешеный рев Зверя внутри. Руки каменеют, но фасад сохранен. Ты протягиваешь ей платок.\n\n**[Элеонора]**:\n— Возьмите, Баронесса. Это согреет рану. Нож слишком острый.\n\n**[Narrator]**:\nТы сохранила Маскарад, но твое тело истощено борьбой с проклятием: ты получаешь дебафф «Соматическое истощение» (-2 к физическим действиям в подземельях)."
+              },
+              "onFailure": {
+                "effects": [
+                  {
+                    "type": "set_flag",
+                    "key": "flag_witch_baroness_suspicious",
+                    "value": true
+                  }
+                ],
+                "inlineText": "**[Composure — Провал]**:\nСила реликвии бьет по венам, лишая контроля. Твои губы приоткрываются, обнажая клыки. Баронесса видит твое искаженное жаждой лицо и в ужасе отскакивает от стола, прижимая раненый палец к груди."
+              }
+            }
+          ]
+        },
+        {
+          "id": "WITCH_BARONESS_FEED",
+          "text": "[Somatic Feed] Поддаться голоду и слизать свежую кровь.",
+          "nextNodeId": "scene_case01_baroness_office_feed_coverup",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": -25
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nЗверь побеждает. Сделав молниеносное движение, ты перехватываешь её руку и прижимает раненый палец к своим губам. Горячая, сладкая кровь обжигает язык, мгновенно принося блаженное облегчение и гася пожар проклятия.\n\nБаронесса застывает в немом ужасе, бледная как смерть, пытаясь вырвать ладонь. Ты должна немедленно спасти Маскарад!"
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_baroness_study.webp",
+      "characterId": "npc_baroness_elise",
+      "sceneGroupId": "witch_grand_estate",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_baroness_office_feed_coverup",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Маскарад",
+      "body": "**[Narrator]**:\nБаронесса Элиза в ужасе смотрит на тебя, её дыхание прерывистое, она готова закричать и позвать слуг. У тебя есть секунды, чтобы оправдать свое чудовищное поведение.",
+      "choices": [
+        {
+          "id": "WITCH_BARONESS_COVER_PROTOCOL",
+          "text": "«Это стандартный эктоплазменный протокол Бюро...» (Ложь про тест).",
+          "nextNodeId": "scene_case01_estate_vaults_witch",
+          "passiveChecks": [
+            {
+              "id": "check_baroness_cover_deception",
+              "voiceId": "attr_deception",
+              "difficulty": 6,
+              "showChancePercent": false,
+              "isPassive": true,
+              "onSuccess": {
+                "inlineText": "**[Deception — Успех]**:\nТы холодно отпускаешь её руку и уверенно заявляешь:\n\n**[Элеонора]**:\n— Успокойтесь, Баронесса. Это стандартная эктоплазменная проба Бюро. Кровь на серебряном ноже — идеальный проводник. Я должна была лично убедиться, что дух счетовода не оставил на вас соматического следа. Рана чиста, опасности нет.\n\n**[Narrator]**:\nБаронесса шокирована «дикими методами» тайного ведомства, но верит твоему ледяному авторитету. Она молча забинтовывает палец."
+              },
+              "onFailure": {
+                "effects": [
+                  {
+                    "type": "set_flag",
+                    "key": "flag_witch_baroness_suspicious",
+                    "value": true
+                  }
+                ],
+                "inlineText": "**[Deception — Провал]**:\nТвой голос дрожит от остаточного экстаза. Баронесса не верит ни одному слову. Она считает тебя безумной оккультисткой и приказывает слугам вывести тебя, запирая архивы на ключ."
+              }
+            }
+          ]
+        },
+        {
+          "id": "WITCH_BARONESS_COVER_SUGGESTION",
+          "text": "[Suggestion] Использовать выпитую кровь для стирания памяти.",
+          "nextNodeId": "scene_case01_estate_vaults_witch",
+          "passiveChecks": [
+            {
+              "id": "check_baroness_cover_suggestion",
+              "voiceId": "attr_intuition",
+              "difficulty": 5,
+              "showChancePercent": false,
+              "isPassive": true,
+              "onSuccess": {
+                "inlineText": "**[Suggestion — Успех]**:\nСвежая кровь Баронессы в твоих жилах открывает прямой канал к её разуму. Ты заглядываешь в её расширенные зрачки и шепчешь соматический приказ:\n\n**[Элеонора]**:\n— Элиза... Посмотрите на меня. Вы просто порезались ножом. Я протянула вам платок. Вы вытерли кровь. Ничего больше не произошло...\n\n**[Narrator]**:\nВзгляд Баронессы стекленеет. Она моргает, её дыхание выравнивается. Она берет твой платок, искренне веря, что ты просто помогла ей. Кошмарное мгновение стерто из её памяти!"
+              },
+              "onFailure": {
+                "effects": [
+                  {
+                    "type": "set_flag",
+                    "key": "flag_witch_baroness_suspicious",
+                    "value": true
+                  }
+                ],
+                "inlineText": "**[Suggestion — Провал]**:\nТвоя воля наталкивается на жесткий блок её собственного эго. Баронесса с криком вырывает руку, зовет охрану и приказывает запереть перед тобой все двери подземелий."
+              }
+            }
+          ]
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_baroness_study.webp",
+      "characterId": "npc_baroness_elise",
+      "sceneGroupId": "witch_grand_estate",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_estate_vaults_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Холодные Архивы",
+      "body": "**[Narrator]**:\nСпустившись под каменные своды поместья Гранд-Эстейт, ты оказываешься в холодных архивах. Стены покрыты инеем, изо рта идет пар.\n\nЕсли ты страдаешь от «Соматического истощения» (активно сдерживала Зверя), твои руки дрожат от озноба, что накладывает штраф -2 к любым действиям скрытности (Stealth) или взлома (Intrusion). Однако онемение тела дает тебе полный иммунитет к духовным ледяным ловушкам призрака.\n\nТебе нужно согреться, чтобы вернуть ловкость. В темных углах коридора шныряют жирные крысы, а в кладовой впереди возится слуга Карл.",
+      "choices": [
+        {
+          "id": "WITCH_VAULTS_FEED_RATS",
+          "text": "[Agility] Поймать крысу в углах подземелья и выпить её тепло.",
+          "nextNodeId": "scene_case01_ghost_showdown_witch",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": -10
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_somatic_exhaustion",
+              "value": false
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nТы бесшумно бросаешься на шорох и сжимаешь пальцы на теплом, пищащем тельце грызуна. Укус — и горячая животная кровь возвращает тепло твоим онемевшим рукам. Озноб и дебафф проходят. Это омерзительно, но спасительно для Маскарада."
+        },
+        {
+          "id": "WITCH_VAULTS_FEED_KARL",
+          "text": "[Somatic Feed] Подстеречь в темноте Карла и забрать его тепло.",
+          "nextNodeId": "scene_case01_ghost_showdown_witch",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": -25
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_somatic_exhaustion",
+              "value": false
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_attacked_karl",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "ghost_karl_testimony_compromised",
+              "value": true
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "npc_karl_servant",
+              "delta": -40
+            },
+            {
+              "type": "change_faction_signal",
+              "factionId": "house_of_pledges",
+              "delta": -5,
+              "reason": "Witch fed on Karl in the estate vaults"
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nЗверь требует человеческого тепла. Ты настигаешь Карла в темном проходе между стеллажами. Быстрый захват со спины, твоя ладонь зажимает ему рот, и ты делаешь жадный глоток его жизни из сонной артерии. Карл оседает на пол, тяжело дыша. Дебафф снят, но слуга панически напуган, а уровень подозрений в поместье растет."
+        },
+        {
+          "id": "WITCH_VAULTS_PROCEED_COLD",
+          "text": "Продолжить исследование подземелий, преодолевая холод.",
+          "nextNodeId": "scene_case01_ghost_showdown_witch",
+          "inlineText": "**[Narrator]**:\nТы решаешь терпеть. Ты идешь сквозь морозные архивы со сжатыми зубами, дрожащими пальцами пытаясь перебирать старые бумаги в поисках скрытой латунной шкатулки с двойным дном."
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_estate_vaults.webp",
+      "characterId": "npc_karl_servant",
+      "sceneGroupId": "witch_grand_estate",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_ghost_showdown_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Призрак Счетовода",
+      "body": "**[Narrator]**:\nВ глубине самого холодного ледника ты находишь скрытую латунную шкатулку Баронессы. Но как только твои пальцы касаются замка, температура в помещении падает до абсолютного нуля. Иней мгновенно покрывает твои ресницы.\n\nПеред тобой из ледяного пара материализуется светящийся синевой дух Фридриха Вагнера — бывшего счетовода поместья. Его глаза пусты и покрыты льдом.\n\nОн был заперт в этой камере насмерть теневыми партнерами Баронессы из Bankhaus J.A. Krebs после того, как нашел леджер контрабанды. Баронесса знала об этом, выдала его партнерам и скрыла убийство. Дух жаждет правосудия.",
+      "choices": [
+        {
+          "id": "WITCH_GHOST_JUSTICE",
+          "text": "«Я клянусь разорить Баронессу и её партнеров по закону Бюро.» (Путь Правосудия).",
+          "nextNodeId": "scene_case01_night_alley_witch",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": -30
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_ghost_freed",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "ghost_session_hook_spirit_bargain",
+              "value": true
+            },
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_friedrich_ledger_testimony"
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "npc_friedrich_wagner",
+              "delta": 20
+            }
+          ],
+          "inlineText": "**[Элеонора]**:\n— Успокойся, Фридрих. Я — инспектор Бюро. Этот леджер станет приговором для Баронессы и её партнеров из Krebs. Я клянусь, что они ответят перед законом.\n\n**[Narrator]**:\nПризрак счетовода долго смотрит в твои глаза. Он видит твою непреклонную волю. С облегченным вздохом он отпускает шкатулку и растворяется в теплом сиянии, обретая покой. Твоя душа успокаивается, давление проклятия падает на -30."
+        },
+        {
+          "id": "WITCH_GHOST_SUBJUGATE",
+          "text": "[Spirit / Authority] Силой подчинить призрака своей воле и связать со своей тенью.",
+          "nextNodeId": "scene_case01_night_alley_witch",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": 15
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_ghost_bound",
+              "value": true
+            }
+          ],
+          "passiveChecks": [
+            {
+              "id": "check_ghost_subjugation",
+              "voiceId": "attr_authority",
+              "difficulty": 7,
+              "showChancePercent": false,
+              "isPassive": true,
+              "onSuccess": {
+                "effects": [
+                  {
+                    "type": "grant_evidence",
+                    "evidenceId": "ev_friedrich_ledger_testimony"
+                  },
+                  {
+                    "type": "change_relationship",
+                    "characterId": "npc_friedrich_wagner",
+                    "delta": -30
+                  }
+                ],
+                "inlineText": "**[Authority — Успех]**:\nТы отказываешься от человеческого суда. Направив на дух силу своей воли и соматического проклятия, ты ломаешь его сопротивление. Фридрих кричит, превращаясь в ледяной вихрь, который насильно втягивается в твою тень.\n\n**[Narrator]**:\nОтныне дух счетовода привязан к твоей тени в качестве Фамильяра. Ты забираешь леджер. Ты получаешь постоянный бонус +2 к Logic во 2-й Главе, но твоя аура остывает, и Феликс подсознательно начнет бояться тебя еще сильнее."
+              },
+              "onFailure": {
+                "effects": [
+                  {
+                    "type": "add_var",
+                    "key": "witch_blood_curse_pressure",
+                    "value": 30
+                  }
+                ],
+                "inlineText": "**[Authority — Провал]**:\nДух счетовода дает яростный оккультный отпор. Ледяная волна отбрасывает тебя к стене, нанося огромный ментальный стресс и перегружая давление проклятия на +30. Ты забираешь леджер силой, но дух улетает, затаив лютую ненависть."
+              }
+            }
+          ]
+        },
+        {
+          "id": "WITCH_GHOST_BANISH",
+          "text": "Сжечь леджер прямо перед призраком, исполняя сделку с Баронессой.",
+          "nextNodeId": "scene_case01_night_alley_witch",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": 10
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_ghost_banished",
+              "value": true
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "npc_friedrich_wagner",
+              "delta": -50
+            },
+            {
+              "type": "change_faction_signal",
+              "factionId": "the_returned",
+              "delta": -10,
+              "reason": "Witch banished Friedrich and burned his ledger"
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nТы достаешь спички и сжигаешь леджер контрабанды дотла на глазах у Фридриха. Призрак с воем ярости бросается на тебя, но ты проводишь жесткий ритуал изгнания, рассеивая его сущность в пустоту.\n\nТы исполнила сделку. Баронесса спишет твои долги. Но твоя совесть осквернена: ты получаешь +15 к моральному стрессу за укрывательство убийства и уничтожение улик."
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "met_friedrich_wagner_intro",
+          "value": true
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_ghost_cellar.webp",
+      "characterId": "npc_friedrich_wagner",
+      "sceneGroupId": "witch_grand_estate",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_night_alley_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Ночной Переулок",
+      "body": "**[Narrator]**:\nНочь полностью поглотила Фрайбург, когда ты пешком возвращаешься в отель. Туман крадется по булыжной мостовой, гася редкие огни газовых фонарей. Внезапно из темного арочного прохода навстречу тебе делает шаг рослый бродяга с ржавым ножом в руке.\n\n**[Грабитель]**:\n— Тихо, госпожа... Без глупостей. Отдайте сумочку, кольца Hartmann, и пальто тоже снимайте... Снимай, говорю!",
+      "choices": [
+        {
+          "id": "WITCH_MUGGER_PAYOFF",
+          "text": "«Возьмите кошелек. Здесь достаточно золота.» (Попытка откупиться).",
+          "nextNodeId": "scene_case01_night_alley_escalation",
+          "inlineText": "**[Элеонора]**:\n— Возьмите кошелек. Здесь достаточно, чтобы вы не делали глупостей. Пропустите меня.\n\n**[Narrator]**:\nГрабитель хватает тяжелый кошелек, но его глаза загораются жадностью при виде твоих перстней Hartmann. Он делает шаг вперед."
+        },
+        {
+          "id": "WITCH_MUGGER_THREATEN",
+          "text": "Попытаться запугать или пройти мимо него.",
+          "nextNodeId": "scene_case01_night_alley_escalation",
+          "inlineText": "**[Элеонора]**:\n— Пропустите меня, или этот переулок станет вашим склепом.\n\n**[Narrator]**:\nГрабитель хрипло хохочет, принимая твое предупреждение за обычный женский испуг. Он преграждает дорогу."
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "met_krebs_mugger_intro",
+          "value": true
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_night_alley.webp",
+      "characterId": "npc_krebs_mugger",
+      "sceneGroupId": "witch_freiburg_night",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_night_alley_escalation",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Срыв",
+      "body": "**[Narrator]**:\nГрабитель грубо хватает тебя за воротник и прижимает холодное лезвие ножа прямо к твоему горлу, обдавая запахом дешевого джина.\n\n**[Грабитель]**:\n— Ты мне зубы не заговаривай! Живо снимай кольца, а то горло перережу!\n\n**[Narrator]**:\nХолодная сталь у горла и угроза жизни срывают последние тормоза проклятия. Вспыхивает первобытный инстинкт выживания. На сверхчеловеческой скорости (`Somatic Haste`) ты перехватываешь его запястье и применяешь силу. С омерзительным сухим **хрустом** его кости ломаются. Грабитель кричит, роняя нож.\n\nИз раны брызжет горячая кровь. Запах свежей крови в морозном тумане окончательно лишает тебя контроля. Ты вжимаешь его в кирпичную стену и вонзаешь клыки в его шею.",
+      "choices": [
+        {
+          "id": "WITCH_MUGGER_SIPHON_BREAK",
+          "text": "[Composure] Попытаться оторвать себя от жертвы и сохранить жизнь человеку.",
+          "nextNodeId": "scene_case01_hotel_morning_witch",
+          "skillCheck": {
+            "id": "check_mugger_siphon_break",
+            "voiceId": "attr_composure",
+            "difficulty": 8,
+            "showChancePercent": false,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_hotel_morning_witch",
+              "effects": [
+                {
+                  "type": "add_var",
+                  "key": "witch_blood_curse_pressure",
+                  "value": -20
+                },
+                {
+                  "type": "set_flag",
+                  "key": "flag_witch_mugger_survived",
+                  "value": true
+                },
+                {
+                  "type": "register_rumor",
+                  "rumorId": "rumor_witch_mugger_survivor"
+                }
+              ],
+              "inlineText": "**[Composure — Успех]**:\nНевероятным усилием воли ты разжимаешь челюсти и отшвыриваешь грабителя от себя. Твои губы испачканы кровью, но человек жив. Он падает на булыжную мостовую, теряя сознание от шока и раны. Ты сбегаешь в туман. В живых остался свидетель, между вами образовалась Кровная Связь (Blood Bond)!"
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_hotel_morning_witch",
+              "effects": [
+                {
+                  "type": "set_var",
+                  "key": "witch_blood_curse_pressure",
+                  "value": 0
+                },
+                {
+                  "type": "set_flag",
+                  "key": "flag_witch_mugger_killed",
+                  "value": true
+                },
+                {
+                  "type": "add_heat",
+                  "amount": 2
+                }
+              ],
+              "inlineText": "**[Composure — Провал]**:\nТы не можешь остановиться. Вкус жизни опьяняет. Ты пьешь его до дна, пока его тело не обмякает. Передозировка соматической силы перегружает твой мозг, и ты впадаешь в глубокое беспамятство. В переулке остается труп, а в его кармане — зацепка банды Krebs."
+            }
+          }
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_night_alley.webp",
+      "characterId": "npc_krebs_mugger",
+      "sceneGroupId": "witch_freiburg_night",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_hotel_morning_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Утро после...",
+      "body": "**[Narrator]**:\nСолнечные лучи пробиваются сквозь портьеры номера в отели «Zum Goldenen Adler». Ты просыпаешься на кровати в холодном поту. Голова раскалывается.\n\nЕсли ты провалила проверку воли ночью, твои воспоминания стерты, а на платье — засохшая кровь убитого грабителя. В твоем кармане обнаруживается записка банды Krebs с приказом убрать тебя. Если ты прервала сифон, грабитель выжил, но твоя одежда всё равно испачкана кровью.\n\nТебе нужно срочно избавиться от улик: с минуты на минуту в дверь номера постучится Феликс.",
+      "choices": [
+        {
+          "id": "WITCH_MORNING_BRIBE_MAID",
+          "text": "Вызвать горничную и подкупить её для уничтожения платья (Социальный путь).",
+          "nextNodeId": "scene_case01_hotel_copper_trace_witch",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_witch_maid_bribed",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "origin_witch_handoff_done",
+              "value": true
+            },
+            {
+              "type": "change_relationship",
+              "characterId": "npc_hotel_maid",
+              "delta": 10
+            }
+          ],
+          "passiveChecks": [
+            {
+              "id": "check_maid_bribe",
+              "voiceId": "attr_deception",
+              "difficulty": 5,
+              "showChancePercent": false,
+              "isPassive": true,
+              "onSuccess": {
+                "inlineText": "**[Deception — Успех]**:\nТы притворяешься, что ночью у тебя пошла носом сильная кровь из-за давления. С вежливой улыбкой ты отдаешь горничной испачканное платье, прижимая к её ладони тяжелый золотой кошель.\n\nГорничная понимающе и подобострастно кивает, обещая сжечь вещь без лишних вопросов. Улики уничтожены!"
+              },
+              "onFailure": {
+                "inlineText": "**[Deception — Провал]**:\nГорничная испуганно забирает платье с золотом, но её руки трясутся. Она шепчется с другими слугами о «странной окровавленной барыне», что разносит подозрительные слухи по отелю."
+              }
+            }
+          ]
+        },
+        {
+          "id": "WITCH_MORNING_SORCERY_CLEANSE",
+          "text": "[Blood Sorcery] Использовать магию крови, чтобы впитать пролитую кровь кожей.",
+          "nextNodeId": "scene_case01_hotel_copper_trace_witch",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": 15
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_dress_cleansed",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_witch_copper_smell",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "origin_witch_handoff_done",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nТы прижимаешь ладони к испачканному шелку платья. Сосредоточившись, ты приказываешь крови течь обратно. На твоих глазах багровые пятна бледнеют, впитываясь прямо сквозь поры твоей кожи. Платье очищается до нитки!\n\nНо впитывание чужой засохшей крови соматически оскверняет тебя (`Pressure +15`), а от платья начинает исходить едва уловимый, тревожный медный запах крови, который Феликс или Детектив могут почуять при личной встрече."
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "met_hotel_maid_intro",
+          "value": true
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_hotel_bedroom.webp",
+      "characterId": "npc_hotel_maid",
+      "sceneGroupId": "witch_hotel_morning",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_hotel_copper_trace_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Медная нота",
+      "body": "**[Narrator]**:\nКоридор отеля оживает обычными утренними звуками: щелчок посуды внизу, скрип половицы, приглушенный голос Феликса у двери. Номер выглядит достаточно прилично для случайного взгляда. Вопрос в том, достаточно ли он пахнет обычным утром.\n\nФеликс стучит костяшками пальцев и спрашивает, можно ли войти.",
+      "choices": [
+        {
+          "id": "WITCH_HOTEL_COPPER_TRACE_STEADY",
+          "text": "[Perception] Прочитать реакцию Феликса раньше, чем он поймет запах.",
+          "nextNodeId": "scene_case01_lobby_crossover_witch",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_witch_copper_smell",
+              "value": true
+            }
+          ],
+          "skillCheck": {
+            "id": "check_witch_felix_copper_smell",
+            "voiceId": "attr_perception",
+            "difficulty": 7,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_lobby_crossover_witch",
+              "inlineText": "**[Perception — Успех]**:\nТы замечаешь, как Феликс задерживает дыхание на долю секунды. Этого хватает: окно открыто, перчатки сняты, тон ровный. Запах растворяется в холодном утреннем воздухе прежде, чем становится вопросом."
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_lobby_crossover_witch",
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "flag_witch_felix_noticed_copper_smell",
+                  "value": true
+                }
+              ],
+              "inlineText": "**[Perception — Провал]**:\nФеликс не говорит ничего прямо, но взгляд цепляется за платье, умывальник и слишком свежий воздух из открытого окна. Медная нота остается между вами как невысказанный вопрос."
+            }
+          }
+        },
+        {
+          "id": "AUTO_CONTINUE_WITCH_HOTEL_NO_COPPER_TRACE",
+          "text": "Впустить Феликса и вернуться к делу.",
+          "nextNodeId": "scene_case01_lobby_crossover_witch",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_witch_copper_smell",
+              "value": false
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nФеликс входит с папкой расписаний и ни о чем не спрашивает. Утро остается хрупким, но пока оно держится."
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_hotel_bedroom.webp",
+      "characterId": "npc_felix_hartmann",
+      "sceneGroupId": "witch_hotel_morning",
+      "narrativeLayout": "log"
+    },
+    {
+      "id": "scene_case01_lobby_crossover_witch",
+      "scenarioId": "case01_hbf_arrival",
+      "title": "Лобби «Zum Goldenen Adler»",
+      "body": "**[Narrator]**:\nЛестница вниз — двенадцать ступеней полированного дуба. Лобби живёт обычным утром: щелчок ключей у стойки регистратора, чашка снизу звякает о блюдце, газета шуршит на низком столе у камина.\n\nЗа этим столом — мужчина лет двадцати семи, в дорожном пальто, с кофе и развёрнутой утренней газетой. Седеющий висок, ровная посадка, ничего лишнего в движении. Тот самый попутчик, которого Феликс почтительно называл «детективом» в вагоне-ресторане.\n\nОн ещё не поднял глаз. У тебя есть три ступени, чтобы решить, кем спуститься.",
+      "choices": [
+        {
+          "id": "WITCH_LOBBY_VEIL_SIGHT",
+          "text": "[Veil Sight] Сквозь пар над его чашкой считать, что он сейчас думает.",
+          "nextNodeId": "scene_case01_hbf_exit_final",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": 10
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_lobby_crossover_seen_by_witch",
+              "value": true
+            }
+          ],
+          "inlineText": "**[attr_spirit]**:\nЗавеса над его кофе тонкая, как папиросная бумага. Он не читает газету — он перечитывает одну колонку и считает дыхания у входной двери. Имя в его мыслях ровное и сухое: Элиас Торн. Он ждёт, кто спустится первым: владелец багажа из соседнего номера или тот, кто оставил запах меди в холле."
+        },
+        {
+          "id": "WITCH_LOBBY_COMPOSED_PASS",
+          "text": "[Composure] Спуститься как Hartmann: ровно, без взгляда в его сторону.",
+          "nextNodeId": "scene_case01_hbf_exit_final",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": -5
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_lobby_crossover_seen_by_witch",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nТы спускаешься с той скоростью, с какой Hartmann спускаются всю жизнь — ни быстрее, ни медленнее окружающей утренней рутины. Перчатки на руках, перстни наружу, осанка прямая. Газета не шелохнётся. Дверь швейцара открывается перед тобой раньше, чем ты успеваешь её заметить.",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_witch_copper_smell",
+              "value": false
+            }
+          ]
+        },
+        {
+          "id": "WITCH_LOBBY_COMPOSED_PASS_COPPER",
+          "text": "[Composure] Удержать запах меди и пройти мимо как ни в чём не бывало.",
+          "nextNodeId": "scene_case01_hbf_exit_final",
+          "effects": [
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": 5
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_lobby_crossover_seen_by_witch",
+              "value": true
+            }
+          ],
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "flag_witch_copper_smell",
+              "value": true
+            }
+          ],
+          "skillCheck": {
+            "id": "check_lobby_witch_copper_pass",
+            "voiceId": "attr_composure",
+            "difficulty": 8,
+            "showChancePercent": true,
+            "onSuccess": {
+              "nextNodeId": "scene_case01_hbf_exit_final",
+              "inlineText": "**[Composure — Успех]**:\nТы проходишь между его столом и стойкой, и медь сворачивается обратно под кожу. Он не поднимает глаз. Газета у его пальцев чуть прогибается — он просто перевернул страницу."
+            },
+            "onFail": {
+              "nextNodeId": "scene_case01_hbf_exit_final",
+              "effects": [
+                {
+                  "type": "set_flag",
+                  "key": "flag_lobby_crossover_seen_by_detective",
+                  "value": true
+                }
+              ],
+              "inlineText": "**[Composure — Провал]**:\nНа третьей ступени запах меди вырывается из складок твоего платья прежде, чем ты успеваешь его собрать. Детектив поднимает глаза от газеты — короткий профессиональный взгляд, скользящий по перчаткам, перстням, подолу. Он не говорит ничего. Но ты уже в его памяти, рядом с делом, которое ещё не названо."
+            }
+          }
+        },
+        {
+          "id": "WITCH_LOBBY_GREET",
+          "text": "Поприветствовать как знакомого с поезда: «Детектив. Доброе утро.»",
+          "nextNodeId": "scene_case01_hbf_exit_final",
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "flag_lobby_crossover_seen_by_witch",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "flag_lobby_crossover_seen_by_detective",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Элеонора]**:\n— Детектив. Доброе утро. Надеюсь, Фрайбург оказал вам гостеприимство.\n\n**[Detective]**:\n— Frau Hartmann. Доброе. Передайте Феликсу: расписание на 08:41 он подчеркнул правильно.\n\n**[Narrator]**:\nКороткий кивок. Газета опускается на стол ровно настолько, чтобы это считалось вежливостью, и поднимается обратно. В его взгляде нет ни обвинения, ни любопытства — только аккуратная отметка о том, что вы оба сейчас в одном городе."
+        }
+      ],
+      "backgroundUrl": "/images/scenes/case01/bg_case01_zum_goldenen_adler_lobby.webp",
+      "sceneGroupId": "witch_hotel_morning",
       "narrativeLayout": "log"
     },
     {
@@ -3359,7 +4718,7 @@
     {
       "id": "scene_case01_zum_goldenen_adler_entry",
       "scenarioId": "case01_lodging_zum_goldenen_adler",
-      "title": "Scene: Zum Goldenen Adler",
+      "title": "Scene: Zum Eber",
       "body": "The inn keeps its warmth behind polished wood and practiced discretion. Your room is reserved, your name is legible in the register, and the clerk has already decided which parts of your arrival are ordinary enough to say aloud.",
       "choices": [
         {
@@ -3399,7 +4758,7 @@
       "id": "scene_case01_zum_goldenen_adler_settle",
       "scenarioId": "case01_lodging_zum_goldenen_adler",
       "title": "Scene: Key Taken",
-      "body": "The key is plain brass, heavier than it looks. Whatever else Zum Goldenen Adler knows, it can wait behind a locked door while the city begins to spend its morning.",
+      "body": "The key is plain brass, heavier than it looks. Whatever else Zum Eber knows, it can wait behind a locked door while the city begins to spend its morning.",
       "terminal": true,
       "choices": []
     },
@@ -4188,10 +5547,6 @@
           "type": "set_flag",
           "key": "origin_archivist_handoff_done",
           "value": true
-        },
-        {
-          "type": "unlock_group",
-          "groupId": "loc_ka_bank"
         }
       ],
       "characterId": "inspector"
@@ -4377,10 +5732,6 @@
           "type": "set_flag",
           "key": "origin_aristocrat_handoff_done",
           "value": true
-        },
-        {
-          "type": "unlock_group",
-          "groupId": "loc_ka_bank"
         }
       ],
       "characterId": "inspector"
@@ -4957,10 +6308,6 @@
           "type": "set_flag",
           "key": "origin_veteran_handoff_done",
           "value": true
-        },
-        {
-          "type": "unlock_group",
-          "groupId": "loc_ka_estate"
         }
       ],
       "characterId": "inspector"
@@ -8128,6 +9475,187 @@
               "evidenceId": "ev_ectoplasm"
             }
           ]
+        },
+        {
+          "id": "GHOST_WITCH_VEIL_FOCUS",
+          "text": "[Veil Sight] Ask what in the room is not human.",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_evidence_collection_beat1",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "origin_witch",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "ghost_veil_resonance_seen",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "ghost_human_cover_suspected",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": 15
+            },
+            {
+              "type": "track_event",
+              "eventName": "witch_veil_focus",
+              "tags": {
+                "location": "grand_estate",
+                "scope": "session_hook"
+              }
+            }
+          ],
+          "inlineText": "**[attr_spirit]**:\nThe cold does not begin at the window. It gathers around the pantry door, where a living hand has touched the same brass latch too often. The spirit is real, but someone alive has learned its route."
+        },
+        {
+          "id": "GHOST_WITCH_BLOOD_TEMPTATION",
+          "text": "[Blood Curse] Breathe through the metallic scent near the pantry.",
+          "choiceType": "flavor",
+          "nextNodeId": "scene_evidence_collection_beat1",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "origin_witch",
+              "value": true
+            },
+            {
+              "type": "var_gte",
+              "key": "witch_blood_curse_pressure",
+              "value": 50
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "ghost_witch_blood_temptation_seen",
+              "value": true
+            },
+            {
+              "type": "add_var",
+              "key": "witch_blood_curse_pressure",
+              "value": -20
+            },
+            {
+              "type": "add_var",
+              "key": "witch_blood_power",
+              "value": 1
+            },
+            {
+              "type": "add_var",
+              "key": "witch_blood_debt",
+              "value": 16
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nThe scent is old wine, cut copper, and fear. Relief comes quickly enough to be dangerous. The hunger quiets, but it takes a note of the room for later."
+        },
+        {
+          "id": "GHOST_WITCH_FRIENDRICH_LEDGER_MEMORY",
+          "text": "[Ledger Memory] Listen for the accountant whose case you already met.",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_evidence_collection_beat1",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "origin_witch",
+              "value": true
+            },
+            {
+              "type": "logic_or",
+              "conditions": [
+                {
+                  "type": "flag_equals",
+                  "key": "flag_witch_ghost_freed",
+                  "value": true
+                },
+                {
+                  "type": "flag_equals",
+                  "key": "flag_witch_ghost_bound",
+                  "value": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_friedrich_ledger_testimony"
+            },
+            {
+              "type": "set_flag",
+              "key": "ghost_session_hook_spirit_bargain",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nThe cold remembers a brass-bound ledger. Friedrich's testimony lines up here too: the same partners, the same night the vault was sealed. The pages you carry in memory now answer the room."
+        },
+        {
+          "id": "GHOST_WITCH_KARL_SERVICE_CORRIDOR",
+          "text": "[Service Corridor] Walk the pantry route Karl trusted you with.",
+          "choiceType": "inquiry",
+          "nextNodeId": "scene_evidence_collection_beat1",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "origin_witch",
+              "value": true
+            },
+            {
+              "type": "flag_equals",
+              "key": "flag_witch_helped_karl_hbf",
+              "value": true
+            },
+            {
+              "type": "flag_equals",
+              "key": "flag_witch_attacked_karl",
+              "value": false
+            }
+          ],
+          "effects": [
+            {
+              "type": "grant_evidence",
+              "evidenceId": "ev_karl_service_corridor_testimony"
+            },
+            {
+              "type": "set_flag",
+              "key": "ghost_session_hook_karl_smuggling_key",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nKarl's directions hold. The pantry door opens onto the smuggling corridor he keeps quiet about — a clean path from cellar to yard that someone living used the night Friedrich died."
+        },
+        {
+          "id": "GHOST_WITCH_KARL_PANIC_TRACE",
+          "text": "[Panic Trace] Read the corridor where Karl was fed on.",
+          "choiceType": "flavor",
+          "nextNodeId": "scene_evidence_collection_beat1",
+          "visibleIfAll": [
+            {
+              "type": "flag_equals",
+              "key": "origin_witch",
+              "value": true
+            },
+            {
+              "type": "flag_equals",
+              "key": "flag_witch_attacked_karl",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "ghost_karl_testimony_compromised",
+              "value": true
+            }
+          ],
+          "inlineText": "**[Narrator]**:\nThe service corridor still smells of Karl's fear. His silence will read as a ghost story to anyone who asks — and his testimony, if it ever comes, will carry the bite mark with it."
         }
       ],
       "passiveChecks": [
@@ -8212,8 +9740,8 @@
     {
       "id": "scene_conclusion_false",
       "scenarioId": "sandbox_ghost_pilot",
-      "title": "ðŸ•µï¸ Conclusion: The Smuggler's Trick",
-      "body": "**[Narrator]**: \"You reveal the hidden mechanism behind the bookshelf. A draft of cold air rushes out from the tunnels below. Inside, crates of smuggled brandy.\"",
+      "title": "Conclusion: The Convenient Trick",
+      "body": "**[Narrator]**: \"You reveal the hidden mechanism behind the bookshelf. A draft of cold air rushes out from the tunnels below. Inside, crates of smuggled brandy wait under dust that is too careful to be old.\" **[Narrator]**:",
       "terminal": true,
       "choices": [],
       "onEnter": [
@@ -8227,8 +9755,8 @@
     {
       "id": "scene_conclusion_true",
       "scenarioId": "sandbox_ghost_pilot",
-      "title": "ðŸ‘» Conclusion: The Supernatural Truth",
-      "body": "**[Narrator]**: \"You confront the Baroness with your findings. The cold spots, the ectoplasm... This is no trick. The estate is truly haunted.\"",
+      "title": "Conclusion: Both Truths",
+      "body": "**[Narrator]**: \"You confront the Baroness with both halves of the case. The cold spots and ectoplasm are real; the spirit has not left the estate. But the hidden pantry route, the service ledgers, and Karl's terror prove the living have been using the haunting as cover.\" **[B...",
       "terminal": true,
       "choices": [],
       "onEnter": [
@@ -8880,6 +10408,125 @@
               "eventName": "origin_selected",
               "tags": {
                 "origin": "archivist"
+              }
+            }
+          ]
+        },
+        {
+          "id": "BACKSTORY_WITCH",
+          "text": "Witch Origin",
+          "nextNodeId": "scene_map_intro",
+          "effects": [
+            {
+              "type": "set_var",
+              "key": "attr_spirit",
+              "value": 4
+            },
+            {
+              "type": "set_var",
+              "key": "attr_perception",
+              "value": 2
+            },
+            {
+              "type": "set_var",
+              "key": "attr_intuition",
+              "value": 2
+            },
+            {
+              "type": "set_var",
+              "key": "resource_fate_token",
+              "value": 6
+            },
+            {
+              "type": "set_var",
+              "key": "resource_fortune",
+              "value": 0
+            },
+            {
+              "type": "set_var",
+              "key": "resource_fortune_mod",
+              "value": -1
+            },
+            {
+              "type": "set_var",
+              "key": "resource_karma",
+              "value": -10
+            },
+            {
+              "type": "set_var",
+              "key": "witch_blood_curse_tier",
+              "value": 1
+            },
+            {
+              "type": "set_var",
+              "key": "witch_blood_curse_pressure",
+              "value": 35
+            },
+            {
+              "type": "set_var",
+              "key": "witch_blood_power",
+              "value": 0
+            },
+            {
+              "type": "set_var",
+              "key": "witch_blood_debt",
+              "value": 0
+            },
+            {
+              "type": "set_var",
+              "key": "witch_alcohol_aftertaste",
+              "value": 0
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_spirit",
+              "value": 400
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_perception",
+              "value": 200
+            },
+            {
+              "type": "set_var",
+              "key": "skill_xp_attr_intuition",
+              "value": 200
+            },
+            {
+              "type": "set_flag",
+              "key": "origin_witch",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "flaw_blood_curse",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "ability_spiritual_veil_sight",
+              "value": true
+            },
+            {
+              "type": "set_flag",
+              "key": "char_creation_complete",
+              "value": true
+            },
+            {
+              "type": "set_var",
+              "key": "track_witch_veilwalker_xp",
+              "value": 0
+            },
+            {
+              "type": "set_var",
+              "key": "track_witch_exorcist_xp",
+              "value": 0
+            },
+            {
+              "type": "track_event",
+              "eventName": "origin_selected",
+              "tags": {
+                "origin": "witch"
               }
             }
           ]
@@ -9988,6 +11635,7 @@
         "locationId": "loc_hbf",
         "category": "PUBLIC",
         "defaultState": "discovered",
+        "unlockGroup": "loc_hbf",
         "isHiddenInitially": true,
         "bindings": [
           {
@@ -10477,6 +12125,23 @@
         "category": "PUBLIC",
         "defaultState": "discovered",
         "isHiddenInitially": true,
+        "revealConditions": [
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "mayor_briefing_complete",
+                "value": true
+              }
+            ]
+          }
+        ],
         "bindings": [
           {
             "id": "bind_munster_false_trail_grimoire",
@@ -10535,6 +12200,23 @@
         "category": "PUBLIC",
         "defaultState": "discovered",
         "isHiddenInitially": true,
+        "revealConditions": [
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "mayor_briefing_complete",
+                "value": true
+              }
+            ]
+          }
+        ],
         "bindings": [
           {
             "id": "legacy_start_loc_uni_chem",
@@ -10576,6 +12258,23 @@
         "category": "PUBLIC",
         "defaultState": "discovered",
         "isHiddenInitially": true,
+        "revealConditions": [
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "mayor_briefing_complete",
+                "value": true
+              }
+            ]
+          }
+        ],
         "bindings": [
           {
             "id": "legacy_start_loc_uni_med",
@@ -10695,7 +12394,7 @@
       },
       {
         "id": "loc_pub_deutsche",
-        "title": "Zum Goldenen Adler",
+        "title": "Zum Eber",
         "regionId": "FREIBURG_1905",
         "lat": 47.992,
         "lng": 7.854,
@@ -10704,6 +12403,7 @@
         "locationId": "loc_pub_deutsche",
         "category": "PUBLIC",
         "defaultState": "discovered",
+        "unlockGroup": "loc_pub_deutsche",
         "isHiddenInitially": true,
         "bindings": [
           {
@@ -10746,6 +12446,23 @@
         "category": "PUBLIC",
         "defaultState": "discovered",
         "isHiddenInitially": true,
+        "revealConditions": [
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "mayor_briefing_complete",
+                "value": true
+              }
+            ]
+          }
+        ],
         "bindings": [
           {
             "id": "bind_city_cleaner_tip",
@@ -10795,6 +12512,24 @@
         "defaultState": "locked",
         "unlockGroup": "loc_freiburg_warehouse",
         "isHiddenInitially": true,
+        "discoveryRules": [
+          {
+            "channel": "qr_scan",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "warehouse_plan_locked",
+                "value": true
+              }
+            ],
+            "requiresServerConfirmation": true,
+            "signal": {
+              "enabled": true,
+              "priority": 120,
+              "requiresServerConfirmation": true
+            }
+          }
+        ],
         "bindings": [
           {
             "id": "bind_warehouse_finale",
@@ -10943,6 +12678,13 @@
         "category": "PUBLIC",
         "defaultState": "discovered",
         "isHiddenInitially": true,
+        "revealConditions": [
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          }
+        ],
         "bindings": [
           {
             "id": "bind_pub_false_trail_workers",
@@ -11211,6 +12953,23 @@
         "category": "PUBLIC",
         "defaultState": "discovered",
         "isHiddenInitially": true,
+        "revealConditions": [
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "mayor_briefing_complete",
+                "value": true
+              }
+            ]
+          }
+        ],
         "bindings": [
           {
             "id": "bind_city_bootblack_tip",
@@ -11259,6 +13018,23 @@
         "category": "PUBLIC",
         "defaultState": "discovered",
         "isHiddenInitially": true,
+        "revealConditions": [
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "mayor_briefing_complete",
+                "value": true
+              }
+            ]
+          }
+        ],
         "bindings": [
           {
             "id": "legacy_start_loc_schwabentor",
@@ -11301,6 +13077,34 @@
         "defaultState": "locked",
         "unlockGroup": "loc_tailor",
         "isHiddenInitially": true,
+        "discoveryRules": [
+          {
+            "channel": "proximity",
+            "conditions": [
+              {
+                "type": "logic_or",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "bank_investigation_complete",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "found_velvet",
+                    "value": true
+                  }
+                ]
+              }
+            ],
+            "requiresServerConfirmation": false,
+            "signal": {
+              "enabled": true,
+              "priority": 90,
+              "requiresServerConfirmation": false
+            }
+          }
+        ],
         "bindings": [
           {
             "id": "legacy_start_loc_tailor",
@@ -11343,6 +13147,34 @@
         "defaultState": "locked",
         "unlockGroup": "loc_apothecary",
         "isHiddenInitially": true,
+        "discoveryRules": [
+          {
+            "channel": "proximity",
+            "conditions": [
+              {
+                "type": "logic_or",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "bank_investigation_complete",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "found_residue",
+                    "value": true
+                  }
+                ]
+              }
+            ],
+            "requiresServerConfirmation": false,
+            "signal": {
+              "enabled": true,
+              "priority": 88,
+              "requiresServerConfirmation": false
+            }
+          }
+        ],
         "bindings": [
           {
             "id": "legacy_start_loc_apothecary",
@@ -11385,6 +13217,24 @@
         "defaultState": "locked",
         "unlockGroup": "loc_pub",
         "isHiddenInitially": true,
+        "discoveryRules": [
+          {
+            "channel": "proximity",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              }
+            ],
+            "requiresServerConfirmation": false,
+            "signal": {
+              "enabled": true,
+              "priority": 80,
+              "requiresServerConfirmation": false
+            }
+          }
+        ],
         "bindings": [
           {
             "id": "legacy_start_loc_pub",
@@ -11427,6 +13277,69 @@
         "defaultState": "locked",
         "unlockGroup": "loc_telephone",
         "isHiddenInitially": true,
+        "discoveryRules": [
+          {
+            "channel": "proximity",
+            "conditions": [
+              {
+                "type": "logic_or",
+                "conditions": [
+                  {
+                    "type": "logic_and",
+                    "conditions": [
+                      {
+                        "type": "flag_is",
+                        "key": "tailor_lead_complete",
+                        "value": true
+                      },
+                      {
+                        "type": "flag_is",
+                        "key": "apothecary_lead_complete",
+                        "value": true
+                      }
+                    ]
+                  },
+                  {
+                    "type": "logic_and",
+                    "conditions": [
+                      {
+                        "type": "flag_is",
+                        "key": "tailor_lead_complete",
+                        "value": true
+                      },
+                      {
+                        "type": "flag_is",
+                        "key": "pub_lead_complete",
+                        "value": true
+                      }
+                    ]
+                  },
+                  {
+                    "type": "logic_and",
+                    "conditions": [
+                      {
+                        "type": "flag_is",
+                        "key": "apothecary_lead_complete",
+                        "value": true
+                      },
+                      {
+                        "type": "flag_is",
+                        "key": "pub_lead_complete",
+                        "value": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "requiresServerConfirmation": false,
+            "signal": {
+              "enabled": true,
+              "priority": 72,
+              "requiresServerConfirmation": false
+            }
+          }
+        ],
         "bindings": [
           {
             "id": "bind_telephone_false_trail_convergence",
@@ -11664,7 +13577,7 @@
           }
         ],
         "requiresFlagsAll": [
-          "agency_briefing_complete"
+          "warehouse_plan_locked"
         ]
       }
     ],
@@ -11809,6 +13722,29 @@
           "objectiveHint": "Ghost case finalized and written into records.",
           "objectivePointIds": [
             "loc_freiburg_warehouse"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quest_watch_recovery",
+      "title": "Stolen Watch",
+      "stages": [
+        {
+          "stage": 1,
+          "title": "Recover Elias' Watch",
+          "objectiveHint": "Trace the newsboy through the HBF police post and the old-clothes dealers near the city gates.",
+          "objectivePointIds": [
+            "loc_hbf",
+            "loc_martinstor"
+          ]
+        },
+        {
+          "stage": 2,
+          "title": "Watch Recovered",
+          "objectiveHint": "The watch recovery lead is closed.",
+          "objectivePointIds": [
+            "loc_hbf"
           ]
         }
       ]
@@ -11988,6 +13924,68 @@
         "serviceIds": [
           "svc_felix_legal_analysis"
         ]
+      },
+      {
+        "id": "npc_bureau_master",
+        "displayName": "The Master",
+        "factionId": "the_returned",
+        "publicRole": "Bureau occult supervisor",
+        "rosterTier": "functional",
+        "portraitUrl": "/images/characters/bureau_master/bureau_master.webp",
+        "introFlag": "met_bureau_master_intro",
+        "workPointId": "loc_hbf",
+        "serviceIds": [
+          "svc_bureau_occult_protocol"
+        ]
+      },
+      {
+        "id": "npc_karl_servant",
+        "displayName": "Karl",
+        "factionId": "house_of_pledges",
+        "publicRole": "Grand Estate servant",
+        "rosterTier": "functional",
+        "portraitUrl": "/images/characters/karl_servant/karl_servant.webp",
+        "introFlag": "met_karl_servant_intro",
+        "workPointId": "loc_freiburg_estate",
+        "serviceIds": [
+          "svc_karl_service_corridors"
+        ]
+      },
+      {
+        "id": "npc_friedrich_wagner",
+        "displayName": "Friedrich Wagner",
+        "factionId": "the_returned",
+        "publicRole": "Dead estate accountant",
+        "rosterTier": "major",
+        "portraitUrl": "/images/characters/friedrich_wagner/friedrich_wagner.webp",
+        "introFlag": "met_friedrich_wagner_intro",
+        "workPointId": "loc_freiburg_estate",
+        "serviceIds": [
+          "svc_friedrich_ledger_memory"
+        ]
+      },
+      {
+        "id": "npc_krebs_mugger",
+        "displayName": "Krebs Mugger",
+        "factionId": "free_yards",
+        "publicRole": "Street enforcer",
+        "rosterTier": "functional",
+        "portraitUrl": "/images/characters/krebs_mugger/krebs_mugger.webp",
+        "introFlag": "met_krebs_mugger_intro",
+        "workPointId": "loc_hbf"
+      },
+      {
+        "id": "npc_hotel_maid",
+        "displayName": "Hotel Maid",
+        "factionId": "city_network",
+        "publicRole": "Zum Goldenen Adler maid",
+        "rosterTier": "functional",
+        "portraitUrl": "/images/characters/hotel_maid/hotel_maid.webp",
+        "introFlag": "met_hotel_maid_intro",
+        "workPointId": "loc_pub_deutsche",
+        "serviceIds": [
+          "svc_hotel_discretion"
+        ]
       }
     ],
     "services": [
@@ -12058,6 +14056,46 @@
         "baseAccess": "Available while Felix is an active partner with stable or higher trust. Degrades or becomes unavailable during apathy episodes.",
         "qualityNote": "Cross-references legal precedent, procedural requirements, and institutional jurisdiction. Turns bureaucratic obstacles into investigative leverage.",
         "consequenceNote": "Quality depends on Felix mental state. Instrumentalization without reciprocal investment degrades output over time."
+      },
+      {
+        "id": "svc_bureau_occult_protocol",
+        "npcId": "npc_bureau_master",
+        "role": "political_cover",
+        "label": "Bureau Occult Protocol",
+        "baseAccess": "Available to Witch agents who kept the Maskerade in the Bureau induction (suppressant taken or composure held).",
+        "unlockFlag": "met_bureau_master_intro",
+        "qualityNote": "Provides sanctioned occult cover for field incidents and Bureau-side rationing of curse suppressant.",
+        "consequenceNote": "Cover is revoked if the Bureau reads the agent as undisciplined; a flagged Master suspends the protocol."
+      },
+      {
+        "id": "svc_karl_service_corridors",
+        "npcId": "npc_karl_servant",
+        "role": "transport",
+        "label": "Estate Service Corridors",
+        "baseAccess": "Available only when Karl trusts the detective — kindness at HBF and no feeding incident at the estate.",
+        "unlockFlag": "met_karl_servant_intro",
+        "qualityNote": "Opens the Grand Estate's pantry-to-yard service corridors used by the Baroness's smuggling partners.",
+        "consequenceNote": "Compromised if Karl was fed on; he cannot be a quiet witness once the estate marks him as ghost-haunted."
+      },
+      {
+        "id": "svc_friedrich_ledger_memory",
+        "npcId": "npc_friedrich_wagner",
+        "role": "archives",
+        "label": "Ledger Memory",
+        "baseAccess": "Available only when Friedrich was met with justice or bound to the witch's shadow; not from a banished outcome.",
+        "unlockFlag": "met_friedrich_wagner_intro",
+        "qualityNote": "Cross-references the smuggling ledger against the Krebs partners and dates back to the night of his murder.",
+        "consequenceNote": "Bound testimony degrades faster than freely given testimony and may invite Bureau scrutiny."
+      },
+      {
+        "id": "svc_hotel_discretion",
+        "npcId": "npc_hotel_maid",
+        "role": "social_introduction",
+        "label": "Hotel Discretion",
+        "baseAccess": "Available once the maid is bribed at the Adler — clothing destroyed, staff quietly aligned.",
+        "unlockFlag": "flag_witch_maid_bribed",
+        "qualityNote": "Quiet back-channel through hotel staff: laundry vanishes, room logs stay clean, and Felix hears no rumor at breakfast.",
+        "consequenceNote": "Discretion lasts as long as nothing forces the maid to choose between her bribe and the police."
       }
     ],
     "rumors": [
@@ -12082,6 +14120,16 @@
           "flag_set"
         ],
         "careerCriterionOnVerify": "university_contact_established"
+      },
+      {
+        "id": "rumor_witch_mugger_survivor",
+        "title": "Alley Survivor Whisper",
+        "caseId": "quest_banker",
+        "leadPointId": "loc_hbf",
+        "sourceNpcId": "npc_krebs_mugger",
+        "verifiesOn": [
+          "flag_set"
+        ]
       }
     ],
     "careerRanks": [
@@ -12136,5 +14184,5 @@
       }
     ]
   },
-  "checksum": "5b4fd1eab78efacacf0018e39ee5e6e8bd559090d5388ad7bc5bec639e242fb3"
+  "checksum": "c1bb9edc34cb4048784f6dd98ce331575fed7cb6454df1c40cef3861d67a99ac"
 }

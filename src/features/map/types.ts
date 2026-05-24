@@ -2,6 +2,7 @@ import type {
   MapAction,
   MapBinding,
   MapCondition,
+  MapDiscoveryRule,
   MapPointCategory,
   MapPointSnapshot,
   MapRegionSnapshot,
@@ -20,6 +21,16 @@ export interface MapPoint extends Omit<
   bindings?: MapBinding[];
   legacyScenarioIds?: string[];
   category?: MapPointCategory;
+  isSearchZone?: boolean;
+  radius?: number;
+  isHidden?: boolean;
+  /**
+   * Optional Freiburg Pflastermosaik motif for the cobblestone POI marker.
+   * Valid values: 'cross-saint-george' | 'masks' | 'sacred-heart' | 'mountain'
+   * | 'partner-arms' | 'gate' | 'pretzel' | 'dove' | 'rail' | 'boot' | 'seal'.
+   * When omitted, the renderer falls back to a category default.
+   */
+  mosaicSymbol?: string;
 }
 
 export interface RuntimeMapBinding extends MapBinding {
@@ -38,12 +49,17 @@ export interface RuntimeMapPoint extends MapPoint {
   resolvedScenarioId: string | null;
   canStartScenario: boolean;
   isVisible: boolean;
+  isSearchZone?: boolean;
+  radius?: number;
+  isHidden?: boolean;
   runtimeSource?: "persistent" | "ephemeral";
   persistentPointId?: string;
   eventId?: string;
   expiresAtMs?: number;
   sourceLocationId?: string;
 }
+
+export type JourneyDiscoveryCandidate = RuntimeMapPoint;
 
 export interface RuntimeMapRoute extends Omit<MapShadowRoute, "pointIds"> {
   pointIds: string[];
@@ -74,4 +90,10 @@ export interface MapResolverContext {
 
 export type MapResolverInputs = Omit<MapResolverContext, "pointState">;
 
-export type { MapAction, MapBinding, MapCondition, MapShadowRoute };
+export type {
+  MapAction,
+  MapBinding,
+  MapCondition,
+  MapDiscoveryRule,
+  MapShadowRoute,
+};

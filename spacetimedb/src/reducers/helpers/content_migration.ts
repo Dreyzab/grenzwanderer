@@ -9,6 +9,16 @@ export const resetForSchemaMigration = (ctx: any): void => {
     ctx.db.contentSnapshot.checksum.delete(snapshot.checksum);
   }
 
+  const caseVersions = [...ctx.db.caseVersion.iter()];
+  for (const caseVersion of caseVersions) {
+    ctx.db.caseVersion.caseVersionKey.delete(caseVersion.caseVersionKey);
+  }
+
+  const caseEvents = [...ctx.db.caseEventLog.iter()];
+  for (const caseEvent of caseEvents) {
+    ctx.db.caseEventLog.eventId.delete(caseEvent.eventId);
+  }
+
   const sessions = [...ctx.db.vnSession.iter()];
   for (const session of sessions) {
     ctx.db.vnSession.sessionKey.delete(session.sessionKey);

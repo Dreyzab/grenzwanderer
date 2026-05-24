@@ -16,6 +16,7 @@ describe("shellTabs", () => {
   it("localizes default profile tabs from shared profile metadata", () => {
     expect(getLocalizedTabsForProfile("default", labelsByTab)).toEqual([
       { id: "home", label: "Home Label" },
+      { id: "vn", label: "VN Label" },
       { id: "map", label: "Map Label" },
       { id: "command", label: "Command Label" },
       { id: "battle", label: "Battle Label" },

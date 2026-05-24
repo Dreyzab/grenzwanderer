@@ -59,6 +59,8 @@ const BASE_FLAG_KEYS = new Set<string>([
   "flag_bought_newspaper",
   "flag_caught_paperboy",
   "flag_investigated_station",
+  "flag_lobby_crossover_seen_by_detective",
+  "flag_lobby_crossover_seen_by_witch",
   "flag_paperboy_encounter",
   "flag_paperboy_mercy",
   "flag_paperboy_reported",
@@ -76,8 +78,14 @@ const BASE_FLAG_KEYS = new Set<string>([
   "ghost_cold_spot_unclear",
   "ghost_draft_sensed",
   "ghost_ectoplasm_found",
+  "ghost_human_cover_suspected",
   "ghost_route_unlocked",
+  "ghost_session_hook_baroness_debt",
+  "ghost_session_hook_karl_smuggling_key",
+  "ghost_session_hook_spirit_bargain",
   "ghost_truth_proven",
+  "ghost_veil_resonance_seen",
+  "ghost_witch_blood_temptation_seen",
   "intro_freiburg_done",
   "karlsruhe_arrival_complete",
   "karlsruhe_event_entry_granted",
@@ -99,7 +107,9 @@ const BASE_FLAG_KEYS = new Set<string>([
   "origin_detective",
   "origin_detective_handoff_done",
   "origin_journalist_handoff_done",
+  "origin_witch_handoff_done",
   "origin_veteran_handoff_done",
+  "calibrated_thermometer",
   "detective_prologue_done",
   "priority_bank_first",
   "priority_mayor_first",
@@ -228,9 +238,9 @@ for (const profile of originProfiles) {
     BASE_VAR_KEYS.add(stat.key);
     if (isBaseSkillVoiceId(stat.key)) {
       BASE_VAR_KEYS.add(skillXpVarKeyFor(stat.key));
+      BASE_VOICE_IDS.add(stat.key);
+      BASE_SPEAKER_POOL_IDS.add(stat.key);
     }
-    BASE_VOICE_IDS.add(stat.key);
-    BASE_SPEAKER_POOL_IDS.add(stat.key);
   }
 }
 

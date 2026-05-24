@@ -3,6 +3,10 @@ import {
   type SceneResultEnvelope,
 } from "./sceneResultEnvelope";
 import {
+  RESOURCE_FATE_TOKEN_VAR,
+  RESOURCE_FORTUNE_MOD_VAR,
+  RESOURCE_FORTUNE_VAR,
+  RESOURCE_KARMA_VAR,
   isDialogueLayer,
   isKarmaBand,
   isVnAiMode,
@@ -11,14 +15,32 @@ import {
   type KarmaBand,
   type VnAiMode,
 } from "../../shared/game/narrativeResources";
+import {
+  WITCH_ALCOHOL_AFTERTASTE_VAR,
+  WITCH_BLOOD_CURSE_PRESSURE_VAR,
+  WITCH_BLOOD_CURSE_TIER_VAR,
+  WITCH_BLOOD_DEBT_VAR,
+  WITCH_BLOOD_POWER_VAR,
+} from "../../shared/game/witchRules";
 
 export const AI_GENERATE_DIALOGUE_KIND = "generate_dialogue";
 export const AI_GENERATE_CHARACTER_REACTION_KIND =
   "generate_character_reaction";
+export const AI_PROPOSE_DIRECTOR_STEP_KIND = "propose_director_step";
+export const AI_PROPOSE_DM_TURN_KIND = "propose_dm_turn";
 export const AI_DIALOGUE_SOURCE_SKILL_CHECK = "vn_skill_check";
 export const AI_CHARACTER_REACTION_SOURCE_VN_SCENE = "vn_scene";
 export const AI_CHARACTER_REACTION_SOURCE_MAP_INTERACTION = "map_interaction";
 export const AI_CHARACTER_REACTION_SOURCE_QUEST_EVENT = "quest_event";
+export const AI_DIRECTOR_STEP_SOURCE_VN_NODE_ENTRY = "vn_node_entry";
+export const AI_DM_TURN_SOURCE_SIDE_PANEL = "dm_side_panel";
+
+export const DIRECTOR_STEP_TYPES = [
+  "framing",
+  "next_beat_hint",
+  "soft_detour",
+] as const;
+export type DirectorStepType = (typeof DIRECTOR_STEP_TYPES)[number];
 
 export interface DialogueEnsemble {
   mode: "solo" | "duet" | "chorus";
@@ -146,6 +168,387 @@ export interface CharacterReactionProposal {
   suggestedEffects?: SuggestedEffect[];
 }
 
+const suggestedEffectJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    type: {
+      type: "string",
+      enum: ["mood_shift", "trust_delta", "clue_hint", "hypothesis_focus"],
+      description:
+        "Display-only effect suggestion. The app never auto-applies this to game state.",
+    },
+    target: {
+      type: "string",
+      description: "Optional target id for display context.",
+    },
+    value: {
+      anyOf: [{ type: "number" }, { type: "string" }],
+      description: "Display-only effect value.",
+    },
+  },
+  required: ["type", "value"],
+  propertyOrdering: ["type", "target", "value"],
+} as const;
+
+export const GENERATE_DIALOGUE_ENVELOPE_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    text: {
+      type: "string",
+      description:
+        "A short additive inner-thought line. It must not resolve the scene or mutate facts.",
+    },
+    canonicalVoiceId: {
+      type: "string",
+      description: "Canonical inner voice id used to render the thought.",
+    },
+    suggestedEffects: {
+      type: "array",
+      description:
+        "Optional display-only suggestions. They are never auto-applied by the client or server.",
+      items: suggestedEffectJsonSchema,
+      maxItems: 3,
+    },
+  },
+  required: ["text", "canonicalVoiceId"],
+  propertyOrdering: ["text", "canonicalVoiceId", "suggestedEffects"],
+} as const;
+
+export type DirectorStepSource = typeof AI_DIRECTOR_STEP_SOURCE_VN_NODE_ENTRY;
+
+export interface DirectorStepActiveQuest {
+  questId: string;
+  stage: number;
+}
+
+export interface GenerateDirectorStepPayload {
+  source: DirectorStepSource;
+  scenarioId: string;
+  nodeId: string;
+  currentBeatId: string;
+  allowedBeatIds: readonly string[];
+  visibleFacts: readonly string[];
+  activeFlags: readonly string[];
+  activeQuests: readonly DirectorStepActiveQuest[];
+  routeContext?: string;
+}
+
+export interface DirectorStepProposal {
+  stepType: DirectorStepType;
+  framingText: string;
+  suggestedReturnBeatId: string;
+  bridgeText?: string;
+  hintFactId?: string;
+}
+
+export const DM_TONE_MODES = [
+  "safe_chekhovian",
+  "gothic_mystery",
+  "threat",
+] as const;
+export type DmToneMode = (typeof DM_TONE_MODES)[number];
+
+export const DM_MOVE_TAGS = [
+  "selfish",
+  "coercive",
+  "survival",
+  "protective",
+  "cooperative",
+  "occult",
+  "social",
+  "investigation",
+] as const;
+export type DmMoveTag = (typeof DM_MOVE_TAGS)[number];
+
+export interface PlayerRemark {
+  text: string;
+  visibility: "private_dm";
+}
+
+export interface SessionCanonFact {
+  id: string;
+  text: string;
+  scope: "session";
+  source: "dm";
+  status: "proposed" | "accepted";
+  relatedNpcIds?: string[];
+  relatedLocationIds?: string[];
+}
+
+export interface DmSuggestedStateDelta {
+  key: string;
+  kind: "set_flag" | "set_var" | "add_var";
+  value: boolean | number;
+  reason: string;
+}
+
+export interface GenerateDmTurnPayload {
+  source: typeof AI_DM_TURN_SOURCE_SIDE_PANEL;
+  scenarioId: string;
+  nodeId: string;
+  actionText: string;
+  remark?: PlayerRemark;
+  spendFateToken: boolean;
+  fortuneSpend?: number;
+  moveTags: readonly DmMoveTag[];
+  resources: {
+    fate: number;
+    fortune: number;
+    fortuneMod: number;
+    karma: number;
+  };
+  psyche: DialoguePsycheProfile;
+  bloodCurse: {
+    tier: number;
+    pressure: number;
+    power: number;
+    debt: number;
+    alcoholAftertaste: number;
+  };
+  activeSessionFacts: readonly SessionCanonFact[];
+  acceptedRemarks: readonly PlayerRemark[];
+  visibleFacts: readonly string[];
+  activeFlags: readonly string[];
+  toneMode: DmToneMode;
+  locale: "ru";
+}
+
+export interface DmTurnProposal {
+  narration: string;
+  checks: Array<{
+    id: string;
+    label: string;
+    voiceId: string;
+    difficulty: number;
+    moveTags?: DmMoveTag[];
+  }>;
+  sessionFacts: SessionCanonFact[];
+  suggestedStateDeltas: DmSuggestedStateDelta[];
+  risks: string[];
+  toneMode: DmToneMode;
+  canonRemarks: string[];
+  resourceCosts?: {
+    fate?: number;
+    fortune?: number;
+  };
+}
+
+export const DIRECTOR_STEP_PROPOSAL_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    stepType: {
+      type: "string",
+      enum: DIRECTOR_STEP_TYPES,
+      description:
+        "How the director shapes the moment. framing recolors the current beat, next_beat_hint nudges toward an authored beat, soft_detour adds a presentation-only side moment that still returns to authored canon.",
+    },
+    framingText: {
+      type: "string",
+      description:
+        "A short directorial line shown to the player. It must not assert new world facts and must not resolve the scene.",
+    },
+    suggestedReturnBeatId: {
+      type: "string",
+      description:
+        "Authored beat id the director recommends the player return to next. Must be one of the allowedBeatIds provided in the request.",
+    },
+    bridgeText: {
+      type: "string",
+      description:
+        "Optional diegetic bridge for soft_detour. Display-only narration that never grants facts, flags, or transitions.",
+    },
+    hintFactId: {
+      type: "string",
+      description:
+        "Optional hint id for display only. It never reveals or grants a fact by itself.",
+    },
+  },
+  required: ["stepType", "framingText", "suggestedReturnBeatId"],
+  propertyOrdering: [
+    "stepType",
+    "framingText",
+    "suggestedReturnBeatId",
+    "bridgeText",
+    "hintFactId",
+  ],
+} as const;
+
+const sessionCanonFactJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    id: {
+      type: "string",
+      description: "Stable session-scoped fact id, never an authored canon id.",
+    },
+    text: {
+      type: "string",
+      description: "Session-canon fact proposed for review.",
+    },
+    scope: { type: "string", enum: ["session"] },
+    source: { type: "string", enum: ["dm"] },
+    status: { type: "string", enum: ["proposed", "accepted"] },
+    relatedNpcIds: { type: "array", items: { type: "string" } },
+    relatedLocationIds: { type: "array", items: { type: "string" } },
+  },
+  required: ["id", "text", "scope", "source", "status"],
+  propertyOrdering: [
+    "id",
+    "text",
+    "scope",
+    "source",
+    "status",
+    "relatedNpcIds",
+    "relatedLocationIds",
+  ],
+} as const;
+
+export const DM_TURN_PROPOSAL_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    narration: {
+      type: "string",
+      description:
+        "Playable Russian narration for the player's free-form action. It proposes outcomes only.",
+    },
+    checks: {
+      type: "array",
+      description:
+        "Optional checks the table should roll or review before accepting.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          id: { type: "string" },
+          label: { type: "string" },
+          voiceId: { type: "string" },
+          difficulty: { type: "number" },
+          moveTags: {
+            type: "array",
+            items: { type: "string", enum: DM_MOVE_TAGS },
+          },
+        },
+        required: ["id", "label", "voiceId", "difficulty"],
+      },
+      maxItems: 3,
+    },
+    sessionFacts: {
+      type: "array",
+      description:
+        "Session-canon facts proposed for Review then Accept. They never mutate immutable authored canon directly.",
+      items: sessionCanonFactJsonSchema,
+      maxItems: 5,
+    },
+    suggestedStateDeltas: {
+      type: "array",
+      description:
+        "Review-only overlay/resource suggestions. No snapshot/canon mutation keys are allowed.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          key: { type: "string" },
+          kind: {
+            type: "string",
+            enum: ["set_flag", "set_var", "add_var"],
+          },
+          value: { anyOf: [{ type: "boolean" }, { type: "number" }] },
+          reason: { type: "string" },
+        },
+        required: ["key", "kind", "value", "reason"],
+      },
+      maxItems: 8,
+    },
+    risks: {
+      type: "array",
+      items: { type: "string" },
+      description: "Review-visible risks, debts, exposure, or bargains.",
+    },
+    toneMode: {
+      type: "string",
+      enum: DM_TONE_MODES,
+    },
+    canonRemarks: {
+      type: "array",
+      items: { type: "string" },
+      description:
+        "Notes about canon boundaries, contradictions, or promotion candidates.",
+    },
+    resourceCosts: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        fate: { type: "number" },
+        fortune: { type: "number" },
+      },
+    },
+  },
+  required: [
+    "narration",
+    "checks",
+    "sessionFacts",
+    "suggestedStateDeltas",
+    "risks",
+    "toneMode",
+    "canonRemarks",
+  ],
+  propertyOrdering: [
+    "narration",
+    "checks",
+    "sessionFacts",
+    "suggestedStateDeltas",
+    "risks",
+    "toneMode",
+    "canonRemarks",
+    "resourceCosts",
+  ],
+} as const;
+
+export const CHARACTER_REACTION_PROPOSAL_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    characterId: {
+      type: "string",
+      description: "The NPC id from the request payload.",
+    },
+    reactionType: {
+      type: "string",
+      enum: ["dialogue", "lie", "evasion", "request", "conflict", "silence"],
+      description: "How the NPC handles the immediate stimulus.",
+    },
+    text: {
+      type: "string",
+      description:
+        "A short playable reaction line or diegetic narration. It must not apply effects.",
+    },
+    revealHintFactId: {
+      type: "string",
+      description:
+        "Optional hint id for display only. It never reveals or grants a fact by itself.",
+    },
+    suggestedEffects: {
+      type: "array",
+      description:
+        "Optional display-only suggestions. They are never auto-applied by the client or server.",
+      items: suggestedEffectJsonSchema,
+      maxItems: 3,
+    },
+  },
+  required: ["characterId", "reactionType", "text"],
+  propertyOrdering: [
+    "characterId",
+    "reactionType",
+    "text",
+    "revealHintFactId",
+    "suggestedEffects",
+  ],
+} as const;
+
 export const unwrapOptionalString = (value: unknown): string | null => {
   if (typeof value === "string") {
     return value;
@@ -233,6 +636,11 @@ const isSuggestedEffect = (value: unknown): value is SuggestedEffect => {
     (typeof effect.value === "number" || typeof effect.value === "string")
   );
 };
+
+const hasOnlyKeys = (
+  value: Record<string, unknown>,
+  allowedKeys: readonly string[],
+): boolean => Object.keys(value).every((key) => allowedKeys.includes(key));
 
 const isDialoguePsycheProfile = (
   value: unknown,
@@ -480,6 +888,13 @@ export const isCharacterReactionProposal = (
 
   const proposal = value as Record<string, unknown>;
   return (
+    hasOnlyKeys(proposal, [
+      "characterId",
+      "reactionType",
+      "text",
+      "revealHintFactId",
+      "suggestedEffects",
+    ]) &&
     typeof proposal.characterId === "string" &&
     (proposal.reactionType === "dialogue" ||
       proposal.reactionType === "lie" ||
@@ -508,6 +923,431 @@ export const parseCharacterReactionProposal = (
   try {
     const parsed = JSON.parse(raw) as unknown;
     return isCharacterReactionProposal(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const isDirectorStepType = (value: unknown): value is DirectorStepType =>
+  typeof value === "string" &&
+  (DIRECTOR_STEP_TYPES as readonly string[]).includes(value);
+
+const isDirectorStepSource = (value: unknown): value is DirectorStepSource =>
+  value === AI_DIRECTOR_STEP_SOURCE_VN_NODE_ENTRY;
+
+const isDmToneMode = (value: unknown): value is DmToneMode =>
+  typeof value === "string" &&
+  (DM_TONE_MODES as readonly string[]).includes(value);
+
+const isDmMoveTag = (value: unknown): value is DmMoveTag =>
+  typeof value === "string" &&
+  (DM_MOVE_TAGS as readonly string[]).includes(value);
+
+const isDirectorStepActiveQuest = (
+  value: unknown,
+): value is DirectorStepActiveQuest => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const entry = value as Record<string, unknown>;
+  return (
+    typeof entry.questId === "string" &&
+    typeof entry.stage === "number" &&
+    Number.isFinite(entry.stage)
+  );
+};
+
+export const isGenerateDirectorStepPayload = (
+  value: unknown,
+): value is GenerateDirectorStepPayload => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const payload = value as Record<string, unknown>;
+  if (
+    !hasOnlyKeys(payload, [
+      "source",
+      "scenarioId",
+      "nodeId",
+      "currentBeatId",
+      "allowedBeatIds",
+      "visibleFacts",
+      "activeFlags",
+      "activeQuests",
+      "routeContext",
+    ])
+  ) {
+    return false;
+  }
+
+  return (
+    isDirectorStepSource(payload.source) &&
+    typeof payload.scenarioId === "string" &&
+    typeof payload.nodeId === "string" &&
+    typeof payload.currentBeatId === "string" &&
+    Array.isArray(payload.allowedBeatIds) &&
+    payload.allowedBeatIds.length > 0 &&
+    payload.allowedBeatIds.every((entry) => typeof entry === "string") &&
+    Array.isArray(payload.visibleFacts) &&
+    payload.visibleFacts.every((entry) => typeof entry === "string") &&
+    Array.isArray(payload.activeFlags) &&
+    payload.activeFlags.every((entry) => typeof entry === "string") &&
+    Array.isArray(payload.activeQuests) &&
+    payload.activeQuests.every(isDirectorStepActiveQuest) &&
+    (payload.routeContext === undefined ||
+      typeof payload.routeContext === "string")
+  );
+};
+
+export const parseGenerateDirectorStepPayload = (
+  value: string | null | undefined,
+): GenerateDirectorStepPayload | null => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return isGenerateDirectorStepPayload(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+export const isDirectorStepProposal = (
+  value: unknown,
+): value is DirectorStepProposal => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const proposal = value as Record<string, unknown>;
+  if (
+    !hasOnlyKeys(proposal, [
+      "stepType",
+      "framingText",
+      "suggestedReturnBeatId",
+      "bridgeText",
+      "hintFactId",
+    ])
+  ) {
+    return false;
+  }
+
+  return (
+    isDirectorStepType(proposal.stepType) &&
+    typeof proposal.framingText === "string" &&
+    proposal.framingText.trim().length > 0 &&
+    typeof proposal.suggestedReturnBeatId === "string" &&
+    proposal.suggestedReturnBeatId.trim().length > 0 &&
+    (proposal.bridgeText === undefined ||
+      typeof proposal.bridgeText === "string") &&
+    (proposal.hintFactId === undefined ||
+      typeof proposal.hintFactId === "string")
+  );
+};
+
+export const parseDirectorStepProposal = (
+  value: unknown,
+): DirectorStepProposal | null => {
+  const raw = unwrapOptionalString(value);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return isDirectorStepProposal(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+export const isAllowedDirectorReturnBeatId = (
+  proposal: DirectorStepProposal,
+  allowedBeatIds: readonly string[],
+): boolean => allowedBeatIds.includes(proposal.suggestedReturnBeatId);
+
+const isPlayerRemark = (value: unknown): value is PlayerRemark => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const remark = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(remark, ["text", "visibility"]) &&
+    typeof remark.text === "string" &&
+    remark.text.trim().length > 0 &&
+    remark.visibility === "private_dm"
+  );
+};
+
+const isSessionCanonFact = (value: unknown): value is SessionCanonFact => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const fact = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(fact, [
+      "id",
+      "text",
+      "scope",
+      "source",
+      "status",
+      "relatedNpcIds",
+      "relatedLocationIds",
+    ]) &&
+    typeof fact.id === "string" &&
+    fact.id.trim().length > 0 &&
+    typeof fact.text === "string" &&
+    fact.text.trim().length > 0 &&
+    fact.scope === "session" &&
+    fact.source === "dm" &&
+    (fact.status === "proposed" || fact.status === "accepted") &&
+    (fact.relatedNpcIds === undefined ||
+      (Array.isArray(fact.relatedNpcIds) &&
+        fact.relatedNpcIds.every((entry) => typeof entry === "string"))) &&
+    (fact.relatedLocationIds === undefined ||
+      (Array.isArray(fact.relatedLocationIds) &&
+        fact.relatedLocationIds.every((entry) => typeof entry === "string")))
+  );
+};
+
+const DM_ALLOWED_DIRECT_KEYS = new Set([
+  RESOURCE_FATE_TOKEN_VAR,
+  RESOURCE_FORTUNE_VAR,
+  RESOURCE_FORTUNE_MOD_VAR,
+  RESOURCE_KARMA_VAR,
+  WITCH_BLOOD_CURSE_TIER_VAR,
+  WITCH_BLOOD_CURSE_PRESSURE_VAR,
+  WITCH_BLOOD_POWER_VAR,
+  WITCH_BLOOD_DEBT_VAR,
+  WITCH_ALCOHOL_AFTERTASTE_VAR,
+]);
+
+export const isAllowedDmStateDeltaKey = (key: string): boolean =>
+  DM_ALLOWED_DIRECT_KEYS.has(key) ||
+  key.startsWith("session.") ||
+  key.startsWith("dm_session.") ||
+  key.startsWith("overlay.session.") ||
+  key.startsWith("session_") ||
+  key.startsWith("witch_") ||
+  key.startsWith("ghost_session_");
+
+const isDmSuggestedStateDelta = (
+  value: unknown,
+): value is DmSuggestedStateDelta => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const delta = value as Record<string, unknown>;
+  const kind =
+    delta.kind === "set_flag" ||
+    delta.kind === "set_var" ||
+    delta.kind === "add_var";
+  const valueMatches =
+    delta.kind === "set_flag"
+      ? typeof delta.value === "boolean"
+      : isFiniteNumber(delta.value);
+  return (
+    hasOnlyKeys(delta, ["key", "kind", "value", "reason"]) &&
+    typeof delta.key === "string" &&
+    delta.key.trim().length > 0 &&
+    kind &&
+    valueMatches &&
+    typeof delta.reason === "string" &&
+    delta.reason.trim().length > 0 &&
+    isAllowedDmStateDeltaKey(delta.key)
+  );
+};
+
+const isDmResourceProfile = (
+  value: unknown,
+): value is GenerateDmTurnPayload["resources"] => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const resources = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(resources, ["fate", "fortune", "fortuneMod", "karma"]) &&
+    isFiniteNumber(resources.fate) &&
+    isFiniteNumber(resources.fortune) &&
+    isFiniteNumber(resources.fortuneMod) &&
+    isFiniteNumber(resources.karma)
+  );
+};
+
+const isDmBloodCurseProfile = (
+  value: unknown,
+): value is GenerateDmTurnPayload["bloodCurse"] => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const bloodCurse = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(bloodCurse, [
+      "tier",
+      "pressure",
+      "power",
+      "debt",
+      "alcoholAftertaste",
+    ]) &&
+    isFiniteNumber(bloodCurse.tier) &&
+    isFiniteNumber(bloodCurse.pressure) &&
+    isFiniteNumber(bloodCurse.power) &&
+    isFiniteNumber(bloodCurse.debt) &&
+    isFiniteNumber(bloodCurse.alcoholAftertaste)
+  );
+};
+
+export const isGenerateDmTurnPayload = (
+  value: unknown,
+): value is GenerateDmTurnPayload => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const payload = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(payload, [
+      "source",
+      "scenarioId",
+      "nodeId",
+      "actionText",
+      "remark",
+      "spendFateToken",
+      "fortuneSpend",
+      "moveTags",
+      "resources",
+      "psyche",
+      "bloodCurse",
+      "activeSessionFacts",
+      "acceptedRemarks",
+      "visibleFacts",
+      "activeFlags",
+      "toneMode",
+      "locale",
+    ]) &&
+    payload.source === AI_DM_TURN_SOURCE_SIDE_PANEL &&
+    typeof payload.scenarioId === "string" &&
+    typeof payload.nodeId === "string" &&
+    typeof payload.actionText === "string" &&
+    payload.actionText.trim().length > 0 &&
+    (payload.remark === undefined || isPlayerRemark(payload.remark)) &&
+    typeof payload.spendFateToken === "boolean" &&
+    (payload.fortuneSpend === undefined ||
+      (isFiniteNumber(payload.fortuneSpend) && payload.fortuneSpend >= 0)) &&
+    Array.isArray(payload.moveTags) &&
+    payload.moveTags.every(isDmMoveTag) &&
+    isDmResourceProfile(payload.resources) &&
+    isDialoguePsycheProfile(payload.psyche) &&
+    isDmBloodCurseProfile(payload.bloodCurse) &&
+    Array.isArray(payload.activeSessionFacts) &&
+    payload.activeSessionFacts.every(isSessionCanonFact) &&
+    Array.isArray(payload.acceptedRemarks) &&
+    payload.acceptedRemarks.every(isPlayerRemark) &&
+    Array.isArray(payload.visibleFacts) &&
+    payload.visibleFacts.every((entry) => typeof entry === "string") &&
+    Array.isArray(payload.activeFlags) &&
+    payload.activeFlags.every((entry) => typeof entry === "string") &&
+    isDmToneMode(payload.toneMode) &&
+    payload.locale === "ru"
+  );
+};
+
+export const parseGenerateDmTurnPayload = (
+  value: string | null | undefined,
+): GenerateDmTurnPayload | null => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return isGenerateDmTurnPayload(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const isDmCheckProposal = (
+  value: unknown,
+): value is DmTurnProposal["checks"][number] => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const check = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(check, ["id", "label", "voiceId", "difficulty", "moveTags"]) &&
+    typeof check.id === "string" &&
+    check.id.trim().length > 0 &&
+    typeof check.label === "string" &&
+    check.label.trim().length > 0 &&
+    typeof check.voiceId === "string" &&
+    isFiniteNumber(check.difficulty) &&
+    (check.moveTags === undefined ||
+      (Array.isArray(check.moveTags) && check.moveTags.every(isDmMoveTag)))
+  );
+};
+
+const isDmResourceCosts = (
+  value: unknown,
+): value is NonNullable<DmTurnProposal["resourceCosts"]> => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const costs = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(costs, ["fate", "fortune"]) &&
+    (costs.fate === undefined || isFiniteNumber(costs.fate)) &&
+    (costs.fortune === undefined || isFiniteNumber(costs.fortune))
+  );
+};
+
+export const isDmTurnProposal = (value: unknown): value is DmTurnProposal => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const proposal = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(proposal, [
+      "narration",
+      "checks",
+      "sessionFacts",
+      "suggestedStateDeltas",
+      "risks",
+      "toneMode",
+      "canonRemarks",
+      "resourceCosts",
+    ]) &&
+    typeof proposal.narration === "string" &&
+    proposal.narration.trim().length > 0 &&
+    Array.isArray(proposal.checks) &&
+    proposal.checks.every(isDmCheckProposal) &&
+    Array.isArray(proposal.sessionFacts) &&
+    proposal.sessionFacts.every(isSessionCanonFact) &&
+    Array.isArray(proposal.suggestedStateDeltas) &&
+    proposal.suggestedStateDeltas.every(isDmSuggestedStateDelta) &&
+    Array.isArray(proposal.risks) &&
+    proposal.risks.every((entry) => typeof entry === "string") &&
+    isDmToneMode(proposal.toneMode) &&
+    Array.isArray(proposal.canonRemarks) &&
+    proposal.canonRemarks.every((entry) => typeof entry === "string") &&
+    (proposal.resourceCosts === undefined ||
+      isDmResourceCosts(proposal.resourceCosts))
+  );
+};
+
+export const parseDmTurnProposal = (value: unknown): DmTurnProposal | null => {
+  const raw = unwrapOptionalString(value);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return isDmTurnProposal(parsed) ? parsed : null;
   } catch {
     return null;
   }

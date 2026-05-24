@@ -1,0 +1,8 @@
+{
+  "assetId": "npc_hotel_maid",
+  "assetKind": "vn_character_portrait",
+  "prompt": "Period-correct 1905 Freiburg VN portrait silhouette for hotel maid, oil-paint texture, no text, no watermark.",
+  "promptSha256": "eee02410b4c0340b7aa96ed3fbaaff024bdabbe5666776e951876f1b9cd75904",
+  "assetSha256": "20380571bf6c2889b8977f8a72624232841ead863428b7381b6c7a8700618f7f",
+  "provenance": "deterministic local period silhouette; live OpenAI Image API unavailable in this environment"
+}

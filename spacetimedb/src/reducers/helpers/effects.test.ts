@@ -66,6 +66,22 @@ describe("applyEffects", () => {
     });
   });
 
+  it("adds heat additively without a hidden clamp", () => {
+    const ctx = createReducerTestContext();
+
+    applyEffects(ctx, [
+      { type: "set_var", key: "heat", value: 9 },
+      { type: "add_heat", amount: 2 },
+    ]);
+
+    expect(
+      ctx.db.playerVar.varId.find(playerKey(ctx.sender, "heat")),
+    ).toMatchObject({
+      key: "heat",
+      floatValue: 11,
+    });
+  });
+
   it("grants evidence, inventory, and unlock groups idempotently", () => {
     const ctx = createReducerTestContext();
 

@@ -7,6 +7,8 @@ import { DetectiveHub } from "./DetectiveHub";
 
 const mocks = vi.hoisted(() => ({
   useTableMock: vi.fn(),
+  useReducerMock: vi.fn(),
+  advanceQuestInstanceMock: vi.fn(),
   useIdentityMock: vi.fn(),
   parseSnapshotMock: vi.fn(),
   tablesMock: {
@@ -16,14 +18,20 @@ const mocks = vi.hoisted(() => ({
     myNpcFavors: Symbol("myNpcFavors"),
     myAgencyCareer: Symbol("myAgencyCareer"),
     myPlayerFlags: Symbol("myPlayerFlags"),
+    myQuestInstances: Symbol("myQuestInstances"),
     contentVersion: Symbol("contentVersion"),
     contentSnapshot: Symbol("contentSnapshot"),
   },
+  reducersMock: {
+    advanceQuestInstance: Symbol("advanceQuestInstance"),
+    startScenario: Symbol("startScenario"),
+  },
+  questInstanceRows: [] as unknown[],
 }));
 
 vi.mock("spacetimedb/react", () => ({
   useTable: (...args: unknown[]) => mocks.useTableMock(...args),
-  useReducer: () => vi.fn(),
+  useReducer: (...args: unknown[]) => mocks.useReducerMock(...args),
 }));
 
 vi.mock("../../../shared/spacetime/useIdentity", () => ({
@@ -32,9 +40,7 @@ vi.mock("../../../shared/spacetime/useIdentity", () => ({
 
 vi.mock("../../../shared/spacetime/bindings", () => ({
   tables: mocks.tablesMock,
-  reducers: {
-    startScenario: Symbol("startScenario"),
-  },
+  reducers: mocks.reducersMock,
 }));
 
 vi.mock("../../vn/vnContent", () => ({
@@ -111,8 +117,16 @@ const basePoint: RuntimeMapPoint = {
 describe("DetectiveHub", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.questInstanceRows = [];
+    mocks.advanceQuestInstanceMock.mockResolvedValue(undefined);
     mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
     mocks.parseSnapshotMock.mockReturnValue(socialSnapshot);
+    mocks.useReducerMock.mockImplementation((reducer: symbol) => {
+      if (reducer === mocks.reducersMock.advanceQuestInstance) {
+        return mocks.advanceQuestInstanceMock;
+      }
+      return vi.fn();
+    });
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
       if (table === mocks.tablesMock.myPlayerInventory) {
@@ -183,6 +197,9 @@ describe("DetectiveHub", () => {
           true,
         ];
       }
+      if (table === mocks.tablesMock.myQuestInstances) {
+        return [mocks.questInstanceRows, true];
+      }
       if (table === mocks.tablesMock.contentVersion) {
         return [[{ checksum: "abc", isActive: true }], true];
       }
@@ -213,6 +230,7 @@ describe("DetectiveHub", () => {
     expect(screen.getByText("Lotte Weber")).toBeInTheDocument();
     expect(screen.getByText("Marta Klein")).toBeInTheDocument();
     expect(screen.getByText("1 contacts")).toBeInTheDocument();
+    expect(screen.getByText("0 entries")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Inventory" }));
     expect(screen.getByText("lockpick_kit")).toBeInTheDocument();
@@ -252,6 +270,147 @@ describe("DetectiveHub", () => {
     expect(onRunBinding).toHaveBeenCalledWith(
       basePoint,
       basePoint.primaryBinding,
+    );
+  });
+
+  it("shows active generated quest instances in the briefing panel", () => {
+    mocks.questInstanceRows = [
+      {
+        questInstanceKey:
+          "me::trig.case01.newsboy_rumor::arch.case01.newsboy_rumor",
+        instanceId: "me::trig.case01.newsboy_rumor::arch.case01.newsboy_rumor",
+        archetypeId: "arch.case01.newsboy_rumor",
+        status: "active",
+        stateNamespace: "overlay.proc.case01.newsboy",
+        stepsJson: JSON.stringify([
+          {
+            id: "step_1",
+            nodeId: "scene_case01_hbf_newsboy_approach",
+            status: "active",
+          },
+          {
+            id: "step_2",
+            nodeId: "scene_case01_hbf_newsboy_handoff",
+            status: "pending",
+          },
+          {
+            id: "step_3",
+            nodeId: "scene_case01_hbf_newsboy_release",
+            status: "pending",
+          },
+        ]),
+      },
+    ];
+
+    render(
+      <DetectiveHub
+        point={basePoint}
+        currentLocationId={null}
+        onRunBinding={vi.fn().mockResolvedValue(undefined)}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Newsboy rumor follow-up")).toBeInTheDocument();
+    expect(screen.getByText("Generated case / active")).toBeInTheDocument();
+    expect(screen.getByText("0/3 steps logged")).toBeInTheDocument();
+    expect(
+      screen.getByText("Active step: scene_case01_hbf_newsboy_approach"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Advance file" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps completed generated quest instances visible as closed files", () => {
+    mocks.questInstanceRows = [
+      {
+        questInstanceKey:
+          "me::trig.case01.newsboy_rumor::arch.case01.newsboy_rumor",
+        instanceId: "me::trig.case01.newsboy_rumor::arch.case01.newsboy_rumor",
+        archetypeId: "arch.case01.newsboy_rumor",
+        status: "completed",
+        stateNamespace: "overlay.proc.case01.newsboy",
+        stepsJson: JSON.stringify([
+          {
+            id: "step_1",
+            nodeId: "scene_case01_hbf_newsboy_approach",
+            status: "completed",
+          },
+          {
+            id: "step_2",
+            nodeId: "scene_case01_hbf_newsboy_handoff",
+            status: "completed",
+          },
+        ]),
+      },
+    ];
+
+    render(
+      <DetectiveHub
+        point={basePoint}
+        currentLocationId={null}
+        onRunBinding={vi.fn().mockResolvedValue(undefined)}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Closed files")).toBeInTheDocument();
+    expect(screen.getByText("Newsboy rumor follow-up")).toBeInTheDocument();
+    expect(screen.getByText("Generated case / completed")).toBeInTheDocument();
+    expect(screen.getByText("2/2 steps logged")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Advance file" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("advances the active generated quest instance step", async () => {
+    const user = userEvent.setup();
+    mocks.questInstanceRows = [
+      {
+        questInstanceKey:
+          "me::trig.case01.newsboy_rumor::arch.case01.newsboy_rumor",
+        instanceId: "me::trig.case01.newsboy_rumor::arch.case01.newsboy_rumor",
+        archetypeId: "arch.case01.newsboy_rumor",
+        status: "active",
+        stateNamespace: "overlay.proc.case01.newsboy",
+        stepsJson: JSON.stringify([
+          {
+            id: "step_1",
+            nodeId: "scene_case01_hbf_newsboy_approach",
+            status: "active",
+          },
+          {
+            id: "step_2",
+            nodeId: "scene_case01_hbf_newsboy_handoff",
+            status: "pending",
+          },
+        ]),
+      },
+    ];
+
+    render(
+      <DetectiveHub
+        point={basePoint}
+        currentLocationId={null}
+        onRunBinding={vi.fn().mockResolvedValue(undefined)}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Advance file" }));
+
+    expect(mocks.advanceQuestInstanceMock).toHaveBeenCalledTimes(1);
+    expect(mocks.advanceQuestInstanceMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        instanceId: "me::trig.case01.newsboy_rumor::arch.case01.newsboy_rumor",
+        stepId: "step_1",
+      }),
+    );
+    expect(
+      String(mocks.advanceQuestInstanceMock.mock.calls[0]?.[0]?.requestId),
+    ).toMatch(
+      /^hub-advance-me::trig\.case01\.newsboy_rumor::arch\.case01\.newsboy_rumor-/,
     );
   });
 });

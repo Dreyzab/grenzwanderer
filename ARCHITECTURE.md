@@ -60,11 +60,20 @@ The project follows a "Snapshot-First" governance model for narrative content:
   - one smoke command;
   - whether `content:extract`, `content:manifest:check`, and `content:drift:verify` are required.
 - `scripts/smoke-all.ts` is derived from the acceptance matrix instead of maintaining its own list.
-- **P0 Baseline (2026-05-09)**: The matrix currently defines **14 authoritative flows** (3 runtime contracts, 11 player flows).
+- **P0 Baseline (2026-05-09)**: The matrix currently defines **16 authoritative flows** (4 runtime contracts, 12 player flows).
 - Snapshot-backed acceptance flows cover Freiburg origin entry, Case01 canonical entry, Case01 mainline, Freiburg dog deduction closure, and the Freiburg social loop.
 - The canonical default Freiburg runtime entry is now `case01_hbf_arrival`, which drives Fritz's priority choice and the supported Case01 mainline. `sandbox_case01_pilot` remains snapshot-backed legacy/debug content rather than the supported runtime path.
-- Synthetic contract flows cover reducer/runtime authority checks where extracted content is intentionally not required.
+- Synthetic contract flows cover reducer/runtime authority checks and the AI queue contract where extracted content is intentionally not required.
 - Freiburg is the only supported city in the current player-facing path. Karlsruhe remains explicitly unavailable.
+
+## AI Runtime Contract
+
+- Supported AI queue kinds are `generate_dialogue`, constrained `generate_character_reaction`, and constrained `propose_director_step`.
+- `generate_dialogue` renders additive inner-thought lines for deterministic skill-check outcomes.
+- `generate_character_reaction` renders display-only NPC reaction proposals from current scene context, visible facts, and trust/disposition snapshots.
+- `propose_director_step` is the v1 narrative director: auto-enqueued on VN node entry (no free player input in v1), presentation-only, emitting one of `framing | next_beat_hint | soft_detour` plus a `suggestedReturnBeatId` drawn from the authored Case01 allowed-beat union built by `buildDirectorAllowedBeatIds` (active snapshot scenarios plus the temporary runtime bridge fallback in `CASE01_DIRECTOR_BRIDGE_FALLBACK_BEAT_IDS`). The director request layer enforces a 60-second cooldown and per-(player, scenario, node) dedupe inside the SpacetimeDB reducer, and the engine also rejects director proposals whose `suggestedReturnBeatId` is not in the original request's allowed list. Director v1 has its own `VITE_ENABLE_AI_DIRECTOR` flag and operates only over the existing Freiburg Case01 mainline; it never starts transitions, mutates flags/vars/quests/trust, or asserts new world facts. Bounded detours with reducer-side acceptance, fortune/providence costs, and director state tables are deferred to later increments.
+- AI output never mutates server state. `suggestedEffects`, `revealHintFactId`, and `bridgeText` are inert metadata unless future authored reducer logic explicitly consumes a separate, deterministic command.
+- The worker requests Gemini JSON with `responseMimeType: "application/json"` and `responseJsonSchema`, then validates semantics locally before completing an AI request. For `propose_director_step` the worker rejects proposals whose `suggestedReturnBeatId` is not in the request's allowed beat list, surfacing a retryable malformed-JSON failure.
 
 ## Visibility Contract
 

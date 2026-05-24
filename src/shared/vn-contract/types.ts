@@ -195,6 +195,7 @@ export interface VnChoice {
   text: string;
   nextNodeId: string;
   choiceType?: "action" | "inquiry" | "flavor";
+  allowCustomInput?: boolean;
   aiMode?: VnAiMode;
   providenceCost?: number;
   visibleIfAll?: VnCondition[];
@@ -262,6 +263,291 @@ export interface VnScenario {
   musicUrl?: string;
   defaultBackgroundUrl?: string;
 }
+
+export type CaseIrEntityKind =
+  | "case"
+  | "scenario"
+  | "node"
+  | "choice"
+  | "effect"
+  | "condition"
+  | "skill_check";
+
+export interface CaseIrEntityVersion {
+  kind: CaseIrEntityKind;
+  kindVersion: number;
+}
+
+export interface CaseIrMetadata {
+  schemaVersion: number;
+  source: "vn_snapshot";
+  contentVersion?: string;
+  bundleChecksum?: string;
+  generatedAt?: string;
+}
+
+export interface CaseIrDefinition {
+  id: string;
+  title: string;
+  packId?: string;
+  scenarioIds: string[];
+  defaultLocale?: string;
+  entityVersion: CaseIrEntityVersion;
+}
+
+export interface CaseIrScenario extends VnScenario {
+  entityVersion: CaseIrEntityVersion;
+}
+
+export interface CaseIrNode extends VnNode {
+  entityVersion: CaseIrEntityVersion;
+}
+
+export interface CaseIrChoice extends VnChoice {
+  scenarioId: string;
+  nodeId: string;
+  entityVersion: CaseIrEntityVersion;
+}
+
+export interface CaseIrCondition {
+  id: string;
+  scenarioId: string;
+  nodeId?: string;
+  choiceId?: string;
+  ownerPath: string;
+  condition: VnCondition;
+  entityVersion: CaseIrEntityVersion;
+}
+
+export interface CaseIrEffect {
+  id: string;
+  scenarioId: string;
+  nodeId?: string;
+  choiceId?: string;
+  ownerPath: string;
+  effect: VnEffect;
+  entityVersion: CaseIrEntityVersion;
+}
+
+export interface CaseIrSkillCheck extends VnSkillCheck {
+  scenarioId: string;
+  nodeId: string;
+  choiceId?: string;
+  ownerPath: string;
+  entityVersion: CaseIrEntityVersion;
+}
+
+export interface CaseIr {
+  metadata: CaseIrMetadata;
+  cases: CaseIrDefinition[];
+  scenarios: CaseIrScenario[];
+  nodes: CaseIrNode[];
+  choices: CaseIrChoice[];
+  conditions: CaseIrCondition[];
+  effects: CaseIrEffect[];
+  skillChecks: CaseIrSkillCheck[];
+  triggerRules: TriggerRule[];
+  questArchetypes: QuestArchetype[];
+}
+
+export interface CaseEventScope {
+  caseId?: string;
+  scenarioId?: string;
+  nodeId?: string;
+  questInstanceId?: string;
+}
+
+export interface CaseEventEnvelope {
+  eventId: string;
+  eventName: string;
+  playerId: string;
+  occurredAt: string;
+  scope: CaseEventScope;
+  payload: Record<string, unknown>;
+  idempotencyKey: string;
+}
+
+export type TriggerRuleStatus = "active" | "paused" | "retired";
+
+export interface TriggerRule {
+  id: string;
+  schemaVersion: number;
+  kindVersion: number;
+  status: TriggerRuleStatus;
+  eventName: string;
+  caseId?: string;
+  cooldownGroup?: string;
+  budgetKey?: string;
+  conditions?: VnCondition[];
+  generatedNamespace?: string;
+  allowedArchetypeIds?: string[];
+  plannerConstraints?: QuestPlannerConstraints;
+}
+
+export type QuestArchetypeKind =
+  | "rumor_followup"
+  | "temporary_branch"
+  | "resource_branch"
+  | "social_service";
+
+export type QuestPlannerBlockKind =
+  | "hook"
+  | "ask"
+  | "travel"
+  | "witness"
+  | "obstacle"
+  | "payment"
+  | "reveal"
+  | "resolution";
+
+export type QuestPlannerThreatLevel = "low" | "medium" | "high";
+
+export type QuestPlannerRewardClass =
+  | "information"
+  | "access"
+  | "relationship"
+  | "resource"
+  | "mixed";
+
+export type QuestPlannerResourceId =
+  | "providence"
+  | "fortune"
+  | "karma"
+  | string;
+
+export interface QuestPlannerResourceGate {
+  resourceId: QuestPlannerResourceId;
+  min?: number;
+  spend?: number;
+  optional?: boolean;
+}
+
+export interface QuestPlannerDurationWindow {
+  minSteps?: number;
+  maxSteps?: number;
+  timeBand?: string;
+  expiresAfterMinutes?: number;
+}
+
+export interface QuestPlannerConstraints {
+  districtIds?: string[];
+  poiCategories?: MapPointCategory[];
+  resourceGates?: QuestPlannerResourceGate[];
+  tone?: string;
+  durationWindow?: QuestPlannerDurationWindow;
+  threatLevel?: QuestPlannerThreatLevel;
+  rewardClass?: QuestPlannerRewardClass;
+}
+
+export interface QuestArchetype {
+  id: string;
+  version: number;
+  kind: QuestArchetypeKind;
+  title: string;
+  triggerRuleIds: string[];
+  stepNodeIds: string[];
+  plannerConstraints?: QuestPlannerConstraints;
+  rewardEffects?: VnEffect[];
+  failForwardNodeId?: string;
+}
+
+export interface QuestInstancePlanStep {
+  id: string;
+  blockKind: QuestPlannerBlockKind;
+  nodeId?: string;
+  locationId?: string;
+  objectiveHint?: string;
+}
+
+export interface QuestInstancePlan {
+  schemaVersion: 1;
+  planId: string;
+  triggerRuleId: string;
+  archetypeId: string;
+  archetypeVersion: number;
+  generatedNamespace: string;
+  caseId?: string;
+  steps: QuestInstancePlanStep[];
+  constraintsSnapshot?: QuestPlannerConstraints;
+  rewardEffects?: VnEffect[];
+}
+
+export type QuestInstanceKind = "authored_case" | "generated_side_case";
+export type QuestInstanceStatus =
+  | "pending"
+  | "active"
+  | "completed"
+  | "failed"
+  | "tombstoned";
+
+export interface QuestStepInstance {
+  id: string;
+  nodeId?: string;
+  status: QuestInstanceStatus;
+  objectiveHint?: string;
+}
+
+export interface QuestInstanceJsonFields {
+  steps: QuestStepInstance[];
+  eligibilitySnapshot: Record<string, unknown>;
+}
+
+export interface QuestInstanceRowContract {
+  questInstanceKey: string;
+  instanceId: string;
+  kind: QuestInstanceKind;
+  status: QuestInstanceStatus;
+  triggerRuleId: string;
+  archetypeId: string;
+  archetypeVersion: number;
+  bundleChecksum: string;
+  stateNamespace: string;
+  stepsJson: string;
+  eligibilitySnapshotJson: string;
+}
+
+export interface QuestInstance {
+  instanceId: string;
+  kind: QuestInstanceKind;
+  status: QuestInstanceStatus;
+  triggerRuleId?: string;
+  archetypeId?: string;
+  archetypeVersion?: number;
+  rulesetVersion?: string;
+  bundleChecksum: string;
+  seed?: string;
+  stateNamespace: string;
+  worldBindings?: Record<string, string[]>;
+  eligibilitySnapshot?: Record<string, unknown>;
+  steps: QuestStepInstance[];
+  aiOverlay?: {
+    promptTemplateId: string;
+    status: "none" | "pending" | "ready" | "failed";
+  };
+}
+
+export type TriggerEvaluationSkipReason =
+  | "rule_inactive"
+  | "event_name_mismatch"
+  | "case_scope_mismatch"
+  | "conditions_failed"
+  | "cooldown_active"
+  | "budget_exhausted";
+
+export type TriggerEvaluationResult =
+  | {
+      eligible: true;
+      ruleId: string;
+      eventName: string;
+      generatedNamespace?: string;
+      allowedArchetypeIds: string[];
+    }
+  | {
+      eligible: false;
+      ruleId: string;
+      eventName: string;
+      reason: TriggerEvaluationSkipReason;
+    };
 
 export interface VnScenarioCompletionRoute {
   nextScenarioId: string;
@@ -545,6 +831,41 @@ export type QrContentClass =
   | "repeatable_situation"
   | "social_node";
 export type QrPolicyTier = "static" | "once_per_player" | "timeboxed_otp";
+export type MapDiscoveryChannel =
+  | "vn_unlock"
+  | "qr_scan"
+  | "proximity"
+  | "observation_lens"
+  | "temporary_event";
+
+export interface MapDiscoverySignalRadii {
+  coldEnterMeters?: number;
+  coldExitMeters?: number;
+  warmEnterMeters?: number;
+  warmExitMeters?: number;
+  hotEnterMeters?: number;
+  hotExitMeters?: number;
+}
+
+export interface MapDiscoverySignalConfig {
+  enabled?: boolean;
+  radii?: MapDiscoverySignalRadii;
+  priority?: number;
+  requiresServerConfirmation?: boolean;
+}
+
+export interface MapDiscoverySkillGate {
+  skillId: SkillVoiceId;
+  rank: SkillRank;
+}
+
+export interface MapDiscoveryRule {
+  channel: MapDiscoveryChannel;
+  conditions?: MapCondition[];
+  skillGates?: MapDiscoverySkillGate[];
+  signal?: MapDiscoverySignalConfig;
+  requiresServerConfirmation?: boolean;
+}
 
 export type MapCondition =
   | { type: "flag_is"; key: string; value: boolean }
@@ -667,6 +988,10 @@ export interface MapPointSnapshot {
   defaultState?: MapPointDefaultState;
   unlockGroup?: string;
   isHiddenInitially?: boolean;
+  discoveryRadiusMeters?: number;
+  isSearchZone?: boolean;
+  searchRadiusMeters?: number;
+  discoveryRules?: MapDiscoveryRule[];
   visibilityModes?: SightMode[];
   distortionWindow?: {
     minAwakening?: number;

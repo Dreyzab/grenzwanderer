@@ -14,6 +14,8 @@ import type {
   MapBindingIntent,
   MapBindingTrigger,
   MapCondition,
+  MapDiscoveryChannel,
+  MapDiscoveryRule,
   MapEventTemplate,
   MapPointCategory,
   MapPointDefaultState,
@@ -500,6 +502,8 @@ const isChoice = (value: unknown): value is VnChoice => {
     typeof value.id === "string" &&
     typeof value.text === "string" &&
     typeof value.nextNodeId === "string" &&
+    (value.allowCustomInput === undefined ||
+      typeof value.allowCustomInput === "boolean") &&
     (value.aiMode === undefined || isVnAiMode(value.aiMode)) &&
     (value.providenceCost === undefined ||
       typeof value.providenceCost === "number") &&
@@ -1210,6 +1214,71 @@ const isMapBinding = (value: unknown): value is MapBinding => {
   );
 };
 
+const isMapDiscoveryChannel = (value: unknown): value is MapDiscoveryChannel =>
+  value === "vn_unlock" ||
+  value === "qr_scan" ||
+  value === "proximity" ||
+  value === "observation_lens" ||
+  value === "temporary_event";
+
+const isOptionalFiniteNumber = (value: unknown): value is number | undefined =>
+  value === undefined || (typeof value === "number" && Number.isFinite(value));
+
+const isMapDiscoverySignalRadii = (value: unknown): boolean => {
+  if (value === undefined) {
+    return true;
+  }
+  if (!isObject(value)) {
+    return false;
+  }
+
+  return (
+    isOptionalFiniteNumber(value.coldEnterMeters) &&
+    isOptionalFiniteNumber(value.coldExitMeters) &&
+    isOptionalFiniteNumber(value.warmEnterMeters) &&
+    isOptionalFiniteNumber(value.warmExitMeters) &&
+    isOptionalFiniteNumber(value.hotEnterMeters) &&
+    isOptionalFiniteNumber(value.hotExitMeters)
+  );
+};
+
+const isMapDiscoverySignalConfig = (value: unknown): boolean => {
+  if (value === undefined) {
+    return true;
+  }
+  if (!isObject(value)) {
+    return false;
+  }
+
+  return (
+    (value.enabled === undefined || typeof value.enabled === "boolean") &&
+    isMapDiscoverySignalRadii(value.radii) &&
+    isOptionalFiniteNumber(value.priority) &&
+    (value.requiresServerConfirmation === undefined ||
+      typeof value.requiresServerConfirmation === "boolean")
+  );
+};
+
+const isMapDiscoverySkillGate = (value: unknown): boolean =>
+  isObject(value) &&
+  typeof value.skillId === "string" &&
+  isSkillVoiceId(value.skillId) &&
+  typeof value.rank === "string" &&
+  isSkillRank(value.rank);
+
+const isMapDiscoveryRule = (value: unknown): value is MapDiscoveryRule =>
+  isObject(value) &&
+  isMapDiscoveryChannel(value.channel) &&
+  (value.conditions === undefined ||
+    (Array.isArray(value.conditions) &&
+      value.conditions.every((entry) => isMapCondition(entry)))) &&
+  (value.skillGates === undefined ||
+    (Array.isArray(value.skillGates) &&
+      value.skillGates.every((entry) => isMapDiscoverySkillGate(entry)))) &&
+  isMapDiscoverySignalConfig(value.signal) &&
+  (value.requiresServerConfirmation === undefined ||
+    typeof value.requiresServerConfirmation === "boolean");
+
 const isMapPointSnapshotLike = (
   value: unknown,
 ): value is MapEventTemplate["point"] => {
@@ -1234,6 +1303,15 @@ const isMapPointSnapshotLike = (
       typeof value.unlockGroup === "string") &&
     (value.isHiddenInitially === undefined ||
       typeof value.isHiddenInitially === "boolean") &&
+    (value.discoveryRadiusMeters === undefined ||
+      typeof value.discoveryRadiusMeters === "number") &&
+    (value.isSearchZone === undefined ||
+      typeof value.isSearchZone === "boolean") &&
+    (value.searchRadiusMeters === undefined ||
+      typeof value.searchRadiusMeters === "number") &&
+    (value.discoveryRules === undefined ||
+      (Array.isArray(value.discoveryRules) &&
+        value.discoveryRules.every((entry) => isMapDiscoveryRule(entry)))) &&
     (value.visibilityModes === undefined ||
       (Array.isArray(value.visibilityModes) &&
         value.visibilityModes.every((entry) => isSightMode(entry)))) &&
@@ -1401,6 +1479,15 @@ const parseMap = (
         typeof point.unlockGroup !== "string") ||
       (point.isHiddenInitially !== undefined &&
         typeof point.isHiddenInitially !== "boolean") ||
+      (point.discoveryRadiusMeters !== undefined &&
+        typeof point.discoveryRadiusMeters !== "number") ||
+      (point.isSearchZone !== undefined &&
+        typeof point.isSearchZone !== "boolean") ||
+      (point.searchRadiusMeters !== undefined &&
+        typeof point.searchRadiusMeters !== "number") ||
+      (point.discoveryRules !== undefined &&
+        (!Array.isArray(point.discoveryRules) ||
+          !point.discoveryRules.every((entry) => isMapDiscoveryRule(entry)))) ||
       (point.visibilityModes !== undefined &&
         (!Array.isArray(point.visibilityModes) ||
           !point.visibilityModes.every((entry) => isSightMode(entry)))) ||
@@ -1459,6 +1546,10 @@ const parseMap = (
       defaultState: point.defaultState,
       unlockGroup: point.unlockGroup,
       isHiddenInitially: point.isHiddenInitially,
+      discoveryRadiusMeters: point.discoveryRadiusMeters,
+      isSearchZone: point.isSearchZone,
+      searchRadiusMeters: point.searchRadiusMeters,
+      discoveryRules: point.discoveryRules,
       visibilityModes: point.visibilityModes,
       distortionWindow: point.distortionWindow,
       revealConditions: point.revealConditions,

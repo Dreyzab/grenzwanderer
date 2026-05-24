@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { VnStrings } from "../../i18n/uiStrings";
 import type { UiLanguage } from "../../../shared/hooks/useUiLanguage";
 import type {
@@ -33,8 +34,11 @@ interface VnChoicesRendererProps {
   completionTargetLabel: string | null;
   hasAutoContinueChoice: boolean;
   sessionReady: boolean;
+  providenceCount: number;
   onOriginPick: (choice: VnChoice) => void;
   onChoiceClick: (choice: VnChoice) => void;
+  onCustomSubmit?: (choice: VnChoice, text: string) => void;
+  onInsufficientTokens?: () => void;
   onProvidenceExpand: () => void;
   onCompletionTransition: () => void;
   onRestartScene: () => void;
@@ -114,6 +118,104 @@ const InnerVoiceCard = ({ card }: { card: InnerVoiceCardDisplay }) => (
   </div>
 );
 
+const CustomInputChoice = ({
+  choice,
+  disabled,
+  providenceCount,
+  onCustomSubmit,
+  onInsufficientTokens,
+}: {
+  choice: VnChoice;
+  disabled: boolean;
+  providenceCount: number;
+  onCustomSubmit?: (choice: VnChoice, text: string) => void;
+  onInsufficientTokens?: () => void;
+}) => {
+  const [text, setText] = useState("");
+  const [localWarning, setLocalWarning] = useState<string | null>(null);
+
+  const handleSubmit = () => {
+    if (disabled) return;
+    if (!text.trim()) return;
+
+    if (providenceCount < 1) {
+      setLocalWarning("Недостаточно Жетонов Провидения");
+      if (onInsufficientTokens) {
+        onInsufficientTokens();
+      }
+      setTimeout(() => setLocalWarning(null), 3000);
+      return;
+    }
+
+    if (onCustomSubmit) {
+      onCustomSubmit(choice, text.trim());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    } else if (e.key === "Escape") {
+      e.currentTarget.blur();
+    }
+  };
+
+  const isSubmitDisabled = disabled || !text.trim();
+
+  return (
+    <div className="bg-slate-950/45 backdrop-blur-md border border-amber-500/20 shadow-lg rounded-[0.8rem] p-4 flex flex-col gap-3 transition-all duration-300 focus-within:border-amber-500/50 focus-within:shadow-[0_0_15px_rgba(245,158,11,0.15)] w-full text-left">
+      <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.18em]">
+        <span className="text-stone-400 font-semibold">Свой вариант</span>
+        <span className="text-amber-500/90 font-bold">1 Жетон Провидения</span>
+      </div>
+
+      <textarea
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          if (localWarning) setLocalWarning(null);
+        }}
+        onKeyDown={handleKeyDown}
+        placeholder="Опишите ваши действия..."
+        disabled={disabled}
+        className="w-full bg-slate-950/50 text-slate-100 placeholder-stone-500 border border-stone-800 rounded-[0.6rem] px-3 py-2 text-sm focus:outline-none focus:border-amber-500/40 resize-none h-[72px] transition-all duration-300"
+      />
+
+      <div className="flex items-center justify-between gap-3 min-h-[32px]">
+        <div className="text-xs text-amber-500/80 font-medium">
+          {localWarning ? (
+            <span className="text-amber-500 font-bold animate-pulse">
+              ⚠️ {localWarning}
+            </span>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isSubmitDisabled}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[0.4rem] text-xs font-semibold uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-100 transition-all duration-300 hover:bg-amber-500/20 hover:border-amber-500/65 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+        >
+          <span>Отправить</span>
+          <svg
+            className="w-3.5 h-3.5 stroke-current"
+            fill="none"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2.5"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const VnChoicesRenderer = ({
   t,
   uiLanguage,
@@ -136,8 +238,11 @@ export const VnChoicesRenderer = ({
   completionTargetLabel,
   hasAutoContinueChoice,
   sessionReady,
+  providenceCount,
   onOriginPick,
   onChoiceClick,
+  onCustomSubmit,
+  onInsufficientTokens,
   onProvidenceExpand,
   onCompletionTransition,
   onRestartScene,
@@ -181,22 +286,33 @@ export const VnChoicesRenderer = ({
       choiceDisplayItems.length > 0 &&
       currentNodePresent ? (
       <>
-        {choiceDisplayItems.map((item) => (
-          <VnChoiceButton
-            key={item.choice.id}
-            choice={item.choice}
-            index={item.index}
-            chancePercent={item.chancePercent}
-            skillCheckState={item.skillCheckState}
-            isVisited={item.isVisited}
-            isLocked={item.isLocked}
-            isPending={item.isPending}
-            hasFailedCheck={item.hasFailedCheck}
-            innerVoiceHints={item.innerVoiceHints}
-            disabled={isInteractionLocked}
-            onClick={() => onChoiceClick(item.choice)}
-          />
-        ))}
+        {choiceDisplayItems.map((item) =>
+          item.choice.allowCustomInput ? (
+            <CustomInputChoice
+              key={item.choice.id}
+              choice={item.choice}
+              disabled={isInteractionLocked}
+              providenceCount={providenceCount}
+              onCustomSubmit={onCustomSubmit}
+              onInsufficientTokens={onInsufficientTokens}
+            />
+          ) : (
+            <VnChoiceButton
+              key={item.choice.id}
+              choice={item.choice}
+              index={item.index}
+              chancePercent={item.chancePercent}
+              skillCheckState={item.skillCheckState}
+              isVisited={item.isVisited}
+              isLocked={item.isLocked}
+              isPending={item.isPending}
+              hasFailedCheck={item.hasFailedCheck}
+              innerVoiceHints={item.innerVoiceHints}
+              disabled={isInteractionLocked}
+              onClick={() => onChoiceClick(item.choice)}
+            />
+          ),
+        )}
       </>
     ) : displayedScenarioCompleted ? (
       <div className="flex flex-col gap-3">

@@ -30,6 +30,19 @@ describe("derivePointState", () => {
     expect(state).toBe("discovered");
   });
 
+  it("returns discovered when DISCOVERED_* flag exists", () => {
+    const state = derivePointState(
+      point,
+      null,
+      new Set(),
+      new Set(),
+      new Set(),
+      new Set(["DISCOVERED_loc_freiburg_bank"]),
+    );
+
+    expect(state).toBe("discovered");
+  });
+
   it("returns visited when current location matches point", () => {
     const state = derivePointState(
       point,

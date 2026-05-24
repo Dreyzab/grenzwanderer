@@ -9,7 +9,10 @@ The Inner Parliament has two layers:
 
 Never collapse these layers. A skill voice can unlock an action; a moral faction can argue for or against the reason to take it.
 
-See also: [Moral Stress and Identity Formation](./MORAL_STRESS_IDENTITY_FORMATION.md).
+See also:
+
+- [Atmosphere Bible](./ATMOSPHERE_BIBLE.md)
+- [Moral Stress and Identity Formation](./MORAL_STRESS_IDENTITY_FORMATION.md)
 
 ## Skill Affinity Layer
 

@@ -30,17 +30,6 @@ import {
   resolveVoiceAvatarUrl,
 } from "./VnInlineSpeakerBadge";
 
-const STANCE_PALETTE = {
-  supports: {
-    border: "#34d399",
-    glow: "rgba(52, 211, 153, 0.36)",
-  },
-  opposes: {
-    border: "#f87171",
-    glow: "rgba(248, 113, 113, 0.36)",
-  },
-} as const;
-
 interface ChoicePrimaryAvatarProps {
   avatarUrl: string | null;
   fallbackIcon: LucideIcon;
@@ -409,12 +398,8 @@ export function VnChoiceButton({
   const glowColor = primaryVoice
     ? primaryVoice.palette.glowStrong
     : "rgba(168, 162, 158, 0.32)";
-  const avatarBorderColor = primaryHint
-    ? STANCE_PALETTE[primaryHint.stance].border
-    : accentColor;
-  const avatarGlowColor = primaryHint
-    ? STANCE_PALETTE[primaryHint.stance].glow
-    : glowColor;
+  const avatarBorderColor = accentColor;
+  const avatarGlowColor = glowColor;
   const activeStateClassName =
     skillCheckState === "arming"
       ? "brightness-125"

@@ -3,15 +3,12 @@ import { senderOf, type ReducerContextLike } from "./context";
 import { assertNonEmpty } from "./payload_json";
 
 export const hasAnyAdminIdentity = (ctx: any): boolean => {
-  for (const _row of ctx.db.adminIdentity.iter()) {
-    return true;
-  }
-  return false;
+  return ctx.db.adminIdentity.count() > 0;
 };
 
 export const hasAdminIdentity = (
   ctx: any,
-  identity: { toHexString(): string } = ctx.sender,
+  identity: { toHexString(): string } = senderOf(ctx) as any,
 ): boolean => Boolean(ctx.db.adminIdentity.identity.find(identity));
 
 export const hasAllowlistedWorker = (

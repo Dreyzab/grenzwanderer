@@ -23,6 +23,7 @@ import type {
   CommandOrderHistory,
   CommandPartyMember,
   CommandSession,
+  CaseVersion,
   ContentSnapshot,
   ContentTranslation,
   ContentVersion,
@@ -40,6 +41,7 @@ import type {
   PlayerNpcState,
   PlayerProfile,
   PlayerQuest,
+  QuestInstance,
   PlayerRedeemedCode,
   PlayerRelationship,
   PlayerRumorState,
@@ -69,10 +71,12 @@ type ViewDbAliases = {
   workerAiRequests: BaseDbView["worker_ai_requests"];
   /** Alias for public `content_translation` table (no server view; avoids full-table view materialization on publish). */
   contentTranslations: BaseDbView["contentTranslation"];
+  caseVersion: BaseDbView["caseVersion"];
   myMindCases: BaseDbView["my_mind_cases"];
   myMindFacts: BaseDbView["my_mind_facts"];
   myMindHypotheses: BaseDbView["my_mind_hypotheses"];
   myQuests: BaseDbView["my_quests"];
+  myQuestInstances: BaseDbView["my_quest_instances"];
   myEvidence: BaseDbView["my_evidence"];
   myRelationships: BaseDbView["my_relationships"];
   myNpcState: BaseDbView["my_npc_state"];
@@ -104,10 +108,12 @@ const viewDbAliases: Readonly<Record<keyof ViewDbAliases, keyof BaseDbView>> = {
   myAiRequests: "my_ai_requests",
   workerAiRequests: "worker_ai_requests",
   contentTranslations: "contentTranslation",
+  caseVersion: "caseVersion",
   myMindCases: "my_mind_cases",
   myMindFacts: "my_mind_facts",
   myMindHypotheses: "my_mind_hypotheses",
   myQuests: "my_quests",
+  myQuestInstances: "my_quest_instances",
   myEvidence: "my_evidence",
   myRelationships: "my_relationships",
   myNpcState: "my_npc_state",
@@ -141,6 +147,7 @@ type LegacyDbAliases = {
   playerMindFact: BaseDbView["my_mind_facts"];
   playerMindHypothesis: BaseDbView["my_mind_hypotheses"];
   playerQuest: BaseDbView["my_quests"];
+  questInstance: BaseDbView["my_quest_instances"];
   playerEvidence: BaseDbView["my_evidence"];
   playerRelationship: BaseDbView["my_relationships"];
   playerNpcState: BaseDbView["my_npc_state"];
@@ -176,6 +183,7 @@ const legacyDbAliases: Readonly<
   playerMindFact: "my_mind_facts",
   playerMindHypothesis: "my_mind_hypotheses",
   playerQuest: "my_quests",
+  questInstance: "my_quest_instances",
   playerEvidence: "my_evidence",
   playerRelationship: "my_relationships",
   playerNpcState: "my_npc_state",
@@ -197,6 +205,7 @@ const legacyDbAliases: Readonly<
 };
 
 export const tables = {
+  caseVersion: queryTables.caseVersion,
   contentSnapshot: queryTables.contentSnapshot,
   contentTranslation: queryTables.contentTranslation,
   contentTranslations: queryTables.contentTranslation,
@@ -217,6 +226,7 @@ export const tables = {
   myMindFacts: queryTables.my_mind_facts,
   myMindHypotheses: queryTables.my_mind_hypotheses,
   myQuests: queryTables.my_quests,
+  myQuestInstances: queryTables.my_quest_instances,
   myEvidence: queryTables.my_evidence,
   myRelationships: queryTables.my_relationships,
   myNpcState: queryTables.my_npc_state,
@@ -239,6 +249,7 @@ export const tables = {
 
 export const reducers = {
   advanceQuest: generatedReducers.advanceQuest,
+  advanceQuestInstance: generatedReducers.advanceQuestInstance,
   beginKarlsruheEventEntry: generatedReducers.beginKarlsruheEventEntry,
   beginFreiburgOrigin: generatedReducers.beginFreiburgOrigin,
   buyItem: generatedReducers.buyItem,
@@ -332,6 +343,7 @@ export type {
   CommandOrderHistory,
   CommandPartyMember,
   CommandSession,
+  CaseVersion,
   ContentSnapshot,
   ContentTranslation,
   ContentVersion,
@@ -349,6 +361,7 @@ export type {
   PlayerNpcState,
   PlayerProfile,
   PlayerQuest,
+  QuestInstance,
   PlayerRedeemedCode,
   PlayerRelationship,
   PlayerRumorState,

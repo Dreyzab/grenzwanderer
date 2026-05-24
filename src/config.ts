@@ -74,6 +74,11 @@ export const RECAPTCHA_ENTERPRISE_SITE_KEY =
 export const ENABLE_AI =
   String(import.meta.env.VITE_ENABLE_AI ?? "false").toLowerCase() === "true";
 
+export const ENABLE_AI_DIRECTOR =
+  ENABLE_AI &&
+  String(import.meta.env.VITE_ENABLE_AI_DIRECTOR ?? "false").toLowerCase() ===
+    "true";
+
 export const ENABLE_DEBUG_CONTENT_SEED =
   import.meta.env.DEV &&
   String(

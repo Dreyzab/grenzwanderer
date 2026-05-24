@@ -15,6 +15,8 @@ const mocks = vi.hoisted(() => ({
     redeemMapCode: Symbol("redeemMapCode"),
     travelTo: Symbol("travelTo"),
     setFlag: Symbol("setFlag"),
+    setVar: Symbol("setVar"),
+    unlockGroup: Symbol("unlockGroup"),
     startScenario: Symbol("startScenario"),
   },
   tablesMock: {
@@ -159,6 +161,7 @@ describe("MapView", () => {
           isObjectiveActive: false,
         },
       ],
+      journeyDiscoveryCandidates: [],
       currentLocationId: "loc_intro",
       routes: [],
       isReady: false,
@@ -177,6 +180,17 @@ describe("MapView", () => {
     expect(
       screen.queryByRole("button", { name: "Open ledger" }),
     ).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Player position")).toBeInTheDocument();
+    expect(screen.getByLabelText("Journey compass")).toBeInTheDocument();
+  });
+
+  it("renders journey route controls", () => {
+    render(<MapView onOpenVnScenario={vi.fn()} />);
+
+    expect(
+      screen.getByRole("button", { name: /route mode/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("0 queued")).toBeInTheDocument();
   });
 
   it("renders a compact hud with a closed drawer by default", () => {

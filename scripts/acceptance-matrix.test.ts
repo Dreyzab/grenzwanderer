@@ -22,6 +22,7 @@ describe("acceptance matrix", () => {
       { label: "VN authority", script: "smoke:vn-authority" },
       { label: "Map authority", script: "smoke:map-authority" },
       { label: "Battle authority", script: "smoke:battle-authority" },
+      { label: "AI runtime", script: "smoke:ai-runtime" },
       { label: "Origin entry", script: "smoke:origin-entry" },
       { label: "Case01 entry", script: "smoke:case01-entry" },
       { label: "Case01 mainline", script: "smoke:case01-mainline" },

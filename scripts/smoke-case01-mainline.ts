@@ -203,7 +203,7 @@ try {
       (binding) =>
         binding.scenarioId === CASE01_SCENARIO_IDS.lodgingZumGoldenenAdler,
     ),
-    "loc_pub_deutsche must offer the canon Zum Goldenen Adler lodging beat",
+    "loc_pub_deutsche must offer the canon Zum Eber lodging beat",
   );
   assert(
     warehouseBindings.some(

@@ -3,6 +3,7 @@ import {
   LogSegmentRenderer,
   type PlayerProfileForLog,
 } from "./LogSegmentRenderer";
+import type { TypedTextTokenState } from "../ui/TypedText";
 import type { LogEntry } from "./useNarrativeLog";
 
 interface LogEntryRendererProps {
@@ -11,6 +12,7 @@ interface LogEntryRendererProps {
   showSpeaker?: boolean;
   previousSpeakerId?: string | null;
   playerProfile?: PlayerProfileForLog | null;
+  tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
 }
 
 export function LogEntryRenderer({
@@ -19,6 +21,7 @@ export function LogEntryRenderer({
   showSpeaker = true,
   previousSpeakerId,
   playerProfile,
+  tokenStateByPayload,
 }: LogEntryRendererProps) {
   if (entry.type === "segment" && entry.segment) {
     return (
@@ -28,6 +31,7 @@ export function LogEntryRenderer({
         showSpeaker={showSpeaker}
         previousSpeakerId={previousSpeakerId}
         playerProfile={playerProfile}
+        tokenStateByPayload={tokenStateByPayload}
       />
     );
   }
@@ -39,6 +43,7 @@ export function LogEntryRenderer({
         showSpeaker={false}
         previousSpeakerId={previousSpeakerId}
         playerProfile={playerProfile}
+        tokenStateByPayload={tokenStateByPayload}
         segment={{
           speaker: "player",
           speakerLabel: playerProfile?.name ?? "You",

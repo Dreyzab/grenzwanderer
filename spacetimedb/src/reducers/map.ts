@@ -40,6 +40,7 @@ import { startScenarioInternal } from "./vn";
 
 const visitedFlagKey = (pointId: string): string => `VISITED_${pointId}`;
 const completedFlagKey = (pointId: string): string => `COMPLETED_${pointId}`;
+const discoveredFlagKey = (pointId: string): string => `DISCOVERED_${pointId}`;
 
 const rejectMapInteraction = (
   ctx: any,
@@ -305,6 +306,10 @@ const resolvePointState = (ctx: any, point: MapPoint): MapPointState => {
     if (ctx.db.playerUnlockGroup.unlockKey.find(unlockKey)) {
       return "discovered";
     }
+  }
+
+  if (getFlag(ctx, discoveredFlagKey(point.id))) {
+    return "discovered";
   }
 
   return point.defaultState ?? "locked";

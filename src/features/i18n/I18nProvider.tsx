@@ -33,7 +33,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
       if (row.lang !== language) {
         continue;
       }
-      if (row.key.startsWith("vn.")) {
+      if (row.key.startsWith("vn.") || row.key.startsWith("case.")) {
         next.vn[row.key] = row.text;
       } else if (row.key.startsWith("origin.")) {
         next.origin[row.key] = row.text;

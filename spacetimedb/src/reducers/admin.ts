@@ -78,3 +78,47 @@ export const allow_worker_identity = spacetimedb.reducer(
     });
   },
 );
+
+export const seed_player_as_elias_thorne = spacetimedb.reducer(
+  {
+    targetIdentity: t.identity(),
+  },
+  (ctx, { targetIdentity }) => {
+    ensureAdminIdentity(ctx, "seed player profiles");
+
+    // We can't easily call other reducers with a different context sender,
+    // so we'll implement the core seeding logic here.
+
+    // 1. Ensure profile exists
+    const profile = ctx.db.playerProfile.playerId.find(targetIdentity);
+    if (!profile) {
+      ctx.db.playerProfile.insert({
+        playerId: targetIdentity,
+        nickname: "Elias Thorne",
+        createdAt: ctx.timestamp,
+        updatedAt: ctx.timestamp,
+      });
+    } else {
+      ctx.db.playerProfile.playerId.update({
+        ...profile,
+        nickname: "Elias Thorne",
+        updatedAt: ctx.timestamp,
+      });
+    }
+
+    // 2. Ensure location
+    const location = ctx.db.playerLocation.playerId.find(targetIdentity);
+    if (!location) {
+      ctx.db.playerLocation.insert({
+        playerId: targetIdentity,
+        locationId: "loc_intro",
+        updatedAt: ctx.timestamp,
+      });
+    }
+
+    emitTelemetry(ctx, "player_seeded_manually", {
+      target: targetIdentity.toHexString(),
+      admin: ctx.sender.toHexString(),
+    });
+  },
+);

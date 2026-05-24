@@ -8,7 +8,9 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { VnScreen } from "./VnScreen";
 import {
+  AI_CHARACTER_REACTION_SOURCE_VN_SCENE,
   AI_DIALOGUE_SOURCE_SKILL_CHECK,
+  AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
 } from "../../ai/contracts";
 
@@ -145,6 +147,7 @@ vi.mock("../../../entities/player/hooks/usePlayerBindings", () => ({
 
 vi.mock("../../../config", () => ({
   ENABLE_AI: true,
+  ENABLE_AI_DIRECTOR: false,
   RELEASE_PROFILE: "freiburg_detective",
 }));
 
@@ -159,6 +162,7 @@ vi.mock("../../../widgets/vn-overlay/VnNarrativePanel", () => ({
     onVideoEnded,
     onSurfaceTap,
     onTokenClick,
+    tokenStateByPayload,
   }: any) => (
     <div>
       <div data-testid="location-name">{locationName}</div>
@@ -175,9 +179,24 @@ vi.mock("../../../widgets/vn-overlay/VnNarrativePanel", () => ({
             payload: match[3],
             key: `${match[1]}:${match[3]}:${index}`,
           };
+          const tokenState = tokenStateByPayload?.[token.payload];
+          if (tokenState && (token.type === "fact" || token.type === "lead")) {
+            return (
+              <span
+                key={token.key}
+                data-vn-payload={token.payload}
+                data-vn-token-state={tokenState}
+                data-vn-token-type={token.type}
+              >
+                token-{token.type}-{token.text}
+              </span>
+            );
+          }
           return (
             <button
               key={token.key}
+              data-vn-payload={token.payload}
+              data-vn-token-type={token.type}
               type="button"
               onClick={(event) => onTokenClick?.(token, event)}
             >
@@ -225,6 +244,7 @@ type TestState = {
   sessionReady: boolean;
   skillResultRows: any[];
   aiRequestRows: any[];
+  npcStateRows: any[];
   mindFactRows: any[];
   evidenceRows: any[];
   inventoryRows: any[];
@@ -275,6 +295,7 @@ describe("VnScreen critical behavior", () => {
       sessionReady: true,
       skillResultRows: [],
       aiRequestRows: [],
+      npcStateRows: [],
       mindFactRows: [],
       evidenceRows: [],
       inventoryRows: [],
@@ -343,6 +364,9 @@ describe("VnScreen critical behavior", () => {
       }
       if (table === mocks.tables.myAiRequests) {
         return [state.aiRequestRows, true];
+      }
+      if (table === mocks.tables.myNpcState) {
+        return [state.npcStateRows, true];
       }
       if (table === mocks.tables.myMindFacts) {
         return [state.mindFactRows, true];
@@ -526,6 +550,55 @@ describe("VnScreen critical behavior", () => {
     await waitFor(() => {
       expect(mocks.startScenarioMock).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it("shows the tabletop DM panel only for the Witch origin", async () => {
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_ghost_pilot",
+          title: "Ghost",
+          startNodeId: "node_start",
+          nodeIds: ["node_start"],
+        },
+      ],
+      [
+        {
+          id: "node_start",
+          scenarioId: "sandbox_ghost_pilot",
+          title: "Start",
+          body: "Body",
+          choices: [],
+        },
+      ],
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(2n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_ghost_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_ghost_pilot",
+        nodeId: "node_start",
+        updatedAt: timestamp(18n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    const view = render(<VnScreen initialScenarioId="sandbox_ghost_pilot" />);
+    expect(screen.queryByTestId("vn-dm-panel")).not.toBeInTheDocument();
+
+    mocks.usePlayerFlagsMock.mockReturnValue({ origin_witch: true });
+    await act(async () => {
+      view.rerender(<VnScreen initialScenarioId="sandbox_ghost_pilot" />);
+    });
+
+    expect(screen.getByTestId("vn-dm-panel")).toBeInTheDocument();
   });
 
   it("blocks repeated AUTO_CONTINUE taps while choice is pending", async () => {
@@ -1093,6 +1166,186 @@ describe("VnScreen critical behavior", () => {
     expect(screen.getByText("Noted")).toBeInTheDocument();
   });
 
+  it("records a fact with journal guidance and makes the token studied", async () => {
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_case01_pilot",
+          title: "Case01",
+          startNodeId: "node_start",
+          nodeIds: ["node_start"],
+        },
+      ],
+      [
+        {
+          id: "node_start",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Start",
+          body: "Read [fact:Zum Eber:case01/zum_goldenen_adler].",
+          choices: [],
+        },
+      ],
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(62n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_case01_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_start",
+        updatedAt: timestamp(63n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    render(<VnScreen initialScenarioId="sandbox_case01_pilot" />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "token-fact-Zum Eber" }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("token-fact-Zum Eber")).toHaveAttribute(
+        "data-vn-token-state",
+        "studied",
+      );
+    });
+    expect(
+      screen.queryByRole("button", { name: "token-fact-Zum Eber" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Recorded in journal")).toBeInTheDocument();
+    expect(
+      screen.getByText("Open the Journal tab to read the entry."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a recording token state while fact discovery is pending", async () => {
+    let resolveDiscovery: (() => void) | undefined;
+    mocks.discoverFactMock.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveDiscovery = resolve;
+      }),
+    );
+
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_case01_pilot",
+          title: "Case01",
+          startNodeId: "node_start",
+          nodeIds: ["node_start"],
+        },
+      ],
+      [
+        {
+          id: "node_start",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Start",
+          body: "Read [fact:Ledger:case_banker_theft/fact_ledger_gap].",
+          choices: [],
+        },
+      ],
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(62n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_case01_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_start",
+        updatedAt: timestamp(63n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    render(<VnScreen initialScenarioId="sandbox_case01_pilot" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "token-fact-Ledger" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("token-fact-Ledger")).toHaveAttribute(
+        "data-vn-token-state",
+        "recording",
+      );
+    });
+    expect(
+      screen.queryByRole("button", { name: "token-fact-Ledger" }),
+    ).not.toBeInTheDocument();
+
+    resolveDiscovery?.();
+
+    await waitFor(() => {
+      expect(screen.getByText("token-fact-Ledger")).toHaveAttribute(
+        "data-vn-token-state",
+        "studied",
+      );
+    });
+  });
+
+  it("returns a fact token to interactive state when discovery fails", async () => {
+    mocks.discoverFactMock.mockRejectedValue(new Error("server refused fact"));
+
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "sandbox_case01_pilot",
+          title: "Case01",
+          startNodeId: "node_start",
+          nodeIds: ["node_start"],
+        },
+      ],
+      [
+        {
+          id: "node_start",
+          scenarioId: "sandbox_case01_pilot",
+          title: "Start",
+          body: "Read [fact:Ledger:case_banker_theft/fact_ledger_gap].",
+          choices: [],
+        },
+      ],
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(62n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::sandbox_case01_pilot",
+        playerId: identity("me"),
+        scenarioId: "sandbox_case01_pilot",
+        nodeId: "node_start",
+        updatedAt: timestamp(63n),
+        completedAt: { tag: "none" },
+      },
+    ];
+
+    render(<VnScreen initialScenarioId="sandbox_case01_pilot" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "token-fact-Ledger" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "token-fact-Ledger" }),
+      ).toBeInTheDocument();
+    });
+    expect(screen.getByText("server refused fact")).toBeInTheDocument();
+  });
+
   it("saves item tokens and does not play token sfx while muted", async () => {
     mocks.readVnSfxMutedMock.mockReturnValue(true);
     const payloadJson = makeSnapshotPayload(
@@ -1194,7 +1447,13 @@ describe("VnScreen critical behavior", () => {
     render(<VnScreen initialScenarioId="sandbox_case01_pilot" />);
 
     fireEvent.click(screen.getByRole("button", { name: "token-clue-Steam" }));
-    fireEvent.click(screen.getByRole("button", { name: "token-fact-Ledger" }));
+    expect(screen.getByText("token-fact-Ledger")).toHaveAttribute(
+      "data-vn-token-state",
+      "studied",
+    );
+    expect(
+      screen.queryByRole("button", { name: "token-fact-Ledger" }),
+    ).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "token-item-Key" }));
     fireEvent.click(screen.getByRole("button", { name: "token-actor-Fritz" }));
 
@@ -1893,6 +2152,128 @@ describe("VnScreen critical behavior", () => {
     });
 
     expect(mocks.enqueueAiRequestMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("enqueues and renders character reactions as display-only text", async () => {
+    const payloadJson = makeSnapshotPayload(
+      [
+        {
+          id: "case01_false_trail_workers",
+          title: "Workers' Pub",
+          startNodeId: "scene_case01_workers_rudi",
+          nodeIds: ["scene_case01_workers_rudi"],
+        },
+      ],
+      [
+        {
+          id: "scene_case01_workers_rudi",
+          scenarioId: "case01_false_trail_workers",
+          title: "Rudi Kempf",
+          body: "Rudi keeps polishing the same glass when the rail-yard shift comes up.",
+          characterId: "rudi",
+          choices: [],
+        },
+      ],
+      {
+        socialCatalog: {
+          npcIdentities: [
+            {
+              id: "rudi",
+              displayName: "Rudi Kempf",
+              factionId: "free_yards",
+              publicRole: "Worker at the Red Cog Tavern",
+              rosterTier: "functional",
+            },
+          ],
+          services: [],
+          rumors: [],
+          careerRanks: [],
+        },
+      },
+    );
+    state.contentSnapshotRows = [
+      {
+        checksum: "checksum_v1",
+        payloadJson,
+        createdAt: timestamp(8n),
+      },
+    ];
+    state.sessionRows = [
+      {
+        sessionKey: "me::case01_false_trail_workers",
+        playerId: identity("me"),
+        scenarioId: "case01_false_trail_workers",
+        nodeId: "scene_case01_workers_rudi",
+        updatedAt: timestamp(20n),
+        completedAt: { tag: "none" },
+      },
+    ];
+    state.npcStateRows = [
+      {
+        npcId: "rudi",
+        trustScore: -4,
+      },
+    ];
+
+    const view = render(
+      <VnScreen initialScenarioId="case01_false_trail_workers" />,
+    );
+
+    await waitFor(() => {
+      expect(mocks.enqueueAiRequestMock).toHaveBeenCalledTimes(1);
+    });
+
+    const request = mocks.enqueueAiRequestMock.mock.calls[0]?.[0];
+    expect(request.kind).toBe(AI_GENERATE_CHARACTER_REACTION_KIND);
+
+    const payload = JSON.parse(request.payloadJson);
+    expect(payload).toMatchObject({
+      source: AI_CHARACTER_REACTION_SOURCE_VN_SCENE,
+      characterId: "rudi",
+      scenarioId: "case01_false_trail_workers",
+      nodeId: "scene_case01_workers_rudi",
+      eventText:
+        "Rudi keeps polishing the same glass when the rail-yard shift comes up.",
+      visibleFacts: ["Worker at the Red Cog Tavern"],
+      relationshipState: {
+        trust: -4,
+        disposition: "neutral",
+      },
+    });
+
+    state.aiRequestRows = [
+      {
+        id: 1n,
+        playerId: identity("me"),
+        requestId: "reaction-rudi",
+        kind: AI_GENERATE_CHARACTER_REACTION_KIND,
+        payloadJson: request.payloadJson,
+        status: "completed",
+        responseJson: {
+          tag: "some",
+          value:
+            '{"characterId":"rudi","reactionType":"evasion","text":"Rudi wipes the table twice before answering.","revealHintFactId":"rudi_shift_timing","suggestedEffects":[{"type":"trust_delta","value":-1}]}',
+        },
+        error: { tag: "none" },
+        createdAt: timestamp(21n),
+        updatedAt: timestamp(22n),
+      },
+    ];
+
+    await act(async () => {
+      view.rerender(
+        <VnScreen initialScenarioId="case01_false_trail_workers" />,
+      );
+      await Promise.resolve();
+    });
+
+    expect(
+      screen.getByText("Rudi wipes the table twice before answering."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("rudi_shift_timing")).not.toBeInTheDocument();
+    expect(mocks.recordChoiceMock).not.toHaveBeenCalled();
+    expect(mocks.grantEvidenceMock).not.toHaveBeenCalled();
+    expect(mocks.grantItemMock).not.toHaveBeenCalled();
   });
 
   it("renders inner voice cards and authored choice chips for inner parliament scenes", () => {

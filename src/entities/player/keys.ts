@@ -4,12 +4,14 @@ import {
   SKILL_VOICE_IDS,
 } from "../../../data/innerVoiceContract";
 import {
+  RESOURCE_FATE_TOKEN_VAR,
   RESOURCE_FORTUNE_MOD_VAR,
   RESOURCE_FORTUNE_VAR,
   RESOURCE_KARMA_VAR,
   RESOURCE_PROVIDENCE_VAR,
 } from "../../shared/game/narrativeResources";
 import { SKILL_XP_VAR_KEYS } from "../../shared/game/skillProgression";
+import { WITCH_STATE_VAR_KEYS } from "../../shared/game/witchRules";
 import {
   CASE01_CANON_FLAG_KEYS,
   CASE01_CANON_VAR_KEYS,
@@ -21,8 +23,10 @@ const ORIGIN_FLAG_KEYS = [
   "ability_crime_scene_reconstruction",
   "ability_index_of_everything",
   "ability_nose_for_story",
+  "ability_spiritual_veil_sight",
   "char_creation_complete",
   "flaw_battle_scar_trigger",
+  "flaw_blood_curse",
   "flaw_cynic_mistrust",
   "flaw_gambling_addiction",
   "flaw_obsessive_archivist",
@@ -32,6 +36,7 @@ const ORIGIN_FLAG_KEYS = [
   "origin_detective",
   "origin_journalist",
   "origin_veteran",
+  "origin_witch",
 ] as const;
 
 const SNAPSHOT_FLAG_KEYS = [
@@ -72,6 +77,8 @@ const SNAPSHOT_FLAG_KEYS = [
   "flag_bought_newspaper",
   "flag_caught_paperboy",
   "flag_investigated_station",
+  "flag_lobby_crossover_seen_by_detective",
+  "flag_lobby_crossover_seen_by_witch",
   "flag_paperboy_encounter",
   "flag_paperboy_mercy",
   "flag_paperboy_reported",
@@ -84,10 +91,16 @@ const SNAPSHOT_FLAG_KEYS = [
   "ghost_cold_spot_unclear",
   "ghost_draft_sensed",
   "ghost_ectoplasm_found",
+  "ghost_human_cover_suspected",
   "ghost_route_unlocked",
+  "ghost_session_hook_baroness_debt",
+  "ghost_session_hook_karl_smuggling_key",
+  "ghost_session_hook_spirit_bargain",
   "ghost_thermometer_mastery",
   "ghost_thermometer_overreach",
+  "ghost_veil_resonance_seen",
   "ghost_truth_proven",
+  "ghost_witch_blood_temptation_seen",
   "intro_freiburg_done",
   "karlsruhe_arrival_complete",
   "lang_de",
@@ -105,6 +118,7 @@ const SNAPSHOT_FLAG_KEYS = [
   "origin_detective_handoff_done",
   "origin_journalist_handoff_done",
   "origin_veteran_handoff_done",
+  "origin_witch_handoff_done",
   "priority_bank_first",
   "priority_mayor_first",
   "service_anna_student_intro_unlocked",
@@ -114,6 +128,10 @@ const SNAPSHOT_FLAG_KEYS = [
   "student_house_accessed",
   "track_mythologist_tier1",
   "track_whistleblower_tier1",
+  "track_witch_veilwalker_tier1",
+  "track_witch_veilwalker_tier2",
+  "track_witch_exorcist_tier1",
+  "track_witch_exorcist_tier2",
   "used_shivers_intro",
   "veteran_flashback_controlled",
   "case_cityhall_infiltration_unlocked",
@@ -155,6 +173,7 @@ const SNAPSHOT_FLAG_KEYS = [
   "courier_waybill_forged",
   "courier_waybill_stamp_copy_confirmed",
   "mayor_grimoire_thread_known",
+  "calibrated_thermometer",
 ] as const;
 
 const LEGACY_FLAG_KEYS = ["INTRO_COMPLETED"] as const;
@@ -177,6 +196,8 @@ const SNAPSHOT_VAR_KEYS = [
   "track_occult_sleuth_xp",
   "track_shield_xp",
   "track_whistleblower_xp",
+  "track_witch_veilwalker_xp",
+  "track_witch_exorcist_xp",
   "var_addiction_pressure",
   "case_missing_courier_evidence",
   "case_missing_courier_outcome",
@@ -184,6 +205,7 @@ const SNAPSHOT_VAR_KEYS = [
 
 const RUNTIME_VAR_KEYS = [
   "agency_standing",
+  "game_time_minutes",
   "heat",
   "mystic_awakening",
   "mystic_exposure",
@@ -206,9 +228,11 @@ export const PLAYER_VAR_KEYS = [
   ...PSYCHE_VAR_KEYS,
   ...Object.values(LEGACY_REPUTATION_VAR_BY_FACTION_ID),
   RESOURCE_PROVIDENCE_VAR,
+  RESOURCE_FATE_TOKEN_VAR,
   RESOURCE_FORTUNE_VAR,
   RESOURCE_FORTUNE_MOD_VAR,
   RESOURCE_KARMA_VAR,
+  ...WITCH_STATE_VAR_KEYS,
   ...SNAPSHOT_VAR_KEYS,
   ...RUNTIME_VAR_KEYS,
 ] as const;

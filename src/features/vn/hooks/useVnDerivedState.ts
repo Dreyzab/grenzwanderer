@@ -13,6 +13,8 @@ import type {
 import {
   AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
+  AI_PROPOSE_DIRECTOR_STEP_KIND,
+  AI_PROPOSE_DM_TURN_KIND,
 } from "../../ai/contracts";
 import {
   buildVnNodeTranslationKey,
@@ -35,6 +37,10 @@ import {
   aiRequestMatchesContext,
   checkResultMatches,
   collectChoiceLensCaseIds,
+  directorRequestMatchesContext,
+  dmTurnRequestMatchesContext,
+  parseDirectorStepResponse,
+  parseDmTurnResponse,
   formatSpeaker,
   formatVoiceLabel,
   hasOptionalValue,
@@ -74,6 +80,7 @@ import {
   RESOURCE_FORTUNE_VAR,
   RESOURCE_KARMA_VAR,
   RESOURCE_PROVIDENCE_VAR,
+  RESOURCE_FATE_TOKEN_VAR,
   resolveEffectiveFortune,
 } from "../../../shared/game/narrativeResources";
 import { isSkillVoiceId } from "../../../../data/innerVoiceContract";
@@ -251,6 +258,73 @@ export function useVnDerivedState({
         ),
     [aiRequests],
   );
+
+  const myDirectorRequests = useMemo(
+    () =>
+      [...aiRequests]
+        .filter((entry) => entry.kind === AI_PROPOSE_DIRECTOR_STEP_KIND)
+        .sort((left, right) =>
+          timestampMicros(right.updatedAt) > timestampMicros(left.updatedAt)
+            ? 1
+            : -1,
+        ),
+    [aiRequests],
+  );
+
+  const myDmTurnRequests = useMemo(
+    () =>
+      [...aiRequests]
+        .filter((entry) => entry.kind === AI_PROPOSE_DM_TURN_KIND)
+        .sort((left, right) =>
+          timestampMicros(right.updatedAt) > timestampMicros(left.updatedAt)
+            ? 1
+            : -1,
+        ),
+    [aiRequests],
+  );
+
+  const activeDirectorRequest = useMemo(() => {
+    if (!selectedScenarioId || !currentNode) {
+      return null;
+    }
+    return (
+      myDirectorRequests.find((entry) =>
+        directorRequestMatchesContext(
+          entry,
+          selectedScenarioId,
+          currentNode.id,
+        ),
+      ) ?? null
+    );
+  }, [currentNode, myDirectorRequests, selectedScenarioId]);
+
+  const activeDirectorProposal = useMemo(() => {
+    if (!activeDirectorRequest) {
+      return null;
+    }
+    if (activeDirectorRequest.status !== "completed") {
+      return null;
+    }
+    return parseDirectorStepResponse(activeDirectorRequest.responseJson);
+  }, [activeDirectorRequest]);
+
+  const activeDmTurnRequest = useMemo(() => {
+    if (!selectedScenarioId || !currentNode) {
+      return null;
+    }
+    return (
+      myDmTurnRequests.find((entry) =>
+        dmTurnRequestMatchesContext(entry, selectedScenarioId, currentNode.id),
+      ) ?? null
+    );
+  }, [currentNode, myDmTurnRequests, selectedScenarioId]);
+
+  const activeDmTurnProposal = useMemo(() => {
+    if (!activeDmTurnRequest || activeDmTurnRequest.status !== "completed") {
+      return null;
+    }
+    return parseDmTurnResponse(activeDmTurnRequest.responseJson);
+  }, [activeDmTurnRequest]);
 
   const currentDiceMode = useMemo(
     () =>
@@ -452,12 +526,14 @@ export function useVnDerivedState({
 
   const narrativeResources = useMemo(() => {
     const providence = Math.trunc(myVars[RESOURCE_PROVIDENCE_VAR] ?? 0);
+    const fate = Math.trunc(myVars[RESOURCE_FATE_TOKEN_VAR] ?? 0);
     const fortune = Math.trunc(myVars[RESOURCE_FORTUNE_VAR] ?? 0);
     const fortuneMod = Math.trunc(myVars[RESOURCE_FORTUNE_MOD_VAR] ?? 0);
     const karma = Math.trunc(myVars[RESOURCE_KARMA_VAR] ?? 0);
 
     return {
       providence,
+      fate,
       fortune,
       fortuneMod,
       karma,
@@ -641,6 +717,12 @@ export function useVnDerivedState({
     mySkillResults,
     myAiRequests,
     myReactionRequests,
+    myDirectorRequests,
+    myDmTurnRequests,
+    activeDirectorRequest,
+    activeDirectorProposal,
+    activeDmTurnRequest,
+    activeDmTurnProposal,
     currentDiceMode,
     completionRoute,
     isScenarioCompleted,

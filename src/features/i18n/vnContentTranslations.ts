@@ -12,6 +12,12 @@ export const buildVnNodeTranslationKey = (
   field: VnContentField,
 ): string => `vn.${scenarioId}.${nodeId}.${field}`;
 
+export const buildCaseTranslationKey = (
+  caseId: string,
+  nodeId: string,
+  field: VnContentField,
+): string => `case.${caseId}.${nodeId}.${field}`;
+
 export const buildVnChoiceTranslationKey = (
   scenarioId: string,
   nodeId: string,

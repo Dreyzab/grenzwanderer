@@ -1,6 +1,6 @@
 ---
 id: case01_lodging_zum_goldenen_adler
-title: "Case 01: Zum Goldenen Adler Lodging"
+title: "Case 01: Zum Eber Lodging"
 start_node_id: scene_case01_zum_goldenen_adler_entry
 scene_order:
   - scene_case01_zum_goldenen_adler_entry
@@ -15,6 +15,6 @@ supported_locales:
 migration_mode: authoritative
 ---
 
-# Case 01: Zum Goldenen Adler Lodging
+# Case 01: Zum Eber Lodging
 
-Authoritative runtime lodging beat for the canon Zum Goldenen Adler route.
+Authoritative runtime lodging beat for the canon Zum Eber route.

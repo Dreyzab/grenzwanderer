@@ -3,6 +3,7 @@
 See also:
 
 - [Inner Parliament Constitution](./INNER_PARLIAMENT_CONSTITUTION.md)
+- [Atmosphere Bible](./ATMOSPHERE_BIBLE.md)
 - [Moral Stress and Identity Formation](./MORAL_STRESS_IDENTITY_FORMATION.md)
 
 Terminology:

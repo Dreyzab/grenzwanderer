@@ -106,7 +106,7 @@ This regenerates default content artifacts, runs the focused Case01 smoke pack, 
 
 ## Acceptance Matrix
 
-The project maintains an authoritative set of **14 supported flows** (Freiburg-only).
+The project maintains an authoritative set of **16 supported flows** (Freiburg-only): 4 runtime contracts and 12 player flows.
 See [docs/ACCEPTANCE_MATRIX.md](docs/ACCEPTANCE_MATRIX.md) for details.
 
 Supported flow source of truth: `scripts/acceptance-matrix.ts`.
@@ -136,11 +136,19 @@ bun run smoke:all
 
 `smoke:all` is derived from the acceptance matrix. Synthetic contract flows in the matrix explicitly mark extract/manifest/drift gates as `n/a`.
 The Freiburg social loop is covered through `smoke:social-access`, `smoke:rumor-verification`, `smoke:agency-career`, and `smoke:service-unlock`.
+The AI runtime contract is covered through `smoke:ai-runtime`.
 The canonical Case01 runtime path is now `case01_hbf_arrival -> Fritz priority choice -> bank/Mayor -> leads -> convergence -> warehouse finale`. `sandbox_case01_pilot` remains in the snapshot for legacy/debug coverage only.
 
 ## AI Runtime Scope
 
-The supported AI queue kind is `generate_dialogue`. `generate_character_reaction` exists as a planned TypeScript contract for the future character-state model, but the SpacetimeDB queue and worker must continue rejecting it until that runtime path is implemented.
+The supported AI queue kinds are `generate_dialogue`, `generate_character_reaction`, `propose_director_step`, and `propose_dm_turn`.
+
+- `generate_dialogue` renders additive inner-thought lines for deterministic skill-check outcomes.
+- `generate_character_reaction` renders constrained NPC reaction proposals from the current character, scene, visible public facts, and trust/disposition snapshot.
+- `propose_director_step` renders a constrained director cue (framing, next-beat hint, or soft detour) automatically when the player enters a VN node. Requests dedupe by `(playerId, scenarioId, nodeId)` and respect a 60-second cooldown between consecutive completed/failed director requests for the same node. The proposal must reference a Case01 scenario-level beat in the canonical allowed-beat set built by `buildDirectorAllowedBeatIds` (union of active snapshot scenarios and the temporary runtime bridge fallback in `CASE01_DIRECTOR_BRIDGE_FALLBACK_BEAT_IDS`), is gated by the separate `VITE_ENABLE_AI_DIRECTOR` flag, and never mutates flags, quests, trust, vars, or transitions.
+- `propose_dm_turn` renders a tabletop DM proposal from free-form side-panel input. It may propose session-canon facts, checks, risks, and overlay/resource deltas, but only through Review then Accept; it never mutates immutable snapshot/canon directly.
+- AI output is non-authoritative. `suggestedEffects`, `revealHintFactId`, `bridgeText`, generated text, and DM session-canon proposals are inert unless a reducer or explicit Review then Accept flow applies a separately authored/overlay effect.
+- The worker requests schema-constrained Gemini JSON with `responseMimeType: "application/json"` and `responseJsonSchema`, then still validates the parsed response with local TypeScript guards before completing the queue item. For `propose_director_step` the worker additionally rejects proposals whose `suggestedReturnBeatId` is not in the request's allowed beat list. For `propose_dm_turn` the worker and reducer reject direct authored-canon mutation keys.
 
 ## SpacetimeDB Visibility Matrix
 

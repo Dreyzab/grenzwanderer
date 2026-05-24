@@ -45,7 +45,10 @@ export function LogChoicesRenderer({
 
   if (choiceDisplayItems.length > 0 && currentNodePresent) {
     return (
-      <div className="mt-5 flex w-full max-w-2xl flex-col gap-2 sm:pl-2">
+      <div
+        className="mt-5 flex w-full max-w-2xl flex-col gap-2 sm:pl-2"
+        onClick={(event) => event.stopPropagation()}
+      >
         {choiceDisplayItems.map((item) => {
           const disabled =
             isInteractionLocked ||

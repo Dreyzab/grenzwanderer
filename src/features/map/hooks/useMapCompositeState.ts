@@ -19,7 +19,12 @@ import {
 
 export interface UseMapCompositeStateResult extends Pick<
   UseMapPersistentStateResult,
-  "source" | "region" | "currentLocationId" | "isReady"
+  | "source"
+  | "region"
+  | "currentLocationId"
+  | "journeyDiscoveryCandidates"
+  | "resolverInputs"
+  | "isReady"
 > {
   points: RuntimeMapPoint[];
   routes: RuntimeMapRoute[];
@@ -120,6 +125,8 @@ export const useMapCompositeState = (
     region: persistent.region,
     currentLocationId: persistent.currentLocationId,
     points: [...persistent.points, ...ephemeralPoints],
+    journeyDiscoveryCandidates: persistent.journeyDiscoveryCandidates,
+    resolverInputs: persistent.resolverInputs,
     routes,
     isReady: persistent.isReady && ephemeral.isReady,
   };

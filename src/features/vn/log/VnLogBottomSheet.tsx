@@ -9,7 +9,11 @@ import type { ReactNode, RefObject } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import type { VnSnapshot } from "../types";
-import type { TypedTextHandle, TypedTextTokenHandler } from "../ui/TypedText";
+import type {
+  TypedTextHandle,
+  TypedTextTokenState,
+  TypedTextTokenHandler,
+} from "../ui/TypedText";
 import type { PlayerProfileForLog } from "./LogSegmentRenderer";
 import { VnNarrativeLog } from "./VnNarrativeLog";
 import type { NarrativeLogState } from "./useNarrativeLog";
@@ -33,6 +37,7 @@ interface VnLogBottomSheetProps {
   onTokenClick?: TypedTextTokenHandler;
   onTokenEnter?: TypedTextTokenHandler;
   onTokenLeave?: TypedTextTokenHandler;
+  tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
 }
 
 const clamp = (value: number, min: number, max: number): number =>
@@ -100,6 +105,7 @@ export function VnLogBottomSheet({
   onTokenClick,
   onTokenEnter,
   onTokenLeave,
+  tokenStateByPayload,
 }: VnLogBottomSheetProps) {
   const previousSceneGroupIdRef = useRef<string | null | undefined>(undefined);
   const [phase, setPhase] = useState<"idle" | "exit" | "enter">("idle");
@@ -311,6 +317,7 @@ export function VnLogBottomSheet({
             onTokenClick={onTokenClick}
             onTokenEnter={onTokenEnter}
             onTokenLeave={onTokenLeave}
+            tokenStateByPayload={tokenStateByPayload}
           />
         </div>
       </motion.div>

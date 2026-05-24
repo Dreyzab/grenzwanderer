@@ -517,7 +517,7 @@ try {
             condition.value === true,
         ),
     ),
-    "Zum Goldenen Adler must spend the lodging-route flag on a visible Lotte-informed callback",
+    "Zum Eber must spend the lodging-route flag on a visible Lotte-informed callback",
   );
   assert(
     findNode(
@@ -528,12 +528,12 @@ try {
         choice.id === "CASE01_zum_goldenen_adler_ROUTE_SETTLE" &&
         choice.nextNodeId === "scene_case01_zum_goldenen_adler_settle",
     ),
-    "Zum Goldenen Adler lodging callback must route back to the normal settle node",
+    "Zum Eber lodging callback must route back to the normal settle node",
   );
   assert(
     findNode(snapshot, "scene_case01_zum_goldenen_adler_settle").choices
       .length === 0,
-    "Zum Goldenen Adler settle node must stay terminal and avoid adding inventory systems",
+    "Zum Eber settle node must stay terminal and avoid adding inventory systems",
   );
   assert(
     hasEffect(findNode(snapshot, "scene_case01_convergence_official").onEnter, {

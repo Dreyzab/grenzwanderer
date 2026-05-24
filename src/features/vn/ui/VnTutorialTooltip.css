@@ -1,0 +1,116 @@
+/* ─── VnTutorialTooltip ─── RPG-style onboarding prompt ─── */
+
+.vn-tutorial-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 18px);
+  transform: translateX(-50%);
+  z-index: 200;
+  pointer-events: auto;
+
+  max-width: 340px;
+  padding: 14px 20px 14px 16px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(30, 24, 16, 0.97) 0%,
+    rgba(42, 32, 18, 0.97) 100%
+  );
+  border: 1px solid rgba(181, 133, 43, 0.45);
+  border-radius: 12px;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 250, 230, 0.06);
+
+  font-family: var(--font-serif, Georgia, serif);
+}
+
+/* ─── Arrow pointing down ─── */
+.vn-tutorial-tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+
+  width: 14px;
+  height: 14px;
+
+  background: rgba(36, 28, 17, 0.97);
+  border-right: 1px solid rgba(181, 133, 43, 0.45);
+  border-bottom: 1px solid rgba(181, 133, 43, 0.45);
+}
+
+/* ─── Header row ─── */
+.vn-tutorial-tooltip__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.vn-tutorial-tooltip__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+
+  background: rgba(181, 133, 43, 0.18);
+  border: 1px solid rgba(181, 133, 43, 0.35);
+  color: #d4a74f;
+
+  animation: tutorial-icon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tutorial-icon-pulse {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+.vn-tutorial-tooltip__badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #d4a74f;
+  font-family: var(--font-mono, monospace);
+}
+
+/* ─── Body text ─── */
+.vn-tutorial-tooltip__body {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #e8dcc6;
+  margin: 0;
+}
+
+.vn-tutorial-tooltip__highlight {
+  color: #f4d18a;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgba(212, 167, 79, 0.4);
+  text-underline-offset: 2px;
+}
+
+/* ─── Dismiss hint ─── */
+.vn-tutorial-tooltip__hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 198, 0.4);
+  font-family: var(--font-mono, monospace);
+}

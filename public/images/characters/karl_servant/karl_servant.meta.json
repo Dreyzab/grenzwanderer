@@ -1,0 +1,8 @@
+{
+  "assetId": "npc_karl_servant",
+  "assetKind": "vn_character_portrait",
+  "prompt": "Period-correct 1905 Freiburg VN portrait silhouette for karl servant, oil-paint texture, no text, no watermark.",
+  "promptSha256": "83550a83a31524eb1771016b703504e98ed0bd9a098163ed58dc089fdc88bd1c",
+  "assetSha256": "3b9dcb7455a0fc49bffb8e7af9eee004064e139b3b5f72961d7961379ebceafa",
+  "provenance": "deterministic local period silhouette; live OpenAI Image API unavailable in this environment"
+}

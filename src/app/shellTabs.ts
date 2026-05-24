@@ -17,6 +17,7 @@ export const tabsByProfile: Record<
 > = {
   default: [
     { id: "home", label: "Home" },
+    { id: "vn", label: "VN" },
     { id: "map", label: "Map" },
     { id: "command", label: "Ops" },
     { id: "battle", label: "Duel" },

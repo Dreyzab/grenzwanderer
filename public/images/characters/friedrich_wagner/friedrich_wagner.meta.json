@@ -1,0 +1,8 @@
+{
+  "assetId": "npc_friedrich_wagner",
+  "assetKind": "vn_character_portrait",
+  "prompt": "Period-correct 1905 Freiburg VN portrait silhouette for friedrich wagner, oil-paint texture, no text, no watermark.",
+  "promptSha256": "77de76d31fa09da9e30ce7796a1cf38776519fd97c0e54da29825d858cbb388b",
+  "assetSha256": "0961dcb0596dca8b3c98decb9dc70d94d4b749797b49e5c61710e519295cd2c3",
+  "provenance": "deterministic local period silhouette; live OpenAI Image API unavailable in this environment"
+}

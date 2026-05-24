@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-05-11T18:01:30.020Z",
+  "updatedAt": "2026-05-24T12:36:32.863Z",
   "releases": [
     {
       "version": "content-v0.0.1+2a6600d5",
@@ -500,6 +500,114 @@
       "schemaVersion": 9,
       "generatedAt": "2026-05-11T18:01:30.019Z",
       "publishedAt": "2026-05-11T18:01:30.019Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.1.0+8a2c961a",
+      "checksum": "8a2c961aa242bb712801bc9f353509bca612615152ab794f312edb1cfb518617",
+      "schemaVersion": 9,
+      "generatedAt": "2026-05-14T10:24:16.499Z",
+      "publishedAt": "2026-05-14T10:24:16.499Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.1.0+ffe4f259",
+      "checksum": "ffe4f2592875144dfaee9a5f577eba90a1f3b0e70f9c761fe7be1b5238e72f77",
+      "schemaVersion": 9,
+      "generatedAt": "2026-05-16T18:57:15.863Z",
+      "publishedAt": "2026-05-16T18:57:15.863Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.3.0+875a8350",
+      "checksum": "875a8350e9da1d1f47cc7ecf75e0210d48f078a3fa93fb149d7f7571c8e7cf2a",
+      "schemaVersion": 9,
+      "generatedAt": "2026-05-16T20:43:06.070Z",
+      "publishedAt": "2026-05-16T20:43:06.070Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.1.0+875a8350",
+      "checksum": "875a8350e9da1d1f47cc7ecf75e0210d48f078a3fa93fb149d7f7571c8e7cf2a",
+      "schemaVersion": 9,
+      "generatedAt": "2026-05-17T08:11:25.108Z",
+      "publishedAt": "2026-05-17T08:11:25.108Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.1.0+2f66767a",
+      "checksum": "2f66767a3dce8d8f397d03a1ee6b0b8f02c9083fe835cb06ca8c739bb6773d34",
+      "schemaVersion": 9,
+      "generatedAt": "2026-05-18T14:33:13.491Z",
+      "publishedAt": "2026-05-18T14:33:13.491Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.1.0+86e2803d",
+      "checksum": "86e2803d17c50b6c19a0902dcf287c523070df5aab2155cefd4b348a04c72662",
+      "schemaVersion": 9,
+      "generatedAt": "2026-05-19T14:42:23.411Z",
+      "publishedAt": "2026-05-19T14:42:23.411Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.1.0+8c516824",
+      "checksum": "8c516824b1ecc6a0aa699b00120e02b7b4e717c53c564be5e4631049bbeaa328",
+      "schemaVersion": 9,
+      "generatedAt": "2026-05-20T14:44:37.557Z",
+      "publishedAt": "2026-05-20T14:44:37.557Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.1.0+abd95d46",
+      "checksum": "abd95d46ee809f5477ee916170207cb72f45e0149deecce749808e7c4d30b346",
+      "schemaVersion": 9,
+      "generatedAt": "2026-05-22T22:25:50.031Z",
+      "publishedAt": "2026-05-22T22:25:50.031Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.2.0+c1bb9edc",
+      "checksum": "c1bb9edc34cb4048784f6dd98ce331575fed7cb6454df1c40cef3861d67a99ac",
+      "schemaVersion": 9,
+      "generatedAt": "2026-05-24T12:36:32.862Z",
+      "publishedAt": "2026-05-24T12:36:32.862Z",
       "target": {
         "server": "local",
         "host": "http://127.0.0.1:3001",

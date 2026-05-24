@@ -22,6 +22,7 @@ export {
   my_player_location,
   my_player_profile,
   my_player_vars,
+  my_quest_instances,
   my_quests,
   my_redeemed_codes,
   my_relationships,
@@ -44,6 +45,7 @@ export {
   allow_worker_identity,
   bootstrap_admin_identity,
   grant_admin_identity,
+  seed_player_as_elias_thorne,
 } from "./reducers/admin";
 
 register_maintenance_reducers(spacetimedb);
@@ -71,6 +73,11 @@ export {
   grant_xp,
   grant_item,
 } from "./reducers/core";
+export { emit_case_event } from "./reducers/case_events";
+export {
+  advance_quest_instance,
+  complete_quest_instance,
+} from "./reducers/quest_instances";
 export {
   publish_content,
   rollback_content,

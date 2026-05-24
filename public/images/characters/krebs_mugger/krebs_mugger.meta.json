@@ -1,0 +1,8 @@
+{
+  "assetId": "npc_krebs_mugger",
+  "assetKind": "vn_character_portrait",
+  "prompt": "Period-correct 1905 Freiburg VN portrait silhouette for krebs mugger, oil-paint texture, no text, no watermark.",
+  "promptSha256": "b152b243bea40b3c71bfd733b9ffeb260172169e5f033fc4c5c43ce752c1ccf5",
+  "assetSha256": "dbdade91b236807a31ecfd3670df19becbda858568b81f4a30e899ee6c16b53a",
+  "provenance": "deterministic local period silhouette; live OpenAI Image API unavailable in this environment"
+}

@@ -78,6 +78,23 @@ export const acceptanceFlows: AcceptanceFlow[] = [
       "Verifies battle_session authority, map/VN entry points, deterministic duel resolution, and return flow.",
   },
   {
+    id: "ai_runtime_contract",
+    label: "AI runtime contract",
+    kind: "runtime_contract",
+    entryPath:
+      "enqueue_ai_request -> worker claim/lease ownership -> complete/fail display-only AI response",
+    smokeCommand: "smoke:ai-runtime",
+    smokeLabel: "AI runtime",
+    includeInSmokeAll: true,
+    gates: {
+      extract: false,
+      manifest: false,
+      drift: false,
+    },
+    notes:
+      "Covers generate_dialogue, constrained generate_character_reaction, constrained propose_director_step (vn_node_entry, presentation-only, never mutates state), and review-only propose_dm_turn as supported AI queue kinds.",
+  },
+  {
     id: "freiburg_origin_entry",
     label: "Freiburg origin entry",
     kind: "player_flow",

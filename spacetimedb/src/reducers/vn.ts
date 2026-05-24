@@ -1,5 +1,6 @@
 import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
+import { CASE_CATALOG } from "../../../src/shared/vn-contract";
 import {
   addToVar,
   applyEffects,
@@ -8,6 +9,7 @@ import {
   awardSkillCheckPracticeXp,
   createSessionKey,
   createSkillCheckResultKey,
+  emitCaseEnteredAndProcessTriggers,
   emitTelemetry,
   ensureIdempotent,
   ensureNarrativeResources,
@@ -87,6 +89,7 @@ export interface StartScenarioInternalResult {
 
 export interface StartScenarioInternalOptions {
   skipInboundRouteValidation?: boolean;
+  caseEventIdempotencyKey?: string;
 }
 
 export const startScenarioInternal = (
@@ -198,6 +201,17 @@ export const startScenarioInternal = (
       nodeId: startNode.id,
       contentVersion: activeVersion.version,
     }),
+  });
+
+  const caseId = getOptionalValue<string>(scenario.packId) ?? "default";
+  emitCaseEnteredAndProcessTriggers(ctx, CASE_CATALOG, {
+    caseId,
+    scenarioId,
+    nodeId: startNode.id,
+    contentVersion: activeVersion.version,
+    idempotencyKey:
+      options.caseEventIdempotencyKey ??
+      `start_scenario:${sessionKey}:${startNode.id}:${ctx.timestamp.microsSinceUnixEpoch.toString()}`,
   });
 
   return {
@@ -494,7 +508,9 @@ export const start_scenario = spacetimedb.reducer(
   },
   (ctx, { requestId, scenarioId }) => {
     ensureIdempotent(ctx, requestId, "start_scenario");
-    startScenarioInternal(ctx, scenarioId);
+    startScenarioInternal(ctx, scenarioId, {
+      caseEventIdempotencyKey: requestId,
+    });
   },
 );
 

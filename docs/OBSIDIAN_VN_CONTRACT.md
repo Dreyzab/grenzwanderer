@@ -2,6 +2,11 @@
 
 This document defines the minimum authoring contract that the VN extractor and coverage checks assume.
 
+For writer-facing tone, atmosphere, and scene review language, see
+[Atmosphere Bible](./ATMOSPHERE_BIBLE.md). It is editorial guidance only:
+it does not add parsed frontmatter, runtime schema, snapshot fields, or reducer
+requirements.
+
 ## Vault Roots
 
 - Runtime narrative vault root is fixed at `obsidian/StoryDetective`.
@@ -42,3 +47,5 @@ This document defines the minimum authoring contract that the VN extractor and c
 - `obsidian/StoryDetective/40_GameViewer/Case01/CASE01_CANON_LEDGER.md`
   records the writer-facing Case01 scene ledger, bridge status, and Elias
   Thorne preservation policy.
+- Atmosphere tags and the Grill Gate from `ATMOSPHERE_BIBLE.md` are
+  writer-facing review vocabulary, not extractor-enforced runtime fields.

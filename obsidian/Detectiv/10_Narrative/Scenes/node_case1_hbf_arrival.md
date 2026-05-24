@@ -39,28 +39,29 @@ tags:
 ## Mechanics View
 
 - Node type: decision node.
-- Beat 1 (platform collision): 3 choices + passive check.
-  - Passive: `perception` DC 7 -> `clue_marked_schedule` on success.
-- Beat 2 (kiosk/newspaper): 2 choices + passive check.
-  - Passive: `intuition` DC 6 -> `clue_kiosk_nervousness` on success.
-  - Buy path sets `clue_hartmann_newspaper` and `item_newspaper_case01`.
-- Beat 3 (station square): 3 choices + passive check.
-  - Passive: `senses` DC 7 -> `clue_galdermann_mention` on success.
-- Safety rule: all fail states keep forward momentum.
+- Beat 1 (HBF surface): free exploration hub with newspaper boy, luggage counter, police post, or exit.
+- Beat 2 (newspaper boy): two routes.
+  - Buy path reads the mayor's reward notice: anyone connected with criminology, medicine, chemistry, locks, police work, or useful information may help the Bankhaus Krebs investigation for payment.
+  - Watch-chain burst: `attr_agility` DC 11 catches the boy. Failure opens `quest_watch_recovery` instead of blocking progress.
+  - Observe path reads the boy as a pickpocket and extracts the mayor-reward lead without triggering the theft.
+- Beat 3 (pressure checks): luggage counter and police post expose institutional resistance without turning the station into permanent noir.
+- Safety rule: all fail states keep forward momentum, but failures leave a price, debt, rumor, or worse route.
 
 ## State Delta
 
 - Flags set:
   - `beat1_choice_authority` or `beat1_choice_perception` or `beat1_choice_intuition`
-  - `newspaper_bought` (optional)
-  - `item_newspaper_case01` (optional)
-  - `clue_hartmann_newspaper` (optional)
+  - `case01_mayor_reward_notice_seen` (optional)
+  - `case01_forensics_reward_lead_seen` (optional)
+  - `case01_newsboy_caught` / `case01_newsboy_spared` / `case01_newsboy_handed_to_police` (optional)
+  - `case01_watch_stolen` and `case01_watch_recovery_open` on failed watch-chain catch
+  - `case01_hbf_police_cover_suspected` if the theft is reported and the post stonewalls
   - `arrived_at_hbf`
   - `map_tutorial_shown`
 - Evidence gained/lost:
   - none (clues are represented as flags in this onboarding slice).
 - Quest stage changes:
-  - `case01` -> `briefing` on node entry.
+  - `quest_watch_recovery` -> stage 1 only if the boy escapes with Elias' watch.
 - Map unlock/visibility changes:
   - unlock `loc_hbf` on finalize.
 - Resources:

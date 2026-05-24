@@ -20,6 +20,7 @@ export interface TestTable<Row = TestRow> {
   insert(row: Row): Row;
   iter(): IterableIterator<Row>;
   rows(): Row[];
+  count(): number;
   clear(): void;
   [indexName: string]: any;
 }
@@ -68,6 +69,9 @@ export const createTestTable = (
     },
     rows(): TestRow[] {
       return data;
+    },
+    count(): number {
+      return data.length;
     },
     clear(): void {
       data.length = 0;
@@ -146,6 +150,13 @@ export const createReducerTestDb = () => ({
   telemetryEvent: createTestTable("eventId", (_row) => Symbol()),
   contentVersion: createTestTable("version", "version"),
   contentSnapshot: createTestTable("checksum", "checksum"),
+  caseVersion: createTestTable("caseVersionKey", "caseVersionKey"),
+  caseEventLog: createTestTable("eventId", (_row) => Symbol()),
+  questInstance: createTestTable("questInstanceKey", "questInstanceKey", {
+    quest_instance_player_id: "playerId",
+    quest_instance_instance_id: "instanceId",
+    quest_instance_archetype_id: "archetypeId",
+  }),
   mindCase: createTestTable("caseId", "caseId"),
   mindFact: createTestTable("factId", "factId"),
   mindHypothesis: createTestTable("hypothesisId", "hypothesisId"),

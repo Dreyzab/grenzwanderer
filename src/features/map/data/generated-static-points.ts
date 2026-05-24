@@ -153,6 +153,7 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "locationId": "loc_hbf",
     "category": "PUBLIC",
     "defaultState": "discovered",
+    "unlockGroup": "loc_hbf",
     "isHiddenInitially": true,
     "bindings": [
       {
@@ -642,6 +643,23 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "category": "PUBLIC",
     "defaultState": "discovered",
     "isHiddenInitially": true,
+    "revealConditions": [
+      {
+        "type": "logic_or",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "mayor_briefing_complete",
+            "value": true
+          }
+        ]
+      }
+    ],
     "bindings": [
       {
         "id": "bind_munster_false_trail_grimoire",
@@ -700,6 +718,23 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "category": "PUBLIC",
     "defaultState": "discovered",
     "isHiddenInitially": true,
+    "revealConditions": [
+      {
+        "type": "logic_or",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "mayor_briefing_complete",
+            "value": true
+          }
+        ]
+      }
+    ],
     "bindings": [
       {
         "id": "legacy_start_loc_uni_chem",
@@ -741,6 +776,23 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "category": "PUBLIC",
     "defaultState": "discovered",
     "isHiddenInitially": true,
+    "revealConditions": [
+      {
+        "type": "logic_or",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "mayor_briefing_complete",
+            "value": true
+          }
+        ]
+      }
+    ],
     "bindings": [
       {
         "id": "legacy_start_loc_uni_med",
@@ -860,7 +912,7 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
   },
   {
     "id": "loc_pub_deutsche",
-    "title": "Zum Goldenen Adler",
+    "title": "Zum Eber",
     "regionId": "FREIBURG_1905",
     "lat": 47.992,
     "lng": 7.854,
@@ -869,6 +921,7 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "locationId": "loc_pub_deutsche",
     "category": "PUBLIC",
     "defaultState": "discovered",
+    "unlockGroup": "loc_pub_deutsche",
     "isHiddenInitially": true,
     "bindings": [
       {
@@ -911,6 +964,23 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "category": "PUBLIC",
     "defaultState": "discovered",
     "isHiddenInitially": true,
+    "revealConditions": [
+      {
+        "type": "logic_or",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "mayor_briefing_complete",
+            "value": true
+          }
+        ]
+      }
+    ],
     "bindings": [
       {
         "id": "bind_city_cleaner_tip",
@@ -960,6 +1030,24 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "defaultState": "locked",
     "unlockGroup": "loc_freiburg_warehouse",
     "isHiddenInitially": true,
+    "discoveryRules": [
+      {
+        "channel": "qr_scan",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "warehouse_plan_locked",
+            "value": true
+          }
+        ],
+        "requiresServerConfirmation": true,
+        "signal": {
+          "enabled": true,
+          "priority": 120,
+          "requiresServerConfirmation": true
+        }
+      }
+    ],
     "bindings": [
       {
         "id": "bind_warehouse_finale",
@@ -1108,6 +1196,13 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "category": "PUBLIC",
     "defaultState": "discovered",
     "isHiddenInitially": true,
+    "revealConditions": [
+      {
+        "type": "flag_is",
+        "key": "bank_investigation_complete",
+        "value": true
+      }
+    ],
     "bindings": [
       {
         "id": "bind_pub_false_trail_workers",
@@ -1376,6 +1471,23 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "category": "PUBLIC",
     "defaultState": "discovered",
     "isHiddenInitially": true,
+    "revealConditions": [
+      {
+        "type": "logic_or",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "mayor_briefing_complete",
+            "value": true
+          }
+        ]
+      }
+    ],
     "bindings": [
       {
         "id": "bind_city_bootblack_tip",
@@ -1424,6 +1536,23 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "category": "PUBLIC",
     "defaultState": "discovered",
     "isHiddenInitially": true,
+    "revealConditions": [
+      {
+        "type": "logic_or",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "mayor_briefing_complete",
+            "value": true
+          }
+        ]
+      }
+    ],
     "bindings": [
       {
         "id": "legacy_start_loc_schwabentor",
@@ -1466,6 +1595,34 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "defaultState": "locked",
     "unlockGroup": "loc_tailor",
     "isHiddenInitially": true,
+    "discoveryRules": [
+      {
+        "channel": "proximity",
+        "conditions": [
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "found_velvet",
+                "value": true
+              }
+            ]
+          }
+        ],
+        "requiresServerConfirmation": false,
+        "signal": {
+          "enabled": true,
+          "priority": 90,
+          "requiresServerConfirmation": false
+        }
+      }
+    ],
     "bindings": [
       {
         "id": "legacy_start_loc_tailor",
@@ -1508,6 +1665,34 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "defaultState": "locked",
     "unlockGroup": "loc_apothecary",
     "isHiddenInitially": true,
+    "discoveryRules": [
+      {
+        "channel": "proximity",
+        "conditions": [
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "flag_is",
+                "key": "bank_investigation_complete",
+                "value": true
+              },
+              {
+                "type": "flag_is",
+                "key": "found_residue",
+                "value": true
+              }
+            ]
+          }
+        ],
+        "requiresServerConfirmation": false,
+        "signal": {
+          "enabled": true,
+          "priority": 88,
+          "requiresServerConfirmation": false
+        }
+      }
+    ],
     "bindings": [
       {
         "id": "legacy_start_loc_apothecary",
@@ -1550,6 +1735,24 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "defaultState": "locked",
     "unlockGroup": "loc_pub",
     "isHiddenInitially": true,
+    "discoveryRules": [
+      {
+        "channel": "proximity",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "bank_investigation_complete",
+            "value": true
+          }
+        ],
+        "requiresServerConfirmation": false,
+        "signal": {
+          "enabled": true,
+          "priority": 80,
+          "requiresServerConfirmation": false
+        }
+      }
+    ],
     "bindings": [
       {
         "id": "legacy_start_loc_pub",
@@ -1592,6 +1795,69 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
     "defaultState": "locked",
     "unlockGroup": "loc_telephone",
     "isHiddenInitially": true,
+    "discoveryRules": [
+      {
+        "channel": "proximity",
+        "conditions": [
+          {
+            "type": "logic_or",
+            "conditions": [
+              {
+                "type": "logic_and",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "tailor_lead_complete",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "apothecary_lead_complete",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "type": "logic_and",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "tailor_lead_complete",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "pub_lead_complete",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "type": "logic_and",
+                "conditions": [
+                  {
+                    "type": "flag_is",
+                    "key": "apothecary_lead_complete",
+                    "value": true
+                  },
+                  {
+                    "type": "flag_is",
+                    "key": "pub_lead_complete",
+                    "value": true
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "requiresServerConfirmation": false,
+        "signal": {
+          "enabled": true,
+          "priority": 72,
+          "requiresServerConfirmation": false
+        }
+      }
+    ],
     "bindings": [
       {
         "id": "bind_telephone_false_trail_convergence",

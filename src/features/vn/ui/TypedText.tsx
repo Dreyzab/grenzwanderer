@@ -24,17 +24,23 @@ export type TypedTextTokenHandler = (
   event: MouseEvent<HTMLSpanElement>,
 ) => void;
 
+export type TypedTextTokenState = "recording" | "studied";
+
 export interface TypedTextProps {
   text: string;
   speed?: number;
   /** Full text immediately, same layout as typed mode (no RAF, cursor, or `onComplete`). */
   instant?: boolean;
+  tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
   onComplete?: () => void;
   onTokenClick?: TypedTextTokenHandler;
   onTokenEnter?: TypedTextTokenHandler;
   onTokenLeave?: TypedTextTokenHandler;
   onTypingChange?: (isTyping: boolean) => void;
 }
+
+const supportsStudiedState = (token: ParsedTypedToken): boolean =>
+  token.type === "fact" || token.type === "lead";
 
 const getVisibleSegments = (
   segments: ParsedTypedSegment[],
@@ -87,6 +93,7 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
       text,
       speed = 12,
       instant = false,
+      tokenStateByPayload,
       onComplete,
       onTokenClick,
       onTokenEnter,
@@ -180,7 +187,10 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
       token: ParsedTypedToken,
       event: KeyboardEvent<HTMLSpanElement>,
     ) => {
-      if (!tokensInteractive) {
+      const tokenState = supportsStudiedState(token)
+        ? tokenStateByPayload?.[token.payload.trim()]
+        : undefined;
+      if (!tokensInteractive || tokenState) {
         return;
       }
 
@@ -198,19 +208,28 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
         {visibleSegments.map((segment, index) => {
           const key = `${segment.kind}-${index}`;
           if (segment.kind === "token") {
+            const tokenState = supportsStudiedState(segment.token)
+              ? tokenStateByPayload?.[segment.token.payload.trim()]
+              : undefined;
+            const tokenInteractive = tokensInteractive && !tokenState;
+
             return (
               <span
                 key={`${key}-${segment.token.key}`}
                 className={[
                   "vn-typed-text__token",
-                  tokensInteractive ? "is-interactive" : "is-typing",
+                  tokenInteractive ? "is-interactive" : "is-static",
+                  !tokensInteractive ? "is-typing" : "",
+                  tokenState === "recording" ? "is-recording" : "",
+                  tokenState === "studied" ? "is-studied" : "",
                 ].join(" ")}
                 data-vn-payload={segment.token.payload}
+                data-vn-token-state={tokenState}
                 data-vn-token-type={segment.token.type}
-                role={tokensInteractive ? "button" : undefined}
-                tabIndex={tokensInteractive ? 0 : undefined}
+                role={tokenInteractive ? "button" : undefined}
+                tabIndex={tokenInteractive ? 0 : undefined}
                 onClick={(event) => {
-                  if (!tokensInteractive) {
+                  if (!tokenInteractive) {
                     return;
                   }
                   event.stopPropagation();
@@ -218,13 +237,13 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
                 }}
                 onKeyDown={(event) => handleTokenKeyDown(segment.token, event)}
                 onMouseEnter={(event) => {
-                  if (!tokensInteractive) {
+                  if (!tokenInteractive) {
                     return;
                   }
                   onTokenEnter?.(segment.token, event);
                 }}
                 onMouseLeave={(event) => {
-                  if (!tokensInteractive) {
+                  if (!tokenInteractive) {
                     return;
                   }
                   onTokenLeave?.(segment.token, event);

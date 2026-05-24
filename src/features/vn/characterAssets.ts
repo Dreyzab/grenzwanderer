@@ -15,6 +15,12 @@ const CHARACTER_PORTRAITS: Record<string, string> = {
   npc_archivist_otto: "/images/characters/librarian/librarian.webp",
   npc_baroness_elise:
     "/images/characters/aristocrat_portrait/aristocrat_portrait.png",
+  npc_bureau_master: "/images/characters/bureau_master/bureau_master.webp",
+  npc_karl_servant: "/images/characters/karl_servant/karl_servant.webp",
+  npc_friedrich_wagner:
+    "/images/characters/friedrich_wagner/friedrich_wagner.webp",
+  npc_krebs_mugger: "/images/characters/krebs_mugger/krebs_mugger.webp",
+  npc_hotel_maid: "/images/characters/hotel_maid/hotel_maid.webp",
   npc_anna_mahler: "/images/characters/mayor/mayor.webp",
   npc_major_falk: "/images/characters/veteran_portrait/veteran_portrait.png",
 

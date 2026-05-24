@@ -3,6 +3,7 @@ import { NoirTypography } from "../../../shared/ui/NoirTypography";
 import {
   TypedText,
   type TypedTextHandle,
+  type TypedTextTokenState,
   type TypedTextTokenHandler,
 } from "./TypedText";
 
@@ -13,6 +14,7 @@ interface VnNarrativeTextProps {
   onTokenClick?: TypedTextTokenHandler;
   onTokenEnter?: TypedTextTokenHandler;
   onTokenLeave?: TypedTextTokenHandler;
+  tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
   onTypingChange?: (isTyping: boolean) => void;
   typedTextRef?: React.RefObject<TypedTextHandle>;
 }
@@ -24,6 +26,7 @@ export const VnNarrativeText: React.FC<VnNarrativeTextProps> = ({
   onTokenClick,
   onTokenEnter,
   onTokenLeave,
+  tokenStateByPayload,
   onTypingChange,
   typedTextRef,
 }) => {
@@ -35,6 +38,7 @@ export const VnNarrativeText: React.FC<VnNarrativeTextProps> = ({
           ref={typedTextRef}
           text={text}
           speed={speed}
+          tokenStateByPayload={tokenStateByPayload}
           onComplete={onComplete}
           onTokenClick={onTokenClick}
           onTokenEnter={onTokenEnter}

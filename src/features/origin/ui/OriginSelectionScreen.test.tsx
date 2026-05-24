@@ -67,7 +67,7 @@ describe("OriginSelectionScreen", () => {
     vi.clearAllMocks();
   });
 
-  it("renders all five origins in array order on the list view", () => {
+  it("renders all six origins in array order on the list view", () => {
     render(
       <OriginSelectionScreen onCancel={vi.fn()} onConfirmOrigin={vi.fn()} />,
     );
@@ -76,12 +76,13 @@ describe("OriginSelectionScreen", () => {
       .getAllByRole("button")
       .filter((button) => (button.textContent ?? "").includes("Origin"));
 
-    expect(cardButtons).toHaveLength(5);
+    expect(cardButtons).toHaveLength(6);
     expect(cardButtons[0]).toHaveTextContent("Detective Origin");
     expect(cardButtons[1]).toHaveTextContent("Journalist Origin");
     expect(cardButtons[2]).toHaveTextContent("Aristocrat Origin");
     expect(cardButtons[3]).toHaveTextContent("Veteran Origin");
     expect(cardButtons[4]).toHaveTextContent("Archivist Origin");
+    expect(cardButtons[5]).toHaveTextContent("Witch Origin");
   });
 
   it("transitions from list to detail and back again", () => {
@@ -120,6 +121,24 @@ describe("OriginSelectionScreen", () => {
     );
 
     expect(onConfirmOrigin).toHaveBeenCalledWith("journalist");
+  });
+
+  it("confirms Eleanor Vance as the Witch origin", () => {
+    const onConfirmOrigin = vi.fn();
+
+    render(
+      <OriginSelectionScreen
+        onCancel={vi.fn()}
+        onConfirmOrigin={onConfirmOrigin}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Eleanor Vance/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /BEGIN INVESTIGATION/i }),
+    );
+
+    expect(onConfirmOrigin).toHaveBeenCalledWith("witch");
   });
 
   it("shows status on the list view and disables the detail CTA when requested", () => {

@@ -1,0 +1,11 @@
+{
+  "assetId": "case01_vn_bg_estate_gates",
+  "assetKind": "vn_scene_background",
+  "expectedImagePath": "public/images/scenes/case01/bg_case01_estate_gates.webp",
+  "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905, Grand Estate gates at first arrival: aristocratic order, partly open, already watching., Must include: wrought iron estate gates partly open; linden alley; warm window-light far beyond; controlled aristocratic order, Continuity motifs: wrought iron; linden alley; warm distant windows, Avoid locally: castle-horror; ritual candles; people, Tone target: pressure layer; social order appears composed while one detail quietly refuses to settle, Style reference image: /images/scenes/case01/bg_case01_estate_bureau.webp, stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights, Wide establishing shot, Empty exterior scene, no people visible, wide establishing shot for map readability, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+  "finalPromptSha256": "c7e987957ff9bff7947a7f6d7022a6edb81791c18a24eadcdc49075af73f9fb8",
+  "toneTarget": "pressure_layer",
+  "styleReferenceImage": "/images/scenes/case01/bg_case01_estate_bureau.webp",
+  "assetSha256": "af11a84fea5b6b6ea95d02833acb4f4d87f020af9f3897adb3fe04eb17ecd24b",
+  "provenance": "deterministic local raster generated from repository style references; live OpenAI Image API unavailable in this environment"
+}

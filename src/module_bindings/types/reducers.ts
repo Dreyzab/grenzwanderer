@@ -7,6 +7,7 @@ import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
 import AdvanceQuestReducer from "../advance_quest_reducer";
+import AdvanceQuestInstanceReducer from "../advance_quest_instance_reducer";
 import AllowWorkerIdentityReducer from "../allow_worker_identity_reducer";
 import BeginFreiburgOriginReducer from "../begin_freiburg_origin_reducer";
 import BeginKarlsruheEventEntryReducer from "../begin_karlsruhe_event_entry_reducer";
@@ -20,7 +21,9 @@ import ClaimNextAiRequestReducer from "../claim_next_ai_request_reducer";
 import CloseBattleModeReducer from "../close_battle_mode_reducer";
 import CloseCommandModeReducer from "../close_command_mode_reducer";
 import CompleteAiRequestReducer from "../complete_ai_request_reducer";
+import CompleteQuestInstanceReducer from "../complete_quest_instance_reducer";
 import DiscoverFactReducer from "../discover_fact_reducer";
+import EmitCaseEventReducer from "../emit_case_event_reducer";
 import EndBattleTurnReducer from "../end_battle_turn_reducer";
 import EnqueueAiRequestReducer from "../enqueue_ai_request_reducer";
 import EnqueueProvidenceDialogueReducer from "../enqueue_providence_dialogue_reducer";
@@ -45,6 +48,7 @@ import RenewAiRequestLeaseReducer from "../renew_ai_request_lease_reducer";
 import RequeueAiRequestReducer from "../requeue_ai_request_reducer";
 import ResolveCommandReducer from "../resolve_command_reducer";
 import RollbackContentReducer from "../rollback_content_reducer";
+import SeedPlayerAsEliasThorneReducer from "../seed_player_as_elias_thorne_reducer";
 import SetFlagReducer from "../set_flag_reducer";
 import SetHypothesisFocusReducer from "../set_hypothesis_focus_reducer";
 import SetNicknameReducer from "../set_nickname_reducer";
@@ -60,6 +64,7 @@ import ValidateHypothesisReducer from "../validate_hypothesis_reducer";
 import VerifyRumorReducer from "../verify_rumor_reducer";
 
 export type AdvanceQuestParams = __Infer<typeof AdvanceQuestReducer>;
+export type AdvanceQuestInstanceParams = __Infer<typeof AdvanceQuestInstanceReducer>;
 export type AllowWorkerIdentityParams = __Infer<typeof AllowWorkerIdentityReducer>;
 export type BeginFreiburgOriginParams = __Infer<typeof BeginFreiburgOriginReducer>;
 export type BeginKarlsruheEventEntryParams = __Infer<typeof BeginKarlsruheEventEntryReducer>;
@@ -73,7 +78,9 @@ export type ClaimNextAiRequestParams = __Infer<typeof ClaimNextAiRequestReducer>
 export type CloseBattleModeParams = __Infer<typeof CloseBattleModeReducer>;
 export type CloseCommandModeParams = __Infer<typeof CloseCommandModeReducer>;
 export type CompleteAiRequestParams = __Infer<typeof CompleteAiRequestReducer>;
+export type CompleteQuestInstanceParams = __Infer<typeof CompleteQuestInstanceReducer>;
 export type DiscoverFactParams = __Infer<typeof DiscoverFactReducer>;
+export type EmitCaseEventParams = __Infer<typeof EmitCaseEventReducer>;
 export type EndBattleTurnParams = __Infer<typeof EndBattleTurnReducer>;
 export type EnqueueAiRequestParams = __Infer<typeof EnqueueAiRequestReducer>;
 export type EnqueueProvidenceDialogueParams = __Infer<typeof EnqueueProvidenceDialogueReducer>;
@@ -98,6 +105,7 @@ export type RenewAiRequestLeaseParams = __Infer<typeof RenewAiRequestLeaseReduce
 export type RequeueAiRequestParams = __Infer<typeof RequeueAiRequestReducer>;
 export type ResolveCommandParams = __Infer<typeof ResolveCommandReducer>;
 export type RollbackContentParams = __Infer<typeof RollbackContentReducer>;
+export type SeedPlayerAsEliasThorneParams = __Infer<typeof SeedPlayerAsEliasThorneReducer>;
 export type SetFlagParams = __Infer<typeof SetFlagReducer>;
 export type SetHypothesisFocusParams = __Infer<typeof SetHypothesisFocusReducer>;
 export type SetNicknameParams = __Infer<typeof SetNicknameReducer>;

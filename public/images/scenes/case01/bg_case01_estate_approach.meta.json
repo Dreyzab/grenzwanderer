@@ -1,0 +1,11 @@
+{
+  "assetId": "case01_vn_bg_estate_approach",
+  "assetKind": "vn_scene_background",
+  "expectedImagePath": "public/images/scenes/case01/bg_case01_estate_approach.webp",
+  "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905, Road from Freiburg toward the estate, with city pressure receding before the house takes over., Must include: damp carriage road; distant iron gate; linden silhouettes; low evening mist; no figures, Continuity motifs: linden silhouettes; low evening mist, Avoid locally: heroic mansion reveal; modern road; readable signs, Tone target: daily surface with controlled pressure underneath; ordinary details carry unease without overt horror, Style reference image: /images/scenes/case01/bg_case01_convergence_city_threshold.webp, natural diffused daylight, soft shadows, balanced tones, everyday investigative mood, Wide establishing shot, Empty exterior scene, no people visible, wide establishing shot for map readability, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+  "finalPromptSha256": "7ac2a39741339cc8256f4923c141be833444f852fd55061afb82ad43502ae84d",
+  "toneTarget": "daily_surface+pressure_layer",
+  "styleReferenceImage": "/images/scenes/case01/bg_case01_convergence_city_threshold.webp",
+  "assetSha256": "1f8a42ea03aff7725089d6a2f23689937ce0000a2f283c379cd5a2839bae7a4e",
+  "provenance": "deterministic local raster generated from repository style references; live OpenAI Image API unavailable in this environment"
+}

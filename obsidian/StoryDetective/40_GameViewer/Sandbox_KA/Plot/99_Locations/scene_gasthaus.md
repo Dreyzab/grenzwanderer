@@ -9,7 +9,7 @@ tags:
   - location/inn
 ---
 
-# 🍺 Gasthaus "Zum Goldenen Adler"
+# 🍺 Gasthaus "Zum Eber"
 
 ## 📋 Structure
 

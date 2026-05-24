@@ -1,0 +1,11 @@
+{
+  "assetId": "case01_vn_bg_ghost_cellar",
+  "assetKind": "vn_scene_background",
+  "expectedImagePath": "public/images/scenes/case01/bg_case01_ghost_cellar.webp",
+  "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905, Deep service cellar where the spirit is legible by traces, absence, and temperature rather than apparition., Must include: old service-corridor masonry, lime-stained brick; brass strongbox latch on stone; dust pattern around a missing object on shelf; candle-burn marks on stone not from this season; cold air visible only as faint condensation on iron pipe, Continuity motifs: brass strongbox; dust pattern around absence; out-of-season candle marks, Avoid locally: literal ghost figure; supernatural glow, ectoplasm, fog effects; skulls, ritual circles, occult symbols on surfaces, Tone target: ambiguous occult; show usable traces and physical unease without confirming a literal supernatural figure, Style reference image: /images/scenes/case01/bg_case01_estate_vaults.webp, ethereal glow, soft atmospheric perspective, blurred edges, surreal gentle focus, memory-like haze, Wide establishing shot, Interior memory scene, no people visible, softened silhouettes of furniture only, sprite-safe composition, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+  "finalPromptSha256": "26267dbc02757da610fb381f3884b78fca01baef7078e3e5fb31410feef802eb",
+  "toneTarget": "ambiguous_occult",
+  "styleReferenceImage": "/images/scenes/case01/bg_case01_estate_vaults.webp",
+  "assetSha256": "66f2d78737a82bef536d0a1c7dcf6b07807624fe3cffee591b72aa4237589c5f",
+  "provenance": "deterministic local raster generated from repository style references; live OpenAI Image API unavailable in this environment"
+}

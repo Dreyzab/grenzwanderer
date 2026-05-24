@@ -125,6 +125,30 @@ export const BattleSession = __t.object("BattleSession", {
 });
 export type BattleSession = __Infer<typeof BattleSession>;
 
+export const CaseEventLog = __t.object("CaseEventLog", {
+  eventId: __t.u64(),
+  playerId: __t.identity(),
+  eventName: __t.string(),
+  caseId: __t.option(__t.string()),
+  scenarioId: __t.option(__t.string()),
+  nodeId: __t.option(__t.string()),
+  questInstanceId: __t.option(__t.string()),
+  payloadJson: __t.string(),
+  idempotencyKey: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type CaseEventLog = __Infer<typeof CaseEventLog>;
+
+export const CaseVersion = __t.object("CaseVersion", {
+  caseVersionKey: __t.string(),
+  caseId: __t.string(),
+  version: __t.string(),
+  schemaVersion: __t.u32(),
+  checksum: __t.string(),
+  publishedAt: __t.timestamp(),
+});
+export type CaseVersion = __Infer<typeof CaseVersion>;
+
 export const CommandOrderHistory = __t.object("CommandOrderHistory", {
   historyKey: __t.string(),
   sessionKey: __t.string(),
@@ -314,6 +338,9 @@ export type MyPlayerProfile = __Infer<typeof MyPlayerProfile>;
 
 export const MyPlayerVars = __t.object("MyPlayerVars", {});
 export type MyPlayerVars = __Infer<typeof MyPlayerVars>;
+
+export const MyQuestInstances = __t.object("MyQuestInstances", {});
+export type MyQuestInstances = __Infer<typeof MyQuestInstances>;
 
 export const MyQuests = __t.object("MyQuests", {});
 export type MyQuests = __Infer<typeof MyQuests>;
@@ -569,6 +596,24 @@ export const PlayerVar = __t.object("PlayerVar", {
   updatedAt: __t.timestamp(),
 });
 export type PlayerVar = __Infer<typeof PlayerVar>;
+
+export const QuestInstance = __t.object("QuestInstance", {
+  questInstanceKey: __t.string(),
+  playerId: __t.identity(),
+  instanceId: __t.string(),
+  kind: __t.string(),
+  status: __t.string(),
+  triggerRuleId: __t.string(),
+  archetypeId: __t.string(),
+  archetypeVersion: __t.u32(),
+  bundleChecksum: __t.string(),
+  stateNamespace: __t.string(),
+  stepsJson: __t.string(),
+  eligibilitySnapshotJson: __t.string(),
+  createdAt: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+});
+export type QuestInstance = __Infer<typeof QuestInstance>;
 
 export const TelemetryAggregate = __t.object("TelemetryAggregate", {
   aggregateKey: __t.string(),

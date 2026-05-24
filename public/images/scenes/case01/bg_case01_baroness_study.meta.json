@@ -1,0 +1,11 @@
+{
+  "assetId": "case01_vn_bg_baroness_study",
+  "assetKind": "vn_scene_background",
+  "expectedImagePath": "public/images/scenes/case01/bg_case01_baroness_study.webp",
+  "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905, Baroness's private study at composed-surface tier: official correspondence immaculate on top, one drawer not fully closed., Must include: wax-sealed correspondence stacked by date; tarnished silver letter-opener where polish stopped mid-handle; one drawer not fully closed; ledger spine visible inside; afternoon light filtered through heavy velvet curtains; tea set with cooled cup, one biscuit untouched, Continuity motifs: tarnished-silver-where-polish-stopped; wax-sealed correspondence; afternoon velvet light, Avoid locally: any human figure or silhouette; modern fashion or furniture; obvious gothic horror imagery; literal blood, candles arranged ritually, pentagrams, Tone target: pressure layer; social order appears composed while one detail quietly refuses to settle, Style reference image: /images/scenes/case01/bg_case01_rathaus_office_pressure.webp, stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights, Wide establishing shot, Interior dialogue-ready scene, no people visible, sprite-safe composition, readable mid-ground depth, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+  "finalPromptSha256": "e1b9f8ac5e92679f8d7e1b8eb8e2830bdbb07571225cc7f88e86e5586f0cac78",
+  "toneTarget": "pressure_layer",
+  "styleReferenceImage": "/images/scenes/case01/bg_case01_rathaus_office_pressure.webp",
+  "assetSha256": "17b748ebb847845154788764ed7f394fdfb1debaae61fc4318a91ae4553e854d",
+  "provenance": "deterministic local raster generated from repository style references; live OpenAI Image API unavailable in this environment"
+}

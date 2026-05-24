@@ -155,6 +155,14 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "The current runtime content payload is the client-consumed source for VN and map content.",
   ),
   entry(
+    "case_version",
+    "caseVersion",
+    "public-by-design",
+    "retain public case-level content metadata",
+    "retain-public",
+    "Case-level content version rows are shared metadata for editor, release, and runtime diagnostics.",
+  ),
+  entry(
     "idempotency_log",
     "idempotencyLog",
     "operational-private",
@@ -185,6 +193,14 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "no client read path",
     "wave1-operational",
     "Singleton watermark row driving incremental telemetry aggregation; backend-only state with no player surface.",
+  ),
+  entry(
+    "case_event_log",
+    "caseEventLog",
+    "operational-private",
+    "trigger engine worker projection",
+    "wave1-operational",
+    "Narrative event envelopes are backend orchestration inputs for triggers and generated overlays, not player-facing state.",
   ),
   entry(
     "ai_request",
@@ -257,6 +273,14 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "my_quests",
     "wave3-core-progression",
     "Quest stage state is player progression data used by map, character, and social flows.",
+  ),
+  entry(
+    "quest_instance",
+    "questInstance",
+    "player-scoped",
+    "my_quest_instances",
+    "wave3-core-progression",
+    "Procedural quest overlays are player-private runtime state and should only be read through self-scoped views.",
   ),
   entry(
     "player_evidence",

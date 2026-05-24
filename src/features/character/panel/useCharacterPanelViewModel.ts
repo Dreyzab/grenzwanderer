@@ -42,6 +42,10 @@ import {
   getUnlockedSkillRankPerks,
 } from "../../../shared/game/skillPerks";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
+import {
+  CASE_CATALOG,
+  type QuestStepInstance,
+} from "../../../shared/vn-contract";
 import { tables } from "../../../shared/spacetime/bindings";
 import { getCharacterStrings } from "../../i18n/uiStrings";
 import {
@@ -83,6 +87,7 @@ export const useCharacterPanelViewModel = () => {
   const agencyCareerRows = playerBindings.rows.agencyCareer;
   const [versions] = useTable(tables.contentVersion);
   const [snapshots] = useTable(tables.contentSnapshot);
+  const [questInstanceRows] = useTable(tables.myQuestInstances);
   const uiLanguage = useUiLanguage(myFlags);
   const t = useMemo(() => getCharacterStrings(uiLanguage), [uiLanguage]);
   const dossierTabs = useMemo<
@@ -287,7 +292,7 @@ export const useCharacterPanelViewModel = () => {
   const questJournalEntries = useMemo<CharacterQuestJournalEntry[]>(() => {
     const catalog = activeSnapshot?.questCatalog ?? [];
 
-    return catalog.map((quest) => {
+    const canonEntries: CharacterQuestJournalEntry[] = catalog.map((quest) => {
       const sortedStages = [...quest.stages].sort(
         (left, right) => left.stage - right.stage,
       );
@@ -303,6 +308,7 @@ export const useCharacterPanelViewModel = () => {
 
       return {
         id: quest.id,
+        kind: "canon",
         title: quest.title,
         currentStage,
         activeStage,
@@ -313,7 +319,70 @@ export const useCharacterPanelViewModel = () => {
             : "Not started",
       };
     });
-  }, [activeSnapshot?.questCatalog, questStageById]);
+
+    const proceduralEntries: CharacterQuestJournalEntry[] = questInstanceRows
+      .filter((row) => row.kind === "generated_side_case")
+      .map((row) => {
+        let steps: QuestStepInstance[] = [];
+        try {
+          steps = JSON.parse(row.stepsJson);
+        } catch {
+          // Fallback empty array
+        }
+
+        const mappedSteps = steps.map((step) => {
+          const stepTitle = step.nodeId
+            ? (pointTitleById.get(step.nodeId) ?? step.nodeId)
+            : step.id;
+          return {
+            id: step.id,
+            nodeId: step.nodeId,
+            title: stepTitle,
+            status: step.status,
+          };
+        });
+
+        const activeIndex = steps.findIndex((s) => s.status === "active");
+        const currentStage = activeIndex >= 0 ? activeIndex + 1 : steps.length;
+
+        let eligibilitySnapshot: any = undefined;
+        try {
+          eligibilitySnapshot = JSON.parse(row.eligibilitySnapshotJson);
+        } catch {
+          // Fallback undefined
+        }
+
+        const titleByArchetypeId = new Map(
+          CASE_CATALOG.questArchetypes.map((a) => [a.id, a.title]),
+        );
+        const title =
+          titleByArchetypeId.get(row.archetypeId) ?? row.archetypeId;
+        const isCompleted = row.status === "completed";
+
+        return {
+          id: row.instanceId,
+          kind: "procedural",
+          archetypeId: row.archetypeId,
+          stateNamespace: row.stateNamespace,
+          title,
+          currentStage,
+          steps: mappedSteps,
+          eligibilitySnapshot,
+          createdAt:
+            typeof row.createdAt === "bigint"
+              ? Number(row.createdAt)
+              : Number(row.createdAt ?? Date.now()),
+          status: isCompleted ? "Completed" : "In progress",
+        };
+      });
+
+    return [...canonEntries, ...proceduralEntries];
+  }, [
+    activeSnapshot?.questCatalog,
+    questStageById,
+    questInstanceRows,
+    pointTitleById,
+  ]);
 
   const observationEntries = useMemo<CharacterObservationEntry[]>(
     () =>

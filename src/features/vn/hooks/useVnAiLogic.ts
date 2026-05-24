@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { ENABLE_AI } from "../../../config";
+import { ENABLE_AI, ENABLE_AI_DIRECTOR } from "../../../config";
 import { isInnerVoiceId } from "../../../../data/innerVoiceContract";
 import {
   AI_CHARACTER_REACTION_SOURCE_VN_SCENE,
   AI_DIALOGUE_SOURCE_SKILL_CHECK,
+  AI_DIRECTOR_STEP_SOURCE_VN_NODE_ENTRY,
   AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
+  AI_PROPOSE_DIRECTOR_STEP_KIND,
   trustToDisposition,
 } from "../../ai/contracts";
+import { buildDirectorAllowedBeatIds } from "../../../shared/case01Canon";
+import { directorRequestMatchesContext } from "../vnScreenUtils";
 import type { SceneResultEnvelope } from "../../ai/sceneResultEnvelope";
 import {
   readPsycheState,
@@ -67,6 +71,11 @@ interface UseVnAiLogicParams {
   }>;
   myAiRequests: Array<{ payloadJson: unknown; createdAt: unknown }>;
   myReactionRequests: Array<{ payloadJson: unknown; createdAt: unknown }>;
+  myDirectorRequests: Array<{
+    payloadJson: unknown;
+    status: unknown;
+    updatedAt: unknown;
+  }>;
   visibleFactsByCharacterId: Map<string, string[]>;
   trustByNpcId: Map<string, number>;
   enqueueAiRequest: (input: {
@@ -93,6 +102,7 @@ export function useVnAiLogic({
   questRows,
   myAiRequests,
   myReactionRequests,
+  myDirectorRequests,
   visibleFactsByCharacterId,
   trustByNpcId,
   enqueueAiRequest,
@@ -418,6 +428,102 @@ export function useVnAiLogic({
     setActiveReactionKey,
     setError,
     trustByNpcId,
+    visibleFactsByCharacterId,
+  ]);
+
+  const enqueuedDirectorKeysRef = useRef<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    if (
+      !ENABLE_AI_DIRECTOR ||
+      !contentReady ||
+      !sessionReady ||
+      !currentNode ||
+      !selectedScenarioId
+    ) {
+      return;
+    }
+
+    const directorKey = `${selectedScenarioId}::${currentNode.id}`;
+    const nowValue = Date.now();
+    const nowMicros = BigInt(nowValue) * 1000n;
+
+    const lastEnqueued = enqueuedDirectorKeysRef.current.get(directorKey);
+    if (lastEnqueued && nowValue - lastEnqueued < 60_000) {
+      return;
+    }
+
+    const hasActiveRequest = myDirectorRequests.some((entry) => {
+      if (
+        !directorRequestMatchesContext(
+          entry,
+          selectedScenarioId,
+          currentNode.id,
+        )
+      ) {
+        return false;
+      }
+      if (entry.status === "pending" || entry.status === "processing") {
+        return true;
+      }
+      const updatedMicros = timestampMicros(entry.updatedAt);
+      return nowMicros - updatedMicros < 60_000_000n;
+    });
+    if (hasActiveRequest) {
+      enqueuedDirectorKeysRef.current.set(directorKey, nowValue);
+      return;
+    }
+
+    enqueuedDirectorKeysRef.current.set(directorKey, nowValue);
+
+    const activeFlags = Object.entries(myFlags)
+      .filter(([, value]) => value)
+      .map(([key]) => key)
+      .sort();
+    const activeQuests = questRows
+      .map((row) => ({
+        questId: row.questId,
+        stage: normalizeNumeric(row.stage),
+      }))
+      .sort((left, right) => left.questId.localeCompare(right.questId));
+    const visibleFacts = Array.from(
+      new Set(
+        [...visibleFactsByCharacterId.values()].flatMap((entries) => entries),
+      ),
+    ).sort();
+    const allowedBeatIds = buildDirectorAllowedBeatIds();
+
+    void enqueueAiRequest({
+      requestId: createRequestId(),
+      kind: AI_PROPOSE_DIRECTOR_STEP_KIND,
+      payloadJson: JSON.stringify({
+        source: AI_DIRECTOR_STEP_SOURCE_VN_NODE_ENTRY,
+        scenarioId: selectedScenarioId,
+        nodeId: currentNode.id,
+        currentBeatId: selectedScenarioId,
+        allowedBeatIds: [...allowedBeatIds],
+        visibleFacts,
+        activeFlags,
+        activeQuests,
+      }),
+    }).catch((caughtError) => {
+      enqueuedDirectorKeysRef.current.delete(directorKey);
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Director step request failed",
+      );
+    });
+  }, [
+    contentReady,
+    currentNode,
+    enqueueAiRequest,
+    myDirectorRequests,
+    myFlags,
+    questRows,
+    selectedScenarioId,
+    sessionReady,
+    setError,
     visibleFactsByCharacterId,
   ]);
 

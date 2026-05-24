@@ -28,7 +28,7 @@ These constraints override the more speculative version of the plan.
 
 | #   | Constraint                              | Runtime meaning                                                                                               | MVP decision                                                                                                                                   |
 | --- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `Zum Goldenen Adler` is now canonical   | The name exists in onboarding text and has a runtime-backed lodging scene.                                    | Keep `flag_asked_lodging_route` as the semantic flag and spend it only inside `case01_lodging_zum_goldenen_adler`.                             |
+| 1   | `Zum Eber` is now canonical             | The name exists in onboarding text and has a runtime-backed lodging scene.                                    | Keep `flag_asked_lodging_route` as the semantic flag and spend it only inside `case01_lodging_zum_goldenen_adler`.                             |
 | 2   | Salon Reich is not Eleonora             | Existing salon-like content is mediated by another host/proxy, not Eleonora herself.                          | Use a proxy line: "Frau Muller / salon host was warned by Frau Hartmann..." plus, where possible, a Felix aside.                               |
 | 3   | Lotte interlude is thin                 | Current `case01_lotte_interlude` is warning -> trust/distance. There is no "prove you noticed" stage to skip. | Do not bypass the quest. Add a conditional opening line or visible-if confrontation choice for `noticed_lotte_schedule`.                       |
 | 4   | Felix lacks a clean Act 1 callback node | There is no dedicated Felix follow-up scene in the current Case01 Act 1 runtime.                              | Use `corridor_reflection` if/when it is runtime-backed; otherwise create a small reactive reflection node before adding Felix-specific payoff. |
@@ -39,7 +39,7 @@ Naming rule:
 - Prefer `flag_asked_lodging_route` over `flag_asked_zum_goldenen_adler`.
 - Keep `flag_asked_zum_goldenen_adler` only as a temporary compatibility alias until older
   dining-car snapshots and saves no longer need it.
-- Spend lodging-route payoff at `Zum Goldenen Adler`, not in unrelated salon or HBF nodes.
+- Spend lodging-route payoff at `Zum Eber`, not in unrelated salon or HBF nodes.
 
 ## Existing Input Flags
 
@@ -120,7 +120,7 @@ Target payoff:
 
 MVP note:
 
-- Do not spend this on `Zum Goldenen Adler` unless a real runtime scene exists.
+- Do not spend this on `Zum Eber` unless a real runtime scene exists.
 - If only another inn/gasthaus is canonical, rename this flag and all text before
   implementation.
 
@@ -297,7 +297,7 @@ Tasks:
 - Locate all early HBF nodes after the train.
 - Locate `case01_lotte_interlude` nodes and choices.
 - Locate any existing social/salon/proxy-host access scene.
-- Confirm the real runtime lodging venue; do not assume `Zum Goldenen Adler`.
+- Confirm the real runtime lodging venue; do not assume `Zum Eber`.
 - Confirm whether `corridor_reflection` is runtime-backed or only designed.
 - Record which nodes are runtime-canonical vs generated snapshot only.
 
@@ -398,7 +398,7 @@ Tasks:
 Recommended first implementation slice:
 
 1. Audit target nodes.
-2. Rename or alias the lodging flag away from `Zum Goldenen Adler` if no real venue exists.
+2. Rename or alias the lodging flag away from `Zum Eber` if no real venue exists.
 3. Add one HBF echo.
 4. Add one Lotte interlude opening callback for `noticed_lotte_schedule`.
 5. Add no inventory; artifact remains a single line if used.
@@ -441,7 +441,7 @@ the normal mayor-branch exit effects.
 
 ## Sixth Work Slice
 
-Zum Goldenen Adler is now the canonical MVP lodging venue. The existing inn map point
+Zum Eber is now the canonical MVP lodging venue. The existing inn map point
 starts `case01_lodging_zum_goldenen_adler`, and `flag_asked_lodging_route` is spent only
 inside that runtime-backed lodging beat.
 

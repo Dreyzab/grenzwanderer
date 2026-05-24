@@ -133,6 +133,23 @@ const hasFlagEquals = (
     );
   });
 
+const hasLogicNotFlagEquals = (
+  conditions: SnapshotCondition[] | undefined,
+  key: string,
+  value: boolean,
+): boolean =>
+  (conditions ?? []).some((condition) => {
+    if (
+      condition.type === "logic_not" &&
+      condition.condition?.type === "flag_equals" &&
+      condition.condition.key === key &&
+      condition.condition.value === value
+    ) {
+      return true;
+    }
+    return hasLogicNotFlagEquals(condition.conditions, key, value);
+  });
+
 try {
   const snapshot = readSnapshot();
   const scenarioIds = new Set(
@@ -290,10 +307,20 @@ try {
   assert(
     beat1Node.choices.some(
       (choice) =>
-        choice.id === "CASE01_BEAT1_EXIT" &&
-        choice.nextNodeId === "scene_case01_hbf_departure",
+        choice.id === "CASE01_BEAT1_EXIT_NON_WITCH" &&
+        choice.nextNodeId === "scene_case01_hbf_departure" &&
+        hasLogicNotFlagEquals(choice.visibleIfAll, "origin_witch", true),
     ),
-    "scene_case01_beat1_atmosphere must route to the departure node",
+    "scene_case01_beat1_atmosphere must route detective POV to the departure node",
+  );
+  assert(
+    beat1Node.choices.some(
+      (choice) =>
+        choice.id === "CASE01_BEAT1_EXIT_WITCH" &&
+        choice.nextNodeId === "scene_case01_hbf_luggage_incident_witch" &&
+        hasFlagEquals(choice.visibleIfAll, "origin_witch", true),
+    ),
+    "scene_case01_beat1_atmosphere must route witch POV to the HBF luggage incident",
   );
 
   // Verify Hub & Spoke loopbacks (terminal nodes for spokes must point back to hub)
@@ -316,16 +343,38 @@ try {
     );
   }
 
-  // Verify Departure node logic
+  // Verify Departure node logic. Witch one-shot choices may be authored on the
+  // same node, but the default detective route must still expose only Bank/Rathaus.
+  const detectiveDepartureChoices = hbfDepartureNode.choices.filter((choice) =>
+    hasLogicNotFlagEquals(choice.visibleIfAll, "origin_witch", true),
+  );
+  const witchDepartureChoices = hbfDepartureNode.choices.filter(
+    (choice) =>
+      hasFlagEquals(choice.visibleIfAll, "origin_witch", true) &&
+      !hasLogicNotFlagEquals(choice.visibleIfAll, "origin_witch", true),
+  );
   assert(
-    hbfDepartureNode.choices.length === 2,
+    detectiveDepartureChoices.length === 2,
     "scene_case01_hbf_departure must offer exactly 2 choices (Bank vs Rathaus)",
   );
   assert(
-    hbfDepartureNode.choices.every(
+    detectiveDepartureChoices.every(
       (choice) => choice.nextNodeId === "scene_case01_hbf_exit_final",
     ),
     "Departure choices must advance to the final exit node",
+  );
+  assert(
+    witchDepartureChoices.some(
+      (choice) =>
+        choice.id === "CASE01_HBF_EXIT_WITCH_GHOST" &&
+        choice.nextNodeId === "scene_case01_witch_estate_handoff",
+    ) &&
+      witchDepartureChoices.some(
+        (choice) =>
+          choice.id === "CASE01_HBF_EXIT_WITCH_BUREAU" &&
+          choice.nextNodeId === "scene_case01_witch_bureau_entry",
+      ),
+    "Witch origin must have gated exits to Grand Estate and the Bureau.",
   );
   assert(
     hbfExitFinalNode.terminal === true,

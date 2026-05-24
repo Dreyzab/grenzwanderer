@@ -7,6 +7,7 @@ import { parseSnapshot } from "../../vn/vnContent";
 import { staticMapDataSource } from "../data/mapDataSource";
 import { resolveScenarioForPoint } from "../data/scenario-mapping";
 import { derivePointState } from "../model/derivePointState";
+import { isPointEligibleForDiscoverySignal } from "../model/discoverySignal";
 import {
   evaluateMapCondition,
   pickPrimaryBinding,
@@ -42,6 +43,7 @@ export interface UseMapPersistentStateResult {
   region: MapRegion;
   currentLocationId: string | null;
   points: RuntimeMapPoint[];
+  journeyDiscoveryCandidates: RuntimeMapPoint[];
   activeFlags: ReadonlySet<string>;
   shadowRoutes: MapShadowRoute[];
   resolverInputs: MapResolverInputs;
@@ -282,6 +284,7 @@ export const useMapPersistentState = (
     const activeFlags = new Set<string>();
     const visitedFlags = new Set<string>();
     const completedFlags = new Set<string>();
+    const discoveredFlags = new Set<string>();
     for (const row of flags) {
       if (!row.value) {
         continue;
@@ -292,6 +295,9 @@ export const useMapPersistentState = (
       }
       if (row.key.startsWith("COMPLETED_")) {
         completedFlags.add(row.key);
+      }
+      if (row.key.startsWith("DISCOVERED_")) {
+        discoveredFlags.add(row.key);
       }
     }
 
@@ -388,101 +394,107 @@ export const useMapPersistentState = (
           )
         : mapDataSource.getPoints(selectedRegion.id);
 
-    const points: RuntimeMapPoint[] = sourcePoints
-      .map((point) => {
-        const normalizedCategory =
-          point.category ?? (point.id === "loc_agency" ? "HUB" : "PUBLIC");
-        const state = derivePointState(
-          point,
-          currentLocationId,
-          visitedFlags,
-          unlockedGroups,
-          completedFlags,
-        );
+    const runtimePoints: RuntimeMapPoint[] = sourcePoints.map((point) => {
+      const normalizedCategory =
+        point.category ?? (point.id === "loc_agency" ? "HUB" : "PUBLIC");
+      const state = derivePointState(
+        point,
+        currentLocationId,
+        visitedFlags,
+        unlockedGroups,
+        completedFlags,
+        discoveredFlags,
+      );
 
-        if (source === "snapshot_v3") {
-          const availableBindings = appendAgencyCommandBinding(
-            point,
-            resolveAvailableBindings(point.bindings, {
-              ...resolverInputs,
-              pointState: state,
-            }),
-          );
-
-          const primaryBinding = pickPrimaryBinding(availableBindings);
-          const travelBinding = pickTravelBinding(availableBindings);
-          const resolvedScenarioId =
-            resolveScenarioIdFromBindings(availableBindings);
-          const canStartScenario = resolvedScenarioId !== null;
-
-          const runtimePoint: RuntimeMapPoint = {
-            ...point,
-            category: normalizedCategory,
-            state,
-            availableBindings,
-            primaryBinding,
-            travelBinding,
-            isObjectiveActive:
-              objectivePointIds.has(point.id) ||
-              availableBindings.some(
-                (binding) => binding.intent === "objective",
-              ),
-            canTravel: travelBinding !== null,
-            resolvedScenarioId,
-            canStartScenario,
-            isVisible: false,
-            runtimeSource: "persistent",
-          };
-
-          return {
-            ...runtimePoint,
-            isVisible: resolvePersistentVisibility(
-              runtimePoint,
-              agencyBriefingComplete,
-              case01OnboardingComplete,
-              snapshot?.vnRuntime?.releaseProfile,
-              resolverInputs,
-              mysticState,
-            ),
-          };
-        }
-
-        const legacyPoint = point as MapPoint;
-        const resolvedScenarioId = resolveScenarioForPoint(
-          legacyPoint.legacyScenarioIds,
-          availableScenarioIds,
-        );
+      if (source === "snapshot_v3") {
         const availableBindings = appendAgencyCommandBinding(
-          legacyPoint,
-          makeLegacyBindings(legacyPoint, resolvedScenarioId),
+          point,
+          resolveAvailableBindings(point.bindings, {
+            ...resolverInputs,
+            pointState: state,
+          }),
         );
+
         const primaryBinding = pickPrimaryBinding(availableBindings);
         const travelBinding = pickTravelBinding(availableBindings);
+        const resolvedScenarioId =
+          resolveScenarioIdFromBindings(availableBindings);
+        const canStartScenario = resolvedScenarioId !== null;
 
         const runtimePoint: RuntimeMapPoint = {
-          ...legacyPoint,
+          ...point,
           category: normalizedCategory,
           state,
           availableBindings,
           primaryBinding,
           travelBinding,
-          isObjectiveActive: false,
+          isObjectiveActive:
+            objectivePointIds.has(point.id) ||
+            availableBindings.some((binding) => binding.intent === "objective"),
           canTravel: travelBinding !== null,
           resolvedScenarioId,
-          canStartScenario: resolvedScenarioId !== null,
-          isVisible: true,
+          canStartScenario,
+          isVisible: false,
           runtimeSource: "persistent",
         };
 
-        return runtimePoint;
-      })
-      .filter((point) => point.isVisible);
+        return {
+          ...runtimePoint,
+          isVisible: resolvePersistentVisibility(
+            runtimePoint,
+            agencyBriefingComplete,
+            case01OnboardingComplete,
+            snapshot?.vnRuntime?.releaseProfile,
+            resolverInputs,
+            mysticState,
+          ),
+        };
+      }
+
+      const legacyPoint = point as MapPoint;
+      const resolvedScenarioId = resolveScenarioForPoint(
+        legacyPoint.legacyScenarioIds,
+        availableScenarioIds,
+      );
+      const availableBindings = appendAgencyCommandBinding(
+        legacyPoint,
+        makeLegacyBindings(legacyPoint, resolvedScenarioId),
+      );
+      const primaryBinding = pickPrimaryBinding(availableBindings);
+      const travelBinding = pickTravelBinding(availableBindings);
+
+      const runtimePoint: RuntimeMapPoint = {
+        ...legacyPoint,
+        category: normalizedCategory,
+        state,
+        availableBindings,
+        primaryBinding,
+        travelBinding,
+        isObjectiveActive: false,
+        canTravel: travelBinding !== null,
+        resolvedScenarioId,
+        canStartScenario: resolvedScenarioId !== null,
+        isVisible: true,
+        runtimeSource: "persistent",
+      };
+
+      return runtimePoint;
+    });
+
+    const points = runtimePoints.filter((point) => point.isVisible);
+    const journeyDiscoveryCandidates = runtimePoints.filter(
+      (point) =>
+        !point.isVisible &&
+        point.category !== "HUB" &&
+        isPointEligibleForDiscoverySignal(point, resolverInputs),
+    );
 
     return {
       source,
       region: selectedRegion,
       currentLocationId,
       points,
+      journeyDiscoveryCandidates,
       activeFlags,
       shadowRoutes:
         source === "snapshot_v3" && snapshot?.map

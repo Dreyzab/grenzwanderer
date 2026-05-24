@@ -5,6 +5,8 @@ import {
   buildCase01VisualManifest,
   buildCase01VisualScaffoldOutput,
   buildCase01VisualVariants,
+  buildCase01VnSceneBackgroundManifest,
+  buildCase01VnSceneBackgroundMissingReport,
   resolveCase01RuntimeDistrict,
   resolveCase01VisualArchetype,
 } from "./data/freiburg_visual_assets";
@@ -132,5 +134,81 @@ describe("freiburg visual asset scaffold", () => {
     expect(bankInvestigation?.finalPrompt).toContain(
       "Empty exterior scene, no people visible",
     );
+  });
+
+  it("scaffolds Witch-prologue VN scene backgrounds with structured art briefs", () => {
+    const manifest = buildCase01VnSceneBackgroundManifest();
+
+    expect(manifest.map((entry) => entry.expectedBasename)).toEqual([
+      "bg_case01_baroness_study",
+      "bg_case01_estate_approach",
+      "bg_case01_estate_gates",
+      "bg_case01_estate_vaults",
+      "bg_case01_ghost_cellar",
+      "bg_case01_hotel_bedroom",
+      "bg_case01_night_alley",
+    ]);
+    expect(new Set(manifest.map((entry) => entry.sceneBackgroundId)).size).toBe(
+      manifest.length,
+    );
+
+    for (const entry of manifest) {
+      expect(entry.assetKind).toBe("vn_scene_background");
+      expect(entry.expectedImagePath).toBe(
+        `public/images/scenes/case01/${entry.expectedBasename}.webp`,
+      );
+      expect(entry.expectedMetaPath).toBe(
+        `public/images/scenes/case01/${entry.expectedBasename}.meta.json`,
+      );
+      expect(entry.finalPrompt).toContain(
+        "Oil painting, broad expressive brushstrokes",
+      );
+      expect(entry.finalPrompt).toContain("1905 Kaiser-era Germany");
+      expect(entry.finalPrompt).toContain("Wide establishing shot");
+      expect(entry.finalPrompt).toContain("no people visible");
+      expect(entry.finalPrompt).toContain("Tone target:");
+      expect(entry.finalPrompt).toContain("Style reference image:");
+      expect(entry.finalPromptSha256).toMatch(/^[a-f0-9]{64}$/);
+    }
+
+    const ghostCellar = manifest.find(
+      (entry) => entry.expectedBasename === "bg_case01_ghost_cellar",
+    );
+    expect(ghostCellar?.localVisualBrief.toneTarget).toBe("ambiguous_occult");
+    expect(ghostCellar?.localVisualBrief.mustAvoid).toContain(
+      "literal ghost figure",
+    );
+    expect(ghostCellar?.finalPrompt).toContain(
+      "without confirming a literal supernatural figure",
+    );
+  });
+
+  it("reports missing and stale VN scene background artifacts", () => {
+    const [entry] = buildCase01VnSceneBackgroundManifest();
+
+    expect(
+      buildCase01VnSceneBackgroundMissingReport([entry], {
+        existsSync: () => false,
+        readFileSync: () => "",
+      })[0]?.issues,
+    ).toEqual(["missing_expected_image", "missing_expected_meta"]);
+
+    expect(
+      buildCase01VnSceneBackgroundMissingReport([entry], {
+        existsSync: () => true,
+        readFileSync: () =>
+          JSON.stringify({
+            finalPrompt: "stale",
+            finalPromptSha256: "stale",
+            toneTarget: "shadow_layer",
+            styleReferenceImage: "/images/scenes/case01/stale.webp",
+          }),
+      })[0]?.issues,
+    ).toEqual([
+      "stale_expected_meta_prompt",
+      "stale_expected_meta_prompt_hash",
+      "stale_expected_meta_tone_target",
+      "stale_expected_meta_style_reference",
+    ]);
   });
 });

@@ -451,6 +451,7 @@ const parseChoice = (value: unknown, relativePath: string): VnChoice => {
     text: asString(record.text, { relativePath, field: "choice.text" }),
     nextNodeId: asString(record.next, { relativePath, field: "choice.next" }),
     choiceType: asOptionalString(record.choice_type) as VnChoice["choiceType"],
+    allowCustomInput: asOptionalBoolean(record.allow_custom_input),
     visibleIfAll: parseConditionList(record.visible_if_all, relativePath),
     visibleIfAny: parseConditionList(record.visible_if_any, relativePath),
     requireAll: parseConditionList(record.require_all, relativePath),

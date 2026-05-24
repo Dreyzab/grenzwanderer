@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { useRef } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
@@ -79,6 +81,40 @@ describe("vn ui helpers", () => {
         }),
       }),
     ]);
+  });
+
+  it("keeps localized case 01 letter facts discoverable", () => {
+    const letterKey =
+      "vn.case01_hbf_arrival.scene_case01_train_compartment_letter.body";
+    const localePaths = [
+      path.join(process.cwd(), "src/features/i18n/locales/ru.json"),
+      path.join(process.cwd(), "src/features/i18n/locales/de.json"),
+    ];
+
+    for (const localePath of localePaths) {
+      const locale = JSON.parse(readFileSync(localePath, "utf8")) as {
+        vn: Record<string, string>;
+      };
+      const body = locale.vn[letterKey];
+      const tokens = parseTypedTextMarkup(body).flatMap((segment) =>
+        segment.kind === "token" ? [segment.token] : [],
+      );
+
+      expect(body).toContain("Zum Eber");
+      expect(body).not.toContain("Zum Goldenen Adler");
+      expect(tokens).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: "fact",
+            payload: "case01/zum_goldenen_adler",
+          }),
+          expect.objectContaining({
+            type: "fact",
+            payload: "case01/master",
+          }),
+        ]),
+      );
+    }
   });
 
   it("resolves background with node priority over scenario", () => {
@@ -183,6 +219,50 @@ describe("TypedText", () => {
 
     expect(onTokenClick).not.toHaveBeenCalled();
   });
+
+  it("renders studied fact tokens as static text", () => {
+    const onTokenClick = vi.fn();
+    render(
+      <TypedText
+        instant
+        text="Read [fact:Ledger:case_banker/fact_ledger]."
+        tokenStateByPayload={{ "case_banker/fact_ledger": "studied" }}
+        onTokenClick={onTokenClick}
+      />,
+    );
+
+    const token = screen.getByText("Ledger");
+    expect(token).toHaveAttribute("data-vn-token-state", "studied");
+    expect(token).toHaveClass("is-studied");
+    expect(
+      screen.queryByRole("button", { name: "Ledger" }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(token);
+    expect(onTokenClick).not.toHaveBeenCalled();
+  });
+
+  it("renders recording fact tokens as disabled pending text", () => {
+    const onTokenClick = vi.fn();
+    render(
+      <TypedText
+        instant
+        text="Read [fact:Ledger:case_banker/fact_ledger]."
+        tokenStateByPayload={{ "case_banker/fact_ledger": "recording" }}
+        onTokenClick={onTokenClick}
+      />,
+    );
+
+    const token = screen.getByText("Ledger");
+    expect(token).toHaveAttribute("data-vn-token-state", "recording");
+    expect(token).toHaveClass("is-recording");
+    expect(
+      screen.queryByRole("button", { name: "Ledger" }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(token);
+    expect(onTokenClick).not.toHaveBeenCalled();
+  });
 });
 
 describe("VnChoiceButton", () => {
@@ -276,7 +356,6 @@ describe("VnChoiceButton", () => {
         palette: {
           accent: "#f87171",
           accentSoft: "rgba(248, 113, 113, 0.16)",
-          accentBorder: "rgba(248, 113, 113, 0.45)",
           glow: "rgba(248, 113, 113, 0.18)",
           glowStrong: "rgba(248, 113, 113, 0.36)",
           text: "#fee2e2",

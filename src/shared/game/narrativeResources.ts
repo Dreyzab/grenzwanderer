@@ -1,10 +1,12 @@
 export const RESOURCE_PROVIDENCE_VAR = "resource_providence";
+export const RESOURCE_FATE_TOKEN_VAR = "resource_fate_token";
 export const RESOURCE_FORTUNE_VAR = "resource_fortune";
 export const RESOURCE_FORTUNE_MOD_VAR = "resource_fortune_mod";
 export const RESOURCE_KARMA_VAR = "resource_karma";
 
 export const NARRATIVE_RESOURCE_DEFAULTS = {
   [RESOURCE_PROVIDENCE_VAR]: 2,
+  [RESOURCE_FATE_TOKEN_VAR]: 0,
   [RESOURCE_FORTUNE_VAR]: 1,
   [RESOURCE_FORTUNE_MOD_VAR]: 0,
   [RESOURCE_KARMA_VAR]: 0,
@@ -12,6 +14,7 @@ export const NARRATIVE_RESOURCE_DEFAULTS = {
 
 export const NARRATIVE_RESOURCE_CLAMPS = {
   [RESOURCE_PROVIDENCE_VAR]: { min: 0, max: 7 },
+  [RESOURCE_FATE_TOKEN_VAR]: { min: 0, max: 9 },
   [RESOURCE_FORTUNE_VAR]: { min: 0, max: 3 },
   [RESOURCE_FORTUNE_MOD_VAR]: { min: -3, max: 3 },
   [RESOURCE_KARMA_VAR]: { min: -100, max: 100 },
@@ -44,6 +47,15 @@ export interface DifficultyBreakdownEntry {
   sourceId: string;
   delta: number;
 }
+
+export const KARMA_MOVE_TAGS = [
+  "selfish",
+  "coercive",
+  "survival",
+  "protective",
+  "cooperative",
+] as const;
+export type KarmaMoveTag = (typeof KARMA_MOVE_TAGS)[number];
 
 const clampNumber = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
@@ -92,6 +104,47 @@ export const resolveKarmaDifficultyDelta = (value: number): number => {
     case "anointed":
       return -2;
   }
+};
+
+const karmaMagnitude = (value: number): number => {
+  const abs = Math.abs(
+    normalizeNarrativeResourceValue(RESOURCE_KARMA_VAR, value),
+  );
+  if (abs >= 60) {
+    return 2;
+  }
+  if (abs >= 20) {
+    return 1;
+  }
+  return 0;
+};
+
+export const resolveKarmaDifficultyDeltaForMove = (
+  karma: number,
+  psycheAxisX: number,
+  moveTags: readonly KarmaMoveTag[] = [],
+): number => {
+  const isIndividualist = psycheAxisX <= -25;
+  const selfishOrSurvival = moveTags.some(
+    (tag) => tag === "selfish" || tag === "coercive" || tag === "survival",
+  );
+  const protectiveOrCooperative = moveTags.some(
+    (tag) => tag === "protective" || tag === "cooperative",
+  );
+
+  if (isIndividualist && selfishOrSurvival && karma < 0) {
+    return -karmaMagnitude(karma);
+  }
+
+  if (protectiveOrCooperative && karma > 0) {
+    return -karmaMagnitude(karma);
+  }
+
+  if (protectiveOrCooperative && karma < 0) {
+    return karmaMagnitude(karma);
+  }
+
+  return resolveKarmaDifficultyDelta(karma);
 };
 
 export const resolveEffectiveFortune = (

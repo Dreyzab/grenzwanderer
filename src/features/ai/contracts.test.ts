@@ -3,11 +3,23 @@ import { describe, expect, it } from "vitest";
 import {
   AI_CHARACTER_REACTION_SOURCE_VN_SCENE,
   AI_DIALOGUE_SOURCE_SKILL_CHECK,
+  AI_DIRECTOR_STEP_SOURCE_VN_NODE_ENTRY,
+  AI_DM_TURN_SOURCE_SIDE_PANEL,
+  CHARACTER_REACTION_PROPOSAL_JSON_SCHEMA,
+  DIRECTOR_STEP_PROPOSAL_JSON_SCHEMA,
+  DM_TURN_PROPOSAL_JSON_SCHEMA,
+  GENERATE_DIALOGUE_ENVELOPE_JSON_SCHEMA,
+  isAllowedDirectorReturnBeatId,
+  isAllowedDmStateDeltaKey,
   parseCharacterReactionProposal,
+  parseDmTurnProposal,
+  parseDirectorStepProposal,
   parseGenerateCharacterReactionPayload,
   parseGenerateDialogueEnvelope,
   parseGenerateDialoguePayload,
   parseGenerateDialogueResponse,
+  parseGenerateDmTurnPayload,
+  parseGenerateDirectorStepPayload,
 } from "./contracts";
 
 describe("ai contracts", () => {
@@ -178,7 +190,7 @@ describe("ai contracts", () => {
     ).toBe("hypothesis_focus");
   });
 
-  it("parses future character reaction payloads", () => {
+  it("parses constrained character reaction payloads", () => {
     const payload = parseGenerateCharacterReactionPayload(
       JSON.stringify({
         source: AI_CHARACTER_REACTION_SOURCE_VN_SCENE,
@@ -199,7 +211,25 @@ describe("ai contracts", () => {
     expect(payload?.relationshipState.disposition).toBe("guarded");
   });
 
-  it("parses future character reaction proposals", () => {
+  it("rejects malformed character reaction payloads", () => {
+    const payload = parseGenerateCharacterReactionPayload(
+      JSON.stringify({
+        source: AI_CHARACTER_REACTION_SOURCE_VN_SCENE,
+        characterId: "char_tailor",
+        scenarioId: "dog_case_intro",
+        eventText: "The detective corners the tailor over missing ledgers.",
+        visibleFacts: ["tailor_public_role"],
+        relationshipState: {
+          trust: -1,
+          disposition: "suspicious",
+        },
+      }),
+    );
+
+    expect(payload).toBeNull();
+  });
+
+  it("parses constrained character reaction proposals", () => {
     const proposal = parseCharacterReactionProposal(
       JSON.stringify({
         characterId: "char_tailor",
@@ -217,5 +247,305 @@ describe("ai contracts", () => {
 
     expect(proposal?.reactionType).toBe("evasion");
     expect(proposal?.revealHintFactId).toBe("tailor_debt_hint");
+  });
+
+  it("rejects character reaction proposals that try to emit executable actions", () => {
+    const proposal = parseCharacterReactionProposal(
+      JSON.stringify({
+        characterId: "char_tailor",
+        reactionType: "dialogue",
+        text: "Fine. Take the ledger.",
+        action: "grant_evidence",
+      }),
+    );
+
+    expect(proposal).toBeNull();
+  });
+
+  it("exports JSON schemas for provider structured output", () => {
+    expect(GENERATE_DIALOGUE_ENVELOPE_JSON_SCHEMA.required).toEqual([
+      "text",
+      "canonicalVoiceId",
+    ]);
+    expect(
+      GENERATE_DIALOGUE_ENVELOPE_JSON_SCHEMA.properties.suggestedEffects
+        .description,
+    ).toContain("never auto-applied");
+    expect(CHARACTER_REACTION_PROPOSAL_JSON_SCHEMA.required).toEqual([
+      "characterId",
+      "reactionType",
+      "text",
+    ]);
+    expect(
+      CHARACTER_REACTION_PROPOSAL_JSON_SCHEMA.properties.reactionType.enum,
+    ).toContain("silence");
+    expect(DIRECTOR_STEP_PROPOSAL_JSON_SCHEMA.required).toEqual([
+      "stepType",
+      "framingText",
+      "suggestedReturnBeatId",
+    ]);
+    expect(
+      DIRECTOR_STEP_PROPOSAL_JSON_SCHEMA.properties.stepType.enum,
+    ).toContain("soft_detour");
+    expect(DM_TURN_PROPOSAL_JSON_SCHEMA.required).toEqual([
+      "narration",
+      "checks",
+      "sessionFacts",
+      "suggestedStateDeltas",
+      "risks",
+      "toneMode",
+      "canonRemarks",
+    ]);
+  });
+
+  it("parses director step payloads triggered by VN node entry", () => {
+    const payload = parseGenerateDirectorStepPayload(
+      JSON.stringify({
+        source: AI_DIRECTOR_STEP_SOURCE_VN_NODE_ENTRY,
+        scenarioId: "case01_hbf_arrival",
+        nodeId: "scene_case01_hbf_arrival_intro",
+        currentBeatId: "case01_hbf_arrival",
+        allowedBeatIds: ["case01_hbf_arrival", "case01_mayor_briefing"],
+        visibleFacts: ["fritz_contact_established"],
+        activeFlags: ["freiburg_case01_mainline_active"],
+        activeQuests: [{ questId: "quest_case01_main", stage: 1 }],
+        routeContext: "Hbf, утро, толпа",
+      }),
+    );
+
+    expect(payload?.source).toBe(AI_DIRECTOR_STEP_SOURCE_VN_NODE_ENTRY);
+    expect(payload?.scenarioId).toBe("case01_hbf_arrival");
+    expect(payload?.allowedBeatIds).toHaveLength(2);
+  });
+
+  it("rejects director step payloads carrying unsupported player input fields", () => {
+    const payload = parseGenerateDirectorStepPayload(
+      JSON.stringify({
+        source: AI_DIRECTOR_STEP_SOURCE_VN_NODE_ENTRY,
+        scenarioId: "case01_hbf_arrival",
+        nodeId: "scene_case01_hbf_arrival_intro",
+        currentBeatId: "case01_hbf_arrival",
+        allowedBeatIds: ["case01_hbf_arrival"],
+        visibleFacts: [],
+        activeFlags: [],
+        activeQuests: [],
+        playerSuggestion: "Я хочу свернуть с канона.",
+      }),
+    );
+
+    expect(payload).toBeNull();
+  });
+
+  it("rejects director step payloads with empty allowed beat list", () => {
+    const payload = parseGenerateDirectorStepPayload(
+      JSON.stringify({
+        source: AI_DIRECTOR_STEP_SOURCE_VN_NODE_ENTRY,
+        scenarioId: "case01_hbf_arrival",
+        nodeId: "scene_case01_hbf_arrival_intro",
+        currentBeatId: "case01_hbf_arrival",
+        allowedBeatIds: [],
+        visibleFacts: [],
+        activeFlags: [],
+        activeQuests: [],
+      }),
+    );
+
+    expect(payload).toBeNull();
+  });
+
+  it("rejects director step payloads with malformed quests", () => {
+    const payload = parseGenerateDirectorStepPayload(
+      JSON.stringify({
+        source: AI_DIRECTOR_STEP_SOURCE_VN_NODE_ENTRY,
+        scenarioId: "case01_hbf_arrival",
+        nodeId: "scene_case01_hbf_arrival_intro",
+        currentBeatId: "case01_hbf_arrival",
+        allowedBeatIds: ["case01_hbf_arrival"],
+        visibleFacts: [],
+        activeFlags: [],
+        activeQuests: [{ questId: "quest_case01_main", stage: "one" }],
+      }),
+    );
+
+    expect(payload).toBeNull();
+  });
+
+  it("parses constrained director step proposals", () => {
+    const proposal = parseDirectorStepProposal(
+      JSON.stringify({
+        stepType: "next_beat_hint",
+        framingText: "Голос сцены подталкивает к мэру.",
+        suggestedReturnBeatId: "case01_mayor_briefing",
+      }),
+    );
+
+    expect(proposal?.stepType).toBe("next_beat_hint");
+    expect(proposal?.suggestedReturnBeatId).toBe("case01_mayor_briefing");
+  });
+
+  it("rejects director proposals that try to emit state mutation fields", () => {
+    const proposal = parseDirectorStepProposal(
+      JSON.stringify({
+        stepType: "soft_detour",
+        framingText: "Director adds a small detour.",
+        suggestedReturnBeatId: "case01_mayor_briefing",
+        flagsToSet: ["bank_investigation_complete"],
+      }),
+    );
+
+    expect(proposal).toBeNull();
+  });
+
+  it("rejects director proposals with empty framing text", () => {
+    const proposal = parseDirectorStepProposal(
+      JSON.stringify({
+        stepType: "framing",
+        framingText: "   ",
+        suggestedReturnBeatId: "case01_mayor_briefing",
+      }),
+    );
+
+    expect(proposal).toBeNull();
+  });
+
+  it("validates return beat id against allowed list", () => {
+    const proposal = parseDirectorStepProposal(
+      JSON.stringify({
+        stepType: "framing",
+        framingText: "Director nudges forward.",
+        suggestedReturnBeatId: "case01_mayor_briefing",
+      }),
+    );
+
+    expect(proposal).not.toBeNull();
+    expect(
+      isAllowedDirectorReturnBeatId(proposal!, [
+        "case01_hbf_arrival",
+        "case01_mayor_briefing",
+      ]),
+    ).toBe(true);
+    expect(
+      isAllowedDirectorReturnBeatId(proposal!, ["case01_hbf_arrival"]),
+    ).toBe(false);
+  });
+
+  it("parses DM turn payloads from the side panel", () => {
+    const payload = parseGenerateDmTurnPayload(
+      JSON.stringify({
+        source: AI_DM_TURN_SOURCE_SIDE_PANEL,
+        scenarioId: "sandbox_ghost_pilot",
+        nodeId: "scene_evidence_collection",
+        actionText: "Я пытаюсь запугать Карла так, чтобы он выдал тайный ход.",
+        remark: {
+          text: "Я хочу убедиться, что он не расскажет общему знакомому.",
+          visibility: "private_dm",
+        },
+        spendFateToken: true,
+        fortuneSpend: 1,
+        moveTags: ["coercive", "investigation"],
+        resources: {
+          fate: 6,
+          fortune: 0,
+          fortuneMod: -1,
+          karma: -10,
+        },
+        psyche: {
+          axisX: -35,
+          axisY: -20,
+          approach: 10,
+          dominantInnerVoiceId: "inner_manipulator",
+          activeInnerVoiceIds: ["inner_manipulator"],
+        },
+        bloodCurse: {
+          tier: 1,
+          pressure: 35,
+          power: 0,
+          debt: 0,
+          alcoholAftertaste: 0,
+        },
+        activeSessionFacts: [],
+        acceptedRemarks: [],
+        visibleFacts: ["Karl is nervous around the old pantry."],
+        activeFlags: ["origin_witch"],
+        toneMode: "gothic_mystery",
+        locale: "ru",
+      }),
+    );
+
+    expect(payload?.source).toBe(AI_DM_TURN_SOURCE_SIDE_PANEL);
+    expect(payload?.moveTags).toContain("coercive");
+    expect(payload?.remark?.visibility).toBe("private_dm");
+  });
+
+  it("parses DM proposals with review-only session canon", () => {
+    const proposal = parseDmTurnProposal(
+      JSON.stringify({
+        narration:
+          "Карл бледнеет и смотрит на дверь кладовой так, будто там стоит третий собеседник.",
+        checks: [
+          {
+            id: "dm_check_karl_pressure",
+            label: "Дожать Карла",
+            voiceId: "attr_social",
+            difficulty: 11,
+            moveTags: ["coercive"],
+          },
+        ],
+        sessionFacts: [
+          {
+            id: "session.karl.knows_pantry_route",
+            text: "Karl knows a pantry route used after midnight.",
+            scope: "session",
+            source: "dm",
+            status: "proposed",
+          },
+        ],
+        suggestedStateDeltas: [
+          {
+            key: "witch_blood_curse_pressure",
+            kind: "add_var",
+            value: 10,
+            reason: "Veil pressure rises during intimidation.",
+          },
+        ],
+        risks: ["Karl may warn the Baroness if released too quickly."],
+        toneMode: "gothic_mystery",
+        canonRemarks: ["Session fact must be accepted before use."],
+        resourceCosts: {
+          fate: 1,
+          fortune: 1,
+        },
+      }),
+    );
+
+    expect(proposal?.sessionFacts[0]?.scope).toBe("session");
+    expect(proposal?.suggestedStateDeltas[0]?.key).toBe(
+      "witch_blood_curse_pressure",
+    );
+  });
+
+  it("rejects DM proposals that try to mutate immutable canon directly", () => {
+    const proposal = parseDmTurnProposal(
+      JSON.stringify({
+        narration: "The DM tries to solve the case directly.",
+        checks: [],
+        sessionFacts: [],
+        suggestedStateDeltas: [
+          {
+            key: "case_resolved",
+            kind: "set_flag",
+            value: true,
+            reason: "This would mutate authored canon.",
+          },
+        ],
+        risks: [],
+        toneMode: "gothic_mystery",
+        canonRemarks: [],
+      }),
+    );
+
+    expect(proposal).toBeNull();
+    expect(isAllowedDmStateDeltaKey("overlay.session.fact")).toBe(true);
+    expect(isAllowedDmStateDeltaKey("case_resolved")).toBe(false);
   });
 });

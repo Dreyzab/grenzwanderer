@@ -27,11 +27,27 @@ import {
 import {
   AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
+  AI_PROPOSE_DIRECTOR_STEP_KIND,
+  AI_PROPOSE_DM_TURN_KIND,
+  isAllowedDirectorReturnBeatId,
   parseCharacterReactionProposal,
+  parseDmTurnProposal,
+  parseDirectorStepProposal,
   parseGenerateCharacterReactionPayload,
+  parseGenerateDmTurnPayload,
   parseGenerateDialoguePayload,
+  parseGenerateDirectorStepPayload,
 } from "../../../src/features/ai/contracts";
-import { RESOURCE_PROVIDENCE_VAR } from "../../../src/shared/game/narrativeResources";
+import {
+  isCanonicalDirectorAllowedBeatList,
+  isCase01CanonScenarioId,
+} from "../../../src/shared/case01Canon";
+import {
+  RESOURCE_FATE_TOKEN_VAR,
+  RESOURCE_PROVIDENCE_VAR,
+} from "../../../src/shared/game/narrativeResources";
+
+const DIRECTOR_REQUEST_COOLDOWN_MICROS = 60_000n * 1_000n;
 
 const MICROS_PER_MILLISECOND = 1_000n;
 
@@ -78,6 +94,17 @@ const isProvidenceDialoguePayload = (
   return {
     providenceCost: Math.max(0, Math.trunc(payload.providenceCost ?? 0)),
   };
+};
+
+const isFateDmTurnPayload = (
+  payloadJson: string,
+): { fateCost: number } | null => {
+  const payload = parseGenerateDmTurnPayload(payloadJson);
+  if (!payload || !payload.spendFateToken) {
+    return null;
+  }
+
+  return { fateCost: 1 };
 };
 
 const requirePositiveMilliseconds = (
@@ -135,6 +162,7 @@ export const enqueue_ai_request = spacetimedb.reducer(
   },
   (ctx, { requestId, kind, payloadJson }) => {
     const supportedKind = requireSupportedAiKind(kind);
+    let dmFateCost = 0;
 
     if (supportedKind === AI_GENERATE_DIALOGUE_KIND) {
       if (!parseGenerateDialoguePayload(payloadJson)) {
@@ -148,10 +176,113 @@ export const enqueue_ai_request = spacetimedb.reducer(
           "payloadJson must contain a valid GenerateCharacterReactionPayload",
         );
       }
+    } else if (supportedKind === AI_PROPOSE_DIRECTOR_STEP_KIND) {
+      const directorPayload = parseGenerateDirectorStepPayload(payloadJson);
+      if (!directorPayload) {
+        throw new SenderError(
+          "payloadJson must contain a valid GenerateDirectorStepPayload",
+        );
+      }
+      if (!isCanonicalDirectorAllowedBeatList(directorPayload.allowedBeatIds)) {
+        throw new SenderError(
+          "allowedBeatIds must be a subset of the Case01 director canon",
+        );
+      }
+      if (directorPayload.source !== "vn_node_entry") {
+        throw new SenderError("director step source must be vn_node_entry");
+      }
+      if (!isCase01CanonScenarioId(directorPayload.scenarioId)) {
+        throw new SenderError(
+          "Director step allowed only within Case01 canon scenarios",
+        );
+      }
+
+      const senderHex = ctx.sender.toHexString();
+      let currentBeatId: string | undefined;
+      for (const row of ctx.db.vnSession.iter()) {
+        if (row.playerId.toHexString() === senderHex) {
+          const completed =
+            row.completedAt &&
+            typeof row.completedAt === "object" &&
+            "tag" in row.completedAt
+              ? row.completedAt.tag === "some"
+              : !!row.completedAt;
+          if (!completed) {
+            currentBeatId = row.scenarioId;
+            break;
+          }
+        }
+      }
+
+      if (
+        currentBeatId &&
+        currentBeatId !== directorPayload.scenarioId &&
+        !isCase01CanonScenarioId(currentBeatId)
+      ) {
+        throw new SenderError(
+          "Director step allowed only when current beat is within Case01 canon scenarios",
+        );
+      }
+      const nowMicros = ctx.timestamp.microsSinceUnixEpoch;
+      for (const existing of ctx.db.aiRequest.iter()) {
+        if (existing.kind !== AI_PROPOSE_DIRECTOR_STEP_KIND) {
+          continue;
+        }
+        const existingPlayerHex = identityHexOf(existing.playerId);
+        if (existingPlayerHex !== senderHex) {
+          continue;
+        }
+        const existingPayload = parseGenerateDirectorStepPayload(
+          existing.payloadJson,
+        );
+        if (
+          !existingPayload ||
+          existingPayload.scenarioId !== directorPayload.scenarioId ||
+          existingPayload.nodeId !== directorPayload.nodeId
+        ) {
+          continue;
+        }
+        if (
+          existing.status === AI_REQUEST_STATUS_PENDING ||
+          existing.status === AI_REQUEST_STATUS_PROCESSING
+        ) {
+          throw new SenderError(
+            "Director step already in flight for this scenario/node",
+          );
+        }
+        if (
+          (existing.status === AI_REQUEST_STATUS_COMPLETED ||
+            existing.status === AI_REQUEST_STATUS_FAILED) &&
+          nowMicros - existing.updatedAt.microsSinceUnixEpoch <
+            DIRECTOR_REQUEST_COOLDOWN_MICROS
+        ) {
+          throw new SenderError(
+            "Director step cooldown active for this scenario/node",
+          );
+        }
+      }
+    } else if (supportedKind === AI_PROPOSE_DM_TURN_KIND) {
+      const dmPayload = parseGenerateDmTurnPayload(payloadJson);
+      if (!dmPayload) {
+        throw new SenderError(
+          "payloadJson must contain a valid GenerateDmTurnPayload",
+        );
+      }
+      dmFateCost = dmPayload.spendFateToken ? 1 : 0;
     }
 
     ensureIdempotent(ctx, requestId, "enqueue_ai_request");
     ensurePlayerProfile(ctx);
+    if (dmFateCost > 0) {
+      ensureNarrativeResources(ctx);
+      const currentFate = Math.trunc(
+        getVarForPlayer(ctx, ctx.sender, RESOURCE_FATE_TOKEN_VAR),
+      );
+      if (currentFate < dmFateCost) {
+        throw new SenderError("Not enough Fate tokens");
+      }
+      addToVarForPlayer(ctx, ctx.sender, RESOURCE_FATE_TOKEN_VAR, -dmFateCost);
+    }
 
     ctx.db.aiRequest.insert({
       id: 0n,
@@ -416,6 +547,34 @@ export const complete_ai_request = spacetimedb.reducer(
           "responseJson must contain a valid CharacterReactionProposal",
         );
       }
+    } else if (request.kind === AI_PROPOSE_DM_TURN_KIND) {
+      if (!parseDmTurnProposal(normalizedResponseJson)) {
+        throw new SenderError(
+          "responseJson must contain a valid DmTurnProposal",
+        );
+      }
+    } else if (request.kind === AI_PROPOSE_DIRECTOR_STEP_KIND) {
+      const proposal = parseDirectorStepProposal(normalizedResponseJson);
+      if (!proposal) {
+        throw new SenderError(
+          "responseJson must contain a valid DirectorStepProposal",
+        );
+      }
+      const originalPayload = parseGenerateDirectorStepPayload(
+        request.payloadJson,
+      );
+      if (!originalPayload) {
+        throw new SenderError(
+          "Original director step payload is no longer valid",
+        );
+      }
+      if (
+        !isAllowedDirectorReturnBeatId(proposal, originalPayload.allowedBeatIds)
+      ) {
+        throw new SenderError(
+          "DirectorStepProposal.suggestedReturnBeatId must be in the original allowedBeatIds",
+        );
+      }
     }
 
     ctx.db.aiRequest.id.update({
@@ -511,6 +670,21 @@ export const fail_ai_request = spacetimedb.reducer(
         playerId: request.playerId.toHexString(),
       });
     }
+    const fatePayload = isFateDmTurnPayload(request.payloadJson);
+    if (fatePayload && fatePayload.fateCost > 0) {
+      ensureNarrativeResourcesForPlayer(ctx, request.playerId);
+      addToVarForPlayer(
+        ctx,
+        request.playerId,
+        RESOURCE_FATE_TOKEN_VAR,
+        fatePayload.fateCost,
+      );
+      emitTelemetry(ctx, "fate_dm_turn_refunded", {
+        aiRequestId: aiRequestId.toString(),
+        fateCost: fatePayload.fateCost,
+        playerId: request.playerId.toHexString(),
+      });
+    }
 
     emitTelemetry(ctx, "ai_request_delivered", {
       aiRequestId: aiRequestId.toString(),
@@ -537,6 +711,9 @@ export const requeue_ai_request = spacetimedb.reducer(
       throw new SenderError(
         "Providence dialogue requests cannot be requeued in v1",
       );
+    }
+    if (isFateDmTurnPayload(request.payloadJson)) {
+      throw new SenderError("Fate DM turn requests cannot be requeued in v1");
     }
     if (request.status !== AI_REQUEST_STATUS_FAILED) {
       throw new SenderError("Only failed ai_request rows can be requeued");

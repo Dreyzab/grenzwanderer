@@ -1,0 +1,279 @@
+[
+  {
+    "sceneBackgroundId": "case01_vn_bg_baroness_study",
+    "expectedBasename": "bg_case01_baroness_study",
+    "visualArchetype": "estate_noble",
+    "visualState": "investigation",
+    "policySlot": "interior_dialogue",
+    "localVisualBrief": {
+      "summary": "Baroness's private study at composed-surface tier: official correspondence immaculate on top, one drawer not fully closed.",
+      "mustInclude": [
+        "wax-sealed correspondence stacked by date",
+        "tarnished silver letter-opener where polish stopped mid-handle",
+        "one drawer not fully closed; ledger spine visible inside",
+        "afternoon light filtered through heavy velvet curtains",
+        "tea set with cooled cup, one biscuit untouched"
+      ],
+      "continuityMotifs": [
+        "tarnished-silver-where-polish-stopped",
+        "wax-sealed correspondence",
+        "afternoon velvet light"
+      ],
+      "mustAvoid": [
+        "any human figure or silhouette",
+        "modern fashion or furniture",
+        "obvious gothic horror imagery",
+        "literal blood, candles arranged ritually, pentagrams"
+      ],
+      "toneTarget": "pressure_layer",
+      "styleReferenceImage": "/images/scenes/case01/bg_case01_rathaus_office_pressure.webp"
+    },
+    "assetKind": "vn_scene_background",
+    "expectedImagePath": "public/images/scenes/case01/bg_case01_baroness_study.webp",
+    "expectedMetaPath": "public/images/scenes/case01/bg_case01_baroness_study.meta.json",
+    "promptSlots": {
+      "s1": "Oil painting, broad expressive brushstrokes, visible canvas texture",
+      "s2": "1905 Kaiser-era Germany, historical veracity",
+      "s3": "Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s5": "Wide establishing shot",
+      "s6": "Interior dialogue-ready scene, no people visible, sprite-safe composition, readable mid-ground depth",
+      "s7": "Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion"
+    },
+    "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905, Baroness's private study at composed-surface tier: official correspondence immaculate on top, one drawer not fully closed., Must include: wax-sealed correspondence stacked by date; tarnished silver letter-opener where polish stopped mid-handle; one drawer not fully closed; ledger spine visible inside; afternoon light filtered through heavy velvet curtains; tea set with cooled cup, one biscuit untouched, Continuity motifs: tarnished-silver-where-polish-stopped; wax-sealed correspondence; afternoon velvet light, Avoid locally: any human figure or silhouette; modern fashion or furniture; obvious gothic horror imagery; literal blood, candles arranged ritually, pentagrams, Tone target: pressure layer; social order appears composed while one detail quietly refuses to settle, Style reference image: /images/scenes/case01/bg_case01_rathaus_office_pressure.webp, stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights, Wide establishing shot, Interior dialogue-ready scene, no people visible, sprite-safe composition, readable mid-ground depth, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+    "finalPromptSha256": "e1b9f8ac5e92679f8d7e1b8eb8e2830bdbb07571225cc7f88e86e5586f0cac78"
+  },
+  {
+    "sceneBackgroundId": "case01_vn_bg_estate_approach",
+    "expectedBasename": "bg_case01_estate_approach",
+    "visualArchetype": "estate_noble",
+    "visualState": "default",
+    "policySlot": "exterior_empty",
+    "localVisualBrief": {
+      "summary": "Road from Freiburg toward the estate, with city pressure receding before the house takes over.",
+      "mustInclude": [
+        "damp carriage road",
+        "distant iron gate",
+        "linden silhouettes",
+        "low evening mist",
+        "no figures"
+      ],
+      "continuityMotifs": ["linden silhouettes", "low evening mist"],
+      "mustAvoid": ["heroic mansion reveal", "modern road", "readable signs"],
+      "toneTarget": "daily_surface+pressure_layer",
+      "styleReferenceImage": "/images/scenes/case01/bg_case01_convergence_city_threshold.webp"
+    },
+    "assetKind": "vn_scene_background",
+    "expectedImagePath": "public/images/scenes/case01/bg_case01_estate_approach.webp",
+    "expectedMetaPath": "public/images/scenes/case01/bg_case01_estate_approach.meta.json",
+    "promptSlots": {
+      "s1": "Oil painting, broad expressive brushstrokes, visible canvas texture",
+      "s2": "1905 Kaiser-era Germany, historical veracity",
+      "s3": "Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s5": "Wide establishing shot",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability",
+      "s7": "Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion"
+    },
+    "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905, Road from Freiburg toward the estate, with city pressure receding before the house takes over., Must include: damp carriage road; distant iron gate; linden silhouettes; low evening mist; no figures, Continuity motifs: linden silhouettes; low evening mist, Avoid locally: heroic mansion reveal; modern road; readable signs, Tone target: daily surface with controlled pressure underneath; ordinary details carry unease without overt horror, Style reference image: /images/scenes/case01/bg_case01_convergence_city_threshold.webp, natural diffused daylight, soft shadows, balanced tones, everyday investigative mood, Wide establishing shot, Empty exterior scene, no people visible, wide establishing shot for map readability, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+    "finalPromptSha256": "7ac2a39741339cc8256f4923c141be833444f852fd55061afb82ad43502ae84d"
+  },
+  {
+    "sceneBackgroundId": "case01_vn_bg_estate_gates",
+    "expectedBasename": "bg_case01_estate_gates",
+    "visualArchetype": "estate_noble",
+    "visualState": "investigation",
+    "policySlot": "exterior_empty",
+    "localVisualBrief": {
+      "summary": "Grand Estate gates at first arrival: aristocratic order, partly open, already watching.",
+      "mustInclude": [
+        "wrought iron estate gates partly open",
+        "linden alley",
+        "warm window-light far beyond",
+        "controlled aristocratic order"
+      ],
+      "continuityMotifs": [
+        "wrought iron",
+        "linden alley",
+        "warm distant windows"
+      ],
+      "mustAvoid": ["castle-horror", "ritual candles", "people"],
+      "toneTarget": "pressure_layer",
+      "styleReferenceImage": "/images/scenes/case01/bg_case01_estate_bureau.webp"
+    },
+    "assetKind": "vn_scene_background",
+    "expectedImagePath": "public/images/scenes/case01/bg_case01_estate_gates.webp",
+    "expectedMetaPath": "public/images/scenes/case01/bg_case01_estate_gates.meta.json",
+    "promptSlots": {
+      "s1": "Oil painting, broad expressive brushstrokes, visible canvas texture",
+      "s2": "1905 Kaiser-era Germany, historical veracity",
+      "s3": "Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s5": "Wide establishing shot",
+      "s6": "Empty exterior scene, no people visible, wide establishing shot for map readability",
+      "s7": "Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion"
+    },
+    "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905, Grand Estate gates at first arrival: aristocratic order, partly open, already watching., Must include: wrought iron estate gates partly open; linden alley; warm window-light far beyond; controlled aristocratic order, Continuity motifs: wrought iron; linden alley; warm distant windows, Avoid locally: castle-horror; ritual candles; people, Tone target: pressure layer; social order appears composed while one detail quietly refuses to settle, Style reference image: /images/scenes/case01/bg_case01_estate_bureau.webp, stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights, Wide establishing shot, Empty exterior scene, no people visible, wide establishing shot for map readability, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+    "finalPromptSha256": "c7e987957ff9bff7947a7f6d7022a6edb81791c18a24eadcdc49075af73f9fb8"
+  },
+  {
+    "sceneBackgroundId": "case01_vn_bg_estate_vaults",
+    "expectedBasename": "bg_case01_estate_vaults",
+    "visualArchetype": "estate_noble",
+    "visualState": "investigation",
+    "policySlot": "interior_dialogue",
+    "localVisualBrief": {
+      "summary": "Stone estate vaults as servant-work infrastructure under cold pressure, not a warehouse.",
+      "mustInclude": [
+        "stone vaulted cellars",
+        "lime-stained frost",
+        "service shelves",
+        "tarnished lantern",
+        "rat traces in the corner"
+      ],
+      "continuityMotifs": ["lime-stained frost", "service shelves", "rats"],
+      "mustAvoid": [
+        "wet-timber warehouse look",
+        "modern pipes",
+        "gore",
+        "visible servants or silhouettes"
+      ],
+      "toneTarget": "shadow_layer",
+      "styleReferenceImage": "/images/scenes/case01/bg_case01_warehouse_wet_timber.webp"
+    },
+    "assetKind": "vn_scene_background",
+    "expectedImagePath": "public/images/scenes/case01/bg_case01_estate_vaults.webp",
+    "expectedMetaPath": "public/images/scenes/case01/bg_case01_estate_vaults.meta.json",
+    "promptSlots": {
+      "s1": "Oil painting, broad expressive brushstrokes, visible canvas texture",
+      "s2": "1905 Kaiser-era Germany, historical veracity",
+      "s3": "Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905",
+      "s4": "stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights",
+      "s5": "Wide establishing shot",
+      "s6": "Interior dialogue-ready scene, no people visible, sprite-safe composition, readable mid-ground depth",
+      "s7": "Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion"
+    },
+    "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905, Stone estate vaults as servant-work infrastructure under cold pressure, not a warehouse., Must include: stone vaulted cellars; lime-stained frost; service shelves; tarnished lantern; rat traces in the corner, Continuity motifs: lime-stained frost; service shelves; rats, Avoid locally: wet-timber warehouse look; modern pipes; gore; visible servants or silhouettes, Tone target: shadow layer; practical architecture darkened by consequence, not theatrical horror, Style reference image: /images/scenes/case01/bg_case01_warehouse_wet_timber.webp, stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights, Wide establishing shot, Interior dialogue-ready scene, no people visible, sprite-safe composition, readable mid-ground depth, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+    "finalPromptSha256": "616043d48b0777dd0012e1134a8ca2da1be26507efcda931c8306a74579f9ee8"
+  },
+  {
+    "sceneBackgroundId": "case01_vn_bg_ghost_cellar",
+    "expectedBasename": "bg_case01_ghost_cellar",
+    "visualArchetype": "estate_noble",
+    "visualState": "memory",
+    "policySlot": "interior_memory",
+    "localVisualBrief": {
+      "summary": "Deep service cellar where the spirit is legible by traces, absence, and temperature rather than apparition.",
+      "mustInclude": [
+        "old service-corridor masonry, lime-stained brick",
+        "brass strongbox latch on stone",
+        "dust pattern around a missing object on shelf",
+        "candle-burn marks on stone not from this season",
+        "cold air visible only as faint condensation on iron pipe"
+      ],
+      "continuityMotifs": [
+        "brass strongbox",
+        "dust pattern around absence",
+        "out-of-season candle marks"
+      ],
+      "mustAvoid": [
+        "literal ghost figure",
+        "supernatural glow, ectoplasm, fog effects",
+        "skulls, ritual circles, occult symbols on surfaces"
+      ],
+      "toneTarget": "ambiguous_occult",
+      "styleReferenceImage": "/images/scenes/case01/bg_case01_estate_vaults.webp"
+    },
+    "assetKind": "vn_scene_background",
+    "expectedImagePath": "public/images/scenes/case01/bg_case01_ghost_cellar.webp",
+    "expectedMetaPath": "public/images/scenes/case01/bg_case01_ghost_cellar.meta.json",
+    "promptSlots": {
+      "s1": "Oil painting, broad expressive brushstrokes, visible canvas texture",
+      "s2": "1905 Kaiser-era Germany, historical veracity",
+      "s3": "Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905",
+      "s4": "ethereal glow, soft atmospheric perspective, blurred edges, surreal gentle focus, memory-like haze",
+      "s5": "Wide establishing shot",
+      "s6": "Interior memory scene, no people visible, softened silhouettes of furniture only, sprite-safe composition",
+      "s7": "Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion"
+    },
+    "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905, Deep service cellar where the spirit is legible by traces, absence, and temperature rather than apparition., Must include: old service-corridor masonry, lime-stained brick; brass strongbox latch on stone; dust pattern around a missing object on shelf; candle-burn marks on stone not from this season; cold air visible only as faint condensation on iron pipe, Continuity motifs: brass strongbox; dust pattern around absence; out-of-season candle marks, Avoid locally: literal ghost figure; supernatural glow, ectoplasm, fog effects; skulls, ritual circles, occult symbols on surfaces, Tone target: ambiguous occult; show usable traces and physical unease without confirming a literal supernatural figure, Style reference image: /images/scenes/case01/bg_case01_estate_vaults.webp, ethereal glow, soft atmospheric perspective, blurred edges, surreal gentle focus, memory-like haze, Wide establishing shot, Interior memory scene, no people visible, softened silhouettes of furniture only, sprite-safe composition, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+    "finalPromptSha256": "26267dbc02757da610fb381f3884b78fca01baef7078e3e5fb31410feef802eb"
+  },
+  {
+    "sceneBackgroundId": "case01_vn_bg_hotel_bedroom",
+    "expectedBasename": "bg_case01_hotel_bedroom",
+    "visualArchetype": "canal_tavern",
+    "visualState": "default",
+    "policySlot": "interior_dialogue",
+    "localVisualBrief": {
+      "summary": "Zum Goldenen Adler bedroom in morning normality, holding the evidence the night left behind.",
+      "mustInclude": [
+        "1905 hotel room",
+        "white bed linens",
+        "washstand",
+        "travel trunk",
+        "morning light",
+        "folded dress with small dark stain"
+      ],
+      "continuityMotifs": ["white linens", "washstand", "small dark stain"],
+      "mustAvoid": ["telephone", "alarm clock", "electric lamp", "lurid gore"],
+      "toneTarget": "daily_surface+earned_darkness",
+      "styleReferenceImage": "/images/scenes/case01/bg_case01_zum_goldenen_adler_lobby.webp"
+    },
+    "assetKind": "vn_scene_background",
+    "expectedImagePath": "public/images/scenes/case01/bg_case01_hotel_bedroom.webp",
+    "expectedMetaPath": "public/images/scenes/case01/bg_case01_hotel_bedroom.meta.json",
+    "promptSlots": {
+      "s1": "Oil painting, broad expressive brushstrokes, visible canvas texture",
+      "s2": "1905 Kaiser-era Germany, historical veracity",
+      "s3": "Timber-framed canal houses, damp plaster, waterside taverns, cramped service alleys, Freiburg 1905",
+      "s4": "natural diffused daylight, soft shadows, balanced tones, everyday investigative mood",
+      "s5": "Wide establishing shot",
+      "s6": "Interior dialogue-ready scene, no people visible, sprite-safe composition, readable mid-ground depth",
+      "s7": "Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion"
+    },
+    "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Timber-framed canal houses, damp plaster, waterside taverns, cramped service alleys, Freiburg 1905, Zum Goldenen Adler bedroom in morning normality, holding the evidence the night left behind., Must include: 1905 hotel room; white bed linens; washstand; travel trunk; morning light; folded dress with small dark stain, Continuity motifs: white linens; washstand; small dark stain, Avoid locally: telephone; alarm clock; electric lamp; lurid gore, Tone target: daily surface after earned darkness; morning normality has to hold evidence it cannot fully hide, Style reference image: /images/scenes/case01/bg_case01_zum_goldenen_adler_lobby.webp, natural diffused daylight, soft shadows, balanced tones, everyday investigative mood, Wide establishing shot, Interior dialogue-ready scene, no people visible, sprite-safe composition, readable mid-ground depth, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+    "finalPromptSha256": "84760920b9e1ccff4d03f70e1acceff3c9c2f2062cb26d51009783258bd28f1e"
+  },
+  {
+    "sceneBackgroundId": "case01_vn_bg_night_alley",
+    "expectedBasename": "bg_case01_night_alley",
+    "visualArchetype": "canal_tavern",
+    "visualState": "crime_scene",
+    "policySlot": "exterior_aftermath",
+    "localVisualBrief": {
+      "summary": "Narrow Freiburg service alley after midnight, built for an attack without showing the attacker.",
+      "mustInclude": [
+        "narrow Freiburg service alley",
+        "wet cobbles",
+        "single gas lamp",
+        "side arch",
+        "dropped metal glint",
+        "fog held low"
+      ],
+      "continuityMotifs": ["wet cobbles", "single gas lamp", "metal glint"],
+      "mustAvoid": [
+        "Hollywood noir",
+        "modern signage",
+        "visible attacker",
+        "readable gang text"
+      ],
+      "toneTarget": "fail_forward_cost",
+      "styleReferenceImage": "/images/scenes/case01/bg_case01_rail_yard_night.webp"
+    },
+    "assetKind": "vn_scene_background",
+    "expectedImagePath": "public/images/scenes/case01/bg_case01_night_alley.webp",
+    "expectedMetaPath": "public/images/scenes/case01/bg_case01_night_alley.meta.json",
+    "promptSlots": {
+      "s1": "Oil painting, broad expressive brushstrokes, visible canvas texture",
+      "s2": "1905 Kaiser-era Germany, historical veracity",
+      "s3": "Timber-framed canal houses, damp plaster, waterside taverns, cramped service alleys, Freiburg 1905",
+      "s4": "harsh magnesium flash lighting, chaotic shadow spill, brittle evidence glare, police-line tension",
+      "s5": "Wide establishing shot",
+      "s6": "Empty exterior aftermath, no people visible, environmental traces only, wide establishing shot",
+      "s7": "Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion"
+    },
+    "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Timber-framed canal houses, damp plaster, waterside taverns, cramped service alleys, Freiburg 1905, Narrow Freiburg service alley after midnight, built for an attack without showing the attacker., Must include: narrow Freiburg service alley; wet cobbles; single gas lamp; side arch; dropped metal glint; fog held low, Continuity motifs: wet cobbles; single gas lamp; metal glint, Avoid locally: Hollywood noir; modern signage; visible attacker; readable gang text, Tone target: fail-forward cost; the space implies danger and consequence through traces, not visible violence, Style reference image: /images/scenes/case01/bg_case01_rail_yard_night.webp, harsh magnesium flash lighting, chaotic shadow spill, brittle evidence glare, police-line tension, Wide establishing shot, Empty exterior aftermath, no people visible, environmental traces only, wide establishing shot, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+    "finalPromptSha256": "fabae73d66b05e66df1c6d8baa421efca070b971a801f02d5499d8ff273b737f"
+  }
+]

@@ -3,12 +3,15 @@ import { describe, expect, it } from "vitest";
 import {
   AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
+  AI_PROPOSE_DIRECTOR_STEP_KIND,
+  AI_PROPOSE_DM_TURN_KIND,
   AI_REQUEST_STATUS_FAILED,
   AI_REQUEST_STATUS_PENDING,
   AI_REQUEST_STATUS_PROCESSING,
   getLeaseMutationError,
   isSupportedAiKind,
   selectClaimCandidate,
+  SUPPORTED_AI_KINDS,
   type ClaimCandidateLike,
 } from "./aiQueue";
 
@@ -34,7 +37,54 @@ describe("aiQueue", () => {
   it("accepts supported AI kinds", () => {
     expect(isSupportedAiKind(AI_GENERATE_DIALOGUE_KIND)).toBe(true);
     expect(isSupportedAiKind(AI_GENERATE_CHARACTER_REACTION_KIND)).toBe(true);
+    expect(isSupportedAiKind(AI_PROPOSE_DIRECTOR_STEP_KIND)).toBe(true);
+    expect(isSupportedAiKind(AI_PROPOSE_DM_TURN_KIND)).toBe(true);
     expect(isSupportedAiKind("summary")).toBe(false);
+  });
+
+  it("exposes tabletop DM turns alongside dialogue, reaction, and director kinds", () => {
+    expect([...SUPPORTED_AI_KINDS]).toEqual([
+      AI_GENERATE_DIALOGUE_KIND,
+      AI_GENERATE_CHARACTER_REACTION_KIND,
+      AI_PROPOSE_DIRECTOR_STEP_KIND,
+      AI_PROPOSE_DM_TURN_KIND,
+    ]);
+  });
+
+  it("claims the oldest eligible pending director step job independently", () => {
+    const candidate = selectClaimCandidate(
+      [
+        row({ id: 5n, kind: AI_GENERATE_DIALOGUE_KIND }),
+        row({
+          id: 3n,
+          kind: AI_PROPOSE_DIRECTOR_STEP_KIND,
+          nextRetryAt: timestamp(2_000n),
+        }),
+        row({ id: 1n, kind: AI_PROPOSE_DIRECTOR_STEP_KIND }),
+      ],
+      AI_PROPOSE_DIRECTOR_STEP_KIND,
+      1_000n,
+    );
+
+    expect(candidate?.id).toBe(1n);
+  });
+
+  it("claims the oldest eligible pending DM turn job independently", () => {
+    const candidate = selectClaimCandidate(
+      [
+        row({ id: 5n, kind: AI_GENERATE_DIALOGUE_KIND }),
+        row({
+          id: 3n,
+          kind: AI_PROPOSE_DM_TURN_KIND,
+          nextRetryAt: timestamp(2_000n),
+        }),
+        row({ id: 1n, kind: AI_PROPOSE_DM_TURN_KIND }),
+      ],
+      AI_PROPOSE_DM_TURN_KIND,
+      1_000n,
+    );
+
+    expect(candidate?.id).toBe(1n);
   });
 
   it("claims the oldest eligible pending generate_dialogue job", () => {

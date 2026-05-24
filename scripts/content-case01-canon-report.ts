@@ -258,6 +258,7 @@ const renderLedger = (rows: CoverageRow[]): string => {
     "| Elias Thorne | Arthur Vance | Alias is design/reference only. |",
     "| Fritz Muller | Fritz Mueller, locale variants | Runtime text uses Fritz Muller unless localized. |",
     "| Victoria Sterling | Clara von Altenburg, Clara Altenburg | Clara is legacy planning; scientific companion runtime uses Victoria / `victoria_sterling`; `assistant` is compatibility-only. |",
+    "| Baroness Elise von Altenburg | Baroness Klara von Altenburg, Баронесса Клара, Клара фон Альтенбург | Witch-prologue estate runtime uses `npc_baroness_elise`; Klara is legacy drift. |",
     "| Heinrich Galdermann | Herr Galdermann | Both may appear when role/context requires it. |",
     "| Bankhaus J.A. Krebs | Kaiserbank, Bankhaus Krebs | Runtime display name is Bankhaus J.A. Krebs. |",
     "",

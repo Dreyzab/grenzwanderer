@@ -26,8 +26,11 @@ import type {
   VnSnapshot,
 } from "../src/shared/vn-contract";
 import {
+  buildCaseIrFromSnapshot,
+  CASE_CATALOG,
   createVnContractMetadata,
   CURRENT_VN_SNAPSHOT_SCHEMA_VERSION,
+  validateCaseIr,
 } from "../src/shared/vn-contract";
 import {
   normalizeContentReleaseProfile,
@@ -1093,6 +1096,25 @@ const questCatalog: QuestCatalogEntry[] = [
       },
     ],
   },
+  {
+    id: "quest_watch_recovery",
+    title: "Stolen Watch",
+    stages: [
+      {
+        stage: 1,
+        title: "Recover Elias' Watch",
+        objectiveHint:
+          "Trace the newsboy through the HBF police post and the old-clothes dealers near the city gates.",
+        objectivePointIds: ["loc_hbf", "loc_martinstor"],
+      },
+      {
+        stage: 2,
+        title: "Watch Recovered",
+        objectiveHint: "The watch recovery lead is closed.",
+        objectivePointIds: ["loc_hbf"],
+      },
+    ],
+  },
 ];
 
 const karlsruheEventQuestCatalog: QuestCatalogEntry[] = [
@@ -1707,9 +1729,16 @@ const validateNodeBlueprint = (node: NodeBlueprint): void => {
     );
   }
   if (autoContinueChoices.length === 1 && node.choices.length !== 1) {
-    throw new Error(
-      `node(${node.id}) must not mix AUTO_CONTINUE with other explicit choices`,
+    const choicesAreConditionallyPartitioned = node.choices.every(
+      (choice) =>
+        (choice.visibleIfAll?.length ?? 0) > 0 ||
+        (choice.visibleIfAny?.length ?? 0) > 0,
     );
+    if (!choicesAreConditionallyPartitioned) {
+      throw new Error(
+        `node(${node.id}) must not mix AUTO_CONTINUE with other explicit choices`,
+      );
+    }
   }
 
   const activeSkillCheckIds = new Set<string>();
@@ -2925,6 +2954,21 @@ const snapshotPayload: VnSnapshot = {
   questCatalog: releaseQuestCatalog,
   socialCatalog: releaseSocialCatalog,
 };
+
+const caseIrValidation = validateCaseIr(
+  buildCaseIrFromSnapshot(snapshotPayload, {}, CASE_CATALOG),
+);
+if (!caseIrValidation.ok) {
+  throw new Error(
+    [
+      "Case IR validation failed during content extraction:",
+      ...caseIrValidation.issues.map(
+        (issue) =>
+          `- [${issue.severity}] ${issue.code} ${issue.path}: ${issue.message}`,
+      ),
+    ].join("\n"),
+  );
+}
 
 const payloadJson = JSON.stringify(snapshotPayload);
 const checksum = createHash("sha256").update(payloadJson, "utf8").digest("hex");

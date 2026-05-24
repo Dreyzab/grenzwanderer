@@ -1,0 +1,11 @@
+{
+  "assetId": "case01_vn_bg_estate_vaults",
+  "assetKind": "vn_scene_background",
+  "expectedImagePath": "public/images/scenes/case01/bg_case01_estate_vaults.webp",
+  "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Noble villa architecture, private stone approach, wrought-iron gates, manicured grounds, aristocratic restraint, Freiburg 1905, Stone estate vaults as servant-work infrastructure under cold pressure, not a warehouse., Must include: stone vaulted cellars; lime-stained frost; service shelves; tarnished lantern; rat traces in the corner, Continuity motifs: lime-stained frost; service shelves; rats, Avoid locally: wet-timber warehouse look; modern pipes; gore; visible servants or silhouettes, Tone target: shadow layer; practical architecture darkened by consequence, not theatrical horror, Style reference image: /images/scenes/case01/bg_case01_warehouse_wet_timber.webp, stark chiaroscuro, moody gaslit atmosphere, deep shadows, high contrast, flickering warm highlights, Wide establishing shot, Interior dialogue-ready scene, no people visible, sprite-safe composition, readable mid-ground depth, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+  "finalPromptSha256": "616043d48b0777dd0012e1134a8ca2da1be26507efcda931c8306a74579f9ee8",
+  "toneTarget": "shadow_layer",
+  "styleReferenceImage": "/images/scenes/case01/bg_case01_warehouse_wet_timber.webp",
+  "assetSha256": "2318df31cb14363f571cc31aba9c444abad8e9d8c3f2676f8c10b3f95a468bc2",
+  "provenance": "deterministic local raster generated from repository style references; live OpenAI Image API unavailable in this environment"
+}

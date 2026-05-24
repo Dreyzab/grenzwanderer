@@ -47,4 +47,65 @@ describe("VN Snapshot Parser Fix", () => {
       expect(result.issues[0].message).toBe("Invalid node structure");
     }
   });
+
+  it("accepts discovery rules on map points", () => {
+    const raw = readFileSync(pilotPath, "utf8");
+    const parsed = JSON.parse(raw);
+
+    parsed.map.points[0].discoveryRules = [
+      {
+        channel: "qr_scan",
+        conditions: [
+          { type: "flag_is", key: "agency_briefing_complete", value: true },
+        ],
+        skillGates: [{ skillId: "attr_forensics", rank: "B" }],
+        signal: {
+          enabled: true,
+          priority: 20,
+          requiresServerConfirmation: true,
+          radii: {
+            coldEnterMeters: 40,
+            coldExitMeters: 45,
+            warmEnterMeters: 30,
+            warmExitMeters: 32,
+            hotEnterMeters: 15,
+            hotExitMeters: 20,
+          },
+        },
+      },
+      {
+        channel: "observation_lens",
+        conditions: [
+          {
+            type: "thought_state_is",
+            thoughtId: "thought_rationalist",
+            state: "internalized",
+          },
+        ],
+      },
+    ];
+
+    const result = parseVnSnapshotPayload(JSON.stringify(parsed));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.snapshot.map?.points[0]?.discoveryRules).toHaveLength(2);
+    }
+  });
+
+  it("rejects malformed discovery rules", () => {
+    const raw = readFileSync(pilotPath, "utf8");
+    const parsed = JSON.parse(raw);
+
+    parsed.map.points[0].discoveryRules = [
+      {
+        channel: "qr_scan",
+        signal: { radii: { hotEnterMeters: "close" } },
+      },
+    ];
+
+    const result = parseVnSnapshotPayload(JSON.stringify(parsed));
+
+    expect(result.ok).toBe(false);
+  });
 });

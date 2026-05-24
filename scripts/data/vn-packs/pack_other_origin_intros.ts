@@ -179,7 +179,6 @@ export const PACK_OTHER_ORIGIN_INTROS_NODES: NodeBlueprint[] = [
     onEnter: [
       { type: "set_flag", key: "met_baroness_intro", value: true },
       { type: "set_flag", key: "origin_aristocrat_handoff_done", value: true },
-      { type: "unlock_group", groupId: "loc_ka_bank" },
     ],
     choices: [],
   },
@@ -304,7 +303,6 @@ export const PACK_OTHER_ORIGIN_INTROS_NODES: NodeBlueprint[] = [
     onEnter: [
       { type: "set_flag", key: "met_major_falk_intro", value: true },
       { type: "set_flag", key: "origin_veteran_handoff_done", value: true },
-      { type: "unlock_group", groupId: "loc_ka_estate" },
     ],
     choices: [],
   },
@@ -425,7 +423,6 @@ export const PACK_OTHER_ORIGIN_INTROS_NODES: NodeBlueprint[] = [
     onEnter: [
       { type: "set_flag", key: "met_archivist_intro", value: true },
       { type: "set_flag", key: "origin_archivist_handoff_done", value: true },
-      { type: "unlock_group", groupId: "loc_ka_bank" },
     ],
     choices: [],
   },

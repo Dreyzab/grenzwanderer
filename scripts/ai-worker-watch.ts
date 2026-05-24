@@ -1,15 +1,34 @@
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { buildCanonicalVoicePromptBrief } from "../data/voiceBridge";
 import { SUPPORTED_AI_KINDS } from "../spacetimedb/src/reducers/aiQueue";
 import {
+  CHARACTER_REACTION_PROPOSAL_JSON_SCHEMA,
+  DIRECTOR_STEP_PROPOSAL_JSON_SCHEMA,
+  DM_TURN_PROPOSAL_JSON_SCHEMA,
+  GENERATE_DIALOGUE_ENVELOPE_JSON_SCHEMA,
   AI_GENERATE_CHARACTER_REACTION_KIND,
+  AI_PROPOSE_DIRECTOR_STEP_KIND,
+  AI_PROPOSE_DM_TURN_KIND,
+  isAllowedDirectorReturnBeatId,
+  isDirectorStepProposal,
+  isDmTurnProposal,
+  isGenerateDialogueEnvelope,
   isCharacterReactionProposal,
-  isGenerateDialogueResponse,
   parseGenerateCharacterReactionPayload,
+  parseGenerateDmTurnPayload,
   parseGenerateDialoguePayload,
+  parseGenerateDirectorStepPayload,
   type CharacterReactionProposal,
+  type DmTurnProposal,
+  type DirectorStepProposal,
   type GenerateCharacterReactionPayload,
+  type GenerateDmTurnPayload,
   type GenerateDialogueEnvelope,
   type GenerateDialoguePayload,
+  type GenerateDirectorStepPayload,
 } from "../src/features/ai/contracts";
 import { buildSceneContext, type SceneContext } from "./ai-context-builder";
 import {
@@ -90,6 +109,14 @@ export interface GeminiCharacterReactionResult {
   proposal: CharacterReactionProposal;
 }
 
+export interface GeminiDirectorStepResult {
+  proposal: DirectorStepProposal;
+}
+
+export interface GeminiDmTurnResult {
+  proposal: DmTurnProposal;
+}
+
 export interface ProcessClaimedAiRequestDeps {
   fetchImpl?: FetchLike;
   now?: () => number;
@@ -108,6 +135,17 @@ export interface ProcessClaimedAiRequestDeps {
     config: AiWorkerConfig,
     deps: ProcessClaimedAiRequestDeps,
   ) => Promise<GeminiCharacterReactionResult>;
+  generateDirectorStepImpl?: (
+    payload: GenerateDirectorStepPayload,
+    config: AiWorkerConfig,
+    deps: ProcessClaimedAiRequestDeps,
+  ) => Promise<GeminiDirectorStepResult>;
+  generateDmTurnImpl?: (
+    payload: GenerateDmTurnPayload,
+    config: AiWorkerConfig,
+    deps: ProcessClaimedAiRequestDeps,
+  ) => Promise<GeminiDmTurnResult>;
+  loadDmRulesTextImpl?: () => string;
 }
 
 export interface DrainAiQueueDeps extends ProcessClaimedAiRequestDeps {
@@ -123,6 +161,12 @@ const DEFAULT_RETRY_BASE_MS = 5_000;
 const DEFAULT_RETRY_MAX_MS = 60_000;
 
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta";
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const WITCH_TABLETOP_DM_RULES_PATH = resolve(
+  REPO_ROOT,
+  "docs",
+  "WITCH_TABLETOP_DM_RULES.md",
+);
 
 const captureAiJobFailure = (
   error: unknown,
@@ -409,16 +453,30 @@ const buildSystemPrompt = (payload: GenerateDialoguePayload): string => {
     payload.dialogueLayer === "providence"
       ? "Write a second, deeper line that expands the moment without changing facts or outcomes."
       : "Write one additive inner-thought line for the immediate result.";
-  return [
+  const baseInstructions = [
     "You write inner-thought lines for a detective RPG.",
     "Return exactly one JSON object and nothing else.",
-    'The JSON shape is {"text":"...","canonicalVoiceId":"..."}.',
+    'The JSON shape is {"text":"...","canonicalVoiceId":"...","suggestedEffects?":[]}.',
     "Do not wrap the JSON in markdown fences.",
     "Keep the line short, playable, and non-blocking.",
     "Do not invent new facts that contradict the provided scene context.",
+    "suggestedEffects are display-only metadata; never imply that they apply state changes.",
     layerInstruction,
     `Voice guide: ${canonicalVoiceBrief}`,
-  ].join("\n");
+  ];
+
+  if (payload.checkId && payload.checkId.endsWith("_custom")) {
+    baseInstructions.push(
+      "The player has typed a custom action in `choiceText` under a Providence choice slot.",
+      "Since this is during testing and development, you MUST show high leniency: allow creative actions to unfold rather than strictly blocking.",
+      "Crucially, evaluate the dangerousness of the player's custom action:",
+      '- Option A (Highly dangerous stunts or extreme threats to self-preservation, e.g., jumping over a massive ravine, attempting to take a life, attacking a heavily armed squad directly): The monologue text MUST represent immediate self-preserving hesitation, returning exactly the following character thought in Russian: "Я не хочу рисковать" or "Не стоит так рисковать".',
+      "- Option B (Standard custom actions, e.g., questioning, checking details, searching carefully): Create a realistic, grounded atmospheric soft-fail / reaction monologue thought in highly atmospheric Russian (e.g., about how it might not lead anywhere, or an observation on the surroundings or a sensory soft-fail details) that adds flavor and internal tension without breaking narrative consistency.",
+      "Regardless of the action type, the monologue text MUST be written entirely in beautiful, atmospheric, deep Russian.",
+    );
+  }
+
+  return baseInstructions.join("\n");
 };
 
 const buildUserPrompt = (
@@ -555,9 +613,9 @@ export const normalizeGenerateDialogueEnvelope = (
         : candidate.canonicalVoiceId,
   };
 
-  if (!isGenerateDialogueResponse(normalized)) {
+  if (!isGenerateDialogueEnvelope(normalized)) {
     throw new GeminiMalformedJsonError(
-      "Gemini JSON payload did not match GenerateDialogueResponse",
+      "Gemini JSON payload did not match GenerateDialogueEnvelope",
     );
   }
 
@@ -565,6 +623,7 @@ export const normalizeGenerateDialogueEnvelope = (
   return {
     text: normalized.text,
     canonicalVoiceId: normalized.canonicalVoiceId,
+    suggestedEffects: normalized.suggestedEffects,
     metadata: {
       modelId,
       latencyMs,
@@ -602,6 +661,7 @@ export const generateDialogueWithGemini = async (
         ],
         generationConfig: {
           responseMimeType: "application/json",
+          responseJsonSchema: GENERATE_DIALOGUE_ENVELOPE_JSON_SCHEMA,
         },
       }),
     },
@@ -646,6 +706,7 @@ const buildCharacterReactionSystemPrompt = (): string =>
     "reactionType must match how the NPC handles the stimulus.",
     "text must be playable dialogue or diegetic narration; stay under ~320 characters.",
     "Do not invent facts that contradict visibleFacts or the relationship snapshot.",
+    "suggestedEffects and revealHintFactId are display-only metadata; never imply that they apply state changes.",
     "Prefer subtlety unless reactionType is conflict.",
   ].join("\n");
 
@@ -725,6 +786,7 @@ export const generateCharacterReactionWithGemini = async (
         ],
         generationConfig: {
           responseMimeType: "application/json",
+          responseJsonSchema: CHARACTER_REACTION_PROPOSAL_JSON_SCHEMA,
         },
       }),
     },
@@ -749,6 +811,280 @@ export const generateCharacterReactionWithGemini = async (
     payload.characterId,
   );
 
+  return { proposal };
+};
+
+const buildDirectorStepSystemPrompt = (): string =>
+  [
+    "You are a presentation-only narrative director for a detective RPG.",
+    "Return exactly one JSON object and nothing else.",
+    "Do not wrap the JSON in markdown fences.",
+    'Shape: {"stepType":"framing"|"next_beat_hint"|"soft_detour","framingText":"...","suggestedReturnBeatId":"<one of allowedBeatIds>","bridgeText?":"<short>","hintFactId?":"<id>"}.',
+    "framingText is a short directorial line shown to the player when they enter a VN node. Keep it under ~280 characters.",
+    "suggestedReturnBeatId MUST be one of the allowedBeatIds in the request. If unsure, pick currentBeatId.",
+    "Use stepType=framing for tone/pacing color on the current beat, next_beat_hint when nudging toward the next authored beat, and soft_detour for a small inert side moment that still points back to authored canon.",
+    "Never invent new world facts. Never resolve the scene. Never reference flag, quest, trust, or var mutations — the engine ignores those anyway.",
+    "Do not output any other keys. bridgeText is display-only narration and must not assert outcomes.",
+  ].join("\n");
+
+const buildDirectorStepUserPrompt = (
+  payload: GenerateDirectorStepPayload,
+): string => {
+  const facts =
+    payload.visibleFacts.length > 0
+      ? payload.visibleFacts.map((entry) => `- ${entry}`).join("\n")
+      : "- none";
+  const flags =
+    payload.activeFlags.length > 0
+      ? payload.activeFlags.map((entry) => `- ${entry}`).join("\n")
+      : "- none";
+  const quests =
+    payload.activeQuests.length > 0
+      ? payload.activeQuests
+          .map((entry) => `- ${entry.questId} (stage ${entry.stage})`)
+          .join("\n")
+      : "- none";
+  const allowed = payload.allowedBeatIds
+    .map((entry) => `- ${entry}`)
+    .join("\n");
+
+  return [
+    `Source: ${payload.source}`,
+    `Scenario ID: ${payload.scenarioId}`,
+    `Node ID: ${payload.nodeId}`,
+    `Current beat: ${payload.currentBeatId}`,
+    `Route context: ${payload.routeContext ?? "none"}`,
+    `Allowed return beats:\n${allowed}`,
+    `Visible facts:\n${facts}`,
+    `Active flags:\n${flags}`,
+    `Active quests:\n${quests}`,
+    "Director should choose a small framing or next-beat hint that respects pacing. soft_detour is only for short inert side moments that still return to authored canon.",
+    "Reply with one JSON object that conforms to the shape above. suggestedReturnBeatId must appear verbatim in the Allowed return beats list.",
+  ]
+    .filter((block) => block.length > 0)
+    .join("\n\n");
+};
+
+export const normalizeDirectorStepProposal = (
+  rawJson: string,
+  allowedBeatIds: readonly string[],
+): DirectorStepProposal => {
+  const parsed = JSON.parse(rawJson) as unknown;
+  if (typeof parsed !== "object" || parsed === null) {
+    throw new GeminiMalformedJsonError(
+      "Gemini JSON payload must be an object for director steps",
+    );
+  }
+
+  if (!isDirectorStepProposal(parsed)) {
+    throw new GeminiMalformedJsonError(
+      "Gemini JSON payload did not match DirectorStepProposal",
+    );
+  }
+
+  if (!isAllowedDirectorReturnBeatId(parsed, allowedBeatIds)) {
+    throw new GeminiMalformedJsonError(
+      `DirectorStepProposal.suggestedReturnBeatId '${parsed.suggestedReturnBeatId}' is not in allowedBeatIds`,
+    );
+  }
+
+  return parsed;
+};
+
+export const generateDirectorStepWithGemini = async (
+  payload: GenerateDirectorStepPayload,
+  config: AiWorkerConfig,
+  deps: ProcessClaimedAiRequestDeps = {},
+): Promise<GeminiDirectorStepResult> => {
+  const fetchImpl = deps.fetchImpl ?? fetch;
+
+  const response = await fetchImpl(
+    `${GEMINI_ENDPOINT}/models/${config.geminiModel}:generateContent?key=${config.geminiApiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: buildDirectorStepSystemPrompt() }],
+        },
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: buildDirectorStepUserPrompt(payload) }],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseJsonSchema: DIRECTOR_STEP_PROPOSAL_JSON_SCHEMA,
+        },
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new GeminiHttpError(
+      `Gemini request failed: ${response.status} ${response.statusText}${errorText ? ` - ${errorText}` : ""}`,
+      response.status,
+    );
+  }
+
+  const rawText = readGeminiText(await response.json());
+  const rawJson = extractJsonObject(rawText);
+  if (!rawJson) {
+    throw new GeminiMalformedJsonError("Gemini response did not contain JSON");
+  }
+
+  const proposal = normalizeDirectorStepProposal(
+    rawJson,
+    payload.allowedBeatIds,
+  );
+  return { proposal };
+};
+
+export const loadWitchTabletopDmRules = (): string => {
+  if (!existsSync(WITCH_TABLETOP_DM_RULES_PATH)) {
+    throw new Error(
+      `Witch tabletop DM rules file not found: ${WITCH_TABLETOP_DM_RULES_PATH}`,
+    );
+  }
+
+  const rulesText = readFileSync(WITCH_TABLETOP_DM_RULES_PATH, "utf8").trim();
+  if (rulesText.length === 0) {
+    throw new Error(
+      `Witch tabletop DM rules file is empty: ${WITCH_TABLETOP_DM_RULES_PATH}`,
+    );
+  }
+  return rulesText;
+};
+
+const buildDmTurnSystemPrompt = (rulesText: string): string =>
+  [
+    "You are a tabletop Dungeon Master for Grenzwanderer, serving Eleanor Vance's Witch one-shot.",
+    "Return exactly one JSON object and nothing else. Do not wrap the JSON in markdown fences.",
+    "All narration must be in Russian. Safe zones use lively Chekhovian social texture; investigation and threat scenes use literary Gothic/Mystery detective tone.",
+    "You may propose session-canon facts only when the request spends a Fate token. Session canon is review-only until accepted by the player.",
+    "Never mutate immutable snapshot, authored canon, Case01 final flags, or quest truth directly. suggestedStateDeltas are proposals for review only.",
+    "The core Grand Estate truth is Both true: a real spirit is present, and people exploit or cover the haunting for a human secret.",
+    "Respect the private player remark as hidden intent; do not quote it as if NPCs heard it.",
+    "Use risks and canonRemarks to surface bargains, exposure, blood pressure, debt, and promotion candidates.",
+    'Shape: {"narration":"...","checks":[],"sessionFacts":[],"suggestedStateDeltas":[],"risks":[],"toneMode":"safe_chekhovian"|"gothic_mystery"|"threat","canonRemarks":[],"resourceCosts?":{}}.',
+    "",
+    "Authoritative Witch Tabletop DM Rules Bible follows. Treat it as binding session policy:",
+    rulesText,
+  ].join("\n");
+
+const buildDmTurnUserPrompt = (payload: GenerateDmTurnPayload): string => {
+  const activeFacts =
+    payload.activeSessionFacts.length > 0
+      ? payload.activeSessionFacts
+          .map((fact) => `- ${fact.id}: ${fact.text} [${fact.status}]`)
+          .join("\n")
+      : "- none";
+  const acceptedRemarks =
+    payload.acceptedRemarks.length > 0
+      ? payload.acceptedRemarks.map((remark) => `- ${remark.text}`).join("\n")
+      : "- none";
+  const visibleFacts =
+    payload.visibleFacts.length > 0
+      ? payload.visibleFacts.map((entry) => `- ${entry}`).join("\n")
+      : "- none";
+  const activeFlags =
+    payload.activeFlags.length > 0
+      ? payload.activeFlags.map((entry) => `- ${entry}`).join("\n")
+      : "- none";
+
+  return [
+    `Source: ${payload.source}`,
+    `Scenario ID: ${payload.scenarioId}`,
+    `Node ID: ${payload.nodeId}`,
+    `Tone mode: ${payload.toneMode}`,
+    `Player action: ${payload.actionText}`,
+    `Private remark: ${payload.remark?.text ?? "none"}`,
+    `Spend Fate token: ${payload.spendFateToken}`,
+    `Fortune spend: ${payload.fortuneSpend ?? 0}`,
+    `Move tags: ${payload.moveTags.join(", ") || "none"}`,
+    `Resources: fate=${payload.resources.fate}, fortune=${payload.resources.fortune}, fortuneMod=${payload.resources.fortuneMod}, karma=${payload.resources.karma}`,
+    `Psyche: axisX=${payload.psyche.axisX}, axisY=${payload.psyche.axisY}, approach=${payload.psyche.approach}`,
+    `Blood Curse: tier=${payload.bloodCurse.tier}, pressure=${payload.bloodCurse.pressure}, power=${payload.bloodCurse.power}, debt=${payload.bloodCurse.debt}, alcoholAftertaste=${payload.bloodCurse.alcoholAftertaste}`,
+    `Visible facts:\n${visibleFacts}`,
+    `Active flags:\n${activeFlags}`,
+    `Accepted session facts:\n${activeFacts}`,
+    `Accepted private notes:\n${acceptedRemarks}`,
+    "If spendFateToken is false, do not introduce new sessionFacts; only narrate, ask for checks, or list risks.",
+    "Reply with one JSON object conforming to the schema. Keep narration playable and concise enough for a side panel.",
+  ]
+    .filter((block) => block.length > 0)
+    .join("\n\n");
+};
+
+export const normalizeDmTurnProposal = (rawJson: string): DmTurnProposal => {
+  const parsed = JSON.parse(rawJson) as unknown;
+  if (typeof parsed !== "object" || parsed === null) {
+    throw new GeminiMalformedJsonError(
+      "Gemini JSON payload must be an object for DM turns",
+    );
+  }
+
+  if (!isDmTurnProposal(parsed)) {
+    throw new GeminiMalformedJsonError(
+      "Gemini JSON payload did not match DmTurnProposal",
+    );
+  }
+
+  return parsed;
+};
+
+export const generateDmTurnWithGemini = async (
+  payload: GenerateDmTurnPayload,
+  config: AiWorkerConfig,
+  deps: ProcessClaimedAiRequestDeps = {},
+): Promise<GeminiDmTurnResult> => {
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  const rulesText = deps.loadDmRulesTextImpl?.() ?? loadWitchTabletopDmRules();
+
+  const response = await fetchImpl(
+    `${GEMINI_ENDPOINT}/models/${config.geminiModel}:generateContent?key=${config.geminiApiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: buildDmTurnSystemPrompt(rulesText) }],
+        },
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: buildDmTurnUserPrompt(payload) }],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseJsonSchema: DM_TURN_PROPOSAL_JSON_SCHEMA,
+        },
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new GeminiHttpError(
+      `Gemini request failed: ${response.status} ${response.statusText}${errorText ? ` - ${errorText}` : ""}`,
+      response.status,
+    );
+  }
+
+  const rawText = readGeminiText(await response.json());
+  const rawJson = extractJsonObject(rawText);
+  if (!rawJson) {
+    throw new GeminiMalformedJsonError("Gemini response did not contain JSON");
+  }
+
+  const proposal = normalizeDmTurnProposal(rawJson);
   return { proposal };
 };
 
@@ -827,8 +1163,136 @@ export const processClaimedAiRequest = async (
     deps.generateDialogueImpl ?? generateDialogueWithGemini;
   const generateCharacterReactionImpl =
     deps.generateCharacterReactionImpl ?? generateCharacterReactionWithGemini;
+  const generateDirectorStepImpl =
+    deps.generateDirectorStepImpl ?? generateDirectorStepWithGemini;
+  const generateDmTurnImpl =
+    deps.generateDmTurnImpl ?? generateDmTurnWithGemini;
   const createRequestId = deps.createRequestId ?? defaultCreateRequestId;
   const retryableLoggerPrefix = `[ai-worker] request ${job.id.toString()}`;
+
+  if (job.kind === AI_PROPOSE_DM_TURN_KIND) {
+    const dmPayload = parseGenerateDmTurnPayload(job.payloadJson);
+    if (!dmPayload) {
+      captureBackendException(
+        new Error("Invalid propose_dm_turn payload JSON"),
+        {
+          "ai.kind": job.kind,
+          "ai.request_id": job.requestId,
+          "ai.request_db_id": job.id.toString(),
+          "ai.failure": "invalid_payload",
+        },
+      );
+      await conn.reducers.failAiRequest({
+        requestId: createRequestId("invalid_payload", job.id),
+        aiRequestId: job.id,
+        error: "Invalid propose_dm_turn payload JSON",
+      });
+      return;
+    }
+
+    try {
+      const result = await withLeaseHeartbeat(
+        async () => generateDmTurnImpl(dmPayload, config, deps),
+        async () => {
+          await conn.reducers.renewAiRequestLease({
+            requestId: createRequestId("renew", job.id),
+            aiRequestId: job.id,
+            leaseMs: config.leaseMs,
+          });
+        },
+        Math.max(1_000, Math.floor(config.leaseMs / 2)),
+      );
+
+      await conn.reducers.completeAiRequest({
+        requestId: createRequestId("complete", job.id),
+        aiRequestId: job.id,
+        responseJson: JSON.stringify(result.proposal),
+      });
+    } catch (error) {
+      const retryable =
+        job.attemptCount < config.maxRetries && isRetryableWorkerError(error);
+      const errorMessage = describeFailure(error);
+      logger.warn(`${retryableLoggerPrefix} failed: ${errorMessage}`);
+      captureAiJobFailure(error, job, retryable);
+
+      await conn.reducers.failAiRequest({
+        requestId: createRequestId(retryable ? "retry" : "failed", job.id),
+        aiRequestId: job.id,
+        error: errorMessage,
+        retryDelayMs: retryable
+          ? computeRetryDelayMs(
+              job.attemptCount,
+              config.retryBaseMs,
+              config.retryMaxMs,
+              getRandom(deps.random),
+            )
+          : undefined,
+      });
+    }
+    return;
+  }
+
+  if (job.kind === AI_PROPOSE_DIRECTOR_STEP_KIND) {
+    const directorPayload = parseGenerateDirectorStepPayload(job.payloadJson);
+    if (!directorPayload) {
+      captureBackendException(
+        new Error("Invalid propose_director_step payload JSON"),
+        {
+          "ai.kind": job.kind,
+          "ai.request_id": job.requestId,
+          "ai.request_db_id": job.id.toString(),
+          "ai.failure": "invalid_payload",
+        },
+      );
+      await conn.reducers.failAiRequest({
+        requestId: createRequestId("invalid_payload", job.id),
+        aiRequestId: job.id,
+        error: "Invalid propose_director_step payload JSON",
+      });
+      return;
+    }
+
+    try {
+      const result = await withLeaseHeartbeat(
+        async () => generateDirectorStepImpl(directorPayload, config, deps),
+        async () => {
+          await conn.reducers.renewAiRequestLease({
+            requestId: createRequestId("renew", job.id),
+            aiRequestId: job.id,
+            leaseMs: config.leaseMs,
+          });
+        },
+        Math.max(1_000, Math.floor(config.leaseMs / 2)),
+      );
+
+      await conn.reducers.completeAiRequest({
+        requestId: createRequestId("complete", job.id),
+        aiRequestId: job.id,
+        responseJson: JSON.stringify(result.proposal),
+      });
+    } catch (error) {
+      const retryable =
+        job.attemptCount < config.maxRetries && isRetryableWorkerError(error);
+      const errorMessage = describeFailure(error);
+      logger.warn(`${retryableLoggerPrefix} failed: ${errorMessage}`);
+      captureAiJobFailure(error, job, retryable);
+
+      await conn.reducers.failAiRequest({
+        requestId: createRequestId(retryable ? "retry" : "failed", job.id),
+        aiRequestId: job.id,
+        error: errorMessage,
+        retryDelayMs: retryable
+          ? computeRetryDelayMs(
+              job.attemptCount,
+              config.retryBaseMs,
+              config.retryMaxMs,
+              getRandom(deps.random),
+            )
+          : undefined,
+      });
+    }
+    return;
+  }
 
   if (job.kind === AI_GENERATE_CHARACTER_REACTION_KIND) {
     const reactionPayload = parseGenerateCharacterReactionPayload(

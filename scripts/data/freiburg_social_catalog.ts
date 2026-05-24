@@ -62,6 +62,60 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       workPointId: "loc_agency",
       serviceIds: ["svc_felix_legal_analysis"],
     },
+    {
+      id: "npc_bureau_master",
+      displayName: "The Master",
+      factionId: "the_returned",
+      publicRole: "Bureau occult supervisor",
+      rosterTier: "functional",
+      portraitUrl: "/images/characters/bureau_master/bureau_master.webp",
+      introFlag: "met_bureau_master_intro",
+      workPointId: "loc_hbf",
+      serviceIds: ["svc_bureau_occult_protocol"],
+    },
+    {
+      id: "npc_karl_servant",
+      displayName: "Karl",
+      factionId: "house_of_pledges",
+      publicRole: "Grand Estate servant",
+      rosterTier: "functional",
+      portraitUrl: "/images/characters/karl_servant/karl_servant.webp",
+      introFlag: "met_karl_servant_intro",
+      workPointId: "loc_freiburg_estate",
+      serviceIds: ["svc_karl_service_corridors"],
+    },
+    {
+      id: "npc_friedrich_wagner",
+      displayName: "Friedrich Wagner",
+      factionId: "the_returned",
+      publicRole: "Dead estate accountant",
+      rosterTier: "major",
+      portraitUrl: "/images/characters/friedrich_wagner/friedrich_wagner.webp",
+      introFlag: "met_friedrich_wagner_intro",
+      workPointId: "loc_freiburg_estate",
+      serviceIds: ["svc_friedrich_ledger_memory"],
+    },
+    {
+      id: "npc_krebs_mugger",
+      displayName: "Krebs Mugger",
+      factionId: "free_yards",
+      publicRole: "Street enforcer",
+      rosterTier: "functional",
+      portraitUrl: "/images/characters/krebs_mugger/krebs_mugger.webp",
+      introFlag: "met_krebs_mugger_intro",
+      workPointId: "loc_hbf",
+    },
+    {
+      id: "npc_hotel_maid",
+      displayName: "Hotel Maid",
+      factionId: "city_network",
+      publicRole: "Zum Goldenen Adler maid",
+      rosterTier: "functional",
+      portraitUrl: "/images/characters/hotel_maid/hotel_maid.webp",
+      introFlag: "met_hotel_maid_intro",
+      workPointId: "loc_pub_deutsche",
+      serviceIds: ["svc_hotel_discretion"],
+    },
 
   ],
   services: [
@@ -156,6 +210,58 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       consequenceNote:
         "Quality depends on Felix mental state. Instrumentalization without reciprocal investment degrades output over time.",
     },
+    {
+      id: "svc_bureau_occult_protocol",
+      npcId: "npc_bureau_master",
+      role: "political_cover",
+      label: "Bureau Occult Protocol",
+      baseAccess:
+        "Available to Witch agents who kept the Maskerade in the Bureau induction (suppressant taken or composure held).",
+      unlockFlag: "met_bureau_master_intro",
+      qualityNote:
+        "Provides sanctioned occult cover for field incidents and Bureau-side rationing of curse suppressant.",
+      consequenceNote:
+        "Cover is revoked if the Bureau reads the agent as undisciplined; a flagged Master suspends the protocol.",
+    },
+    {
+      id: "svc_karl_service_corridors",
+      npcId: "npc_karl_servant",
+      role: "transport",
+      label: "Estate Service Corridors",
+      baseAccess:
+        "Available only when Karl trusts the detective — kindness at HBF and no feeding incident at the estate.",
+      unlockFlag: "met_karl_servant_intro",
+      qualityNote:
+        "Opens the Grand Estate's pantry-to-yard service corridors used by the Baroness's smuggling partners.",
+      consequenceNote:
+        "Compromised if Karl was fed on; he cannot be a quiet witness once the estate marks him as ghost-haunted.",
+    },
+    {
+      id: "svc_friedrich_ledger_memory",
+      npcId: "npc_friedrich_wagner",
+      role: "archives",
+      label: "Ledger Memory",
+      baseAccess:
+        "Available only when Friedrich was met with justice or bound to the witch's shadow; not from a banished outcome.",
+      unlockFlag: "met_friedrich_wagner_intro",
+      qualityNote:
+        "Cross-references the smuggling ledger against the Krebs partners and dates back to the night of his murder.",
+      consequenceNote:
+        "Bound testimony degrades faster than freely given testimony and may invite Bureau scrutiny.",
+    },
+    {
+      id: "svc_hotel_discretion",
+      npcId: "npc_hotel_maid",
+      role: "social_introduction",
+      label: "Hotel Discretion",
+      baseAccess:
+        "Available once the maid is bribed at the Adler — clothing destroyed, staff quietly aligned.",
+      unlockFlag: "flag_witch_maid_bribed",
+      qualityNote:
+        "Quiet back-channel through hotel staff: laundry vanishes, room logs stay clean, and Felix hears no rumor at breakfast.",
+      consequenceNote:
+        "Discretion lasts as long as nothing forces the maid to choose between her bribe and the police.",
+    },
   ],
   rumors: [
     {
@@ -175,6 +281,14 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       sourceNpcId: "npc_felix_hartmann",
       verifiesOn: ["flag_set"],
       careerCriterionOnVerify: "university_contact_established",
+    },
+    {
+      id: "rumor_witch_mugger_survivor",
+      title: "Alley Survivor Whisper",
+      caseId: "quest_banker",
+      leadPointId: "loc_hbf",
+      sourceNpcId: "npc_krebs_mugger",
+      verifiesOn: ["flag_set"],
     },
   ],
   careerRanks: [

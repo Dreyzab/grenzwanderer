@@ -24,6 +24,16 @@ import {
   parseSnapshot,
 } from "../src/features/vn/vnContent";
 import { findActiveHypothesisLens } from "../src/features/mindpalace/focusLens";
+import {
+  NARRATIVE_RESOURCE_DEFAULTS,
+  RESOURCE_FORTUNE_MOD_VAR,
+  RESOURCE_FORTUNE_VAR,
+  RESOURCE_KARMA_VAR,
+  RESOURCE_PROVIDENCE_VAR,
+  resolveEffectiveFortune,
+  resolveKarmaBand,
+} from "../src/shared/game/narrativeResources";
+import { CASE_CATALOG } from "../src/shared/vn-contract";
 import type { QuestCatalogEntry, VnSnapshot } from "../src/features/vn/types";
 import {
   escapeSqlLiteral,
@@ -50,6 +60,13 @@ export interface SceneContext {
   parliamentPresetId?: OriginParliamentPresetId;
   routeStep?: string;
   occultExposure?: string;
+  activePoi?: string;
+  districtState?: string;
+  resourceProfile?: string;
+  pendingRumors?: string;
+  branchOpportunities?: string;
+  proceduralBudget?: string;
+  visualStateHints?: string;
 }
 
 export interface BuildSceneContextOptions {
@@ -79,6 +96,13 @@ interface PlayerFlagRow {
 interface PlayerVarRow {
   key: string;
   floatValue: number;
+}
+
+interface PlayerRumorStateRow {
+  rumorId: string;
+  status: string;
+  leadPointId: string | null;
+  caseId: string;
 }
 
 interface ActiveSnapshotRow {
@@ -187,6 +211,19 @@ export const buildPlayerVarQuery = (playerId: string): string => {
     "  key,",
     "  float_value",
     "FROM player_var",
+    `WHERE player_id = '${escapedPlayerId}'`,
+  ].join("\n");
+};
+
+export const buildPlayerRumorStateQuery = (playerId: string): string => {
+  const escapedPlayerId = escapeSqlLiteral(playerId);
+  return [
+    "SELECT",
+    "  rumor_id,",
+    "  status,",
+    "  lead_point_id,",
+    "  case_id",
+    "FROM player_rumor_state",
     `WHERE player_id = '${escapedPlayerId}'`,
   ].join("\n");
 };
@@ -327,6 +364,34 @@ const parsePlayerVarRow = (row: unknown): PlayerVarRow => {
   throw new Error("Unsupported player var row shape");
 };
 
+const parsePlayerRumorStateRow = (row: unknown): PlayerRumorStateRow => {
+  if (Array.isArray(row)) {
+    if (row.length < 4) {
+      throw new Error("Player rumor state SQL row is missing columns");
+    }
+    return {
+      rumorId: coerceString(row[0], "rumor_id"),
+      status: coerceString(row[1], "status"),
+      leadPointId: coerceNullableString(row[2]),
+      caseId: coerceString(row[3], "case_id"),
+    };
+  }
+
+  if (typeof row === "object" && row !== null) {
+    const record = row as Record<string, unknown>;
+    return {
+      rumorId: coerceString(record.rumor_id ?? record.rumorId, "rumor_id"),
+      status: coerceString(record.status, "status"),
+      leadPointId: coerceNullableString(
+        record.lead_point_id ?? record.leadPointId,
+      ),
+      caseId: coerceString(record.case_id ?? record.caseId, "case_id"),
+    };
+  }
+
+  throw new Error("Unsupported player rumor state row shape");
+};
+
 const normalizeLookupKey = (value: string): string =>
   value
     .trim()
@@ -382,6 +447,13 @@ const buildSceneSnapshot = (
     routeStep?: string;
     occultExposure?: string;
     activeHypothesisLabel?: string;
+    activePoi?: string;
+    districtState?: string;
+    resourceProfile?: string;
+    pendingRumors?: string;
+    branchOpportunities?: string;
+    proceduralBudget?: string;
+    visualStateHints?: string;
   },
 ): string => {
   const envelope = payload.sceneResultEnvelope;
@@ -487,6 +559,27 @@ const buildSceneSnapshot = (
   }
   if (sceneContext?.activeHypothesisLabel) {
     parts.push(`Active hypothesis: ${sceneContext.activeHypothesisLabel}`);
+  }
+  if (sceneContext?.activePoi) {
+    parts.push(`Active POI: ${sceneContext.activePoi}`);
+  }
+  if (sceneContext?.districtState) {
+    parts.push(`District state: ${sceneContext.districtState}`);
+  }
+  if (sceneContext?.resourceProfile) {
+    parts.push(`Resource profile: ${sceneContext.resourceProfile}`);
+  }
+  if (sceneContext?.pendingRumors) {
+    parts.push(`Pending rumors: ${sceneContext.pendingRumors}`);
+  }
+  if (sceneContext?.branchOpportunities) {
+    parts.push(`Branch opportunities: ${sceneContext.branchOpportunities}`);
+  }
+  if (sceneContext?.proceduralBudget) {
+    parts.push(`Procedural budget: ${sceneContext.proceduralBudget}`);
+  }
+  if (sceneContext?.visualStateHints) {
+    parts.push(`Visual state hints: ${sceneContext.visualStateHints}`);
   }
 
   return parts.join(". ");
@@ -606,6 +699,170 @@ const summarizeOccultExposure = (
     `exposure ${summary.mysticExposure}`,
     `sight ${summary.activeSightMode}`,
   ].join(", ");
+};
+
+const uniqueSorted = (values: Iterable<string>): string[] =>
+  [...new Set(values)].sort((left, right) => left.localeCompare(right));
+
+const resolveScenePoints = (
+  snapshot: VnSnapshot | null,
+  payload: GenerateDialoguePayload,
+): NonNullable<VnSnapshot["map"]>["points"] => {
+  if (!snapshot?.map) {
+    return [];
+  }
+  const pointIds = new Set(resolveScenePointIds(snapshot, payload));
+  return snapshot.map.points
+    .filter((point) => pointIds.has(point.id))
+    .sort((left, right) => left.id.localeCompare(right.id));
+};
+
+const summarizeActivePoi = (
+  points: readonly NonNullable<VnSnapshot["map"]>["points"][number][],
+): string | undefined => {
+  if (points.length === 0) {
+    return undefined;
+  }
+  return points
+    .map((point) => `${point.title} (${point.id}, ${point.locationId})`)
+    .join(" | ");
+};
+
+const summarizeDistrictState = (
+  points: readonly NonNullable<VnSnapshot["map"]>["points"][number][],
+): string | undefined => {
+  if (points.length === 0) {
+    return undefined;
+  }
+  return points
+    .map((point) =>
+      [
+        `${point.locationId}: region=${point.regionId}`,
+        `category=${point.category}`,
+        point.unlockGroup ? `unlockGroup=${point.unlockGroup}` : null,
+        point.defaultState ? `defaultState=${point.defaultState}` : null,
+        point.isHiddenInitially ? "hiddenInitially=true" : null,
+      ]
+        .filter((entry): entry is string => Boolean(entry))
+        .join(", "),
+    )
+    .join(" | ");
+};
+
+const readResourceValue = (
+  vars: Readonly<Record<string, number>>,
+  key: keyof typeof NARRATIVE_RESOURCE_DEFAULTS,
+): number => Math.trunc(vars[key] ?? NARRATIVE_RESOURCE_DEFAULTS[key]);
+
+const summarizeResourceProfile = (
+  vars: Readonly<Record<string, number>>,
+): string => {
+  const providence = readResourceValue(vars, RESOURCE_PROVIDENCE_VAR);
+  const fortune = readResourceValue(vars, RESOURCE_FORTUNE_VAR);
+  const fortuneMod = readResourceValue(vars, RESOURCE_FORTUNE_MOD_VAR);
+  const karma = readResourceValue(vars, RESOURCE_KARMA_VAR);
+  return [
+    `providence=${providence}`,
+    `fortune=${fortune}`,
+    `fortuneMod=${fortuneMod}`,
+    `effectiveFortune=${resolveEffectiveFortune(fortune, fortuneMod)}`,
+    `karma=${karma}`,
+    `karmaBand=${resolveKarmaBand(karma)}`,
+  ].join(", ");
+};
+
+const summarizePendingRumors = (
+  snapshot: VnSnapshot | null,
+  rows: readonly PlayerRumorStateRow[],
+): string | undefined => {
+  const pendingStatuses = new Set([
+    "registered",
+    "heard",
+    "logged",
+    "pursuing",
+  ]);
+  const rumorById = new Map(
+    (snapshot?.socialCatalog?.rumors ?? []).map((rumor) => [rumor.id, rumor]),
+  );
+  const summaries = rows
+    .filter((row) => pendingStatuses.has(row.status))
+    .map((row) => {
+      const rumor = rumorById.get(row.rumorId);
+      const leadPointId = row.leadPointId ?? rumor?.leadPointId;
+      return [
+        rumor?.title ?? row.rumorId,
+        `status=${row.status}`,
+        leadPointId ? `lead=${leadPointId}` : null,
+      ]
+        .filter((entry): entry is string => Boolean(entry))
+        .join(", ");
+    });
+
+  return summaries.length > 0 ? summaries.join(" | ") : undefined;
+};
+
+const summarizeBranchOpportunities = (
+  snapshot: VnSnapshot | null,
+  payload: GenerateDialoguePayload,
+): string | undefined => {
+  const scenario = snapshot
+    ? getScenarioById(snapshot, payload.scenarioId)
+    : null;
+  const caseId = scenario?.packId;
+  const activeRules = CASE_CATALOG.triggerRules.filter(
+    (rule) =>
+      rule.status === "active" &&
+      (!caseId || !rule.caseId || rule.caseId === caseId),
+  );
+  if (activeRules.length === 0) {
+    return undefined;
+  }
+
+  return activeRules
+    .map((rule) =>
+      [
+        rule.id,
+        rule.allowedArchetypeIds && rule.allowedArchetypeIds.length > 0
+          ? `archetypes=${rule.allowedArchetypeIds.join(",")}`
+          : null,
+        rule.generatedNamespace ? `namespace=${rule.generatedNamespace}` : null,
+      ]
+        .filter((entry): entry is string => Boolean(entry))
+        .join(" "),
+    )
+    .join(" | ");
+};
+
+const summarizeProceduralBudget = (
+  vars: Readonly<Record<string, number>>,
+): string | undefined => {
+  const budgetKeys = uniqueSorted(
+    CASE_CATALOG.triggerRules.flatMap((rule) =>
+      rule.budgetKey ? [rule.budgetKey] : [],
+    ),
+  );
+  if (budgetKeys.length === 0) {
+    return undefined;
+  }
+  return budgetKeys.map((key) => `${key}=${vars[key] ?? 0}`).join(", ");
+};
+
+const summarizeVisualStateHints = (
+  points: readonly NonNullable<VnSnapshot["map"]>["points"][number][],
+): string | undefined => {
+  if (points.length === 0) {
+    return undefined;
+  }
+  return points
+    .map((point) =>
+      [
+        `${point.locationId}: visualState=${point.defaultState ?? "default"}`,
+        point.image ? `image=${point.image}` : null,
+      ]
+        .filter((entry): entry is string => Boolean(entry))
+        .join(", "),
+    )
+    .join(" | ");
 };
 
 const isFreshEnough = (
@@ -791,6 +1048,20 @@ const fetchPlayerVarRows = async (
   return rows.map(parsePlayerVarRow);
 };
 
+const fetchPlayerRumorStateRows = async (
+  playerId: string,
+  options: BuildSceneContextOptions,
+): Promise<PlayerRumorStateRow[]> => {
+  const rows = await runSpacetimeSql({
+    host: options.host,
+    database: options.database,
+    token: options.token,
+    query: buildPlayerRumorStateQuery(playerId),
+    fetchImpl: options.fetchImpl,
+  });
+  return rows.map(parsePlayerRumorStateRow);
+};
+
 const fetchActiveSnapshot = async (
   options: BuildSceneContextOptions,
 ): Promise<VnSnapshot | null> => {
@@ -823,12 +1094,14 @@ export const buildSceneContext = async (
     playerQuestResult,
     playerFlagResult,
     playerVarResult,
+    playerRumorResult,
     snapshotResult,
   ] = await Promise.allSettled([
     fetchRecentDialogueRows(job.playerId, options),
     fetchPlayerQuestRows(job.playerId, options),
     fetchPlayerFlagRows(job.playerId, options),
     fetchPlayerVarRows(job.playerId, options),
+    fetchPlayerRumorStateRows(job.playerId, options),
     fetchActiveSnapshot(options),
   ]);
 
@@ -846,6 +1119,9 @@ export const buildSceneContext = async (
   }
   if (playerVarResult.status === "rejected") {
     logRetrievalFailure("player var retrieval", playerVarResult.reason);
+  }
+  if (playerRumorResult.status === "rejected") {
+    logRetrievalFailure("player rumor retrieval", playerRumorResult.reason);
   }
   if (snapshotResult.status === "rejected") {
     logRetrievalFailure("active snapshot retrieval", snapshotResult.reason);
@@ -878,6 +1154,17 @@ export const buildSceneContext = async (
   const activeHypothesis = findActiveHypothesisLens(snapshot, flags, [
     "case_hidden_signals",
   ]);
+  const scenePoints = resolveScenePoints(snapshot, payload);
+  const activePoi = summarizeActivePoi(scenePoints);
+  const districtState = summarizeDistrictState(scenePoints);
+  const resourceProfile = summarizeResourceProfile(vars);
+  const pendingRumors =
+    playerRumorResult.status === "fulfilled"
+      ? summarizePendingRumors(snapshot, playerRumorResult.value)
+      : undefined;
+  const branchOpportunities = summarizeBranchOpportunities(snapshot, payload);
+  const proceduralBudget = summarizeProceduralBudget(vars);
+  const visualStateHints = summarizeVisualStateHints(scenePoints);
   const recentDialogue =
     recentDialogueResult.status === "fulfilled"
       ? selectRecentDialogue(
@@ -902,6 +1189,13 @@ export const buildSceneContext = async (
       activeHypothesisLabel: activeHypothesis
         ? `${activeHypothesis.caseTitle} -> ${activeHypothesis.hypothesisText}`
         : undefined,
+      activePoi,
+      districtState,
+      resourceProfile,
+      pendingRumors,
+      branchOpportunities,
+      proceduralBudget,
+      visualStateHints,
     }),
     recentDialogue,
     activeQuestSummary,
@@ -912,5 +1206,12 @@ export const buildSceneContext = async (
     parliamentPresetId,
     routeStep,
     occultExposure,
+    activePoi,
+    districtState,
+    resourceProfile,
+    pendingRumors,
+    branchOpportunities,
+    proceduralBudget,
+    visualStateHints,
   };
 };

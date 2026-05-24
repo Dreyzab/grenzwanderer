@@ -5,13 +5,19 @@ import {
   VISUAL_MISSING_OUTPUT_PATH,
   VISUAL_OUTPUT_DIR,
   VISUAL_VARIANTS_OUTPUT_PATH,
+  VN_SCENE_BACKGROUND_MANIFEST_OUTPUT_PATH,
+  VN_SCENE_BACKGROUND_MISSING_OUTPUT_PATH,
   buildCase01VisualScaffoldOutput,
+  buildCase01VnSceneBackgroundManifest,
+  buildCase01VnSceneBackgroundMissingReport,
 } from "./data/freiburg_visual_assets";
 
 const OUTPUT_FILES = [
   VISUAL_MANIFEST_OUTPUT_PATH,
   VISUAL_VARIANTS_OUTPUT_PATH,
   VISUAL_MISSING_OUTPUT_PATH,
+  VN_SCENE_BACKGROUND_MANIFEST_OUTPUT_PATH,
+  VN_SCENE_BACKGROUND_MISSING_OUTPUT_PATH,
 ] as const;
 
 const toJson = (value: unknown): string =>
@@ -28,6 +34,10 @@ const readUtf8IfExists = (absolutePath: string): string | null => {
 const main = (): void => {
   const checkOnly = process.argv.includes("--check");
   const scaffold = buildCase01VisualScaffoldOutput();
+  const vnSceneBackgroundManifest = buildCase01VnSceneBackgroundManifest();
+  const vnSceneBackgroundMissing = buildCase01VnSceneBackgroundMissingReport(
+    vnSceneBackgroundManifest,
+  );
 
   if (scaffold.parity.errors.length > 0) {
     throw new Error(
@@ -42,6 +52,11 @@ const main = (): void => {
     [VISUAL_MANIFEST_OUTPUT_PATH, toJson(scaffold.manifest)],
     [VISUAL_VARIANTS_OUTPUT_PATH, toJson(scaffold.variants)],
     [VISUAL_MISSING_OUTPUT_PATH, toJson(scaffold.missing)],
+    [
+      VN_SCENE_BACKGROUND_MANIFEST_OUTPUT_PATH,
+      toJson(vnSceneBackgroundManifest),
+    ],
+    [VN_SCENE_BACKGROUND_MISSING_OUTPUT_PATH, toJson(vnSceneBackgroundMissing)],
   ]);
 
   if (checkOnly) {
@@ -68,6 +83,12 @@ const main = (): void => {
     console.log(`Manifest entries: ${scaffold.manifest.length}`);
     console.log(`Variant stubs: ${scaffold.variants.length}`);
     console.log(`Missing asset entries: ${scaffold.missing.length}`);
+    console.log(
+      `VN scene background entries: ${vnSceneBackgroundManifest.length}`,
+    );
+    console.log(
+      `VN scene background missing entries: ${vnSceneBackgroundMissing.length}`,
+    );
     return;
   }
 
@@ -83,6 +104,12 @@ const main = (): void => {
   console.log(`Manifest entries: ${scaffold.manifest.length}`);
   console.log(`Variant stubs: ${scaffold.variants.length}`);
   console.log(`Missing asset entries: ${scaffold.missing.length}`);
+  console.log(
+    `VN scene background entries: ${vnSceneBackgroundManifest.length}`,
+  );
+  console.log(
+    `VN scene background missing entries: ${vnSceneBackgroundMissing.length}`,
+  );
 };
 
 try {

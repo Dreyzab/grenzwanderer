@@ -139,6 +139,11 @@ scripts/openviking/data/
 # Local data
 data/vectordb/
 data/viking/
+data/_system/
+.logs/
+.spacetime-local-3001/
+tsc_output.txt
+schema.json
 reports/
 scratch/
 temp_openviking/

@@ -8,6 +8,7 @@ import { useState, type CSSProperties, type RefObject } from "react";
 import {
   TypedText,
   type TypedTextHandle,
+  type TypedTextTokenState,
   type TypedTextTokenHandler,
 } from "../ui/TypedText";
 import { resolveVoiceAvatarUrl } from "../ui/VnInlineSpeakerBadge";
@@ -32,6 +33,7 @@ interface LogSegmentRendererProps {
   onTokenClick?: TypedTextTokenHandler;
   onTokenEnter?: TypedTextTokenHandler;
   onTokenLeave?: TypedTextTokenHandler;
+  tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
 }
 
 const PLAYER_DEFAULT_ACCENT = "#e7e5e4";
@@ -121,6 +123,7 @@ export function LogSegmentRenderer({
   onTokenClick,
   onTokenEnter,
   onTokenLeave,
+  tokenStateByPayload,
 }: LogSegmentRendererProps) {
   const isNarrator = segment.category === "narrator";
   const isInnerVoice = segment.category === "inner_voice";
@@ -131,6 +134,7 @@ export function LogSegmentRenderer({
       ref={typedTextRef}
       instant={!isTyping}
       text={segment.text}
+      tokenStateByPayload={tokenStateByPayload}
       onComplete={isTyping ? onComplete : undefined}
       onTokenClick={onTokenClick}
       onTokenEnter={onTokenEnter}

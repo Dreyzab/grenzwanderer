@@ -4,7 +4,7 @@ type: vn_scene
 status: active
 ---
 
-# Scene: Zum Goldenen Adler
+# Scene: Zum Eber
 
 ## Script
 

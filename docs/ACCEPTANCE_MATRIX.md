@@ -22,13 +22,14 @@ Do not hand-maintain a second matrix in docs. Update the script first, then sync
 Current supported player-facing scope is Freiburg only. Karlsruhe is still outside the supported flow set until it has its own matrix entry and smoke coverage.
 
 > [!NOTE]
-> **P0 Baseline Freeze (2026-05-09)**: The generated matrix currently reports 15 supported flows: 3 runtime contracts and 12 player flows. Any drift reported by the manifest, map metrics, or snapshot consistency gates is a blocking quality failure.
+> **P0 Baseline Freeze (2026-05-09)**: The generated matrix currently reports 16 supported flows: 4 runtime contracts and 12 player flows. Any drift reported by the manifest, map metrics, or snapshot consistency gates is a blocking quality failure.
 
 Do not copy the generated table into this document. Run `bun run acceptance:matrix` for the exact current flow ids, entry paths, smoke commands, and gate profile.
 
 Current P0 summary:
 
-- Runtime authority contracts cover VN, map, and battle reducer/runtime behavior.
+- Runtime authority contracts cover VN, map, battle, and AI queue reducer/runtime behavior.
+- AI runtime coverage includes four supported queue kinds: `generate_dialogue`, constrained display-only `generate_character_reaction`, constrained display-only `propose_director_step` (auto-enqueued on VN node entry, 60s cooldown plus per-(player, scenario, node) dedupe inside the reducer, never mutates state, return beat must belong to the authored Case01 allowed-beat union built by `buildDirectorAllowedBeatIds`), and `propose_dm_turn` for review-only tabletop session-canon proposals.
 - Freiburg player-facing coverage includes origin entry, Case01 entry/mainline/branches, banker duel, dog deduction, and the social loop.
 - Freiburg social coverage includes social access, rumor verification, agency career progression, and service unlock.
 - Inner Parliament D1 is covered through the Freiburg train moral choice, server-authoritative voice rank, leader-gated follow-up, and Mind Palace fact bridge.

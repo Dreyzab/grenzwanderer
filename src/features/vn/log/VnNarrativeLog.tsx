@@ -1,7 +1,11 @@
 import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import type { ReactNode, RefObject } from "react";
 import type { VnSnapshot } from "../types";
-import type { TypedTextHandle, TypedTextTokenHandler } from "../ui/TypedText";
+import type {
+  TypedTextHandle,
+  TypedTextTokenState,
+  TypedTextTokenHandler,
+} from "../ui/TypedText";
 import { LogEntryRenderer } from "./LogEntryRenderer";
 import {
   LogSegmentRenderer,
@@ -22,6 +26,7 @@ interface VnNarrativeLogProps {
   onTokenClick?: TypedTextTokenHandler;
   onTokenEnter?: TypedTextTokenHandler;
   onTokenLeave?: TypedTextTokenHandler;
+  tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
 }
 
 const speakerIdForEntry = (entry: LogEntry): string | null => {
@@ -54,6 +59,7 @@ export function VnNarrativeLog({
   onTokenClick,
   onTokenEnter,
   onTokenLeave,
+  tokenStateByPayload,
 }: VnNarrativeLogProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -153,6 +159,7 @@ export function VnNarrativeLog({
               dimmed
               previousSpeakerId={previousSpeakerId}
               playerProfile={playerProfile}
+              tokenStateByPayload={tokenStateByPayload}
             />
           );
         })}
@@ -169,6 +176,7 @@ export function VnNarrativeLog({
             onTokenClick={onTokenClick}
             onTokenEnter={onTokenEnter}
             onTokenLeave={onTokenLeave}
+            tokenStateByPayload={tokenStateByPayload}
           />
         ) : null}
 

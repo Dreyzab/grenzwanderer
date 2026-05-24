@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import type { VnStrings } from "../../i18n/uiStrings";
 import type { VnScenario } from "../types";
 import {
@@ -20,6 +21,7 @@ interface VnScreenHeaderProps {
   onScenarioChange: (scenarioId: string) => void;
   onStartScenario: () => void;
   onOpenDebug?: () => void;
+  highlightProvidenceTrigger?: number;
 }
 
 export const VnScreenHeader = ({
@@ -31,52 +33,67 @@ export const VnScreenHeader = ({
   onScenarioChange,
   onStartScenario,
   onOpenDebug,
-}: VnScreenHeaderProps) => (
-  <header className="vn-screen-toolbar card compact">
-    <label className="field">
-      {t.scenario}
-      <select
-        value={selectedScenarioId}
-        onChange={(event) => onScenarioChange(event.target.value)}
-      >
-        {scenarios.map((scenario) => (
-          <option key={scenario.id} value={scenario.id}>
-            {scenario.title}
-          </option>
-        ))}
-      </select>
-    </label>
+  highlightProvidenceTrigger,
+}: VnScreenHeaderProps) => {
+  const [isAlerting, setIsAlerting] = useState(false);
 
-    <div className="button-row">
-      <div className="flex items-center gap-2 rounded-full border border-white/12 bg-black/20 px-3 py-2 text-xs uppercase tracking-[0.16em] text-white/80">
-        <span className="flex items-center gap-1.5">
-          <ProvidenceIcon size={16} />
-          {t.providenceLabel}: {narrativeResources.providence}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <FortuneIcon size={16} />
-          {t.fortuneLabel}: {narrativeResources.fortune}
-          {narrativeResources.fortuneMod !== 0
-            ? ` (${narrativeResources.fortuneMod > 0 ? "+" : ""}${narrativeResources.fortuneMod})`
-            : ""}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <KarmaIcon size={16} />
-          {t.karmaLabel}: {narrativeResources.karma}
-        </span>
-      </div>
-      <button
-        type="button"
-        onClick={onStartScenario}
-        disabled={!selectedScenarioId || isInteractionLocked}
-      >
-        {t.startScenario}
-      </button>
-      {onOpenDebug ? (
-        <button type="button" onClick={onOpenDebug}>
-          {t.openDebug}
+  useEffect(() => {
+    if (highlightProvidenceTrigger && highlightProvidenceTrigger > 0) {
+      setIsAlerting(true);
+      const timer = setTimeout(() => setIsAlerting(false), 1600);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightProvidenceTrigger]);
+
+  return (
+    <header className="vn-screen-toolbar card compact">
+      <label className="field">
+        {t.scenario}
+        <select
+          value={selectedScenarioId}
+          onChange={(event) => onScenarioChange(event.target.value)}
+        >
+          {scenarios.map((scenario) => (
+            <option key={scenario.id} value={scenario.id}>
+              {scenario.title}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <div className="button-row">
+        <div className="flex items-center gap-2 rounded-full border border-white/12 bg-black/20 px-3 py-2 text-xs uppercase tracking-[0.16em] text-white/80">
+          <span
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-transparent transition-all duration-300 ${isAlerting ? "animate-providence-alert" : ""}`}
+          >
+            <ProvidenceIcon size={16} />
+            {t.providenceLabel}: {narrativeResources.providence}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <FortuneIcon size={16} />
+            {t.fortuneLabel}: {narrativeResources.fortune}
+            {narrativeResources.fortuneMod !== 0
+              ? ` (${narrativeResources.fortuneMod > 0 ? "+" : ""}${narrativeResources.fortuneMod})`
+              : ""}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <KarmaIcon size={16} />
+            {t.karmaLabel}: {narrativeResources.karma}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onStartScenario}
+          disabled={!selectedScenarioId || isInteractionLocked}
+        >
+          {t.startScenario}
         </button>
-      ) : null}
-    </div>
-  </header>
-);
+        {onOpenDebug ? (
+          <button type="button" onClick={onOpenDebug}>
+            {t.openDebug}
+          </button>
+        ) : null}
+      </div>
+    </header>
+  );
+};

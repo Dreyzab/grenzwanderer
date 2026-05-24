@@ -12,6 +12,7 @@ interface ImportMetaEnv {
   readonly VITE_SPACETIMEDB_HOST?: string;
   readonly VITE_SPACETIMEDB_DB_NAME?: string;
   readonly VITE_ENABLE_AI?: string;
+  readonly VITE_ENABLE_AI_DIRECTOR?: string;
   readonly VITE_ENABLE_DEBUG_CONTENT_SEED?: string;
   readonly VITE_ENABLE_RUNTIME_DEBUG_INGEST?: string;
   readonly VITE_RUNTIME_DEBUG_INGEST_URL?: string;

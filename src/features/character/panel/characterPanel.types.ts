@@ -11,17 +11,46 @@ import type { SkillRankPerkDefinition } from "../../../shared/game/skillPerks";
 import type { SkillRankState } from "../../../shared/game/skillProgression";
 import type { VoiceOrDeptId } from "../../../shared/ui/icons/game-icons";
 
-export interface CharacterQuestJournalEntry {
+export interface BaseQuestJournalEntry {
   id: string;
   title: string;
   currentStage: number;
+  status: "Completed" | "In progress" | "Not started";
+}
+
+export interface CanonQuestJournalEntry extends BaseQuestJournalEntry {
+  kind: "canon";
   activeStage?: {
     title: string;
     objectiveHint: string;
     objectivePointIds?: string[];
   };
-  status: "Completed" | "In progress" | "Not started";
 }
+
+export interface ProceduralQuestJournalEntry extends BaseQuestJournalEntry {
+  kind: "procedural";
+  archetypeId: string;
+  stateNamespace: string;
+  steps: Array<{
+    id: string;
+    nodeId?: string;
+    title: string;
+    status: "pending" | "active" | "completed" | "failed" | "tombstoned";
+  }>;
+  eligibilitySnapshot?: {
+    triggerRuleId: string;
+    eventName: string;
+    caseId?: string;
+    scenarioId?: string;
+    nodeId?: string;
+    payload?: Record<string, unknown>;
+  };
+  createdAt: number;
+}
+
+export type CharacterQuestJournalEntry =
+  | CanonQuestJournalEntry
+  | ProceduralQuestJournalEntry;
 
 export interface CharacterObservationEntry {
   id: string;

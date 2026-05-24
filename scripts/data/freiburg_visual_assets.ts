@@ -1,4 +1,5 @@
-import { existsSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { repoRoot } from "../content-authoring-contract";
 import { CASE_01_POINTS, type Case01PointSource } from "./case_01_points";
@@ -24,6 +25,13 @@ export type VisualStateId =
   | "investigation"
   | "memory"
   | "crime_scene";
+export type VnSceneToneTarget =
+  | "daily_surface+pressure_layer"
+  | "pressure_layer"
+  | "shadow_layer"
+  | "ambiguous_occult"
+  | "fail_forward_cost"
+  | "daily_surface+earned_darkness";
 
 export interface FreiburgVisualMasterRef {
   id: string;
@@ -72,6 +80,8 @@ export interface Case01VisualVariantStub {
     mustInclude: string[];
     continuityMotifs?: string[];
     mustAvoid?: string[];
+    toneTarget?: VnSceneToneTarget;
+    styleReferenceImage?: string;
   };
 }
 
@@ -99,6 +109,41 @@ export interface Case01VisualScaffoldOutput {
   parity: Case01VisualParityReport;
 }
 
+export interface Case01VnSceneBackgroundDefinition {
+  sceneBackgroundId: string;
+  expectedBasename: string;
+  visualArchetype: FreiburgVisualArchetype;
+  visualState: VisualStateId;
+  policySlot: keyof typeof VN_POLICY_S6_TEXT;
+  localVisualBrief: NonNullable<Case01VisualVariantStub["localVisualBrief"]> & {
+    toneTarget: VnSceneToneTarget;
+    styleReferenceImage: string;
+  };
+}
+
+export interface Case01VnSceneBackgroundManifestEntry
+  extends Case01VnSceneBackgroundDefinition {
+  assetKind: "vn_scene_background";
+  expectedImagePath: string;
+  expectedMetaPath: string;
+  promptSlots: Case01VisualVariantStub["promptSlots"];
+  finalPrompt: string;
+  finalPromptSha256: string;
+}
+
+export interface Case01VnSceneBackgroundMissingEntry {
+  sceneBackgroundId: string;
+  assetKind: "vn_scene_background";
+  expectedImagePath: string;
+  expectedMetaPath: string;
+  issues: string[];
+}
+
+export interface Case01VnSceneBackgroundFileProbe {
+  existsSync: (absolutePath: string) => boolean;
+  readFileSync: (absolutePath: string) => string;
+}
+
 export const VISUAL_OUTPUT_DIR = path.join(
   repoRoot,
   "content",
@@ -115,6 +160,14 @@ export const VISUAL_VARIANTS_OUTPUT_PATH = path.join(
 export const VISUAL_MISSING_OUTPUT_PATH = path.join(
   VISUAL_OUTPUT_DIR,
   "freiburg-case01.visual-missing.json",
+);
+export const VN_SCENE_BACKGROUND_MANIFEST_OUTPUT_PATH = path.join(
+  VISUAL_OUTPUT_DIR,
+  "freiburg-case01.vn-scene-bg.manifest.json",
+);
+export const VN_SCENE_BACKGROUND_MISSING_OUTPUT_PATH = path.join(
+  VISUAL_OUTPUT_DIR,
+  "freiburg-case01.vn-scene-bg.missing.json",
 );
 
 export const UNIVERSITY_NEOGOTHIC_PILOT_LOCATION_IDS = [
@@ -171,6 +224,21 @@ export const VN_POLICY_S6_TEXT = {
   interior_memory:
     "Interior memory scene, no people visible, softened silhouettes of furniture only, sprite-safe composition",
 } as const;
+
+const TONE_TARGET_PROMPT_TEXT: Record<VnSceneToneTarget, string> = {
+  "daily_surface+pressure_layer":
+    "Tone target: daily surface with controlled pressure underneath; ordinary details carry unease without overt horror",
+  pressure_layer:
+    "Tone target: pressure layer; social order appears composed while one detail quietly refuses to settle",
+  shadow_layer:
+    "Tone target: shadow layer; practical architecture darkened by consequence, not theatrical horror",
+  ambiguous_occult:
+    "Tone target: ambiguous occult; show usable traces and physical unease without confirming a literal supernatural figure",
+  fail_forward_cost:
+    "Tone target: fail-forward cost; the space implies danger and consequence through traces, not visible violence",
+  "daily_surface+earned_darkness":
+    "Tone target: daily surface after earned darkness; morning normality has to hold evidence it cannot fully hide",
+};
 
 export const FREIBURG_VISUAL_MASTER_REFS: FreiburgVisualMasterRef[] = [
   {
@@ -370,6 +438,12 @@ const renderLocalVisualBrief = (
   if (brief.mustAvoid && brief.mustAvoid.length > 0) {
     parts.push(`Avoid locally: ${brief.mustAvoid.join("; ")}`);
   }
+  if (brief.toneTarget) {
+    parts.push(TONE_TARGET_PROMPT_TEXT[brief.toneTarget]);
+  }
+  if (brief.styleReferenceImage) {
+    parts.push(`Style reference image: ${brief.styleReferenceImage}`);
+  }
 
   return parts;
 };
@@ -405,6 +479,9 @@ const locationIdsFromPoints = (
 
 const toRepoRelativePath = (absolutePath: string): string =>
   path.relative(repoRoot, absolutePath).replaceAll("\\", "/");
+
+const sha256 = (value: string): string =>
+  createHash("sha256").update(value, "utf8").digest("hex");
 
 const getRuntimeImageBasename = (imagePath: string): string =>
   path.basename(imagePath, path.extname(imagePath));
@@ -711,3 +788,334 @@ export const buildCase01VisualScaffoldOutput = (
     parity,
   };
 };
+
+export const CASE01_VN_SCENE_BACKGROUND_DEFINITIONS: readonly Case01VnSceneBackgroundDefinition[] =
+  [
+    {
+      sceneBackgroundId: "case01_vn_bg_estate_approach",
+      expectedBasename: "bg_case01_estate_approach",
+      visualArchetype: "estate_noble",
+      visualState: "default",
+      policySlot: "exterior_empty",
+      localVisualBrief: {
+        summary:
+          "Road from Freiburg toward the estate, with city pressure receding before the house takes over.",
+        mustInclude: [
+          "damp carriage road",
+          "distant iron gate",
+          "linden silhouettes",
+          "low evening mist",
+          "no figures",
+        ],
+        continuityMotifs: ["linden silhouettes", "low evening mist"],
+        mustAvoid: [
+          "heroic mansion reveal",
+          "modern road",
+          "readable signs",
+        ],
+        toneTarget: "daily_surface+pressure_layer",
+        styleReferenceImage:
+          "/images/scenes/case01/bg_case01_convergence_city_threshold.webp",
+      },
+    },
+    {
+      sceneBackgroundId: "case01_vn_bg_estate_gates",
+      expectedBasename: "bg_case01_estate_gates",
+      visualArchetype: "estate_noble",
+      visualState: "investigation",
+      policySlot: "exterior_empty",
+      localVisualBrief: {
+        summary:
+          "Grand Estate gates at first arrival: aristocratic order, partly open, already watching.",
+        mustInclude: [
+          "wrought iron estate gates partly open",
+          "linden alley",
+          "warm window-light far beyond",
+          "controlled aristocratic order",
+        ],
+        continuityMotifs: [
+          "wrought iron",
+          "linden alley",
+          "warm distant windows",
+        ],
+        mustAvoid: ["castle-horror", "ritual candles", "people"],
+        toneTarget: "pressure_layer",
+        styleReferenceImage:
+          "/images/scenes/case01/bg_case01_estate_bureau.webp",
+      },
+    },
+    {
+      sceneBackgroundId: "case01_vn_bg_baroness_study",
+      expectedBasename: "bg_case01_baroness_study",
+      visualArchetype: "estate_noble",
+      visualState: "investigation",
+      policySlot: "interior_dialogue",
+      localVisualBrief: {
+        summary:
+          "Baroness's private study at composed-surface tier: official correspondence immaculate on top, one drawer not fully closed.",
+        mustInclude: [
+          "wax-sealed correspondence stacked by date",
+          "tarnished silver letter-opener where polish stopped mid-handle",
+          "one drawer not fully closed; ledger spine visible inside",
+          "afternoon light filtered through heavy velvet curtains",
+          "tea set with cooled cup, one biscuit untouched",
+        ],
+        continuityMotifs: [
+          "tarnished-silver-where-polish-stopped",
+          "wax-sealed correspondence",
+          "afternoon velvet light",
+        ],
+        mustAvoid: [
+          "any human figure or silhouette",
+          "modern fashion or furniture",
+          "obvious gothic horror imagery",
+          "literal blood, candles arranged ritually, pentagrams",
+        ],
+        toneTarget: "pressure_layer",
+        styleReferenceImage:
+          "/images/scenes/case01/bg_case01_rathaus_office_pressure.webp",
+      },
+    },
+    {
+      sceneBackgroundId: "case01_vn_bg_estate_vaults",
+      expectedBasename: "bg_case01_estate_vaults",
+      visualArchetype: "estate_noble",
+      visualState: "investigation",
+      policySlot: "interior_dialogue",
+      localVisualBrief: {
+        summary:
+          "Stone estate vaults as servant-work infrastructure under cold pressure, not a warehouse.",
+        mustInclude: [
+          "stone vaulted cellars",
+          "lime-stained frost",
+          "service shelves",
+          "tarnished lantern",
+          "rat traces in the corner",
+        ],
+        continuityMotifs: ["lime-stained frost", "service shelves", "rats"],
+        mustAvoid: [
+          "wet-timber warehouse look",
+          "modern pipes",
+          "gore",
+          "visible servants or silhouettes",
+        ],
+        toneTarget: "shadow_layer",
+        styleReferenceImage:
+          "/images/scenes/case01/bg_case01_warehouse_wet_timber.webp",
+      },
+    },
+    {
+      sceneBackgroundId: "case01_vn_bg_ghost_cellar",
+      expectedBasename: "bg_case01_ghost_cellar",
+      visualArchetype: "estate_noble",
+      visualState: "memory",
+      policySlot: "interior_memory",
+      localVisualBrief: {
+        summary:
+          "Deep service cellar where the spirit is legible by traces, absence, and temperature rather than apparition.",
+        mustInclude: [
+          "old service-corridor masonry, lime-stained brick",
+          "brass strongbox latch on stone",
+          "dust pattern around a missing object on shelf",
+          "candle-burn marks on stone not from this season",
+          "cold air visible only as faint condensation on iron pipe",
+        ],
+        continuityMotifs: [
+          "brass strongbox",
+          "dust pattern around absence",
+          "out-of-season candle marks",
+        ],
+        mustAvoid: [
+          "literal ghost figure",
+          "supernatural glow, ectoplasm, fog effects",
+          "skulls, ritual circles, occult symbols on surfaces",
+        ],
+        toneTarget: "ambiguous_occult",
+        styleReferenceImage:
+          "/images/scenes/case01/bg_case01_estate_vaults.webp",
+      },
+    },
+    {
+      sceneBackgroundId: "case01_vn_bg_night_alley",
+      expectedBasename: "bg_case01_night_alley",
+      visualArchetype: "canal_tavern",
+      visualState: "crime_scene",
+      policySlot: "exterior_aftermath",
+      localVisualBrief: {
+        summary:
+          "Narrow Freiburg service alley after midnight, built for an attack without showing the attacker.",
+        mustInclude: [
+          "narrow Freiburg service alley",
+          "wet cobbles",
+          "single gas lamp",
+          "side arch",
+          "dropped metal glint",
+          "fog held low",
+        ],
+        continuityMotifs: ["wet cobbles", "single gas lamp", "metal glint"],
+        mustAvoid: [
+          "Hollywood noir",
+          "modern signage",
+          "visible attacker",
+          "readable gang text",
+        ],
+        toneTarget: "fail_forward_cost",
+        styleReferenceImage:
+          "/images/scenes/case01/bg_case01_rail_yard_night.webp",
+      },
+    },
+    {
+      sceneBackgroundId: "case01_vn_bg_hotel_bedroom",
+      expectedBasename: "bg_case01_hotel_bedroom",
+      visualArchetype: "canal_tavern",
+      visualState: "default",
+      policySlot: "interior_dialogue",
+      localVisualBrief: {
+        summary:
+          "Zum Goldenen Adler bedroom in morning normality, holding the evidence the night left behind.",
+        mustInclude: [
+          "1905 hotel room",
+          "white bed linens",
+          "washstand",
+          "travel trunk",
+          "morning light",
+          "folded dress with small dark stain",
+        ],
+        continuityMotifs: ["white linens", "washstand", "small dark stain"],
+        mustAvoid: [
+          "telephone",
+          "alarm clock",
+          "electric lamp",
+          "lurid gore",
+        ],
+        toneTarget: "daily_surface+earned_darkness",
+        styleReferenceImage:
+          "/images/scenes/case01/bg_case01_zum_goldenen_adler_lobby.webp",
+      },
+    },
+  ] as const;
+
+const buildVnSceneBackgroundPromptSlots = (
+  definition: Case01VnSceneBackgroundDefinition,
+): Case01VisualVariantStub["promptSlots"] => ({
+  s1: SARGENT_STYLE_S1_TEXT,
+  s2: KAISER_ERA_S2_TEXT,
+  s3: VISUAL_ARCHETYPE_S3_PREFIX[definition.visualArchetype],
+  s4: VISUAL_STATE_S4_TEXT[definition.visualState],
+  s5: VN_BACKGROUND_S5_TEXT,
+  s6: VN_POLICY_S6_TEXT[definition.policySlot],
+  s7: MASTERPIECE_S7_TEXT,
+});
+
+export const buildCase01VnSceneBackgroundManifest =
+  (): Case01VnSceneBackgroundManifestEntry[] =>
+    [...CASE01_VN_SCENE_BACKGROUND_DEFINITIONS]
+      .map((definition): Case01VnSceneBackgroundManifestEntry => {
+        const promptSlots = buildVnSceneBackgroundPromptSlots(definition);
+        const finalPrompt = buildFinalPrompt(
+          promptSlots,
+          definition.localVisualBrief,
+        );
+        return {
+          ...definition,
+          assetKind: "vn_scene_background",
+          expectedImagePath: toRepoRelativePath(
+            path.join(
+              repoRoot,
+              "public",
+              "images",
+              "scenes",
+              "case01",
+              `${definition.expectedBasename}.webp`,
+            ),
+          ),
+          expectedMetaPath: toRepoRelativePath(
+            path.join(
+              repoRoot,
+              "public",
+              "images",
+              "scenes",
+              "case01",
+              `${definition.expectedBasename}.meta.json`,
+            ),
+          ),
+          promptSlots,
+          finalPrompt,
+          finalPromptSha256: sha256(finalPrompt),
+        };
+      })
+      .sort((left, right) =>
+        left.sceneBackgroundId.localeCompare(right.sceneBackgroundId),
+      );
+
+const readJsonIfExists = (
+  absolutePath: string,
+  probe: Case01VnSceneBackgroundFileProbe,
+): unknown => {
+  try {
+    return JSON.parse(probe.readFileSync(absolutePath));
+  } catch {
+    return null;
+  }
+};
+
+export const buildCase01VnSceneBackgroundMissingReport = (
+  manifest: readonly Case01VnSceneBackgroundManifestEntry[] =
+    buildCase01VnSceneBackgroundManifest(),
+  probe: Case01VnSceneBackgroundFileProbe = {
+    existsSync,
+    readFileSync: (absolutePath) => readFileSync(absolutePath, "utf8"),
+  },
+): Case01VnSceneBackgroundMissingEntry[] =>
+  manifest
+    .map((entry) => {
+      const expectedImageAbsolutePath = path.join(
+        repoRoot,
+        entry.expectedImagePath,
+      );
+      const expectedMetaAbsolutePath = path.join(
+        repoRoot,
+        entry.expectedMetaPath,
+      );
+      const issues: string[] = [];
+
+      if (!probe.existsSync(expectedImageAbsolutePath)) {
+        issues.push("missing_expected_image");
+      }
+      if (!probe.existsSync(expectedMetaAbsolutePath)) {
+        issues.push("missing_expected_meta");
+      } else {
+        const meta = readJsonIfExists(expectedMetaAbsolutePath, probe);
+        const metaRecord =
+          meta && typeof meta === "object"
+            ? (meta as Record<string, unknown>)
+            : {};
+        if (metaRecord.finalPrompt !== entry.finalPrompt) {
+          issues.push("stale_expected_meta_prompt");
+        }
+        if (metaRecord.finalPromptSha256 !== entry.finalPromptSha256) {
+          issues.push("stale_expected_meta_prompt_hash");
+        }
+        if (metaRecord.toneTarget !== entry.localVisualBrief.toneTarget) {
+          issues.push("stale_expected_meta_tone_target");
+        }
+        if (
+          metaRecord.styleReferenceImage !==
+          entry.localVisualBrief.styleReferenceImage
+        ) {
+          issues.push("stale_expected_meta_style_reference");
+        }
+      }
+
+      return {
+        sceneBackgroundId: entry.sceneBackgroundId,
+        assetKind: entry.assetKind,
+        expectedImagePath: entry.expectedImagePath,
+        expectedMetaPath: entry.expectedMetaPath,
+        issues,
+      };
+    })
+    .filter((entry) => entry.issues.length > 0)
+    .sort((left, right) =>
+      left.sceneBackgroundId.localeCompare(right.sceneBackgroundId),
+    );

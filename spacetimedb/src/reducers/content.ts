@@ -8,6 +8,7 @@ import {
   ensureIdempotent,
   parseSnapshotPayload,
   resetForSchemaMigration,
+  syncCaseVersions,
   syncMindPalaceContentTables,
 } from "./helpers";
 
@@ -133,6 +134,7 @@ export const publish_content = spacetimedb.reducer(
       });
     }
 
+    syncCaseVersions(ctx, snapshot, version, checksum, schemaVersion);
     syncMindPalaceContentTables(ctx, snapshot);
 
     emitTelemetry(ctx, "content_published", {
@@ -228,6 +230,13 @@ export const rollback_content = spacetimedb.reducer(
       publishedAt: ctx.timestamp,
     });
 
+    syncCaseVersions(
+      ctx,
+      snapshot,
+      targetVersion.version,
+      targetChecksum,
+      targetVersion.schemaVersion,
+    );
     syncMindPalaceContentTables(ctx, snapshot);
 
     emitTelemetry(ctx, "content_rolled_back", {

@@ -228,6 +228,38 @@ export const contentSnapshot = table(
   },
 );
 
+export const caseVersion = table(
+  {
+    name: "case_version",
+    public: true,
+    indexes: [
+      {
+        accessor: "case_version_case_id",
+        algorithm: "btree",
+        columns: ["caseId"],
+      },
+      {
+        accessor: "case_version_version",
+        algorithm: "btree",
+        columns: ["version"],
+      },
+      {
+        accessor: "case_version_checksum",
+        algorithm: "btree",
+        columns: ["checksum"],
+      },
+    ],
+  },
+  {
+    caseVersionKey: t.string().primaryKey(),
+    caseId: t.string(),
+    version: t.string(),
+    schemaVersion: t.u32(),
+    checksum: t.string(),
+    publishedAt: t.timestamp(),
+  },
+);
+
 export const contentTranslation = table(
   {
     name: "content_translation",
@@ -371,6 +403,87 @@ export const telemetryAggregateCheckpoint = table(
   {
     checkpointKey: t.string().primaryKey(),
     nextBucketStart: t.timestamp(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+export const caseEventLog = table(
+  {
+    name: "case_event_log",
+    public: false,
+    indexes: [
+      {
+        accessor: "case_event_log_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "case_event_log_case_id",
+        algorithm: "btree",
+        columns: ["caseId"],
+      },
+      {
+        accessor: "case_event_log_event_name",
+        algorithm: "btree",
+        columns: ["eventName"],
+      },
+      {
+        accessor: "case_event_log_created_at",
+        algorithm: "btree",
+        columns: ["createdAt"],
+      },
+    ],
+  },
+  {
+    eventId: t.u64().primaryKey().autoInc(),
+    playerId: t.identity(),
+    eventName: t.string(),
+    caseId: t.string().optional(),
+    scenarioId: t.string().optional(),
+    nodeId: t.string().optional(),
+    questInstanceId: t.string().optional(),
+    payloadJson: t.string(),
+    idempotencyKey: t.string(),
+    createdAt: t.timestamp(),
+  },
+);
+
+export const questInstance = table(
+  {
+    name: "quest_instance",
+    public: false,
+    indexes: [
+      {
+        accessor: "quest_instance_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "quest_instance_instance_id",
+        algorithm: "btree",
+        columns: ["instanceId"],
+      },
+      {
+        accessor: "quest_instance_archetype_id",
+        algorithm: "btree",
+        columns: ["archetypeId"],
+      },
+    ],
+  },
+  {
+    questInstanceKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    instanceId: t.string(),
+    kind: t.string(),
+    status: t.string(),
+    triggerRuleId: t.string(),
+    archetypeId: t.string(),
+    archetypeVersion: t.u32(),
+    bundleChecksum: t.string(),
+    stateNamespace: t.string(),
+    stepsJson: t.string(),
+    eligibilitySnapshotJson: t.string(),
+    createdAt: t.timestamp(),
     updatedAt: t.timestamp(),
   },
 );
@@ -1378,6 +1491,7 @@ const spacetimedb = schema({
   vnSkillCheckResult,
   contentVersion,
   contentSnapshot,
+  caseVersion,
   contentTranslation,
   adminIdentity,
   workerAllowlist,
@@ -1385,6 +1499,8 @@ const spacetimedb = schema({
   telemetryEvent,
   telemetryAggregate,
   telemetryAggregateCheckpoint,
+  caseEventLog,
+  questInstance,
   aiRequest,
   workerIdentity,
   mindCase,
@@ -1569,6 +1685,13 @@ export const my_quests = spacetimedb.view(
   { name: "my_quests", public: true },
   t.array(playerQuest.rowType),
   (ctx) => selfScopedByPlayerId(ctx, "playerQuest", "player_quest_player_id"),
+);
+
+export const my_quest_instances = spacetimedb.view(
+  { name: "my_quest_instances", public: true },
+  t.array(questInstance.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(ctx, "questInstance", "quest_instance_player_id"),
 );
 
 export const my_evidence = spacetimedb.view(

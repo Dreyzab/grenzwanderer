@@ -4,6 +4,7 @@ import { VnNarrativeText } from "../../features/vn/ui/VnNarrativeText";
 import { getCharacterPortrait } from "../../features/vn/characterAssets";
 import type {
   TypedTextHandle,
+  TypedTextTokenState,
   TypedTextTokenHandler,
 } from "../../features/vn/ui/TypedText";
 
@@ -20,6 +21,7 @@ interface VnSplitNarrativeDockProps {
   onTokenClick?: TypedTextTokenHandler;
   onTokenEnter?: TypedTextTokenHandler;
   onTokenLeave?: TypedTextTokenHandler;
+  tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
   onTypingChange?: (typing: boolean) => void;
 }
 
@@ -36,6 +38,7 @@ export const VnSplitNarrativeDock = ({
   onTokenClick,
   onTokenEnter,
   onTokenLeave,
+  tokenStateByPayload,
   onTypingChange,
 }: VnSplitNarrativeDockProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -139,7 +142,7 @@ export const VnSplitNarrativeDock = ({
           <div className="absolute left-8 top-full h-4 w-[2px] bg-amber-500/40" />
           <div className="relative px-6 py-2 bg-stone-950 border-l-[3px] border-amber-500 shadow-[0_5px_15px_rgba(0,0,0,0.5)] transform -skew-x-12 origin-bottom-left transition-transform duration-300 group-hover:-skew-x-6">
             <div className="transform skew-x-12 text-amber-500 font-bold tracking-widest uppercase text-base">
-              {characterName}
+              {characterName.replace(/\s*\(\?\?\?\)\s*/g, "").trim()}
             </div>
             <div className="absolute -top-px -right-px w-2 h-2 border-t border-r border-amber-500/60" />
           </div>
@@ -176,6 +179,7 @@ export const VnSplitNarrativeDock = ({
             onTokenClick={onTokenClick}
             onTokenEnter={onTokenEnter}
             onTokenLeave={onTokenLeave}
+            tokenStateByPayload={tokenStateByPayload}
             onTypingChange={onTypingChange}
             onComplete={onNarrativeComplete}
             typedTextRef={typedTextRef}

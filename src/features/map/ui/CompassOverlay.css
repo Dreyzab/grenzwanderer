@@ -1,0 +1,636 @@
+/* ═══════════════════════════════════════════════════════════════════
+   CompassOverlay — "Enamel Surveyor Compass" (1905 Germany)
+   ═══════════════════════════════════════════════════════════════════
+   Aesthetic: Antique brass case, white enamel dial, radium-red needle.
+   Two states: Navigation (gold accents) / Search Zone (teal pulse).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Design Tokens ─── */
+:root {
+  --compass-size: 148px;
+  --compass-brass: #b8923e;
+  --compass-brass-dark: #8a6b2a;
+  --compass-brass-highlight: #d9b566;
+  --compass-enamel: #f0e8d4;
+  --compass-enamel-crack: rgba(139, 119, 80, 0.12);
+  --compass-radium-red: #c42b2b;
+  --compass-radium-glow: rgba(196, 43, 43, 0.6);
+  --compass-gunmetal: #3a3d42;
+  --compass-crosshair: rgba(80, 65, 40, 0.18);
+  --compass-glass-shine: rgba(255, 255, 255, 0.08);
+  --compass-gold-accent: #d9a743;
+  --compass-teal-accent: #69c1a3;
+  --compass-bg: rgba(16, 13, 10, 0.55);
+}
+
+/* ─── Root Container ─── */
+.gw-compass {
+  position: absolute;
+  right: 1.5rem;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8.5rem);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  pointer-events: auto;
+  animation: compass-materialize 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes compass-materialize {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ─── Brass Case (outer ring) ─── */
+.gw-compass__case {
+  position: relative;
+  width: var(--compass-size);
+  height: var(--compass-size);
+  border-radius: 50%;
+  /* Brass case with beveled edge */
+  background: radial-gradient(
+    circle at 35% 25%,
+    var(--compass-brass-highlight) 0%,
+    var(--compass-brass) 40%,
+    var(--compass-brass-dark) 100%
+  );
+  /* Raised bezel shadow */
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.6),
+    0 1px 3px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  padding: 6px;
+}
+
+/* Decorative bezel ring (Art Nouveau style) */
+.gw-compass__bezel {
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.gw-compass__bezel::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+/* ─── Enamel Dial ─── */
+.gw-compass__dial {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  /* Aged enamel with subtle cracks */
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      var(--compass-enamel-crack) 0deg 2deg,
+      transparent 2deg 15deg
+    ),
+    radial-gradient(circle, var(--compass-enamel) 0%, #e8dfc8 70%, #d6cbb0 100%);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+/* ─── Tick Marks ─── */
+.gw-compass__tick {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  transform-origin: bottom center;
+  pointer-events: none;
+}
+
+.gw-compass__tick--minor {
+  height: 6px;
+  background: rgba(60, 45, 20, 0.35);
+  margin-left: -0.5px;
+}
+
+.gw-compass__tick--major {
+  height: 10px;
+  width: 1.5px;
+  background: rgba(60, 45, 20, 0.55);
+  margin-left: -0.75px;
+}
+
+/* ─── Cardinal Labels ─── */
+.gw-compass__cardinal {
+  position: absolute;
+  font-family: var(--font-serif);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #3d2e14;
+  text-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.03em;
+  pointer-events: none;
+  user-select: none;
+}
+
+.gw-compass__cardinal--n {
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--compass-radium-red);
+  font-size: 0.8rem;
+  text-shadow: 0 0 4px var(--compass-radium-glow);
+}
+
+.gw-compass__cardinal--s {
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.gw-compass__cardinal--o {
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.gw-compass__cardinal--w {
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* ─── Crosshair Lines ─── */
+.gw-compass__crosshair {
+  position: absolute;
+  pointer-events: none;
+}
+
+.gw-compass__crosshair--h {
+  top: 50%;
+  left: 18%;
+  right: 18%;
+  height: 0.5px;
+  background: var(--compass-crosshair);
+}
+
+.gw-compass__crosshair--v {
+  left: 50%;
+  top: 18%;
+  bottom: 18%;
+  width: 0.5px;
+  background: var(--compass-crosshair);
+}
+
+/* ─── Center Jewel Bearing ─── */
+.gw-compass__jewel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    #f5e6b8,
+    var(--compass-brass) 50%,
+    var(--compass-brass-dark)
+  );
+  box-shadow:
+    0 0 3px rgba(0, 0, 0, 0.4),
+    0 0 1px var(--compass-brass);
+  z-index: 5;
+}
+
+/* ─── NEEDLE ASSEMBLY ─── */
+.gw-compass__needle-assembly {
+  position: absolute;
+  inset: 14%;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* Shared needle half styles */
+.gw-compass__needle {
+  position: absolute;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+/* North half — Radium Red with glow */
+.gw-compass__needle--north {
+  bottom: 50%;
+  transform: translateX(-50%);
+  /* Elongated diamond/spear shape */
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: calc(50% + 18px) solid var(--compass-radium-red);
+  filter: drop-shadow(0 0 6px var(--compass-radium-glow))
+    drop-shadow(0 0 2px rgba(196, 43, 43, 0.4));
+}
+
+/* Gold filigree accent line on north needle */
+.gw-compass__needle--north::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: -1.5px;
+  width: 3px;
+  height: 60%;
+  background: linear-gradient(to top, rgba(217, 167, 67, 0.5), transparent);
+  pointer-events: none;
+}
+
+/* South half — Dark gunmetal */
+.gw-compass__needle--south {
+  top: 50%;
+  transform: translateX(-50%);
+  border-left: 3.5px solid transparent;
+  border-right: 3.5px solid transparent;
+  border-top: calc(50% + 6px) solid var(--compass-gunmetal);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* ─── Glass Dome Overlay ─── */
+.gw-compass__glass {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* Subtle glass shine from upper-left */
+  background:
+    radial-gradient(
+      ellipse at 30% 20%,
+      rgba(255, 255, 255, 0.12) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 70% 80%,
+      rgba(255, 255, 255, 0.04) 0%,
+      transparent 40%
+    );
+  pointer-events: none;
+  z-index: 6;
+}
+
+/* ─── Readout Plaque (brass info plate below compass) ─── */
+.gw-compass__readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0.25rem 0.65rem;
+  min-width: 90px;
+  background: linear-gradient(
+    to bottom,
+    rgba(184, 146, 62, 0.2),
+    rgba(138, 107, 42, 0.15)
+  );
+  border: 1px solid rgba(184, 146, 62, 0.3);
+  border-radius: 4px;
+  backdrop-filter: blur(6px);
+  animation: readout-fade 0.4s ease-out 0.3s both;
+}
+
+@keyframes readout-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gw-compass__readout-label {
+  font-family: var(--font-serif);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--compass-enamel);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+
+.gw-compass__readout-data {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.gw-compass__readout-distance {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--compass-gold-accent);
+  letter-spacing: 0.02em;
+}
+
+.gw-compass__readout-speed {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: rgba(211, 178, 122, 0.6);
+}
+
+.gw-compass__readout-status {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  color: var(--compass-teal-accent);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  animation: status-pulse 2s infinite;
+}
+
+@keyframes status-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   STATE MODIFIERS
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Navigation State: gold accents ─── */
+.gw-compass--navigating .gw-compass__case {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.6),
+    0 0 12px rgba(217, 167, 67, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Search Zone State: teal pulse + needle tremble ─── */
+.gw-compass--search .gw-compass__case {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(105, 193, 163, 0.2),
+    0 0 40px rgba(105, 193, 163, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  animation: search-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes search-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.6),
+      0 0 15px rgba(105, 193, 163, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  50% {
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.6),
+      0 0 28px rgba(105, 193, 163, 0.3),
+      0 0 50px rgba(105, 193, 163, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Needle tremble in search zone */
+.gw-compass--search .gw-compass__needle-assembly {
+  animation: needle-tremble 0.15s ease-in-out infinite alternate;
+}
+
+@keyframes needle-tremble {
+  from {
+    transform: rotate(var(--needle-deg, 0deg)) rotate(-1.5deg);
+  }
+  to {
+    transform: rotate(var(--needle-deg, 0deg)) rotate(1.5deg);
+  }
+}
+
+/* Search zone — teal tint on the "N" cardinal */
+.gw-compass--search .gw-compass__cardinal--n {
+  color: var(--compass-teal-accent);
+  text-shadow: 0 0 6px rgba(105, 193, 163, 0.6);
+}
+
+/* Search zone glass gets a subtle teal tint */
+.gw-compass--search .gw-compass__glass {
+  background:
+    radial-gradient(
+      ellipse at 30% 20%,
+      rgba(105, 193, 163, 0.06) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 70% 80%,
+      rgba(255, 255, 255, 0.04) 0%,
+      transparent 40%
+    );
+}
+
+/* ─── Idle State: dimmed ─── */
+.gw-compass--signal-cold .gw-compass__case,
+.gw-compass--signal-warm .gw-compass__case,
+.gw-compass--signal-hot .gw-compass__case,
+.gw-compass--signal-interference .gw-compass__case {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.6),
+    0 0 var(--signal-glow-size, 16px)
+      var(--signal-glow-color, rgba(184, 139, 70, 0.18)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.gw-compass--signal-cold {
+  --signal-glow-size: 12px;
+  --signal-glow-color: rgba(184, 139, 70, 0.16);
+}
+
+.gw-compass--signal-warm {
+  --signal-glow-size: 22px;
+  --signal-glow-color: rgba(217, 167, 67, 0.24);
+}
+
+.gw-compass--signal-hot {
+  --signal-glow-size: 34px;
+  --signal-glow-color: rgba(196, 43, 43, 0.28);
+}
+
+.gw-compass--signal-interference {
+  --signal-glow-size: 28px;
+  --signal-glow-color: rgba(105, 193, 163, 0.24);
+}
+
+.gw-compass--signal-cold .gw-compass__needle-assembly {
+  animation: needle-drift 1.1s ease-in-out infinite alternate;
+}
+
+.gw-compass--signal-warm .gw-compass__needle-assembly {
+  animation: needle-tremble 0.42s ease-in-out infinite alternate;
+}
+
+.gw-compass--signal-hot .gw-compass__needle-assembly,
+.gw-compass--signal-interference .gw-compass__needle-assembly {
+  animation: needle-tremble 0.16s ease-in-out infinite alternate;
+}
+
+.gw-compass--signal-warm .gw-compass__case,
+.gw-compass--signal-hot .gw-compass__case {
+  animation: search-glow 1.7s ease-in-out infinite;
+}
+
+.gw-compass--signal-warm .gw-compass__case::after,
+.gw-compass--signal-hot .gw-compass__case::after {
+  content: "";
+  position: absolute;
+  inset: -0.25rem;
+  border: 1px solid var(--signal-glow-color);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: compass-signal-ring 1.7s ease-out infinite;
+}
+
+.gw-compass--signal-hot .gw-compass__case::after {
+  inset: -0.42rem;
+  animation-duration: 0.78s;
+  border-color: rgba(196, 43, 43, 0.4);
+}
+
+.gw-compass--signal-interference .gw-compass__case {
+  animation: interference-flicker 0.48s steps(2, end) infinite;
+}
+
+@keyframes needle-drift {
+  from {
+    transform: rotate(var(--needle-deg, 0deg)) rotate(-0.8deg);
+  }
+  to {
+    transform: rotate(var(--needle-deg, 0deg)) rotate(0.8deg);
+  }
+}
+
+@keyframes interference-flicker {
+  0%,
+  100% {
+    opacity: 0.88;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes compass-signal-ring {
+  from {
+    opacity: 0.62;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.16);
+  }
+}
+
+.gw-compass__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.38rem;
+  max-width: calc(var(--compass-size) + 2.2rem);
+}
+
+.gw-compass__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0.42rem 0.58rem;
+  border: 1px solid rgba(184, 146, 62, 0.36);
+  border-radius: 0;
+  background: rgba(16, 13, 10, 0.78);
+  color: var(--compass-enamel);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.gw-compass__action:hover:not(:disabled),
+.gw-compass__action[data-active="true"] {
+  border-color: rgba(217, 181, 102, 0.72);
+  background: rgba(48, 35, 22, 0.92);
+  color: #fff4d9;
+  transform: translateY(-1px);
+}
+
+.gw-compass__inspect {
+  border-color: rgba(196, 43, 43, 0.46);
+}
+
+.gw-compass__action:disabled {
+  cursor: not-allowed;
+  opacity: 0.54;
+}
+
+.gw-compass--idle {
+  opacity: 0.6;
+}
+
+.gw-compass--idle .gw-compass__needle--north {
+  filter: drop-shadow(0 0 3px rgba(196, 43, 43, 0.3));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 760px) {
+  :root {
+    --compass-size: 112px;
+  }
+
+  .gw-compass {
+    right: 1rem;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 6rem);
+  }
+
+  .gw-compass__cardinal {
+    font-size: 0.6rem;
+  }
+
+  .gw-compass__readout {
+    padding: 0.2rem 0.45rem;
+    min-width: 80px;
+  }
+
+  .gw-compass__readout-label {
+    font-size: 0.55rem;
+  }
+
+  .gw-compass__readout-distance {
+    font-size: 0.6rem;
+  }
+
+  .gw-compass__action {
+    font-size: 0.52rem;
+    padding: 0.36rem 0.48rem;
+  }
+}

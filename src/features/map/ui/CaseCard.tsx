@@ -26,6 +26,7 @@ interface CaseCardProps {
     point: RuntimeMapPoint,
     binding: RuntimeMapBinding,
   ) => Promise<void>;
+  onAddWaypoint?: (point: RuntimeMapPoint) => void;
   onClose: () => void;
 }
 
@@ -121,6 +122,7 @@ export const CaseCard = ({
   point,
   currentLocationId,
   onRunBinding,
+  onAddWaypoint,
   onClose,
 }: CaseCardProps) => {
   const [versionRows] = useTable(tables.contentVersion);
@@ -885,6 +887,28 @@ export const CaseCard = ({
                   : travelBinding.hasTravelAction && isCurrentLocation
                     ? "Here"
                     : travelBinding.label}
+              </button>
+            ) : null}
+
+            {onAddWaypoint ? (
+              <button
+                type="button"
+                disabled={isBusy}
+                onClick={() => onAddWaypoint(point)}
+                style={{
+                  border: "1px solid rgba(59, 37, 18, 0.14)",
+                  borderRadius: "0.95rem",
+                  padding: "0.9rem 1rem",
+                  background: "linear-gradient(180deg, #2f4f57, #1d343a)",
+                  color: "#f8eeda",
+                  fontFamily: "var(--font-display)",
+                  fontSize: "0.95rem",
+                  fontWeight: 700,
+                  cursor: isBusy ? "not-allowed" : "pointer",
+                  opacity: isBusy ? 0.68 : 1,
+                }}
+              >
+                Add to route
               </button>
             ) : null}
           </div>

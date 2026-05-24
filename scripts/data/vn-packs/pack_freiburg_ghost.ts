@@ -208,6 +208,121 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
           { type: "grant_evidence", evidenceId: "ev_ectoplasm" },
         ],
       },
+      {
+        id: "GHOST_WITCH_VEIL_FOCUS",
+        text: "[Veil Sight] Ask what in the room is not human.",
+        choiceType: "inquiry",
+        nextNodeId: "scene_evidence_collection_beat1",
+        visibleIfAll: [
+          { type: "flag_equals", key: "origin_witch", value: true },
+        ],
+        effects: [
+          { type: "set_flag", key: "ghost_veil_resonance_seen", value: true },
+          { type: "set_flag", key: "ghost_human_cover_suspected", value: true },
+          { type: "add_var", key: "witch_blood_curse_pressure", value: 15 },
+          {
+            type: "track_event",
+            eventName: "witch_veil_focus",
+            tags: { location: "grand_estate", scope: "session_hook" },
+          },
+        ],
+        inlineText:
+          "**[attr_spirit]**:\nThe cold does not begin at the window. It gathers around the pantry door, where a living hand has touched the same brass latch too often. The spirit is real, but someone alive has learned its route.",
+      },
+      {
+        id: "GHOST_WITCH_BLOOD_TEMPTATION",
+        text: "[Blood Curse] Breathe through the metallic scent near the pantry.",
+        choiceType: "flavor",
+        nextNodeId: "scene_evidence_collection_beat1",
+        visibleIfAll: [
+          { type: "flag_equals", key: "origin_witch", value: true },
+          { type: "var_gte", key: "witch_blood_curse_pressure", value: 50 },
+        ],
+        effects: [
+          {
+            type: "set_flag",
+            key: "ghost_witch_blood_temptation_seen",
+            value: true,
+          },
+          { type: "add_var", key: "witch_blood_curse_pressure", value: -20 },
+          { type: "add_var", key: "witch_blood_power", value: 1 },
+          { type: "add_var", key: "witch_blood_debt", value: 16 },
+        ],
+        inlineText:
+          "**[Narrator]**:\nThe scent is old wine, cut copper, and fear. Relief comes quickly enough to be dangerous. The hunger quiets, but it takes a note of the room for later.",
+      },
+      {
+        id: "GHOST_WITCH_FRIENDRICH_LEDGER_MEMORY",
+        text: "[Ledger Memory] Listen for the accountant whose case you already met.",
+        choiceType: "inquiry",
+        nextNodeId: "scene_evidence_collection_beat1",
+        visibleIfAll: [
+          { type: "flag_equals", key: "origin_witch", value: true },
+          {
+            type: "logic_or",
+            conditions: [
+              { type: "flag_equals", key: "flag_witch_ghost_freed", value: true },
+              { type: "flag_equals", key: "flag_witch_ghost_bound", value: true },
+            ],
+          },
+        ],
+        effects: [
+          {
+            type: "grant_evidence",
+            evidenceId: "ev_friedrich_ledger_testimony",
+          },
+          {
+            type: "set_flag",
+            key: "ghost_session_hook_spirit_bargain",
+            value: true,
+          },
+        ],
+        inlineText:
+          "**[Narrator]**:\nThe cold remembers a brass-bound ledger. Friedrich's testimony lines up here too: the same partners, the same night the vault was sealed. The pages you carry in memory now answer the room.",
+      },
+      {
+        id: "GHOST_WITCH_KARL_SERVICE_CORRIDOR",
+        text: "[Service Corridor] Walk the pantry route Karl trusted you with.",
+        choiceType: "inquiry",
+        nextNodeId: "scene_evidence_collection_beat1",
+        visibleIfAll: [
+          { type: "flag_equals", key: "origin_witch", value: true },
+          { type: "flag_equals", key: "flag_witch_helped_karl_hbf", value: true },
+          { type: "flag_equals", key: "flag_witch_attacked_karl", value: false },
+        ],
+        effects: [
+          {
+            type: "grant_evidence",
+            evidenceId: "ev_karl_service_corridor_testimony",
+          },
+          {
+            type: "set_flag",
+            key: "ghost_session_hook_karl_smuggling_key",
+            value: true,
+          },
+        ],
+        inlineText:
+          "**[Narrator]**:\nKarl's directions hold. The pantry door opens onto the smuggling corridor he keeps quiet about — a clean path from cellar to yard that someone living used the night Friedrich died.",
+      },
+      {
+        id: "GHOST_WITCH_KARL_PANIC_TRACE",
+        text: "[Panic Trace] Read the corridor where Karl was fed on.",
+        choiceType: "flavor",
+        nextNodeId: "scene_evidence_collection_beat1",
+        visibleIfAll: [
+          { type: "flag_equals", key: "origin_witch", value: true },
+          { type: "flag_equals", key: "flag_witch_attacked_karl", value: true },
+        ],
+        effects: [
+          {
+            type: "set_flag",
+            key: "ghost_karl_testimony_compromised",
+            value: true,
+          },
+        ],
+        inlineText:
+          "**[Narrator]**:\nThe service corridor still smells of Karl's fear. His silence will read as a ghost story to anyone who asks — and his testimony, if it ever comes, will carry the bite mark with it.",
+      },
     ],
   },
   {

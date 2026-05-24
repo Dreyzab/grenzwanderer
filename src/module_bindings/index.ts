@@ -35,6 +35,7 @@ import {
 
 // Import all reducer arg schemas
 import AdvanceQuestReducer from "./advance_quest_reducer";
+import AdvanceQuestInstanceReducer from "./advance_quest_instance_reducer";
 import AllowWorkerIdentityReducer from "./allow_worker_identity_reducer";
 import BeginFreiburgOriginReducer from "./begin_freiburg_origin_reducer";
 import BeginKarlsruheEventEntryReducer from "./begin_karlsruhe_event_entry_reducer";
@@ -48,7 +49,9 @@ import ClaimNextAiRequestReducer from "./claim_next_ai_request_reducer";
 import CloseBattleModeReducer from "./close_battle_mode_reducer";
 import CloseCommandModeReducer from "./close_command_mode_reducer";
 import CompleteAiRequestReducer from "./complete_ai_request_reducer";
+import CompleteQuestInstanceReducer from "./complete_quest_instance_reducer";
 import DiscoverFactReducer from "./discover_fact_reducer";
+import EmitCaseEventReducer from "./emit_case_event_reducer";
 import EndBattleTurnReducer from "./end_battle_turn_reducer";
 import EnqueueAiRequestReducer from "./enqueue_ai_request_reducer";
 import EnqueueProvidenceDialogueReducer from "./enqueue_providence_dialogue_reducer";
@@ -73,6 +76,7 @@ import RenewAiRequestLeaseReducer from "./renew_ai_request_lease_reducer";
 import RequeueAiRequestReducer from "./requeue_ai_request_reducer";
 import ResolveCommandReducer from "./resolve_command_reducer";
 import RollbackContentReducer from "./rollback_content_reducer";
+import SeedPlayerAsEliasThorneReducer from "./seed_player_as_elias_thorne_reducer";
 import SetFlagReducer from "./set_flag_reducer";
 import SetHypothesisFocusReducer from "./set_hypothesis_focus_reducer";
 import SetNicknameReducer from "./set_nickname_reducer";
@@ -90,6 +94,7 @@ import VerifyRumorReducer from "./verify_rumor_reducer";
 // Import all procedure arg schemas
 
 // Import all table schema definitions
+import CaseVersionRow from "./case_version_table";
 import ContentSnapshotRow from "./content_snapshot_table";
 import ContentTranslationRow from "./content_translation_table";
 import ContentVersionRow from "./content_version_table";
@@ -118,6 +123,7 @@ import MyPlayerInventoryRow from "./my_player_inventory_table";
 import MyPlayerLocationRow from "./my_player_location_table";
 import MyPlayerProfileRow from "./my_player_profile_table";
 import MyPlayerVarsRow from "./my_player_vars_table";
+import MyQuestInstancesRow from "./my_quest_instances_table";
 import MyQuestsRow from "./my_quests_table";
 import MyRedeemedCodesRow from "./my_redeemed_codes_table";
 import MyRelationshipsRow from "./my_relationships_table";
@@ -132,6 +138,26 @@ import WorkerAiRequestsRow from "./worker_ai_requests_table";
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
+  caseVersion: __table({
+    name: 'case_version',
+    indexes: [
+      { name: 'case_version_case_id', algorithm: 'btree', columns: [
+        'caseId',
+      ] },
+      { name: 'caseVersionKey', algorithm: 'btree', columns: [
+        'caseVersionKey',
+      ] },
+      { name: 'case_version_checksum', algorithm: 'btree', columns: [
+        'checksum',
+      ] },
+      { name: 'case_version_version', algorithm: 'btree', columns: [
+        'version',
+      ] },
+    ],
+    constraints: [
+      { name: 'case_version_case_version_key_key', constraint: 'unique', columns: ['caseVersionKey'] },
+    ],
+  }, CaseVersionRow),
   contentSnapshot: __table({
     name: 'content_snapshot',
     indexes: [
@@ -389,6 +415,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyPlayerVarsRow),
+  my_quest_instances: __table({
+    name: 'my_quest_instances',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyQuestInstancesRow),
   my_quests: __table({
     name: 'my_quests',
     indexes: [
@@ -457,6 +490,7 @@ const tablesSchema = __schema({
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
   __reducerSchema("advance_quest", AdvanceQuestReducer),
+  __reducerSchema("advance_quest_instance", AdvanceQuestInstanceReducer),
   __reducerSchema("allow_worker_identity", AllowWorkerIdentityReducer),
   __reducerSchema("begin_freiburg_origin", BeginFreiburgOriginReducer),
   __reducerSchema("begin_karlsruhe_event_entry", BeginKarlsruheEventEntryReducer),
@@ -470,7 +504,9 @@ const reducersSchema = __reducers(
   __reducerSchema("close_battle_mode", CloseBattleModeReducer),
   __reducerSchema("close_command_mode", CloseCommandModeReducer),
   __reducerSchema("complete_ai_request", CompleteAiRequestReducer),
+  __reducerSchema("complete_quest_instance", CompleteQuestInstanceReducer),
   __reducerSchema("discover_fact", DiscoverFactReducer),
+  __reducerSchema("emit_case_event", EmitCaseEventReducer),
   __reducerSchema("end_battle_turn", EndBattleTurnReducer),
   __reducerSchema("enqueue_ai_request", EnqueueAiRequestReducer),
   __reducerSchema("enqueue_providence_dialogue", EnqueueProvidenceDialogueReducer),
@@ -495,6 +531,7 @@ const reducersSchema = __reducers(
   __reducerSchema("requeue_ai_request", RequeueAiRequestReducer),
   __reducerSchema("resolve_command", ResolveCommandReducer),
   __reducerSchema("rollback_content", RollbackContentReducer),
+  __reducerSchema("seed_player_as_elias_thorne", SeedPlayerAsEliasThorneReducer),
   __reducerSchema("set_flag", SetFlagReducer),
   __reducerSchema("set_hypothesis_focus", SetHypothesisFocusReducer),
   __reducerSchema("set_nickname", SetNicknameReducer),

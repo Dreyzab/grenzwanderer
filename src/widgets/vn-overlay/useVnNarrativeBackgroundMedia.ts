@@ -105,7 +105,26 @@ export function useVnNarrativeBackgroundMedia({
     posterReadyRef.current = false;
     videoPosterFallbackElapsedRef.current = false;
     setPosterReady(false);
-  }, [backgroundVisualKey]);
+
+    // Safety fallback: if visual is not ready in 3.5s, mark it ready anyway.
+    // This prevents permanent hangs on slow or failed assets.
+    const safetyTimer = window.setTimeout(() => {
+      markVisualReady();
+    }, 3500);
+
+    // Check if background image is already complete (cached)
+    if (!backgroundVideoUrl) {
+      const img = document.querySelector(
+        'img[alt="Background"]',
+      ) as HTMLImageElement;
+      if (img?.complete && img.naturalWidth > 0) {
+        markVisualReady();
+        window.clearTimeout(safetyTimer);
+      }
+    }
+
+    return () => window.clearTimeout(safetyTimer);
+  }, [backgroundVisualKey, backgroundVideoUrl, markVisualReady]);
 
   useEffect(() => {
     if (!needsSoundPrompt || soundPromptPhase !== "prompt") {

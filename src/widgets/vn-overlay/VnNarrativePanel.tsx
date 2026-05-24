@@ -277,18 +277,32 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         {children}
       </div>
       {isLetterOverlay ? (
-        <VnLetterNarrativeLayer
-          chromeRevealed={chromeRevealed}
-          narrativeText={narrativeText}
-          t={t}
-          typedTextRef={typedTextRef}
-          onNarrativeComplete={onNarrativeComplete}
-          onSurfaceInteraction={handleSurfaceInteraction}
-          onTokenClick={onTokenClick}
-          onTokenEnter={onTokenEnter}
-          onTokenLeave={onTokenLeave}
-          onTypingChange={onTypingChange}
-        />
+        <>
+          <VnLetterNarrativeLayer
+            chromeRevealed={chromeRevealed}
+            narrativeText={narrativeText}
+            t={t}
+            typedTextRef={typedTextRef}
+            onNarrativeComplete={onNarrativeComplete}
+            onSurfaceInteraction={handleSurfaceInteraction}
+            onTokenClick={onTokenClick}
+            onTokenEnter={onTokenEnter}
+            onTokenLeave={onTokenLeave}
+            onTypingChange={onTypingChange}
+          />
+          {chromeRevealed &&
+          displayedLetterRevealSettled &&
+          choicesSlot &&
+          !isTyping ? (
+            <div
+              className="absolute inset-x-0 bottom-0 z-120 px-4 pb-[calc(1.5rem+4rem+env(safe-area-inset-bottom))] sm:px-8 pointer-events-auto"
+              onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => event.stopPropagation()}
+            >
+              <div className="mx-auto w-full max-w-[44rem]">{choicesSlot}</div>
+            </div>
+          ) : null}
+        </>
       ) : null}
 
       {isLogLayout && chromeRevealed && logState ? (

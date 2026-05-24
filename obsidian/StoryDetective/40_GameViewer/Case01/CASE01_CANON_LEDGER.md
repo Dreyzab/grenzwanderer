@@ -42,14 +42,15 @@
 | Elias Thorne | Arthur Vance | Alias is design/reference only. |
 | Fritz Muller | Fritz Mueller, locale variants | Runtime text uses Fritz Muller unless localized. |
 | Victoria Sterling | Clara von Altenburg, Clara Altenburg | Clara is legacy planning; scientific companion runtime uses Victoria / `victoria_sterling`; `assistant` is compatibility-only. |
+| Baroness Elise von Altenburg | Baroness Klara von Altenburg, Баронесса Клара, Клара фон Альтенбург | Witch-prologue estate runtime uses `npc_baroness_elise`; Klara is legacy drift. |
 | Heinrich Galdermann | Herr Galdermann | Both may appear when role/context requires it. |
 | Bankhaus J.A. Krebs | Kaiserbank, Bankhaus Krebs | Runtime display name is Bankhaus J.A. Krebs. |
 
 ## Coverage Summary
 
-- Total Case01 nodes: 91
-- Covered by StoryDetective: 46 (50.5%)
-- Bridged from TypeScript: 45
+- Total Case01 nodes: 111
+- Covered by StoryDetective: 46 (41.4%)
+- Bridged from TypeScript: 65
 - Missing ownership: 0
 - Identity drift findings: 0
 
@@ -81,6 +82,9 @@
 | case01_false_trail_workers | `scene_case01_workers_entry` | Red Cog Tavern | COVERED | StoryDetective authoritative | OK |  |
 | case01_false_trail_workers | `scene_case01_workers_exit` | Noise Without Hands | COVERED | StoryDetective authoritative | OK |  |
 | case01_false_trail_workers | `scene_case01_workers_rudi` | Rudi Kempf | COVERED | StoryDetective authoritative | OK |  |
+| case01_hbf_arrival | `scene_case01_baroness_office_cut_trigger` | Порез | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_baroness_office_feed_coverup` | Маскарад | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_baroness_office_witch` | Кабинет Баронессы | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_beat1_atmosphere` | Hauptbahnhof, Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_corridor_reflection` | Corridor Reflection | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_corridor_reflection_hotel_defend` | Corridor Reflection | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
@@ -88,22 +92,33 @@
 | case01_hbf_arrival | `scene_case01_corridor_reflection_intro_observe` | Corridor Reflection | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_corridor_reflection_silent_defend` | Corridor Reflection | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_corridor_reflection_silent_observe` | Corridor Reflection | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_estate_arrival_witch` | Поместье Гранд-Эстейт | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_estate_vaults_witch` | Холодные Архивы | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_ghost_showdown_witch` | Призрак Счетовода | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_departure` | Leaving the Hauptbahnhof | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_echo_hospitality_accepted` | Hartmann Courtesy | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_echo_intro_self` | Name in Circulation | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_exit_final` | Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_luggage` | Luggage Counter | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_hbf_luggage_incident_witch` | Инцидент на перроне | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_luggage_robbery` | HBF Arrival | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_newsboy_approach` | Evening edition | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_newsboy_handoff` | HBF Arrival | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_newsboy_release` | HBF Arrival | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_police` | Police Post | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_porter_greeting` | The Porter | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_hotel_copper_trace_witch` | Медная нота | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_hotel_morning_witch` | Утро после... | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_lobby_crossover_witch` | Лобби «Zum Goldenen Adler» | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_night_alley_escalation` | Срыв | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_night_alley_witch` | Ночной Переулок | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_opening_arrival_video` | Approach by rail | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_ankommen_video` | Approach to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_assistant_departure` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_assistant_intro` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_assistant_intro_witch` | Сын | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_compartment_letter` | Orders from the Agency | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_compartment_letter_witch` | Recruitment Invitation | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_eleonora_farewell` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_eleonora_farewell_hotel_defend` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_eleonora_farewell_hotel_observe` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
@@ -114,6 +129,8 @@
 | case01_hbf_arrival | `scene_case01_train_dining_car_hotel_branch` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_intro` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_intro_self_branch` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_dining_car_intro_witch` | Вагон-ресторан | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_dining_car_lotte_monologue_witch` | Радость жизни | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_marriage_joke` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_mother` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_silent_branch` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
@@ -123,13 +140,17 @@
 | case01_hbf_arrival | `scene_case01_train_platform_parting` | Parting | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_silent_beat` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_voza_cutscene` | Platform Landing | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_bureau_entry` | Секретный отдел Бюро | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_bureau_exit` | Напутствие | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_bureau_master_meeting` | Встреча с Мастером | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_estate_handoff` | Дорога к Гранд-Эстейт | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_lead_apothecary | `scene_case01_apothecary_entry` | Scene: Lowen Apotheke | COVERED | StoryDetective authoritative | OK |  |
 | case01_lead_apothecary | `scene_case01_apothecary_exit` | Scene: Chemical Bundle Locked | COVERED | StoryDetective authoritative | OK |  |
 | case01_lead_pub | `scene_case01_pub_entry` | Scene: Zum Schlappen | COVERED | StoryDetective authoritative | OK |  |
 | case01_lead_pub | `scene_case01_pub_exit` | Scene: Logistics Bundle Locked | COVERED | StoryDetective authoritative | OK |  |
 | case01_lead_tailor | `scene_case01_tailor_entry` | Scene: Tailor Workshop | COVERED | StoryDetective authoritative | OK |  |
 | case01_lead_tailor | `scene_case01_tailor_exit` | Scene: Identity Bundle Locked | COVERED | StoryDetective authoritative | OK |  |
-| case01_lodging_zum_goldenen_adler | `scene_case01_zum_goldenen_adler_entry` | Scene: Zum Goldenen Adler | COVERED | StoryDetective authoritative | OK |  |
+| case01_lodging_zum_goldenen_adler | `scene_case01_zum_goldenen_adler_entry` | Scene: Zum Eber | COVERED | StoryDetective authoritative | OK |  |
 | case01_lodging_zum_goldenen_adler | `scene_case01_zum_goldenen_adler_lotte_route` | Scene: Route Already Marked | COVERED | StoryDetective authoritative | OK |  |
 | case01_lodging_zum_goldenen_adler | `scene_case01_zum_goldenen_adler_settle` | Scene: Key Taken | COVERED | StoryDetective authoritative | OK |  |
 | case01_lotte_interlude | `scene_case01_lotte_distance` | Scene: Channel Narrowed | COVERED | StoryDetective authoritative | OK |  |

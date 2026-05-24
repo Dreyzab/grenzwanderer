@@ -8,7 +8,7 @@ status: active
 
 ## Script
 
-The key is plain brass, heavier than it looks. Whatever else Zum Goldenen Adler knows, it
+The key is plain brass, heavier than it looks. Whatever else Zum Eber knows, it
 can wait behind a locked door while the city begins to spend its morning.
 
 ```vn-logic

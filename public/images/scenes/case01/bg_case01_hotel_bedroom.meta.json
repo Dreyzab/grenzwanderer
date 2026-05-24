@@ -1,0 +1,11 @@
+{
+  "assetId": "case01_vn_bg_hotel_bedroom",
+  "assetKind": "vn_scene_background",
+  "expectedImagePath": "public/images/scenes/case01/bg_case01_hotel_bedroom.webp",
+  "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Timber-framed canal houses, damp plaster, waterside taverns, cramped service alleys, Freiburg 1905, Zum Goldenen Adler bedroom in morning normality, holding the evidence the night left behind., Must include: 1905 hotel room; white bed linens; washstand; travel trunk; morning light; folded dress with small dark stain, Continuity motifs: white linens; washstand; small dark stain, Avoid locally: telephone; alarm clock; electric lamp; lurid gore, Tone target: daily surface after earned darkness; morning normality has to hold evidence it cannot fully hide, Style reference image: /images/scenes/case01/bg_case01_zum_goldenen_adler_lobby.webp, natural diffused daylight, soft shadows, balanced tones, everyday investigative mood, Wide establishing shot, Interior dialogue-ready scene, no people visible, sprite-safe composition, readable mid-ground depth, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+  "finalPromptSha256": "84760920b9e1ccff4d03f70e1acceff3c9c2f2062cb26d51009783258bd28f1e",
+  "toneTarget": "daily_surface+earned_darkness",
+  "styleReferenceImage": "/images/scenes/case01/bg_case01_zum_goldenen_adler_lobby.webp",
+  "assetSha256": "97e462dd34b6eb0dca4fc8c55a1510d180fcc156b0d1ffab11045516633a804b",
+  "provenance": "deterministic local raster generated from repository style references; live OpenAI Image API unavailable in this environment"
+}

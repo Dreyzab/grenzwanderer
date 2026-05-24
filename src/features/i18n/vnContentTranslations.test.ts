@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildCaseTranslationKey,
   localizeVnChoice,
   resolveOriginProfileText,
+  resolveTranslatedText,
   resolveVnNodeText,
   resolveVnScenarioTitle,
 } from "./vnContentTranslations";
@@ -24,6 +26,31 @@ const mockDictionary: I18nDictionary = {
 };
 
 describe("vnContentTranslations", () => {
+  it("builds Case IR translation keys without replacing vn runtime keys", () => {
+    expect(
+      buildCaseTranslationKey(
+        "case01_mainline",
+        "scene_case01_beat1_atmosphere",
+        "body",
+      ),
+    ).toBe("case.case01_mainline.scene_case01_beat1_atmosphere.body");
+    expect(
+      resolveTranslatedText(
+        "ru",
+        "case.case01_mainline.scene_case01_beat1_atmosphere.body",
+        "Fallback",
+        {
+          ...mockDictionary,
+          vn: {
+            ...mockDictionary.vn,
+            "case.case01_mainline.scene_case01_beat1_atmosphere.body":
+              "Case namespace text",
+          },
+        },
+      ),
+    ).toBe("Case namespace text");
+  });
+
   it("falls back to source content for English and missing keys", () => {
     expect(
       resolveVnNodeText(

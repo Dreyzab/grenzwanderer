@@ -4,6 +4,7 @@ import {
   buildActiveSnapshotQuery,
   buildPlayerFlagQuery,
   buildPlayerQuestQuery,
+  buildPlayerRumorStateQuery,
   buildPlayerVarQuery,
   buildRecentDialogueQuery,
   buildSceneContext,
@@ -79,6 +80,12 @@ describe("ai-context-builder", () => {
     expect(buildPlayerVarQuery("player-hex")).toContain(
       "WHERE player_id = 'player-hex'",
     );
+    expect(buildPlayerRumorStateQuery("player-hex")).toContain(
+      "FROM player_rumor_state",
+    );
+    expect(buildPlayerRumorStateQuery("player-hex")).toContain(
+      "WHERE player_id = 'player-hex'",
+    );
     expect(buildActiveSnapshotQuery()).toContain("FROM content_snapshot cs");
     expect(buildActiveSnapshotQuery()).toContain("JOIN content_version cv");
   });
@@ -123,6 +130,8 @@ describe("ai-context-builder", () => {
             lng: 7.0,
             category: "PUBLIC",
             locationId: "loc_tailor",
+            defaultState: "discovered",
+            image: "/images/locations/tailor.webp",
             bindings: [
               {
                 id: "binding_tailor_intro",
@@ -155,6 +164,20 @@ describe("ai-context-builder", () => {
           ],
         },
       ],
+      socialCatalog: {
+        npcIdentities: [],
+        services: [],
+        rumors: [
+          {
+            id: "rumor_tailor_ledgers",
+            title: "Tailor ledger rumor",
+            caseId: "case01_mainline",
+            leadPointId: "point_tailor_shop",
+            verifiesOn: ["fact"],
+          },
+        ],
+        careerRanks: [],
+      },
       mindPalace: {
         cases: [
           {
@@ -230,6 +253,21 @@ describe("ai-context-builder", () => {
           { key: "mystic_awakening", float_value: 61 },
           { key: "mystic_exposure", float_value: 2 },
           { key: "mystic_sight_mode_tier", float_value: 1 },
+          { key: "resource_providence", float_value: 3 },
+          { key: "resource_fortune", float_value: 2 },
+          { key: "resource_fortune_mod", float_value: -1 },
+          { key: "resource_karma", float_value: 25 },
+          { key: "case01.proc.daily", float_value: 1 },
+        ]),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse([
+          {
+            rumor_id: "rumor_tailor_ledgers",
+            status: "pursuing",
+            lead_point_id: "point_tailor_shop",
+            case_id: "case01_mainline",
+          },
         ]),
       )
       .mockResolvedValueOnce(
@@ -288,6 +326,27 @@ describe("ai-context-builder", () => {
     expect(context.sceneSnapshot).toContain(
       "Active hypothesis: Hidden Signals -> A threshold-bound echo is nesting in Freiburg's blind spots.",
     );
+    expect(context.sceneSnapshot).toContain(
+      "Active POI: Tailor Shop (point_tailor_shop, loc_tailor)",
+    );
+    expect(context.sceneSnapshot).toContain(
+      "District state: loc_tailor: region=FREIBURG_1905, category=PUBLIC, defaultState=discovered",
+    );
+    expect(context.sceneSnapshot).toContain(
+      "Resource profile: providence=3, fortune=2, fortuneMod=-1, effectiveFortune=1, karma=25, karmaBand=favored",
+    );
+    expect(context.sceneSnapshot).toContain(
+      "Pending rumors: Tailor ledger rumor, status=pursuing, lead=point_tailor_shop",
+    );
+    expect(context.sceneSnapshot).toContain(
+      "Branch opportunities: trig.case01.newsboy_rumor",
+    );
+    expect(context.sceneSnapshot).toContain(
+      "Procedural budget: case01.proc.daily=1",
+    );
+    expect(context.sceneSnapshot).toContain(
+      "Visual state hints: loc_tailor: visualState=discovered, image=/images/locations/tailor.webp",
+    );
     expect(context.recentDialogue).toEqual([
       "Keep him talking. He wants the room calm.",
     ]);
@@ -298,12 +357,16 @@ describe("ai-context-builder", () => {
     expect(context.parliamentPresetId).toBe("journalist_cityroom");
     expect(context.routeStep).toBe("archive verification");
     expect(context.occultExposure).toContain("Awakening opening");
+    expect(context.activePoi).toContain("Tailor Shop");
+    expect(context.resourceProfile).toContain("karmaBand=favored");
+    expect(context.pendingRumors).toContain("Tailor ledger rumor");
   });
 
   it("degrades to empty enrichment when authored overlap is missing", async () => {
     const snapshot = createTestSnapshot();
     const fetchImpl = vi
       .fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))

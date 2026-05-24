@@ -13,6 +13,7 @@ import type {
 } from "../vnScreenTypes";
 import type { VnSession } from "../../../shared/spacetime/bindings";
 import { LogChoicesRenderer } from "../log/LogChoicesRenderer";
+import { AUTO_CONTINUE_PREFIX } from "../vnScreenUtils";
 import { VnChoicesRenderer } from "./VnChoicesRenderer";
 
 interface VnScreenChoicesSlotProps {
@@ -43,8 +44,11 @@ interface VnScreenChoicesSlotProps {
   thoughtCard: InlineStatusCard | null;
   uiLanguage: UiLanguage;
   visibleChoices: VnChoice[];
+  providenceCount: number;
   onChoiceClick: (choice: VnChoice, isLocked: boolean) => void;
   onCompletionTransition: () => void;
+  onCustomSubmit?: (choice: VnChoice, text: string) => void;
+  onInsufficientTokens?: () => void;
   onProvidenceExpand: () => void;
   onRestartScene: () => void;
 }
@@ -77,8 +81,11 @@ export function VnScreenChoicesSlot({
   thoughtCard,
   uiLanguage,
   visibleChoices,
+  providenceCount,
   onChoiceClick,
   onCompletionTransition,
+  onCustomSubmit,
+  onInsufficientTokens,
   onProvidenceExpand,
   onRestartScene,
 }: VnScreenChoicesSlotProps) {
@@ -109,7 +116,11 @@ export function VnScreenChoicesSlot({
     );
   }
 
-  if (hideImmersiveChrome) {
+  const hasPlayerFacingChoices = choiceDisplayItems.some(
+    (item) => !item.choice.id.startsWith(AUTO_CONTINUE_PREFIX),
+  );
+
+  if (hideImmersiveChrome && !hasPlayerFacingChoices) {
     return null;
   }
 
@@ -136,6 +147,7 @@ export function VnScreenChoicesSlot({
       completionTargetLabel={completionTargetLabel}
       hasAutoContinueChoice={hasAutoContinueChoice}
       sessionReady={sessionReady}
+      providenceCount={providenceCount}
       onOriginPick={(choice) => {
         const isAvailable = isChoiceAvailable(
           choice,
@@ -146,6 +158,8 @@ export function VnScreenChoicesSlot({
         onChoiceClick(choice, !isAvailable || !mySession);
       }}
       onChoiceClick={(choice) => onChoiceClick(choice, false)}
+      onCustomSubmit={onCustomSubmit}
+      onInsufficientTokens={onInsufficientTokens}
       onProvidenceExpand={onProvidenceExpand}
       onCompletionTransition={onCompletionTransition}
       onRestartScene={onRestartScene}

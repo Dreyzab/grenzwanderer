@@ -1,5 +1,6 @@
 import { isSkillVoiceId } from "../../../data/innerVoiceContract";
 import { skillXpVarKeyFor } from "../../shared/game/skillProgression";
+import { WITCH_ORIGIN_DEFAULTS } from "../../shared/game/witchRules";
 import type { VnEffect } from "../vn/types";
 
 export interface OriginTrackStepDefinition {
@@ -456,6 +457,89 @@ export const originProfiles: OriginProfileDefinition[] = [
       quote: "Every archive hides a truth someone paid to bury.",
       avatarUrl: "/images/characters/doctor_portrait/doctor_portrait.png",
       accentColor: "#2E6B57",
+    },
+  },
+  {
+    id: "witch",
+    choiceId: "BACKSTORY_WITCH",
+    originFlagKey: "origin_witch",
+    handoffDoneFlagKeys: ["origin_witch_handoff_done"],
+    label: "Witch Origin",
+    summary:
+      "Sensitivity to the veil, spirit communion, and occult protection.",
+    scenarioId: "case01_hbf_arrival",
+    flawFlagKey: "flaw_blood_curse",
+    signatureAbilityFlagKey: "ability_spiritual_veil_sight",
+    statEffects: [
+      { key: "attr_spirit", value: 4 },
+      { key: "attr_perception", value: 2 },
+      { key: "attr_intuition", value: 2 },
+      ...Object.entries(WITCH_ORIGIN_DEFAULTS).map(([key, value]) => ({
+        key,
+        value,
+      })),
+    ],
+    signature: {
+      title: "Spiritual Veil Sight",
+      description:
+        "You possess a passive sensitivity to the spiritual veil. Occult traces, cold drafts, and residual memories are visible to you without requiring manual activation.",
+      passiveLabel: "Passive",
+    },
+    flaw: {
+      title: "Blood Curse",
+      description:
+        "A dark affliction, not unlike vampirism, burns in your blood. Suppressing its hunger drains your mental composure over time and demands constant focus.",
+      icon: "droplet",
+      checkVoice: "volition",
+      dc: 9,
+      durationLabel: "Until Quenched",
+    },
+    tracks: [
+      {
+        id: "witch_veilwalker",
+        title: "Veilwalker",
+        description:
+          "Peer deeper into the spirit world and control the boundary between realms.",
+        progressVarKey: "track_witch_veilwalker_xp",
+        tier1FlagKey: "track_witch_veilwalker_tier1",
+        tier2FlagKey: "track_witch_veilwalker_tier2",
+        focus: "Occultism + Intuition",
+        steps: [
+          { voice: "occultism", requiredXp: 100 },
+          { voice: "intuition", requiredXp: 200 },
+          { voice: "imagination", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "Gaze into the Void",
+        finalAbilityDescription:
+          "Automatically senses any active spiritual traces or residues in a room on entry.",
+      },
+      {
+        id: "witch_exorcist",
+        title: "Exorcist",
+        description: "Command or banish spirits through authority and will.",
+        progressVarKey: "track_witch_exorcist_xp",
+        tier1FlagKey: "track_witch_exorcist_tier1",
+        tier2FlagKey: "track_witch_exorcist_tier2",
+        focus: "Occultism + Volition",
+        steps: [
+          { voice: "occultism", requiredXp: 100 },
+          { voice: "volition", requiredXp: 200 },
+          { voice: "authority", requiredXp: 300 },
+        ],
+        finalAbilityTitle: "Command the Veil",
+        finalAbilityDescription:
+          "Can force spirits or residual memories to speak and answer questions directly without failing.",
+      },
+    ],
+    dossier: {
+      characterName: "Eleanor Vance",
+      age: 22,
+      gender: "female",
+      cityOrigin: "Freiburg (Altstadt / Secret Coven)",
+      quote:
+        "The dead do not lie. They simply speak in a language the living have forgotten.",
+      avatarUrl: "/images/characters/witch_portrait/witch_portrait.png",
+      accentColor: "#5B21B6",
     },
   },
 ];

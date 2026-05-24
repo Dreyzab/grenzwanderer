@@ -1,0 +1,11 @@
+{
+  "assetId": "case01_vn_bg_night_alley",
+  "assetKind": "vn_scene_background",
+  "expectedImagePath": "public/images/scenes/case01/bg_case01_night_alley.webp",
+  "finalPrompt": "Oil painting, broad expressive brushstrokes, visible canvas texture, 1905 Kaiser-era Germany, historical veracity, Timber-framed canal houses, damp plaster, waterside taverns, cramped service alleys, Freiburg 1905, Narrow Freiburg service alley after midnight, built for an attack without showing the attacker., Must include: narrow Freiburg service alley; wet cobbles; single gas lamp; side arch; dropped metal glint; fog held low, Continuity motifs: wet cobbles; single gas lamp; metal glint, Avoid locally: Hollywood noir; modern signage; visible attacker; readable gang text, Tone target: fail-forward cost; the space implies danger and consequence through traces, not visible violence, Style reference image: /images/scenes/case01/bg_case01_rail_yard_night.webp, harsh magnesium flash lighting, chaotic shadow spill, brittle evidence glare, police-line tension, Wide establishing shot, Empty exterior aftermath, no people visible, environmental traces only, wide establishing shot, Masterpiece quality, Avoid: plastic textures, flat digital art, CGI rendering, 3D smooth faces, modern photography, neon colors, generic 21st-century fashion, 16:9 aspect ratio, high resolution",
+  "finalPromptSha256": "fabae73d66b05e66df1c6d8baa421efca070b971a801f02d5499d8ff273b737f",
+  "toneTarget": "fail_forward_cost",
+  "styleReferenceImage": "/images/scenes/case01/bg_case01_rail_yard_night.webp",
+  "assetSha256": "9bc650776c3845c10be8be676c90f28946e821b74f7024c7151fbcbe098f7488",
+  "provenance": "deterministic local raster generated from repository style references; live OpenAI Image API unavailable in this environment"
+}

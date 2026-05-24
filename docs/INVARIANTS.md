@@ -63,6 +63,7 @@ AI never applies effects, sets flags, advances quests, or mutates any server tab
 
 - Only allowlisted, registered workers may claim, renew, complete, or fail AI queue items.
 - `SuggestedEffect` types are limited to `mood_shift | trust_delta | clue_hint | hypothesis_focus` — none of which auto-apply to game state.
+- Character reaction `revealHintFactId` values are display-only hints; they do not discover facts, grant evidence, or change relationship state.
 - AI request queue (`aiRequest` table) stores responses as opaque JSON; client renders them but never calls reducers based on AI content.
 - MindPalace explicitly excludes AI-thought generation from its responsibility boundary.
 

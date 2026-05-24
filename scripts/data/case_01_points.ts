@@ -1,6 +1,7 @@
 import type {
   MapAction,
   MapCondition,
+  MapDiscoveryRule,
   MapPointCategory,
   MapSnapshot,
 } from "../../src/features/vn/types";
@@ -25,6 +26,8 @@ export interface Case01PointSource {
   defaultState?: "locked" | "discovered";
   legacyScenarioIds?: string[];
   isHiddenInitially?: boolean;
+  discoveryRules?: MapDiscoveryRule[];
+  revealConditions?: LegacyMapCondition[];
 }
 
 type LegacyFlagCondition = {
@@ -211,6 +214,52 @@ const CASE01_ANY_TWO_LEADS_CONDITION: LegacyMapCondition = {
     },
   ],
 };
+
+const CASE01_BANK_COMPLETE_CONDITION: LegacyMapCondition = {
+  type: "flag_is",
+  key: "bank_investigation_complete",
+  value: true,
+};
+
+const CASE01_BANK_COMPLETE_OR_VELVET_CONDITION: LegacyMapCondition = {
+  type: "logic_or",
+  conditions: [
+    CASE01_BANK_COMPLETE_CONDITION,
+    { type: "flag_is", key: "found_velvet", value: true },
+  ],
+};
+
+const CASE01_BANK_COMPLETE_OR_RESIDUE_CONDITION: LegacyMapCondition = {
+  type: "logic_or",
+  conditions: [
+    CASE01_BANK_COMPLETE_CONDITION,
+    { type: "flag_is", key: "found_residue", value: true },
+  ],
+};
+
+const CASE01_SECONDARY_PUBLIC_REVEAL_CONDITION: LegacyMapCondition = {
+  type: "logic_or",
+  conditions: [
+    CASE01_BANK_COMPLETE_CONDITION,
+    { type: "flag_is", key: "mayor_briefing_complete", value: true },
+  ],
+};
+
+const buildSignalDiscoveryRule = (
+  conditions: LegacyMapCondition[],
+  priority: number,
+  channel: MapDiscoveryRule["channel"] = "proximity",
+  requiresServerConfirmation = false,
+): MapDiscoveryRule => ({
+  channel,
+  conditions: conditions.map((condition) => normalizeCondition(condition)),
+  requiresServerConfirmation,
+  signal: {
+    enabled: true,
+    priority,
+    requiresServerConfirmation,
+  },
+});
 
 const CASE01_ANY_TWO_FALSE_TRAILS_REFUTED_CONDITION: LegacyMapCondition = {
   type: "logic_or",
@@ -973,6 +1022,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     image: "/images/locations/loc_hbf/loc_hauptbahnhof.webp",
     locationId: "loc_hbf",
     category: "PUBLIC",
+    unlockGroup: "loc_hbf",
     defaultState: "discovered",
     isHiddenInitially: true,
     legacyScenarioIds: ["detective_case1_hbf_arrival"],
@@ -1027,6 +1077,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     category: "PUBLIC",
     defaultState: "discovered",
     isHiddenInitially: true,
+    revealConditions: [CASE01_SECONDARY_PUBLIC_REVEAL_CONDITION],
     legacyScenarioIds: ["encounter_tourist"],
   },
   {
@@ -1041,6 +1092,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     category: "PUBLIC",
     defaultState: "discovered",
     isHiddenInitially: true,
+    revealConditions: [CASE01_SECONDARY_PUBLIC_REVEAL_CONDITION],
     legacyScenarioIds: ["detective_case1_lab_analysis"],
   },
   {
@@ -1055,6 +1107,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     category: "PUBLIC",
     defaultState: "discovered",
     isHiddenInitially: true,
+    revealConditions: [CASE01_SECONDARY_PUBLIC_REVEAL_CONDITION],
     legacyScenarioIds: ["detective_case1_lab_analysis"],
   },
   {
@@ -1075,7 +1128,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
   {
     id: "loc_pub_deutsche",
     regionId: "FREIBURG_1905",
-    title: "Zum Goldenen Adler",
+    title: "Zum Eber",
     description:
       "Reserved inn lodging where Freiburg's first social weather starts to collect.",
     lat: 47.992,
@@ -1083,6 +1136,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     image: "/images/locations/loc_pub_deutsche/loc_ganter_brauerei.webp",
     locationId: "loc_pub_deutsche",
     category: "PUBLIC",
+    unlockGroup: "loc_pub_deutsche",
     defaultState: "discovered",
     isHiddenInitially: true,
     legacyScenarioIds: ["lodging_zum_goldenen_adler"],
@@ -1099,6 +1153,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     category: "PUBLIC",
     defaultState: "discovered",
     isHiddenInitially: true,
+    revealConditions: [CASE01_SECONDARY_PUBLIC_REVEAL_CONDITION],
     legacyScenarioIds: ["encounter_cleaner"],
   },
   {
@@ -1116,6 +1171,14 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     unlockGroup: "loc_freiburg_warehouse",
     defaultState: "locked",
     isHiddenInitially: true,
+    discoveryRules: [
+      buildSignalDiscoveryRule(
+        [{ type: "flag_is", key: "warehouse_plan_locked", value: true }],
+        120,
+        "qr_scan",
+        true,
+      ),
+    ],
     legacyScenarioIds: ["case1_finale"],
   },
   {
@@ -1146,6 +1209,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     category: "PUBLIC",
     defaultState: "discovered",
     isHiddenInitially: true,
+    revealConditions: [CASE01_BANK_COMPLETE_CONDITION],
     legacyScenarioIds: ["encounter_cleaner", "quest_victoria_poetry"],
   },
   {
@@ -1160,6 +1224,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     category: "PUBLIC",
     defaultState: "discovered",
     isHiddenInitially: true,
+    revealConditions: [CASE01_SECONDARY_PUBLIC_REVEAL_CONDITION],
     legacyScenarioIds: ["encounter_tourist"],
   },
   {
@@ -1174,6 +1239,7 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     category: "PUBLIC",
     defaultState: "discovered",
     isHiddenInitially: true,
+    revealConditions: [CASE01_SECONDARY_PUBLIC_REVEAL_CONDITION],
     legacyScenarioIds: ["encounter_cleaner"],
   },
   {
@@ -1189,6 +1255,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     unlockGroup: "loc_tailor",
     defaultState: "locked",
     isHiddenInitially: true,
+    discoveryRules: [
+      buildSignalDiscoveryRule([CASE01_BANK_COMPLETE_OR_VELVET_CONDITION], 90),
+    ],
     legacyScenarioIds: ["lead_tailor"],
   },
   {
@@ -1204,6 +1273,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     unlockGroup: "loc_apothecary",
     defaultState: "locked",
     isHiddenInitially: true,
+    discoveryRules: [
+      buildSignalDiscoveryRule([CASE01_BANK_COMPLETE_OR_RESIDUE_CONDITION], 88),
+    ],
     legacyScenarioIds: ["lead_apothecary"],
   },
   {
@@ -1219,6 +1291,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     unlockGroup: "loc_pub",
     defaultState: "locked",
     isHiddenInitially: true,
+    discoveryRules: [
+      buildSignalDiscoveryRule([CASE01_BANK_COMPLETE_CONDITION], 80),
+    ],
     legacyScenarioIds: ["lead_pub"],
   },
   {
@@ -1234,6 +1309,9 @@ export const CASE_01_POINTS: Case01PointSource[] = [
     unlockGroup: "loc_telephone",
     defaultState: "locked",
     isHiddenInitially: true,
+    discoveryRules: [
+      buildSignalDiscoveryRule([CASE01_ANY_TWO_LEADS_CONDITION], 72),
+    ],
     legacyScenarioIds: ["interlude_lotte_warning", "quest_lotte_wires"],
   },
 ];
@@ -1272,7 +1350,7 @@ const CASE_01_QR_CODE_REGISTRY: NonNullable<MapSnapshot["qrCodeRegistry"]> = [
       },
     ],
     effects: [{ type: "unlock_group", groupId: "loc_freiburg_warehouse" }],
-    requiresFlagsAll: ["agency_briefing_complete"],
+    requiresFlagsAll: ["warehouse_plan_locked"],
   },
 ];
 
@@ -1394,6 +1472,8 @@ export const buildCase01MapSnapshot = (
       defaultState: point.defaultState,
       unlockGroup: point.unlockGroup,
       isHiddenInitially: point.isHiddenInitially,
+      discoveryRules: point.discoveryRules,
+      revealConditions: normalizeConditions(point.revealConditions),
       bindings: bindings.map((binding) => toSnapshotBinding(binding)),
     };
   }),

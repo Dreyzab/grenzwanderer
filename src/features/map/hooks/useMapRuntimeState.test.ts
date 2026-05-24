@@ -287,6 +287,78 @@ describe("useMapRuntimeState", () => {
 
     expect(result.current.source).toBe("snapshot_v3");
     expect(result.current.points).toHaveLength(0);
+    expect(
+      result.current.journeyDiscoveryCandidates.map((point) => point.id),
+    ).toEqual(["loc_shadow"]);
+  });
+
+  it("reveals discovered journey points from DISCOVERED flags", () => {
+    mocks.useTableMock.mockImplementation((table: symbol) => {
+      if (table === mocks.tablesMock.myPlayerLocation) {
+        return [[{ locationId: "loc_agency" }], true];
+      }
+      if (table === mocks.tablesMock.myPlayerFlags) {
+        return [
+          [
+            { key: "agency_briefing_complete", value: true },
+            { key: "DISCOVERED_loc_shadow", value: true },
+          ],
+          true,
+        ];
+      }
+      if (table === mocks.tablesMock.myMapEvents) {
+        return [[], true];
+      }
+      if (table === mocks.tablesMock.contentVersion) {
+        return [[{ checksum: "abc", isActive: true }], true];
+      }
+      if (table === mocks.tablesMock.contentSnapshot) {
+        return [[{ checksum: "abc", payloadJson: "{}" }], true];
+      }
+
+      return [[], true];
+    });
+
+    mocks.parseSnapshotMock.mockReturnValue({
+      schemaVersion: 3,
+      scenarios: [],
+      nodes: [],
+      mindPalace: { cases: [], facts: [], hypotheses: [] },
+      map: {
+        defaultRegionId: "FREIBURG_1905",
+        regions: [
+          {
+            id: "FREIBURG_1905",
+            name: "Freiburg",
+            geoCenterLat: 47.99,
+            geoCenterLng: 7.85,
+            zoom: 14,
+          },
+        ],
+        points: [
+          {
+            id: "loc_shadow",
+            regionId: "FREIBURG_1905",
+            title: "Shadow Point",
+            lat: 47.98,
+            lng: 7.84,
+            locationId: "loc_shadow",
+            category: "SHADOW",
+            defaultState: "locked",
+            isHiddenInitially: true,
+            bindings: [],
+          },
+        ],
+      },
+    });
+
+    const { result } = renderHook(() => useMapRuntimeState(testDataSource));
+
+    expect(result.current.points.map((point) => point.id)).toEqual([
+      "loc_shadow",
+    ]);
+    expect(result.current.points[0]?.state).toBe("discovered");
+    expect(result.current.journeyDiscoveryCandidates).toHaveLength(0);
   });
 
   it("shows only the agency hub before the first briefing", () => {

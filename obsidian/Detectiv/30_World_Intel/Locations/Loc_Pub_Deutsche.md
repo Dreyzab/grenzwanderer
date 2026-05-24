@@ -7,7 +7,7 @@ tags:
 runtime_location_id: loc_pub_deutsche
 ---
 
-# Zum Goldenen Adler
+# Zum Eber
 
 > **ID**: `loc_pub_deutsche`
 > **District**: Schneckenvorstadt

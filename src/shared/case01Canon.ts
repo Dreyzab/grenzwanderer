@@ -29,6 +29,9 @@ export const CASE01_FINAL_OUTCOME_COMPROMISED = 2;
 export const CASE01_DINING_NODE_IDS = {
   intro: "scene_case01_train_dining_car_intro",
   mother: "scene_case01_train_dining_car_mother",
+  motherMonologueHappiness:
+    "scene_case01_train_dining_car_lotte_monologue_happiness",
+  motherMonologueChosen: "scene_case01_train_dining_car_lotte_monologue_chosen",
   motherReaction: "scene_case01_train_dining_car_mother_reaction",
   marriageJoke: "scene_case01_train_dining_car_marriage_joke",
   silentBranch: "scene_case01_train_dining_car_silent_branch",
@@ -89,6 +92,17 @@ export const CASE01_CANON_FLAG_KEYS = [
   "fritz_contact_established",
   "fritz_platform_scan_complete",
   "case01_priority_locked",
+  "case01_mayor_reward_notice_seen",
+  "case01_forensics_reward_lead_seen",
+  "case01_newsboy_read_as_picker",
+  "case01_newsboy_caught",
+  "case01_newsboy_spared",
+  "case01_newsboy_handed_to_police",
+  "case01_newsboy_thread_resolved",
+  "case01_watch_stolen",
+  "case01_watch_recovery_open",
+  "case01_watch_reported_to_hbf_police",
+  "case01_hbf_police_cover_suspected",
   "clerk_interviewed",
   "vault_inspected",
   "met_galdermann",
@@ -117,11 +131,102 @@ export const CASE01_CANON_FLAG_KEYS = [
   CASE01_DINING_FLAGS.noticedRingRemoved,
   CASE01_DINING_FLAGS.noticedFelixApathy,
   CASE01_DINING_FLAGS.noticedLotteSchedule,
+  "flag_witch_read_envelope_echo",
+  "flag_witch_drank_brandy_early",
+  "flag_witch_absorbed_hbf_blood",
+  "flag_witch_helped_karl_hbf",
+  "flag_witch_took_suppressant",
+  "flag_witch_siphoned_relic",
+  "flag_witch_master_suspicious",
   "flag_spotted_fritz_early",
+  "flag_witch_lotte_rational",
+  "flag_witch_lotte_somatic",
+  "flag_witch_lotte_marriage_match",
+  "flag_witch_baroness_deal",
+  "flag_witch_baroness_suspicious",
+  "flag_witch_ghost_freed",
+  "flag_witch_ghost_bound",
+  "flag_witch_ghost_banished",
+  "flag_witch_mugger_survived",
+  "flag_witch_mugger_killed",
+  "flag_witch_maid_bribed",
+  "flag_witch_dress_cleansed",
+  "flag_witch_copper_smell",
+  "flag_witch_felix_noticed_copper_smell",
+  "flag_witch_somatic_exhaustion",
+  "flag_witch_attacked_karl",
+  "met_bureau_master_intro",
+  "met_karl_servant_intro",
+  "met_friedrich_wagner_intro",
+  "met_krebs_mugger_intro",
+  "met_hotel_maid_intro",
+  "ghost_karl_testimony_compromised",
 ] as const;
 
 export const CASE01_CANON_VAR_KEYS = [
   "convergence_route",
   "case01_final_outcome",
   "official_writ_strength",
+  "witch_blood_curse_pressure",
+  "witch_alcohol_aftertaste",
 ] as const;
+
+export const CASE01_DIRECTOR_BRIDGE_FALLBACK_BEAT_IDS = Object.freeze([
+  CASE01_SCENARIO_IDS.defaultEntry,
+  CASE01_SCENARIO_IDS.mayorBriefing,
+  CASE01_SCENARIO_IDS.bankInvestigation,
+  CASE01_SCENARIO_IDS.leadTailor,
+  CASE01_SCENARIO_IDS.leadApothecary,
+  CASE01_SCENARIO_IDS.leadPub,
+  CASE01_SCENARIO_IDS.falseTrailWorkers,
+  CASE01_SCENARIO_IDS.falseTrailPostRoute,
+  CASE01_SCENARIO_IDS.falseTrailGrimoire,
+  CASE01_SCENARIO_IDS.falseTrailConvergence,
+  CASE01_SCENARIO_IDS.estateBranch,
+  CASE01_SCENARIO_IDS.lotteInterlude,
+  CASE01_SCENARIO_IDS.lodgingZumGoldenenAdler,
+  CASE01_SCENARIO_IDS.convergence,
+  CASE01_SCENARIO_IDS.archiveRun,
+  CASE01_SCENARIO_IDS.railYardTail,
+  CASE01_SCENARIO_IDS.warehouseFinale,
+] as const);
+
+export type Case01DirectorAllowedBeatId =
+  (typeof CASE01_DIRECTOR_BRIDGE_FALLBACK_BEAT_IDS)[number];
+
+const CASE01_CANON_SCENARIO_ID_SET: ReadonlySet<string> = new Set(
+  Object.values(CASE01_SCENARIO_IDS),
+);
+
+export const isCase01CanonScenarioId = (
+  value: string,
+): value is Case01DirectorAllowedBeatId =>
+  CASE01_CANON_SCENARIO_ID_SET.has(value);
+
+export const buildDirectorAllowedBeatIds = (
+  snapshotScenarioIds?: readonly string[],
+): readonly string[] => {
+  const allowed = new Set<string>(CASE01_DIRECTOR_BRIDGE_FALLBACK_BEAT_IDS);
+  if (snapshotScenarioIds) {
+    for (const entry of snapshotScenarioIds) {
+      if (isCase01CanonScenarioId(entry)) {
+        allowed.add(entry);
+      }
+    }
+  }
+  return Object.freeze([...allowed]);
+};
+
+export const isCanonicalDirectorAllowedBeatList = (
+  ids: readonly string[],
+): boolean => {
+  if (ids.length === 0) {
+    return false;
+  }
+  for (const id of ids) {
+    if (!isCase01CanonScenarioId(id)) {
+      return false;
+    }
+  }
+  return true;
+};

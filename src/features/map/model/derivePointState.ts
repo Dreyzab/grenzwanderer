@@ -6,6 +6,7 @@ export const derivePointState = (
   visitedFlags: ReadonlySet<string>,
   unlockedGroups: ReadonlySet<string>,
   completedFlags: ReadonlySet<string> = new Set<string>(),
+  discoveredFlags: ReadonlySet<string> = new Set<string>(),
 ): PinVisualState => {
   if (completedFlags.has(`COMPLETED_${point.id}`)) {
     return "completed";
@@ -19,6 +20,10 @@ export const derivePointState = (
   }
 
   if (point.unlockGroup && unlockedGroups.has(point.unlockGroup)) {
+    return "discovered";
+  }
+
+  if (discoveredFlags.has(`DISCOVERED_${point.id}`)) {
     return "discovered";
   }
 

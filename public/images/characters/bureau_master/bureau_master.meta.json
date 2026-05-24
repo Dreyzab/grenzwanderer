@@ -1,0 +1,8 @@
+{
+  "assetId": "npc_bureau_master",
+  "assetKind": "vn_character_portrait",
+  "prompt": "Period-correct 1905 Freiburg VN portrait silhouette for bureau master, oil-paint texture, no text, no watermark.",
+  "promptSha256": "8de1362ce9d5ac6975dcb2cff13a27bb26ad91044fbd11634ba95fde644a2b65",
+  "assetSha256": "afd6385b065bda5f66b29f4f52bc2bd747d8806c8fdbd8e1079847fbb67df828",
+  "provenance": "deterministic local period silhouette; live OpenAI Image API unavailable in this environment"
+}

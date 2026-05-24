@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useTable } from "spacetimedb/react";
+import { useReducer, useTable } from "spacetimedb/react";
 import {
   getAgencyStandingPresentation,
   getCareerRankLabel,
@@ -7,9 +7,16 @@ import {
   getTrustBandPresentation,
 } from "../../../shared/game/socialPresentation";
 import { getLocationCastPresentation } from "../../../shared/game/locationCastPresentation";
-import { tables } from "../../../shared/spacetime/bindings";
+import {
+  reducers,
+  tables,
+  type QuestInstance,
+} from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
+import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
 import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
+import { CASE_CATALOG } from "../../../shared/vn-contract";
+import type { QuestStepInstance } from "../../../shared/vn-contract";
 import { parseSnapshot } from "../../vn/vnContent";
 import type { RuntimeMapBinding, RuntimeMapPoint } from "../types";
 import {
@@ -18,6 +25,7 @@ import {
 } from "../../mindpalace/focusLens";
 import { findPrimaryInternalizedThought } from "../../mindpalace/thoughtCabinet";
 import { derivePsychogeographicNote } from "../psychogeography";
+import { getMapStrings } from "../../i18n/uiStrings";
 
 type HubTab = "briefing" | "inventory" | "partners";
 
@@ -31,14 +39,43 @@ interface DetectiveHubProps {
   onClose: () => void;
 }
 
-const TAB_CONFIG: ReadonlyArray<{ id: HubTab; label: string }> = [
-  { id: "briefing", label: "Briefing" },
-  { id: "inventory", label: "Inventory" },
-  { id: "partners", label: "Partners" },
-];
+// Moved inside component for localization
 
 const formatValue = (value: number | bigint): string =>
   typeof value === "bigint" ? value.toString() : String(value);
+
+const getProceduralActionLabels = (language: string) => {
+  if (language === "ru") {
+    return {
+      activeStep: "Активный шаг",
+      advanceFile: "Продвинуть дело",
+      advancingFile: "Продвигается...",
+    };
+  }
+  if (language === "de") {
+    return {
+      activeStep: "Aktiver Schritt",
+      advanceFile: "Akte fortsetzen",
+      advancingFile: "Wird fortgesetzt...",
+    };
+  }
+  return {
+    activeStep: "Active step",
+    advanceFile: "Advance file",
+    advancingFile: "Advancing...",
+  };
+};
+
+const parseQuestSteps = (
+  row: Pick<QuestInstance, "stepsJson">,
+): QuestStepInstance[] => {
+  try {
+    const parsed = JSON.parse(row.stepsJson);
+    return Array.isArray(parsed) ? (parsed as QuestStepInstance[]) : [];
+  } catch {
+    return [];
+  }
+};
 
 export const DetectiveHub = ({
   point,
@@ -46,11 +83,38 @@ export const DetectiveHub = ({
   onRunBinding,
   onClose,
 }: DetectiveHubProps) => {
-  const { identityHex } = useIdentity();
+  const isCurrentLocation = currentLocationId === point.locationId;
   const { flags: myFlags, vars: myVars } = usePlayerBindings();
+  const language = useUiLanguage(myFlags);
+  const mapStrings = getMapStrings(language).hub;
+  const proceduralActionLabels = useMemo(
+    () => getProceduralActionLabels(language),
+    [language],
+  );
+
+  const tabConfig: ReadonlyArray<{ id: HubTab; label: string }> = useMemo(
+    () => [
+      { id: "briefing", label: mapStrings.briefing },
+      { id: "inventory", label: mapStrings.inventory },
+      { id: "partners", label: mapStrings.partners },
+    ],
+    [mapStrings],
+  );
+
+  const { identityHex } = useIdentity();
   const [activeTab, setActiveTab] = useState<HubTab>("briefing");
   const [pendingBindingId, setPendingBindingId] = useState<string | null>(null);
+  const [pendingQuestInstanceId, setPendingQuestInstanceId] = useState<
+    string | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
+  const advanceQuestInstance = useReducer(
+    reducers.advanceQuestInstance,
+  ) as (input: {
+    requestId: string;
+    instanceId: string;
+    stepId?: string;
+  }) => Promise<unknown>;
 
   const [inventoryRows] = useTable(tables.myPlayerInventory);
   const [relationshipRows] = useTable(tables.myRelationships);
@@ -58,6 +122,7 @@ export const DetectiveHub = ({
   const [npcFavorRows] = useTable(tables.myNpcFavors);
   const [agencyCareerRows] = useTable(tables.myAgencyCareer);
   const [flagRows] = useTable(tables.myPlayerFlags);
+  const [questInstanceRows] = useTable(tables.myQuestInstances);
   const [versionRows] = useTable(tables.contentVersion);
   const [snapshotRows] = useTable(tables.contentSnapshot);
 
@@ -122,6 +187,59 @@ export const DetectiveHub = ({
     () => inventoryRows.filter((row) => row.quantity > 0),
     [inventoryRows],
   );
+  const activeQuestInstances = useMemo(() => {
+    const titleByArchetypeId = new Map(
+      CASE_CATALOG.questArchetypes.map((archetype) => [
+        archetype.id,
+        archetype.title,
+      ]),
+    );
+
+    return questInstanceRows
+      .filter((row) => row.status === "active" || row.status === "pending")
+      .map((row) => {
+        const steps = parseQuestSteps(row);
+        const activeStep = steps.find((step) => step.status === "active");
+        const completedStepCount = steps.filter(
+          (step) => step.status === "completed",
+        ).length;
+
+        return {
+          key: row.questInstanceKey,
+          instanceId: row.instanceId,
+          title: titleByArchetypeId.get(row.archetypeId) ?? row.archetypeId,
+          status: row.status,
+          activeStep,
+          stepCount: steps.length,
+          completedStepCount,
+        };
+      });
+  }, [questInstanceRows]);
+  const completedQuestInstances = useMemo(() => {
+    const titleByArchetypeId = new Map(
+      CASE_CATALOG.questArchetypes.map((archetype) => [
+        archetype.id,
+        archetype.title,
+      ]),
+    );
+
+    return questInstanceRows
+      .filter((row) => row.status === "completed")
+      .map((row) => {
+        const steps = parseQuestSteps(row);
+        const completedStepCount = steps.filter(
+          (step) => step.status === "completed",
+        ).length;
+
+        return {
+          key: row.questInstanceKey,
+          title: titleByArchetypeId.get(row.archetypeId) ?? row.archetypeId,
+          status: row.status,
+          stepCount: steps.length,
+          completedStepCount,
+        };
+      });
+  }, [questInstanceRows]);
 
   const companions = useMemo(() => {
     const trustByNpcId = new Map<string, number>();
@@ -188,6 +306,7 @@ export const DetectiveHub = ({
     [point.availableBindings, primaryBinding?.id],
   );
   const isBusy = pendingBindingId !== null;
+  const isQuestAdvanceBusy = pendingQuestInstanceId !== null;
 
   const runBinding = async (binding: RuntimeMapBinding) => {
     setPendingBindingId(binding.id);
@@ -205,227 +324,79 @@ export const DetectiveHub = ({
     }
   };
 
+  const advanceProceduralFile = async (entry: {
+    instanceId: string;
+    activeStep?: QuestStepInstance;
+  }) => {
+    setPendingQuestInstanceId(entry.instanceId);
+    setError(null);
+    try {
+      await advanceQuestInstance({
+        requestId: `hub-advance-${entry.instanceId}-${Date.now()}`,
+        instanceId: entry.instanceId,
+        stepId: entry.activeStep?.id,
+      });
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : mapStrings.action_failed,
+      );
+    } finally {
+      setPendingQuestInstanceId(null);
+    }
+  };
+
   return (
-    <div
-      className="gw-map-modal"
-      onClick={onClose}
-      style={{ background: "rgba(7, 7, 7, 0.48)", backdropFilter: "blur(8px)" }}
-    >
+    <div className="gw-hub-overlay" onClick={onClose}>
       <aside
-        className="gw-map-panel"
+        className="gw-hub-panel"
         role="dialog"
         aria-modal="true"
         aria-labelledby={`hub-title-${point.id}`}
         onClick={(event) => event.stopPropagation()}
-        style={{
-          width: "min(100%, 48rem)",
-          borderRadius: "1.1rem",
-          border: "1px solid rgba(168, 125, 74, 0.3)",
-          background:
-            "linear-gradient(180deg, rgba(247, 237, 214, 0.98), rgba(230, 214, 180, 0.96))",
-          color: "#2e1a10",
-          boxShadow:
-            "0 30px 60px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 249, 235, 0.18)",
-        }}
       >
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              'radial-gradient(circle at top left, rgba(223, 193, 126, 0.2), transparent 48%), url("/images/paper-texture.png")',
-            backgroundSize: "auto, 240px",
-            opacity: 0.24,
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          className="gw-map-panel__frame"
-          style={{
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-            padding: "1.15rem",
-          }}
-        >
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              position: "absolute",
-              top: "0.85rem",
-              right: "0.85rem",
-              zIndex: 2,
-              border: "1px solid rgba(59, 37, 18, 0.14)",
-              borderRadius: "999px",
-              background: "rgba(255, 250, 241, 0.66)",
-              color: "#3b2512",
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.7rem",
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              padding: "0.42rem 0.66rem",
-              cursor: "pointer",
-            }}
-          >
-            Close
+        <div className="gw-map-overlay-paper" />
+        <div className="gw-map-panel__frame gw-hub-panel__frame">
+          <button type="button" onClick={onClose} className="gw-hub-close-btn">
+            {mapStrings.close}
           </button>
 
-          <header
-            style={{
-              display: "flex",
-              alignItems: "start",
-              justifyContent: "space-between",
-              gap: "1rem",
-              flexWrap: "wrap",
-            }}
-          >
+          <header className="gw-hub-header">
             <div>
-              <p
-                style={{
-                  margin: 0,
-                  color: "#8c6841",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.74rem",
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Agency Hub
-              </p>
-              <h3
-                id={`hub-title-${point.id}`}
-                style={{
-                  margin: "0.4rem 0 0",
-                  color: "#412719",
-                  fontFamily: "var(--font-serif)",
-                  fontSize: "clamp(1.5rem, 2.5vw, 2.15rem)",
-                  lineHeight: 1.08,
-                }}
-              >
+              <p className="gw-hub-label-eyebrow">{mapStrings.agency_hub}</p>
+              <h3 id={`hub-title-${point.id}`} className="gw-hub-title">
                 {point.title}
               </h3>
             </div>
             <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.45rem",
-                padding: "0.5rem 0.72rem",
-                borderRadius: "999px",
-                border: "1px solid rgba(59, 37, 18, 0.12)",
-                background: "rgba(255, 247, 232, 0.6)",
-                color:
-                  currentLocationId === point.locationId
-                    ? "#347737"
-                    : "#4a2c15",
-                boxShadow:
-                  currentLocationId === point.locationId
-                    ? "0 0 0 0.18rem rgba(52, 119, 55, 0.18)"
-                    : "0 0 0 0.18rem rgba(74, 44, 21, 0.08)",
-                fontSize: "0.76rem",
-                fontWeight: 700,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-              }}
+              className="gw-hub-status-badge"
+              data-location-state={isCurrentLocation ? "current" : "route"}
             >
-              <span
-                style={{
-                  width: "0.62rem",
-                  height: "0.62rem",
-                  borderRadius: "999px",
-                  background:
-                    currentLocationId === point.locationId
-                      ? "#347737"
-                      : "#4a2c15",
-                  boxShadow: `0 0 12px ${
-                    currentLocationId === point.locationId
-                      ? "#347737"
-                      : "#4a2c15"
-                  }`,
-                }}
-              />
-              {currentLocationId === point.locationId
-                ? "On site"
-                : "Field route"}
+              <span className="gw-hub-status-dot" />
+              {isCurrentLocation ? mapStrings.on_site : mapStrings.field_route}
             </span>
           </header>
 
           {activeLens ? (
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.45rem",
-                padding: "0.5rem 0.72rem",
-                borderRadius: "999px",
-                border: "1px solid rgba(55, 123, 174, 0.18)",
-                background: "rgba(110, 181, 230, 0.12)",
-                color: "#17405b",
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.72rem",
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-              }}
-            >
-              Active Lens: {activeLens.hypothesisText}
+            <div className="gw-hub-lens-tag">
+              {mapStrings.active_lens}: {activeLens.hypothesisText}
             </div>
           ) : null}
 
-          <section
-            style={{
-              padding: "0.9rem 0.95rem",
-              borderRadius: "0.95rem",
-              border: "1px solid rgba(59, 37, 18, 0.1)",
-              background: "rgba(255, 247, 232, 0.46)",
-            }}
-          >
-            <p
-              style={{
-                margin: 0,
-                color: "#6d5744",
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.68rem",
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-              }}
-            >
-              {psychogeographicNote.title}
-            </p>
-            <p
-              style={{
-                margin: "0.35rem 0 0",
-                color: "#3f2d1f",
-                lineHeight: 1.65,
-              }}
-            >
-              {psychogeographicNote.body}
-            </p>
+          <section className="gw-hub-info-panel">
+            <p className="gw-hub-label-eyebrow">{psychogeographicNote.title}</p>
+            <p className="gw-hub-note-body">{psychogeographicNote.body}</p>
           </section>
 
-          <nav className="gw-map-tabs" aria-label="Hub tabs">
-            {TAB_CONFIG.map((tab) => (
+          <nav className="gw-hub-tab-bar" aria-label="Hub tabs">
+            {tabConfig.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 aria-pressed={activeTab === tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                style={{
-                  border: "1px solid rgba(59, 37, 18, 0.12)",
-                  borderRadius: "0.95rem",
-                  padding: "0.72rem 0.8rem",
-                  background:
-                    activeTab === tab.id
-                      ? "linear-gradient(180deg, #4f2a17, #32190f)"
-                      : "rgba(255, 249, 237, 0.48)",
-                  color: activeTab === tab.id ? "#f9edd2" : "#4b3019",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.73rem",
-                  letterSpacing: "0.14em",
-                  textTransform: "uppercase",
-                  cursor: "pointer",
-                }}
+                className="gw-hub-tab"
               >
                 {tab.label}
               </button>
@@ -433,127 +404,48 @@ export const DetectiveHub = ({
           </nav>
 
           {activeTab === "briefing" ? (
-            <section
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.8rem",
-              }}
-            >
-              <p style={{ margin: 0, color: "#3f2d1f", lineHeight: 1.7 }}>
+            <section className="gw-hub-tab-panel">
+              <p className="gw-hub-copy">
                 {introCompleted
-                  ? "The bureau is operational. Review the latest notes, then head back into the city."
-                  : "Your first briefing is still pending. Open the desk file to begin the current assignment."}
+                  ? mapStrings.bureau_operational
+                  : mapStrings.briefing_pending}
               </p>
 
               {locationCast ? (
-                <section
-                  style={{
-                    display: "grid",
-                    gap: "0.65rem",
-                    padding: "0.85rem 0.95rem",
-                    borderRadius: "0.95rem",
-                    border: "1px solid rgba(59, 37, 18, 0.1)",
-                    background: "rgba(255, 249, 237, 0.56)",
-                  }}
-                >
+                <section className="gw-hub-roster">
                   <div>
-                    <div
-                      style={{
-                        marginBottom: "0.25rem",
-                        color: "#6d5744",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.68rem",
-                        letterSpacing: "0.14em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Duty Roster
+                    <div className="gw-hub-label-eyebrow">
+                      {mapStrings.duty_roster}
                     </div>
-                    <p
-                      style={{ margin: 0, color: "#3f2d1f", lineHeight: 1.55 }}
-                    >
+                    <p className="gw-hub-copy gw-hub-copy--tight">
                       {locationCast.tone}
                     </p>
                   </div>
 
-                  <div
-                    style={{
-                      display: "grid",
-                      gap: "0.65rem",
-                      gridTemplateColumns:
-                        "repeat(auto-fit, minmax(13rem, 1fr))",
-                    }}
-                  >
-                    <article
-                      style={{
-                        padding: "0.8rem 0.9rem",
-                        borderRadius: "0.9rem",
-                        border: "1px solid rgba(59, 37, 18, 0.1)",
-                        background: "rgba(255, 250, 241, 0.56)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          marginBottom: "0.35rem",
-                          color: "#6d5744",
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "0.68rem",
-                          letterSpacing: "0.14em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Scene Owner
+                  <div className="gw-hub-roster-grid">
+                    <article className="gw-hub-roster-card">
+                      <div className="gw-hub-label-eyebrow">
+                        {mapStrings.scene_owner}
                       </div>
-                      <strong
-                        style={{
-                          display: "block",
-                          color: "#2d1c12",
-                          fontSize: "0.98rem",
-                        }}
-                      >
+                      <strong className="gw-hub-person-name">
                         {locationCast.primaryNpc.displayName}
                       </strong>
-                      <p style={{ margin: "0.18rem 0 0", color: "#5e4632" }}>
+                      <p className="gw-hub-person-role">
                         {locationCast.primaryNpc.publicRole}
                       </p>
                     </article>
 
-                    <article
-                      style={{
-                        padding: "0.8rem 0.9rem",
-                        borderRadius: "0.9rem",
-                        border: "1px solid rgba(59, 37, 18, 0.1)",
-                        background: "rgba(255, 250, 241, 0.56)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          marginBottom: "0.35rem",
-                          color: "#6d5744",
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "0.68rem",
-                          letterSpacing: "0.14em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Support Desk
+                    <article className="gw-hub-roster-card">
+                      <div className="gw-hub-label-eyebrow">
+                        {mapStrings.support_desk}
                       </div>
-                      <div style={{ display: "grid", gap: "0.4rem" }}>
+                      <div className="gw-hub-support-list">
                         {locationCast.supportNpcs.map((npc) => (
                           <div key={npc.id}>
-                            <strong
-                              style={{
-                                display: "block",
-                                color: "#2d1c12",
-                                fontSize: "0.92rem",
-                              }}
-                            >
+                            <strong className="gw-hub-support-name">
                               {npc.displayName}
                             </strong>
-                            <span
-                              style={{ color: "#5e4632", fontSize: "0.88rem" }}
-                            >
+                            <span className="gw-hub-support-role">
                               {npc.publicRole}
                             </span>
                           </div>
@@ -562,124 +454,140 @@ export const DetectiveHub = ({
                     </article>
                   </div>
 
-                  <p style={{ margin: 0, color: "#3f2d1f", lineHeight: 1.55 }}>
+                  <p className="gw-hub-copy gw-hub-copy--tight">
                     {locationCast.dramaticFunction}
                   </p>
                 </section>
               ) : null}
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: "0.7rem",
-                }}
-              >
+              <div className="gw-hub-metrics-grid">
                 {[
-                  ["Inventory ready", `${inventoryItems.length} entries`],
-                  ["Partners on file", `${companions.length} contacts`],
-                  ["Agency rank", agencyRankLabel],
-                  ["Agency status", agencyStandingLabel],
+                  [
+                    mapStrings.inventory_ready,
+                    `${inventoryItems.length} ${mapStrings.entries}`,
+                  ],
+                  [
+                    mapStrings.partners_file,
+                    `${companions.length} ${mapStrings.contacts}`,
+                  ],
+                  [
+                    mapStrings.procedural_files,
+                    `${activeQuestInstances.length + completedQuestInstances.length} ${mapStrings.entries}`,
+                  ],
+                  [mapStrings.agency_rank, agencyRankLabel],
+                  [mapStrings.agency_status, agencyStandingLabel],
                 ].map(([label, value]) => (
-                  <div
-                    key={label}
-                    style={{
-                      padding: "0.8rem 0.9rem",
-                      borderRadius: "0.9rem",
-                      border: "1px solid rgba(59, 37, 18, 0.1)",
-                      background: "rgba(255, 250, 241, 0.56)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        marginBottom: "0.35rem",
-                        color: "#6d5744",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.68rem",
-                        letterSpacing: "0.14em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {label}
-                    </div>
-                    <div style={{ color: "#2d1c12", fontWeight: 700 }}>
-                      {value}
-                    </div>
+                  <div key={label} className="gw-hub-grid-item">
+                    <div className="gw-hub-label-eyebrow">{label}</div>
+                    <div className="gw-hub-metric-value">{value}</div>
                   </div>
                 ))}
               </div>
 
+              {activeQuestInstances.length > 0 ? (
+                <section className="gw-hub-content-section gw-hub-proc-files">
+                  <div className="gw-hub-label-eyebrow">
+                    {mapStrings.procedural_files}
+                  </div>
+                  <div className="gw-hub-proc-file-list">
+                    {activeQuestInstances.map((entry) => (
+                      <article key={entry.key} className="gw-hub-proc-file">
+                        <div>
+                          <h4 className="gw-hub-item-title">{entry.title}</h4>
+                          <p className="gw-secondary-text">
+                            {mapStrings.generated_case} / {entry.status}
+                          </p>
+                          {entry.activeStep ? (
+                            <p className="gw-secondary-text gw-hub-proc-file__step">
+                              {proceduralActionLabels.activeStep}:{" "}
+                              {entry.activeStep.nodeId ?? entry.activeStep.id}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="gw-hub-proc-file__controls">
+                          <span className="gw-hub-proc-file__meta">
+                            {entry.completedStepCount}/{entry.stepCount}{" "}
+                            {mapStrings.steps_logged}
+                          </span>
+                          <button
+                            type="button"
+                            className="gw-hub-proc-file__advance"
+                            disabled={
+                              isQuestAdvanceBusy ||
+                              entry.activeStep === undefined
+                            }
+                            onClick={() => void advanceProceduralFile(entry)}
+                          >
+                            {pendingQuestInstanceId === entry.instanceId
+                              ? proceduralActionLabels.advancingFile
+                              : proceduralActionLabels.advanceFile}
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {completedQuestInstances.length > 0 ? (
+                <section className="gw-hub-content-section gw-hub-proc-files">
+                  <div className="gw-hub-label-eyebrow">Closed files</div>
+                  <div className="gw-hub-proc-file-list">
+                    {completedQuestInstances.map((entry) => (
+                      <article
+                        key={entry.key}
+                        className="gw-hub-proc-file"
+                        data-status="completed"
+                      >
+                        <div>
+                          <h4 className="gw-hub-item-title">{entry.title}</h4>
+                          <p className="gw-secondary-text">
+                            {mapStrings.generated_case} / {entry.status}
+                          </p>
+                        </div>
+                        <span className="gw-hub-proc-file__meta">
+                          {entry.completedStepCount}/{entry.stepCount}{" "}
+                          {mapStrings.steps_logged}
+                        </span>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
               {primaryBinding ? (
-                <div style={{ display: "grid", gap: "0.75rem" }}>
-                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div className="gw-hub-action-stack">
+                  <div className="gw-hub-action-row">
                     <button
                       type="button"
                       disabled={isBusy}
                       onClick={() => void runBinding(primaryBinding)}
-                      style={{
-                        border: "1px solid rgba(59, 37, 18, 0.14)",
-                        borderRadius: "0.95rem",
-                        padding: "0.9rem 1rem",
-                        background: "linear-gradient(180deg, #5b1f1b, #3f1714)",
-                        color: "#f8eeda",
-                        fontFamily: "var(--font-display)",
-                        fontSize: "0.95rem",
-                        fontWeight: 700,
-                        cursor: isBusy ? "not-allowed" : "pointer",
-                        opacity: isBusy ? 0.68 : 1,
-                      }}
+                      className="gw-hub-primary-btn"
                     >
                       {pendingBindingId === primaryBinding.id
                         ? `${primaryBinding.label}...`
                         : introCompleted
-                          ? "Review latest briefing"
-                          : "Open briefing"}
+                          ? mapStrings.review_briefing
+                          : mapStrings.open_briefing}
                     </button>
                   </div>
 
                   {secondaryBindings.length > 0 ? (
-                    <div
-                      style={{
-                        display: "grid",
-                        gap: "0.65rem",
-                        gridTemplateColumns:
-                          "repeat(auto-fit, minmax(12rem, 1fr))",
-                      }}
-                    >
+                    <div className="gw-hub-secondary-grid">
                       {secondaryBindings.map((binding) => (
                         <button
                           key={binding.id}
                           type="button"
                           disabled={isBusy}
                           onClick={() => void runBinding(binding)}
-                          style={{
-                            textAlign: "left",
-                            border: "1px solid rgba(59, 37, 18, 0.1)",
-                            borderRadius: "0.95rem",
-                            padding: "0.82rem 0.9rem",
-                            background: "rgba(255, 249, 237, 0.72)",
-                            color: "#3b2512",
-                            cursor: isBusy ? "not-allowed" : "pointer",
-                            opacity: isBusy ? 0.72 : 1,
-                          }}
+                          className="gw-hub-secondary-btn"
                         >
-                          <strong
-                            style={{
-                              display: "block",
-                              marginBottom: "0.18rem",
-                            }}
-                          >
+                          <strong className="gw-hub-secondary-btn__label">
                             {pendingBindingId === binding.id
                               ? `${binding.label}...`
                               : binding.label}
                           </strong>
-                          <span
-                            style={{
-                              fontSize: "0.84rem",
-                              color: "#6b5440",
-                              lineHeight: 1.5,
-                            }}
-                          >
+                          <span className="gw-hub-secondary-btn__hint">
                             {binding.intent === "travel"
                               ? "Travel or logistics action."
                               : "Auxiliary bureau action available from this hub."}
@@ -690,89 +598,31 @@ export const DetectiveHub = ({
                   ) : null}
                 </div>
               ) : (
-                <div
-                  style={{
-                    padding: "0.82rem 0.95rem",
-                    borderRadius: "0.9rem",
-                    border: "1px solid rgba(59, 37, 18, 0.1)",
-                    background: "rgba(255, 249, 237, 0.58)",
-                    color: "#5c4635",
-                    lineHeight: 1.55,
-                  }}
-                >
-                  No briefing action is currently available.
+                <div className="gw-hub-empty-panel">
+                  {mapStrings.no_briefing}
                 </div>
               )}
             </section>
           ) : null}
 
           {activeTab === "inventory" ? (
-            <section
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.8rem",
-              }}
-            >
+            <section className="gw-hub-tab-panel">
               {inventoryItems.length === 0 ? (
-                <div
-                  style={{
-                    padding: "0.82rem 0.95rem",
-                    borderRadius: "0.9rem",
-                    border: "1px solid rgba(59, 37, 18, 0.1)",
-                    background: "rgba(255, 249, 237, 0.58)",
-                    color: "#5c4635",
-                    lineHeight: 1.55,
-                  }}
-                >
-                  No field equipment is currently registered.
+                <div className="gw-hub-empty-panel">
+                  {mapStrings.no_equipment}
                 </div>
               ) : (
                 inventoryItems.map((item) => (
                   <article
                     key={item.inventoryKey}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "0.75rem",
-                      padding: "0.85rem 0.95rem",
-                      borderRadius: "0.95rem",
-                      border: "1px solid rgba(59, 37, 18, 0.1)",
-                      background: "rgba(255, 250, 241, 0.58)",
-                    }}
+                    className="gw-hub-inventory-item"
                   >
                     <div>
-                      <h4
-                        style={{
-                          margin: "0 0 0.18rem",
-                          color: "#2f1c11",
-                          fontFamily: "var(--font-serif)",
-                          fontSize: "1rem",
-                        }}
-                      >
-                        {item.itemId}
-                      </h4>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "#695240",
-                          fontSize: "0.9rem",
-                        }}
-                      >
-                        Filed for bureau use.
-                      </p>
+                      <h4 className="gw-hub-item-title">{item.itemId}</h4>
+                      <p className="gw-secondary-text">Filed for bureau use.</p>
                     </div>
-                    <span
-                      style={{
-                        color: "#3f2815",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.78rem",
-                        letterSpacing: "0.14em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Qty {formatValue(item.quantity)}
+                    <span className="gw-hub-quantity">
+                      {mapStrings.qty} {formatValue(item.quantity)}
                     </span>
                   </article>
                 ))
@@ -781,77 +631,25 @@ export const DetectiveHub = ({
           ) : null}
 
           {activeTab === "partners" ? (
-            <section
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.8rem",
-              }}
-            >
+            <section className="gw-hub-tab-panel">
               {companions.length === 0 ? (
-                <div
-                  style={{
-                    padding: "0.82rem 0.95rem",
-                    borderRadius: "0.9rem",
-                    border: "1px solid rgba(59, 37, 18, 0.1)",
-                    background: "rgba(255, 249, 237, 0.58)",
-                    color: "#5c4635",
-                    lineHeight: 1.55,
-                  }}
-                >
-                  No partners are currently assigned to the bureau.
+                <div className="gw-hub-content-section">
+                  {mapStrings.no_partners}
                 </div>
               ) : (
                 companions.map((companion) => (
-                  <article
-                    key={companion.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "0.75rem",
-                      padding: "0.85rem 0.95rem",
-                      borderRadius: "0.95rem",
-                      border: "1px solid rgba(59, 37, 18, 0.1)",
-                      background: "rgba(255, 250, 241, 0.58)",
-                    }}
-                  >
+                  <article key={companion.id} className="gw-hub-grid-item">
                     <div>
-                      <h4
-                        style={{
-                          margin: "0 0 0.18rem",
-                          color: "#2f1c11",
-                          fontFamily: "var(--font-serif)",
-                          fontSize: "1rem",
-                        }}
-                      >
+                      <h4 className="gw-hub-item-title">
                         {companion.displayName}
                       </h4>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "#695240",
-                          fontSize: "0.9rem",
-                        }}
-                      >
+                      <p className="gw-secondary-text">
                         {companion.publicRole}
                       </p>
                     </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.2rem",
-                        alignItems: "flex-end",
-                        color: "#3f2815",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.78rem",
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                      }}
-                    >
+                    <div className="gw-hub-partner-rating">
                       <span>{companion.trustLabel}</span>
-                      <span style={{ color: "#6b4a24" }}>
+                      <span className="gw-hub-partner-rating__favor">
                         {companion.favorLabel}
                       </span>
                     </div>
@@ -861,38 +659,20 @@ export const DetectiveHub = ({
             </section>
           ) : null}
 
-          <footer
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "space-between",
-              gap: "0.7rem",
-              color: "#5d4737",
-              fontSize: "0.84rem",
-            }}
-          >
+          <footer className="gw-hub-footer">
             <span>
-              Location:{" "}
+              {mapStrings.location}:{" "}
               {currentLocationId === point.locationId
-                ? "Here"
+                ? mapStrings.here
                 : point.locationId}
             </span>
-            <span>{point.availableBindings.length} map bindings available</span>
+            <span>
+              {point.availableBindings.length} {mapStrings.bindings_available}
+            </span>
           </footer>
 
           {error ? (
-            <div
-              style={{
-                padding: "0.82rem 0.95rem",
-                borderRadius: "0.9rem",
-                border: "1px solid rgba(161, 32, 32, 0.16)",
-                background: "rgba(255, 235, 226, 0.86)",
-                color: "#85231f",
-                lineHeight: 1.55,
-              }}
-            >
-              {error}
-            </div>
+            <div className="gw-map-inline-note gw-hub-error-note">{error}</div>
           ) : null}
         </div>
       </aside>

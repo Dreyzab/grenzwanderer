@@ -9,6 +9,7 @@ import type { VnStrings } from "../../features/i18n/uiStrings";
 import type { NarrativeLogState } from "../../features/vn/log/useNarrativeLog";
 import type {
   TypedTextHandle,
+  TypedTextTokenState,
   TypedTextTokenHandler,
 } from "../../features/vn/ui/TypedText";
 
@@ -39,8 +40,11 @@ export interface VnNarrativePanelProps {
   onTokenClick?: TypedTextTokenHandler;
   onTokenEnter?: TypedTextTokenHandler;
   onTokenLeave?: TypedTextTokenHandler;
+  tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
   typedTextRef?: React.RefObject<TypedTextHandle>;
   onSurfaceTap?: () => void;
+  showTutorialTooltip?: boolean;
+  onDismissTutorialTooltip?: () => void;
   onVideoEnded?: () => void;
   /** Parent marks natural/skip end - pauses the background video element to avoid double audio. */
   videoPlaybackComplete?: boolean;

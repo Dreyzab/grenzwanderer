@@ -1,4 +1,4 @@
-﻿---
+---
 id: scene_conclusion_true
 type: vn_scene
 phase: sandbox_ghost
@@ -8,26 +8,28 @@ tags:
   - layer/vn
   - case/sandbox_ghost
   - phase/resolution
-  - outcome/supernatural
+  - outcome/both_true
 ---
 
-# ðŸ‘» Conclusion: The Supernatural Truth
+# Conclusion: Both Truths
 
 ## VN Script
 
 **[Narrator]**:
-"You confront the Baroness with your findings. The cold spots, the ectoplasm...
-This is no trick. The estate is truly haunted."
+"You confront the Baroness with both halves of the case. The cold spots and ectoplasm are real; the spirit has not left the estate. But the hidden pantry route, the service ledgers, and Karl's terror prove the living have been using the haunting as cover."
 
 **[Baroness von Hagen]**:
-"So it is true... Grandfather is still here.
-Thank you, Detective. We shall arrange an exorcism immediately."
+"Then we are twice damned: by the dead for what was done, and by the living for what we have allowed."
+
+**[Narrator]**:
+"The house does not grow warmer, but it grows honest. Somewhere behind the walls, the spirit stops pretending that the living are innocent."
 
 ## Reward
 
 - Occultism XP ++
-- New Trait: Ghost Whisperer
+- Detective XP ++
+- Session-canon hook: the haunting can bargain once the human cover is exposed.
 
-## â†’ Next
+## Next
 
 [[40_GameViewer/Sandbox_KA/03_Map_Return/scene_ghost_exit_to_map|scene_ghost_exit_to_map]]

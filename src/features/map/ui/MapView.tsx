@@ -1,11 +1,4 @@
-import {
-  type CSSProperties,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MapGL, {
   Layer,
   Marker,
@@ -13,6 +6,7 @@ import MapGL, {
   Source,
   type ViewStateChangeEvent,
 } from "react-map-gl/mapbox";
+import { MapPinPlus, Pause, Play, Route, Square, Trash2 } from "lucide-react";
 import { useReducer, useTable } from "spacetimedb/react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./mapExperience.css";
@@ -20,6 +14,15 @@ import type { OpenVnScenarioOptions } from "../../../shared/navigation/shellNavi
 import { MAPBOX_STYLE, MAPBOX_TOKEN, RELEASE_PROFILE } from "../../../config";
 import { reducers, tables } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
+import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
+import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
+import { DESKTOP_JOURNEY_SPEED_KMH, type LngLatTuple } from "../model/geo";
+import {
+  resolveDiscoverySignal,
+  type DiscoverySignalMemory,
+} from "../model/discoverySignal";
+import { useCompassFeedback } from "../hooks/useCompassFeedback";
+import { useMapJourney } from "../hooks/useMapJourney";
 import { useMapRuntimeState } from "../hooks/useMapRuntimeState";
 import type {
   RuntimeMapBinding,
@@ -27,8 +30,14 @@ import type {
   RuntimeMapRoute,
 } from "../types";
 import { CaseCard } from "./CaseCard";
+import { CompassOverlay } from "./CompassOverlay";
 import { DetectiveHub } from "./DetectiveHub";
-import { DetectiveMapPin } from "./DetectiveMapPin";
+import { CartouchePanel } from "./CartouchePanel";
+import { CobblestoneMarker } from "./CobblestoneMarker";
+import { PlayerPin } from "./PlayerPin";
+import { JourneyReportModal } from "./JourneyReportModal";
+import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
+import { getMapStrings } from "../../i18n/uiStrings";
 
 interface MapViewProps {
   onOpenVnScenario: (
@@ -38,10 +47,26 @@ interface MapViewProps {
   initialPanel?: "qr";
 }
 
-const MAP_VIEWPORT_HEIGHT = "calc(100dvh - env(safe-area-inset-bottom) - 4rem)";
 const COMPACT_HUD_QUERY = "(max-width: 960px)";
 const SEMANTIC_ZOOM_THRESHOLD = 14.5;
 const GEOLOCATION_TIMEOUT_MS = 2500;
+const MAP_POINT_STATES = [
+  "locked",
+  "discovered",
+  "visited",
+  "completed",
+] as const;
+const MAP_GL_LAYOUT_PROPS = {
+  style: {
+    width: "100%",
+    height: "calc(100dvh - env(safe-area-inset-bottom) - 4rem)",
+  },
+} as const;
+
+const hasObservationLensRule = (point: RuntimeMapPoint | null): boolean =>
+  Boolean(
+    point?.discoveryRules?.some((rule) => rule.channel === "observation_lens"),
+  );
 
 const createRequestId = (prefix: string, scope: string): string =>
   `${prefix}_${scope}_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`;
@@ -55,71 +80,9 @@ const getStartScenarioId = (binding: RuntimeMapBinding): string | null => {
   return null;
 };
 
-const STATE_LABELS: Record<RuntimeMapPoint["state"], string> = {
-  locked: "Locked",
-  discovered: "Discovered",
-  visited: "Visited",
-  completed: "Completed",
-};
+// Map labels and logic helper moved inside component to support i18n
 
-const STATE_COLORS: Record<RuntimeMapPoint["state"], string> = {
-  locked: "#8a97aa",
-  discovered: "#d9a743",
-  visited: "#6cc36b",
-  completed: "#59b4de",
-};
-
-const mapCodeResultLabel = (result: string): string => {
-  if (result === "applied") {
-    return "Lead archived to your map ledger.";
-  }
-  if (result === "queued_after_briefing") {
-    return "Lead archived; available after briefing.";
-  }
-  if (result === "already_redeemed") {
-    return "This code has already been used on this profile.";
-  }
-  if (result === "blocked_flags") {
-    return "This lead cannot be used yet.";
-  }
-  if (result === "location_required") {
-    return "Location required to validate this lead.";
-  }
-  if (result === "outside_geofence") {
-    return "You are too far away from this lead.";
-  }
-  if (result === "cooldown") {
-    return "Try again shortly.";
-  }
-  return "Code processed.";
-};
-
-const frameOverlayStyle: CSSProperties = {
-  position: "absolute",
-  inset: 0,
-  pointerEvents: "none",
-};
-
-const panelStyle: CSSProperties = {
-  position: "relative",
-  overflow: "hidden",
-  padding: "1.1rem 1.25rem",
-  borderRadius: "1rem",
-  border: "1px solid rgba(214, 196, 144, 0.18)",
-  background:
-    "linear-gradient(160deg, rgba(44, 31, 19, 0.9), rgba(16, 13, 10, 0.84))",
-  boxShadow:
-    "0 24px 60px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 248, 220, 0.04)",
-  backdropFilter: "blur(14px)",
-};
-
-const textureOverlayStyle: CSSProperties = {
-  ...frameOverlayStyle,
-  background:
-    'radial-gradient(circle at top left, rgba(223, 193, 126, 0.2), transparent 48%), url("/images/paper-texture.png")',
-  backgroundSize: "auto, 240px",
-  opacity: 0.24,
-};
+// Styles moved to mapExperience.css
 
 const getIsCompactHud = (): boolean => {
   if (
@@ -186,17 +149,25 @@ const resolveAttemptCoordinates =
   };
 
 export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
-  const { identityHex } = useIdentity();
+  const { flags: myFlags } = usePlayerBindings();
+  const language = useUiLanguage(myFlags);
+  const mapStrings = getMapStrings(language);
+  const { identityHex, isConnected } = useIdentity();
+  const isNetworkConnected = isConnected !== false;
   const {
     source,
     region,
     points,
+    journeyDiscoveryCandidates = [],
+    resolverInputs,
     routes = [],
     currentLocationId,
     isReady,
   } = useMapRuntimeState();
+  const playerVars = usePlayerVars();
   const [codeRedemptions] = useTable(tables.myRedeemedCodes);
   const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
+  const [isRouteMode, setIsRouteMode] = useState(false);
   const [isCompactHud, setIsCompactHud] = useState<boolean>(() =>
     getIsCompactHud(),
   );
@@ -209,22 +180,211 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
   const [codeStatus, setCodeStatus] = useState<string | null>(null);
   const [isRedeemingCode, setIsRedeemingCode] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<number>(region.zoom);
+  const [rejectedPointIds, setRejectedPointIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const [networkNotice, setNetworkNotice] = useState<string | null>(null);
+  const [isObservationMode, setIsObservationMode] = useState(false);
   const isZoomedOut = zoomLevel < SEMANTIC_ZOOM_THRESHOLD;
   const compactHeaderId = useRef(
     `gw-map-ledger-${Math.random().toString(36).slice(2)}`,
   );
+  const gameTimeMinutesRef = useRef(playerVars.game_time_minutes ?? 0);
+  const discoverySignalMemoryRef = useRef<DiscoverySignalMemory>({
+    targetId: null,
+    phase: "none",
+  });
 
   const mapInteract = useReducer(reducers.mapInteract);
   const redeemMapCode = useReducer(reducers.redeemMapCode);
   const travelTo = useReducer(reducers.travelTo);
   const setFlag = useReducer(reducers.setFlag);
+  const setVar = useReducer(reducers.setVar);
+  const unlockGroup = useReducer(reducers.unlockGroup);
   const startScenario = useReducer(reducers.startScenario);
   const openCommandMode = useReducer(reducers.openCommandMode);
   const openBattleMode = useReducer(reducers.openBattleMode);
 
+  const STATE_LABELS: Record<RuntimeMapPoint["state"], string> = useMemo(
+    () => ({
+      locked: mapStrings.states.locked,
+      discovered: mapStrings.states.discovered,
+      visited: mapStrings.states.visited,
+      completed: mapStrings.states.completed,
+    }),
+    [mapStrings.states],
+  );
+
+  const mapCodeResultLabel = useCallback(
+    (result: string): string => {
+      return (
+        (mapStrings.errors as Record<string, string>)[result] ??
+        mapStrings.errors.generic
+      );
+    },
+    [mapStrings.errors],
+  );
+
+  useEffect(() => {
+    gameTimeMinutesRef.current = playerVars.game_time_minutes ?? 0;
+  }, [playerVars.game_time_minutes]);
+
+  const playerStartCoordinate = useMemo<LngLatTuple>(() => {
+    const currentPoint =
+      points.find((point) => point.locationId === currentLocationId) ??
+      journeyDiscoveryCandidates.find(
+        (point) => point.locationId === currentLocationId,
+      ) ??
+      null;
+
+    if (currentPoint) {
+      return [currentPoint.lng, currentPoint.lat];
+    }
+
+    return [region.geoCenterLng, region.geoCenterLat];
+  }, [
+    currentLocationId,
+    journeyDiscoveryCandidates,
+    points,
+    region.geoCenterLat,
+    region.geoCenterLng,
+  ]);
+
+  const commitJourneyGameTime = useCallback(
+    async (elapsedMinutesDelta: number) => {
+      const nextValue = gameTimeMinutesRef.current + elapsedMinutesDelta;
+      gameTimeMinutesRef.current = nextValue;
+      await setVar({
+        key: "game_time_minutes",
+        floatValue: nextValue,
+      });
+    },
+    [setVar],
+  );
+
+  const discoverJourneyPoint = useCallback(
+    async (pointId: string) => {
+      const point =
+        journeyDiscoveryCandidates.find(
+          (candidate) => candidate.id === pointId,
+        ) ?? null;
+      if (!point) {
+        return;
+      }
+      if (point.unlockGroup) {
+        await unlockGroup({
+          requestId: createRequestId("journey_unlock", point.id),
+          groupId: point.unlockGroup,
+        });
+      }
+      await setFlag({ key: `DISCOVERED_${point.id}`, value: true });
+    },
+    [journeyDiscoveryCandidates, setFlag, unlockGroup],
+  );
+
+  const completeJourney = useCallback(
+    async (report: { finalWaypoint: { locationId?: string } | null }) => {
+      if (report.finalWaypoint?.locationId) {
+        await travelTo({ locationId: report.finalWaypoint.locationId });
+      }
+    },
+    [travelTo],
+  );
+
+  const journey = useMapJourney({
+    startCoordinate: playerStartCoordinate,
+    discoveryCandidates: journeyDiscoveryCandidates,
+    speedKmH: DESKTOP_JOURNEY_SPEED_KMH,
+    onCommitGameTime: commitJourneyGameTime,
+    onDiscoverPoint: discoverJourneyPoint,
+    onJourneyComplete: completeJourney,
+  });
+
+  const discoverySignal = useMemo(
+    () =>
+      resolveDiscoverySignal({
+        position: journey.position,
+        candidates: journeyDiscoveryCandidates,
+        resolverInputs,
+        previous: discoverySignalMemoryRef.current,
+      }),
+    [journey.position, journeyDiscoveryCandidates, resolverInputs],
+  );
+
+  useEffect(() => {
+    discoverySignalMemoryRef.current = {
+      targetId: discoverySignal.target?.id ?? null,
+      phase: discoverySignal.phase,
+    };
+  }, [discoverySignal.phase, discoverySignal.target?.id]);
+
+  const { armFeedback } = useCompassFeedback({
+    enabled: isObservationMode,
+    phase: discoverySignal.phase,
+    state: discoverySignal.state,
+  });
+
+  const canInspectObservationSignal =
+    discoverySignal.phase === "hot" &&
+    hasObservationLensRule(discoverySignal.target);
+
+  const toggleObservationMode = useCallback(() => {
+    armFeedback();
+    setIsObservationMode((current) => !current);
+  }, [armFeedback]);
+
+  const inspectObservationTarget = useCallback(async () => {
+    const target = discoverySignal.target;
+    if (!target || !canInspectObservationSignal) {
+      return;
+    }
+    if (!isNetworkConnected) {
+      setNetworkNotice("Agent network disconnected");
+      return;
+    }
+
+    try {
+      await discoverJourneyPoint(target.id);
+      journey.revealDiscoveryPoint(target.id);
+      setRejectedPointIds((current) => {
+        const next = new Set(current);
+        next.delete(target.id);
+        return next;
+      });
+      setSelectedPointId(target.id);
+    } catch (error) {
+      setRejectedPointIds((current) => {
+        const next = new Set(current);
+        next.add(target.id);
+        return next;
+      });
+      setNetworkNotice("Map trace rejected by server");
+    }
+  }, [
+    canInspectObservationSignal,
+    discoverJourneyPoint,
+    discoverySignal.target,
+    isNetworkConnected,
+    journey,
+  ]);
+
+  const displayedPoints = useMemo(() => {
+    const visiblePointIds = new Set(points.map((point) => point.id));
+    const revealedJourneyPoints = journey.discoveredPoints
+      .map((entry) => entry.point)
+      .filter((point) => !visiblePointIds.has(point.id))
+      .map((point) => ({
+        ...point,
+        state: point.state === "locked" ? "discovered" : point.state,
+        isVisible: true,
+      }));
+
+    return [...points, ...revealedJourneyPoints];
+  }, [journey.discoveredPoints, points]);
+
   const selectedPoint = useMemo(
-    () => points.find((point) => point.id === selectedPointId) ?? null,
-    [points, selectedPointId],
+    () => displayedPoints.find((point) => point.id === selectedPointId) ?? null,
+    [displayedPoints, selectedPointId],
   );
 
   const pointStateSummary = useMemo(() => {
@@ -234,26 +394,26 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
       visited: 0,
       completed: 0,
     };
-    for (const point of points) {
+    for (const point of displayedPoints) {
       summary[point.state] += 1;
     }
     return summary;
-  }, [points]);
+  }, [displayedPoints]);
 
   const objectiveCount = useMemo(
-    () => points.filter((point) => point.isObjectiveActive).length,
-    [points],
+    () => displayedPoints.filter((point) => point.isObjectiveActive).length,
+    [displayedPoints],
   );
 
   useEffect(() => {
     if (!selectedPointId) {
       return;
     }
-    if (points.some((point) => point.id === selectedPointId)) {
+    if (displayedPoints.some((point) => point.id === selectedPointId)) {
       return;
     }
     setSelectedPointId(null);
-  }, [points, selectedPointId]);
+  }, [displayedPoints, selectedPointId]);
 
   useEffect(() => {
     if (!pendingCodeRequestId) {
@@ -270,7 +430,7 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
     setCodeStatus(mapCodeResultLabel(redemption.result));
     setPendingCodeRequestId(null);
     setIsRedeemingCode(false);
-  }, [codeRedemptions, identityHex, pendingCodeRequestId]);
+  }, [codeRedemptions, identityHex, mapCodeResultLabel, pendingCodeRequestId]);
 
   useEffect(() => {
     if (
@@ -303,6 +463,12 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
     }
   }, [initialPanel]);
 
+  useEffect(() => {
+    if (isNetworkConnected && networkNotice === "Agent network disconnected") {
+      setNetworkNotice(null);
+    }
+  }, [isNetworkConnected, networkNotice]);
+
   const selectedRouteAnchorId = selectedPoint
     ? (selectedPoint.persistentPointId ?? selectedPoint.id)
     : null;
@@ -313,7 +479,7 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
 
     return routes.filter((route) => {
       const hasObjectivePoint = route.pointIds.some((pointId) =>
-        points.some(
+        displayedPoints.some(
           (point) =>
             (point.persistentPointId ?? point.id) === pointId &&
             point.isObjectiveActive,
@@ -327,7 +493,7 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
       }
       return route.pointIds.includes(selectedRouteAnchorId);
     });
-  }, [isZoomedOut, points, routes, selectedRouteAnchorId]);
+  }, [displayedPoints, isZoomedOut, routes, selectedRouteAnchorId]);
 
   const runLegacyBinding = useCallback(
     async (point: RuntimeMapPoint, binding: RuntimeMapBinding) => {
@@ -393,13 +559,28 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
 
   const runBinding = useCallback(
     async (point: RuntimeMapPoint, binding: RuntimeMapBinding) => {
+      if (!isNetworkConnected) {
+        setNetworkNotice("Agent network disconnected");
+        throw new Error("Agent network disconnected");
+      }
+
       if (source === "snapshot_v3") {
-        await mapInteract({
-          requestId: createRequestId("map_interact", point.id),
-          pointId: point.id,
-          bindingId: binding.id,
-          trigger: binding.trigger,
-        });
+        try {
+          await mapInteract({
+            requestId: createRequestId("map_interact", point.id),
+            pointId: point.id,
+            bindingId: binding.id,
+            trigger: binding.trigger,
+          });
+        } catch (error) {
+          setRejectedPointIds((current) => {
+            const next = new Set(current);
+            next.add(point.id);
+            return next;
+          });
+          setNetworkNotice("Map trace rejected by server");
+          throw error;
+        }
 
         const scenarioId = getStartScenarioId(binding);
         if (scenarioId) {
@@ -410,13 +591,26 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
 
       await runLegacyBinding(point, binding);
     },
-    [mapInteract, onOpenVnScenario, runLegacyBinding, source],
+    [
+      isNetworkConnected,
+      mapInteract,
+      onOpenVnScenario,
+      runLegacyBinding,
+      source,
+    ],
   );
 
   const submitMapCode = useCallback(async () => {
+    if (!isNetworkConnected) {
+      const message = "Agent network disconnected";
+      setNetworkNotice(message);
+      setCodeStatus(message);
+      return;
+    }
+
     const trimmedCode = codeValue.trim();
     if (!trimmedCode) {
-      setCodeStatus("Enter a code first.");
+      setCodeStatus(mapStrings.errors.enter_code);
       return;
     }
 
@@ -439,77 +633,41 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
       setPendingCodeRequestId(null);
       setIsRedeemingCode(false);
       if (message.includes("invalid_map_code")) {
-        setCodeStatus("Code not recognized.");
+        setCodeStatus(mapStrings.errors.invalid_code);
         return;
       }
       if (message.includes("code_already_redeemed")) {
-        setCodeStatus("This code has already been used on this profile.");
+        setCodeStatus(mapStrings.errors.already_redeemed);
         return;
       }
       if (message.includes("code_not_available")) {
-        setCodeStatus("This lead cannot be used yet.");
+        setCodeStatus(mapStrings.errors.blocked_flags);
         return;
       }
       if (message.includes("code_location_required")) {
-        setCodeStatus("Location required to validate this lead.");
+        setCodeStatus(mapStrings.errors.location_required);
         return;
       }
       if (message.includes("code_outside_geofence")) {
-        setCodeStatus("You are too far away from this lead.");
+        setCodeStatus(mapStrings.errors.outside_geofence);
         return;
       }
       if (message.includes("code_retry_later")) {
-        setCodeStatus("Try again shortly.");
+        setCodeStatus(mapStrings.errors.cooldown);
         return;
       }
-      setCodeStatus("Code submission failed.");
+      setCodeStatus(mapStrings.errors.failed);
     }
-  }, [codeValue, redeemMapCode]);
+  }, [codeValue, isNetworkConnected, mapStrings.errors, redeemMapCode]);
 
   if (!MAPBOX_TOKEN) {
     return (
       <section className="gw-map-shell gw-map-shell--fallback">
-        <article
-          className="gw-map-empty-state"
-          style={{
-            ...panelStyle,
-            width: "min(100%, 34rem)",
-            padding: "1.4rem 1.5rem",
-          }}
-        >
-          <div style={textureOverlayStyle} />
-          <p
-            style={{
-              position: "relative",
-              margin: 0,
-              color: "#d3b27a",
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.74rem",
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-            }}
-          >
-            Cartography Chamber
-          </p>
-          <h3
-            style={{
-              position: "relative",
-              margin: "0.45rem 0 0",
-              color: "#f5e9ca",
-              fontFamily: "var(--font-serif)",
-              fontSize: "1.65rem",
-            }}
-          >
-            Mapbox token is missing
-          </h3>
-          <p
-            style={{
-              position: "relative",
-              margin: "0.8rem 0 0",
-              color: "#d2c4a4",
-              lineHeight: 1.6,
-            }}
-          >
+        <article className="gw-map-empty-state gw-map-empty-state--token">
+          <div className="gw-map-overlay-paper" />
+          <p className="gw-map-label-eyebrow">{mapStrings.chamber}</p>
+          <h3 className="gw-map-empty-state__title">Mapbox token is missing</h3>
+          <p className="gw-map-empty-state__body">
             Add <code>VITE_MAPBOX_TOKEN</code> to <code>.env.local</code> to
             enable the interactive city atlas.
           </p>
@@ -521,22 +679,22 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
   const sourceLabel = source === "snapshot_v3" ? "Snapshot v3" : "Legacy v2";
   const selectionLabel = selectedPoint
     ? `${selectedPoint.title} (${STATE_LABELS[selectedPoint.state]})`
-    : "No point selected";
+    : mapStrings.no_selection;
   const ledgerItems = [
-    ["Source", sourceLabel],
-    ["Current location", currentLocationId ?? "unknown"],
-    ["Visible points", String(points.length)],
-    ["Active objectives", String(objectiveCount)],
-    ["Selection", selectionLabel],
+    [mapStrings.source, sourceLabel],
+    [mapStrings.current_location, currentLocationId ?? "unknown"],
+    [mapStrings.visible_points, String(displayedPoints.length)],
+    [mapStrings.active_objectives, String(objectiveCount)],
+    [mapStrings.selection, selectionLabel],
     [
-      "Visited / completed",
-      `${pointStateSummary.visited + pointStateSummary.completed} / ${points.length}`,
+      mapStrings.visited_completed,
+      `${pointStateSummary.visited + pointStateSummary.completed} / ${displayedPoints.length}`,
     ],
   ] as const;
   const compactSummaryItems = [
-    `Source ${sourceLabel}`,
-    `Location ${currentLocationId ?? "unknown"}`,
-    `${objectiveCount} objectives`,
+    `${mapStrings.source} ${sourceLabel}`,
+    `${mapStrings.current_location} ${currentLocationId ?? "unknown"}`,
+    `${objectiveCount} ${mapStrings.active_objectives}`,
   ];
   const closeMapOverlays = () => {
     setSelectedPointId(null);
@@ -549,13 +707,44 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
   const toggleCodeEntry = () => {
     setIsCodeEntryOpen((current) => !current);
   };
+  const handleMapClick = (event: unknown) => {
+    if (isRouteMode) {
+      const maybeLngLat = (event as { lngLat?: { lng: number; lat: number } })
+        .lngLat;
+      if (
+        maybeLngLat &&
+        Number.isFinite(maybeLngLat.lng) &&
+        Number.isFinite(maybeLngLat.lat)
+      ) {
+        journey.addWaypoint({
+          id: `free_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`,
+          label: "Street waypoint",
+          coordinates: [maybeLngLat.lng, maybeLngLat.lat],
+        });
+      }
+      return;
+    }
+
+    closeMapOverlays();
+  };
+  const addPointToJourney = (point: RuntimeMapPoint) => {
+    journey.addPointWaypoint(point);
+    setIsRouteMode(true);
+  };
+  const handlePointClick = (point: RuntimeMapPoint) => {
+    if (isRouteMode) {
+      journey.addPointWaypoint(point);
+    }
+    setSelectedPointId(point.id);
+    setIsLedgerOpen(false);
+  };
 
   return (
-    <section className="gw-map-shell">
-      <div
-        className="gw-map-frame"
-        style={{ minHeight: MAP_VIEWPORT_HEIGHT, background: "#15100d" }}
-      >
+    <section
+      className="gw-map-shell"
+      data-observation-mode={isObservationMode ? "true" : "false"}
+    >
+      <div className="gw-map-frame">
         <header
           className={`gw-map-header ${
             isCompactHud ? "gw-map-header--compact" : "gw-map-header--desktop"
@@ -563,46 +752,18 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
         >
           {isCompactHud ? (
             <>
-              <article
-                className="gw-map-compact-card"
-                style={{ ...panelStyle, width: "100%" }}
+              <CartouchePanel
+                label="Plate XII · Cartography Chamber"
+                padding="1rem 1.1rem"
+                className="gw-map-compact-card gw-map-cartouche-full"
               >
-                <div style={textureOverlayStyle} />
                 <div className="gw-map-compact-card__top">
                   <div>
-                    <p
-                      style={{
-                        position: "relative",
-                        margin: 0,
-                        color: "#d3b27a",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.7rem",
-                        letterSpacing: "0.2em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Cartography Chamber
-                    </p>
-                    <h2
-                      style={{
-                        position: "relative",
-                        margin: "0.35rem 0 0",
-                        color: "#f5e9ca",
-                        fontFamily: "var(--font-serif)",
-                        fontSize: "clamp(1.2rem, 4.2vw, 1.7rem)",
-                        lineHeight: 1.08,
-                      }}
-                    >
+                    <h2 className="gw-map-compact-card__title">
                       {region.name}
                     </h2>
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.4rem",
-                    }}
-                  >
+                  <div className="gw-map-compact-header-layout">
                     <button
                       type="button"
                       aria-expanded={isLedgerOpen}
@@ -610,7 +771,9 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
                       className="gw-map-compact-card__toggle"
                       onClick={toggleLedger}
                     >
-                      {isLedgerOpen ? "Close ledger" : "Open ledger"}
+                      {isLedgerOpen
+                        ? mapStrings.close_ledger
+                        : mapStrings.open_ledger}
                     </button>
                     <button
                       type="button"
@@ -618,7 +781,9 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
                       aria-expanded={isCodeEntryOpen}
                       onClick={toggleCodeEntry}
                     >
-                      {isCodeEntryOpen ? "Hide code" : "Redeem code"}
+                      {isCodeEntryOpen
+                        ? mapStrings.hide_code
+                        : mapStrings.redeem_code}
                     </button>
                   </div>
                 </div>
@@ -635,54 +800,37 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
                 </div>
 
                 <div className="gw-map-compact-card__states">
-                  {(
-                    ["locked", "discovered", "visited", "completed"] as const
-                  ).map((state) => (
+                  {MAP_POINT_STATES.map((state) => (
                     <span
                       key={state}
                       className="gw-map-compact-card__state-pill"
-                      style={{ color: STATE_COLORS[state] }}
+                      data-state={state}
                     >
-                      <span
-                        style={{
-                          width: "0.48rem",
-                          height: "0.48rem",
-                          borderRadius: "999px",
-                          background: "currentColor",
-                          boxShadow: "0 0 12px currentColor",
-                        }}
-                      />
+                      <span className="gw-map-status-dot gw-map-status-dot--compact" />
                       {STATE_LABELS[state]}: {pointStateSummary[state]}
                     </span>
                   ))}
                 </div>
-              </article>
+              </CartouchePanel>
 
               {isLedgerOpen ? (
-                <article
-                  id={compactHeaderId.current}
-                  className="gw-map-ledger-drawer"
-                  style={{ ...panelStyle, width: "100%", color: "#efe1c0" }}
+                <CartouchePanel
+                  label={mapStrings.ledger}
+                  padding="1rem 1.1rem"
+                  className="gw-map-ledger-drawer gw-map-cartouche-full gw-map-cartouche-ink"
                 >
-                  <div style={textureOverlayStyle} />
-                  <div className="gw-map-ledger-drawer__frame">
+                  <div
+                    id={compactHeaderId.current}
+                    className="gw-map-ledger-drawer__frame"
+                  >
                     <div className="gw-map-ledger-drawer__header">
-                      <h3
-                        style={{
-                          margin: 0,
-                          color: "#f8f0dc",
-                          fontFamily: "var(--font-serif)",
-                          fontSize: "1.05rem",
-                        }}
-                      >
-                        Field Ledger
-                      </h3>
                       <button
                         type="button"
+                        aria-label="Dismiss ledger"
                         className="gw-map-ledger-drawer__toggle"
                         onClick={toggleLedger}
                       >
-                        Close
+                        {mapStrings.close_ledger}
                       </button>
                     </div>
 
@@ -692,483 +840,260 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
                           <span className="gw-map-ledger-grid__label">
                             {label}
                           </span>
-                          <strong
-                            style={{ color: "#fcf4df", lineHeight: 1.35 }}
-                          >
+                          <strong className="gw-map-ledger-value">
                             {value}
                           </strong>
                         </div>
                       ))}
                     </div>
 
-                    <div className="gw-map-ledger-status">
-                      <span
-                        style={{
-                          width: "0.6rem",
-                          height: "0.6rem",
-                          borderRadius: "999px",
-                          background: isReady ? "#6cc36b" : "#d9a743",
-                          boxShadow: `0 0 14px ${isReady ? "#6cc36b" : "#d9a743"}`,
-                        }}
-                      />
-                      {isReady
-                        ? "Live subscriptions active"
-                        : "Syncing map state from SpacetimeDB..."}
+                    <div
+                      className="gw-map-ledger-status"
+                      data-sync-state={isReady ? "live" : "syncing"}
+                    >
+                      <span className="gw-map-status-dot" />
+                      {isReady ? mapStrings.live : mapStrings.syncing}
                     </div>
                   </div>
-                </article>
+                </CartouchePanel>
               ) : null}
 
               {isCodeEntryOpen ? (
-                <article
-                  style={{ ...panelStyle, width: "100%", color: "#efe1c0" }}
+                <CartouchePanel
+                  label="QR Ledger"
+                  padding="1rem 1.1rem"
+                  className="gw-map-cartouche-full gw-map-cartouche-ink"
                 >
-                  <div style={textureOverlayStyle} />
                   <div className="gw-map-ledger-drawer__frame">
                     <div className="gw-map-ledger-drawer__header">
-                      <h3
-                        style={{
-                          margin: 0,
-                          color: "#f8f0dc",
-                          fontFamily: "var(--font-serif)",
-                          fontSize: "1.05rem",
-                        }}
-                      >
-                        QR Ledger
-                      </h3>
                       <button
                         type="button"
                         className="gw-map-ledger-drawer__toggle"
                         onClick={toggleCodeEntry}
                       >
-                        Close
+                        {mapStrings.close_ledger}
                       </button>
                     </div>
-                    <div
-                      style={{
-                        display: "grid",
-                        gap: "0.75rem",
-                        position: "relative",
-                      }}
-                    >
+                    <div className="gw-map-code-entry-grid">
                       <input
                         value={codeValue}
                         onChange={(event) => setCodeValue(event.target.value)}
-                        placeholder="Enter archived code"
-                        style={{
-                          width: "100%",
-                          padding: "0.8rem 0.95rem",
-                          borderRadius: "0.85rem",
-                          border: "1px solid rgba(255, 239, 206, 0.12)",
-                          background: "rgba(8, 8, 8, 0.2)",
-                          color: "#fcf4df",
-                        }}
+                        placeholder={mapStrings.enter_archived_code}
+                        className="gw-map-input-themed"
                       />
                       <button
                         type="button"
                         onClick={submitMapCode}
-                        disabled={isRedeemingCode}
-                        className="gw-map-ledger-drawer__toggle"
-                        style={{ justifySelf: "start" }}
+                        disabled={isRedeemingCode || !isNetworkConnected}
+                        className="gw-map-ledger-drawer__toggle gw-map-submit-inline"
                       >
-                        {isRedeemingCode ? "Archiving..." : "Archive lead"}
+                        {isRedeemingCode
+                          ? mapStrings.archiving
+                          : mapStrings.archive_lead}
                       </button>
                       {codeStatus ? (
-                        <p
-                          style={{
-                            margin: 0,
-                            color: "#d9c49d",
-                            lineHeight: 1.5,
-                          }}
-                        >
-                          {codeStatus}
-                        </p>
+                        <p className="gw-map-code-entry-status">{codeStatus}</p>
                       ) : null}
                     </div>
                   </div>
-                </article>
+                </CartouchePanel>
               ) : null}
             </>
           ) : (
             <>
-              <article style={panelStyle}>
-                <div style={textureOverlayStyle} />
-                <p
-                  style={{
-                    position: "relative",
-                    margin: 0,
-                    color: "#d3b27a",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.74rem",
-                    letterSpacing: "0.22em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Cartography Chamber
-                </p>
-                <h2
-                  style={{
-                    position: "relative",
-                    margin: "0.45rem 0 0",
-                    color: "#f5e9ca",
-                    fontFamily: "var(--font-serif)",
-                    fontSize: "clamp(1.6rem, 2.6vw, 2.35rem)",
-                    lineHeight: 1.05,
-                  }}
-                >
-                  {region.name}
-                </h2>
-                <p
-                  style={{
-                    position: "relative",
-                    margin: "0.8rem 0 0",
-                    color: "rgba(245, 236, 217, 0.82)",
-                    lineHeight: 1.6,
-                    maxWidth: "62ch",
-                  }}
-                >
+              <CartouchePanel
+                label="Plate XII · Cartography Chamber"
+                padding="1.1rem 1.25rem"
+              >
+                <h2 className="gw-map-desktop-title">{region.name}</h2>
+                <p className="gw-map-desktop-copy">
                   A living city atlas layered over live Spacetime subscriptions.
                   Travel, scenario starts, and objective focus still run on the
                   current authoritative bindings.
                 </p>
-                <div
-                  style={{
-                    position: "relative",
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "0.45rem",
-                    marginTop: "1rem",
-                  }}
-                >
-                  {(
-                    ["locked", "discovered", "visited", "completed"] as const
-                  ).map((state) => (
+                <div className="gw-map-state-pill-row">
+                  {MAP_POINT_STATES.map((state) => (
                     <span
                       key={state}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "0.45rem",
-                        padding: "0.42rem 0.7rem",
-                        borderRadius: "999px",
-                        border: "1px solid rgba(255, 245, 214, 0.12)",
-                        background: "rgba(7, 7, 7, 0.2)",
-                        color: STATE_COLORS[state],
-                        fontSize: "0.74rem",
-                      }}
+                      className="gw-map-pill"
+                      data-state={state}
                     >
-                      <span
-                        style={{
-                          width: "0.6rem",
-                          height: "0.6rem",
-                          borderRadius: "999px",
-                          background: "currentColor",
-                          boxShadow: "0 0 14px currentColor",
-                        }}
-                      />
+                      <span className="gw-map-status-dot" />
                       {STATE_LABELS[state]}
                     </span>
                   ))}
                 </div>
-              </article>
+              </CartouchePanel>
 
-              <article style={{ ...panelStyle, color: "#efe1c0" }}>
-                <div style={textureOverlayStyle} />
-                <h3
-                  style={{
-                    position: "relative",
-                    margin: 0,
-                    color: "#f8f0dc",
-                    fontFamily: "var(--font-serif)",
-                    fontSize: "1.1rem",
-                  }}
-                >
-                  Field Ledger
-                </h3>
-                <div
-                  style={{
-                    position: "relative",
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                    gap: "0.75rem",
-                    marginTop: "0.8rem",
-                  }}
-                >
+              <CartouchePanel
+                label={mapStrings.ledger}
+                padding="1.1rem 1.25rem"
+                className="gw-map-cartouche-ink"
+              >
+                <div className="gw-map-ledger-grid-desktop">
                   {ledgerItems.map(([label, value]) => (
-                    <div
-                      key={label}
-                      style={{
-                        padding: "0.75rem",
-                        borderRadius: "0.85rem",
-                        border: "1px solid rgba(255, 239, 206, 0.08)",
-                        background: "rgba(8, 8, 8, 0.16)",
-                      }}
-                    >
-                      <span
-                        style={{
-                          display: "block",
-                          marginBottom: "0.35rem",
-                          color: "rgba(239, 225, 192, 0.62)",
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "0.7rem",
-                          letterSpacing: "0.15em",
-                          textTransform: "uppercase",
-                        }}
-                      >
+                    <div key={label} className="gw-map-ledger-item-desktop">
+                      <span className="gw-map-ledger-item-desktop__label">
                         {label}
                       </span>
-                      <strong style={{ color: "#fcf4df", lineHeight: 1.35 }}>
-                        {value}
-                      </strong>
+                      <strong className="gw-map-ledger-value">{value}</strong>
                     </div>
                   ))}
                 </div>
                 <div
-                  style={{
-                    position: "relative",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "0.55rem",
-                    marginTop: "0.9rem",
-                    padding: "0.55rem 0.75rem",
-                    borderRadius: "999px",
-                    background: "rgba(7, 7, 7, 0.22)",
-                    color: "rgba(246, 236, 214, 0.86)",
-                    fontSize: "0.76rem",
-                  }}
+                  className="gw-map-ledger-status"
+                  data-sync-state={isReady ? "live" : "syncing"}
                 >
-                  <span
-                    style={{
-                      width: "0.6rem",
-                      height: "0.6rem",
-                      borderRadius: "999px",
-                      background: isReady ? "#6cc36b" : "#d9a743",
-                      boxShadow: `0 0 14px ${isReady ? "#6cc36b" : "#d9a743"}`,
-                    }}
-                  />
-                  {isReady
-                    ? "Live subscriptions active"
-                    : "Syncing map state from SpacetimeDB..."}
+                  <span className="gw-map-status-dot" />
+                  {isReady ? mapStrings.live : mapStrings.syncing}
                 </div>
                 <button
                   type="button"
                   onClick={toggleCodeEntry}
-                  style={{
-                    position: "relative",
-                    marginTop: "0.85rem",
-                    padding: "0.6rem 0.8rem",
-                    borderRadius: "999px",
-                    border: "1px solid rgba(255, 239, 206, 0.14)",
-                    background: "rgba(7, 7, 7, 0.22)",
-                    color: "#f3e7c7",
-                    cursor: "pointer",
-                  }}
+                  className="gw-map-code-toggle"
                 >
-                  {isCodeEntryOpen ? "Hide QR ledger" : "Redeem QR code"}
+                  {isCodeEntryOpen
+                    ? mapStrings.hide_code
+                    : mapStrings.redeem_code}
                 </button>
                 {isCodeEntryOpen ? (
-                  <div
-                    style={{
-                      position: "relative",
-                      display: "grid",
-                      gap: "0.75rem",
-                      marginTop: "0.9rem",
-                      padding: "0.9rem",
-                      borderRadius: "0.95rem",
-                      border: "1px solid rgba(255, 239, 206, 0.08)",
-                      background: "rgba(8, 8, 8, 0.16)",
-                    }}
-                  >
+                  <div className="gw-map-code-entry-panel">
                     <input
                       value={codeValue}
                       onChange={(event) => setCodeValue(event.target.value)}
-                      placeholder="Enter archived code"
-                      style={{
-                        width: "100%",
-                        padding: "0.8rem 0.95rem",
-                        borderRadius: "0.85rem",
-                        border: "1px solid rgba(255, 239, 206, 0.12)",
-                        background: "rgba(12, 10, 9, 0.72)",
-                        color: "#fcf4df",
-                      }}
+                      placeholder={mapStrings.enter_archived_code}
+                      className="gw-map-input-themed"
                     />
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.7rem",
-                      }}
-                    >
+                    <div className="gw-map-code-entry-actions">
                       <button
                         type="button"
                         onClick={submitMapCode}
-                        disabled={isRedeemingCode}
-                        style={{
-                          padding: "0.65rem 0.85rem",
-                          borderRadius: "999px",
-                          border: "1px solid rgba(255, 239, 206, 0.14)",
-                          background: "rgba(44, 31, 19, 0.88)",
-                          color: "#f3e7c7",
-                          cursor: "pointer",
-                        }}
+                        disabled={isRedeemingCode || !isNetworkConnected}
+                        className="gw-map-code-submit"
                       >
-                        {isRedeemingCode ? "Archiving..." : "Archive lead"}
+                        {isRedeemingCode
+                          ? mapStrings.archiving
+                          : mapStrings.archive_lead}
                       </button>
                       {codeStatus ? (
-                        <span style={{ color: "#d9c49d", lineHeight: 1.5 }}>
+                        <span className="gw-map-code-entry-status">
                           {codeStatus}
                         </span>
                       ) : null}
                     </div>
                   </div>
                 ) : null}
-              </article>
+              </CartouchePanel>
             </>
           )}
         </header>
 
-        <div
-          style={{
-            ...frameOverlayStyle,
-            zIndex: 1,
-            background:
-              'linear-gradient(135deg, rgba(120, 90, 52, 0.16), transparent 42%), url("/images/paper-texture.png")',
-            backgroundSize: "auto, 240px",
-            mixBlendMode: "soft-light",
-            opacity: 0.28,
-          }}
-        />
-        <div
-          style={{
-            ...frameOverlayStyle,
-            zIndex: 3,
-            background:
-              "radial-gradient(circle at center, transparent 48%, rgba(10, 8, 7, 0.3) 100%), linear-gradient(180deg, rgba(15, 13, 11, 0.06), rgba(15, 13, 11, 0.25))",
-          }}
-        />
+        <div className="gw-map-overlay-tint" />
+        <div className="gw-map-overlay-vignette" />
 
         {!isReady ? (
-          <div
-            className="gw-map-inline-note"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.55rem",
-              padding: "0.65rem 0.85rem",
-              borderRadius: "999px",
-              border: "1px solid rgba(229, 210, 170, 0.16)",
-              background: "rgba(23, 17, 12, 0.82)",
-              color: "#f2e6c6",
-              backdropFilter: "blur(8px)",
-              boxShadow: "0 12px 24px rgba(0, 0, 0, 0.18)",
-              fontSize: "0.76rem",
-            }}
-          >
+          <div className="gw-map-inline-note gw-map-status-pill">
             <span
-              style={{
-                width: "0.6rem",
-                height: "0.6rem",
-                borderRadius: "999px",
-                background: "#d9a743",
-                boxShadow: "0 0 14px #d9a743",
-              }}
+              className="gw-map-status-pill__dot"
+              data-sync-state="syncing"
             />
-            Syncing map state from SpacetimeDB...
+            {mapStrings.syncing}
+          </div>
+        ) : null}
+
+        {!isNetworkConnected || networkNotice ? (
+          <div className="gw-map-network-note gw-map-status-pill">
+            <span
+              className="gw-map-status-pill__dot"
+              data-sync-state={isNetworkConnected ? "syncing" : "offline"}
+            />
+            {networkNotice ?? "Agent network disconnected"}
           </div>
         ) : null}
 
         {selectedPoint ? (
-          <div
-            className="gw-map-selection-note"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.55rem",
-              padding: "0.65rem 0.85rem",
-              borderRadius: "999px",
-              border: "1px solid rgba(229, 210, 170, 0.16)",
-              background: "rgba(23, 17, 12, 0.82)",
-              color: "#f2e6c6",
-              backdropFilter: "blur(8px)",
-              boxShadow: "0 12px 24px rgba(0, 0, 0, 0.18)",
-              fontSize: "0.76rem",
-            }}
-          >
+          <div className="gw-map-selection-note gw-map-status-pill">
             <span
-              style={{
-                width: "0.6rem",
-                height: "0.6rem",
-                borderRadius: "999px",
-                background:
-                  selectedPoint.state === "locked"
-                    ? "#8a97aa"
-                    : selectedPoint.state === "discovered"
-                      ? "#d9a743"
-                      : selectedPoint.state === "visited"
-                        ? "#6cc36b"
-                        : "#59b4de",
-                boxShadow: "0 0 14px currentColor",
-                color:
-                  selectedPoint.state === "locked"
-                    ? "#8a97aa"
-                    : selectedPoint.state === "discovered"
-                      ? "#d9a743"
-                      : selectedPoint.state === "visited"
-                        ? "#6cc36b"
-                        : "#59b4de",
-              }}
+              className="gw-map-status-pill__dot"
+              data-state={selectedPoint.state}
             />
-            Selected: {selectedPoint.title}
+            {mapStrings.selection}: {selectedPoint.title}
           </div>
         ) : null}
 
         <div className="gw-map-legend" aria-hidden="true">
-          {(["locked", "discovered", "visited", "completed"] as const).map(
-            (state) => (
-              <span
-                key={state}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.45rem",
-                  padding: "0.42rem 0.68rem",
-                  borderRadius: "999px",
-                  border: "1px solid rgba(255, 245, 214, 0.12)",
-                  background: "rgba(23, 17, 12, 0.8)",
-                  color: "#fbf3df",
-                  backdropFilter: "blur(8px)",
-                  fontSize: "0.72rem",
-                }}
-              >
-                <span
-                  style={{
-                    width: "0.6rem",
-                    height: "0.6rem",
-                    borderRadius: "999px",
-                    background:
-                      state === "locked"
-                        ? "#8a97aa"
-                        : state === "discovered"
-                          ? "#d9a743"
-                          : state === "visited"
-                            ? "#6cc36b"
-                            : "#59b4de",
-                    boxShadow: `0 0 14px ${
-                      state === "locked"
-                        ? "#8a97aa"
-                        : state === "discovered"
-                          ? "#d9a743"
-                          : state === "visited"
-                            ? "#6cc36b"
-                            : "#59b4de"
-                    }`,
-                  }}
-                />
-                {STATE_LABELS[state]}: {pointStateSummary[state]}
-              </span>
-            ),
-          )}
+          {MAP_POINT_STATES.map((state) => (
+            <span key={state} className="gw-map-legend-pill">
+              <span className="gw-map-status-dot" data-state={state} />
+              {STATE_LABELS[state]}: {pointStateSummary[state]}
+            </span>
+          ))}
         </div>
+
+        <div className="gw-map-journey-controls">
+          <button
+            type="button"
+            className="gw-map-journey-controls__button"
+            data-active={isRouteMode ? "true" : "false"}
+            aria-pressed={isRouteMode}
+            onClick={() => setIsRouteMode((current) => !current)}
+          >
+            <MapPinPlus size={16} />
+            {mapStrings.journey.route_mode}
+          </button>
+          <button
+            type="button"
+            className="gw-map-journey-controls__button"
+            disabled={journey.waypoints.length === 0}
+            onClick={() =>
+              journey.isPaused ? journey.resume() : journey.pause()
+            }
+          >
+            {journey.isPaused ? <Play size={16} /> : <Pause size={16} />}
+            {journey.isPaused
+              ? mapStrings.journey.resume
+              : mapStrings.journey.pause}
+          </button>
+          <button
+            type="button"
+            className="gw-map-journey-controls__button"
+            disabled={!journey.isMoving && !journey.isPaused}
+            onClick={journey.stopForInteraction}
+          >
+            <Square size={15} />
+            {mapStrings.journey.stop}
+          </button>
+          <button
+            type="button"
+            className="gw-map-journey-controls__button"
+            disabled={journey.waypoints.length === 0}
+            onClick={journey.clear}
+          >
+            <Trash2 size={16} />
+            {mapStrings.journey.clear}
+          </button>
+          <div className="gw-map-journey-controls__status">
+            <Route size={16} />
+            <span>
+              {journey.waypoints.length} {mapStrings.journey.queued}
+            </span>
+          </div>
+        </div>
+
+        <CompassOverlay
+          activeWaypoint={journey.activeWaypoint}
+          bearingToTarget={journey.bearingToTarget}
+          inSearchZone={journey.inSearchZone}
+          remainingDistanceMeters={journey.remainingDistanceMeters}
+          searchTarget={journey.searchTarget}
+          speedKmH={journey.speedKmH}
+          discoverySignal={discoverySignal}
+          observationMode={isObservationMode}
+          observationInspectAvailable={canInspectObservationSignal}
+          networkConnected={isNetworkConnected}
+          onToggleObservationMode={toggleObservationMode}
+          onInspectObservationTarget={inspectObservationTarget}
+        />
 
         <MapGL
           initialViewState={{
@@ -1178,14 +1103,65 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
           }}
           mapStyle={MAPBOX_STYLE}
           mapboxAccessToken={MAPBOX_TOKEN}
-          onClick={closeMapOverlays}
+          onClick={handleMapClick}
           onZoomEnd={(evt: ViewStateChangeEvent) =>
             setZoomLevel(evt.viewState.zoom)
           }
           reuseMaps
-          style={{ width: "100%", height: MAP_VIEWPORT_HEIGHT }}
+          {...MAP_GL_LAYOUT_PROPS}
         >
           <NavigationControl position="bottom-right" />
+
+          {journey.plannedPath.length > 1 ? (
+            <Source
+              id="gw-journey-planned-route"
+              type="geojson"
+              data={{
+                type: "Feature",
+                properties: {},
+                geometry: {
+                  type: "LineString",
+                  coordinates: journey.plannedPath,
+                },
+              }}
+            >
+              <Layer
+                id="gw-journey-planned-route-line"
+                type="line"
+                paint={{
+                  "line-color": "#f2d088",
+                  "line-width": 4,
+                  "line-opacity": 0.72,
+                  "line-dasharray": [0.8, 1.1],
+                }}
+              />
+            </Source>
+          ) : null}
+
+          {journey.traveledPath.length > 1 ? (
+            <Source
+              id="gw-journey-traveled-route"
+              type="geojson"
+              data={{
+                type: "Feature",
+                properties: {},
+                geometry: {
+                  type: "LineString",
+                  coordinates: journey.traveledPath,
+                },
+              }}
+            >
+              <Layer
+                id="gw-journey-traveled-route-line"
+                type="line"
+                paint={{
+                  "line-color": "#69c1a3",
+                  "line-width": 5,
+                  "line-opacity": 0.84,
+                }}
+              />
+            </Source>
+          ) : null}
 
           {visibleRoutes.map((route) => (
             <Source
@@ -1214,24 +1190,43 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
             </Source>
           ))}
 
-          {points.map((point) => (
+          {displayedPoints.map((point) => (
             <Marker
               key={point.id}
               longitude={point.lng}
               latitude={point.lat}
               anchor="center"
             >
-              <DetectiveMapPin
-                point={point}
-                isSelected={point.id === selectedPointId}
-                isZoomedOut={isZoomedOut}
-                onClick={() => {
-                  setSelectedPointId(point.id);
-                  setIsLedgerOpen(false);
-                }}
-              />
+              <div
+                className="gw-map-marker-shell"
+                data-rejected={
+                  rejectedPointIds.has(point.id) ? "true" : "false"
+                }
+              >
+                <CobblestoneMarker
+                  point={point}
+                  selected={point.id === selectedPointId}
+                  size={isZoomedOut ? 40 : 56}
+                  onClick={() => handlePointClick(point)}
+                />
+              </div>
             </Marker>
           ))}
+
+          {journey.position ? (
+            <Marker
+              longitude={journey.position[0]}
+              latitude={journey.position[1]}
+              anchor="center"
+            >
+              <div aria-label="Player position">
+                <PlayerPin
+                  variant="trace"
+                  state={journey.isMoving ? "moving" : "idle"}
+                />
+              </div>
+            </Marker>
+          ) : null}
         </MapGL>
       </div>
 
@@ -1246,10 +1241,15 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
         <CaseCard
           point={selectedPoint}
           currentLocationId={currentLocationId}
+          onAddWaypoint={addPointToJourney}
           onRunBinding={runBinding}
           onClose={() => setSelectedPointId(null)}
         />
       ) : null}
+      <JourneyReportModal
+        report={journey.report}
+        onClose={journey.closeReport}
+      />
     </section>
   );
 };

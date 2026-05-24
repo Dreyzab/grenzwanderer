@@ -77,6 +77,9 @@ jobs:
       - name: Regenerate content snapshot
         run: bun run content:extract
 
+      - name: Case IR lint
+        run: bun run caseir:lint
+
       - name: Obsidian coverage check
         run: bun run content:obsidian:coverage:check
 

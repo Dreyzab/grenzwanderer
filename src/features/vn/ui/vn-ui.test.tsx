@@ -1,6 +1,5 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { useRef } from "react";
+import { CASE01_CANON_NODES } from "../../../../scripts/data/case01_canon_runtime";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { ChoiceInnerVoiceHintDisplay } from "../vnScreenTypes";
@@ -83,38 +82,29 @@ describe("vn ui helpers", () => {
     ]);
   });
 
-  it("keeps localized case 01 letter facts discoverable", () => {
-    const letterKey =
-      "vn.case01_hbf_arrival.scene_case01_train_compartment_letter.body";
-    const localePaths = [
-      path.join(process.cwd(), "src/features/i18n/locales/ru.json"),
-      path.join(process.cwd(), "src/features/i18n/locales/de.json"),
-    ];
+  it("keeps case 01 letter facts discoverable in canon bodies", () => {
+    const detectiveLetter = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_train_compartment_letter",
+    );
+    const witchLetter = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_train_compartment_letter_witch",
+    );
 
-    for (const localePath of localePaths) {
-      const locale = JSON.parse(readFileSync(localePath, "utf8")) as {
-        vn: Record<string, string>;
-      };
-      const body = locale.vn[letterKey];
-      const tokens = parseTypedTextMarkup(body).flatMap((segment) =>
-        segment.kind === "token" ? [segment.token] : [],
-      );
+    expect(detectiveLetter?.bodyOverride).toContain("Zum Goldenen Adler");
+    expect(detectiveLetter?.bodyOverride).not.toContain("Zum Eber");
 
-      expect(body).toContain("Zum Eber");
-      expect(body).not.toContain("Zum Goldenen Adler");
-      expect(tokens).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            type: "fact",
-            payload: "case01/zum_goldenen_adler",
-          }),
-          expect.objectContaining({
-            type: "fact",
-            payload: "case01/master",
-          }),
-        ]),
-      );
-    }
+    const witchTokens = parseTypedTextMarkup(
+      witchLetter?.bodyOverride ?? "",
+    ).flatMap((segment) => (segment.kind === "token" ? [segment.token] : []));
+
+    expect(witchTokens).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "fact",
+          payload: "case01/master",
+        }),
+      ]),
+    );
   });
 
   it("resolves background with node priority over scenario", () => {

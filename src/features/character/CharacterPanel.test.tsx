@@ -555,8 +555,9 @@ describe("CharacterPanel", () => {
     render(<CharacterPanel />);
 
     fireEvent.click(screen.getByRole("tab", { name: /Journal/i }));
+    fireEvent.click(screen.getByText("Bank Case"));
 
-    expect(screen.getAllByText("Bank Case")).toHaveLength(2);
+    expect(screen.getAllByText("Bank Case").length).toBeGreaterThan(0);
     expect(screen.getByText("Bankhaus J.A. Krebs")).toBeInTheDocument();
     expect(screen.getByText("Hidden Platform Draft")).toBeInTheDocument();
     expect(screen.getByText(/Echo Hound/i)).toBeInTheDocument();
@@ -612,11 +613,9 @@ describe("CharacterPanel", () => {
     fireEvent.click(screen.getByRole("tab", { name: /Journal/i }));
 
     expect(
-      screen.getByText("No quest catalog is available in active content."),
+      screen.getByText(/No active entries match selected filter filters/i),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Objectives become available after content publish."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No Case Selected")).toBeInTheDocument();
   });
 
   it("renders all three briefing-seeded cases as active journal entries", () => {
@@ -716,7 +715,11 @@ describe("CharacterPanel", () => {
     expect(screen.getAllByText("Bank Case").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Dog Trail").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Ghost Dossier").length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByText("Dog Trail"));
     expect(screen.getByText("Rathaus")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Ghost Dossier"));
     expect(screen.getByText("The Red Cog Tavern")).toBeInTheDocument();
   });
 

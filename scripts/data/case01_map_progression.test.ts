@@ -32,21 +32,16 @@ describe("Case 01 map progression spine", () => {
 
     expect(departure?.onEnter).toEqual(
       expect.arrayContaining([
-        { type: "travel_to", locationId: "loc_hbf" },
         {
           type: "set_flag",
           key: "case01_onboarding_complete",
           value: true,
         },
-        {
-          type: "set_flag",
-          key: "freiburg_case01_mainline_active",
-          value: true,
-        },
-        { type: "unlock_group", groupId: "loc_hbf" },
-        { type: "unlock_group", groupId: "loc_pub_deutsche" },
+        { type: "set_flag", key: "intro_freiburg_done", value: true },
+        { type: "set_flag", key: "case01_priority_locked", value: true },
         { type: "unlock_group", groupId: "loc_freiburg_bank" },
         { type: "unlock_group", groupId: "loc_rathaus" },
+        { type: "track_event", eventName: "case01_hbf_departure" },
       ]),
     );
   });

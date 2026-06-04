@@ -194,6 +194,8 @@ export function useVnSurfaceInteraction({
         handleVideoEnded();
         return;
       }
+      // Video end already committed auto-continue; ignore same-turn surface tap.
+      return;
     }
 
     if (

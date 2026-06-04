@@ -5,7 +5,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { __bindTestSnapshotResolver } from "../../../shared/content/activeSnapshot";
 import { parseSnapshot } from "../vnContent";
 import { VnScreen } from "./VnScreen";
@@ -252,6 +252,21 @@ type TestState = {
   inventoryRows: any[];
 };
 
+const parsedSnapshotByPayload = new Map<
+  string,
+  ReturnType<typeof parseSnapshot>
+>();
+
+const resolveSnapshotPayload = (payloadJson: string) => {
+  const cached = parsedSnapshotByPayload.get(payloadJson);
+  if (cached) {
+    return cached;
+  }
+  const parsed = parseSnapshot(payloadJson);
+  parsedSnapshotByPayload.set(payloadJson, parsed);
+  return parsed;
+};
+
 const makeSnapshotPayload = (
   scenarios: unknown[],
   nodes: unknown[],
@@ -275,6 +290,10 @@ const makeSnapshotPayload = (
 
 describe("VnScreen critical behavior", () => {
   let state: TestState;
+
+  afterEach(() => {
+    parsedSnapshotByPayload.clear();
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -305,7 +324,7 @@ describe("VnScreen critical behavior", () => {
 
     __bindTestSnapshotResolver(() => {
       const row = state.contentSnapshotRows[0];
-      return row ? parseSnapshot(row.payloadJson) : null;
+      return row ? resolveSnapshotPayload(row.payloadJson) : null;
     });
 
     mocks.useIdentityMock.mockReturnValue({
@@ -2649,12 +2668,11 @@ describe("VnScreen critical behavior", () => {
 
     render(<VnScreen />);
 
-    expect(
-      screen.getByText("Active Lens: Archive clerk runs the diversion."),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Follow the archive lead" }),
-    ).toBeInTheDocument();
+    const choicesSlot = screen.getByTestId("choices-slot");
+    expect(choicesSlot).toHaveTextContent(
+      "Active Lens: Archive clerk runs the diversion.",
+    );
+    expect(choicesSlot).toHaveTextContent("Follow the archive lead");
   });
 
   it("enters handoff_failed and blocks repeated completion taps", async () => {

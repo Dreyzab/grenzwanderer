@@ -21,6 +21,11 @@ export default defineConfig({
     setupFiles: "./src/setupTests.ts",
     testTimeout: 15_000, // give extra time for real connections
     hookTimeout: 15_000,
+    // Keep pre-push stable on Windows: full suite OOMs with default worker fan-out.
+    pool: "forks",
+    execArgv: ["--max-old-space-size=12288"],
+    maxWorkers: 1,
+    fileParallelism: false,
     exclude: [
       "**/node_modules/**",
       "**/dist/**",

@@ -232,6 +232,7 @@ export const CASE01_CANON_FLAG_KEYS = [
   "flag_witch_somatic_exhaustion",
   "flag_witch_attacked_sasha",
   "witch_enter_ghost_sandbox",
+  "witch_hotel_checked_in",
   "met_bureau_master_intro",
   "met_sasha_servant_intro",
   "met_friedrich_wagner_intro",

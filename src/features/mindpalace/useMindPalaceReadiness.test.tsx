@@ -6,9 +6,8 @@ const mocks = vi.hoisted(() => ({
   useTableMock: vi.fn(),
   useIdentityMock: vi.fn(),
   usePlayerVarsMock: vi.fn(),
+  useMindPalaceCatalogMock: vi.fn(),
   tablesMock: {
-    mindCase: Symbol("mindCase"),
-    mindHypothesis: Symbol("mindHypothesis"),
     myMindFacts: Symbol("myMindFacts"),
     myMindHypotheses: Symbol("myMindHypotheses"),
   },
@@ -32,6 +31,10 @@ vi.mock("../../shared/spacetime/bindings", () => ({
   tables: mocks.tablesMock,
 }));
 
+vi.mock("../../shared/content/useMindPalaceCatalog", () => ({
+  useMindPalaceCatalog: () => mocks.useMindPalaceCatalogMock(),
+}));
+
 const Harness = () => {
   const readiness = useMindPalaceReadiness();
   return (
@@ -51,23 +54,19 @@ describe("useMindPalaceReadiness", () => {
     mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
     mocks.usePlayerVarsMock.mockReturnValue({ attr_logic: 3 });
 
+    mocks.useMindPalaceCatalogMock.mockReturnValue({
+      mindCases: [{ caseId: "case_1", isActive: true }],
+      mindHypotheses: [
+        {
+          caseId: "case_1",
+          hypothesisId: "hyp_1",
+          requiredFactIdsJson: '["fact_1"]',
+          requiredVarsJson: '[{"key":"attr_logic","op":"gte","value":2}]',
+        },
+      ],
+    });
+
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tablesMock.mindCase) {
-        return [[{ caseId: "case_1", isActive: true }], true];
-      }
-      if (table === mocks.tablesMock.mindHypothesis) {
-        return [
-          [
-            {
-              caseId: "case_1",
-              hypothesisId: "hyp_1",
-              requiredFactIdsJson: '["fact_1"]',
-              requiredVarsJson: '[{"key":"attr_logic","op":"gte","value":2}]',
-            },
-          ],
-          true,
-        ];
-      }
       if (table === mocks.tablesMock.myMindFacts) {
         return [[{ caseId: "case_1", factId: "fact_1" }], true];
       }
@@ -86,23 +85,19 @@ describe("useMindPalaceReadiness", () => {
   });
 
   it("excludes validated hypotheses from ready count", () => {
+    mocks.useMindPalaceCatalogMock.mockReturnValue({
+      mindCases: [{ caseId: "case_1", isActive: true }],
+      mindHypotheses: [
+        {
+          caseId: "case_1",
+          hypothesisId: "hyp_1",
+          requiredFactIdsJson: "[]",
+          requiredVarsJson: "[]",
+        },
+      ],
+    });
+
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tablesMock.mindCase) {
-        return [[{ caseId: "case_1", isActive: true }], true];
-      }
-      if (table === mocks.tablesMock.mindHypothesis) {
-        return [
-          [
-            {
-              caseId: "case_1",
-              hypothesisId: "hyp_1",
-              requiredFactIdsJson: "[]",
-              requiredVarsJson: "[]",
-            },
-          ],
-          true,
-        ];
-      }
       if (table === mocks.tablesMock.myMindFacts) {
         return [[], true];
       }

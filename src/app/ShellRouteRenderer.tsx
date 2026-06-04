@@ -1,5 +1,6 @@
 import { Suspense, lazy, type ReactNode } from "react";
 import { HomePage } from "../pages/HomePage";
+import { ErrorBoundary } from "../shared/ui/ErrorBoundary";
 import type {
   MapPanelId,
   OpenVnScenarioOptions,
@@ -36,17 +37,34 @@ const LazyVnPage = lazy(async () => {
   return { default: module.VnPage };
 });
 
-const renderLazyPage = (children: ReactNode) => (
-  <Suspense
-    fallback={
-      <div className="app-page-loading" role="status">
-        Loading...
-      </div>
-    }
-  >
+const renderPage = (
+  boundaryId: string,
+  resetKeys: readonly unknown[],
+  children: ReactNode,
+) => (
+  <ErrorBoundary boundaryId={boundaryId} resetKeys={resetKeys}>
     {children}
-  </Suspense>
+  </ErrorBoundary>
 );
+
+const renderLazyPage = (
+  boundaryId: string,
+  resetKeys: readonly unknown[],
+  children: ReactNode,
+) =>
+  renderPage(
+    boundaryId,
+    resetKeys,
+    <Suspense
+      fallback={
+        <div className="app-page-loading" role="status">
+          Loading...
+        </div>
+      }
+    >
+      {children}
+    </Suspense>,
+  );
 
 interface ShellRouteRendererProps {
   activeTab: TabId;
@@ -66,13 +84,17 @@ export const ShellRouteRenderer = ({
   vnScenarioId,
 }: ShellRouteRendererProps) => {
   if (activeTab === "home") {
-    return (
-      <HomePage onNavigate={navigateToTab} onOpenVnScenario={openVnScenario} />
+    return renderPage(
+      "home",
+      [activeTab],
+      <HomePage onNavigate={navigateToTab} onOpenVnScenario={openVnScenario} />,
     );
   }
 
   if (activeTab === "vn") {
     return renderLazyPage(
+      "vn",
+      [activeTab, vnScenarioId],
       <LazyVnPage
         initialScenarioId={vnScenarioId}
         onScenarioChange={setVnScenarioId}
@@ -82,17 +104,21 @@ export const ShellRouteRenderer = ({
   }
 
   if (activeTab === "character") {
-    return renderLazyPage(<LazyCharacterPage />);
+    return renderLazyPage("character", [activeTab], <LazyCharacterPage />);
   }
 
   if (activeTab === "map") {
     return renderLazyPage(
+      "map",
+      [activeTab, mapPanel],
       <LazyMapPage onOpenVnScenario={openVnScenario} initialPanel={mapPanel} />,
     );
   }
 
   if (activeTab === "command") {
     return renderLazyPage(
+      "command",
+      [activeTab],
       <LazyCommandPage
         onNavigateTab={(nextTab) => navigateToTab(nextTab as TabId)}
       />,
@@ -101,11 +127,13 @@ export const ShellRouteRenderer = ({
 
   if (activeTab === "battle") {
     return renderLazyPage(
+      "battle",
+      [activeTab],
       <LazyBattlePage
         onNavigateTab={(nextTab) => navigateToTab(nextTab as TabId)}
       />,
     );
   }
 
-  return renderLazyPage(<LazyMindPalacePage />);
+  return renderLazyPage("mind_palace", [activeTab], <LazyMindPalacePage />);
 };

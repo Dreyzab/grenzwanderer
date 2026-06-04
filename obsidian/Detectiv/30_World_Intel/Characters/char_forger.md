@@ -2,6 +2,7 @@
 id: char_forger
 tags: [character, functional]
 tier: functional
+design_only: true
 runtime_character_id: forger
 faction: fct_underworld
 aliases: ["Friedrich Herr Tinte Schwarz"]

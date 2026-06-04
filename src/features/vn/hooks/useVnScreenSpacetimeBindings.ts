@@ -13,7 +13,6 @@ import type {
   PlayerRumorState,
   VnSession,
   VnSkillCheckResult,
-  ContentSnapshot,
   ContentVersion,
 } from "../../../shared/spacetime/bindings";
 
@@ -26,8 +25,6 @@ type ReducerCall<TReducerDef extends ReducerDef> = (
 interface VnScreenSpacetimeBindings {
   versions: readonly ContentVersion[];
   versionsReady: boolean;
-  snapshots: readonly ContentSnapshot[];
-  snapshotsReady: boolean;
   sessions: readonly VnSession[];
   sessionsReady: boolean;
   skillResults: readonly VnSkillCheckResult[];
@@ -55,7 +52,6 @@ interface VnScreenSpacetimeBindings {
 
 export function useVnScreenSpacetimeBindings(): VnScreenSpacetimeBindings {
   const [versions, versionsReady] = useTable(tables.contentVersion);
-  const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
   const [sessions, sessionsReady] = useTable(tables.myVnSessions);
   const [skillResults] = useTable(tables.myVnSkillResults);
   const [aiRequests] = useTable(tables.myAiRequests);
@@ -82,8 +78,6 @@ export function useVnScreenSpacetimeBindings(): VnScreenSpacetimeBindings {
   return {
     versions,
     versionsReady,
-    snapshots,
-    snapshotsReady,
     sessions,
     sessionsReady,
     skillResults,

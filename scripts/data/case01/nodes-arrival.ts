@@ -11,6 +11,13 @@ CASE01_PLATFORM_FAREWELL_BG,
 CASE01_PLATFORM_STILL_BG,
 CASE01_POLICE_BG,
 CASE01_START_VIDEO_BASE_PATH,
+CASE01_TRAIN_HUB_ASPECT_RATIO,
+CASE01_TRAIN_HUB_IMAGE_URL,
+CASE01_TRAIN_HUB_NODE_ID,
+CASE01_TRAIN_HUB_SCHEMA_ID,
+CASE01_TRAIN_HUB_VIEW_BOX,
+CASE01_TRAIN_HUB_ZONE_IDS,
+CASE01_TRAIN_HUB_ZONE_PATHS,
 CASE01_TRAIN_ASSISTANT_BG,
 CASE01_TRAIN_COMPARTMENT_BG,
 CASE01_TRAIN_DINING_CAR_BG,
@@ -22,6 +29,72 @@ CASE01_TRAIN_DINING_CAR_OLD_BADENER_BG,
 CASE01_TRAIN_DINING_CAR_WINE_BG,
 CASE01_BG_ESTATE_BUREAU
 } from "./shared";
+
+const trainHubZoneEffect = (
+  zoneId: (typeof CASE01_TRAIN_HUB_ZONE_IDS)[keyof typeof CASE01_TRAIN_HUB_ZONE_IDS],
+) => ({
+  type: "set_hub_zone" as const,
+  hubSchemaId: CASE01_TRAIN_HUB_SCHEMA_ID,
+  zoneId,
+});
+
+const returnToTrainHubChoice = {
+  id: "return_to_train_hub",
+  text: "Back to the train map",
+  nextNodeId: CASE01_TRAIN_HUB_NODE_ID,
+} satisfies NodeBlueprint["choices"][number];
+
+const trainHubSchema = {
+  id: CASE01_TRAIN_HUB_SCHEMA_ID,
+  imageUrl: CASE01_TRAIN_HUB_IMAGE_URL,
+  viewBox: CASE01_TRAIN_HUB_VIEW_BOX,
+  aspectRatio: CASE01_TRAIN_HUB_ASPECT_RATIO,
+  defaultCurrentZoneId: CASE01_TRAIN_HUB_ZONE_IDS.compartment,
+  zones: [
+    {
+      id: CASE01_TRAIN_HUB_ZONE_IDS.compartment,
+      label: "Compartment",
+      svgPath: CASE01_TRAIN_HUB_ZONE_PATHS.compartment,
+    },
+    {
+      id: CASE01_TRAIN_HUB_ZONE_IDS.corridor,
+      label: "Corridor",
+      svgPath: CASE01_TRAIN_HUB_ZONE_PATHS.corridor,
+    },
+    {
+      id: CASE01_TRAIN_HUB_ZONE_IDS.diningCar,
+      label: "Dining car",
+      svgPath: CASE01_TRAIN_HUB_ZONE_PATHS.dining_car,
+      occupants: [
+        {
+          npcId: "npc_felix_hartmann",
+          visibleIfAll: [
+            {
+              type: "flag_equals",
+              key: CASE01_DINING_FLAGS.metFelix,
+              value: true,
+            },
+          ],
+        },
+        {
+          npcId: "npc_mother_hartmann",
+          visibleIfAll: [
+            {
+              type: "flag_equals",
+              key: CASE01_DINING_FLAGS.metMother,
+              value: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: CASE01_TRAIN_HUB_ZONE_IDS.vestibule,
+      label: "Vestibule",
+      svgPath: CASE01_TRAIN_HUB_ZONE_PATHS.vestibule,
+    },
+  ],
+} satisfies NonNullable<NodeBlueprint["hubSchema"]>;
 
 export const arrivalNodes: NodeBlueprint[] = [
 {
@@ -370,7 +443,7 @@ export const arrivalNodes: NodeBlueprint[] = [
       },
       {
         id: "CASE01_TRAIN_ASSISTANT_EAT_TOGETHER",
-        text: "Wait for me! I've worked up an appetite�I need a bite to eat.",
+        text: "Wait for me! I've worked up an appetite—I need a bite to eat.",
         nextNodeId: CASE01_DINING_NODE_IDS.intro,
         effects: [
           {
@@ -401,7 +474,8 @@ export const arrivalNodes: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_SCENE_CASE01_TRAIN_SILENT_BEAT",
         text: "Continue.",
-        nextNodeId: "scene_case01_train_ankommen_video",
+        nextNodeId: CASE01_TRAIN_HUB_NODE_ID,
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.compartment)],
       },
     ],
   },
@@ -409,7 +483,7 @@ export const arrivalNodes: NodeBlueprint[] = [
     id: CASE01_DINING_NODE_IDS.intro,
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
-    bodyOverride: "**[Narrator]**:\nThe dining car greets you with the chime of crystal and the scent of expensive tobacco. Felix leads the way with confidence through the rows of tables.\n\n**[Assistant]**:\n� Mother always finds company, even on a train. It seems she's already made an acquaintance. Try to be... indulgent with her directness.",
+    bodyOverride: "**[Narrator]**:\nThe dining car greets you with the chime of crystal and the scent of expensive tobacco. Felix leads the way with confidence through the rows of tables.\n\n**[Assistant]**:\n— Mother always finds company, even on a train. It seems she's already made an acquaintance. Try to be... indulgent with her directness.",
     backgroundUrl: CASE01_TRAIN_DINING_CAR_BG,
     narrativeLayout: "log",
     sceneGroupId: "train_assistant",
@@ -513,7 +587,7 @@ export const arrivalNodes: NodeBlueprint[] = [
       },
       {
         id: "CASE01_TRAIN_DINING_HOTEL",
-        text: "� Pardon the interruption�since you know the city so well, have you heard of the Zum Eber hotel?",
+        text: "— Pardon the interruption—since you know the city so well, have you heard of the Zum Eber hotel?",
         nextNodeId: CASE01_DINING_NODE_IDS.hotelBranch,
       },
     ],
@@ -921,7 +995,8 @@ export const arrivalNodes: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION",
         text: "Поезд замедляется.",
-        nextNodeId: "scene_case01_train_ankommen_video",
+        nextNodeId: CASE01_TRAIN_HUB_NODE_ID,
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.corridor)],
       },
     ],
   },
@@ -939,7 +1014,8 @@ export const arrivalNodes: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION_SILENT_DEFEND",
         text: "Поезд замедляется.",
-        nextNodeId: "scene_case01_train_ankommen_video",
+        nextNodeId: CASE01_TRAIN_HUB_NODE_ID,
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.corridor)],
       },
     ],
   },
@@ -957,7 +1033,8 @@ export const arrivalNodes: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION_HOTEL_DEFEND",
         text: "Поезд замедляется.",
-        nextNodeId: "scene_case01_train_ankommen_video",
+        nextNodeId: CASE01_TRAIN_HUB_NODE_ID,
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.corridor)],
       },
     ],
   },
@@ -975,7 +1052,8 @@ export const arrivalNodes: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION_INTRO_OBSERVE",
         text: "Поезд замедляется.",
-        nextNodeId: "scene_case01_train_ankommen_video",
+        nextNodeId: CASE01_TRAIN_HUB_NODE_ID,
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.corridor)],
       },
     ],
   },
@@ -993,7 +1071,8 @@ export const arrivalNodes: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION_SILENT_OBSERVE",
         text: "Поезд замедляется.",
-        nextNodeId: "scene_case01_train_ankommen_video",
+        nextNodeId: CASE01_TRAIN_HUB_NODE_ID,
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.corridor)],
       },
     ],
   },
@@ -1011,11 +1090,151 @@ export const arrivalNodes: NodeBlueprint[] = [
       {
         id: "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION_HOTEL_OBSERVE",
         text: "Поезд замедляется.",
-        nextNodeId: "scene_case01_train_ankommen_video",
+        nextNodeId: CASE01_TRAIN_HUB_NODE_ID,
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.corridor)],
       },
     ],
   },
 
+  {
+    id: CASE01_TRAIN_HUB_NODE_ID,
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Train Map",
+    bodyOverride:
+      "**[Narrator]**:\nThe train sways underfoot. Fog gathers against the windows, and Freiburg is close enough now to feel like a decision rather than a destination.",
+    backgroundUrl: CASE01_TRAIN_COMPARTMENT_BG,
+    narrativeLayout: "log",
+    interactionMode: "hub",
+    sceneGroupId: "train_corridor",
+    hubSchema: trainHubSchema,
+    choices: [
+      {
+        id: "hub_to_compartment_revisit",
+        text: "Return to the compartment",
+        nextNodeId: "scene_case01_train_compartment_revisit",
+        hotspot: {
+          zoneId: CASE01_TRAIN_HUB_ZONE_IDS.compartment,
+          priority: 10,
+        },
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.compartment)],
+      },
+      {
+        id: "hub_to_corridor_revisit",
+        text: "Step into the corridor",
+        nextNodeId: "scene_case01_train_corridor_revisit",
+        hotspot: {
+          zoneId: CASE01_TRAIN_HUB_ZONE_IDS.corridor,
+          priority: 10,
+        },
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.corridor)],
+      },
+      {
+        id: "hub_to_dining_first_visit",
+        text: "Find Felix in the dining car",
+        nextNodeId: CASE01_DINING_NODE_IDS.intro,
+        visibleIfAll: [
+          {
+            type: "logic_not",
+            condition: {
+              type: "flag_equals",
+              key: CASE01_DINING_FLAGS.metMother,
+              value: true,
+            },
+          },
+        ],
+        hotspot: {
+          zoneId: CASE01_TRAIN_HUB_ZONE_IDS.diningCar,
+          priority: 20,
+        },
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.diningCar)],
+      },
+      {
+        id: "hub_to_dining_revisit",
+        text: "Look back into the dining car",
+        nextNodeId: "scene_case01_train_dining_car_revisit",
+        visibleIfAll: [
+          {
+            type: "flag_equals",
+            key: CASE01_DINING_FLAGS.metMother,
+            value: true,
+          },
+        ],
+        hotspot: {
+          zoneId: CASE01_TRAIN_HUB_ZONE_IDS.diningCar,
+          priority: 10,
+        },
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.diningCar)],
+      },
+      {
+        id: "hub_to_vestibule_revisit",
+        text: "Check the vestibule",
+        nextNodeId: "scene_case01_train_vestibule_revisit",
+        hotspot: {
+          zoneId: CASE01_TRAIN_HUB_ZONE_IDS.vestibule,
+          priority: 10,
+        },
+        effects: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.vestibule)],
+      },
+      {
+        id: "hub_continue_to_arrival",
+        text: "Prepare for arrival",
+        nextNodeId: "scene_case01_train_ankommen_video",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_train_compartment_revisit",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Compartment",
+    bodyOverride:
+      "**[Narrator]**:\nYour compartment is quiet again. The letter waits where you left it, folded with bureaucratic precision.",
+    backgroundUrl: CASE01_TRAIN_COMPARTMENT_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_compartment",
+    onEnter: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.compartment)],
+    choices: [{ ...returnToTrainHubChoice }],
+  },
+  {
+    id: "scene_case01_train_corridor_revisit",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Corridor",
+    bodyOverride:
+      "**[Narrator]**:\nThe corridor narrows each passing thought. Beyond the glass, the countryside blurs into grey-green lines.",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_corridor",
+    onEnter: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.corridor)],
+    choices: [{ ...returnToTrainHubChoice }],
+  },
+  {
+    id: "scene_case01_train_dining_car_revisit",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Dining Car",
+    bodyOverride:
+      "**[Narrator]**:\nThe dining car has settled into polite aftermath: cooling cups, folded napkins, and the trace of a conversation that ended too neatly.",
+    backgroundUrl: CASE01_TRAIN_DINING_CAR_GROUP_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_dining_car",
+    onEnter: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.diningCar)],
+    choices: [{ ...returnToTrainHubChoice }],
+  },
+  {
+    id: "scene_case01_train_vestibule_revisit",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Vestibule",
+    bodyOverride:
+      "**[Narrator]**:\nCold air leaks around the carriage door. The metal handle trembles with every turn of the wheels.",
+    backgroundUrl: CASE01_TRAIN_ASSISTANT_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "train_vestibule",
+    onEnter: [trainHubZoneEffect(CASE01_TRAIN_HUB_ZONE_IDS.vestibule)],
+    choices: [{ ...returnToTrainHubChoice }],
+  },
   {
     id: "scene_case01_train_ankommen_video",
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,

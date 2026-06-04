@@ -8,6 +8,7 @@ import {
   ensurePlayerProfile,
   processCaseEventTriggers,
 } from "./helpers";
+import { assertDirectProgressionReducerAllowed } from "./helpers/progression_guard";
 
 export const emit_case_event = spacetimedb.reducer(
   {
@@ -37,6 +38,7 @@ export const emit_case_event = spacetimedb.reducer(
 
     ensurePlayerProfile(ctx);
     ensureIdempotent(ctx, requestId, "emit_case_event");
+    assertDirectProgressionReducerAllowed(ctx, "emit_case_event");
     const eventRow = emitCaseEvent(ctx, {
       eventName,
       payloadJson,

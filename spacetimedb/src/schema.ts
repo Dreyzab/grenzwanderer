@@ -121,6 +121,27 @@ export const playerInventory = table(
   },
 );
 
+export const playerEquipment = table(
+  {
+    name: "player_equipment",
+    public: false,
+    indexes: [
+      {
+        accessor: "player_equipment_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+    ],
+  },
+  {
+    equipmentKey: t.string().primaryKey(), // {playerHex}::equip::{slotId}
+    playerId: t.identity(),
+    slotId: t.string(),
+    itemId: t.string(),
+    updatedAt: t.timestamp(),
+  },
+);
+
 export const vnSession = table(
   {
     name: "vn_session",
@@ -219,7 +240,7 @@ export const contentVersion = table(
 export const contentSnapshot = table(
   {
     name: "content_snapshot",
-    public: true,
+    public: false,
   },
   {
     checksum: t.string().primaryKey(),
@@ -558,7 +579,7 @@ export const workerIdentity = table(
 export const mindCase = table(
   {
     name: "mind_case",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "mind_case_is_active",
@@ -585,7 +606,7 @@ export const mindCase = table(
 export const mindFact = table(
   {
     name: "mind_fact",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "mind_fact_case_id",
@@ -618,7 +639,7 @@ export const mindFact = table(
 export const mindHypothesis = table(
   {
     name: "mind_hypothesis",
-    public: true,
+    public: false,
     indexes: [
       {
         accessor: "mind_hypothesis_case_id",
@@ -1532,6 +1553,7 @@ const spacetimedb = schema({
   playerMapEvent,
   playerRedeemedCode,
   playerSpiritState,
+  playerEquipment,
 });
 
 const rowsFromIndex = (
@@ -1606,6 +1628,13 @@ export const my_player_inventory = spacetimedb.view(
   t.array(playerInventory.rowType),
   (ctx) =>
     selfScopedByPlayerId(ctx, "playerInventory", "player_inventory_player_id"),
+);
+
+export const my_player_equipment = spacetimedb.view(
+  { name: "my_player_equipment", public: true },
+  t.array(playerEquipment.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(ctx, "playerEquipment", "player_equipment_player_id"),
 );
 
 export const my_vn_sessions = spacetimedb.view(

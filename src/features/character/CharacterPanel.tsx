@@ -5,6 +5,7 @@ import { CharacterDevelopmentTab } from "./panel/CharacterDevelopmentTab";
 import { CharacterJournalTab } from "./panel/CharacterJournalTab";
 import { CharacterProfileTab } from "./panel/CharacterProfileTab";
 import { CharacterPsycheTab } from "./panel/CharacterPsycheTab";
+import { CharacterEquipmentTab } from "./panel/CharacterEquipmentTab";
 import { C, CLIP_PANEL } from "./panel/characterPanel.theme";
 import { DossierTabButton } from "./panel/characterPanelPrimitives";
 import { useCharacterPanelViewModel } from "./panel/useCharacterPanelViewModel";
@@ -45,22 +46,39 @@ export const CharacterPanel = () => {
 
         <div className="relative z-10 flex flex-col gap-6 p-4 sm:p-6 lg:p-8">
           <header className="flex flex-col gap-4 border-b border-white/8 pb-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p
-                className="text-[10px] uppercase tracking-[0.38em]"
-                style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
+            <div className="flex items-start gap-4">
+              {/* Dossier Header Portrait (Reactive) */}
+              <div
+                className="relative overflow-hidden border bg-stone-900/60 p-0.5 shrink-0 hidden sm:block"
+                style={{
+                  borderColor: vm.activeOrigin?.dossier.accentColor ?? C.amber,
+                  borderRadius: "2px",
+                  boxShadow: `0 0 10px -3px ${vm.activeOrigin?.dossier.accentColor ?? C.amber}30`,
+                }}
               >
-                Freiburg Character Dossier
-              </p>
-              <h2
-                className="mt-2 text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl"
-                style={{ color: C.bone, fontFamily: "var(--font-display)" }}
-              >
-                {vm.t.panelTitle}
-              </h2>
-              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-stone-400">
-                {vm.t.panelSubtitle}
-              </p>
+                <img
+                  alt="Dossier Avatar"
+                  className="h-16 w-16 object-cover brightness-95"
+                  src={vm.portraitUrl}
+                />
+              </div>
+              <div>
+                <p
+                  className="text-[10px] uppercase tracking-[0.38em]"
+                  style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
+                >
+                  Freiburg Character Dossier
+                </p>
+                <h2
+                  className="mt-1 text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl"
+                  style={{ color: C.bone, fontFamily: "var(--font-display)" }}
+                >
+                  {vm.t.panelTitle}
+                </h2>
+                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-stone-400">
+                  {vm.t.panelSubtitle}
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -146,6 +164,24 @@ export const CharacterPanel = () => {
                   </div>
                 ) : null}
 
+                {activeTab === "equipment" ? (
+                  <div
+                    aria-labelledby="character-tab-equipment"
+                    id="character-tabpanel-equipment"
+                    role="tabpanel"
+                  >
+                    <CharacterEquipmentTab
+                      activeOrigin={vm.activeOrigin}
+                      equippedBySlot={vm.equippedBySlot}
+                      portraitUrl={vm.portraitUrl}
+                      equipItem={vm.equipItem}
+                      unequipItem={vm.unequipItem}
+                      inventoryRows={vm.inventoryRows}
+                      t={vm.t}
+                    />
+                  </div>
+                ) : null}
+
                 {activeTab === "development" ? (
                   <div
                     aria-labelledby="character-tab-development"
@@ -153,6 +189,9 @@ export const CharacterPanel = () => {
                     role="tabpanel"
                   >
                     <CharacterDevelopmentTab
+                      characterSynergies={vm.characterSynergies}
+                      coreCharacteristics={vm.coreCharacteristics}
+                      indicators={vm.indicators}
                       patronVoiceCards={vm.patronVoiceCards}
                       radarData={vm.radarData}
                     />
@@ -176,6 +215,7 @@ export const CharacterPanel = () => {
                     role="tabpanel"
                   >
                     <CharacterJournalTab
+                      dossierEntries={vm.dossierEntries}
                       entityKnowledge={vm.entityKnowledge}
                       getObjectivePointLabel={vm.getObjectivePointLabel}
                       observationEntries={vm.observationEntries}

@@ -2,6 +2,7 @@
 id: char_dock_worker
 tags: [character, functional]
 tier: functional
+design_only: true
 runtime_character_id: rail_yard_lookout
 faction: fct_free_yards
 aliases: ["Jakob Moser", "Dock Worker"]

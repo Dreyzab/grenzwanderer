@@ -2,6 +2,7 @@
 id: char_unknown
 tags: [character, generic]
 tier: generic
+design_only: true
 runtime_character_id: unknown
 faction: fct_unknown
 aliases: ["Unknown Figure"]

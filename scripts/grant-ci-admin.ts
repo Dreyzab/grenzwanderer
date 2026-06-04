@@ -17,9 +17,17 @@ async function main() {
   );
   console.log("Target CI identity: " + CI_IDENTITY_HEX);
 
+  const bootstrapCode = process.env.ADMIN_BOOTSTRAP_CODE?.trim();
+  if (!bootstrapCode) {
+    console.error(
+      "ADMIN_BOOTSTRAP_CODE must be set to bootstrap admin on an empty database.",
+    );
+    process.exit(1);
+  }
+
   try {
     console.log("Step 1: Claiming first admin spot (Bootstrapping)...");
-    await (conn.reducers as any).bootstrapAdminIdentity();
+    await conn.reducers.bootstrapAdminIdentity({ bootstrapCode });
     console.log("✅ SUCCESS! You are now the first admin.");
   } catch (e: any) {
     // If we get an error here, it might just mean we are already an admin

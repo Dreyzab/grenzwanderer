@@ -24,14 +24,15 @@ import type {
   CommandPartyMember,
   CommandSession,
   CaseVersion,
-  ContentSnapshot,
   ContentTranslation,
   ContentVersion,
   PlayerAgencyCareer,
   PlayerEvidence,
   PlayerFactionSignal,
+  PlayerFavorLedger,
   PlayerFlag,
   PlayerInventory,
+  PlayerEquipment,
   PlayerLocation,
   PlayerMapEvent,
   PlayerMindCase,
@@ -65,6 +66,7 @@ type ViewDbAliases = {
   myPlayerVars: BaseDbView["my_player_vars"];
   myPlayerLocation: BaseDbView["my_player_location"];
   myPlayerInventory: BaseDbView["my_player_inventory"];
+  myPlayerEquipment: BaseDbView["my_player_equipment"];
   myVnSessions: BaseDbView["my_vn_sessions"];
   myVnSkillResults: BaseDbView["my_vn_skill_results"];
   myAiRequests: BaseDbView["my_ai_requests"];
@@ -81,6 +83,7 @@ type ViewDbAliases = {
   myRelationships: BaseDbView["my_relationships"];
   myNpcState: BaseDbView["my_npc_state"];
   myNpcFavors: BaseDbView["my_npc_favors"];
+  myFavorLedger: BaseDbView["my_favor_ledger"];
   myFactionSignals: BaseDbView["my_faction_signals"];
   myAgencyCareer: BaseDbView["my_agency_career"];
   myRumorState: BaseDbView["my_rumor_state"];
@@ -103,6 +106,7 @@ const viewDbAliases: Readonly<Record<keyof ViewDbAliases, keyof BaseDbView>> = {
   myPlayerVars: "my_player_vars",
   myPlayerLocation: "my_player_location",
   myPlayerInventory: "my_player_inventory",
+  myPlayerEquipment: "my_player_equipment",
   myVnSessions: "my_vn_sessions",
   myVnSkillResults: "my_vn_skill_results",
   myAiRequests: "my_ai_requests",
@@ -118,6 +122,7 @@ const viewDbAliases: Readonly<Record<keyof ViewDbAliases, keyof BaseDbView>> = {
   myRelationships: "my_relationships",
   myNpcState: "my_npc_state",
   myNpcFavors: "my_npc_favors",
+  myFavorLedger: "my_favor_ledger",
   myFactionSignals: "my_faction_signals",
   myAgencyCareer: "my_agency_career",
   myRumorState: "my_rumor_state",
@@ -140,6 +145,7 @@ type LegacyDbAliases = {
   playerVar: BaseDbView["my_player_vars"];
   playerLocation: BaseDbView["my_player_location"];
   playerInventory: BaseDbView["my_player_inventory"];
+  playerEquipment: BaseDbView["my_player_equipment"];
   vnSession: BaseDbView["my_vn_sessions"];
   vnSkillCheckResult: BaseDbView["my_vn_skill_results"];
   aiRequest: BaseDbView["my_ai_requests"];
@@ -152,6 +158,7 @@ type LegacyDbAliases = {
   playerRelationship: BaseDbView["my_relationships"];
   playerNpcState: BaseDbView["my_npc_state"];
   playerNpcFavor: BaseDbView["my_npc_favors"];
+  playerFavorLedger: BaseDbView["my_favor_ledger"];
   playerFactionSignal: BaseDbView["my_faction_signals"];
   playerAgencyCareer: BaseDbView["my_agency_career"];
   playerRumorState: BaseDbView["my_rumor_state"];
@@ -176,6 +183,7 @@ const legacyDbAliases: Readonly<
   playerVar: "my_player_vars",
   playerLocation: "my_player_location",
   playerInventory: "my_player_inventory",
+  playerEquipment: "my_player_equipment",
   vnSession: "my_vn_sessions",
   vnSkillCheckResult: "my_vn_skill_results",
   aiRequest: "my_ai_requests",
@@ -188,6 +196,7 @@ const legacyDbAliases: Readonly<
   playerRelationship: "my_relationships",
   playerNpcState: "my_npc_state",
   playerNpcFavor: "my_npc_favors",
+  playerFavorLedger: "my_favor_ledger",
   playerFactionSignal: "my_faction_signals",
   playerAgencyCareer: "my_agency_career",
   playerRumorState: "my_rumor_state",
@@ -206,18 +215,15 @@ const legacyDbAliases: Readonly<
 
 export const tables = {
   caseVersion: queryTables.caseVersion,
-  contentSnapshot: queryTables.contentSnapshot,
   contentTranslation: queryTables.contentTranslation,
   contentTranslations: queryTables.contentTranslation,
   contentVersion: queryTables.contentVersion,
-  mindCase: queryTables.mindCase,
-  mindFact: queryTables.mindFact,
-  mindHypothesis: queryTables.mindHypothesis,
   myPlayerProfile: queryTables.my_player_profile,
   myPlayerFlags: queryTables.my_player_flags,
   myPlayerVars: queryTables.my_player_vars,
   myPlayerLocation: queryTables.my_player_location,
   myPlayerInventory: queryTables.my_player_inventory,
+  myPlayerEquipment: queryTables.my_player_equipment,
   myVnSessions: queryTables.my_vn_sessions,
   myVnSkillResults: queryTables.my_vn_skill_results,
   myAiRequests: queryTables.my_ai_requests,
@@ -231,6 +237,7 @@ export const tables = {
   myRelationships: queryTables.my_relationships,
   myNpcState: queryTables.my_npc_state,
   myNpcFavors: queryTables.my_npc_favors,
+  myFavorLedger: queryTables.my_favor_ledger,
   myFactionSignals: queryTables.my_faction_signals,
   myAgencyCareer: queryTables.my_agency_career,
   myRumorState: queryTables.my_rumor_state,
@@ -259,10 +266,12 @@ export const reducers = {
   changeRelationship: generatedReducers.changeRelationship,
   closeBattleMode: generatedReducers.closeBattleMode,
   closeCommandMode: generatedReducers.closeCommandMode,
+  commitMapDiscovery: generatedReducers.commitMapDiscovery,
   discoverFact: generatedReducers.discoverFact,
   endBattleTurn: generatedReducers.endBattleTurn,
   enqueueAiRequest: generatedReducers.enqueueAiRequest,
   enqueueProvidenceDialogue: generatedReducers.enqueueProvidenceDialogue,
+  equipItem: generatedReducers.equipItem,
   grantEvidence: generatedReducers.grantEvidence,
   grantItem: generatedReducers.grantItem,
   grantXp: generatedReducers.grantXp,
@@ -286,6 +295,7 @@ export const reducers = {
   startScenario: generatedReducers.startScenario,
   trackEvent: generatedReducers.trackEvent,
   travelTo: generatedReducers.travelTo,
+  unequipItem: generatedReducers.unequipItem,
   unlockGroup: generatedReducers.unlockGroup,
   updateTranslations: generatedReducers.updateTranslations,
   validateHypothesis: generatedReducers.validateHypothesis,
@@ -344,14 +354,15 @@ export type {
   CommandPartyMember,
   CommandSession,
   CaseVersion,
-  ContentSnapshot,
   ContentTranslation,
   ContentVersion,
   PlayerAgencyCareer,
   PlayerEvidence,
   PlayerFactionSignal,
+  PlayerFavorLedger,
   PlayerFlag,
   PlayerInventory,
+  PlayerEquipment,
   PlayerLocation,
   PlayerMapEvent,
   PlayerMindCase,

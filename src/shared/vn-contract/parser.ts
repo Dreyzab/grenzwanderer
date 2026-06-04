@@ -41,10 +41,15 @@ import type {
   SightMode,
   SpiritEncounterDefinition,
   VnChoice,
+  VnChoiceHotspot,
   VnCheckModifierSource,
   VnCondition,
   VnDiceMode,
   VnEffect,
+  VnHubSchema,
+  VnHubZone,
+  VnHubZoneOccupant,
+  VnInteractionMode,
   VnNode,
   VnNarrativeLayout,
   VnNarrativePresentation,
@@ -65,6 +70,12 @@ import {
 } from "./schema";
 import { isVnAiMode } from "../game/narrativeResources";
 import { isSkillRank } from "../game/skillProgression";
+import {
+  isCharacterIndicatorId,
+  isCharacterSynergyId,
+  isCoreCharacteristicId,
+  isVnChoiceSource,
+} from "../game/characterProgression";
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -88,11 +99,140 @@ const isNarrativePresentation = (
   value: unknown,
 ): value is VnNarrativePresentation => value === "letter";
 
+const isInteractionMode = (value: unknown): value is VnInteractionMode =>
+  value === "standard" || value === "hub";
+
+const VIEW_BOX_PATTERN = /^-?\d+(?:\.\d+)?(?:\s+-?\d+(?:\.\d+)?){3}$/;
+
+const isViewBox = (value: unknown): value is string =>
+  typeof value === "string" && VIEW_BOX_PATTERN.test(value.trim());
+
+const isHubZoneOccupant = (value: unknown): value is VnHubZoneOccupant => {
+  if (!isObject(value)) {
+    return false;
+  }
+  if (typeof value.npcId !== "string" || value.npcId.trim().length === 0) {
+    return false;
+  }
+  const visibleIfAllValid =
+    value.visibleIfAll === undefined ||
+    (Array.isArray(value.visibleIfAll) &&
+      value.visibleIfAll.every(isCondition));
+  const visibleIfAnyValid =
+    value.visibleIfAny === undefined ||
+    (Array.isArray(value.visibleIfAny) &&
+      value.visibleIfAny.every(isCondition));
+  return visibleIfAllValid && visibleIfAnyValid;
+};
+
+const isHubZone = (value: unknown): value is VnHubZone => {
+  if (!isObject(value)) {
+    return false;
+  }
+  if (typeof value.id !== "string" || value.id.trim().length === 0) {
+    return false;
+  }
+  if (typeof value.label !== "string" || value.label.trim().length === 0) {
+    return false;
+  }
+  if (typeof value.svgPath !== "string" || value.svgPath.trim().length === 0) {
+    return false;
+  }
+  if (
+    value.occupants !== undefined &&
+    (!Array.isArray(value.occupants) ||
+      !value.occupants.every(isHubZoneOccupant))
+  ) {
+    return false;
+  }
+  return true;
+};
+
+const isHubSchema = (value: unknown): value is VnHubSchema => {
+  if (!isObject(value)) {
+    return false;
+  }
+  if (typeof value.id !== "string" || value.id.trim().length === 0) {
+    return false;
+  }
+  if (
+    typeof value.imageUrl !== "string" ||
+    value.imageUrl.trim().length === 0
+  ) {
+    return false;
+  }
+  if (!isViewBox(value.viewBox)) {
+    return false;
+  }
+  if (
+    typeof value.aspectRatio !== "number" ||
+    !Number.isFinite(value.aspectRatio) ||
+    value.aspectRatio <= 0
+  ) {
+    return false;
+  }
+  if (
+    value.defaultCurrentZoneId !== undefined &&
+    (typeof value.defaultCurrentZoneId !== "string" ||
+      value.defaultCurrentZoneId.trim().length === 0)
+  ) {
+    return false;
+  }
+  if (
+    !Array.isArray(value.zones) ||
+    value.zones.length === 0 ||
+    !value.zones.every(isHubZone)
+  ) {
+    return false;
+  }
+  const zoneIds = new Set<string>();
+  for (const zone of value.zones) {
+    if (zoneIds.has(zone.id)) {
+      return false;
+    }
+    zoneIds.add(zone.id);
+  }
+  if (
+    value.defaultCurrentZoneId !== undefined &&
+    !zoneIds.has(value.defaultCurrentZoneId as string)
+  ) {
+    return false;
+  }
+  return true;
+};
+
+const isHotspot = (value: unknown): value is VnChoiceHotspot => {
+  if (!isObject(value)) {
+    return false;
+  }
+  if (typeof value.zoneId !== "string" || value.zoneId.trim().length === 0) {
+    return false;
+  }
+  if (
+    value.labelHidden !== undefined &&
+    typeof value.labelHidden !== "boolean"
+  ) {
+    return false;
+  }
+  if (
+    value.priority !== undefined &&
+    (typeof value.priority !== "number" || !Number.isFinite(value.priority))
+  ) {
+    return false;
+  }
+  return true;
+};
+
 const isCheckModifierSource = (
   value: unknown,
 ): value is VnCheckModifierSource =>
   value === "item" ||
   value === "trait" ||
+  value === "core" ||
+  value === "origin" ||
+  value === "indicator" ||
+  value === "stress" ||
+  value === "curse" ||
   value === "voice_synergy" ||
   value === "reputation" ||
   value === "preparation";
@@ -175,6 +315,20 @@ const isCondition = (value: unknown): value is VnCondition => {
   }
   if (value.type === "career_rank_gte") {
     return typeof value.rankId === "string";
+  }
+  if (value.type === "core_gte") {
+    return (
+      typeof value.coreId === "string" &&
+      isCoreCharacteristicId(value.coreId) &&
+      typeof value.value === "number"
+    );
+  }
+  if (value.type === "indicator_rank_gte") {
+    return (
+      typeof value.indicatorId === "string" &&
+      isCharacterIndicatorId(value.indicatorId) &&
+      typeof value.value === "number"
+    );
   }
   if (value.type === "voice_level_gte") {
     return (
@@ -398,6 +552,14 @@ const isEffect = (value: unknown): value is VnEffect => {
         typeof value.requiredItemId === "string")
     );
   }
+  if (value.type === "set_hub_zone") {
+    return (
+      typeof value.hubSchemaId === "string" &&
+      value.hubSchemaId.trim().length > 0 &&
+      typeof value.zoneId === "string" &&
+      value.zoneId.trim().length > 0
+    );
+  }
 
   return false;
 };
@@ -444,6 +606,9 @@ const isSkillCheck = (value: unknown): boolean => {
     (value.minSkillRank === undefined ||
       (typeof value.minSkillRank === "string" &&
         isSkillRank(value.minSkillRank))) &&
+    (value.synergyId === undefined ||
+      (typeof value.synergyId === "string" &&
+        isCharacterSynergyId(value.synergyId))) &&
     (value.karmaSensitive === undefined ||
       typeof value.karmaSensitive === "boolean") &&
     hasModifiers &&
@@ -497,6 +662,7 @@ const isChoice = (value: unknown): value is VnChoice => {
           (entry.stance === "supports" || entry.stance === "opposes") &&
           typeof entry.text === "string",
       ));
+  const hasHotspot = value.hotspot === undefined || isHotspot(value.hotspot);
 
   return (
     typeof value.id === "string" &&
@@ -504,6 +670,8 @@ const isChoice = (value: unknown): value is VnChoice => {
     typeof value.nextNodeId === "string" &&
     (value.allowCustomInput === undefined ||
       typeof value.allowCustomInput === "boolean") &&
+    (value.choiceSource === undefined ||
+      isVnChoiceSource(value.choiceSource)) &&
     (value.aiMode === undefined || isVnAiMode(value.aiMode)) &&
     (value.providenceCost === undefined ||
       typeof value.providenceCost === "number") &&
@@ -516,7 +684,8 @@ const isChoice = (value: unknown): value is VnChoice => {
     hasEffects &&
     hasSkillCheck &&
     hasPassiveChecks &&
-    hasInnerVoiceHints
+    hasInnerVoiceHints &&
+    hasHotspot
   );
 };
 
@@ -571,7 +740,25 @@ const isNode = (value: unknown): value is VnNode => {
         value.preconditions.every(isCondition))) &&
     (value.passiveChecks === undefined ||
       (Array.isArray(value.passiveChecks) &&
-        value.passiveChecks.every(isSkillCheck)))
+        value.passiveChecks.every(isSkillCheck))) &&
+    (value.interactionMode === undefined ||
+      isInteractionMode(value.interactionMode)) &&
+    (value.hubSchema === undefined || isHubSchema(value.hubSchema)) &&
+    // Cross-field rules: hub mode requires hubSchema and every hotspot
+    // choice must point at an existing zone. Standard mode forbids hotspots.
+    (value.interactionMode === "hub"
+      ? isHubSchema(value.hubSchema) &&
+        Array.isArray(value.choices) &&
+        (() => {
+          const zoneIds = new Set<string>(
+            (value.hubSchema as VnHubSchema).zones.map((zone) => zone.id),
+          );
+          return (value.choices as VnChoice[]).every(
+            (choice) => !choice.hotspot || zoneIds.has(choice.hotspot.zoneId),
+          );
+        })()
+      : !Array.isArray(value.choices) ||
+        (value.choices as VnChoice[]).every((choice) => !choice.hotspot))
   );
 };
 
@@ -1712,6 +1899,18 @@ const parseSocialCatalog = (
     return null;
   }
 
+  const isValidBioStage = (stage: unknown): boolean =>
+    isObject(stage) &&
+    typeof stage.heading === "string" &&
+    typeof stage.text === "string" &&
+    (stage.revealFlag === undefined || typeof stage.revealFlag === "string");
+
+  const isValidBio = (bio: unknown): boolean =>
+    isObject(bio) &&
+    typeof bio.summary === "string" &&
+    (bio.stages === undefined ||
+      (Array.isArray(bio.stages) && bio.stages.every(isValidBioStage)));
+
   const parsedNpcIdentities = value.npcIdentities.map((entry) => {
     if (
       !isObject(entry) ||
@@ -1733,10 +1932,27 @@ const parseSocialCatalog = (
         (!Array.isArray(entry.serviceIds) ||
           !entry.serviceIds.every(
             (serviceId) => typeof serviceId === "string",
-          )))
+          ))) ||
+      (entry.bio !== undefined && !isValidBio(entry.bio))
     ) {
       return null;
     }
+
+    const rawBio = isObject(entry.bio) ? entry.bio : undefined;
+    const bio = rawBio
+      ? {
+          summary: rawBio.summary as string,
+          stages: Array.isArray(rawBio.stages)
+            ? (rawBio.stages as Array<Record<string, unknown>>).map(
+                (stage) => ({
+                  revealFlag: stage.revealFlag as string | undefined,
+                  heading: stage.heading as string,
+                  text: stage.text as string,
+                }),
+              )
+            : undefined,
+        }
+      : undefined;
 
     return {
       id: entry.id,
@@ -1749,6 +1965,7 @@ const parseSocialCatalog = (
       homePointId: entry.homePointId,
       workPointId: entry.workPointId,
       serviceIds: entry.serviceIds,
+      bio,
     };
   });
 
@@ -1761,7 +1978,8 @@ const parseSocialCatalog = (
         entry.role !== "archives" &&
         entry.role !== "social_introduction" &&
         entry.role !== "political_cover" &&
-        entry.role !== "transport") ||
+        entry.role !== "transport" &&
+        entry.role !== "goods") ||
       typeof entry.label !== "string" ||
       typeof entry.baseAccess !== "string" ||
       (entry.unlockFlag !== undefined &&
@@ -1783,7 +2001,8 @@ const parseSocialCatalog = (
         | "archives"
         | "social_introduction"
         | "political_cover"
-        | "transport",
+        | "transport"
+        | "goods",
       label: entry.label,
       baseAccess: entry.baseAccess,
       unlockFlag: entry.unlockFlag,

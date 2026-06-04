@@ -7,6 +7,7 @@ import type {
 } from "../../features/vn/types";
 import type { VnStrings } from "../../features/i18n/uiStrings";
 import type { NarrativeLogState } from "../../features/vn/log/useNarrativeLog";
+import type { PlayerProfileForLog } from "../../features/vn/log/LogSegmentRenderer";
 import type {
   TypedTextHandle,
   TypedTextTokenState,
@@ -23,6 +24,7 @@ export interface VnNarrativePanelProps {
   narrativeText: string;
   choices?: VnChoice[];
   choicesSlot?: React.ReactNode;
+  hasVisibleChoices?: boolean;
   backgroundImageUrl?: string;
   backgroundVideoUrl?: string;
   backgroundVideoPosterUrl?: string;
@@ -32,6 +34,7 @@ export interface VnNarrativePanelProps {
   narrativePresentation?: VnNarrativePresentation;
   logState?: NarrativeLogState;
   logSnapshot?: VnSnapshot | null;
+  playerProfile?: PlayerProfileForLog | null;
   letterOverlayRevealDelayMs?: number;
   onChoiceSelect?: (choiceId: string) => void;
   isTyping?: boolean;
@@ -50,6 +53,8 @@ export interface VnNarrativePanelProps {
   videoPlaybackComplete?: boolean;
   characterId?: string;
   children?: React.ReactNode;
+  /** Hides the fullscreen tap-catcher (e.g. Eleanor/witch train prologue uses log + video beats). */
+  suppressImmersiveSurfaceOverlay?: boolean;
 }
 
 export type SoundPromptPhase = "prompt" | "playing";

@@ -178,3 +178,85 @@ export const resolveOverallInnerVoiceSelection = (
   resolveInnerVoiceSelection(readPsycheState(vars), INNER_VOICE_IDS, {
     includeCounter: true,
   });
+
+export interface DnDAlignment {
+  code: string;
+  label: string;
+  description: string;
+}
+
+export const getDnDAlignment = (state: PsycheState): DnDAlignment => {
+  const x = state.axisX;
+  const y = state.axisY;
+
+  let xPart: "Lawful" | "Chaotic" | "Neutral";
+  if (x >= 25) {
+    xPart = "Lawful";
+  } else if (x <= -25) {
+    xPart = "Chaotic";
+  } else {
+    xPart = "Neutral";
+  }
+
+  let yPart: "Good" | "Evil" | "Neutral";
+  if (y >= 25) {
+    yPart = "Good";
+  } else if (y <= -25) {
+    yPart = "Evil";
+  } else {
+    yPart = "Neutral";
+  }
+
+  if (xPart === "Neutral" && yPart === "Neutral") {
+    return {
+      code: "TN",
+      label: "True Neutral",
+      description:
+        "You follow your own path, balancing duty, freedom, altruism, and self-preservation.",
+    };
+  }
+
+  const codeMap: Record<string, string> = {
+    "Lawful-Good": "LG",
+    "Lawful-Neutral": "LN",
+    "Lawful-Evil": "LE",
+    "Neutral-Good": "NG",
+    "Neutral-Evil": "NE",
+    "Chaotic-Good": "CG",
+    "Chaotic-Neutral": "CN",
+    "Chaotic-Evil": "CE",
+  };
+
+  const key = `${xPart}-${yPart}`;
+  const code = codeMap[key] || "TN";
+  const label = `${xPart} ${yPart}`;
+
+  let description = "";
+  if (key === "Lawful-Good") {
+    description =
+      "You believe that order, community duty, and active kindness are the best ways to protect the vulnerable.";
+  } else if (key === "Lawful-Neutral") {
+    description =
+      "You hold rules, protocols, and institutional order above individual sentiments or desires.";
+  } else if (key === "Lawful-Evil") {
+    description =
+      "You utilize established rules, systems, and structures to secure your own leverage and power.";
+  } else if (key === "Neutral-Good") {
+    description =
+      "You seek to do good and protect others, regardless of whether it requires following or breaking rules.";
+  } else if (key === "Neutral-Evil") {
+    description =
+      "You pursue your own self-interest pragmatically, without any particular desire to uphold or break the law.";
+  } else if (key === "Chaotic-Good") {
+    description =
+      "You follow your conscience and protect the innocent, refusing to be bound by oppressive rules or societal structures.";
+  } else if (key === "Chaotic-Neutral") {
+    description =
+      "You value personal freedom, autonomy, and independence above all else, resisting external constraints.";
+  } else if (key === "Chaotic-Evil") {
+    description =
+      "You claim total personal sovereignty, pursuing your goals aggressively and disregarding both laws and others.";
+  }
+
+  return { code, label, description };
+};

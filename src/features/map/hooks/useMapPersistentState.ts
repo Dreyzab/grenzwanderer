@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { useTable } from "spacetimedb/react";
+import { useActiveContentSnapshot } from "../../../shared/content/activeSnapshot";
 import { getCareerRanks } from "../../../shared/game/socialPresentation";
 import { tables } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
-import { parseSnapshot } from "../../vn/vnContent";
 import { staticMapDataSource } from "../data/mapDataSource";
 import { resolveScenarioForPoint } from "../data/scenario-mapping";
 import { derivePointState } from "../model/derivePointState";
@@ -246,19 +246,18 @@ export const useMapPersistentState = (
   const [agencyCareers, agencyCareersReady] = useTable(tables.myAgencyCareer);
   const [rumorStates, rumorStatesReady] = useTable(tables.myRumorState);
   const [versions, versionsReady] = useTable(tables.contentVersion);
-  const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
+  const {
+    snapshot: activeSnapshot,
+    activeVersion: resolvedActiveVersion,
+    contentReady: snapshotReady,
+  } = useActiveContentSnapshot();
 
   return useMemo(() => {
-    const activeVersion = versions.find((entry) => entry.isActive) ?? null;
-    const snapshotRow = activeVersion
-      ? (snapshots.find((entry) => entry.checksum === activeVersion.checksum) ??
-        null)
-      : null;
-    const snapshot = snapshotRow
-      ? parseSnapshot(snapshotRow.payloadJson)
-      : null;
+    const activeVersion =
+      versions.find((entry) => entry.isActive) ?? resolvedActiveVersion;
+    const snapshot = activeSnapshot;
     const contentReady =
-      (versionsReady && snapshotsReady) || Boolean(activeVersion && snapshot);
+      (versionsReady && snapshotReady) || Boolean(activeVersion && snapshot);
     const source =
       snapshot?.schemaVersion && snapshot.schemaVersion >= 3 && snapshot.map
         ? "snapshot_v3"
@@ -274,7 +273,7 @@ export const useMapPersistentState = (
         ? snapshot.map.defaultRegionId
         : mapDataSource.getDefaultRegionId());
     const selectedRegion =
-      regions.find((entry) => entry.id === selectedRegionId) ??
+      regions.find((entry: any) => entry.id === selectedRegionId) ??
       regions[0] ??
       FALLBACK_REGION;
 
@@ -375,8 +374,8 @@ export const useMapPersistentState = (
       Object.fromEntries(varsByKey.entries()),
     );
 
-    const availableScenarioIds = new Set(
-      snapshot?.scenarios.map((scenario) => scenario.id) ?? [],
+    const availableScenarioIds = new Set<string>(
+      snapshot?.scenarios.map((scenario: any) => scenario.id) ?? [],
     );
     const objectivePointIds = resolveQuestObjectivePointIds(
       snapshot?.questCatalog,
@@ -390,11 +389,11 @@ export const useMapPersistentState = (
     const sourcePoints =
       source === "snapshot_v3" && snapshot?.map
         ? snapshot.map.points.filter(
-            (point) => point.regionId === selectedRegion.id,
+            (point: any) => point.regionId === selectedRegion.id,
           )
         : mapDataSource.getPoints(selectedRegion.id);
 
-    const runtimePoints: RuntimeMapPoint[] = sourcePoints.map((point) => {
+    const runtimePoints: RuntimeMapPoint[] = sourcePoints.map((point: any) => {
       const normalizedCategory =
         point.category ?? (point.id === "loc_agency" ? "HUB" : "PUBLIC");
       const state = derivePointState(
@@ -499,7 +498,7 @@ export const useMapPersistentState = (
       shadowRoutes:
         source === "snapshot_v3" && snapshot?.map
           ? (snapshot.map.shadowRoutes?.filter(
-              (route) => route.regionId === selectedRegion.id,
+              (route: any) => route.regionId === selectedRegion.id,
             ) ?? [])
           : [],
       resolverInputs,
@@ -542,13 +541,14 @@ export const useMapPersistentState = (
     relationshipsReady,
     rumorStates,
     rumorStatesReady,
-    snapshots,
-    snapshotsReady,
+    activeSnapshot,
+    snapshotReady,
     unlockGroups,
     unlockGroupsReady,
     vars,
     varsReady,
     versions,
     versionsReady,
+    resolvedActiveVersion,
   ]);
 };

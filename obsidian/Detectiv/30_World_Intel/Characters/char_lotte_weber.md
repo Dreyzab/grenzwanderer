@@ -67,3 +67,8 @@ aliases: ["Lotte Weber", "Red-haired Girl"]
 - **Services**: `svc_lotte_switchboard_trace` (+ future `svc_lotte_press_channel` post-reveal)
 - **Work Location**: `loc_telephone`
 - **Coverage status**: Full authored dossier. System-integrated. Normalized from former `npc_redhead_girl` duplicate.
+
+## Player Dossier
+
+- (reveal: lotte_interlude_complete) **The Warning**: She pulled you off the duty board to say it plainly — switchboard traffic was bending around your case before you noticed.
+- (reveal: mother_redhead_secret_potential) **A Hidden Pen**: Ink in her nail folds, a callus from a steel nib. The operator writes, and what she writes finds its way into print.

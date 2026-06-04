@@ -13,7 +13,7 @@ from openviking.models.vlm.backends.google_vlm import GoogleVLM
 async def test():
     config = {
         "provider": "google",
-        "api_key": "ya29.fake-token", # doesn't matter for URL verification
+        "api_key": "dummy-key", # doesn't matter for URL verification
         "model": "gemini-3-flash-preview",
         "api_base": ""
     }

@@ -35,9 +35,11 @@ import {
   parseDirectorStepProposal,
   parseGenerateCharacterReactionPayload,
   parseGenerateDmTurnPayload,
+  parseGenerateDialogueEnvelope,
   parseGenerateDialoguePayload,
   parseGenerateDirectorStepPayload,
 } from "../../../src/features/ai/contracts";
+import { assertActiveVnNodeMatch } from "./helpers/progression_guard";
 import {
   isCanonicalDirectorAllowedBeatList,
   isCase01CanonScenarioId,
@@ -165,15 +167,30 @@ export const enqueue_ai_request = spacetimedb.reducer(
     let dmFateCost = 0;
 
     if (supportedKind === AI_GENERATE_DIALOGUE_KIND) {
-      if (!parseGenerateDialoguePayload(payloadJson)) {
+      const dialoguePayload = parseGenerateDialoguePayload(payloadJson);
+      if (!dialoguePayload) {
         throw new SenderError(
           "payloadJson must contain a valid GenerateDialoguePayload",
         );
       }
+      assertActiveVnNodeMatch(
+        ctx,
+        dialoguePayload.scenarioId,
+        dialoguePayload.nodeId,
+      );
     } else if (supportedKind === AI_GENERATE_CHARACTER_REACTION_KIND) {
-      if (!parseGenerateCharacterReactionPayload(payloadJson)) {
+      const reactionPayload =
+        parseGenerateCharacterReactionPayload(payloadJson);
+      if (!reactionPayload) {
         throw new SenderError(
           "payloadJson must contain a valid GenerateCharacterReactionPayload",
+        );
+      }
+      if (reactionPayload.nodeId) {
+        assertActiveVnNodeMatch(
+          ctx,
+          reactionPayload.scenarioId,
+          reactionPayload.nodeId,
         );
       }
     } else if (supportedKind === AI_PROPOSE_DIRECTOR_STEP_KIND) {
@@ -196,21 +213,25 @@ export const enqueue_ai_request = spacetimedb.reducer(
           "Director step allowed only within Case01 canon scenarios",
         );
       }
+      assertActiveVnNodeMatch(
+        ctx,
+        directorPayload.scenarioId,
+        directorPayload.nodeId,
+      );
 
-      const senderHex = ctx.sender.toHexString();
       let currentBeatId: string | undefined;
-      for (const row of ctx.db.vnSession.iter()) {
-        if (row.playerId.toHexString() === senderHex) {
-          const completed =
-            row.completedAt &&
-            typeof row.completedAt === "object" &&
-            "tag" in row.completedAt
-              ? row.completedAt.tag === "some"
-              : !!row.completedAt;
-          if (!completed) {
-            currentBeatId = row.scenarioId;
-            break;
-          }
+      for (const row of ctx.db.vnSession.vn_session_player_id.filter(
+        ctx.sender,
+      )) {
+        const completed =
+          row.completedAt &&
+          typeof row.completedAt === "object" &&
+          "tag" in row.completedAt
+            ? row.completedAt.tag === "some"
+            : !!row.completedAt;
+        if (!completed) {
+          currentBeatId = row.scenarioId;
+          break;
         }
       }
 
@@ -224,12 +245,10 @@ export const enqueue_ai_request = spacetimedb.reducer(
         );
       }
       const nowMicros = ctx.timestamp.microsSinceUnixEpoch;
-      for (const existing of ctx.db.aiRequest.iter()) {
+      for (const existing of ctx.db.aiRequest.ai_request_player_id.filter(
+        ctx.sender,
+      )) {
         if (existing.kind !== AI_PROPOSE_DIRECTOR_STEP_KIND) {
-          continue;
-        }
-        const existingPlayerHex = identityHexOf(existing.playerId);
-        if (existingPlayerHex !== senderHex) {
           continue;
         }
         const existingPayload = parseGenerateDirectorStepPayload(
@@ -431,7 +450,16 @@ export const claim_next_ai_request = spacetimedb.reducer(
     const leaseMicros = requirePositiveMilliseconds(Number(leaseMs), "leaseMs");
     const nowMicros = ctx.timestamp.microsSinceUnixEpoch;
     const candidate = selectClaimCandidate(
-      [...ctx.db.aiRequest.iter()],
+      [
+        ...ctx.db.aiRequest.ai_request_kind_status_created_at.filter([
+          supportedKind,
+          AI_REQUEST_STATUS_PENDING,
+        ]),
+        ...ctx.db.aiRequest.ai_request_kind_status_created_at.filter([
+          supportedKind,
+          AI_REQUEST_STATUS_PROCESSING,
+        ]),
+      ],
       supportedKind,
       nowMicros,
     );
@@ -541,7 +569,13 @@ export const complete_ai_request = spacetimedb.reducer(
       throw new SenderError(leaseMutationError);
     }
 
-    if (request.kind === AI_GENERATE_CHARACTER_REACTION_KIND) {
+    if (request.kind === AI_GENERATE_DIALOGUE_KIND) {
+      if (!parseGenerateDialogueEnvelope(normalizedResponseJson)) {
+        throw new SenderError(
+          "responseJson must contain a valid GenerateDialogueEnvelope",
+        );
+      }
+    } else if (request.kind === AI_GENERATE_CHARACTER_REACTION_KIND) {
       if (!parseCharacterReactionProposal(normalizedResponseJson)) {
         throw new SenderError(
           "responseJson must contain a valid CharacterReactionProposal",

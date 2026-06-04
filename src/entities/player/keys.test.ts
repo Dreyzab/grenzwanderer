@@ -16,6 +16,10 @@ describe("player key registry", () => {
     expect(isKnownPlayerFlagKey("origin_journalist")).toBe(true);
     expect(isKnownPlayerVarKey("attr_intellect")).toBe(true);
     expect(isKnownPlayerVarKey("skill_xp_attr_intellect")).toBe(true);
+    expect(isKnownPlayerVarKey("core_mind_base")).toBe(true);
+    expect(isKnownPlayerVarKey("core_mind_xp")).toBe(true);
+    expect(isKnownPlayerVarKey("core_mind_potential")).toBe(true);
+    expect(isKnownPlayerVarKey("indicator_talker_rank")).toBe(true);
     expect(isKnownPlayerVarKey("agency_standing")).toBe(true);
     expect(isKnownPlayerVarKey("rep_underworld")).toBe(true);
   });

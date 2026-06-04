@@ -11,6 +11,7 @@ import {
   changeFactionSignalInternal,
   changeFavorBalanceInternal,
   changeRelationshipTrust,
+  createEquipmentKey,
   createEvidenceKey,
   createInventoryKey,
   createQuestKey,
@@ -35,6 +36,13 @@ import {
   verifyRumorInternal,
 } from "./helpers";
 import { getFactionIdValidationError } from "./helpers/factionSignalGuard";
+import {
+  assertClientSetFlagAllowed,
+  assertClientSetVarAllowed,
+  assertDirectProgressionReducerAllowed,
+  assertVnInteractiveEvidenceAllowed,
+  assertVnInteractiveItemAllowed,
+} from "./helpers/progression_guard";
 import { startScenarioInternal } from "./vn";
 
 const KARLSRUHE_EVENT_RELEASE_PROFILE = "karlsruhe_event";
@@ -115,12 +123,8 @@ const hashKarlsruheEntryToken = (entryToken: string): string =>
   sha256Hex(entryToken);
 
 const findOpenVnSession = (ctx: any) => {
-  const senderHex = ctx.sender.toHexString();
-  for (const row of ctx.db.vnSession.iter()) {
-    if (
-      row.playerId.toHexString() === senderHex &&
-      !hasOptionalValue(row.completedAt)
-    ) {
+  for (const row of ctx.db.vnSession.vn_session_player_id.filter(ctx.sender)) {
+    if (!hasOptionalValue(row.completedAt)) {
       return row;
     }
   }
@@ -138,6 +142,8 @@ export const set_nickname = spacetimedb.reducer(
 export const set_flag = spacetimedb.reducer(
   { key: t.string(), value: t.bool() },
   (ctx, { key, value }) => {
+    ensurePlayerProfile(ctx);
+    assertClientSetFlagAllowed(ctx, key);
     upsertFlag(ctx, key, value);
     emitTelemetry(ctx, "flag_set", { key, value });
   },
@@ -146,6 +152,8 @@ export const set_flag = spacetimedb.reducer(
 export const set_var = spacetimedb.reducer(
   { key: t.string(), floatValue: t.f64() },
   (ctx, { key, floatValue }) => {
+    ensurePlayerProfile(ctx);
+    assertClientSetVarAllowed(ctx, key);
     upsertVar(ctx, key, floatValue);
     emitTelemetry(ctx, "var_set", { key, floatValue }, floatValue);
   },
@@ -179,6 +187,7 @@ export const track_event = spacetimedb.reducer(
       throw new SenderError("tagsJson must be valid JSON");
     }
 
+    ensurePlayerProfile(ctx);
     emitTelemetry(ctx, eventName, parsedTags, value);
   },
 );
@@ -307,6 +316,7 @@ export const buy_item = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "buy_item");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "buy_item");
 
     const inventoryKey = createInventoryKey(ctx.sender, itemId);
     const existing = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
@@ -344,6 +354,7 @@ export const set_quest_stage = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "set_quest_stage");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "set_quest_stage");
 
     const questKey = createQuestKey(ctx.sender, questId);
     const existing = ctx.db.playerQuest.questKey.find(questKey);
@@ -388,6 +399,7 @@ export const advance_quest = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "advance_quest");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "advance_quest");
 
     const questKey = createQuestKey(ctx.sender, questId);
     const existing = ctx.db.playerQuest.questKey.find(questKey);
@@ -426,6 +438,7 @@ export const grant_evidence = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "grant_evidence");
     ensurePlayerProfile(ctx);
+    assertVnInteractiveEvidenceAllowed(ctx, evidenceId);
 
     const evidenceKey = createEvidenceKey(ctx.sender, evidenceId);
     if (!ctx.db.playerEvidence.evidenceKey.find(evidenceKey)) {
@@ -453,6 +466,7 @@ export const change_relationship = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "change_relationship");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "change_relationship");
 
     const newValue = changeRelationshipTrust(ctx, characterId, delta);
 
@@ -474,6 +488,7 @@ export const change_favor_balance = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "change_favor_balance");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "change_favor_balance");
 
     const nextValue = changeFavorBalanceInternal(ctx, npcId, delta, reason);
     emitTelemetry(ctx, "favor_balance_changed", { npcId, reason }, nextValue);
@@ -489,6 +504,7 @@ export const change_agency_standing = spacetimedb.reducer(
   (ctx, { requestId, delta, reason }) => {
     ensureIdempotent(ctx, requestId, "change_agency_standing");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "change_agency_standing");
 
     const nextValue = changeAgencyStandingInternal(ctx, delta, reason);
     emitTelemetry(ctx, "agency_standing_changed", { reason }, nextValue);
@@ -513,6 +529,7 @@ export const change_faction_signal = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "change_faction_signal");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "change_faction_signal");
 
     const nextValue = changeFactionSignalInternal(
       ctx,
@@ -541,6 +558,7 @@ export const register_rumor = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "register_rumor");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "register_rumor");
 
     registerRumorInternal(ctx, rumorId);
     emitTelemetry(ctx, "rumor_registered", { rumorId });
@@ -568,6 +586,7 @@ export const verify_rumor = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "verify_rumor");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "verify_rumor");
 
     verifyRumorInternal(
       ctx,
@@ -594,6 +613,7 @@ export const record_service_criterion = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "record_service_criterion");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "record_service_criterion");
 
     recordServiceCriterionInternal(
       ctx,
@@ -618,6 +638,7 @@ export const unlock_group = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "unlock_group");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "unlock_group");
 
     const unlockKey = createUnlockGroupKey(ctx.sender, groupId);
     if (!ctx.db.playerUnlockGroup.unlockKey.find(unlockKey)) {
@@ -644,6 +665,7 @@ export const grant_xp = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "grant_xp");
     ensurePlayerProfile(ctx);
+    assertDirectProgressionReducerAllowed(ctx, "grant_xp");
 
     const xpKey = "xp_total";
     const varId = `${ctx.sender.toHexString()}::${xpKey}`;
@@ -687,6 +709,7 @@ export const grant_item = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "grant_item");
     ensurePlayerProfile(ctx);
+    assertVnInteractiveItemAllowed(ctx, itemId);
 
     const inventoryKey = createInventoryKey(ctx.sender, itemId);
     const existing = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
@@ -708,5 +731,78 @@ export const grant_item = spacetimedb.reducer(
     }
 
     emitTelemetry(ctx, "item_granted", { itemId, quantity }, quantity);
+  },
+);
+
+export const equip_item = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    slotId: t.string(),
+    itemId: t.string(),
+  },
+  (ctx, { requestId, slotId, itemId }) => {
+    if (!slotId || slotId.trim().length === 0) {
+      throw new SenderError("slotId must not be empty");
+    }
+    if (!itemId || itemId.trim().length === 0) {
+      throw new SenderError("itemId must not be empty");
+    }
+
+    ensureIdempotent(ctx, requestId, "equip_item");
+    ensurePlayerProfile(ctx);
+
+    // Verify ownership of the item: quantity >= 1
+    const inventoryKey = createInventoryKey(ctx.sender, itemId);
+    const owned = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
+    if (!owned || owned.quantity < 1) {
+      throw new SenderError(`Player does not own item ${itemId}`);
+    }
+
+    const equipmentKey = createEquipmentKey(ctx.sender, slotId);
+    const existing = ctx.db.playerEquipment.equipmentKey.find(equipmentKey);
+
+    if (existing) {
+      ctx.db.playerEquipment.equipmentKey.update({
+        ...existing,
+        itemId,
+        updatedAt: ctx.timestamp,
+      });
+    } else {
+      ctx.db.playerEquipment.insert({
+        equipmentKey,
+        playerId: ctx.sender,
+        slotId,
+        itemId,
+        updatedAt: ctx.timestamp,
+      });
+    }
+
+    emitTelemetry(ctx, "item_equipped", { slotId, itemId });
+  },
+);
+
+export const unequip_item = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    slotId: t.string(),
+  },
+  (ctx, { requestId, slotId }) => {
+    if (!slotId || slotId.trim().length === 0) {
+      throw new SenderError("slotId must not be empty");
+    }
+
+    ensureIdempotent(ctx, requestId, "unequip_item");
+    ensurePlayerProfile(ctx);
+
+    const equipmentKey = createEquipmentKey(ctx.sender, slotId);
+    const existing = ctx.db.playerEquipment.equipmentKey.find(equipmentKey);
+
+    if (existing) {
+      ctx.db.playerEquipment.equipmentKey.delete(equipmentKey);
+      emitTelemetry(ctx, "item_unequipped", {
+        slotId,
+        itemId: existing.itemId,
+      });
+    }
   },
 );

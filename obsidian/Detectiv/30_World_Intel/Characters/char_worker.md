@@ -2,6 +2,7 @@
 id: char_worker
 tags: [character, functional]
 tier: functional
+design_only: true
 runtime_character_id: labor_witness
 faction: fct_free_yards
 aliases: ["Hans Bauer"]

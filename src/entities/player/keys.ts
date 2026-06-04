@@ -13,6 +13,10 @@ import {
 import { SKILL_XP_VAR_KEYS } from "../../shared/game/skillProgression";
 import { WITCH_STATE_VAR_KEYS } from "../../shared/game/witchRules";
 import {
+  CORE_CHARACTERISTIC_VAR_KEYS,
+  INDICATOR_VAR_KEYS,
+} from "../../shared/game/characterProgression";
+import {
   CASE01_CANON_FLAG_KEYS,
   CASE01_CANON_VAR_KEYS,
 } from "../../shared/case01Canon";
@@ -94,7 +98,7 @@ const SNAPSHOT_FLAG_KEYS = [
   "ghost_human_cover_suspected",
   "ghost_route_unlocked",
   "ghost_session_hook_baroness_debt",
-  "ghost_session_hook_karl_smuggling_key",
+  "ghost_session_hook_sasha_smuggling_key",
   "ghost_session_hook_spirit_bargain",
   "ghost_thermometer_mastery",
   "ghost_thermometer_overreach",
@@ -225,6 +229,8 @@ export const PLAYER_VAR_KEYS = [
   ...CASE01_CANON_VAR_KEYS,
   ...SKILL_VOICE_IDS,
   ...SKILL_XP_VAR_KEYS,
+  ...CORE_CHARACTERISTIC_VAR_KEYS,
+  ...INDICATOR_VAR_KEYS,
   ...PSYCHE_VAR_KEYS,
   ...Object.values(LEGACY_REPUTATION_VAR_BY_FACTION_ID),
   RESOURCE_PROVIDENCE_VAR,

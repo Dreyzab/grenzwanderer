@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useReducer, useTable } from "spacetimedb/react";
 import { usePlayerBindings } from "../../entities/player/hooks/usePlayerBindings";
 import { ENABLE_AI } from "../../config";
@@ -8,12 +8,8 @@ import {
   AI_DIALOGUE_SOURCE_SKILL_CHECK,
   AI_GENERATE_DIALOGUE_KIND,
 } from "../ai/contracts";
-import {
-  getNodeById,
-  getScenarioById,
-  isChoiceAvailable,
-  parseSnapshot,
-} from "./vnContent";
+import { useActiveContentSnapshot } from "../../shared/content/activeSnapshot";
+import { getNodeById, getScenarioById, isChoiceAvailable } from "./vnContent";
 import type { VnSnapshot } from "./types";
 
 const createRequestId = (): string => {
@@ -26,7 +22,7 @@ const createRequestId = (): string => {
 export const VnPilotPanel = () => {
   const { identityHex } = useIdentity();
   const [versions] = useTable(tables.contentVersion);
-  const [snapshots] = useTable(tables.contentSnapshot);
+  const { snapshot } = useActiveContentSnapshot();
   const [sessions] = useTable(tables.myVnSessions);
 
   const startScenario = useReducer(reducers.startScenario);
@@ -44,21 +40,6 @@ export const VnPilotPanel = () => {
     () => versions.find((entry) => entry.isActive) ?? null,
     [versions],
   );
-
-  const snapshot = useMemo<VnSnapshot | null>(() => {
-    if (!activeVersion) {
-      return null;
-    }
-
-    const snapshotRow = snapshots.find(
-      (entry) => entry.checksum === activeVersion.checksum,
-    );
-    if (!snapshotRow) {
-      return null;
-    }
-
-    return parseSnapshot(snapshotRow.payloadJson);
-  }, [activeVersion, snapshots]);
 
   useEffect(() => {
     if (!snapshot || snapshot.scenarios.length === 0) {
@@ -228,7 +209,7 @@ export const VnPilotPanel = () => {
             onChange={(event) => setSelectedScenarioId(event.target.value)}
             disabled={!snapshot || isBusy}
           >
-            {snapshot?.scenarios.map((scenario) => (
+            {snapshot?.scenarios.map((scenario: any) => (
               <option key={scenario.id} value={scenario.id}>
                 {scenario.title}
               </option>

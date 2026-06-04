@@ -2,6 +2,7 @@
 id: char_client
 tags: [character, compatibility]
 tier: minor
+design_only: true
 runtime_character_id: client
 faction: fct_house_of_pledges
 aliases: ["Case Sponsor Compatibility Note"]

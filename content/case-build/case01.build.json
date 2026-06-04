@@ -4,15 +4,15 @@
   "caseId": "case01_mainline",
   "source": {
     "snapshotPath": "content/vn/pilot.snapshot.json",
-    "snapshotChecksum": "c1bb9edc34cb4048784f6dd98ce331575fed7cb6454df1c40cef3861d67a99ac",
+    "snapshotChecksum": "91b734b7f5ac3b6edfea7f7f63f1cec71e3d7bcf0f86b386f43898ac504ba0bb",
     "snapshotSchemaVersion": 9,
     "caseIrSource": "vn_snapshot"
   },
   "caseLedger": {
     "summary": {
-      "totalNodes": 111,
+      "totalNodes": 138,
       "coveredNodes": 46,
-      "bridgedNodes": 65,
+      "bridgedNodes": 92,
       "missingNodes": 0,
       "identityDriftNodes": 0
     },
@@ -531,7 +531,7 @@
         "scenarioId": "case01_hbf_arrival",
         "scenarioTitle": "Case 01: Freiburg Arrival",
         "nodeId": "scene_case01_hbf_luggage_incident_witch",
-        "nodeTitle": "Инцидент на перроне",
+        "nodeTitle": "Стойка выдачи багажа",
         "status": "BRIDGED",
         "ownerLayer": "temporary_runtime_bridge",
         "identityFindings": [],
@@ -543,6 +543,61 @@
         "scenarioTitle": "Case 01: Freiburg Arrival",
         "nodeId": "scene_case01_hbf_luggage_robbery",
         "nodeTitle": "HBF Arrival",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_hbf_luggage_sasha_dismiss_concern",
+        "nodeTitle": "Форма важнее заботы",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_hbf_luggage_sasha_send_felix_away",
+        "nodeTitle": "Без лишних глаз",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_hbf_luggage_sasha_soft",
+        "nodeTitle": "Саша у багажа",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_hbf_luggage_sasha_thank_quietly",
+        "nodeTitle": "Тихая благодарность",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_hbf_luggage_sasha_thirst",
+        "nodeTitle": "Рука Саши",
         "status": "BRIDGED",
         "ownerLayer": "temporary_runtime_bridge",
         "identityFindings": [],
@@ -673,6 +728,17 @@
       {
         "scenarioId": "case01_hbf_arrival",
         "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_opening_arrival_video_witch",
+        "nodeTitle": "Полудрема",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
         "nodeId": "scene_case01_train_ankommen_video",
         "nodeTitle": "Approach to Freiburg",
         "status": "BRIDGED",
@@ -717,6 +783,17 @@
       {
         "scenarioId": "case01_hbf_arrival",
         "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_train_collar_choice_witch",
+        "nodeTitle": "Воротник",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
         "nodeId": "scene_case01_train_compartment_letter",
         "nodeTitle": "Orders from the Agency",
         "status": "BRIDGED",
@@ -729,7 +806,29 @@
         "scenarioId": "case01_hbf_arrival",
         "scenarioTitle": "Case 01: Freiburg Arrival",
         "nodeId": "scene_case01_train_compartment_letter_witch",
-        "nodeTitle": "Recruitment Invitation",
+        "nodeTitle": "Письмо Бюро",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_train_compartment_revisit",
+        "nodeTitle": "Compartment",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_train_corridor_revisit",
+        "nodeTitle": "Corridor",
         "status": "BRIDGED",
         "ownerLayer": "temporary_runtime_bridge",
         "identityFindings": [],
@@ -861,7 +960,7 @@
         "scenarioId": "case01_hbf_arrival",
         "scenarioTitle": "Case 01: Freiburg Arrival",
         "nodeId": "scene_case01_train_dining_car_lotte_monologue_witch",
-        "nodeTitle": "Радость жизни",
+        "nodeTitle": "Разговор с Лотте",
         "status": "BRIDGED",
         "ownerLayer": "temporary_runtime_bridge",
         "identityFindings": [],
@@ -884,6 +983,17 @@
         "scenarioTitle": "Case 01: Freiburg Arrival",
         "nodeId": "scene_case01_train_dining_car_mother",
         "nodeTitle": "Journey to Freiburg",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_train_dining_car_revisit",
+        "nodeTitle": "Dining Car",
         "status": "BRIDGED",
         "ownerLayer": "temporary_runtime_bridge",
         "identityFindings": [],
@@ -937,6 +1047,17 @@
       {
         "scenarioId": "case01_hbf_arrival",
         "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_train_hub",
+        "nodeTitle": "Train Map",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
         "nodeId": "scene_case01_train_platform_parting",
         "nodeTitle": "Parting",
         "status": "BRIDGED",
@@ -950,6 +1071,17 @@
         "scenarioTitle": "Case 01: Freiburg Arrival",
         "nodeId": "scene_case01_train_silent_beat",
         "nodeTitle": "Journey to Freiburg",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_train_vestibule_revisit",
+        "nodeTitle": "Vestibule",
         "status": "BRIDGED",
         "ownerLayer": "temporary_runtime_bridge",
         "identityFindings": [],
@@ -1003,8 +1135,173 @@
       {
         "scenarioId": "case01_hbf_arrival",
         "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_bureau_master_noticed_hbf_blood",
+        "nodeTitle": "Мастер заметил",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_coin_wake",
+        "nodeTitle": "Упавшая монета",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_dining_car_buffet_first_look",
+        "nodeTitle": "Буфетная стойка",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_estate_epilogue",
+        "nodeTitle": "После особняка",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
         "nodeId": "scene_case01_witch_estate_handoff",
         "nodeTitle": "Дорога к Гранд-Эстейт",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_felix_exit",
+        "nodeTitle": "До Фрайбурга",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_finale_closed",
+        "nodeTitle": "Дело закрыто",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_finale_to_sandbox",
+        "nodeTitle": "Завеса зовёт",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_hotel_checkin",
+        "nodeTitle": "«Zum Goldenen Adler»",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_letter_afterthoughts",
+        "nodeTitle": "После письма",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_lotte_counter_intro",
+        "nodeTitle": "Фройляйн Вебер",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_lotte_goodbye_platform",
+        "nodeTitle": "Прояснение",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_lotte_monologue_cynic_reaction",
+        "nodeTitle": "Записная книжка",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_lotte_monologue_grief_reaction",
+        "nodeTitle": "Теплая рука",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_lotte_monologue_practical_reaction",
+        "nodeTitle": "Дверь вагона",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_thirst_mask",
+        "nodeTitle": "Жажда",
         "status": "BRIDGED",
         "ownerLayer": "temporary_runtime_bridge",
         "identityFindings": [],
@@ -1426,11 +1723,22 @@
         "startNodeId": "scene_case01_opening_arrival_video",
         "nodeIds": [
           "scene_case01_opening_arrival_video",
+          "scene_case01_opening_arrival_video_witch",
+          "scene_case01_witch_thirst_mask",
+          "scene_case01_witch_coin_wake",
           "scene_case01_train_compartment_letter",
-          "scene_case01_train_compartment_letter_witch",
           "scene_case01_train_assistant_intro_witch",
+          "scene_case01_train_collar_choice_witch",
+          "scene_case01_witch_felix_exit",
+          "scene_case01_train_compartment_letter_witch",
+          "scene_case01_witch_letter_afterthoughts",
+          "scene_case01_witch_dining_car_buffet_first_look",
+          "scene_case01_witch_lotte_counter_intro",
           "scene_case01_train_dining_car_intro_witch",
           "scene_case01_train_dining_car_lotte_monologue_witch",
+          "scene_case01_witch_lotte_monologue_cynic_reaction",
+          "scene_case01_witch_lotte_monologue_grief_reaction",
+          "scene_case01_witch_lotte_monologue_practical_reaction",
           "scene_case01_train_assistant_intro",
           "scene_case01_train_door_creaks",
           "scene_case01_train_assistant_departure",
@@ -1449,7 +1757,13 @@
           "scene_case01_train_dining_car_eleonora_farewell_intro_observe",
           "scene_case01_train_dining_car_eleonora_farewell_silent_observe",
           "scene_case01_train_dining_car_eleonora_farewell_hotel_observe",
+          "scene_case01_train_hub",
+          "scene_case01_train_compartment_revisit",
+          "scene_case01_train_corridor_revisit",
+          "scene_case01_train_dining_car_revisit",
+          "scene_case01_train_vestibule_revisit",
           "scene_case01_train_ankommen_video",
+          "scene_case01_witch_lotte_goodbye_platform",
           "scene_case01_hbf_porter_greeting",
           "scene_case01_corridor_reflection",
           "scene_case01_corridor_reflection_hotel_observe",
@@ -1470,9 +1784,16 @@
           "scene_case01_hbf_luggage_robbery",
           "scene_case01_hbf_police",
           "scene_case01_hbf_departure",
+          "scene_case01_witch_hotel_checkin",
           "scene_case01_hbf_luggage_incident_witch",
+          "scene_case01_hbf_luggage_sasha_soft",
+          "scene_case01_hbf_luggage_sasha_thank_quietly",
+          "scene_case01_hbf_luggage_sasha_dismiss_concern",
+          "scene_case01_hbf_luggage_sasha_thirst",
+          "scene_case01_hbf_luggage_sasha_send_felix_away",
           "scene_case01_witch_bureau_entry",
           "scene_case01_witch_bureau_master_meeting",
+          "scene_case01_witch_bureau_master_noticed_hbf_blood",
           "scene_case01_witch_bureau_exit",
           "scene_case01_witch_estate_handoff",
           "scene_case01_estate_arrival_witch",
@@ -1486,6 +1807,9 @@
           "scene_case01_hotel_morning_witch",
           "scene_case01_hotel_copper_trace_witch",
           "scene_case01_lobby_crossover_witch",
+          "scene_case01_witch_estate_epilogue",
+          "scene_case01_witch_finale_closed",
+          "scene_case01_witch_finale_to_sandbox",
           "scene_case01_hbf_exit_final"
         ]
       },
@@ -1800,6 +2124,33 @@
         "passiveCheckCount": 0
       },
       {
+        "id": "scene_case01_opening_arrival_video_witch",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Полудрема",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_thirst_mask",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Жажда",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 1,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_coin_wake",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Упавшая монета",
+        "terminal": false,
+        "choiceCount": 3,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
         "id": "scene_case01_train_compartment_letter",
         "scenarioId": "case01_hbf_arrival",
         "title": "Orders from the Agency",
@@ -1811,9 +2162,36 @@
       {
         "id": "scene_case01_train_compartment_letter_witch",
         "scenarioId": "case01_hbf_arrival",
-        "title": "Recruitment Invitation",
+        "title": "Письмо Бюро",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_letter_afterthoughts",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "После письма",
         "terminal": false,
         "choiceCount": 3,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_dining_car_buffet_first_look",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Буфетная стойка",
+        "terminal": false,
+        "choiceCount": 2,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_lotte_counter_intro",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Фройляйн Вебер",
+        "terminal": false,
+        "choiceCount": 6,
         "onEnterEffectCount": 0,
         "passiveCheckCount": 0
       },
@@ -1821,6 +2199,24 @@
         "id": "scene_case01_train_assistant_intro_witch",
         "scenarioId": "case01_hbf_arrival",
         "title": "Сын",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_train_collar_choice_witch",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Воротник",
+        "terminal": false,
+        "choiceCount": 3,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_felix_exit",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "До Фрайбурга",
         "terminal": false,
         "choiceCount": 1,
         "onEnterEffectCount": 0,
@@ -1838,9 +2234,36 @@
       {
         "id": "scene_case01_train_dining_car_lotte_monologue_witch",
         "scenarioId": "case01_hbf_arrival",
-        "title": "Радость жизни",
+        "title": "Разговор с Лотте",
         "terminal": false,
         "choiceCount": 3,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_lotte_monologue_cynic_reaction",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Записная книжка",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_lotte_monologue_grief_reaction",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Теплая рука",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_lotte_monologue_practical_reaction",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Дверь вагона",
+        "terminal": false,
+        "choiceCount": 1,
         "onEnterEffectCount": 0,
         "passiveCheckCount": 0
       },
@@ -2061,6 +2484,51 @@
         "passiveCheckCount": 0
       },
       {
+        "id": "scene_case01_train_hub",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Train Map",
+        "terminal": false,
+        "choiceCount": 6,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_train_compartment_revisit",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Compartment",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 1,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_train_corridor_revisit",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Corridor",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 1,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_train_dining_car_revisit",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Dining Car",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 1,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_train_vestibule_revisit",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Vestibule",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 1,
+        "passiveCheckCount": 0
+      },
+      {
         "id": "scene_case01_train_ankommen_video",
         "scenarioId": "case01_hbf_arrival",
         "title": "Approach to Freiburg",
@@ -2074,9 +2542,18 @@
         "scenarioId": "case01_hbf_arrival",
         "title": "Platform Landing",
         "terminal": false,
-        "choiceCount": 2,
+        "choiceCount": 3,
         "onEnterEffectCount": 0,
         "passiveCheckCount": 1
+      },
+      {
+        "id": "scene_case01_witch_lotte_goodbye_platform",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Прояснение",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
       },
       {
         "id": "scene_case01_hbf_porter_greeting",
@@ -2191,17 +2668,71 @@
         "scenarioId": "case01_hbf_arrival",
         "title": "Leaving the Hauptbahnhof",
         "terminal": false,
-        "choiceCount": 4,
+        "choiceCount": 3,
         "onEnterEffectCount": 6,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_hotel_checkin",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "«Zum Goldenen Adler»",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 1,
         "passiveCheckCount": 0
       },
       {
         "id": "scene_case01_hbf_luggage_incident_witch",
         "scenarioId": "case01_hbf_arrival",
-        "title": "Инцидент на перроне",
+        "title": "Стойка выдачи багажа",
         "terminal": false,
         "choiceCount": 2,
         "onEnterEffectCount": 1,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_hbf_luggage_sasha_soft",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Саша у багажа",
+        "terminal": false,
+        "choiceCount": 3,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_hbf_luggage_sasha_thank_quietly",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Тихая благодарность",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_hbf_luggage_sasha_dismiss_concern",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Форма важнее заботы",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_hbf_luggage_sasha_thirst",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Рука Саши",
+        "terminal": false,
+        "choiceCount": 3,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_hbf_luggage_sasha_send_felix_away",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Без лишних глаз",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
         "passiveCheckCount": 0
       },
       {
@@ -2218,8 +2749,17 @@
         "scenarioId": "case01_hbf_arrival",
         "title": "Встреча с Мастером",
         "terminal": false,
-        "choiceCount": 3,
+        "choiceCount": 4,
         "onEnterEffectCount": 1,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_bureau_master_noticed_hbf_blood",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Мастер заметил",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
         "passiveCheckCount": 0
       },
       {
@@ -2345,6 +2885,33 @@
         "title": "Лобби «Zum Goldenen Adler»",
         "terminal": false,
         "choiceCount": 4,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_estate_epilogue",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "После особняка",
+        "terminal": false,
+        "choiceCount": 2,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_finale_closed",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Дело закрыто",
+        "terminal": true,
+        "choiceCount": 0,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_finale_to_sandbox",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Завеса зовёт",
+        "terminal": true,
+        "choiceCount": 0,
         "onEnterEffectCount": 0,
         "passiveCheckCount": 0
       },
@@ -2809,11 +3376,51 @@
       },
       {
         "fromNodeId": "scene_case01_opening_arrival_video",
-        "toId": "scene_case01_train_compartment_letter_witch",
+        "toId": "scene_case01_opening_arrival_video_witch",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
-        "viaId": "CASE01_WITCH_START_TO_LETTER"
+        "viaId": "CASE01_WITCH_START_TO_DROWSE"
+      },
+      {
+        "fromNodeId": "scene_case01_opening_arrival_video_witch",
+        "toId": "scene_case01_witch_thirst_mask",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_DROWSE_TO_THIRST"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_thirst_mask",
+        "toId": "scene_case01_witch_coin_wake",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_THIRST_TO_COIN"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_coin_wake",
+        "toId": "scene_case01_train_assistant_intro_witch",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_COIN_REBUKE"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_coin_wake",
+        "toId": "scene_case01_train_assistant_intro_witch",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_COIN_DRY_JOKE"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_coin_wake",
+        "toId": "scene_case01_train_assistant_intro_witch",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_COIN_SOFT_ARISTOCRATIC"
       },
       {
         "fromNodeId": "scene_case01_train_compartment_letter",
@@ -2825,35 +3432,139 @@
       },
       {
         "fromNodeId": "scene_case01_train_compartment_letter_witch",
-        "toId": "scene_case01_train_assistant_intro_witch",
+        "toId": "scene_case01_witch_letter_afterthoughts",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
-        "viaId": "WITCH_LETTER_VEIL_FOCUS"
+        "viaId": "AUTO_CONTINUE_WITCH_LETTER_TO_AFTERTHOUGHTS"
       },
       {
-        "fromNodeId": "scene_case01_train_compartment_letter_witch",
-        "toId": "scene_case01_train_assistant_intro_witch",
+        "fromNodeId": "scene_case01_witch_letter_afterthoughts",
+        "toId": "scene_case01_witch_dining_car_buffet_first_look",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
-        "viaId": "WITCH_LETTER_DRINK_BRANDY"
+        "viaId": "WITCH_LETTER_AFTERTHOUGHT_VEIL_FOCUS"
       },
       {
-        "fromNodeId": "scene_case01_train_compartment_letter_witch",
-        "toId": "scene_case01_train_assistant_intro_witch",
+        "fromNodeId": "scene_case01_witch_letter_afterthoughts",
+        "toId": "scene_case01_witch_dining_car_buffet_first_look",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
-        "viaId": "WITCH_LETTER_OPEN_MUNDANE"
+        "viaId": "WITCH_LETTER_AFTERTHOUGHT_DRINK_BRANDY"
       },
       {
-        "fromNodeId": "scene_case01_train_assistant_intro_witch",
+        "fromNodeId": "scene_case01_witch_letter_afterthoughts",
+        "toId": "scene_case01_witch_dining_car_buffet_first_look",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_LETTER_AFTERTHOUGHT_COMPOSE"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_dining_car_buffet_first_look",
+        "toId": "scene_case01_witch_lotte_counter_intro",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_LOTTE_COUNTER_OBSERVE"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_dining_car_buffet_first_look",
+        "toId": "scene_case01_witch_lotte_counter_intro",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_LOTTE_COUNTER_APPROACH"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_lotte_counter_intro",
         "toId": "scene_case01_train_dining_car_intro_witch",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
-        "viaId": "WITCH_TRAIN_ADJUST_SCARF"
+        "viaId": "WITCH_LOTTE_GREETING_COMPOSURE"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_lotte_counter_intro",
+        "toId": "scene_case01_train_dining_car_intro_witch",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_LOTTE_GREETING_HONEST"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_lotte_counter_intro",
+        "toId": "scene_case01_train_dining_car_intro_witch",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_LOTTE_GREETING_SOCIAL"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_lotte_counter_intro",
+        "toId": "scene_case01_train_dining_car_intro_witch",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_LOTTE_GREETING_CYNIC"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_lotte_counter_intro",
+        "toId": "scene_case01_train_dining_car_intro_witch",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_LOTTE_GREETING_AUTHORITY"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_lotte_counter_intro",
+        "toId": "scene_case01_train_dining_car_intro_witch",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_LOTTE_GREETING_BLOOD_SENSE"
+      },
+      {
+        "fromNodeId": "scene_case01_train_assistant_intro_witch",
+        "toId": "scene_case01_train_collar_choice_witch",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_ASSISTANT_TO_COLLAR"
+      },
+      {
+        "fromNodeId": "scene_case01_train_collar_choice_witch",
+        "toId": "scene_case01_witch_felix_exit",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_COLLAR_COMMAND"
+      },
+      {
+        "fromNodeId": "scene_case01_train_collar_choice_witch",
+        "toId": "scene_case01_witch_felix_exit",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_COLLAR_DRY_JOKE"
+      },
+      {
+        "fromNodeId": "scene_case01_train_collar_choice_witch",
+        "toId": "scene_case01_witch_felix_exit",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_COLLAR_RARE_TRUST"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_felix_exit",
+        "toId": "scene_case01_train_compartment_letter_witch",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_FELIX_EXIT_TO_LETTER"
       },
       {
         "fromNodeId": "scene_case01_train_dining_car_intro_witch",
@@ -2881,7 +3592,7 @@
       },
       {
         "fromNodeId": "scene_case01_train_dining_car_lotte_monologue_witch",
-        "toId": "scene_case01_train_ankommen_video",
+        "toId": "scene_case01_witch_lotte_monologue_cynic_reaction",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
@@ -2889,7 +3600,7 @@
       },
       {
         "fromNodeId": "scene_case01_train_dining_car_lotte_monologue_witch",
-        "toId": "scene_case01_train_ankommen_video",
+        "toId": "scene_case01_witch_lotte_monologue_grief_reaction",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
@@ -2897,11 +3608,35 @@
       },
       {
         "fromNodeId": "scene_case01_train_dining_car_lotte_monologue_witch",
-        "toId": "scene_case01_train_ankommen_video",
+        "toId": "scene_case01_witch_lotte_monologue_practical_reaction",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
         "viaId": "WITCH_LOTTE_MONOLOGUE_PRACTICAL"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_lotte_monologue_cynic_reaction",
+        "toId": "scene_case01_train_ankommen_video",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_LOTTE_CYNIC_REACTION"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_lotte_monologue_grief_reaction",
+        "toId": "scene_case01_train_ankommen_video",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_LOTTE_GRIEF_REACTION"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_lotte_monologue_practical_reaction",
+        "toId": "scene_case01_train_ankommen_video",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_LOTTE_PRACTICAL_REACTION"
       },
       {
         "fromNodeId": "scene_case01_train_assistant_intro",
@@ -2961,7 +3696,7 @@
       },
       {
         "fromNodeId": "scene_case01_train_silent_beat",
-        "toId": "scene_case01_train_ankommen_video",
+        "toId": "scene_case01_train_hub",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
@@ -3145,7 +3880,7 @@
       },
       {
         "fromNodeId": "scene_case01_corridor_reflection",
-        "toId": "scene_case01_train_ankommen_video",
+        "toId": "scene_case01_train_hub",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
@@ -3153,7 +3888,7 @@
       },
       {
         "fromNodeId": "scene_case01_corridor_reflection_silent_defend",
-        "toId": "scene_case01_train_ankommen_video",
+        "toId": "scene_case01_train_hub",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
@@ -3161,7 +3896,7 @@
       },
       {
         "fromNodeId": "scene_case01_corridor_reflection_hotel_defend",
-        "toId": "scene_case01_train_ankommen_video",
+        "toId": "scene_case01_train_hub",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
@@ -3169,7 +3904,7 @@
       },
       {
         "fromNodeId": "scene_case01_corridor_reflection_intro_observe",
-        "toId": "scene_case01_train_ankommen_video",
+        "toId": "scene_case01_train_hub",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
@@ -3177,7 +3912,7 @@
       },
       {
         "fromNodeId": "scene_case01_corridor_reflection_silent_observe",
-        "toId": "scene_case01_train_ankommen_video",
+        "toId": "scene_case01_train_hub",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
@@ -3185,11 +3920,91 @@
       },
       {
         "fromNodeId": "scene_case01_corridor_reflection_hotel_observe",
-        "toId": "scene_case01_train_ankommen_video",
+        "toId": "scene_case01_train_hub",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
         "viaId": "AUTO_CONTINUE_SCENE_CASE01_CORRIDOR_REFLECTION_HOTEL_OBSERVE"
+      },
+      {
+        "fromNodeId": "scene_case01_train_hub",
+        "toId": "scene_case01_train_compartment_revisit",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "hub_to_compartment_revisit"
+      },
+      {
+        "fromNodeId": "scene_case01_train_hub",
+        "toId": "scene_case01_train_corridor_revisit",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "hub_to_corridor_revisit"
+      },
+      {
+        "fromNodeId": "scene_case01_train_hub",
+        "toId": "scene_case01_train_dining_car_intro",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "hub_to_dining_first_visit"
+      },
+      {
+        "fromNodeId": "scene_case01_train_hub",
+        "toId": "scene_case01_train_dining_car_revisit",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "hub_to_dining_revisit"
+      },
+      {
+        "fromNodeId": "scene_case01_train_hub",
+        "toId": "scene_case01_train_vestibule_revisit",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "hub_to_vestibule_revisit"
+      },
+      {
+        "fromNodeId": "scene_case01_train_hub",
+        "toId": "scene_case01_train_ankommen_video",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "hub_continue_to_arrival"
+      },
+      {
+        "fromNodeId": "scene_case01_train_compartment_revisit",
+        "toId": "scene_case01_train_hub",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "return_to_train_hub"
+      },
+      {
+        "fromNodeId": "scene_case01_train_corridor_revisit",
+        "toId": "scene_case01_train_hub",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "return_to_train_hub"
+      },
+      {
+        "fromNodeId": "scene_case01_train_dining_car_revisit",
+        "toId": "scene_case01_train_hub",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "return_to_train_hub"
+      },
+      {
+        "fromNodeId": "scene_case01_train_vestibule_revisit",
+        "toId": "scene_case01_train_hub",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "return_to_train_hub"
       },
       {
         "fromNodeId": "scene_case01_train_ankommen_video",
@@ -3209,11 +4024,27 @@
       },
       {
         "fromNodeId": "scene_case01_train_voza_cutscene",
+        "toId": "scene_case01_witch_lotte_goodbye_platform",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "CHOICE_VOZA_TO_HBF_WITCH_LOTTE_GOODBYE"
+      },
+      {
+        "fromNodeId": "scene_case01_train_voza_cutscene",
         "toId": "scene_case01_hbf_luggage_incident_witch",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
         "viaId": "CHOICE_VOZA_TO_HBF_WITCH"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_lotte_goodbye_platform",
+        "toId": "scene_case01_hbf_luggage_incident_witch",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_LOTTE_GOODBYE_PLATFORM"
       },
       {
         "fromNodeId": "scene_case01_hbf_porter_greeting",
@@ -3409,22 +4240,78 @@
       },
       {
         "fromNodeId": "scene_case01_hbf_departure",
-        "toId": "scene_case01_witch_estate_handoff",
+        "toId": "scene_case01_witch_hotel_checkin",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
-        "viaId": "CASE01_HBF_EXIT_WITCH_GHOST"
+        "viaId": "CASE01_HBF_EXIT_WITCH_HOTEL_CHECKIN"
       },
       {
-        "fromNodeId": "scene_case01_hbf_departure",
+        "fromNodeId": "scene_case01_witch_hotel_checkin",
         "toId": "scene_case01_witch_bureau_entry",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
-        "viaId": "CASE01_HBF_EXIT_WITCH_BUREAU"
+        "viaId": "AUTO_CONTINUE_WITCH_HOTEL_TO_BUREAU"
       },
       {
         "fromNodeId": "scene_case01_hbf_luggage_incident_witch",
+        "toId": "scene_case01_hbf_luggage_sasha_soft",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_WITCH_HBF_SASHA_SOFT"
+      },
+      {
+        "fromNodeId": "scene_case01_hbf_luggage_incident_witch",
+        "toId": "scene_case01_hbf_luggage_sasha_thirst",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_WITCH_HBF_SASHA_THIRST"
+      },
+      {
+        "fromNodeId": "scene_case01_hbf_luggage_sasha_soft",
+        "toId": "scene_case01_hbf_departure",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_HBF_SASHA_ACCEPT_COVER"
+      },
+      {
+        "fromNodeId": "scene_case01_hbf_luggage_sasha_soft",
+        "toId": "scene_case01_hbf_luggage_sasha_thank_quietly",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_HBF_SASHA_THANK_QUIETLY"
+      },
+      {
+        "fromNodeId": "scene_case01_hbf_luggage_sasha_soft",
+        "toId": "scene_case01_hbf_luggage_sasha_dismiss_concern",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_HBF_SASHA_DISMISS_CONCERN"
+      },
+      {
+        "fromNodeId": "scene_case01_hbf_luggage_sasha_thank_quietly",
+        "toId": "scene_case01_hbf_departure",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_HBF_SASHA_THANK_QUIETLY"
+      },
+      {
+        "fromNodeId": "scene_case01_hbf_luggage_sasha_dismiss_concern",
+        "toId": "scene_case01_hbf_departure",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_HBF_SASHA_DISMISS_CONCERN"
+      },
+      {
+        "fromNodeId": "scene_case01_hbf_luggage_sasha_thirst",
         "toId": "scene_case01_hbf_departure",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
@@ -3432,12 +4319,28 @@
         "viaId": "WITCH_HBF_BLOOD_ABSORB"
       },
       {
-        "fromNodeId": "scene_case01_hbf_luggage_incident_witch",
+        "fromNodeId": "scene_case01_hbf_luggage_sasha_thirst",
         "toId": "scene_case01_hbf_departure",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
         "viaId": "WITCH_HBF_BLOOD_IGNORE"
+      },
+      {
+        "fromNodeId": "scene_case01_hbf_luggage_sasha_thirst",
+        "toId": "scene_case01_hbf_luggage_sasha_send_felix_away",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_HBF_SEND_FELIX_AWAY"
+      },
+      {
+        "fromNodeId": "scene_case01_hbf_luggage_sasha_send_felix_away",
+        "toId": "scene_case01_hbf_departure",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_HBF_SASHA_SEND_FELIX_AWAY"
       },
       {
         "fromNodeId": "scene_case01_witch_bureau_entry",
@@ -3457,6 +4360,14 @@
       },
       {
         "fromNodeId": "scene_case01_witch_bureau_master_meeting",
+        "toId": "scene_case01_witch_bureau_master_noticed_hbf_blood",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_BUREAU_MASTER_DRINK_SUPPRESSANT_NOTICED"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_bureau_master_meeting",
         "toId": "scene_case01_witch_bureau_exit",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
@@ -3470,6 +4381,14 @@
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
         "viaId": "WITCH_BUREAU_MASTER_COMPOSURE"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_bureau_master_noticed_hbf_blood",
+        "toId": "scene_case01_witch_bureau_exit",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_BUREAU_MASTER_NOTICED_HBF_BLOOD"
       },
       {
         "fromNodeId": "scene_case01_witch_bureau_exit",
@@ -3565,7 +4484,7 @@
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
-        "viaId": "WITCH_VAULTS_FEED_KARL"
+        "viaId": "WITCH_VAULTS_FEED_SASHA"
       },
       {
         "fromNodeId": "scene_case01_estate_vaults_witch",
@@ -3657,7 +4576,7 @@
       },
       {
         "fromNodeId": "scene_case01_lobby_crossover_witch",
-        "toId": "scene_case01_hbf_exit_final",
+        "toId": "scene_case01_witch_estate_epilogue",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
@@ -3665,7 +4584,7 @@
       },
       {
         "fromNodeId": "scene_case01_lobby_crossover_witch",
-        "toId": "scene_case01_hbf_exit_final",
+        "toId": "scene_case01_witch_estate_epilogue",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
@@ -3673,7 +4592,7 @@
       },
       {
         "fromNodeId": "scene_case01_lobby_crossover_witch",
-        "toId": "scene_case01_hbf_exit_final",
+        "toId": "scene_case01_witch_estate_epilogue",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
@@ -3681,11 +4600,27 @@
       },
       {
         "fromNodeId": "scene_case01_lobby_crossover_witch",
-        "toId": "scene_case01_hbf_exit_final",
+        "toId": "scene_case01_witch_estate_epilogue",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
         "viaId": "WITCH_LOBBY_GREET"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_estate_epilogue",
+        "toId": "scene_case01_witch_finale_closed",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_FINALE_CLOSE"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_estate_epilogue",
+        "toId": "scene_case01_witch_finale_to_sandbox",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_FINALE_ENTER_SANDBOX"
       },
       {
         "fromNodeId": "scene_case01_apothecary_entry",
@@ -4201,7 +5136,7 @@
       },
       {
         "fromNodeId": "scene_case01_lobby_crossover_witch",
-        "toId": "scene_case01_hbf_exit_final",
+        "toId": "scene_case01_witch_estate_epilogue",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "skill_check",
@@ -4209,7 +5144,7 @@
       },
       {
         "fromNodeId": "scene_case01_lobby_crossover_witch",
-        "toId": "scene_case01_hbf_exit_final",
+        "toId": "scene_case01_witch_estate_epilogue",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "skill_check",
@@ -7072,6 +8007,36 @@
     {
       "severity": "warning",
       "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_hbf_luggage_sasha_dismiss_concern",
+      "message": "Case01 node 'scene_case01_hbf_luggage_sasha_dismiss_concern' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_hbf_luggage_sasha_send_felix_away",
+      "message": "Case01 node 'scene_case01_hbf_luggage_sasha_send_felix_away' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_hbf_luggage_sasha_soft",
+      "message": "Case01 node 'scene_case01_hbf_luggage_sasha_soft' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_hbf_luggage_sasha_thank_quietly",
+      "message": "Case01 node 'scene_case01_hbf_luggage_sasha_thank_quietly' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_hbf_luggage_sasha_thirst",
+      "message": "Case01 node 'scene_case01_hbf_luggage_sasha_thirst' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
       "path": "caseLedger.case01_hbf_arrival.scene_case01_hbf_newsboy_approach",
       "message": "Case01 node 'scene_case01_hbf_newsboy_approach' is still owned by temporary_runtime_bridge."
     },
@@ -7138,6 +8103,12 @@
     {
       "severity": "warning",
       "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_opening_arrival_video_witch",
+      "message": "Case01 node 'scene_case01_opening_arrival_video_witch' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
       "path": "caseLedger.case01_hbf_arrival.scene_case01_train_ankommen_video",
       "message": "Case01 node 'scene_case01_train_ankommen_video' is still owned by temporary_runtime_bridge."
     },
@@ -7162,6 +8133,12 @@
     {
       "severity": "warning",
       "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_train_collar_choice_witch",
+      "message": "Case01 node 'scene_case01_train_collar_choice_witch' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
       "path": "caseLedger.case01_hbf_arrival.scene_case01_train_compartment_letter",
       "message": "Case01 node 'scene_case01_train_compartment_letter' is still owned by temporary_runtime_bridge."
     },
@@ -7170,6 +8147,18 @@
       "code": "case01_temporary_runtime_bridge",
       "path": "caseLedger.case01_hbf_arrival.scene_case01_train_compartment_letter_witch",
       "message": "Case01 node 'scene_case01_train_compartment_letter_witch' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_train_compartment_revisit",
+      "message": "Case01 node 'scene_case01_train_compartment_revisit' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_train_corridor_revisit",
+      "message": "Case01 node 'scene_case01_train_corridor_revisit' is still owned by temporary_runtime_bridge."
     },
     {
       "severity": "warning",
@@ -7258,6 +8247,12 @@
     {
       "severity": "warning",
       "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_train_dining_car_revisit",
+      "message": "Case01 node 'scene_case01_train_dining_car_revisit' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
       "path": "caseLedger.case01_hbf_arrival.scene_case01_train_dining_car_silent_branch",
       "message": "Case01 node 'scene_case01_train_dining_car_silent_branch' is still owned by temporary_runtime_bridge."
     },
@@ -7282,6 +8277,12 @@
     {
       "severity": "warning",
       "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_train_hub",
+      "message": "Case01 node 'scene_case01_train_hub' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
       "path": "caseLedger.case01_hbf_arrival.scene_case01_train_platform_parting",
       "message": "Case01 node 'scene_case01_train_platform_parting' is still owned by temporary_runtime_bridge."
     },
@@ -7290,6 +8291,12 @@
       "code": "case01_temporary_runtime_bridge",
       "path": "caseLedger.case01_hbf_arrival.scene_case01_train_silent_beat",
       "message": "Case01 node 'scene_case01_train_silent_beat' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_train_vestibule_revisit",
+      "message": "Case01 node 'scene_case01_train_vestibule_revisit' is still owned by temporary_runtime_bridge."
     },
     {
       "severity": "warning",
@@ -7318,8 +8325,98 @@
     {
       "severity": "warning",
       "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_bureau_master_noticed_hbf_blood",
+      "message": "Case01 node 'scene_case01_witch_bureau_master_noticed_hbf_blood' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_coin_wake",
+      "message": "Case01 node 'scene_case01_witch_coin_wake' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_dining_car_buffet_first_look",
+      "message": "Case01 node 'scene_case01_witch_dining_car_buffet_first_look' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_estate_epilogue",
+      "message": "Case01 node 'scene_case01_witch_estate_epilogue' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
       "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_estate_handoff",
       "message": "Case01 node 'scene_case01_witch_estate_handoff' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_felix_exit",
+      "message": "Case01 node 'scene_case01_witch_felix_exit' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_finale_closed",
+      "message": "Case01 node 'scene_case01_witch_finale_closed' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_finale_to_sandbox",
+      "message": "Case01 node 'scene_case01_witch_finale_to_sandbox' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_hotel_checkin",
+      "message": "Case01 node 'scene_case01_witch_hotel_checkin' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_letter_afterthoughts",
+      "message": "Case01 node 'scene_case01_witch_letter_afterthoughts' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_lotte_counter_intro",
+      "message": "Case01 node 'scene_case01_witch_lotte_counter_intro' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_lotte_goodbye_platform",
+      "message": "Case01 node 'scene_case01_witch_lotte_goodbye_platform' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_lotte_monologue_cynic_reaction",
+      "message": "Case01 node 'scene_case01_witch_lotte_monologue_cynic_reaction' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_lotte_monologue_grief_reaction",
+      "message": "Case01 node 'scene_case01_witch_lotte_monologue_grief_reaction' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_lotte_monologue_practical_reaction",
+      "message": "Case01 node 'scene_case01_witch_lotte_monologue_practical_reaction' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_thirst_mask",
+      "message": "Case01 node 'scene_case01_witch_thirst_mask' is still owned by temporary_runtime_bridge."
     },
     {
       "severity": "warning",

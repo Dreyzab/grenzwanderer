@@ -388,19 +388,51 @@ function Test-OpenVikingSemanticSearch {
     return $true
 }
 
-function Stop-StaleOpenVikingProcesses {
-    param([string]$ServerPath)
+function Stop-OpenVikingProcessTree {
+    param([int]$ProcessId)
 
+    if ($ProcessId -le 0) {
+        return
+    }
+
+    # Reap children first so the listener (often a detached child python.exe)
+    # cannot survive and keep holding the port. Pure-PowerShell CIM walk avoids
+    # native taskkill stdout, which would corrupt the MCP stdio channel before
+    # the bridge takes over stdout.
+    Get-CimInstance Win32_Process -Filter "ParentProcessId = $ProcessId" -ErrorAction SilentlyContinue |
+        ForEach-Object { Stop-OpenVikingProcessTree -ProcessId ([int]$_.ProcessId) }
+
+    try {
+        Stop-Process -Id $ProcessId -Force -ErrorAction Stop
+    } catch {
+        # Process may have already exited between discovery and kill — non-fatal.
+    }
+}
+
+function Stop-StaleOpenVikingProcesses {
+    param(
+        [string]$ServerPath,
+        [int]$Port
+    )
+
+    # 1. Kill whatever actually owns the listening socket (and its whole tree).
+    # The owner is frequently a child python.exe, so matching only
+    # openviking-server.exe by path leaves the listener alive and the port busy.
+    if ($Port -gt 0) {
+        $owningPids = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty OwningProcess -Unique
+        foreach ($owningPid in $owningPids) {
+            Stop-OpenVikingProcessTree -ProcessId ([int]$owningPid)
+        }
+    }
+
+    # 2. Also reap stale server processes matched by exe path that may no longer
+    # be listening (crashed/orphaned with no socket).
     $serverProcesses = Get-Process -ErrorAction SilentlyContinue | Where-Object {
         $_.ProcessName -eq "openviking-server" -and $_.Path -eq $ServerPath
     }
-
     foreach ($process in $serverProcesses) {
-        try {
-            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
-        } catch {
-            Write-TransportWarning "Failed to stop stale OpenViking process $($process.Id): $_"
-        }
+        Stop-OpenVikingProcessTree -ProcessId $process.Id
     }
 }
 
@@ -442,7 +474,7 @@ if ($portCheck) {
 }
 
 if (-not $isRunning) {
-    Stop-StaleOpenVikingProcesses -ServerPath $serverExe
+    Stop-StaleOpenVikingProcesses -ServerPath $serverExe -Port $port
 }
 
 # 2. Start the server if not running
@@ -452,6 +484,11 @@ if (-not $isRunning) {
         $apiKeyResolution = Resolve-OpenVikingApiKey
         $apiKey = Assert-OpenVikingApiKey -Resolution $apiKeyResolution
         $resolvedConfig = Resolve-OpenVikingRuntimeConfig -SourcePath $configSource -WorkspacePath $workspaceDir -TargetPath $runtimeConf -ApiKey $apiKey
+        # Always start with --with-bot regardless of transport. Tying bot mode to
+        # the transport makes the running server "sticky": a bot-less stdio start
+        # would be reused by a later HTTP launch that needs the bot (e.g. the
+        # semantic auditor), because a healthy server is never restarted. Keep
+        # bot mode decoupled from transport until a mode-aware restart exists.
         Start-Process -FilePath $serverExe -ArgumentList "--config `"$resolvedConfig`" --with-bot" -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError $errLog
         [void](Test-OpenVikingHealth -Url "http://127.0.0.1:$port" -TimeoutSeconds 30)
     } catch {

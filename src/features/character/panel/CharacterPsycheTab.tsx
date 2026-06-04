@@ -154,6 +154,29 @@ export const CharacterPsycheTab = ({
 
               <div className="rounded-[1rem] border border-white/8 bg-black/20 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
+                  <strong className="text-stone-100">D&D Alignment</strong>
+                  <span
+                    className="rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.3em]"
+                    style={{
+                      color: C.amber,
+                      borderColor: "rgba(212, 167, 79, 0.4)",
+                      backgroundColor: "rgba(212, 167, 79, 0.1)",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    {profile.innerCompass.dndAlignment.code}
+                  </span>
+                </div>
+                <div className="mt-2 text-stone-200 text-sm font-semibold">
+                  {profile.innerCompass.dndAlignment.label}
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-stone-400">
+                  {profile.innerCompass.dndAlignment.description}
+                </p>
+              </div>
+
+              <div className="rounded-[1rem] border border-white/8 bg-black/20 px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
                   <strong className="text-stone-100">Approach Drift</strong>
                   <span
                     className="text-[10px] uppercase tracking-[0.3em]"

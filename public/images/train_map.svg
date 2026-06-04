@@ -1,0 +1,338 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 710" width="100%" height="100%">
+  <!-- Style definitions for modern-retro Belle Époque UI -->
+  <defs>
+    <style>
+      .bg { fill: #131416; }
+      .grid { stroke: #1e2025; stroke-width: 0.5; stroke-dasharray: 2 2; }
+      .metal-base { fill: #26292e; stroke: #3e444d; stroke-width: 1.5; }
+      .boiler { fill: #1a1c20; stroke: #a38d68; stroke-width: 1.5; }
+      .brass-trim { stroke: #d4af37; stroke-width: 1.2; fill: none; }
+      .accent-glow { filter: drop-shadow(0px 0px 4px #ffaa00); }
+      .pawn-glow { filter: drop-shadow(0px 0px 6px #ffd700); }
+      .carriage-wall { fill: #1b1c1e; stroke: #8c7853; stroke-width: 1.8; }
+      .interior-floor { fill: #151618; }
+      .interior-item { fill: #31353c; stroke: #6e6550; stroke-width: 1; }
+      .bed { fill: #483427; stroke: #735d4c; stroke-width: 0.8; }
+      .pillow { fill: #9e8e7f; }
+      .seat { fill: #523a28; stroke: #8c7853; stroke-width: 0.8; }
+      .table { fill: #8c7853; stroke: #523a28; stroke-width: 0.8; }
+      .table-cloth { fill: #eae5d9; stroke: #8c7853; stroke-width: 0.5; }
+      .coupling { stroke: #41454c; stroke-width: 4; stroke-linecap: round; }
+      .bellows { fill: #1a1b1d; stroke: #31343a; stroke-width: 1; }
+      .rail-line { stroke: #26282d; stroke-width: 2.2; }
+      .rail-sleeper { stroke: #161719; stroke-width: 4.5; }
+      .label-text { fill: #a38d68; font-family: 'Garamond', 'Georgia', serif; font-size: 8px; font-weight: bold; letter-spacing: 0.8px; }
+      .interactive-zone { fill: transparent; cursor: pointer; }
+      .interactive-zone:hover { fill: rgba(212, 175, 55, 0.04); }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="200" height="710" class="bg" />
+
+  <!-- Grid overlay -->
+  <g class="grid">
+    <line x1="20" y1="0" x2="20" y2="710" />
+    <line x1="40" y1="0" x2="40" y2="710" />
+    <line x1="60" y1="0" x2="60" y2="710" />
+    <line x1="80" y1="0" x2="80" y2="710" />
+    <line x1="100" y1="0" x2="100" y2="710" />
+    <line x1="120" y1="0" x2="120" y2="710" />
+    <line x1="140" y1="0" x2="140" y2="710" />
+    <line x1="160" y1="0" x2="160" y2="710" />
+    <line x1="180" y1="0" x2="180" y2="710" />
+  </g>
+
+  <!-- Rails background -->
+  <g>
+    <!-- Sleepers -->
+    <path d="M 68 15 L 152 15 M 68 45 L 152 45 M 68 75 L 152 75 M 68 105 L 152 105 M 68 135 L 152 135 M 68 165 L 152 165 M 68 195 L 152 195 M 68 225 L 152 225 M 68 255 L 152 255 M 68 285 L 152 285 M 68 315 L 152 315 M 68 345 L 152 345 M 68 375 L 152 375 M 68 405 L 152 405 M 68 435 L 152 435 M 68 465 L 152 465 M 68 495 L 152 495 M 68 525 L 152 525 M 68 555 L 152 555 M 68 585 L 152 585 M 68 615 L 152 615 M 68 645 L 152 645 M 68 675 L 152 675 M 68 705 L 152 705" class="rail-sleeper" />
+    <!-- Tracks -->
+    <line x1="80" y1="0" x2="80" y2="710" class="rail-line" />
+    <line x1="140" y1="0" x2="140" y2="710" class="rail-line" />
+  </g>
+
+  <!-- ==================== LOCOMOTIVE & TENDER (y: 20 -> 145) ==================== -->
+  <g id="locomotive">
+    <!-- Cowcatcher / Train Plow (y: 12 -> 20) -->
+    <polygon points="98,12 122,12 128,20 92,20" fill="#1b1c1e" stroke="#8c7853" stroke-width="1.2" />
+    <line x1="102" y1="12" x2="102" y2="20" stroke="#8c7853" stroke-width="0.8" />
+    <line x1="110" y1="12" x2="110" y2="20" stroke="#8c7853" stroke-width="0.8" />
+    <line x1="118" y1="12" x2="118" y2="20" stroke="#8c7853" stroke-width="0.8" />
+
+    <!-- Headlights -->
+    <circle cx="97" cy="14" r="2.5" fill="#ffd700" />
+    <circle cx="123" cy="14" r="2.5" fill="#ffd700" />
+
+    <!-- Wheel base and side gears -->
+    <rect x="72" y="24" width="76" height="72" rx="4" class="metal-base" />
+    <rect x="66" y="32" width="6" height="50" rx="1" fill="#444850" />
+    <rect x="148" y="32" width="6" height="50" rx="1" fill="#444850" />
+
+    <!-- Main cylindrical boiler -->
+    <rect x="82" y="20" width="56" height="66" rx="8" class="boiler" />
+    <line x1="82" y1="38" x2="138" y2="38" class="brass-trim" />
+    <line x1="82" y1="58" x2="138" y2="58" class="brass-trim" />
+    
+    <!-- Chimney stack -->
+    <circle cx="110" cy="30" r="7" fill="#151618" stroke="#a38d68" stroke-width="1.2" />
+    <circle cx="110" cy="30" r="3.5" fill="#000" />
+    
+    <!-- Steam dome -->
+    <circle cx="110" cy="50" r="5" fill="#d4af37" />
+    <circle cx="110" cy="50" r="2" fill="#8c7853" />
+
+    <!-- Driver's Cab -->
+    <rect x="76" y="86" width="68" height="18" rx="2" class="metal-base" />
+    <rect x="82" y="90" width="16" height="10" rx="1" fill="#8c7853" opacity="0.35" />
+    <rect x="122" y="90" width="16" height="10" rx="1" fill="#8c7853" opacity="0.35" />
+
+    <!-- Coal Tender Car (y: 108 -> 144) -->
+    <rect x="74" y="108" width="72" height="36" rx="2" class="carriage-wall" />
+    <!-- Coal pile texture -->
+    <path d="M 78 112 Q 92 120 110 114 Q 128 112 142 116 Q 134 134 110 130 Q 86 132 78 112 Z" fill="#111214" stroke="#222" stroke-width="1" />
+    <circle cx="85" cy="120" r="4" fill="#0c0d0f" />
+    <circle cx="102" cy="125" r="5" fill="#0c0d0f" />
+    <circle cx="120" cy="122" r="4" fill="#0c0d0f" />
+    <circle cx="132" cy="118" r="4" fill="#0c0d0f" />
+  </g>
+
+  <!-- Bellows Connector 1 -->
+  <g class="bellows">
+    <rect x="94" y="144" width="32" height="12" />
+    <line x1="94" y1="147" x2="126" y2="147" />
+    <line x1="94" y1="150" x2="126" y2="150" />
+    <line x1="94" y1="153" x2="126" y2="153" />
+  </g>
+  <line x1="110" y1="144" x2="110" y2="156" class="coupling" />
+
+  <!-- ==================== I. SCHLAFWAGEN (y: 156 -> 276) ==================== -->
+  <g id="carriage_sleepers">
+    <!-- Carriage body -->
+    <rect x="72" y="156" width="76" height="120" rx="6" class="carriage-wall" />
+    <rect x="76" y="160" width="68" height="112" rx="3" class="interior-floor" />
+
+    <!-- Corridor on the right side -->
+    <line x1="128" y1="160" x2="128" y2="272" stroke="#3e444d" stroke-width="1.2" stroke-dasharray="2 1" />
+
+    <!-- Compartment 1 (y: 160 -> 197) -->
+    <line x1="76" y1="197" x2="128" y2="197" stroke="#3e444d" stroke-width="1.5" />
+    <!-- Bed 1 (with pillow and sheet line) -->
+    <rect x="78" y="163" width="24" height="13" rx="1" class="bed" />
+    <rect x="78" y="163" width="6" height="13" class="pillow" />
+    <line x1="84" y1="163" x2="84" y2="176" stroke="#735d4c" stroke-width="0.8" />
+    <!-- Bed 2 -->
+    <rect x="78" y="180" width="24" height="13" rx="1" class="bed" />
+    <rect x="78" y="180" width="6" height="13" class="pillow" />
+    <line x1="84" y1="180" x2="84" y2="193" stroke="#735d4c" stroke-width="0.8" />
+    <!-- Table -->
+    <rect x="108" y="171" width="12" height="10" class="table" />
+
+    <!-- Compartment 2 (y: 197 -> 234) -->
+    <line x1="76" y1="234" x2="128" y2="234" stroke="#3e444d" stroke-width="1.5" />
+    <!-- Bed 1 -->
+    <rect x="78" y="200" width="24" height="13" rx="1" class="bed" />
+    <rect x="78" y="200" width="6" height="13" class="pillow" />
+    <line x1="84" y1="200" x2="84" y2="213" stroke="#735d4c" stroke-width="0.8" />
+    <!-- Bed 2 -->
+    <rect x="78" y="217" width="24" height="13" rx="1" class="bed" />
+    <rect x="78" y="217" width="6" height="13" class="pillow" />
+    <line x1="84" y1="217" x2="84" y2="230" stroke="#735d4c" stroke-width="0.8" />
+    <!-- Table -->
+    <rect x="108" y="208" width="12" height="10" class="table" />
+
+    <!-- Compartment 3 (y: 234 -> 271) -->
+    <!-- Bed 1 -->
+    <rect x="78" y="237" width="24" height="13" rx="1" class="bed" />
+    <rect x="78" y="237" width="6" height="13" class="pillow" />
+    <line x1="84" y1="237" x2="84" y2="250" stroke="#735d4c" stroke-width="0.8" />
+    <!-- Bed 2 -->
+    <rect x="78" y="254" width="24" height="13" rx="1" class="bed" />
+    <rect x="78" y="254" width="6" height="13" class="pillow" />
+    <line x1="84" y1="254" x2="84" y2="267" stroke="#735d4c" stroke-width="0.8" />
+    <!-- Table -->
+    <rect x="108" y="245" width="12" height="10" class="table" />
+
+    <!-- Active Indicator glow (pulsing amber ring) -->
+    <rect x="70" y="154" width="80" height="124" rx="8" fill="none" stroke="#ff9900" stroke-width="2" class="accent-glow" opacity="0.8" />
+
+    <!-- Label -->
+    <text x="25" y="216" class="label-text" transform="rotate(-90 25 216)">I. SCHLAFWAGEN</text>
+
+    <!-- Character Pawn Placeholder (Eleonora sitting in Compartment 2) -->
+    <g class="pawn-glow" transform="translate(114, 221)">
+      <circle cx="0" cy="0" r="7" fill="#d4af37" stroke="#ffffff" stroke-width="1.2" />
+      <circle cx="0" cy="-2" r="3.5" fill="#8b1a2b" />
+      <!-- Dress details -->
+      <path d="M -4 4 L 4 4 L 2 -1 L -2 -1 Z" fill="#8b1a2b" />
+    </g>
+
+    <!-- Clickable Zone -->
+    <rect x="72" y="156" width="76" height="120" rx="6" class="interactive-zone" />
+  </g>
+
+  <!-- Bellows Connector 2 -->
+  <g class="bellows">
+    <rect x="94" y="276" width="32" height="14" />
+    <line x1="94" y1="279" x2="126" y2="279" />
+    <line x1="94" y1="282" x2="126" y2="282" />
+    <line x1="94" y1="285" x2="126" y2="285" />
+    <line x1="94" y1="288" x2="126" y2="288" />
+  </g>
+  <line x1="110" y1="276" x2="110" y2="290" class="coupling" />
+
+  <!-- ==================== II. SPEISEWAGEN (y: 290 -> 410) ==================== -->
+  <g id="carriage_dining">
+    <!-- Carriage body -->
+    <rect x="72" y="290" width="76" height="120" rx="6" class="carriage-wall" />
+    <rect x="76" y="294" width="68" height="112" rx="3" class="interior-floor" />
+
+    <!-- Kitchen / Bar area at the top (y: 294 -> 324) -->
+    <rect x="78" y="296" width="34" height="24" class="interior-item" />
+    <rect x="118" y="296" width="22" height="10" class="interior-item" /> <!-- Serving counter -->
+    <line x1="76" y1="324" x2="144" y2="324" stroke="#3e444d" stroke-width="1.5" />
+
+    <!-- Dining tables & chairs (y: 324 -> 406) -->
+    <!-- Table 1 (Left) -->
+    <circle cx="92" cy="344" r="8.5" class="table-cloth" />
+    <path d="M 88 329 C 90 327 94 327 96 329 L 94 334 L 90 334 Z" class="seat" /> <!-- Chair North -->
+    <path d="M 88 359 C 90 361 94 361 96 359 L 94 354 L 90 354 Z" class="seat" /> <!-- Chair South -->
+
+    <!-- Table 2 (Right) -->
+    <circle cx="128" cy="344" r="8.5" class="table-cloth" />
+    <path d="M 124 329 C 126 327 130 327 132 329 L 130 334 L 126 334 Z" class="seat" />
+    <path d="M 124 359 C 126 361 130 361 132 359 L 130 354 L 126 354 Z" class="seat" />
+
+    <!-- Table 3 (Left) -->
+    <circle cx="92" cy="380" r="8.5" class="table-cloth" />
+    <path d="M 88 365 C 90 363 94 363 96 365 L 94 370 L 90 370 Z" class="seat" />
+    <path d="M 88 395 C 90 397 94 397 96 395 L 94 390 L 90 390 Z" class="seat" />
+
+    <!-- Table 4 (Right) -->
+    <circle cx="128" cy="380" r="8.5" class="table-cloth" />
+    <path d="M 124 365 C 126 363 130 363 132 365 L 130 370 L 126 370 Z" class="seat" />
+    <path d="M 124 395 C 126 397 130 397 132 395 L 130 390 L 126 390 Z" class="seat" />
+
+    <!-- Label -->
+    <text x="25" y="350" class="label-text" transform="rotate(-90 25 350)">II. SPEISEWAGEN</text>
+
+    <!-- Clickable Zone -->
+    <rect x="72" y="290" width="76" height="120" rx="6" class="interactive-zone" />
+  </g>
+
+  <!-- Bellows Connector 3 -->
+  <g class="bellows">
+    <rect x="94" y="410" width="32" height="14" />
+    <line x1="94" y1="413" x2="126" y2="413" />
+    <line x1="94" y1="416" x2="126" y2="416" />
+    <line x1="94" y1="419" x2="126" y2="419" />
+    <line x1="94" y1="422" x2="126" y2="422" />
+  </g>
+  <line x1="110" y1="410" x2="110" y2="424" class="coupling" />
+
+  <!-- ==================== III. PERSONENWAGEN (y: 424 -> 544) ==================== -->
+  <g id="carriage_common">
+    <!-- Carriage body -->
+    <rect x="72" y="424" width="76" height="120" rx="6" class="carriage-wall" />
+    <rect x="76" y="428" width="68" height="112" rx="3" class="interior-floor" />
+
+    <!-- Central Aisle -->
+    <line x1="104" y1="428" x2="104" y2="540" stroke="#3e444d" stroke-width="0.5" stroke-dasharray="3 3" />
+    <line x1="116" y1="428" x2="116" y2="540" stroke="#3e444d" stroke-width="0.5" stroke-dasharray="3 3" />
+
+    <!-- Rows of seats (Double seats with center divide and armrests) -->
+    <!-- Row 1 (y: 434) -->
+    <rect x="78" y="434" width="22" height="9" rx="1" class="seat" />
+    <line x1="89" y1="434" x2="89" y2="443" stroke="#8c7853" stroke-width="0.5" />
+    <rect x="120" y="434" width="22" height="9" rx="1" class="seat" />
+    <line x1="131" y1="434" x2="131" y2="443" stroke="#8c7853" stroke-width="0.5" />
+
+    <!-- Row 2 (y: 451) -->
+    <rect x="78" y="451" width="22" height="9" rx="1" class="seat" />
+    <line x1="89" y1="451" x2="89" y2="460" stroke="#8c7853" stroke-width="0.5" />
+    <rect x="120" y="451" width="22" height="9" rx="1" class="seat" />
+    <line x1="131" y1="451" x2="131" y2="460" stroke="#8c7853" stroke-width="0.5" />
+
+    <!-- Row 3 (y: 468) -->
+    <rect x="78" y="468" width="22" height="9" rx="1" class="seat" />
+    <line x1="89" y1="468" x2="89" y2="477" stroke="#8c7853" stroke-width="0.5" />
+    <rect x="120" y="468" width="22" height="9" rx="1" class="seat" />
+    <line x1="131" y1="468" x2="131" y2="477" stroke="#8c7853" stroke-width="0.5" />
+
+    <!-- Row 4 (y: 485) -->
+    <rect x="78" y="485" width="22" height="9" rx="1" class="seat" />
+    <line x1="89" y1="485" x2="89" y2="494" stroke="#8c7853" stroke-width="0.5" />
+    <rect x="120" y="485" width="22" height="9" rx="1" class="seat" />
+    <line x1="131" y1="485" x2="131" y2="494" stroke="#8c7853" stroke-width="0.5" />
+
+    <!-- Row 5 (y: 502) -->
+    <rect x="78" y="502" width="22" height="9" rx="1" class="seat" />
+    <line x1="89" y1="502" x2="89" y2="511" stroke="#8c7853" stroke-width="0.5" />
+    <rect x="120" y="502" width="22" height="9" rx="1" class="seat" />
+    <line x1="131" y1="502" x2="131" y2="511" stroke="#8c7853" stroke-width="0.5" />
+
+    <!-- Row 6 (y: 519) -->
+    <rect x="78" y="519" width="22" height="9" rx="1" class="seat" />
+    <line x1="89" y1="519" x2="89" y2="528" stroke="#8c7853" stroke-width="0.5" />
+    <rect x="120" y="519" width="22" height="9" rx="1" class="seat" />
+    <line x1="131" y1="519" x2="131" y2="528" stroke="#8c7853" stroke-width="0.5" />
+
+    <!-- Label -->
+    <text x="25" y="484" class="label-text" transform="rotate(-90 25 484)">III. PERSONENWAGEN</text>
+
+    <!-- Clickable Zone -->
+    <rect x="72" y="424" width="76" height="120" rx="6" class="interactive-zone" />
+  </g>
+
+  <!-- Bellows Connector 4 -->
+  <g class="bellows">
+    <rect x="94" y="544" width="32" height="14" />
+    <line x1="94" y1="547" x2="126" y2="547" />
+    <line x1="94" y1="550" x2="126" y2="550" />
+    <line x1="94" y1="553" x2="126" y2="553" />
+    <line x1="94" y1="556" x2="126" y2="556" />
+  </g>
+  <line x1="110" y1="544" x2="110" y2="558" class="coupling" />
+
+  <!-- ==================== IV. GEPÄCKWAGEN (y: 558 -> 678) ==================== -->
+  <g id="carriage_baggage">
+    <!-- Carriage body -->
+    <rect x="72" y="558" width="76" height="120" rx="6" class="carriage-wall" />
+    <rect x="76" y="562" width="68" height="112" rx="3" class="interior-floor" />
+
+    <!-- Crates and Cargo boxes -->
+    <!-- Large Wood Crate (y: 568, width: 22x22) -->
+    <rect x="79" y="568" width="22" height="22" class="interior-item" />
+    <line x1="79" y1="568" x2="101" y2="590" stroke="#6e6550" stroke-width="0.8" />
+    <line x1="101" y1="568" x2="79" y2="590" stroke="#6e6550" stroke-width="0.8" />
+    <!-- Horizontal wood plank lines on crate -->
+    <line x1="79" y1="575" x2="101" y2="575" stroke="#6e6550" stroke-width="0.5" />
+    <line x1="79" y1="583" x2="101" y2="583" stroke="#6e6550" stroke-width="0.5" />
+
+    <!-- Set of suitcases (y: 568, right) -->
+    <rect x="114" y="568" width="14" height="20" rx="1" fill="#4d3222" stroke="#6e6550" stroke-width="0.8" />
+    <line x1="118" y1="568" x2="118" y2="588" stroke="#d4af37" stroke-width="0.5" />
+    <line x1="124" y1="568" x2="124" y2="588" stroke="#d4af37" stroke-width="0.5" />
+    <rect x="112" y="592" width="18" height="10" rx="1" fill="#2d3d30" stroke="#6e6550" stroke-width="0.8" />
+
+    <!-- Metal Safe of the Bureau (y: 610) -->
+    <rect x="79" y="612" width="18" height="36" class="interior-item" />
+    <circle cx="88" cy="630" r="3.5" fill="#d4af37" stroke="#222" stroke-width="1" />
+    <circle cx="88" cy="630" r="1.2" fill="#000" />
+    <line x1="79" y1="620" x2="97" y2="620" stroke="#6e6550" stroke-width="0.5" />
+    <line x1="79" y1="640" x2="97" y2="640" stroke="#6e6550" stroke-width="0.5" />
+
+    <!-- Big Flat Cargo Box -->
+    <rect x="108" y="618" width="24" height="24" class="interior-item" />
+    <line x1="108" y1="618" x2="132" y2="642" stroke="#6e6550" stroke-width="0.8" />
+    <line x1="132" y1="618" x2="108" y2="642" stroke="#6e6550" stroke-width="0.8" />
+    <line x1="116" y1="618" x2="116" y2="642" stroke="#6e6550" stroke-width="0.5" />
+    <line x1="124" y1="618" x2="124" y2="642" stroke="#6e6550" stroke-width="0.5" />
+
+    <!-- Label -->
+    <text x="25" y="618" class="label-text" transform="rotate(-90 25 618)">IV. GEPÄCKWAGEN</text>
+
+    <!-- Clickable Zone -->
+    <rect x="72" y="558" width="76" height="120" rx="6" class="interactive-zone" />
+  </g>
+</svg>

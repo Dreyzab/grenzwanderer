@@ -366,15 +366,10 @@ try {
   assert(
     witchDepartureChoices.some(
       (choice) =>
-        choice.id === "CASE01_HBF_EXIT_WITCH_GHOST" &&
-        choice.nextNodeId === "scene_case01_witch_estate_handoff",
-    ) &&
-      witchDepartureChoices.some(
-        (choice) =>
-          choice.id === "CASE01_HBF_EXIT_WITCH_BUREAU" &&
-          choice.nextNodeId === "scene_case01_witch_bureau_entry",
-      ),
-    "Witch origin must have gated exits to Grand Estate and the Bureau.",
+        choice.id === "CASE01_HBF_EXIT_WITCH_HOTEL_CHECKIN" &&
+        choice.nextNodeId === "scene_case01_witch_hotel_checkin",
+    ),
+    "Witch origin must route from HBF to hotel check-in before the Bureau.",
   );
   assert(
     hbfExitFinalNode.terminal === true,

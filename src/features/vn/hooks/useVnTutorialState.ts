@@ -76,27 +76,30 @@ export function useVnTutorialState({
     return states;
   }, [effectiveDiscoveredFactKeys, recordingFactPayloads]);
 
-  /**
-   * Called when the player tries to surface-tap (continue) on the letter.
-   * Returns `true` if the tutorial intercepts the tap (shows tooltip).
-   */
-  const interceptContinue = useCallback((): boolean => {
-    if (
-      !isLetterOverlay ||
-      !hasUndiscoveredTokens ||
-      tooltipDismissedRef.current
-    ) {
-      return false;
-    }
-    setShowTooltip(true);
-    return true;
-  }, [isLetterOverlay, hasUndiscoveredTokens]);
-
   /** Dismiss the tooltip (e.g. after player clicks a token or taps away). */
   const dismissTooltip = useCallback(() => {
     setShowTooltip(false);
     tooltipDismissedRef.current = true;
   }, []);
+
+  /**
+   * Called when the player tries to surface-tap (continue) on the letter.
+   * Returns `true` if the tutorial intercepts the tap (shows tooltip).
+   */
+  const interceptContinue = useCallback((): boolean => {
+    if (!isLetterOverlay || !hasUndiscoveredTokens) {
+      return false;
+    }
+    if (tooltipDismissedRef.current) {
+      return false;
+    }
+    if (showTooltip) {
+      dismissTooltip();
+      return false;
+    }
+    setShowTooltip(true);
+    return true;
+  }, [dismissTooltip, hasUndiscoveredTokens, isLetterOverlay, showTooltip]);
 
   const startRecordingFact = useCallback((factPayload: string) => {
     const key = factPayload.trim();
@@ -132,8 +135,8 @@ export function useVnTutorialState({
     toastIdRef.current += 1;
     setJournalToast({ id: toastIdRef.current, fact });
 
-    // Auto-dismiss tooltip when a token is clicked
     setShowTooltip(false);
+    tooltipDismissedRef.current = true;
   }, []);
 
   const failRecordingFact = useCallback((factPayload: string) => {

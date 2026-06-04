@@ -17,6 +17,7 @@ import { getNpcDisplayName } from "../../shared/game/socialPresentation";
 import type { VnSession } from "../../shared/spacetime/bindings";
 import { formatSkillCheckVoiceLabel } from "./skillCheckPalette";
 import type { VnChoice, VnSnapshot } from "./types";
+import { isChoiceVisible, type VnChoiceEvaluationContext } from "./vnContent";
 import type {
   ActiveAiThoughtContext,
   ActiveReactionContext,
@@ -361,6 +362,33 @@ export const reactionRequestMatchesContext = (
 
 export const isAutoContinueChoice = (choice: VnChoice): boolean =>
   choice.id.startsWith(AUTO_CONTINUE_PREFIX);
+
+/** Visible sole continue when nodes use gated branches instead of AUTO_CONTINUE_*. */
+export const resolveEffectiveAutoContinueChoice = (
+  choices: VnChoice[] | undefined,
+  flags: Record<string, boolean>,
+  vars: Record<string, number>,
+  context?: VnChoiceEvaluationContext,
+): VnChoice | null => {
+  if (!choices) {
+    return null;
+  }
+
+  const visible = choices.filter(
+    (choice) =>
+      !choice.hotspot && isChoiceVisible(choice, flags, vars, context),
+  );
+
+  const autoContinue = visible.find((choice) => isAutoContinueChoice(choice));
+  if (autoContinue) {
+    return autoContinue;
+  }
+
+  const implicitContinues = visible.filter(
+    (choice) => !choice.skillCheck && !choice.allowCustomInput,
+  );
+  return implicitContinues.length === 1 ? implicitContinues[0] : null;
+};
 
 export const sessionPointer = (session: VnSession | null): string | null => {
   if (!session) {

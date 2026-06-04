@@ -4,11 +4,10 @@ export type BattleTab =
   | "character"
   | "map"
   | "mind_palace"
-  | "dev"
   | "command"
   | "battle";
 
-export type BattleReturnTab = "map" | "vn" | "dev";
+export type BattleReturnTab = "map" | "vn";
 
 export type BattlePhase = "player_turn" | "enemy_turn" | "result" | "closed";
 

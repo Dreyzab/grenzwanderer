@@ -14,6 +14,17 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       homePointId: "loc_agency",
       workPointId: "loc_telephone",
       serviceIds: ["svc_lotte_switchboard_trace"],
+      bio: {
+        summary:
+          "Chief telephone operator who hears the whole city before it speaks. Sells quiet city-notes on the side and reads silence on a line the way a hunter reads tracks.",
+        stages: [
+          {
+            revealFlag: "lotte_warning_heeded",
+            heading: "Earned Trust",
+            text: "Once you heed her warning she opens the switchboard: who called whom, which offices went quiet, which lines were redirected. She shields the women who report to her — handle her access carelessly and the channel closes for good.",
+          },
+        ],
+      },
     },
     {
       id: "npc_anna_mahler",
@@ -25,6 +36,17 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       homePointId: "loc_workers_pub",
       workPointId: "loc_agency",
       serviceIds: ["svc_anna_whispers", "svc_anna_student_intro"],
+      bio: {
+        summary:
+          "Railway fixer who moves rumors through station messengers and tavern staff faster than any telegraph. Trades in access, not affection.",
+        stages: [
+          {
+            revealFlag: "service_anna_student_intro_unlocked",
+            heading: "Network Committed",
+            text: "She has put part of her network on your banker file, turning a closed fraternity house into a supported route. That commitment is logged as agency work — and a source can only be spent so many times before it burns.",
+          },
+        ],
+      },
     },
     {
       id: "npc_archivist_otto",
@@ -36,6 +58,10 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       homePointId: "loc_rathaus",
       workPointId: "loc_rathaus",
       serviceIds: ["svc_otto_archive_packet"],
+      bio: {
+        summary:
+          "Records specialist at the Rathaus. Knows where every file moved and why — provided the civic route is already warm before you ask.",
+      },
     },
     {
       id: "npc_mother_hartmann",
@@ -50,6 +76,17 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
         "svc_eleonora_social_introduction",
         "svc_eleonora_political_cover",
       ],
+      bio: {
+        summary:
+          "Aristocratic patron of the House of Pledges. Never commands — she arranges inevitability, and remembers every door she opens.",
+        stages: [
+          {
+            revealFlag: "hartmann_interests_threatened",
+            heading: "The Price of Cover",
+            text: "When evidence threatens the family she offers political cover: suppression, redirection, reframing. Accepting it compromises your independence; refusing it closes House of Pledges doors and costs Felix's trust if he learns of the bargain.",
+          },
+        ],
+      },
     },
     {
       id: "npc_felix_hartmann",
@@ -61,6 +98,10 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       homePointId: "loc_agency",
       workPointId: "loc_agency",
       serviceIds: ["svc_felix_legal_analysis"],
+      bio: {
+        summary:
+          "Legitimate Hartmann son and junior field partner. A legal aspirant torn between procedure and field reality — and prone to apathy under sustained pressure.",
+      },
     },
     {
       id: "npc_bureau_master",
@@ -72,17 +113,26 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       introFlag: "met_bureau_master_intro",
       workPointId: "loc_hbf",
       serviceIds: ["svc_bureau_occult_protocol"],
+      bio: {
+        summary:
+          "Occult supervisor of the Bureau. Grants sanctioned cover for field incidents — and rations the curse suppressant that keeps Witch agents standing.",
+      },
     },
     {
-      id: "npc_karl_servant",
-      displayName: "Karl",
+      id: "npc_sasha_hartmann_servant",
+      displayName: 'Alexander "Sasha"',
       factionId: "house_of_pledges",
-      publicRole: "Grand Estate servant",
+      publicRole: "Hartmann family servant",
       rosterTier: "functional",
-      portraitUrl: "/images/characters/karl_servant/karl_servant.webp",
-      introFlag: "met_karl_servant_intro",
+      portraitUrl:
+        "/images/characters/sasha_hartmann_servant/sasha_hartmann_servant.webp",
+      introFlag: "met_sasha_servant_intro",
       workPointId: "loc_freiburg_estate",
-      serviceIds: ["svc_karl_service_corridors"],
+      serviceIds: ["svc_sasha_service_corridors"],
+      bio: {
+        summary:
+          "Hartmann household servant who knows every service corridor and how to settle a domestic crisis without a sound. Reads Eleonora's symptoms but not the occult truth behind them.",
+      },
     },
     {
       id: "npc_friedrich_wagner",
@@ -94,6 +144,10 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       introFlag: "met_friedrich_wagner_intro",
       workPointId: "loc_freiburg_estate",
       serviceIds: ["svc_friedrich_ledger_memory"],
+      bio: {
+        summary:
+          "The estate's dead accountant. His ledger memory cross-references the smuggling accounts against the Krebs partners — testimony that only answers if he was met with justice or bound to the witch's shadow.",
+      },
     },
     {
       id: "npc_krebs_mugger",
@@ -104,6 +158,10 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       portraitUrl: "/images/characters/krebs_mugger/krebs_mugger.webp",
       introFlag: "met_krebs_mugger_intro",
       workPointId: "loc_hbf",
+      bio: {
+        summary:
+          "Street enforcer working the Hauptbahnhof. A survivor of the alley whose whisper can place someone exactly where they swore they never were.",
+      },
     },
     {
       id: "npc_hotel_maid",
@@ -115,10 +173,47 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       introFlag: "met_hotel_maid_intro",
       workPointId: "loc_pub_deutsche",
       serviceIds: ["svc_hotel_discretion"],
+      bio: {
+        summary:
+          "Zum Goldenen Adler maid whose discretion can be bought — laundry vanishes, room logs stay clean.",
+        stages: [
+          {
+            revealFlag: "flag_witch_maid_bribed",
+            heading: "Bought Discretion",
+            text: "Bribed at the Adler, she keeps the staff quietly aligned: ruined clothing disappears and Felix hears no rumor at breakfast — for exactly as long as nothing forces her to choose between your coin and the police.",
+          },
+        ],
+      },
     },
 
+    {
+      id: "npc_apothecary",
+      displayName: "Adalbert Weiss",
+      factionId: "masters_union",
+      publicRole: "Apothecary",
+      rosterTier: "functional",
+      portraitUrl: "/images/characters/apothecary/apothecary.webp",
+      introFlag: "met_apothecary_intro",
+      serviceIds: ["svc_apothecary_supplies"],
+      bio: {
+        summary:
+          "Altstadt pharmacist who sells legal remedies over the counter and restricted chemical supplies under it. Meticulous, anxious, and careful about which clients he names.",
+      },
+    },
   ],
   services: [
+    {
+      id: "svc_apothecary_supplies",
+      npcId: "npc_apothecary",
+      role: "goods",
+      label: "Chemical Supplies",
+      baseAccess:
+        "Open counter for legal remedies and tonics; restricted solvents and reagents require trust or the right introduction.",
+      qualityNote:
+        "Reliable, discreet source of laboratory-grade magnesium, iron oxide, and reagents for a buyer he trusts.",
+      consequenceNote:
+        "Pressing him on restricted stock raises his guard and can close the channel.",
+    },
     {
       id: "svc_anna_whispers",
       npcId: "npc_anna_mahler",
@@ -194,9 +289,9 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
         "Available once Lotte trusts the detective enough to share operational patterns. Requires lotte_warning_heeded or equivalent trust threshold.",
       unlockFlag: "lotte_warning_heeded",
       qualityNote:
-        "Pattern analysis of telephone traffic reveals communication anomalies around suspects — who called whom, which lines went quiet, which offices redirected.",
+        "Pattern analysis of telephone traffic reveals communication anomalies around suspects — who called whom, which lines went quiet, which offices redirected. Her paid city-note work gives her a journalist's habit of turning pauses into leads.",
       consequenceNote:
-        "Using switchboard intelligence risks exposing Lotte's access. Careless handling may burn her position.",
+        "Using switchboard intelligence risks exposing Lotte's access and the women who report to her. Careless handling may burn her position or make her start checking the player's timetable.",
     },
     {
       id: "svc_felix_legal_analysis",
@@ -224,17 +319,17 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
         "Cover is revoked if the Bureau reads the agent as undisciplined; a flagged Master suspends the protocol.",
     },
     {
-      id: "svc_karl_service_corridors",
-      npcId: "npc_karl_servant",
+      id: "svc_sasha_service_corridors",
+      npcId: "npc_sasha_hartmann_servant",
       role: "transport",
       label: "Estate Service Corridors",
       baseAccess:
-        "Available only when Karl trusts the detective — kindness at HBF and no feeding incident at the estate.",
-      unlockFlag: "met_karl_servant_intro",
+        "Available only when Sasha trusts the detective or Eleonora enough to keep the Hartmann household routes quiet.",
+      unlockFlag: "met_sasha_servant_intro",
       qualityNote:
-        "Opens the Grand Estate's pantry-to-yard service corridors used by the Baroness's smuggling partners.",
+        "Knows service routes, can settle a domestic crisis without attracting public attention, and keeps composure under pressure.",
       consequenceNote:
-        "Compromised if Karl was fed on; he cannot be a quiet witness once the estate marks him as ghost-haunted.",
+        "If Eleonora uses his blood or warmth, Sasha does not become a frightened extra; he becomes a silent witness whose trust is broken.",
     },
     {
       id: "svc_friedrich_ledger_memory",

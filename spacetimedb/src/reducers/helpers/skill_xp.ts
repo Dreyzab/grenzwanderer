@@ -9,7 +9,17 @@ import {
   SKILL_CHECK_FAILURE_XP,
   SKILL_CHECK_SUCCESS_XP,
 } from "../../../../src/shared/game/skillProgression";
-import { addSkillXp } from "./player_progression";
+import {
+  SKILL_CORE_BY_ID,
+  coreXpVarKeyFor,
+  resolveSkillXpAwardWithMultiplier,
+} from "../../../../src/shared/game/characterProgression";
+import {
+  addToVar,
+  addSkillXp,
+  getVars,
+  resolveActiveOriginId,
+} from "./player_progression";
 
 export interface SkillXpAward {
   skillId: SkillVoiceId;
@@ -40,10 +50,17 @@ export const grantSkillXpInternal = (
   }
 
   const normalizedAmount = normalizeSkillXpGrantAmount(amount);
+  const awardedAmount = resolveSkillXpAwardWithMultiplier(
+    getVars(ctx),
+    skillId,
+    normalizedAmount,
+    resolveActiveOriginId(ctx),
+  );
+  addToVar(ctx, coreXpVarKeyFor(SKILL_CORE_BY_ID[skillId]), normalizedAmount);
   return {
     skillId,
-    amount: normalizedAmount,
-    totalXp: addSkillXp(ctx, skillId, normalizedAmount),
+    amount: awardedAmount,
+    totalXp: addSkillXp(ctx, skillId, awardedAmount),
   };
 };
 

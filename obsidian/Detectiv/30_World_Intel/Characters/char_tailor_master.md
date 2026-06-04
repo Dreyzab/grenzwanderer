@@ -2,6 +2,7 @@
 id: char_tailor_master
 tags: [character, major]
 tier: major
+design_only: true
 runtime_character_id: tailor_master
 faction: fct_masters_union
 aliases: ["Tailor Master"]

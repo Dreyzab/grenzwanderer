@@ -5,10 +5,70 @@ param(
     [string]$TargetProfile = "default"
 )
 
-$rootDir = (Get-Item $PSScriptRoot).Parent.Parent.Parent.FullName
-$projectDir = Join-Path $rootDir "Grenzwanderer"
-$ovVenv = Join-Path $rootDir "ov_venv"
+$scriptDir = $PSScriptRoot
+$repoRoot = (Get-Item $scriptDir).Parent.Parent.FullName
+$workspaceRoot = Split-Path $repoRoot -Parent
+$projectDir = $repoRoot
+
+# Resolve the OpenViking venv with the SAME order and marker as start-mcp.ps1
+# (prefer scripts/openviking/.venv, then repo ov_venv, then workspace ov_venv),
+# keyed off openviking-server.exe. This guarantees the indexing CLI (ov.exe)
+# comes from the exact same venv as the running server, so the two cannot drift
+# in version. Keep this candidate list in sync with start-mcp.ps1.
+$venvCandidates = @(
+    (Join-Path $scriptDir ".venv"),
+    (Join-Path $repoRoot "ov_venv"),
+    (Join-Path $workspaceRoot "ov_venv")
+)
+$ovVenv = $null
+foreach ($candidate in $venvCandidates) {
+    if (Test-Path (Join-Path $candidate "Scripts\openviking-server.exe")) {
+        $ovVenv = (Get-Item $candidate).FullName
+        break
+    }
+}
+if (-not $ovVenv) {
+    throw "OpenViking venv not found (no Scripts\openviking-server.exe). Checked: $($venvCandidates -join '; ')"
+}
 $ovExe = Join-Path $ovVenv "Scripts\ov.exe"
+if (-not (Test-Path $ovExe)) {
+    throw "OpenViking CLI not found at '$ovExe'. The resolved venv ('$ovVenv') has openviking-server.exe but no ov.exe."
+}
+$ovServerExe = Join-Path $ovVenv "Scripts\openviking-server.exe"
+$ovPython = Join-Path $ovVenv "Scripts\python.exe"
+
+# Coherence guard. NOTE: `ov.exe --version` is NOT reliable -- it prints a stale
+# string (the CLI's __version__ lags the package), so it reports an older number
+# than the actually-installed openviking package. ov.exe and openviking-server.exe
+# are console scripts of the SAME single 'openviking' package, so the meaningful
+# check is: does the authoritative installed package version match what the
+# server binary runs? That catches a genuinely corrupt/half-upgraded venv
+# without false-positiving on ov.exe's cosmetic version string.
+function Get-OpenVikingServerVersion {
+    param([string]$ExePath)
+
+    $raw = (& $ExePath --version 2>$null | Out-String)
+    if ($raw -match '\d+\.\d+\.\d+') {
+        return $Matches[0]
+    }
+    return $null
+}
+
+$packageVersion = $null
+if (Test-Path $ovPython) {
+    $raw = (& $ovPython -c "import importlib.metadata as m; print(m.version('openviking'))" 2>$null | Out-String)
+    if ($raw -match '\d+\.\d+\.\d+') {
+        $packageVersion = $Matches[0]
+    }
+}
+$serverVersion = Get-OpenVikingServerVersion -ExePath $ovServerExe
+if (-not $packageVersion -or -not $serverVersion) {
+    throw "Could not determine OpenViking versions in venv '$ovVenv' (package='$packageVersion', server='$serverVersion'). Reinstall the venv so the openviking package and openviking-server.exe both report a version."
+}
+if ($packageVersion -ne $serverVersion) {
+    throw "OpenViking venv '$ovVenv' is incoherent: installed package is $packageVersion but openviking-server.exe runs $serverVersion. Repair the venv, e.g.: & '$ovVenv\Scripts\pip.exe' install --force-reinstall `"openviking==$packageVersion`""
+}
+
 $ignoreDirs = "node_modules,dist,.git,.runtime,.spacetime,.spacetime-local-3001,.logs"
 $excludePatterns = "*.log,*.lock,*.mp3,*.wav,*.mp4,*.canvas"
 

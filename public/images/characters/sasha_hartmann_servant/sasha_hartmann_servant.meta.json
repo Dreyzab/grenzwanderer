@@ -1,0 +1,8 @@
+{
+  "assetId": "npc_sasha_hartmann_servant",
+  "assetKind": "vn_character_portrait",
+  "prompt": "Use case: historical-scene\nAsset type: VN character portrait for a 1905 occult detective visual novel\nPrimary request: Create a square painted portrait of Alexander \"Sasha\", a Hartmann family servant and former Russian soldier, age about 44.\nSubject: A large, physically strong Russian man with a disciplined military bearing, broad shoulders, weathered face, short dark hair with early gray, an old healed scar on one cheek or brow, restrained expression, alert but not heroic. He should look like a man who can endure pain without displaying it.\nClothing: practical servant's travel clothes / understated livery suitable for 1905 Freiburg, dark wool coat, plain waistcoat, simple collar; no aristocratic luxury.\nStyle/medium: painterly VN portrait, textured oil-paint brushwork, muted historical palette, similar level of polish and dramatic realism to the existing character portraits in the project.\nComposition/framing: bust portrait, upper torso, front three-quarter view, centered, readable face, no full-body pose.\nLighting/mood: cool station-morning light, calm, contained, morally grounded.\nConstraints: no medals, no heroic military pose, no active military uniform, no weapons, no text, no watermark, no fantasy armor.",
+  "promptSha256": "653e0183e8048e6517c43da1c9eea782144df56fbfa4a095a812adda7c76a19b",
+  "assetSha256": "97dd190dd1c50aa265d25dc8130d9b6a4b411ae9b6f718eaa2994ed14350b018",
+  "provenance": "OpenAI built-in image generation; converted locally to WebP with Pillow."
+}

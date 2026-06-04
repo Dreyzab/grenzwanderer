@@ -23,6 +23,10 @@ import {
   normalizeSkillXpValue,
   skillXpVarKeyFor,
 } from "../../../../src/shared/game/skillProgression";
+import {
+  ORIGIN_CORE_PROFILES,
+  normalizeCharacterProgressionVarValue,
+} from "../../../../src/shared/game/characterProgression";
 import type { ReducerContextLike } from "./context";
 import { senderOf } from "./context";
 import {
@@ -92,6 +96,13 @@ const clampNumber = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
 const normalizePlayerVarValue = (key: string, floatValue: number): number => {
+  const characterProgressionValue = normalizeCharacterProgressionVarValue(
+    key,
+    floatValue,
+  );
+  if (characterProgressionValue !== null) {
+    return characterProgressionValue;
+  }
   if (PSYCHE_VAR_KEYS.includes(key as any)) {
     return clampNumber(floatValue, -100, 100);
   }
@@ -114,6 +125,21 @@ export const getVarForPlayer = (
 ): number => {
   const row = ctx.db.playerVar.varId.find(createVarKey(playerId, key));
   return row?.floatValue ?? 0;
+};
+
+export const getVarsForPlayer = (
+  ctx: any,
+  playerId: { toHexString(): string },
+): Record<string, number> => {
+  const vars: Record<string, number> = {};
+  for (const row of rowsByIndex<{ key: string; floatValue: number }>(
+    ctx.db.playerVar,
+    "player_var_player_id",
+    playerId,
+  )) {
+    vars[row.key] = row.floatValue;
+  }
+  return vars;
 };
 
 export const upsertVarForPlayer = (
@@ -219,83 +245,127 @@ export const resolveKarmaBand = (value: number) =>
 export const resolveKarmaDifficultyDelta = (value: number) =>
   sharedResolveKarmaDifficultyDelta(value);
 
-const isRowOwnedBySender = (
-  row: { playerId: { toHexString(): string } },
-  senderHex: string,
-): boolean => row.playerId.toHexString() === senderHex;
+const rowsByIndex = <TRow>(
+  tableView: any,
+  indexAccessorName: string,
+  value: unknown,
+): TRow[] => {
+  const index = tableView?.[indexAccessorName] as
+    | { filter?: (value: unknown) => Iterable<TRow> }
+    | undefined;
+  if (!index || typeof index.filter !== "function") {
+    throw new Error(`Missing table index ${indexAccessorName}`);
+  }
+  return Array.from(index.filter(value));
+};
 
-const hasAnyRowsForSender = <
-  TRow extends { playerId: { toHexString(): string } },
->(
-  rows: Iterable<TRow>,
-  senderHex: string,
+const hasRowsByIndex = (
+  tableView: any,
+  indexAccessorName: string,
+  value: unknown,
 ): boolean => {
-  for (const row of rows) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      return true;
-    }
+  for (const _row of rowsByIndex(tableView, indexAccessorName, value)) {
+    return true;
   }
   return false;
 };
 
-export const hasPlayerGameplayProgress = (ctx: any): boolean => {
-  const senderHex = ctx.sender.toHexString();
+const PLAYER_SCOPED_PROGRESS_TABLES = [
+  ["vnSession", "vn_session_player_id", "sessionKey", "sessionKey"],
+  [
+    "vnSkillCheckResult",
+    "vn_skill_check_result_player_id",
+    "resultKey",
+    "resultKey",
+  ],
+  ["playerFlag", "player_flag_player_id", "flagId", "flagId"],
+  ["playerVar", "player_var_player_id", "varId", "varId"],
+  [
+    "playerInventory",
+    "player_inventory_player_id",
+    "inventoryKey",
+    "inventoryKey",
+  ],
+  ["playerEvidence", "player_evidence_player_id", "evidenceKey", "evidenceKey"],
+  ["playerQuest", "player_quest_player_id", "questKey", "questKey"],
+  [
+    "playerRelationship",
+    "player_relationship_player_id",
+    "relationshipKey",
+    "relationshipKey",
+  ],
+  [
+    "playerNpcState",
+    "player_npc_state_player_id",
+    "npcStateKey",
+    "npcStateKey",
+  ],
+  ["playerNpcFavor", "player_npc_favor_player_id", "favorKey", "favorKey"],
+  [
+    "playerFavorLedger",
+    "player_favor_ledger_player_id",
+    "ledgerEntryKey",
+    "ledgerEntryKey",
+  ],
+  [
+    "playerFactionSignal",
+    "player_faction_signal_player_id",
+    "signalKey",
+    "signalKey",
+  ],
+  [
+    "playerRumorState",
+    "player_rumor_state_player_id",
+    "rumorStateKey",
+    "rumorStateKey",
+  ],
+  [
+    "playerUnlockGroup",
+    "player_unlock_group_player_id",
+    "unlockKey",
+    "unlockKey",
+  ],
+  ["playerMapEvent", "player_map_event_player_id", "eventId", "eventId"],
+  [
+    "playerMindCase",
+    "player_mind_case_player_id",
+    "playerCaseKey",
+    "playerCaseKey",
+  ],
+  [
+    "playerMindFact",
+    "player_mind_fact_player_id",
+    "playerFactKey",
+    "playerFactKey",
+  ],
+  [
+    "playerMindHypothesis",
+    "player_mind_hypothesis_player_id",
+    "playerHypothesisKey",
+    "playerHypothesisKey",
+  ],
+  [
+    "playerRedeemedCode",
+    "player_redeemed_code_player_id",
+    "redemptionId",
+    "redemptionId",
+  ],
+  [
+    "playerEquipment",
+    "player_equipment_player_id",
+    "equipmentKey",
+    "equipmentKey",
+  ],
+] as const;
 
-  if (hasAnyRowsForSender(ctx.db.vnSession.iter(), senderHex)) {
-    return true;
+export const hasPlayerGameplayProgress = (ctx: any): boolean => {
+  for (const [tableName, indexAccessorName] of PLAYER_SCOPED_PROGRESS_TABLES) {
+    if (hasRowsByIndex(ctx.db[tableName], indexAccessorName, ctx.sender)) {
+      return true;
+    }
   }
-  if (hasAnyRowsForSender(ctx.db.vnSkillCheckResult.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerFlag.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerVar.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerInventory.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerEvidence.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerQuest.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerRelationship.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerNpcState.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerNpcFavor.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerFactionSignal.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerAgencyCareer.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerRumorState.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerUnlockGroup.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerMapEvent.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerMindCase.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerMindFact.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerMindHypothesis.iter(), senderHex)) {
-    return true;
-  }
-  if (hasAnyRowsForSender(ctx.db.playerRedeemedCode.iter(), senderHex)) {
+
+  if (ctx.db.playerAgencyCareer.playerId.find(ctx.sender)) {
     return true;
   }
 
@@ -304,122 +374,24 @@ export const hasPlayerGameplayProgress = (ctx: any): boolean => {
 };
 
 export const resetPlayerGameplayState = (ctx: any): void => {
-  const senderHex = ctx.sender.toHexString();
-
-  for (const row of [...ctx.db.vnSession.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.vnSession.sessionKey.delete(row.sessionKey);
+  for (const [
+    tableName,
+    indexAccessorName,
+    primaryKeyAccessorName,
+    primaryKeyColumn,
+  ] of PLAYER_SCOPED_PROGRESS_TABLES) {
+    const tableView = ctx.db[tableName];
+    for (const row of rowsByIndex<Record<string, unknown>>(
+      tableView,
+      indexAccessorName,
+      ctx.sender,
+    )) {
+      tableView[primaryKeyAccessorName].delete(row[primaryKeyColumn]);
     }
   }
 
-  for (const row of [...ctx.db.vnSkillCheckResult.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.vnSkillCheckResult.resultKey.delete(row.resultKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerFlag.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerFlag.flagId.delete(row.flagId);
-    }
-  }
-
-  for (const row of [...ctx.db.playerVar.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerVar.varId.delete(row.varId);
-    }
-  }
-
-  for (const row of [...ctx.db.playerInventory.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerInventory.inventoryKey.delete(row.inventoryKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerEvidence.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerEvidence.evidenceKey.delete(row.evidenceKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerQuest.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerQuest.questKey.delete(row.questKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerRelationship.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerRelationship.relationshipKey.delete(row.relationshipKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerNpcState.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerNpcState.npcStateKey.delete(row.npcStateKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerNpcFavor.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerNpcFavor.favorKey.delete(row.favorKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerFactionSignal.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerFactionSignal.signalKey.delete(row.signalKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerAgencyCareer.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerAgencyCareer.playerId.delete(row.playerId);
-    }
-  }
-
-  for (const row of [...ctx.db.playerRumorState.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerRumorState.rumorStateKey.delete(row.rumorStateKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerUnlockGroup.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerUnlockGroup.unlockKey.delete(row.unlockKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerMapEvent.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerMapEvent.eventId.delete(row.eventId);
-    }
-  }
-
-  for (const row of [...ctx.db.playerMindCase.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerMindCase.playerCaseKey.delete(row.playerCaseKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerMindFact.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerMindFact.playerFactKey.delete(row.playerFactKey);
-    }
-  }
-
-  for (const row of [...ctx.db.playerMindHypothesis.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerMindHypothesis.playerHypothesisKey.delete(
-        row.playerHypothesisKey,
-      );
-    }
-  }
-
-  for (const row of [...ctx.db.playerRedeemedCode.iter()]) {
-    if (isRowOwnedBySender(row, senderHex)) {
-      ctx.db.playerRedeemedCode.redemptionId.delete(row.redemptionId);
-    }
+  if (ctx.db.playerAgencyCareer.playerId.find(ctx.sender)) {
+    ctx.db.playerAgencyCareer.playerId.delete(ctx.sender);
   }
 
   upsertLocation(ctx, "loc_intro");
@@ -482,6 +454,20 @@ export const upsertFlag = (
 
 export const getVar = (ctx: ReducerContextLike, key: string): number => {
   return getVarForPlayer(ctx, senderOf(ctx) as { toHexString(): string }, key);
+};
+
+export const getVars = (ctx: ReducerContextLike): Record<string, number> =>
+  getVarsForPlayer(ctx, senderOf(ctx) as { toHexString(): string });
+
+export const resolveActiveOriginId = (
+  ctx: ReducerContextLike,
+): string | null => {
+  for (const profile of Object.values(ORIGIN_CORE_PROFILES)) {
+    if (getFlag(ctx, profile.flagKey)) {
+      return profile.id;
+    }
+  }
+  return null;
 };
 
 export const upsertVar = (

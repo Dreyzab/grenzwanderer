@@ -2,6 +2,7 @@
 id: char_chemist_teacher
 tags: [character, functional]
 tier: functional
+design_only: true
 runtime_character_id: chemist_teacher
 faction: fct_college_of_reason
 aliases: ["Konrad Vossler"]

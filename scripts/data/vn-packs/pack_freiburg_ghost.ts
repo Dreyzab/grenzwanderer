@@ -28,21 +28,23 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
     id: "scene_estate_intro",
     scenarioId: "sandbox_ghost_pilot",
     sourcePath: "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_estate_intro.md",
+    titleOverride: "Возвращение в Гранд-Эстейт",
+    bodyOverride:
+      "**[Narrator]**:\nОтчёт для Бюро запечатан, но ты возвращаешься к воротам Гранд-Эстейт по собственной воле. Завеса здесь так и не легла ровно: за делом призрака пряталось что-то ещё — слишком земное, чтобы быть наваждением.\n\nХолодный сад встречает тебя тишиной и запахом сырого камня. Особняк смотрит на окраину Фрайбурга тёмными окнами, будто всё ещё ждёт хозяйку.\n\n**[inner_guide]**:\nМы здесь не для того, чтобы изгонять. Мы здесь, чтобы понять, кто прятался за холодом.",
     backgroundUrl: "/assets/vn/bg/estate_entrance.webp",
     onEnter: [
-      { type: "add_tension", amount: 2 },
       { type: "set_quest_stage", questId: "quest_ghost", stage: 1 },
     ],
     choices: [
       {
         id: "GHOST_INVESTIGATE",
-        text: "Begin estate investigation",
+        text: "Войти и начать осмотр особняка.",
         choiceType: "action",
         nextNodeId: "scene_estate_intro_beat1",
       },
       {
         id: "GHOST_ABORT",
-        text: "File a superficial report",
+        text: "Ограничиться поверхностным отчётом.",
         choiceType: "flavor",
         nextNodeId: "scene_conclusion_false",
       },
@@ -53,10 +55,13 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
     scenarioId: "sandbox_ghost_pilot",
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_estate_intro_beat1.md",
+    titleOverride: "Холодный порог",
+    bodyOverride:
+      "**[Narrator]**:\nГлавный зал тонет в полумраке. Сквозняк тянет от дальней стены — там, где по бумагам Бюро нет ни окон, ни дверей. Воздух пахнет воском, пылью и едва уловимой медью.\n\nТы делаешь первый шаг внутрь. Половицы отзываются так, будто кто-то уже шёл здесь этой ночью — и старался ступать тихо.",
     choices: [
       {
         id: "GHOST_BEAT1_CONTINUE",
-        text: "Proceed to guild orientation",
+        text: "Вспомнить протокол Бюро, прежде чем идти дальше.",
         nextNodeId: "scene_guild_tutorial",
       },
     ],
@@ -67,10 +72,13 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
     scenarioId: "sandbox_ghost_pilot",
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_guild_tutorial.md",
+    titleOverride: "Протокол Бюро",
+    bodyOverride:
+      "**[Narrator]**:\nТы вспоминаешь, чему учил Мастер: сначала отдели подлинный след завесы от рукотворного. Призрак оставляет холод и память; человек оставляет следы, замки и долги.\n\nЗдесь, похоже, есть и то, и другое — и кто-то очень хотел, чтобы их перепутали.",
     choices: [
       {
         id: "GHOST_TUTORIAL_CONTINUE",
-        text: "Continue briefing",
+        text: "Продолжить.",
         nextNodeId: "scene_guild_tutorial_beat1",
       },
     ],
@@ -80,10 +88,13 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
     scenarioId: "sandbox_ghost_pilot",
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_guild_tutorial_beat1.md",
+    titleOverride: "Две природы холода",
+    bodyOverride:
+      "**[Narrator]**:\nДве природы холода переплелись в этом доме. Одна идёт из-за завесы, другая — из подвалов, где сквозняк слишком ровный для случайного.\n\nПора собрать следы, пока особняк не решил, что гостья задержалась.",
     choices: [
       {
         id: "GHOST_TUTORIAL_INVESTIGATE",
-        text: "Start evidence sweep",
+        text: "Начать сбор улик.",
         nextNodeId: "scene_evidence_collection",
       },
     ],
@@ -96,6 +107,9 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
     activeSpeakers: ["attr_intellect", "attr_perception", "attr_spirit"],
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_evidence_collection.md",
+    titleOverride: "Сбор следов",
+    bodyOverride:
+      "**[Narrator]**:\nКомнаты Гранд-Эстейт хранят свои улики порознь: книжный шкаф, который стоит чуть дальше от стены, чем должен; температурная аномалия у кладовой; матовый налёт на полу, какого не оставляет ни одна свеча.\n\nКаждый след тянет в свою сторону. Завеса или умысел — ты ещё можешь выбрать, что искать первым.",
     passiveChecks: [
       {
         id: "check_ghost_cold_draft",
@@ -112,7 +126,7 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
     choices: [
       {
         id: "GHOST_EVIDENCE_BOOKSHELF",
-        text: "Inspect bookshelf",
+        text: "Осмотреть книжный шкаф.",
         choiceType: "inquiry",
         nextNodeId: "scene_evidence_collection_beat1",
         effects: [
@@ -127,7 +141,7 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
       },
       {
         id: "GHOST_EVIDENCE_THERMOMETER",
-        text: "Check the temperature anomaly",
+        text: "Проверить температурную аномалию.",
         choiceType: "inquiry",
         nextNodeId: "scene_evidence_collection_beat1",
         skillCheck: {
@@ -199,7 +213,7 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
       },
       {
         id: "GHOST_EVIDENCE_FLOOR",
-        text: "Inspect floor traces",
+        text: "Изучить следы на полу.",
         choiceType: "inquiry",
         nextNodeId: "scene_evidence_collection_beat1",
         effects: [
@@ -281,47 +295,47 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
           "**[Narrator]**:\nThe cold remembers a brass-bound ledger. Friedrich's testimony lines up here too: the same partners, the same night the vault was sealed. The pages you carry in memory now answer the room.",
       },
       {
-        id: "GHOST_WITCH_KARL_SERVICE_CORRIDOR",
-        text: "[Service Corridor] Walk the pantry route Karl trusted you with.",
+        id: "GHOST_WITCH_SASHA_SERVICE_CORRIDOR",
+        text: "[Service Corridor] Walk the pantry route Sasha trusted you with.",
         choiceType: "inquiry",
         nextNodeId: "scene_evidence_collection_beat1",
         visibleIfAll: [
           { type: "flag_equals", key: "origin_witch", value: true },
-          { type: "flag_equals", key: "flag_witch_helped_karl_hbf", value: true },
-          { type: "flag_equals", key: "flag_witch_attacked_karl", value: false },
+          { type: "flag_equals", key: "flag_witch_helped_sasha_hbf", value: true },
+          { type: "flag_equals", key: "flag_witch_attacked_sasha", value: false },
         ],
         effects: [
           {
             type: "grant_evidence",
-            evidenceId: "ev_karl_service_corridor_testimony",
+            evidenceId: "ev_sasha_service_corridor_testimony",
           },
           {
             type: "set_flag",
-            key: "ghost_session_hook_karl_smuggling_key",
+            key: "ghost_session_hook_sasha_smuggling_key",
             value: true,
           },
         ],
         inlineText:
-          "**[Narrator]**:\nKarl's directions hold. The pantry door opens onto the smuggling corridor he keeps quiet about — a clean path from cellar to yard that someone living used the night Friedrich died.",
+          "**[Narrator]**:\nSasha's directions hold. The pantry door opens onto the smuggling corridor he keeps quiet about — a clean path from cellar to yard that someone living used the night Friedrich died.",
       },
       {
-        id: "GHOST_WITCH_KARL_PANIC_TRACE",
-        text: "[Panic Trace] Read the corridor where Karl was fed on.",
+        id: "GHOST_WITCH_SASHA_PANIC_TRACE",
+        text: "[Panic Trace] Read the corridor where Sasha was fed on.",
         choiceType: "flavor",
         nextNodeId: "scene_evidence_collection_beat1",
         visibleIfAll: [
           { type: "flag_equals", key: "origin_witch", value: true },
-          { type: "flag_equals", key: "flag_witch_attacked_karl", value: true },
+          { type: "flag_equals", key: "flag_witch_attacked_sasha", value: true },
         ],
         effects: [
           {
             type: "set_flag",
-            key: "ghost_karl_testimony_compromised",
+            key: "ghost_sasha_testimony_compromised",
             value: true,
           },
         ],
         inlineText:
-          "**[Narrator]**:\nThe service corridor still smells of Karl's fear. His silence will read as a ghost story to anyone who asks — and his testimony, if it ever comes, will carry the bite mark with it.",
+          "**[Narrator]**:\nThe service corridor still holds the shape of Sasha's silence. He will not make a ghost story out of what happened, but his testimony, if it ever comes, will carry the bite mark with it.",
       },
     ],
   },
@@ -330,15 +344,18 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
     scenarioId: "sandbox_ghost_pilot",
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_evidence_collection_beat1.md",
+    titleOverride: "Узор проступает",
+    bodyOverride:
+      "**[Narrator]**:\nСледы начинают складываться в узор. Холод подлинный — но кто-то живой проложил по нему свой маршрут, и этот маршрут ведёт глубже официального отчёта.\n\nХватит ли собранного, чтобы назвать имя?",
     choices: [
       {
         id: "GHOST_COLLECT_MORE",
-        text: "Collect more traces before conclusion",
+        text: "Собрать ещё следы, прежде чем делать вывод.",
         nextNodeId: "scene_evidence_collection",
       },
       {
         id: "GHOST_CONCLUSION_TRUE",
-        text: "Build a full accusation",
+        text: "Собрать полное обвинение.",
         nextNodeId: "scene_conclusion_true",
         conditions: [
           {
@@ -359,7 +376,7 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
       },
       {
         id: "GHOST_CONCLUSION_FALSE",
-        text: "File it as folklore",
+        text: "Списать всё на фольклор.",
         nextNodeId: "scene_conclusion_false",
         effects: [
           { type: "set_quest_stage", questId: "quest_ghost", stage: 2 },
@@ -372,6 +389,9 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
     scenarioId: "sandbox_ghost_pilot",
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_conclusion_false.md",
+    titleOverride: "Сквозняк из тоннелей",
+    bodyOverride:
+      "**[Narrator]**:\nТы вскрываешь механизм за книжным шкафом. Из проёма бьёт волна холодного воздуха — снизу, из тоннелей. Внутри штабелями стоят ящики контрабандного бренди. Завесу можно списать на сквозняк и фольклор, и в отчёте это будет выглядеть... аккуратно.",
     terminal: true,
     choices: [],
     onEnter: [{ type: "set_flag", key: "ghost_truth_proven", value: false }],
@@ -381,6 +401,9 @@ export const PACK_FREIBURG_GHOST_NODES: NodeBlueprint[] = [
     scenarioId: "sandbox_ghost_pilot",
     sourcePath:
       "40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_conclusion_true.md",
+    titleOverride: "Обе половины дела",
+    bodyOverride:
+      "**[Narrator]**:\nТы предъявляешь Баронессе обе половины правды. Холод и эктоплазма настоящие — дух так и не покинул особняк. Но за книжным шкафом скрыт механизм, а под домом — тоннели, по которым шёл контрабандный поток. Призрак был настоящим. И он был удобным прикрытием.",
     terminal: true,
     choices: [],
     onEnter: [

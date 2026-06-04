@@ -14,12 +14,18 @@ import {
   getRelationshipValue,
   getRumorStatus,
   getSkillXpForPlayer,
+  getVars,
   getVar,
+  resolveActiveOriginId,
 } from "./player";
 import {
   isSkillRankAtLeast,
   resolveSkillRank,
 } from "../../../../src/shared/game/skillProgression";
+import {
+  resolveCoreCharacteristicState,
+  resolveIndicatorRank,
+} from "../../../../src/shared/game/characterProgression";
 import {
   innerVoiceRankVarKeyFor,
   isSkillVoiceId,
@@ -145,7 +151,13 @@ const evaluateVnCondition = (ctx: any, condition: VnCondition): boolean => {
     return currentRankOrder >= getCareerRankOrder(ctx, condition.rankId);
   }
   if (condition.type === "voice_level_gte") {
-    return Math.floor(getVar(ctx, condition.voiceId)) >= condition.value;
+    if (!isSkillVoiceId(condition.voiceId)) {
+      return false;
+    }
+    return (
+      resolveSkillRank(getSkillXpForPlayer(ctx, ctx.sender, condition.voiceId))
+        .rankIndex >= condition.value
+    );
   }
   if (condition.type === "inner_voice_rank_gte") {
     return (
@@ -158,6 +170,21 @@ const evaluateVnCondition = (ctx: any, condition: VnCondition): boolean => {
       resolveSkillRank(getSkillXpForPlayer(ctx, ctx.sender, condition.skillId))
         .rank,
       condition.rank,
+    );
+  }
+  if (condition.type === "core_gte") {
+    return (
+      resolveCoreCharacteristicState(
+        getVars(ctx),
+        condition.coreId,
+        resolveActiveOriginId(ctx),
+      ).value >= condition.value
+    );
+  }
+  if (condition.type === "indicator_rank_gte") {
+    return (
+      resolveIndicatorRank(getVars(ctx), condition.indicatorId) >=
+      condition.value
     );
   }
   if (condition.type === "spirit_state_is") {

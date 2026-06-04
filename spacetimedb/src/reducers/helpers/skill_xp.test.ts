@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   createReducerTestContext,
+  insertFlag,
   insertVar,
   playerKey,
 } from "./__tests__/serverTestContext";
@@ -31,6 +32,12 @@ describe("skill XP backend helpers", () => {
       ctx.db.playerVar.varId.find(playerKey(ctx.sender, "skill_xp_attr_logic")),
     ).toMatchObject({
       key: "skill_xp_attr_logic",
+      floatValue: 25,
+    });
+    expect(
+      ctx.db.playerVar.varId.find(playerKey(ctx.sender, "core_mind_xp")),
+    ).toMatchObject({
+      key: "core_mind_xp",
       floatValue: 25,
     });
   });
@@ -102,6 +109,31 @@ describe("skill XP backend helpers", () => {
     ).toMatchObject({
       key: "skill_xp_attr_logic",
       floatValue: 800,
+    });
+  });
+
+  it("applies linked core and origin-family XP multipliers", () => {
+    const ctx = createReducerTestContext();
+    insertFlag(ctx, "origin_detective", true);
+    insertVar(ctx, "core_mind_base", 9);
+    insertVar(ctx, "core_mind_potential", 10);
+
+    const award = awardSkillCheckPracticeXp(ctx, {
+      activeChoice: true,
+      voiceId: "attr_logic",
+      outcomeGrade: "success",
+    });
+
+    expect(award).toMatchObject({
+      skillId: "attr_logic",
+      amount: 36,
+      totalXp: 36,
+    });
+    expect(
+      ctx.db.playerVar.varId.find(playerKey(ctx.sender, "core_mind_xp")),
+    ).toMatchObject({
+      key: "core_mind_xp",
+      floatValue: 25,
     });
   });
 

@@ -33,6 +33,11 @@ interface UseVnSurfaceInteractionParams {
   handleChoiceClick: (choice: VnChoice, isLocked: boolean) => void;
   handleStartScenario: () => Promise<void>;
   isTyping: boolean;
+  /**
+   * When true, all tap-to-continue interactions are suppressed. Used when
+   * a modal layer (e.g. the hub overlay) is open and must own the tap.
+   */
+  isBlocked?: boolean;
   markInteractionHandled: () => void;
   myFlags: Record<string, boolean>;
   mySession: unknown;
@@ -60,6 +65,7 @@ export function useVnSurfaceInteraction({
   handleChoiceClick,
   handleStartScenario,
   isTyping,
+  isBlocked = false,
   markInteractionHandled,
   myFlags,
   mySession,
@@ -126,6 +132,31 @@ export function useVnSurfaceInteraction({
   ]);
 
   const handleSurfaceTap = useCallback(() => {
+    if (isBlocked) {
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7294/ingest/ef318824-e957-404b-968c-a90292600258",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Debug-Session-Id": "b6c52c",
+          },
+          body: JSON.stringify({
+            sessionId: "b6c52c",
+            runId: "post-fix",
+            hypothesisId: "E",
+            location: "useVnSurfaceInteraction.ts:handleSurfaceTap",
+            message: "surface tap blocked (hub overlay)",
+            data: { nodeId: currentNode?.id ?? null },
+            timestamp: Date.now(),
+          }),
+        },
+      ).catch(() => {});
+      // #endregion
+      return;
+    }
+
     const now = Date.now();
     const elapsedSinceTypingFinish = now - typingFinishedAtRef.current;
 
@@ -159,12 +190,10 @@ export function useVnSurfaceInteraction({
     }
 
     if (currentNode?.advanceOnVideoEnd && currentNode.backgroundVideoUrl) {
-      if (videoEndedRef.current) {
+      if (!videoEndedRef.current) {
+        handleVideoEnded();
         return;
       }
-
-      handleVideoEnded();
-      return;
     }
 
     if (
@@ -182,6 +211,33 @@ export function useVnSurfaceInteraction({
         !autoContinueChoice;
 
       if (shouldRevealLogStateOnly) {
+        // #region agent log
+        fetch(
+          "http://127.0.0.1:7294/ingest/ef318824-e957-404b-968c-a90292600258",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Debug-Session-Id": "b6c52c",
+            },
+            body: JSON.stringify({
+              sessionId: "b6c52c",
+              runId: "post-fix",
+              hypothesisId: "E",
+              location: "useVnSurfaceInteraction.ts:handleSurfaceTap",
+              message: "log layout advance segment",
+              data: {
+                nodeId: currentNode?.id ?? null,
+                segmentIndex: narrativeLog.state.currentSegmentIndex,
+                segmentCount: narrativeLog.state.currentNodeSegments.length,
+                isFinalSegment,
+                choiceDisplayItemCount,
+              },
+              timestamp: Date.now(),
+            }),
+          },
+        ).catch(() => {});
+        // #endregion
         narrativeLog.advanceSegment();
         markInteractionHandled();
         return;
@@ -194,6 +250,31 @@ export function useVnSurfaceInteraction({
     }
 
     if (!autoContinueChoice || !currentNode) {
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7294/ingest/ef318824-e957-404b-968c-a90292600258",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Debug-Session-Id": "b6c52c",
+          },
+          body: JSON.stringify({
+            sessionId: "b6c52c",
+            runId: "post-fix",
+            hypothesisId: "C",
+            location: "useVnSurfaceInteraction.ts:handleSurfaceTap",
+            message: "no auto-continue on surface tap",
+            data: {
+              nodeId: currentNode?.id ?? null,
+              choiceDisplayItemCount,
+              layout: effectiveNarrativeLayout,
+            },
+            timestamp: Date.now(),
+          }),
+        },
+      ).catch(() => {});
+      // #endregion
       return;
     }
 
@@ -209,6 +290,30 @@ export function useVnSurfaceInteraction({
       choiceEvaluationContext,
     );
     if (!isAvailable) {
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7294/ingest/ef318824-e957-404b-968c-a90292600258",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Debug-Session-Id": "b6c52c",
+          },
+          body: JSON.stringify({
+            sessionId: "b6c52c",
+            runId: "post-fix",
+            hypothesisId: "C",
+            location: "useVnSurfaceInteraction.ts:handleSurfaceTap",
+            message: "auto-continue not available",
+            data: {
+              nodeId: currentNode.id,
+              autoContinueId: autoContinueChoice.id,
+            },
+            timestamp: Date.now(),
+          }),
+        },
+      ).catch(() => {});
+      // #endregion
       return;
     }
 
@@ -225,6 +330,7 @@ export function useVnSurfaceInteraction({
     handleChoiceClick,
     handleStartScenario,
     handleVideoEnded,
+    isBlocked,
     isTyping,
     markInteractionHandled,
     myFlags,

@@ -2,6 +2,7 @@
 id: char_narrator
 tags: [character, system]
 tier: minor
+design_only: true
 runtime_character_id: narrator
 ---
 

@@ -8,9 +8,8 @@ const mocks = vi.hoisted(() => ({
   useReducerMock: vi.fn(),
   useIdentityMock: vi.fn(),
   usePlayerVarsMock: vi.fn(),
+  useMindPalaceCatalogMock: vi.fn(),
   tablesMock: {
-    mindCase: Symbol("mindCase"),
-    mindHypothesis: Symbol("mindHypothesis"),
     myMindFacts: Symbol("myMindFacts"),
     myMindHypotheses: Symbol("myMindHypotheses"),
     myMindCases: Symbol("myMindCases"),
@@ -40,6 +39,10 @@ vi.mock("../../shared/spacetime/bindings", () => ({
   reducers: mocks.reducersMock,
 }));
 
+vi.mock("../../shared/content/useMindPalaceCatalog", () => ({
+  useMindPalaceCatalog: () => mocks.useMindPalaceCatalogMock(),
+}));
+
 vi.mock("../mindboard/MindBoardCanvas", () => ({
   MindBoardCanvas: ({ caseId }: { caseId: string }) => (
     <div data-testid="mind-board-canvas">{caseId}</div>
@@ -61,27 +64,20 @@ describe("MindPalacePanel", () => {
       return vi.fn().mockResolvedValue(undefined);
     });
 
+    mocks.useMindPalaceCatalogMock.mockReturnValue({
+      mindCases: [{ caseId: "case_1", title: "Case One", isActive: true }],
+      mindHypotheses: [
+        {
+          caseId: "case_1",
+          hypothesisId: "hyp_1",
+          text: "Hypothesis",
+          requiredFactIdsJson: '["fact_1"]',
+          requiredVarsJson: '[{"key":"attr_logic","op":"gte","value":2}]',
+        },
+      ],
+    });
+
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tablesMock.mindCase) {
-        return [
-          [{ caseId: "case_1", title: "Case One", isActive: true }],
-          true,
-        ];
-      }
-      if (table === mocks.tablesMock.mindHypothesis) {
-        return [
-          [
-            {
-              caseId: "case_1",
-              hypothesisId: "hyp_1",
-              text: "Hypothesis",
-              requiredFactIdsJson: '["fact_1"]',
-              requiredVarsJson: '[{"key":"attr_logic","op":"gte","value":2}]',
-            },
-          ],
-          true,
-        ];
-      }
       if (table === mocks.tablesMock.myMindFacts) {
         return [[{ caseId: "case_1", factId: "fact_1" }], true];
       }
@@ -105,16 +101,12 @@ describe("MindPalacePanel", () => {
   it("starts a case and renders status line", async () => {
     const user = userEvent.setup();
 
+    mocks.useMindPalaceCatalogMock.mockReturnValue({
+      mindCases: [{ caseId: "case_1", title: "Case One", isActive: true }],
+      mindHypotheses: [],
+    });
+
     mocks.useTableMock.mockImplementation((table: symbol) => {
-      if (table === mocks.tablesMock.mindCase) {
-        return [
-          [{ caseId: "case_1", title: "Case One", isActive: true }],
-          true,
-        ];
-      }
-      if (table === mocks.tablesMock.mindHypothesis) {
-        return [[], true];
-      }
       if (table === mocks.tablesMock.myMindFacts) {
         return [[], true];
       }

@@ -26,6 +26,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   characterName,
   narrativeText,
   choicesSlot,
+  hasVisibleChoices,
   backgroundImageUrl,
   backgroundVideoUrl,
   backgroundVideoPosterUrl,
@@ -35,6 +36,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   narrativePresentation,
   logState,
   logSnapshot,
+  playerProfile,
   letterOverlayRevealDelayMs,
   onChoiceSelect,
   isTyping,
@@ -47,6 +49,10 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   onSurfaceTap,
   onVideoEnded,
   videoPlaybackComplete,
+  suppressImmersiveSurfaceOverlay = false,
+  tokenStateByPayload,
+  showTutorialTooltip = false,
+  onDismissTutorialTooltip,
   children,
 }) => {
   const effectiveNarrativeLayout =
@@ -84,14 +90,23 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   const [letterRevealSettled, setLetterRevealSettled] =
     useState(!isLetterOverlay);
 
+  /**
+   * Journal scenes open on the background (admire beat) and reveal the dock after a
+   * short dwell — or immediately on tap. Content may override via the same delay field.
+   */
+  const LOG_AUTO_REVEAL_MS = 2000;
+  const resolvedAutoRevealMs =
+    letterOverlayRevealDelayMs ??
+    (isLogLayout && !needsSoundPrompt ? LOG_AUTO_REVEAL_MS : undefined);
+
   const sceneTransition = useVnSceneTransition({
     visualKey: backgroundVisualKey,
     layout: effectiveNarrativeLayout,
     hasImage: Boolean(backgroundImageUrl),
     hasVideo: Boolean(backgroundVideoUrl),
     needsSoundPrompt,
-    revealMode: letterOverlayRevealDelayMs == null ? "tap" : "auto",
-    autoRevealAfterMs: letterOverlayRevealDelayMs,
+    revealMode: resolvedAutoRevealMs == null ? "tap" : "auto",
+    autoRevealAfterMs: resolvedAutoRevealMs,
   });
   const {
     isChromeRevealed: chromeRevealed,
@@ -154,9 +169,6 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
       revealChrome();
       return;
     }
-    if (isLetterOverlay && !displayedLetterRevealSettled) {
-      return;
-    }
     if (isLetterOverlay && isTyping) {
       typedTextRef?.current?.finish();
       return;
@@ -166,7 +178,6 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     chromeRevealed,
     isLetterOverlay,
     isTyping,
-    displayedLetterRevealSettled,
     typedTextRef,
     onSurfaceTap,
     revealChrome,
@@ -182,6 +193,15 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     isSplitLayout &&
     !chromeRevealed &&
     (!needsSoundPrompt || soundPromptPhase === "playing");
+
+  const showImmersiveSurfaceOverlay =
+    isFullscreen && !isLogLayout && !suppressImmersiveSurfaceOverlay;
+
+  const showNarrativeDock =
+    !isLogLayout &&
+    !isLetterOverlay &&
+    chromeRevealed &&
+    (!isFullscreen || Boolean(narrativeText.trim()) || Boolean(choicesSlot));
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-black font-serif text-stone-200 select-none">
@@ -280,9 +300,13 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         <>
           <VnLetterNarrativeLayer
             chromeRevealed={chromeRevealed}
+            hasVisibleChoices={hasVisibleChoices}
             narrativeText={narrativeText}
             t={t}
             typedTextRef={typedTextRef}
+            tokenStateByPayload={tokenStateByPayload}
+            showTutorialTooltip={showTutorialTooltip}
+            onDismissTutorialTooltip={onDismissTutorialTooltip}
             onNarrativeComplete={onNarrativeComplete}
             onSurfaceInteraction={handleSurfaceInteraction}
             onTokenClick={onTokenClick}
@@ -292,6 +316,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
           />
           {chromeRevealed &&
           displayedLetterRevealSettled &&
+          hasVisibleChoices &&
           choicesSlot &&
           !isTyping ? (
             <div
@@ -310,6 +335,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
           sceneGroupId={sceneGroupId ?? null}
           state={logState}
           snapshot={logSnapshot ?? null}
+          playerProfile={playerProfile}
           typedTextRef={typedTextRef}
           choicesSlot={choicesSlot}
           onTypingChange={onTypingChange}
@@ -321,7 +347,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         />
       ) : null}
       <AnimatePresence initial={false}>
-        {!isLogLayout && !isFullscreen && !isLetterOverlay && chromeRevealed ? (
+        {showNarrativeDock ? (
           <VnSplitNarrativeDock
             key={backgroundVisualKey}
             characterId={characterId}
@@ -341,7 +367,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         ) : null}
       </AnimatePresence>
 
-      {isImmersive && !isLetterOverlay ? (
+      {showImmersiveSurfaceOverlay ? (
         <div
           className="absolute inset-0 z-128 cursor-pointer touch-manipulation"
           onClick={handleSurfaceInteraction}

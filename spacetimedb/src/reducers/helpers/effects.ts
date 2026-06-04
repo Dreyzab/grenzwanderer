@@ -12,6 +12,7 @@ import {
 } from "./keys";
 import { identityKey } from "./map_keys";
 import { spawnMapEventInternal } from "./map_runtime";
+import { getActiveSnapshot } from "./snapshot";
 import { emitTelemetry } from "./telemetry";
 import type { VnEffect } from "./types";
 import { discoverFactInternal } from "./mind_discover";
@@ -431,6 +432,55 @@ export const applyEffects = (
 
     if (effect.type === "release_spirit") {
       upsertSpiritStateInternal(ctx, effect.spiritId, "hostile");
+      continue;
+    }
+
+    if (effect.type === "set_hub_zone") {
+      // Hub zones live as mutually exclusive boolean flags keyed
+      // `hub_zone_current::<hubSchemaId>::<zoneId>`. We discover the full
+      // zone list from any node that references this hub schema, set the
+      // selected zone to true and all siblings to false. This keeps the
+      // state model inside the existing playerFlag table without a schema
+      // migration. The hook `useCurrentHubZone` mirrors this convention.
+      try {
+        const { snapshot } = getActiveSnapshot(ctx);
+        const referencingNode = snapshot.nodes.find(
+          (node) =>
+            node.interactionMode === "hub" &&
+            node.hubSchema?.id === effect.hubSchemaId,
+        );
+        const declaredZoneIds = referencingNode?.hubSchema?.zones.map(
+          (zone) => zone.id,
+        ) ?? [effect.zoneId];
+        if (!declaredZoneIds.includes(effect.zoneId)) {
+          // Fail-soft: still set the selected zone even if it's not yet
+          // declared (e.g. when content lags reducer). Sibling zones we
+          // know about will still be cleared.
+          declaredZoneIds.push(effect.zoneId);
+        }
+        for (const zoneId of declaredZoneIds) {
+          upsertFlag(
+            ctx,
+            `hub_zone_current::${effect.hubSchemaId}::${zoneId}`,
+            zoneId === effect.zoneId,
+          );
+        }
+        emitTelemetry(ctx, "hub_zone_changed", {
+          hubSchemaId: effect.hubSchemaId,
+          zoneId: effect.zoneId,
+          sourceType: source?.sourceType ?? "vn_effect",
+          sourceId:
+            source?.sourceId ?? `${effect.hubSchemaId}::${effect.zoneId}`,
+        });
+      } catch (error) {
+        // Snapshot unavailable (e.g. tests without content). Still record
+        // the chosen zone so downstream logic has something to read.
+        upsertFlag(
+          ctx,
+          `hub_zone_current::${effect.hubSchemaId}::${effect.zoneId}`,
+          true,
+        );
+      }
       continue;
     }
   }

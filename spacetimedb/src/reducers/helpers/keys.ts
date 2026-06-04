@@ -14,6 +14,7 @@ export {
   createBattleCombatantKey,
   createBattleHistoryKey,
   createBattleSessionKey,
+  createEquipmentKey,
   createEvidenceKey,
   createFactionSignalKey,
   createHypothesisFocusFlagKey,

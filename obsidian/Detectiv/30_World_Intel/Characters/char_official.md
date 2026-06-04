@@ -2,6 +2,7 @@
 id: char_official
 tags: [character, functional]
 tier: functional
+design_only: true
 runtime_character_id: city_lawyer
 faction: fct_city_chancellery
 aliases: ["Dr. Emil Hegenauer", "Official"]

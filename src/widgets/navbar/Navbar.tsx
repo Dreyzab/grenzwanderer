@@ -6,20 +6,10 @@ import {
   Users,
   User,
   QrCode,
-  Terminal,
   Compass,
   Swords,
   ChevronDown,
 } from "lucide-react";
-type TabId =
-  | "home"
-  | "vn"
-  | "character"
-  | "map"
-  | "mind_palace"
-  | "command"
-  | "battle"
-  | "dev";
 
 type TabOption<TTab extends string> = {
   id: TTab;
@@ -48,8 +38,6 @@ const getIconForTab = (idx: string) => {
       return <Swords {...props} />;
     case "mind_palace":
       return <QrCode {...props} />;
-    case "dev":
-      return <Terminal {...props} />;
     default:
       return <Compass {...props} />;
   }

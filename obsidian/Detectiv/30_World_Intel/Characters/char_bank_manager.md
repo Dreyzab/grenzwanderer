@@ -44,8 +44,17 @@ aliases: ["Heinrich Galdermann"]
 - **Stage 2** (after clue unlock): After ledger contradictions, pivots to intimidation and selective access.
 - **Stage 3** (finale): Faces Vance directly at the warehouse and either collapses into confession or bargains with partial truth while the mastermind stays hidden.
 
+## Visual Direction
+
+- Polished waistcoat, precise gestures, visible sweat at the hairline.
+- Keeps adjusting an official robbery report so it covers ledger material.
+- Desk props: half-empty smelling salts, damp blotter mark, too-neat document stack.
+- Avoid an exposed gas mask in the first office scene; it makes the lie too blunt too early.
+
 ## Scenes & Quests
 
+- Appears in: [[40_GameViewer/Case01/Plot/03_Bank/scene_bank_arrival|Bank arrival (runtime scene)]]
 - Appears in: [[10_Narrative/Scenes/node_case1_bank_investigation|node_case1_bank_investigation]]
 - Appears in: [[10_Narrative/Scenes/node_case1_finale_resolution_split|node_case1_finale_resolution_split]]
+- Evidence source: `ev_hartmann_internal`
 - Linked quest: [[00_Map_Room/qst_main_case_01|qst_main_case_01]]

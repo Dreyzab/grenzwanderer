@@ -2,6 +2,7 @@ import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getVnStrings } from "../../features/i18n/uiStrings";
+import { VnLetterNarrativeLayer } from "./VnLetterNarrativeLayer";
 import { VnNarrativePanel } from "./VnNarrativePanel";
 
 vi.mock("framer-motion", async () => {
@@ -213,6 +214,103 @@ describe("VnNarrativePanel scene transition", () => {
     expect(screen.getByText("Follow tracks")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Show dialogue and continue" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows narrative dock in fullscreen layout after chrome reveal", () => {
+    render(
+      <VnNarrativePanel
+        t={strings}
+        sceneId="scene-opening"
+        locationName="Train"
+        narrativeText="Witch opening line"
+        backgroundImageUrl="/opening.jpg"
+        narrativeLayout="fullscreen"
+        choicesSlot={<button type="button">Continue witch path</button>}
+        isTyping={false}
+      />,
+    );
+
+    expect(screen.queryByText("Witch opening line")).not.toBeInTheDocument();
+
+    fireEvent.load(screen.getByAltText("Background"));
+    fireEvent.click(document.querySelector(".z-128") as HTMLElement);
+
+    expect(screen.getByText("Witch opening line")).toBeInTheDocument();
+    expect(screen.getByText("Continue witch path")).toBeInTheDocument();
+  });
+
+  it("keeps a long letter scrollable above visible choices", () => {
+    const { container } = render(
+      <VnLetterNarrativeLayer
+        chromeRevealed
+        hasVisibleChoices
+        narrativeText={"Letter paragraph.\n\n".repeat(16)}
+        t={strings}
+        onSurfaceInteraction={vi.fn()}
+      />,
+    );
+
+    const letterLayer = container.firstElementChild as HTMLElement;
+    expect(letterLayer.className).toContain(
+      "pb-[calc(14rem+env(safe-area-inset-bottom))]",
+    );
+    expect(container.querySelector(".overflow-y-auto")).not.toBeNull();
+  });
+
+  it("renders the fact tutorial tooltip on letter overlays", () => {
+    const onDismissTutorialTooltip = vi.fn();
+    render(
+      <VnNarrativePanel
+        t={strings}
+        sceneId="letter-fact-tutorial"
+        locationName="Compartment"
+        narrativeText="Respectfully,\n[fact:Master:case01/master]"
+        backgroundImageUrl="/letter.jpg"
+        narrativeLayout="letter_overlay"
+        narrativePresentation="letter"
+        hasVisibleChoices={false}
+        isTyping={false}
+        letterOverlayRevealDelayMs={1}
+        showTutorialTooltip
+        onDismissTutorialTooltip={onDismissTutorialTooltip}
+      />,
+    );
+
+    fireEvent.load(screen.getByAltText("Background"));
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tooltip"));
+    expect(onDismissTutorialTooltip).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not mount the letter choices blocker for auto-continue only letters", () => {
+    const onSurfaceTap = vi.fn();
+    const { container } = render(
+      <VnNarrativePanel
+        t={strings}
+        sceneId="letter-auto-continue"
+        locationName="Compartment"
+        narrativeText="Letter body"
+        backgroundImageUrl="/letter.jpg"
+        narrativeLayout="letter_overlay"
+        narrativePresentation="letter"
+        choicesSlot={<button type="button">Invisible auto continue</button>}
+        hasVisibleChoices={false}
+        isTyping={false}
+        letterOverlayRevealDelayMs={1}
+        onSurfaceTap={onSurfaceTap}
+      />,
+    );
+
+    fireEvent.load(screen.getByAltText("Background"));
+    const letterLayer = container.querySelector(".z-110") as HTMLElement;
+    fireEvent.click(letterLayer);
+    fireEvent.click(letterLayer);
+
+    expect(onSurfaceTap).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByText("Invisible auto continue"),
     ).not.toBeInTheDocument();
   });
 

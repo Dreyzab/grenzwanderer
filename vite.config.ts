@@ -10,6 +10,28 @@ const __dirname = path.dirname(__filename);
 
 const buildMetadata = loadAppBuildMetadata(__dirname);
 
+const normalizeChunkPath = (id: string): string => id.replace(/\\/g, "/");
+
+const manualChunks = (id: string): string | undefined => {
+  const normalizedId = normalizeChunkPath(id);
+  if (
+    normalizedId.includes("/node_modules/mapbox-gl/") ||
+    normalizedId.includes("/node_modules/react-map-gl/")
+  ) {
+    return "mapbox";
+  }
+  if (
+    normalizedId.includes("/node_modules/three/") ||
+    normalizedId.includes("/node_modules/@react-three/fiber/")
+  ) {
+    return "three-vendor";
+  }
+  if (normalizedId.includes("/src/features/vn/ui/VnSkillCheckDiceScene.tsx")) {
+    return "vn-dice-scene";
+  }
+  return undefined;
+};
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "VITE_");
@@ -24,5 +46,13 @@ export default defineConfig(({ mode }) => {
       __APP_BUILD_TIMESTAMP__: JSON.stringify(buildMetadata.buildTimestamp),
     },
     plugins: [react(), tailwindcss()],
+    build: {
+      manifest: true,
+      rollupOptions: {
+        output: {
+          manualChunks,
+        },
+      },
+    },
   };
 });

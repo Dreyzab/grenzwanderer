@@ -6,6 +6,12 @@ import type {
 } from "../../../data/innerVoiceContract";
 import type { SkillRank } from "../game/skillProgression";
 import type { VnAiMode } from "../game/narrativeResources";
+import type {
+  CharacterIndicatorId,
+  CharacterSynergyId,
+  CoreCharacteristicId,
+  VnChoiceSource,
+} from "../game/characterProgression";
 
 export interface Speaker {
   id?: string;
@@ -44,6 +50,12 @@ export type VnConditionLeaf =
   | { type: "hypothesis_focus_is"; caseId: string; hypothesisId: string }
   | { type: "thought_state_is"; thoughtId: string; state: MindThoughtState }
   | { type: "career_rank_gte"; rankId: string }
+  | { type: "core_gte"; coreId: CoreCharacteristicId; value: number }
+  | {
+      type: "indicator_rank_gte";
+      indicatorId: CharacterIndicatorId;
+      value: number;
+    }
   | { type: "voice_level_gte"; voiceId: string; value: number }
   | { type: "inner_voice_rank_gte"; voiceId: InnerVoiceId; value: number }
   | { type: "skill_rank_gte"; skillId: SkillVoiceId; rank: SkillRank }
@@ -133,13 +145,19 @@ export type VnEffect =
   | { type: "subjugate_spirit"; spiritId: string }
   | { type: "destroy_spirit"; spiritId: string }
   | { type: "imprison_spirit"; spiritId: string; requiredItemId?: string }
-  | { type: "release_spirit"; spiritId: string };
+  | { type: "release_spirit"; spiritId: string }
+  | { type: "set_hub_zone"; hubSchemaId: string; zoneId: string };
 
 export type VnDiceMode = "d20" | "d10";
 
 export type VnCheckModifierSource =
   | "item"
   | "trait"
+  | "core"
+  | "origin"
+  | "indicator"
+  | "stress"
+  | "curse"
   | "voice_synergy"
   | "reputation"
   | "preparation";
@@ -181,6 +199,7 @@ export interface VnSkillCheck {
   isPassive?: boolean;
   showChancePercent?: boolean;
   minSkillRank?: SkillRank;
+  synergyId?: CharacterSynergyId;
   karmaSensitive?: boolean;
   modifiers?: VnCheckModifier[];
   outcomeModel?: VnOutcomeModel;
@@ -190,11 +209,24 @@ export interface VnSkillCheck {
   onSuccessWithCost?: VnSkillCheckCostBranch;
 }
 
+export interface VnChoiceHotspot {
+  /** References a VnHubZone.id inside the active node.hubSchema.zones[]. */
+  zoneId: string;
+  /** When true, the text label is hidden until the user hovers/focuses the hotspot. */
+  labelHidden?: boolean;
+  /**
+   * Disambiguation when several gated hotspot-choices target the same zone.
+   * Higher priority wins; ties fall back to declaration order.
+   */
+  priority?: number;
+}
+
 export interface VnChoice {
   id: string;
   text: string;
   nextNodeId: string;
   choiceType?: "action" | "inquiry" | "flavor";
+  choiceSource?: VnChoiceSource;
   allowCustomInput?: boolean;
   aiMode?: VnAiMode;
   providenceCost?: number;
@@ -213,6 +245,12 @@ export interface VnChoice {
     stance: "supports" | "opposes";
     text: string;
   }>;
+  /**
+   * When set, this choice is rendered as an interactive zone inside a hub
+   * overlay instead of a standard text button. The node must declare
+   * `interactionMode: "hub"` and reference the same zone in `hubSchema.zones`.
+   */
+  hotspot?: VnChoiceHotspot;
 }
 
 export type VnNarrativeLayout =
@@ -223,6 +261,55 @@ export type VnNarrativeLayout =
   | "thought_log";
 
 export type VnNarrativePresentation = "letter";
+
+/**
+ * Interaction surface for a node. "standard" keeps the classic VN flow
+ * (text body + text choices). "hub" enables an interactive schematic
+ * overlay where choices with `hotspot` are rendered as clickable zones.
+ */
+export type VnInteractionMode = "standard" | "hub";
+
+export interface VnHubZoneOccupant {
+  /** Character/NPC id from socialCatalog whose presence highlights this zone. */
+  npcId: string;
+  visibleIfAll?: VnCondition[];
+  visibleIfAny?: VnCondition[];
+}
+
+export interface VnHubZone {
+  /** Stable identifier referenced by `VnChoice.hotspot.zoneId`. */
+  id: string;
+  /** Tooltip / accessibility label, e.g. "Compartment" or "Dining car". */
+  label: string;
+  /**
+   * SVG path expressed in `VnHubSchema.viewBox` coordinates. Used as a
+   * focus-mask: hit-testing is performed against the path itself
+   * (pointerEvents="visiblePainted"), not its bounding box.
+   */
+  svgPath: string;
+  /** Optional dynamic occupant list for "who is here right now" badges. */
+  occupants?: VnHubZoneOccupant[];
+}
+
+export interface VnHubSchema {
+  /** Stable id of the schema across re-entries (e.g. "train_hub"). */
+  id: string;
+  /** Background art for the schema (PNG/SVG, side-view cutaway). */
+  imageUrl: string;
+  /**
+   * SVG viewBox string ("minX minY width height"). Required because all
+   * `VnHubZone.svgPath` strings are expressed in these coordinates.
+   */
+  viewBox: string;
+  /** Visual aspect ratio (width / height) used for overlay layout. */
+  aspectRatio: number;
+  /**
+   * Zone id used as the player's current position before the
+   * `hub_zone_current::<schemaId>::<zoneId>` flag set is first written.
+   */
+  defaultCurrentZoneId?: string;
+  zones: VnHubZone[];
+}
 
 export interface VnNode {
   id: string;
@@ -248,6 +335,13 @@ export interface VnNode {
   onEnter?: VnEffect[];
   preconditions?: VnCondition[];
   passiveChecks?: VnSkillCheck[];
+  /**
+   * Interaction surface for this node. Defaults to "standard" when omitted.
+   * When set to "hub", `hubSchema` is required and choices may carry `hotspot`.
+   */
+  interactionMode?: VnInteractionMode;
+  /** Required when `interactionMode === "hub"`. */
+  hubSchema?: VnHubSchema;
 }
 
 export interface VnScenario {
@@ -685,7 +779,8 @@ export type NpcServiceRole =
   | "archives"
   | "social_introduction"
   | "political_cover"
-  | "transport";
+  | "transport"
+  | "goods";
 
 export type MysticObservationKind =
   | "sighting"
@@ -750,6 +845,36 @@ export interface QuestCatalogEntry {
   stages: QuestStageContent[];
 }
 
+/**
+ * A single progressively-revealed paragraph of an NPC dossier. The base
+ * `summary` of an {@link NpcBio} is shown as soon as the NPC is met; each stage
+ * here is unlocked by a story flag as the player investigates.
+ */
+export interface NpcBioStage {
+  /**
+   * Flag that unlocks this entry. When omitted the stage is shown as soon as
+   * the NPC is met (same gate as the base summary). Reuse real progression
+   * flags (service unlocks, intro flags, case flags) so reveals actually fire.
+   */
+  revealFlag?: string;
+  /** Short label for the revealed insight, e.g. "First Impression". */
+  heading: string;
+  /** The revealed dossier paragraph. */
+  text: string;
+}
+
+/**
+ * Player-facing biography for an NPC, surfaced in the journal dossier section.
+ * Content lives on the runtime social catalog (not the Obsidian design notes)
+ * so it stays in sync with the contact roster that drives portraits and trust.
+ */
+export interface NpcBio {
+  /** One-line tagline shown as soon as the NPC is met. */
+  summary: string;
+  /** Deeper entries unlocked by story flags as the investigation progresses. */
+  stages?: NpcBioStage[];
+}
+
 export interface NpcRuntimeIdentity {
   id: string;
   displayName: string;
@@ -761,6 +886,8 @@ export interface NpcRuntimeIdentity {
   homePointId?: string;
   workPointId?: string;
   serviceIds?: string[];
+  /** Progressive player-facing dossier shown in the journal. */
+  bio?: NpcBio;
 }
 
 export interface NpcServiceDefinition {

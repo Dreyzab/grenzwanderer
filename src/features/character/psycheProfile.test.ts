@@ -84,5 +84,39 @@ describe("buildPsycheProfile", () => {
     expect(profile.innerCompass.axisYLabel).toBe("Altruistic");
     expect(profile.innerCompass.approachLabel).toBe("Initiating");
     expect(profile.innerCompass.voices[0]?.label).toBe("Leader");
+    expect(profile.innerCompass.dndAlignment.code).toBe("LG");
+    expect(profile.innerCompass.dndAlignment.label).toBe("Lawful Good");
+  });
+
+  it("resolves Chaotic Evil for a strongly egoistic individualist psyche", () => {
+    const profile = buildPsycheProfile({
+      flags: {},
+      vars: {
+        psyche_axis_x: -60,
+        psyche_axis_y: -70,
+        psyche_approach: 10,
+      },
+      factionCatalog: CANONICAL_FACTION_REGISTRY,
+      factionSignals: [],
+    });
+
+    expect(profile.innerCompass.dndAlignment.code).toBe("CE");
+    expect(profile.innerCompass.dndAlignment.label).toBe("Chaotic Evil");
+  });
+
+  it("resolves True Neutral for a balanced psyche", () => {
+    const profile = buildPsycheProfile({
+      flags: {},
+      vars: {
+        psyche_axis_x: 5,
+        psyche_axis_y: -5,
+        psyche_approach: 0,
+      },
+      factionCatalog: CANONICAL_FACTION_REGISTRY,
+      factionSignals: [],
+    });
+
+    expect(profile.innerCompass.dndAlignment.code).toBe("TN");
+    expect(profile.innerCompass.dndAlignment.label).toBe("True Neutral");
   });
 });

@@ -2,6 +2,7 @@
 id: char_corps_student
 tags: [character, generic]
 tier: generic
+design_only: true
 runtime_character_id: corps_student
 faction: fct_corps
 aliases: ["Friedrich (Corps Archetype)"]

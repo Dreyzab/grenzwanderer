@@ -84,9 +84,9 @@ export const publish_content = spacetimedb.reducer(
       );
     }
 
-    const activeVersion = [...ctx.db.contentVersion.iter()].find(
-      (row) => row.isActive,
-    );
+    const activeVersion = [
+      ...ctx.db.contentVersion.content_version_is_active.filter(true),
+    ][0];
 
     if (activeVersion && schemaVersion < activeVersion.schemaVersion) {
       throw new SenderError(
@@ -203,9 +203,9 @@ export const rollback_content = spacetimedb.reducer(
 
     ensureIdempotent(ctx, requestId, "rollback_content");
 
-    const targetVersion = [...ctx.db.contentVersion.iter()].find(
-      (entry) => entry.checksum === targetChecksum,
-    );
+    const targetVersion = [
+      ...ctx.db.contentVersion.content_version_checksum.filter(targetChecksum),
+    ][0];
     if (!targetVersion) {
       throw new SenderError("targetChecksum is unknown");
     }

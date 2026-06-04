@@ -1,4 +1,8 @@
 import { isSkillVoiceId } from "../../../data/innerVoiceContract";
+import {
+  buildOriginCoreVarEntries,
+  indicatorRankVarKeyFor,
+} from "../../shared/game/characterProgression";
 import { skillXpVarKeyFor } from "../../shared/game/skillProgression";
 import { WITCH_ORIGIN_DEFAULTS } from "../../shared/game/witchRules";
 import type { VnEffect } from "../vn/types";
@@ -532,14 +536,14 @@ export const originProfiles: OriginProfileDefinition[] = [
       },
     ],
     dossier: {
-      characterName: "Eleanor Vance",
-      age: 22,
+      characterName: "Eleonora Hartmann",
+      age: 45,
       gender: "female",
-      cityOrigin: "Freiburg (Altstadt / Secret Coven)",
+      cityOrigin: "Karlsruhe (Hochadel)",
       quote:
-        "The dead do not lie. They simply speak in a language the living have forgotten.",
+        "The curse does not sleep. It waits — and the price of silence is paid in blood.",
       avatarUrl: "/images/characters/witch_portrait/witch_portrait.png",
-      accentColor: "#5B21B6",
+      accentColor: "#8B1A2B",
     },
   },
 ];
@@ -559,6 +563,11 @@ export const getOriginProfileByFlags = (
 ): OriginProfileDefinition | null =>
   originProfiles.find((profile) => Boolean(flags[profile.originFlagKey])) ??
   null;
+
+const ORIGIN_TALKER_DEFAULT_RANK_BY_ID: Record<string, number> = {
+  aristocrat: 1,
+  journalist: 2,
+};
 
 export const buildOriginChoiceEffects = (
   profile: OriginProfileDefinition,
@@ -581,6 +590,18 @@ export const buildOriginChoiceEffects = (
         ]
       : [],
   ),
+  ...buildOriginCoreVarEntries(profile.id).map(
+    (entry): VnEffect => ({
+      type: "set_var",
+      key: entry.key,
+      value: entry.value,
+    }),
+  ),
+  {
+    type: "set_var",
+    key: indicatorRankVarKeyFor("talker"),
+    value: ORIGIN_TALKER_DEFAULT_RANK_BY_ID[profile.id] ?? 0,
+  },
   { type: "set_flag", key: profile.originFlagKey, value: true },
   { type: "set_flag", key: profile.flawFlagKey, value: true },
   { type: "set_flag", key: profile.signatureAbilityFlagKey, value: true },

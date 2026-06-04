@@ -11,7 +11,7 @@ import {
   type FreiburgEntryTarget,
 } from "../features/vn/entry/freiburgEntry";
 import { useHomeEntryVisualPrefetch } from "../features/vn/prefetch/useHomeEntryVisualPrefetch";
-import { parseSnapshot } from "../features/vn/vnContent";
+import { useActiveContentSnapshot } from "../shared/content/activeSnapshot";
 import { reducers, tables } from "../shared/spacetime/bindings";
 import { useIdentity } from "../shared/spacetime/useIdentity";
 import { ConfirmationModal } from "../shared/ui/ConfirmationModal";
@@ -124,7 +124,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
   const beginFreiburgOrigin = useReducer(reducers.beginFreiburgOrigin);
 
   const [versions, versionsReady] = useTable(tables.contentVersion);
-  const [snapshots, snapshotsReady] = useTable(tables.contentSnapshot);
+  const { snapshot, contentReady: snapshotReady } = useActiveContentSnapshot();
   const [sessions, sessionsReady] = useTable(tables.myVnSessions);
   const [flagsRows, flagsReady] = useTable(tables.myPlayerFlags);
   const [inventory, inventoryReady] = useTable(tables.myPlayerInventory);
@@ -160,25 +160,10 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
     [versions],
   );
 
-  const snapshot = useMemo(() => {
-    if (!activeVersion) {
-      return null;
-    }
-
-    const snapshotRow = snapshots.find(
-      (entry) => entry.checksum === activeVersion.checksum,
-    );
-    if (!snapshotRow) {
-      return null;
-    }
-
-    return parseSnapshot(snapshotRow.payloadJson);
-  }, [activeVersion, snapshots]);
-
   useHomeEntryVisualPrefetch(snapshot, Boolean(snapshot));
 
   const contentReady =
-    (versionsReady && snapshotsReady) || Boolean(activeVersion && snapshot);
+    (versionsReady && snapshotReady) || Boolean(activeVersion && snapshot);
   const playerStateReady =
     (sessionsReady &&
       flagsReady &&

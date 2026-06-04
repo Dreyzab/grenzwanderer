@@ -10,12 +10,7 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default __t.row({
-  factId: __t.string().primaryKey().name("fact_id"),
-  caseId: __t.string().name("case_id"),
-  sourceType: __t.string().name("source_type"),
-  sourceId: __t.string().name("source_id"),
-  text: __t.string(),
-  tagsJson: __t.string().name("tags_json"),
-  createdAt: __t.timestamp().name("created_at"),
-});
+export default {
+  requestId: __t.string(),
+  pointId: __t.string(),
+};

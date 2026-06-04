@@ -31,39 +31,35 @@ const baseProposal: DmTurnProposal = {
   resourceCosts: { fate: 1 },
 };
 
-const renderPanel = (
-  overrides: Partial<Parameters<typeof VnDmSidePanel>[0]> = {},
-) => {
+type PanelProps = Parameters<typeof VnDmSidePanel>[0];
+
+const renderPanel = (overrides: Partial<PanelProps> = {}) => {
   const enqueueAiRequest = vi.fn(
     async (_input: EnqueueAiRequestInput): Promise<unknown> => undefined,
   );
-  render(
-    <VnDmSidePanel
-      scenarioId="sandbox_ghost_pilot"
-      nodeId="scene_evidence_collection"
-      narrativeResources={{
-        fate: 6,
-        fortune: 0,
-        fortuneMod: -1,
-        karma: -10,
-      }}
-      myFlags={{ origin_witch: true }}
-      myVars={{
-        witch_blood_curse_tier: 1,
-        witch_blood_curse_pressure: 35,
-        witch_blood_power: 0,
-        witch_blood_debt: 0,
-        witch_alcohol_aftertaste: 0,
-      }}
-      visibleFacts={["Karl fears the pantry corridor."]}
-      activeRequest={null}
-      activeProposal={null}
-      enqueueAiRequest={enqueueAiRequest}
-      onError={vi.fn()}
-      {...overrides}
-    />,
-  );
-  return { enqueueAiRequest };
+  const props: PanelProps = {
+    scenarioId: "sandbox_ghost_pilot",
+    nodeId: "scene_evidence_collection",
+    narrativeResources: { fate: 6, fortune: 0, fortuneMod: -1, karma: -10 },
+    myFlags: { origin_witch: true },
+    myVars: {
+      witch_blood_curse_tier: 1,
+      witch_blood_curse_pressure: 35,
+      witch_blood_power: 0,
+      witch_blood_debt: 0,
+      witch_alcohol_aftertaste: 0,
+    },
+    visibleFacts: ["Karl fears the pantry corridor."],
+    activeRequest: null,
+    activeProposal: null,
+    enqueueAiRequest,
+    onError: vi.fn(),
+    ...overrides,
+  };
+  const view = render(<VnDmSidePanel {...props} />);
+  const rerender = (next: Partial<PanelProps>) =>
+    view.rerender(<VnDmSidePanel {...props} {...next} />);
+  return { enqueueAiRequest, rerender };
 };
 
 describe("VnDmSidePanel", () => {
@@ -82,8 +78,8 @@ describe("VnDmSidePanel", () => {
         value: "Я хочу убедиться, что он не расскажет общему знакомому.",
       },
     });
-    fireEvent.click(screen.getByLabelText("Spend Fate"));
-    fireEvent.click(screen.getByRole("button", { name: "Ask DM" }));
+    fireEvent.click(screen.getByTestId("vn-dm-spend-fate"));
+    fireEvent.click(screen.getByTestId("vn-dm-ask"));
 
     await waitFor(() => {
       expect(enqueueAiRequest).toHaveBeenCalledTimes(1);
@@ -115,20 +111,33 @@ describe("VnDmSidePanel", () => {
     });
   });
 
-  it("accepts a proposal into the session ledger instead of authored canon", () => {
-    renderPanel({
+  it("accepts a captured beat proposal into the session ledger instead of authored canon", async () => {
+    const { enqueueAiRequest, rerender } = renderPanel();
+
+    // Fire one beat; the panel renders only proposals it captured from its own request.
+    fireEvent.click(screen.getByTestId("vn-dm-ask"));
+    await waitFor(() => {
+      expect(enqueueAiRequest).toHaveBeenCalledTimes(1);
+    });
+    const requestId = enqueueAiRequest.mock.calls[0]?.[0]?.requestId;
+    expect(requestId).toBeTruthy();
+
+    // The worker completes: feed the matching request + proposal back in.
+    rerender({
       activeRequest: {
-        requestId: "dm-1",
+        requestId,
         status: "completed",
         kind: AI_PROPOSE_DM_TURN_KIND,
       } as any,
       activeProposal: baseProposal,
     });
 
-    expect(
-      screen.getByText("Karl knows a pantry route used after midnight."),
-    ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Accept proposal" }));
+    await waitFor(() => {
+      expect(
+        screen.getByText("Karl knows a pantry route used after midnight."),
+      ).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId("vn-dm-accept"));
 
     const saved = JSON.parse(
       window.localStorage.getItem(
@@ -144,7 +153,7 @@ describe("VnDmSidePanel", () => {
   it("can hide and show the side panel", () => {
     renderPanel();
 
-    fireEvent.click(screen.getByRole("button", { name: "Hide" }));
+    fireEvent.click(screen.getByTestId("vn-dm-hide"));
     expect(screen.queryByTestId("vn-dm-panel")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId("vn-dm-panel-toggle"));

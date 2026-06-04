@@ -102,6 +102,23 @@ describe("vn_rules condition evaluation", () => {
     ).toBe(false);
   });
 
+  it("evaluates core, indicator, and legacy voice-level gates from progression vars", () => {
+    const ctx = createReducerTestContext();
+    insertFlag(ctx, "origin_detective", true);
+    insertVar(ctx, "skill_xp_attr_logic", 300);
+    insertVar(ctx, "core_mind_base", 6);
+    insertVar(ctx, "core_mind_potential", 10);
+    insertVar(ctx, "indicator_talker_rank", 2);
+
+    expect(
+      areConditionsSatisfied(ctx, [
+        { type: "voice_level_gte", voiceId: "attr_logic", value: 3 },
+        { type: "core_gte", coreId: "mind", value: 6 },
+        { type: "indicator_rank_gte", indicatorId: "talker", value: 2 },
+      ]),
+    ).toBe(true);
+  });
+
   it("treats rank-gated passive checks below threshold as non-blocking", () => {
     const ctx = createReducerTestContext();
     const checks = [

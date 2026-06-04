@@ -2,6 +2,7 @@
 id: char_professor
 tags: [character, functional]
 tier: functional
+design_only: true
 runtime_character_id: professor
 faction: fct_university
 aliases: ["Prof. Heinrich Kiliani"]

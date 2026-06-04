@@ -51,9 +51,9 @@ const resolveBundleChecksum = (
   caseId: string | undefined,
 ): string => {
   try {
-    const activeVersion = [...ctx.db.contentVersion.iter()].find(
-      (row: any) => row.isActive,
-    );
+    const activeVersion = [
+      ...ctx.db.contentVersion.content_version_is_active.filter(true),
+    ][0];
     if (activeVersion?.checksum) {
       return activeVersion.checksum;
     }
@@ -63,9 +63,9 @@ const resolveBundleChecksum = (
 
   if (caseId) {
     try {
-      const caseVersions = [...ctx.db.caseVersion.iter()].filter(
-        (row: any) => row.caseId === caseId,
-      );
+      const caseVersions = [
+        ...ctx.db.caseVersion.case_version_case_id.filter(caseId),
+      ];
       const latest = caseVersions[caseVersions.length - 1];
       if (latest?.checksum) {
         return latest.checksum;
@@ -126,12 +126,9 @@ const findSenderQuestInstanceByInstanceId = (
   instanceId: string,
 ): any | undefined => {
   const senderKey = identityKey(ctx.sender);
-  return [...ctx.db.questInstance.iter()].find(
-    (row: any) =>
-      row.instanceId === instanceId &&
-      row.playerId &&
-      identityKey(row.playerId) === senderKey,
-  );
+  return [
+    ...ctx.db.questInstance.quest_instance_instance_id.filter(instanceId),
+  ].find((row: any) => row.playerId && identityKey(row.playerId) === senderKey);
 };
 
 const rejectUnsafeQuestMaterialization = (

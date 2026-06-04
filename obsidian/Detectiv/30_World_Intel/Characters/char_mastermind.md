@@ -3,6 +3,7 @@ id: char_mastermind
 tags: [character, major]
 tier: major
 runtime_character_id: mastermind
+design_only: true
 faction: null
 aliases: ["Unknown Mastermind"]
 ---

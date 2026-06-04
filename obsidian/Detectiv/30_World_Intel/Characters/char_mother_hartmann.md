@@ -63,3 +63,8 @@ aliases: ["Eleonora Hartmann", "Frau Hartmann"]
 - **Services**: `svc_eleonora_social_introduction`, `svc_eleonora_political_cover`
 - **Signal States**: Measured response → Working courtesy → Doors held open
 - **Coverage status**: Full authored dossier. System-integrated.
+
+## Player Dossier
+
+- (reveal: flag_joked_with_mother) **Warmth on Display**: She laughs at your joke and means it — then you watch her file the laugh away for later use.
+- (reveal: mother_redhead_secret_potential) **The Companion**: The only person around whom she lets the managerial mask slip is the red-haired operator.

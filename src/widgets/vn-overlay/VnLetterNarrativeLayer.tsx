@@ -3,11 +3,14 @@ import {
   TypedText,
   type TypedTextHandle,
   type TypedTextTokenHandler,
+  type TypedTextTokenState,
 } from "../../features/vn/ui/TypedText";
 import type { VnStrings } from "../../features/i18n/uiStrings";
+import { VnTutorialTooltip } from "../../features/vn/ui/VnTutorialTooltip";
 
 interface VnLetterNarrativeLayerProps {
   chromeRevealed: boolean;
+  hasVisibleChoices?: boolean;
   narrativeText: string;
   t: VnStrings;
   typedTextRef?: React.RefObject<TypedTextHandle>;
@@ -17,10 +20,14 @@ interface VnLetterNarrativeLayerProps {
   onTokenEnter?: TypedTextTokenHandler;
   onTokenLeave?: TypedTextTokenHandler;
   onTypingChange?: (typing: boolean) => void;
+  tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
+  showTutorialTooltip?: boolean;
+  onDismissTutorialTooltip?: () => void;
 }
 
 export const VnLetterNarrativeLayer = ({
   chromeRevealed,
+  hasVisibleChoices,
   narrativeText,
   t,
   typedTextRef,
@@ -30,22 +37,37 @@ export const VnLetterNarrativeLayer = ({
   onTokenEnter,
   onTokenLeave,
   onTypingChange,
+  tokenStateByPayload,
+  showTutorialTooltip = false,
+  onDismissTutorialTooltip,
 }: VnLetterNarrativeLayerProps) => (
   <div
-    className="absolute inset-0 z-110 flex cursor-pointer items-center justify-center px-4 pt-8 pb-[calc(2rem+4rem+env(safe-area-inset-bottom))] sm:px-8"
+    className={[
+      "absolute inset-0 z-110 flex cursor-pointer items-center justify-center px-4 pt-8 sm:px-8",
+      hasVisibleChoices
+        ? "pb-[calc(14rem+env(safe-area-inset-bottom))]"
+        : "pb-[calc(2rem+4rem+env(safe-area-inset-bottom))]",
+    ].join(" ")}
     onClick={onSurfaceInteraction}
   >
     <div
       className={[
-        "w-full max-w-[44rem] transform",
+        "w-full max-w-[44rem] max-h-full min-h-0 transform",
         chromeRevealed
           ? "translate-y-0 -rotate-1 scale-100 opacity-100"
           : "translate-y-10 rotate-2 scale-95 opacity-0",
       ].join(" ")}
     >
-      <div className="relative">
+      <div className="relative max-h-full min-h-0">
         <div className="absolute -inset-4 rounded-[2.5rem] bg-black/30 blur-2xl" />
-        <div className="relative overflow-hidden rounded-[1.25rem] border border-[#7a5830]/45 bg-[linear-gradient(135deg,rgba(255,250,229,0.99)_0%,rgba(238,220,178,0.99)_58%,rgba(218,190,139,0.99)_100%)] px-5 py-6 shadow-[0_34px_100px_rgba(0,0,0,0.62),inset_0_0_0_1px_rgba(255,255,255,0.35)] sm:px-12 sm:py-10">
+        <div className="relative max-h-full overflow-x-hidden overflow-y-auto rounded-[1.25rem] border border-[#7a5830]/45 bg-[linear-gradient(135deg,rgba(255,250,229,0.99)_0%,rgba(238,220,178,0.99)_58%,rgba(218,190,139,0.99)_100%)] px-5 py-6 shadow-[0_34px_100px_rgba(0,0,0,0.62),inset_0_0_0_1px_rgba(255,255,255,0.35)] sm:px-12 sm:py-10">
+          {onDismissTutorialTooltip ? (
+            <VnTutorialTooltip
+              visible={showTutorialTooltip}
+              onDismiss={onDismissTutorialTooltip}
+              t={t}
+            />
+          ) : null}
           <div className="absolute inset-0 bg-[url('/images/paper-texture.png')] opacity-[0.22] mix-blend-multiply" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_14%,rgba(146,94,38,0.11),transparent_36%),radial-gradient(circle_at_84%_76%,rgba(88,47,20,0.13),transparent_38%)]" />
           <div className="absolute left-[13%] top-0 h-full w-px bg-[#8b683b]/18" />
@@ -74,6 +96,7 @@ export const VnLetterNarrativeLayer = ({
                   <TypedText
                     ref={typedTextRef}
                     text={narrativeText}
+                    tokenStateByPayload={tokenStateByPayload}
                     onComplete={onNarrativeComplete}
                     onTokenClick={onTokenClick}
                     onTokenEnter={onTokenEnter}

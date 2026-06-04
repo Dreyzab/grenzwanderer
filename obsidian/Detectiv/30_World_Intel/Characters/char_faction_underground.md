@@ -2,6 +2,7 @@
 id: char_faction_underground
 tags: [character, faction]
 tier: minor
+design_only: true
 runtime_character_id: faction_underground
 ---
 

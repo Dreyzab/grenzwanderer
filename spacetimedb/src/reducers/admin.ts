@@ -1,33 +1,52 @@
 import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
+import { ADMIN_BOOTSTRAP_CODE_HASH } from "../generated/bootstrap-config";
 import {
   emitTelemetry,
   ensureAdminIdentity,
   hasAnyAdminIdentity,
+  sha256Hex,
 } from "./helpers";
 
-export const bootstrap_admin_identity = spacetimedb.reducer((ctx) => {
-  const existing = ctx.db.adminIdentity.identity.find(ctx.sender);
-  if (existing) {
-    return;
-  }
+export const bootstrap_admin_identity = spacetimedb.reducer(
+  { bootstrapCode: t.string().optional() },
+  (ctx, { bootstrapCode }) => {
+    const existing = ctx.db.adminIdentity.identity.find(ctx.sender);
+    if (existing) {
+      return;
+    }
 
-  if (hasAnyAdminIdentity(ctx)) {
-    throw new SenderError(
-      "Admin bootstrap is closed because an admin identity already exists",
-    );
-  }
+    if (hasAnyAdminIdentity(ctx)) {
+      throw new SenderError(
+        "Admin bootstrap is closed because an admin identity already exists",
+      );
+    }
 
-  ctx.db.adminIdentity.insert({
-    identity: ctx.sender,
-    grantedAt: ctx.timestamp,
-    grantedBy: undefined,
-  });
+    if (!ADMIN_BOOTSTRAP_CODE_HASH) {
+      throw new SenderError(
+        "Admin bootstrap is disabled until ADMIN_BOOTSTRAP_CODE is configured for this module build",
+      );
+    }
 
-  emitTelemetry(ctx, "admin_identity_bootstrapped", {
-    admin: ctx.sender.toHexString(),
-  });
-});
+    const normalizedCode = bootstrapCode?.trim() ?? "";
+    if (
+      !normalizedCode ||
+      sha256Hex(normalizedCode) !== ADMIN_BOOTSTRAP_CODE_HASH
+    ) {
+      throw new SenderError("Invalid admin bootstrap code");
+    }
+
+    ctx.db.adminIdentity.insert({
+      identity: ctx.sender,
+      grantedAt: ctx.timestamp,
+      grantedBy: undefined,
+    });
+
+    emitTelemetry(ctx, "admin_identity_bootstrapped", {
+      admin: ctx.sender.toHexString(),
+    });
+  },
+);
 
 export const grant_admin_identity = spacetimedb.reducer(
   {

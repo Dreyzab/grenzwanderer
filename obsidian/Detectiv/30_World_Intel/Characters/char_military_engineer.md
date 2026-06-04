@@ -3,6 +3,7 @@ id: char_military_engineer
 tags: [character, functional]
 tier: functional
 runtime_character_id: military_engineer
+design_only: true
 faction: fct_underworld
 aliases: ["The Sapper", "Military Engineer"]
 ---

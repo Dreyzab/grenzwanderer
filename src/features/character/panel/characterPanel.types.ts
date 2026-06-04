@@ -9,6 +9,11 @@ import type {
 } from "../../../../data/skillDefinitions";
 import type { SkillRankPerkDefinition } from "../../../shared/game/skillPerks";
 import type { SkillRankState } from "../../../shared/game/skillProgression";
+import type {
+  CharacterIndicatorId,
+  CharacterSynergyState,
+  CoreCharacteristicState,
+} from "../../../shared/game/characterProgression";
 import type { VoiceOrDeptId } from "../../../shared/ui/icons/game-icons";
 
 export interface BaseQuestJournalEntry {
@@ -105,3 +110,14 @@ export interface PatronVoiceCard {
   iconName: VoiceOrDeptId;
   methods: MethodVoiceCard[];
 }
+
+export interface CharacterIndicatorCard {
+  id: CharacterIndicatorId;
+  label: string;
+  rank: number;
+  description: string;
+}
+
+export type CharacterCoreCard = CoreCharacteristicState;
+
+export type CharacterSynergyCard = CharacterSynergyState;

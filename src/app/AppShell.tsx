@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useSpacetimeDB } from "spacetimedb/react";
 import { RELEASE_PROFILE, SPACETIMEDB_DB_NAME } from "../config";
 import { isKarlsruheEventProfile } from "../features/release/karlsruheEntry";
@@ -10,8 +10,21 @@ import { useKarlsruheEntryGate } from "./useKarlsruheEntryGate";
 import { useShellNavigation } from "./useShellNavigation";
 import { useShellSessionAutoTabs } from "./useShellSessionAutoTabs";
 import { useVnLaunchCurtain } from "./useVnLaunchCurtain";
-import { DebugOverlay, devLogger } from "../shared/devtools";
 import "./AppShell.css";
+
+const DevDebugOverlay = import.meta.env.DEV
+  ? lazy(async () => {
+      const module = await import("../shared/devtools/DebugOverlay");
+      return { default: module.DebugOverlay };
+    })
+  : null;
+
+const renderDevDebugOverlay = () =>
+  DevDebugOverlay ? (
+    <Suspense fallback={null}>
+      <DevDebugOverlay />
+    </Suspense>
+  ) : null;
 
 const AppShell = () => {
   const { identity, identityHex } = useIdentity();
@@ -59,10 +72,16 @@ const AppShell = () => {
   });
 
   useEffect(() => {
-    devLogger.navigation(`tab=${activeTab}`, {
-      pathname,
-      vnScenarioId,
-      entryGateState,
+    if (!import.meta.env.DEV) {
+      return;
+    }
+
+    void import("../shared/devtools/devLogger").then(({ devLogger }) => {
+      devLogger.navigation(`tab=${activeTab}`, {
+        pathname,
+        vnScenarioId,
+        entryGateState,
+      });
     });
   }, [activeTab, pathname, vnScenarioId, entryGateState]);
 
@@ -99,7 +118,7 @@ const AppShell = () => {
       <div className="app-shell app-shell-loading">
         <h1>Grenzwanderer</h1>
         <p>Connecting to SpacetimeDB...</p>
-        <DebugOverlay />
+        {renderDevDebugOverlay()}
       </div>
     );
   }
@@ -127,7 +146,7 @@ const AppShell = () => {
         setVnScenarioId={setVnScenarioId}
         vnScenarioId={vnScenarioId}
       />
-      <DebugOverlay />
+      {renderDevDebugOverlay()}
     </ShellChrome>
   );
 };

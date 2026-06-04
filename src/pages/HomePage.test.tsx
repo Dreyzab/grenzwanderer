@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { __bindTestSnapshotResolver } from "../shared/content/activeSnapshot";
+import { parseVnSnapshotPayload } from "../shared/vn-contract";
 import { HomePage } from "./HomePage";
 
 const mocks = vi.hoisted(() => {
@@ -257,6 +259,15 @@ describe("HomePage Freiburg flow", () => {
       isLoaded: true,
       localePackReady: true,
     });
+
+    const parsedSnapshot = parseVnSnapshotPayload(snapshotPayload);
+    __bindTestSnapshotResolver(() =>
+      parsedSnapshot.ok ? parsedSnapshot.snapshot : null,
+    );
+  });
+
+  afterEach(() => {
+    __bindTestSnapshotResolver(null);
   });
 
   it("opens origin selection on Continue when no origin is selected", () => {
@@ -435,6 +446,7 @@ describe("HomePage Freiburg flow", () => {
     state.contentSnapshotRows = [];
     state.contentVersionReady = false;
     state.contentSnapshotReady = false;
+    __bindTestSnapshotResolver(() => null);
 
     render(<HomePage onNavigate={vi.fn()} onOpenVnScenario={vi.fn()} />);
 

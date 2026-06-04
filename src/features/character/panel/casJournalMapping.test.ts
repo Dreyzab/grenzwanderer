@@ -2,6 +2,10 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useCharacterPanelViewModel } from "./useCharacterPanelViewModel";
 import { CASE_CATALOG } from "../../../shared/vn-contract";
+import { __bindTestSnapshotResolver } from "../../../shared/content/activeSnapshot";
+
+let currentTestSnapshot: any = null;
+__bindTestSnapshotResolver(() => currentTestSnapshot);
 
 // Mocks configuration matching useCharacterPanelViewModel dependencies
 const mocks = vi.hoisted(() => ({
@@ -113,6 +117,12 @@ const mockSnapshot = {
 describe("CAS MVP-2 Integrated Journal Mapping", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    const originalMockReturnValue = mocks.parseSnapshotMock.mockReturnValue;
+    mocks.parseSnapshotMock.mockReturnValue = (val: any) => {
+      currentTestSnapshot = val;
+      return originalMockReturnValue.call(mocks.parseSnapshotMock, val);
+    };
 
     mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
     mocks.usePlayerFlagsMock.mockReturnValue({});

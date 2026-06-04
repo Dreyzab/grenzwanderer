@@ -11,10 +11,9 @@ import {
 } from "spacetimedb";
 
 export default __t.row({
-  caseId: __t.string().primaryKey().name("case_id"),
-  title: __t.string(),
-  schemaVersion: __t.u32().name("schema_version"),
-  isActive: __t.bool().name("is_active"),
-  createdAt: __t.timestamp().name("created_at"),
+  equipmentKey: __t.string().name("equipment_key"),
+  playerId: __t.identity().name("player_id"),
+  slotId: __t.string().name("slot_id"),
+  itemId: __t.string().name("item_id"),
   updatedAt: __t.timestamp().name("updated_at"),
 });

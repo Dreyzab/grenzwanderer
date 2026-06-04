@@ -38,35 +38,225 @@ describe("witch one-shot content", () => {
   });
 
   it("registers Witch onboarding compartment letter and station exit incident choices correctly", () => {
+    const openingNode = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_opening_arrival_video",
+    );
+    expect(openingNode).toMatchObject({
+      backgroundVideoUrl: "/VN/start/video/Bahn.mp4",
+      backgroundVideoPosterUrl: "/VN/start/image/compartment_cinema.png",
+      backgroundVideoSoundPrompt: true,
+      advanceOnVideoEnd: true,
+    });
+    expect(openingNode?.choices.map((choice) => choice.id)).toContain(
+      "CASE01_WITCH_START_TO_DROWSE",
+    );
+    expect(
+      openingNode?.choices.find(
+        (choice) => choice.id === "CASE01_WITCH_START_TO_DROWSE",
+      )?.nextNodeId,
+    ).toBe("scene_case01_opening_arrival_video_witch");
+
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_opening_arrival_video_witch",
+      ),
+    ).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_compartment_drowse_final.png",
+    });
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_opening_arrival_video_witch",
+      )?.choices.map((choice) => choice.id),
+    ).toEqual(expect.arrayContaining(["AUTO_CONTINUE_WITCH_DROWSE_TO_THIRST"]));
+
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_thirst_mask",
+      ),
+    ).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_compartment_thirst_closeup_v2.png",
+    });
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_thirst_mask",
+      )?.onEnter,
+    ).toEqual(
+      expect.arrayContaining([
+        { type: "add_var", key: "witch_blood_curse_pressure", value: 10 },
+      ]),
+    );
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_thirst_mask",
+      )?.choices.map((choice) => choice.id),
+    ).toEqual(["AUTO_CONTINUE_WITCH_THIRST_TO_COIN"]);
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_coin_wake",
+      ),
+    ).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_coin_floor.png",
+    });
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_coin_wake",
+      )?.choices.map((choice) => choice.id),
+    ).toEqual(
+      expect.arrayContaining([
+        "WITCH_COIN_REBUKE",
+        "WITCH_COIN_DRY_JOKE",
+        "WITCH_COIN_SOFT_ARISTOCRATIC",
+      ]),
+    );
+    for (const choice of CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_witch_coin_wake",
+    )?.choices ?? []) {
+      expect(choice.nextNodeId).toBe(
+        "scene_case01_train_assistant_intro_witch",
+      );
+    }
+
     const compartmentLetterNode = CASE01_CANON_NODES.find(
       (node) => node.id === "scene_case01_train_compartment_letter_witch",
     );
     expect(compartmentLetterNode).toBeDefined();
-    expect(compartmentLetterNode?.choices.map((choice) => choice.id)).toEqual(
+    expect(compartmentLetterNode).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_compartment_after_felix.png",
+      sceneGroupId: "witch_train_compartment",
+    });
+    expect(compartmentLetterNode?.choices.map((choice) => choice.id)).toEqual([
+      "AUTO_CONTINUE_WITCH_LETTER_TO_AFTERTHOUGHTS",
+    ]);
+    expect(compartmentLetterNode?.choices[0]?.nextNodeId).toBe(
+      "scene_case01_witch_letter_afterthoughts",
+    );
+
+    const letterAfterthoughtsNode = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_witch_letter_afterthoughts",
+    );
+    expect(letterAfterthoughtsNode).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_compartment_after_felix.png",
+      sceneGroupId: "witch_train_compartment",
+      narrativeLayout: "log",
+    });
+    expect(letterAfterthoughtsNode?.choices.map((choice) => choice.id)).toEqual(
       expect.arrayContaining([
-        "WITCH_LETTER_VEIL_FOCUS",
-        "WITCH_LETTER_DRINK_BRANDY",
-        "WITCH_LETTER_OPEN_MUNDANE",
+        "WITCH_LETTER_AFTERTHOUGHT_VEIL_FOCUS",
+        "WITCH_LETTER_AFTERTHOUGHT_DRINK_BRANDY",
+        "WITCH_LETTER_AFTERTHOUGHT_COMPOSE",
       ]),
     );
+    for (const choice of letterAfterthoughtsNode?.choices ?? []) {
+      expect(choice.nextNodeId).toBe(
+        "scene_case01_witch_dining_car_buffet_first_look",
+      );
+    }
+
+    const lotteBuffetFirstLookNode = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_witch_dining_car_buffet_first_look",
+    );
+    expect(lotteBuffetFirstLookNode).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_lotte_buffet_counter.png",
+      characterId: "npc_weber_dispatcher",
+      sceneGroupId: "train_dining_car",
+    });
+    expect(
+      lotteBuffetFirstLookNode?.choices.map((choice) => choice.id),
+    ).toEqual(
+      expect.arrayContaining([
+        "WITCH_LOTTE_COUNTER_OBSERVE",
+        "WITCH_LOTTE_COUNTER_APPROACH",
+      ]),
+    );
+    for (const choice of lotteBuffetFirstLookNode?.choices ?? []) {
+      expect(choice.nextNodeId).toBe("scene_case01_witch_lotte_counter_intro");
+    }
+
+    const lotteCounterIntroNode = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_witch_lotte_counter_intro",
+    );
+    expect(lotteCounterIntroNode).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_lotte_buffet_counter.png",
+      characterId: "npc_weber_dispatcher",
+      sceneGroupId: "train_dining_car",
+    });
+    expect(lotteCounterIntroNode?.choices.map((choice) => choice.id)).toEqual(
+      expect.arrayContaining([
+        "WITCH_LOTTE_GREETING_COMPOSURE",
+        "WITCH_LOTTE_GREETING_HONEST",
+        "WITCH_LOTTE_GREETING_SOCIAL",
+        "WITCH_LOTTE_GREETING_CYNIC",
+        "WITCH_LOTTE_GREETING_AUTHORITY",
+        "WITCH_LOTTE_GREETING_BLOOD_SENSE",
+      ]),
+    );
+    for (const choice of lotteCounterIntroNode?.choices ?? []) {
+      expect(choice.nextNodeId).toBe(
+        "scene_case01_train_dining_car_intro_witch",
+      );
+    }
 
     const assistantIntroWitchNode = CASE01_CANON_NODES.find(
       (node) => node.id === "scene_case01_train_assistant_intro_witch",
     );
     expect(assistantIntroWitchNode).toBeDefined();
+    expect(assistantIntroWitchNode).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_coin_floor.png",
+    });
+    expect(assistantIntroWitchNode?.bodyOverride).toContain(
+      "— Подойдите, Феликс. Развернитесь.",
+    );
     expect(assistantIntroWitchNode?.choices.map((choice) => choice.id)).toEqual(
-      expect.arrayContaining(["WITCH_TRAIN_ADJUST_SCARF"]),
+      expect.arrayContaining(["AUTO_CONTINUE_WITCH_ASSISTANT_TO_COLLAR"]),
     );
     expect(
       assistantIntroWitchNode?.choices.find(
-        (c) => c.id === "WITCH_TRAIN_ADJUST_SCARF",
+        (c) => c.id === "AUTO_CONTINUE_WITCH_ASSISTANT_TO_COLLAR",
       )?.nextNodeId,
-    ).toBe("scene_case01_train_dining_car_intro_witch");
+    ).toBe("scene_case01_train_collar_choice_witch");
+
+    const collarChoiceNode = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_train_collar_choice_witch",
+    );
+    expect(collarChoiceNode).toBeDefined();
+    expect(collarChoiceNode).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_felix_collar_v2.png",
+    });
+    expect(collarChoiceNode?.bodyOverride).not.toContain(
+      "— Подойдите, Феликс. Развернитесь.",
+    );
+    expect(collarChoiceNode?.choices.map((choice) => choice.id)).toEqual(
+      expect.arrayContaining([
+        "WITCH_COLLAR_COMMAND",
+        "WITCH_COLLAR_DRY_JOKE",
+        "WITCH_COLLAR_RARE_TRUST",
+      ]),
+    );
+    for (const choice of collarChoiceNode?.choices ?? []) {
+      expect(choice.nextNodeId).toBe("scene_case01_witch_felix_exit");
+      expect(choice.visibleIfAll).toBeUndefined();
+      expect(choice.requireAll).toHaveLength(1);
+    }
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_felix_exit",
+      ),
+    ).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_compartment_after_felix.png",
+    });
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_felix_exit",
+      )?.choices[0]?.nextNodeId,
+    ).toBe("scene_case01_train_compartment_letter_witch");
 
     const diningCarIntroWitchNode = CASE01_CANON_NODES.find(
       (node) => node.id === "scene_case01_train_dining_car_intro_witch",
     );
     expect(diningCarIntroWitchNode).toBeDefined();
+    expect(diningCarIntroWitchNode).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_lotte_table_first_talk.png",
+    });
     expect(diningCarIntroWitchNode?.choices.map((choice) => choice.id)).toEqual(
       expect.arrayContaining([
         "WITCH_LOTTE_INTRO_RATIONAL",
@@ -80,6 +270,9 @@ describe("witch one-shot content", () => {
         node.id === "scene_case01_train_dining_car_lotte_monologue_witch",
     );
     expect(diningCarMonologueWitchNode).toBeDefined();
+    expect(diningCarMonologueWitchNode).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_lotte_table_life_monologue.png",
+    });
     expect(
       diningCarMonologueWitchNode?.choices.map((choice) => choice.id),
     ).toEqual(
@@ -89,6 +282,49 @@ describe("witch one-shot content", () => {
         "WITCH_LOTTE_MONOLOGUE_PRACTICAL",
       ]),
     );
+    const monologueChoiceById = new Map(
+      diningCarMonologueWitchNode?.choices.map((choice) => [choice.id, choice]),
+    );
+    expect(
+      monologueChoiceById.get("WITCH_LOTTE_MONOLOGUE_CYNIC")?.nextNodeId,
+    ).toBe("scene_case01_witch_lotte_monologue_cynic_reaction");
+    expect(
+      monologueChoiceById.get("WITCH_LOTTE_MONOLOGUE_GRIEF")?.nextNodeId,
+    ).toBe("scene_case01_witch_lotte_monologue_grief_reaction");
+    expect(
+      monologueChoiceById.get("WITCH_LOTTE_MONOLOGUE_PRACTICAL")?.nextNodeId,
+    ).toBe("scene_case01_witch_lotte_monologue_practical_reaction");
+
+    const lotteReactionNodes = [
+      {
+        id: "scene_case01_witch_lotte_monologue_cynic_reaction",
+        backgroundUrl: "/VN/start/image/witch_lotte_notebook_suspicion.png",
+        continueId: "AUTO_CONTINUE_WITCH_LOTTE_CYNIC_REACTION",
+      },
+      {
+        id: "scene_case01_witch_lotte_monologue_grief_reaction",
+        backgroundUrl: "/VN/start/image/witch_lotte_warm_hand.png",
+        continueId: "AUTO_CONTINUE_WITCH_LOTTE_GRIEF_REACTION",
+      },
+      {
+        id: "scene_case01_witch_lotte_monologue_practical_reaction",
+        backgroundUrl:
+          "/VN/start/image/witch_lotte_felix_arrival_interrupt.png",
+        continueId: "AUTO_CONTINUE_WITCH_LOTTE_PRACTICAL_REACTION",
+      },
+    ];
+    for (const expectedNode of lotteReactionNodes) {
+      const reactionNode = CASE01_CANON_NODES.find(
+        (node) => node.id === expectedNode.id,
+      );
+      expect(reactionNode).toMatchObject({
+        backgroundUrl: expectedNode.backgroundUrl,
+      });
+      expect(reactionNode?.choices[0]).toMatchObject({
+        id: expectedNode.continueId,
+        nextNodeId: "scene_case01_train_ankommen_video",
+      });
+    }
 
     const vozaCutsceneNode = CASE01_CANON_NODES.find(
       (node) => node.id === "scene_case01_train_voza_cutscene",
@@ -97,9 +333,26 @@ describe("witch one-shot content", () => {
     expect(vozaCutsceneNode?.choices.map((choice) => choice.id)).toEqual(
       expect.arrayContaining([
         "CHOICE_VOZA_TO_HBF_DETECTIVE",
+        "CHOICE_VOZA_TO_HBF_WITCH_LOTTE_GOODBYE",
         "CHOICE_VOZA_TO_HBF_WITCH",
       ]),
     );
+    expect(
+      vozaCutsceneNode?.choices.find(
+        (choice) => choice.id === "CHOICE_VOZA_TO_HBF_WITCH_LOTTE_GOODBYE",
+      )?.nextNodeId,
+    ).toBe("scene_case01_witch_lotte_goodbye_platform");
+
+    const lotteGoodbyeNode = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_witch_lotte_goodbye_platform",
+    );
+    expect(lotteGoodbyeNode).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_lotte_goodbye_sunrise_platform.png",
+    });
+    expect(lotteGoodbyeNode?.choices[0]).toMatchObject({
+      id: "AUTO_CONTINUE_WITCH_LOTTE_GOODBYE_PLATFORM",
+      nextNodeId: "scene_case01_hbf_luggage_incident_witch",
+    });
 
     const platformIncidentNode = CASE01_CANON_NODES.find(
       (node) => node.id === "scene_case01_hbf_luggage_incident_witch",
@@ -107,10 +360,143 @@ describe("witch one-shot content", () => {
     expect(platformIncidentNode).toBeDefined();
     expect(platformIncidentNode?.choices.map((choice) => choice.id)).toEqual(
       expect.arrayContaining([
-        "WITCH_HBF_BLOOD_ABSORB",
-        "WITCH_HBF_BLOOD_IGNORE",
+        "AUTO_WITCH_HBF_SASHA_SOFT",
+        "AUTO_WITCH_HBF_SASHA_THIRST",
       ]),
     );
+    expect(
+      platformIncidentNode?.choices.find(
+        (choice) => choice.id === "AUTO_WITCH_HBF_SASHA_SOFT",
+      )?.visibleIfAll,
+    ).toEqual(
+      expect.arrayContaining([
+        { type: "var_lte", key: "witch_blood_curse_pressure", value: 44 },
+      ]),
+    );
+    expect(
+      platformIncidentNode?.choices.find(
+        (choice) => choice.id === "AUTO_WITCH_HBF_SASHA_THIRST",
+      )?.visibleIfAll,
+    ).toEqual(
+      expect.arrayContaining([
+        { type: "var_gte", key: "witch_blood_curse_pressure", value: 45 },
+      ]),
+    );
+
+    const sashaThirstNode = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_hbf_luggage_sasha_thirst",
+    );
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_hbf_luggage_sasha_soft",
+      ),
+    ).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_sasha_luggage_soft.png",
+    });
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_hbf_luggage_sasha_soft",
+      )?.choices.map((choice) => choice.id),
+    ).toEqual(
+      expect.arrayContaining([
+        "WITCH_HBF_SASHA_ACCEPT_COVER",
+        "WITCH_HBF_SASHA_THANK_QUIETLY",
+        "WITCH_HBF_SASHA_DISMISS_CONCERN",
+      ]),
+    );
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_hbf_luggage_sasha_soft",
+      )?.choices.find((choice) => choice.id === "WITCH_HBF_SASHA_THANK_QUIETLY")
+        ?.nextNodeId,
+    ).toBe("scene_case01_hbf_luggage_sasha_thank_quietly");
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_hbf_luggage_sasha_soft",
+      )?.choices.find(
+        (choice) => choice.id === "WITCH_HBF_SASHA_DISMISS_CONCERN",
+      )?.nextNodeId,
+    ).toBe("scene_case01_hbf_luggage_sasha_dismiss_concern");
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_hbf_luggage_sasha_thank_quietly",
+      ),
+    ).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_sasha_luggage_thank.png",
+      choices: [
+        expect.objectContaining({
+          id: "AUTO_CONTINUE_WITCH_HBF_SASHA_THANK_QUIETLY",
+          nextNodeId: "scene_case01_hbf_departure",
+        }),
+      ],
+    });
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_hbf_luggage_sasha_dismiss_concern",
+      ),
+    ).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_sasha_luggage_dismiss.png",
+      choices: [
+        expect.objectContaining({
+          id: "AUTO_CONTINUE_WITCH_HBF_SASHA_DISMISS_CONCERN",
+          nextNodeId: "scene_case01_hbf_departure",
+        }),
+      ],
+    });
+    expect(sashaThirstNode).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_sasha_luggage_thirst.png",
+    });
+    expect(sashaThirstNode?.choices.map((choice) => choice.id)).toEqual(
+      expect.arrayContaining([
+        "WITCH_HBF_BLOOD_ABSORB",
+        "WITCH_HBF_BLOOD_IGNORE",
+        "WITCH_HBF_SEND_FELIX_AWAY",
+      ]),
+    );
+    expect(
+      sashaThirstNode?.choices.find(
+        (choice) => choice.id === "WITCH_HBF_SEND_FELIX_AWAY",
+      )?.nextNodeId,
+    ).toBe("scene_case01_hbf_luggage_sasha_send_felix_away");
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_hbf_luggage_sasha_send_felix_away",
+      ),
+    ).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_sasha_send_felix_away.png",
+      choices: [
+        expect.objectContaining({
+          id: "AUTO_CONTINUE_WITCH_HBF_SASHA_SEND_FELIX_AWAY",
+          nextNodeId: "scene_case01_hbf_departure",
+        }),
+      ],
+    });
+
+    const hbfDepartureNode = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_hbf_departure",
+    );
+    expect(hbfDepartureNode?.choices).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "CASE01_HBF_EXIT_WITCH_HOTEL_CHECKIN",
+          nextNodeId: "scene_case01_witch_hotel_checkin",
+        }),
+      ]),
+    );
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_hotel_checkin",
+      ),
+    ).toMatchObject({
+      backgroundUrl:
+        "/VN/start/image/witch_hotel_checkin_zum_goldenen_adler.png",
+      choices: [
+        expect.objectContaining({
+          id: "AUTO_CONTINUE_WITCH_HOTEL_TO_BUREAU",
+          nextNodeId: "scene_case01_witch_bureau_entry",
+        }),
+      ],
+    });
 
     const masterMeetingNode = CASE01_CANON_NODES.find(
       (node) => node.id === "scene_case01_witch_bureau_master_meeting",
@@ -119,10 +505,66 @@ describe("witch one-shot content", () => {
     expect(masterMeetingNode?.choices.map((choice) => choice.id)).toEqual(
       expect.arrayContaining([
         "WITCH_BUREAU_MASTER_DRINK_SUPPRESSANT",
+        "WITCH_BUREAU_MASTER_DRINK_SUPPRESSANT_NOTICED",
         "WITCH_BUREAU_MASTER_SIPHON_RELIC",
         "WITCH_BUREAU_MASTER_COMPOSURE",
       ]),
     );
+    expect(
+      masterMeetingNode?.choices.find(
+        (choice) => choice.id === "WITCH_BUREAU_MASTER_DRINK_SUPPRESSANT",
+      )?.visibleIfAll,
+    ).toEqual(
+      expect.arrayContaining([
+        {
+          type: "logic_not",
+          condition: {
+            type: "flag_equals",
+            key: "flag_witch_absorbed_hbf_blood",
+            value: true,
+          },
+        },
+      ]),
+    );
+    const noticedSuppressantChoice = masterMeetingNode?.choices.find(
+      (choice) => choice.id === "WITCH_BUREAU_MASTER_DRINK_SUPPRESSANT_NOTICED",
+    );
+    expect(noticedSuppressantChoice?.nextNodeId).toBe(
+      "scene_case01_witch_bureau_master_noticed_hbf_blood",
+    );
+    expect(noticedSuppressantChoice?.visibleIfAll).toEqual(
+      expect.arrayContaining([
+        {
+          type: "flag_equals",
+          key: "flag_witch_absorbed_hbf_blood",
+          value: true,
+        },
+      ]),
+    );
+    expect(noticedSuppressantChoice?.effects).toEqual(
+      expect.arrayContaining([
+        {
+          type: "set_flag",
+          key: "flag_witch_master_noticed_hbf_blood",
+          value: true,
+        },
+      ]),
+    );
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) =>
+          node.id === "scene_case01_witch_bureau_master_noticed_hbf_blood",
+      ),
+    ).toMatchObject({
+      backgroundUrl:
+        "/VN/start/image/witch_bureau_master_noticed_hbf_blood.png",
+      choices: [
+        expect.objectContaining({
+          id: "AUTO_CONTINUE_WITCH_BUREAU_MASTER_NOTICED_HBF_BLOOD",
+          nextNodeId: "scene_case01_witch_bureau_exit",
+        }),
+      ],
+    });
 
     const estateHandoffNode = CASE01_CANON_NODES.find(
       (node) => node.id === "scene_case01_witch_estate_handoff",
@@ -180,7 +622,7 @@ describe("witch one-shot content", () => {
     expect(estateVaultsNode?.choices.map((c) => c.id)).toEqual(
       expect.arrayContaining([
         "WITCH_VAULTS_FEED_RATS",
-        "WITCH_VAULTS_FEED_KARL",
+        "WITCH_VAULTS_FEED_SASHA",
         "WITCH_VAULTS_PROCEED_COLD",
       ]),
     );
@@ -247,7 +689,7 @@ describe("witch one-shot content", () => {
     }
     expect(getNode("scene_case01_estate_vaults_witch")).toMatchObject({
       backgroundUrl: "/images/scenes/case01/bg_case01_estate_vaults.webp",
-      characterId: "npc_karl_servant",
+      characterId: "npc_sasha_hartmann_servant",
       sceneGroupId: "witch_grand_estate",
     });
     expect(getNode("scene_case01_ghost_showdown_witch")).toMatchObject({
@@ -280,7 +722,7 @@ describe("witch one-shot content", () => {
     expect([...CONTENT_IDS.characterIds]).toEqual(
       expect.arrayContaining([
         "npc_bureau_master",
-        "npc_karl_servant",
+        "npc_sasha_hartmann_servant",
         "npc_friedrich_wagner",
         "npc_krebs_mugger",
         "npc_hotel_maid",
@@ -288,6 +730,8 @@ describe("witch one-shot content", () => {
     );
 
     const runtimeText = JSON.stringify(CASE01_CANON_NODES);
+    expect(runtimeText).not.toContain("npc_karl_servant");
+    expect(runtimeText).not.toContain("met_karl_servant_intro");
     expect(runtimeText).toContain("Элиза");
     expect(runtimeText).not.toContain("Клара");
     expect(runtimeText).not.toContain("Clara");
@@ -367,8 +811,7 @@ describe("witch one-shot content", () => {
         expect(choice.skillCheck.onSuccess?.nextNodeId).toBe(
           "scene_case01_lobby_crossover_witch",
         );
-        const failBranch =
-          choice.skillCheck.onFail ?? choice.skillCheck.onFailure;
+        const failBranch = choice.skillCheck.onFail;
         expect(failBranch?.nextNodeId).toBe(
           "scene_case01_lobby_crossover_witch",
         );
@@ -385,7 +828,7 @@ describe("witch one-shot content", () => {
       ]),
     );
     for (const choice of lobbyWitchNode.choices) {
-      expect(choice.nextNodeId).toBe("scene_case01_hbf_exit_final");
+      expect(choice.nextNodeId).toBe("scene_case01_witch_estate_epilogue");
     }
 
     const copperPassChoice = lobbyWitchNode.choices.find(
@@ -549,8 +992,8 @@ describe("witch one-shot content", () => {
         runtimeId: "npc_bureau_master",
       },
       {
-        file: "char_case01_karl_servant.md",
-        runtimeId: "npc_karl_servant",
+        file: "char_case01_sasha_hartmann_servant.md",
+        runtimeId: "npc_sasha_hartmann_servant",
       },
       {
         file: "char_case01_friedrich_wagner.md",
@@ -588,11 +1031,16 @@ describe("witch one-shot content", () => {
       expect.arrayContaining(["svc_bureau_occult_protocol"]),
     );
 
-    expect(npcById.get("npc_karl_servant")?.introFlag).toBe(
-      "met_karl_servant_intro",
-    );
-    expect(npcById.get("npc_karl_servant")?.serviceIds).toEqual(
-      expect.arrayContaining(["svc_karl_service_corridors"]),
+    const sasha = npcById.get("npc_sasha_hartmann_servant");
+    expect(sasha).toMatchObject({
+      displayName: 'Alexander "Sasha"',
+      publicRole: "Hartmann family servant",
+      portraitUrl:
+        "/images/characters/sasha_hartmann_servant/sasha_hartmann_servant.webp",
+    });
+    expect(sasha?.introFlag).toBe("met_sasha_servant_intro");
+    expect(sasha?.serviceIds).toEqual(
+      expect.arrayContaining(["svc_sasha_service_corridors"]),
     );
 
     expect(npcById.get("npc_friedrich_wagner")?.introFlag).toBe(
@@ -617,9 +1065,21 @@ describe("witch one-shot content", () => {
       FREIBURG_SOCIAL_CATALOG.services.map((entry) => entry.id),
     );
     expect(serviceIds.has("svc_bureau_occult_protocol")).toBe(true);
-    expect(serviceIds.has("svc_karl_service_corridors")).toBe(true);
+    expect(serviceIds.has("svc_sasha_service_corridors")).toBe(true);
     expect(serviceIds.has("svc_friedrich_ledger_memory")).toBe(true);
     expect(serviceIds.has("svc_hotel_discretion")).toBe(true);
+
+    const sashaCorridors = FREIBURG_SOCIAL_CATALOG.services.find(
+      (entry) => entry.id === "svc_sasha_service_corridors",
+    );
+    expect(sashaCorridors).toMatchObject({
+      npcId: "npc_sasha_hartmann_servant",
+      unlockFlag: "met_sasha_servant_intro",
+      qualityNote:
+        "Knows service routes, can settle a domestic crisis without attracting public attention, and keeps composure under pressure.",
+      consequenceNote:
+        "If Eleonora uses his blood or warmth, Sasha does not become a frightened extra; he becomes a silent witness whose trust is broken.",
+    });
 
     const hotelDiscretion = FREIBURG_SOCIAL_CATALOG.services.find(
       (entry) => entry.id === "svc_hotel_discretion",
@@ -641,7 +1101,7 @@ describe("witch one-shot content", () => {
     const introExpectations: Array<{ nodeId: string; flagKey: string }> = [
       {
         nodeId: "scene_case01_hbf_luggage_incident_witch",
-        flagKey: "met_karl_servant_intro",
+        flagKey: "met_sasha_servant_intro",
       },
       {
         nodeId: "scene_case01_witch_bureau_master_meeting",
@@ -675,39 +1135,62 @@ describe("witch one-shot content", () => {
     }
   });
 
-  it("applies Karl relationship and ghost-testimony effects per Witch branch", () => {
-    const helpKarlChoice = getNode(
-      "scene_case01_hbf_luggage_incident_witch",
-    ).choices.find((choice) => choice.id === "WITCH_HBF_BLOOD_IGNORE");
-    expect(helpKarlChoice?.effects).toEqual(
+  it("applies Sasha relationship and ghost-testimony effects per Witch branch", () => {
+    const softSashaChoice = getNode(
+      "scene_case01_hbf_luggage_sasha_soft",
+    ).choices.find((choice) => choice.id === "WITCH_HBF_SASHA_ACCEPT_COVER");
+    expect(softSashaChoice?.effects).toEqual(
       expect.arrayContaining([
         {
           type: "change_relationship",
-          characterId: "npc_karl_servant",
+          characterId: "npc_sasha_hartmann_servant",
           delta: 10,
+        },
+        {
+          type: "set_flag",
+          key: "flag_witch_helped_sasha_hbf",
+          value: true,
         },
       ]),
     );
 
-    const feedKarlChoice = getNode(
-      "scene_case01_estate_vaults_witch",
-    ).choices.find((choice) => choice.id === "WITCH_VAULTS_FEED_KARL");
-    expect(feedKarlChoice?.effects).toEqual(
+    const helpSashaChoice = getNode(
+      "scene_case01_hbf_luggage_sasha_thirst",
+    ).choices.find((choice) => choice.id === "WITCH_HBF_BLOOD_IGNORE");
+    expect(helpSashaChoice?.effects).toEqual(
       expect.arrayContaining([
         {
           type: "change_relationship",
-          characterId: "npc_karl_servant",
+          characterId: "npc_sasha_hartmann_servant",
+          delta: 10,
+        },
+        {
+          type: "set_flag",
+          key: "flag_witch_helped_sasha_hbf",
+          value: true,
+        },
+      ]),
+    );
+
+    const feedSashaChoice = getNode(
+      "scene_case01_estate_vaults_witch",
+    ).choices.find((choice) => choice.id === "WITCH_VAULTS_FEED_SASHA");
+    expect(feedSashaChoice?.effects).toEqual(
+      expect.arrayContaining([
+        {
+          type: "change_relationship",
+          characterId: "npc_sasha_hartmann_servant",
           delta: -40,
         },
         {
           type: "change_faction_signal",
           factionId: "house_of_pledges",
           delta: -5,
-          reason: "Witch fed on Karl in the estate vaults",
+          reason: "Witch fed on Sasha in the estate vaults",
         },
         {
           type: "set_flag",
-          key: "ghost_karl_testimony_compromised",
+          key: "ghost_sasha_testimony_compromised",
           value: true,
         },
       ]),
@@ -825,7 +1308,7 @@ describe("witch one-shot content", () => {
     );
   });
 
-  it("gates new Witch ghost-case hooks by Karl and Friedrich outcomes", () => {
+  it("gates new Witch ghost-case hooks by Sasha and Friedrich outcomes", () => {
     const evidenceNode = PACK_FREIBURG_GHOST_NODES.find(
       (node) => node.id === "scene_evidence_collection",
     );
@@ -834,8 +1317,8 @@ describe("witch one-shot content", () => {
     expect(choiceIds).toEqual(
       expect.arrayContaining([
         "GHOST_WITCH_FRIENDRICH_LEDGER_MEMORY",
-        "GHOST_WITCH_KARL_SERVICE_CORRIDOR",
-        "GHOST_WITCH_KARL_PANIC_TRACE",
+        "GHOST_WITCH_SASHA_SERVICE_CORRIDOR",
+        "GHOST_WITCH_SASHA_PANIC_TRACE",
       ]),
     );
 
@@ -880,19 +1363,19 @@ describe("witch one-shot content", () => {
     ).toBe(true);
 
     const corridorChoice = evidenceNode!.choices.find(
-      (choice) => choice.id === "GHOST_WITCH_KARL_SERVICE_CORRIDOR",
+      (choice) => choice.id === "GHOST_WITCH_SASHA_SERVICE_CORRIDOR",
     );
     expect(corridorChoice?.visibleIfAll).toEqual(
       expect.arrayContaining([
         { type: "flag_equals", key: "origin_witch", value: true },
         {
           type: "flag_equals",
-          key: "flag_witch_helped_karl_hbf",
+          key: "flag_witch_helped_sasha_hbf",
           value: true,
         },
         {
           type: "flag_equals",
-          key: "flag_witch_attacked_karl",
+          key: "flag_witch_attacked_sasha",
           value: false,
         },
       ]),
@@ -901,25 +1384,25 @@ describe("witch one-shot content", () => {
       expect.arrayContaining([
         {
           type: "grant_evidence",
-          evidenceId: "ev_karl_service_corridor_testimony",
+          evidenceId: "ev_sasha_service_corridor_testimony",
         },
         {
           type: "set_flag",
-          key: "ghost_session_hook_karl_smuggling_key",
+          key: "ghost_session_hook_sasha_smuggling_key",
           value: true,
         },
       ]),
     );
 
     const panicChoice = evidenceNode!.choices.find(
-      (choice) => choice.id === "GHOST_WITCH_KARL_PANIC_TRACE",
+      (choice) => choice.id === "GHOST_WITCH_SASHA_PANIC_TRACE",
     );
     expect(panicChoice?.visibleIfAll).toEqual(
       expect.arrayContaining([
         { type: "flag_equals", key: "origin_witch", value: true },
         {
           type: "flag_equals",
-          key: "flag_witch_attacked_karl",
+          key: "flag_witch_attacked_sasha",
           value: true,
         },
       ]),
@@ -928,7 +1411,7 @@ describe("witch one-shot content", () => {
       expect.arrayContaining([
         {
           type: "set_flag",
-          key: "ghost_karl_testimony_compromised",
+          key: "ghost_sasha_testimony_compromised",
           value: true,
         },
       ]),

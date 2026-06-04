@@ -16,6 +16,7 @@ CASE01_DEFAULT_ENTRY_SCENARIO_ID,
 CASE01_DINING_FAREWELL_NODE_IDS,
 CASE01_DINING_NODE_IDS,
 CASE01_HBF_BG,
+CASE01_TRAIN_HUB_NODE_ID,
 CASE01_SCENARIO_IDS
 } from "./shared";
 
@@ -56,6 +57,11 @@ export const case01CanonScenarios: ScenarioBlueprint[] = [
       CASE01_DINING_FAREWELL_NODE_IDS.introObserve,
       CASE01_DINING_FAREWELL_NODE_IDS.silentObserve,
       CASE01_DINING_FAREWELL_NODE_IDS.hotelObserve,
+      CASE01_TRAIN_HUB_NODE_ID,
+      "scene_case01_train_compartment_revisit",
+      "scene_case01_train_corridor_revisit",
+      "scene_case01_train_dining_car_revisit",
+      "scene_case01_train_vestibule_revisit",
       "scene_case01_train_ankommen_video",
       "scene_case01_hbf_porter_greeting",
       "scene_case01_corridor_reflection",

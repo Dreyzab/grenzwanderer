@@ -4,6 +4,8 @@ node_type: character
 case: case01
 phase: investigation
 status: active
+runtime_character_id: npc_friedrich_wagner
+npc_identity: npc_friedrich_wagner
 tags:
   - type/character
   - origin/witch
@@ -44,3 +46,7 @@ tags:
 
 - `scene_case01_ghost_showdown_witch` — Призрак Счетовода
 - [[40_GameViewer/Sandbox_KA/Plot/03_Ghost/scene_evidence_collection|👻 Estate Evidence Sweep]]
+
+## Player Dossier
+
+- (reveal: met_friedrich_wagner_intro) **The Accountant's Shade**: He manifests around the brass-bound ledger box, weighing whether you will carry the case forward.

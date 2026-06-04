@@ -2,6 +2,7 @@
 id: char_fortune_teller
 tags: [character, functional]
 tier: functional
+design_only: true
 runtime_character_id: unknown
 faction: fct_occult_circle
 aliases: ["Fortune Teller"]

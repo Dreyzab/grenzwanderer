@@ -1,13 +1,14 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import type { ReactNode, RefObject } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import type { VnSnapshot } from "../types";
 import type {
   TypedTextHandle,
@@ -19,6 +20,11 @@ import { VnNarrativeLog } from "./VnNarrativeLog";
 import type { NarrativeLogState } from "./useNarrativeLog";
 
 const SNAP_FRACTIONS = [0.22, 0.45, 0.92] as const;
+/** Auto-grow bounds: opens compact, expands toward fullscreen as the log fills. */
+const MIN_AUTO_FRACTION = 0.28;
+const MAX_AUTO_FRACTION = SNAP_FRACTIONS[2];
+/** Chrome above the scrollable log: drag handle + accent rule. */
+const SHEET_CHROME_PX = 44;
 const STORAGE_KEY = "vn-log-sheet-snap";
 const SPRING = { type: "spring" as const, damping: 28, stiffness: 280 };
 const TAP_MAX_DRIFT_PX = 18;
@@ -114,6 +120,18 @@ export function VnLogBottomSheet({
   const [snapIx, setSnapIxState] = useState<0 | 1 | 2>(initialSnap);
   const lastExpandedIxRef = useRef<1 | 2>(initialSnap === 2 ? 2 : 1);
 
+  /** Until the reader drags/snaps manually, the dock height tracks the content. */
+  const [userControlled, setUserControlled] = useState(false);
+  const [contentPx, setContentPx] = useState(0);
+
+  const autoFraction = useMemo(() => {
+    if (typeof window === "undefined" || window.innerHeight === 0) {
+      return SNAP_FRACTIONS[1];
+    }
+    const raw = (contentPx + SHEET_CHROME_PX) / window.innerHeight;
+    return clamp(raw, MIN_AUTO_FRACTION, MAX_AUTO_FRACTION);
+  }, [contentPx]);
+
   const [dragFrac, setDragFracState] = useState<number | null>(null);
   const dragFracRef = useRef<number | null>(null);
 
@@ -126,6 +144,7 @@ export function VnLogBottomSheet({
     setSnapIxState(1);
     persistSnapIx(1);
     setDragFrac(null);
+    setUserControlled(false);
   }, [setDragFrac]);
 
   const pointerIdRef = useRef<number | null>(null);
@@ -142,11 +161,13 @@ export function VnLogBottomSheet({
       setSnapIxState(nextIx);
       persistSnapIx(nextIx);
       setDragFrac(null);
+      setUserControlled(true);
     },
     [setDragFrac],
   );
 
   const togglePeekExpanded = useCallback(() => {
+    setUserControlled(true);
     setSnapIxState((ix) => {
       if (ix === 0) {
         const next = lastExpandedIxRef.current;
@@ -188,8 +209,14 @@ export function VnLogBottomSheet({
     };
   }, [resetToDefaultSnap, sceneGroupId]);
 
-  const fracVisible = dragFrac ?? SNAP_FRACTIONS[snapIx];
-  const isCollapsedPeek = snapIx === 0 && dragFrac === null;
+  const baseFraction = userControlled ? SNAP_FRACTIONS[snapIx] : autoFraction;
+  const fracVisible = dragFrac ?? baseFraction;
+  const isCollapsedPeek = userControlled && snapIx === 0 && dragFrac === null;
+
+  /** ADV "tap to continue" hint: a beat finished typing and another awaits a tap. */
+  const hasPendingAdvance =
+    !state.isTypingSegment &&
+    state.currentSegmentIndex < state.currentNodeSegments.length;
 
   const endPointerSession = useCallback(
     (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -273,7 +300,7 @@ export function VnLogBottomSheet({
       }}
     >
       <motion.div
-        className="pointer-events-auto flex w-full flex-col overflow-hidden rounded-t-xl border-t border-white/10 bg-stone-950/88 shadow-[0_-24px_60px_rgba(0,0,0,0.62)] backdrop-blur-md"
+        className="pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-t-xl border-t border-white/10 bg-stone-950/88 shadow-[0_-24px_60px_rgba(0,0,0,0.62)] backdrop-blur-md"
         animate={{ height: `${fracVisible * 100}vh` }}
         transition={dragFrac !== null ? { duration: 0 } : SPRING}
         onClick={onSurfaceTap}
@@ -318,8 +345,20 @@ export function VnLogBottomSheet({
             onTokenEnter={onTokenEnter}
             onTokenLeave={onTokenLeave}
             tokenStateByPayload={tokenStateByPayload}
+            onContentHeightChange={setContentPx}
           />
         </div>
+
+        {hasPendingAdvance ? (
+          <motion.div
+            className="pointer-events-none absolute right-4 bottom-3 z-10 text-amber-400/85 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
+            aria-hidden="true"
+            animate={{ opacity: [0.25, 1, 0.25], x: [0, 2, 0] }}
+            transition={{ duration: 1.1, ease: "easeInOut", repeat: Infinity }}
+          >
+            <ChevronRight size={22} strokeWidth={2.75} />
+          </motion.div>
+        ) : null}
       </motion.div>
     </motion.div>
   );

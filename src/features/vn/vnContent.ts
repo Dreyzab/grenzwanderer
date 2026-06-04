@@ -4,8 +4,20 @@ import {
   getScenarioById,
   parseVnSnapshotPayload,
 } from "../../shared/vn-contract";
-import { innerVoiceRankVarKeyFor } from "../../../data/innerVoiceContract";
-import { isSkillRankGateSatisfiedFromVars } from "../../shared/game/skillProgression";
+import {
+  innerVoiceRankVarKeyFor,
+  isSkillVoiceId,
+} from "../../../data/innerVoiceContract";
+import {
+  isSkillRankGateSatisfiedFromVars,
+  resolveSkillRank,
+  resolveSkillXpFromVars,
+} from "../../shared/game/skillProgression";
+import {
+  resolveCoreCharacteristicState,
+  resolveIndicatorRank,
+  resolveOriginIdFromFlags,
+} from "../../shared/game/characterProgression";
 import type {
   RumorStateStatus,
   VnChoice,
@@ -140,6 +152,25 @@ const evaluateChoiceConditionLeaf = (
     );
     return currentOrder >= requiredOrder;
   }
+  if (condition.type === "core_gte") {
+    return (
+      resolveCoreCharacteristicState(
+        vars,
+        condition.coreId,
+        resolveOriginIdFromFlags(flags),
+      ).value >= condition.value
+    );
+  }
+  if (condition.type === "indicator_rank_gte") {
+    return resolveIndicatorRank(vars, condition.indicatorId) >= condition.value;
+  }
+  if (condition.type === "voice_level_gte") {
+    return (
+      isSkillVoiceId(condition.voiceId) &&
+      resolveSkillRank(resolveSkillXpFromVars(vars, condition.voiceId))
+        .rankIndex >= condition.value
+    );
+  }
   if (condition.type === "skill_rank_gte") {
     return isSkillRankGateSatisfiedFromVars(
       vars,
@@ -220,6 +251,22 @@ export const isChoiceVisible = (
 ): boolean =>
   groupAll(choice.visibleIfAll, flags, vars, context) &&
   groupAny(choice.visibleIfAny, flags, vars, context);
+
+/**
+ * Generic visibility check for entities that expose the same
+ * `visibleIfAll` / `visibleIfAny` pattern as `VnChoice` (e.g. hub zone
+ * occupants). Mirrors {@link isChoiceVisible} so the gating semantics
+ * stay consistent across the contract.
+ */
+export const areConditionsVisible = (
+  visibleIfAll: VnCondition[] | undefined,
+  visibleIfAny: VnCondition[] | undefined,
+  flags: Record<string, boolean>,
+  vars: Record<string, number>,
+  context?: VnChoiceEvaluationContext,
+): boolean =>
+  groupAll(visibleIfAll, flags, vars, context) &&
+  groupAny(visibleIfAny, flags, vars, context);
 
 export const isChoiceEnabled = (
   choice: VnChoice,

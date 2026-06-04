@@ -26,6 +26,10 @@ import {
 } from "../skillCheckPalette";
 import type { VnChoice } from "../types";
 import {
+  CHARACTER_SYNERGIES,
+  type VnChoiceSource,
+} from "../../../shared/game/characterProgression";
+import {
   getVoiceFallbackIcon,
   resolveVoiceAvatarUrl,
 } from "./VnInlineSpeakerBadge";
@@ -166,6 +170,67 @@ const chanceColorClassName = (chancePercent: number): string => {
   }
   return "text-rose-400";
 };
+
+const choiceSourceLabelById: Record<VnChoiceSource, string> = {
+  common: "Common",
+  voice: "Voice",
+  origin: "Origin",
+  synergy: "Synergy",
+  signature: "Signature",
+  flaw: "Flaw",
+};
+
+const choiceSourceAccentById: Record<VnChoiceSource, string> = {
+  common: "#a8a29e",
+  voice: "#fbbf24",
+  origin: "#f59e0b",
+  synergy: "#38bdf8",
+  signature: "#34d399",
+  flaw: "#fb7185",
+};
+
+const resolveChoiceSource = (choice: VnChoice): VnChoiceSource =>
+  choice.choiceSource ?? (choice.skillCheck ? "voice" : "common");
+
+const resolveChoiceSourceLabel = (choice: VnChoice): string => {
+  const source = resolveChoiceSource(choice);
+  if (source === "voice" && choice.skillCheck) {
+    return formatSkillCheckVoiceLabel(choice.skillCheck.voiceId);
+  }
+  if (source === "synergy" && choice.skillCheck?.synergyId) {
+    return CHARACTER_SYNERGIES[choice.skillCheck.synergyId].labelRu;
+  }
+  return choiceSourceLabelById[source];
+};
+
+function ChoiceSourceBadge({
+  choice,
+  voiceAccent,
+}: {
+  choice: VnChoice;
+  voiceAccent?: string;
+}) {
+  const source = resolveChoiceSource(choice);
+  const color =
+    source === "voice" && voiceAccent
+      ? voiceAccent
+      : choiceSourceAccentById[source];
+
+  return (
+    <span
+      className="mr-2 inline-flex max-w-full translate-y-[-0.12em] items-center rounded-[4px] border px-1.5 py-0.5 font-sans text-[9px] font-semibold uppercase tracking-[0.16em]"
+      data-testid="choice-source-badge"
+      data-choice-source={source}
+      style={{
+        borderColor: `${color}55`,
+        backgroundColor: `${color}14`,
+        color,
+      }}
+    >
+      {resolveChoiceSourceLabel(choice)}
+    </span>
+  );
+}
 
 interface PrimaryVoiceFloatProps {
   hint: ChoiceInnerVoiceHintDisplay | null;
@@ -439,6 +504,7 @@ export function VnChoiceButton({
             />
           </span>
           <span className="font-serif text-lg leading-snug text-stone-600 line-through sm:text-xl md:text-[22px]">
+            <ChoiceSourceBadge choice={choice} voiceAccent={accentColor} />
             {choice.text}
           </span>
         </div>
@@ -473,7 +539,10 @@ export function VnChoiceButton({
             glowColor={avatarGlowColor}
           />
         </PrimaryVoiceFloat>
-        <span className={choiceTextClassName}>{choice.text}</span>
+        <span className={choiceTextClassName}>
+          <ChoiceSourceBadge choice={choice} voiceAccent={accentColor} />
+          {choice.text}
+        </span>
 
         {hasSkillCheck ? (
           <div className="mt-1.5 flex items-center gap-2 font-sans text-[10px] uppercase tracking-[0.15em] opacity-70 transition-opacity group-hover:opacity-100">

@@ -132,11 +132,10 @@ export const replaceCommandPartyMembers = (
   sessionKey: string,
   actors: readonly CommandActorPresentation[],
 ): void => {
-  for (const row of ctx.db.commandPartyMember.iter()) {
-    if (
-      row.sessionKey === sessionKey &&
-      identityKey(row.playerId) === identityKey(ctx.sender)
-    ) {
+  for (const row of ctx.db.commandPartyMember.command_party_member_session_key.filter(
+    sessionKey,
+  )) {
+    if (identityKey(row.playerId) === identityKey(ctx.sender)) {
       ctx.db.commandPartyMember.memberKey.delete(row.memberKey);
     }
   }

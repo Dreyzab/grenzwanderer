@@ -42,6 +42,61 @@ export const CASE01_DINING_NODE_IDS = {
   eleonoraFarewell: "scene_case01_train_dining_car_eleonora_farewell",
 } as const;
 
+/**
+ * Canonical Train Hub overlay constants. The hub node is the single
+ * point in the rail scenario where the player can roam between wagons
+ * via an interactive schematic. See {@link CASE01_TRAIN_HUB_ZONE_IDS}
+ * for the four zones rendered inside the overlay and
+ * {@link CASE01_TRAIN_HUB_ZONE_BY_SCENE_GROUP} for the mapping between
+ * narrative scene groups and zone ids.
+ */
+export const CASE01_TRAIN_HUB_SCHEMA_ID = "train_hub";
+export const CASE01_TRAIN_HUB_NODE_ID = "scene_case01_train_hub";
+
+export const CASE01_TRAIN_HUB_ZONE_IDS = {
+  compartment: "compartment",
+  corridor: "corridor",
+  diningCar: "dining_car",
+  vestibule: "vestibule",
+} as const;
+
+export type Case01TrainHubZoneId =
+  (typeof CASE01_TRAIN_HUB_ZONE_IDS)[keyof typeof CASE01_TRAIN_HUB_ZONE_IDS];
+
+/**
+ * Maps narrative `sceneGroupId` values to the canonical hub zone that
+ * the player should be marked as occupying after that scene. Authors
+ * stay free to omit a mapping for transient scenes (e.g. cutscenes)
+ * that should not move the avatar.
+ */
+export const CASE01_TRAIN_HUB_ZONE_BY_SCENE_GROUP: Readonly<
+  Record<string, Case01TrainHubZoneId>
+> = Object.freeze({
+  train_compartment: CASE01_TRAIN_HUB_ZONE_IDS.compartment,
+  train_corridor: CASE01_TRAIN_HUB_ZONE_IDS.corridor,
+  train_dining_car: CASE01_TRAIN_HUB_ZONE_IDS.diningCar,
+  train_vestibule: CASE01_TRAIN_HUB_ZONE_IDS.vestibule,
+});
+
+/**
+ * Hit-test paths for the train hub. Coordinates target the canonical schema
+ * `viewBox "0 0 2400 1000"` and intentionally match the top-down interior
+ * map at `/images/train_interior_eleanor_map.svg`.
+ */
+export const CASE01_TRAIN_HUB_VIEW_BOX = "0 0 2400 1000";
+export const CASE01_TRAIN_HUB_ASPECT_RATIO = 2.4;
+export const CASE01_TRAIN_HUB_IMAGE_URL =
+  "/images/train_interior_eleanor_map.svg";
+
+export const CASE01_TRAIN_HUB_ZONE_PATHS: Readonly<
+  Record<Case01TrainHubZoneId, string>
+> = Object.freeze({
+  [CASE01_TRAIN_HUB_ZONE_IDS.compartment]: "M80 240 H820 V780 H80 Z",
+  [CASE01_TRAIN_HUB_ZONE_IDS.corridor]: "M820 280 H1320 V780 H820 Z",
+  [CASE01_TRAIN_HUB_ZONE_IDS.diningCar]: "M1320 220 H2000 V780 H1320 Z",
+  [CASE01_TRAIN_HUB_ZONE_IDS.vestibule]: "M2000 300 H2360 V780 H2000 Z",
+});
+
 export const CASE01_DINING_FLAGS = {
   jokedWithMother: "flag_joked_with_mother",
   silentObservation: "flag_silent_observation",
@@ -131,17 +186,38 @@ export const CASE01_CANON_FLAG_KEYS = [
   CASE01_DINING_FLAGS.noticedRingRemoved,
   CASE01_DINING_FLAGS.noticedFelixApathy,
   CASE01_DINING_FLAGS.noticedLotteSchedule,
+  "flag_witch_coin_rebuke",
+  "flag_witch_coin_joke",
+  "flag_witch_coin_soft",
+  "flag_witch_collar_command",
+  "flag_witch_collar_joke",
+  "flag_witch_collar_trust",
   "flag_witch_read_envelope_echo",
   "flag_witch_drank_brandy_early",
   "flag_witch_absorbed_hbf_blood",
-  "flag_witch_helped_karl_hbf",
+  "flag_witch_helped_sasha_hbf",
   "flag_witch_took_suppressant",
   "flag_witch_siphoned_relic",
   "flag_witch_master_suspicious",
+  "flag_witch_master_noticed_hbf_blood",
   "flag_spotted_fritz_early",
+  "flag_witch_lotte_first_seen",
+  "flag_witch_lotte_approached_directly",
+  "flag_witch_lotte_composure_intro",
+  "flag_witch_lotte_honest_intro",
+  "flag_witch_lotte_social_intro",
+  "flag_witch_lotte_cynic_intro",
+  "flag_witch_lotte_authority_intro",
+  "flag_witch_lotte_blood_sense_intro",
+  "flag_witch_lotte_spark",
+  "flag_witch_lotte_noticed_strangeness",
   "flag_witch_lotte_rational",
   "flag_witch_lotte_somatic",
   "flag_witch_lotte_marriage_match",
+  "flag_witch_lotte_monologue_cynic",
+  "flag_witch_lotte_monologue_grief",
+  "flag_witch_lotte_monologue_practical",
+  "flag_witch_lotte_good_parting",
   "flag_witch_baroness_deal",
   "flag_witch_baroness_suspicious",
   "flag_witch_ghost_freed",
@@ -154,13 +230,14 @@ export const CASE01_CANON_FLAG_KEYS = [
   "flag_witch_copper_smell",
   "flag_witch_felix_noticed_copper_smell",
   "flag_witch_somatic_exhaustion",
-  "flag_witch_attacked_karl",
+  "flag_witch_attacked_sasha",
+  "witch_enter_ghost_sandbox",
   "met_bureau_master_intro",
-  "met_karl_servant_intro",
+  "met_sasha_servant_intro",
   "met_friedrich_wagner_intro",
   "met_krebs_mugger_intro",
   "met_hotel_maid_intro",
-  "ghost_karl_testimony_compromised",
+  "ghost_sasha_testimony_compromised",
 ] as const;
 
 export const CASE01_CANON_VAR_KEYS = [
@@ -169,6 +246,9 @@ export const CASE01_CANON_VAR_KEYS = [
   "official_writ_strength",
   "witch_blood_curse_pressure",
   "witch_alcohol_aftertaste",
+  "lotte_warmth",
+  "lotte_usefulness",
+  "lotte_suspicion",
 ] as const;
 
 export const CASE01_DIRECTOR_BRIDGE_FALLBACK_BEAT_IDS = Object.freeze([

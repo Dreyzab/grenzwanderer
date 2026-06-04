@@ -1,0 +1,37 @@
+/*
+ * Subtle train-car sway applied to the hub overlay schema. The animation
+ * runs only on the schema's background layer (the side-view cutaway img),
+ * never on text or interactive controls, so motion does not interfere with
+ * reading or hit-testing.
+ *
+ * Respects the OS-level prefers-reduced-motion setting.
+ */
+
+@keyframes vn-hub-sway-bg {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate3d(2px, -1px, 0);
+  }
+  50% {
+    transform: translate3d(0, 1px, 0);
+  }
+  75% {
+    transform: translate3d(-2px, -1px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+[data-testid="vn-hub-schema"] > img {
+  animation: vn-hub-sway-bg 6.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-testid="vn-hub-schema"] > img {
+    animation: none;
+  }
+}

@@ -1,6 +1,11 @@
 import type { VoiceOrDeptId } from "../../shared/ui/icons/game-icons";
 
-export type CharacterTabId = "profile" | "development" | "psyche" | "journal";
+export type CharacterTabId =
+  | "profile"
+  | "development"
+  | "psyche"
+  | "journal"
+  | "equipment";
 
 export type CharacterAttributeKey =
   | "attr_intellect"

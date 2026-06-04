@@ -9,7 +9,7 @@ import {
 import { getLocationCastPresentation } from "../../../shared/game/locationCastPresentation";
 import { tables } from "../../../shared/spacetime/bindings";
 import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
-import { parseSnapshot } from "../../vn/vnContent";
+import { useActiveContentSnapshot } from "../../../shared/content/activeSnapshot";
 import type { SocialCatalogSnapshot } from "../../vn/types";
 import type { RuntimeMapBinding, RuntimeMapPoint } from "../types";
 import {
@@ -126,7 +126,7 @@ export const CaseCard = ({
   onClose,
 }: CaseCardProps) => {
   const [versionRows] = useTable(tables.contentVersion);
-  const [snapshotRows] = useTable(tables.contentSnapshot);
+  const { snapshot: activeSnapshot } = useActiveContentSnapshot();
   const { flags: myFlags, vars: myVars } = usePlayerBindings();
   const titleId = useId();
   const [pendingBindingId, setPendingBindingId] = useState<string | null>(null);
@@ -149,15 +149,6 @@ export const CaseCard = ({
     () => versionRows.find((row) => row.isActive) ?? null,
     [versionRows],
   );
-  const activeSnapshot = useMemo(() => {
-    if (!activeVersion) {
-      return null;
-    }
-    const row =
-      snapshotRows.find((entry) => entry.checksum === activeVersion.checksum) ??
-      null;
-    return row ? parseSnapshot(row.payloadJson) : null;
-  }, [activeVersion, snapshotRows]);
   const socialCatalog = activeSnapshot?.socialCatalog;
   const activeLens = useMemo(
     () =>

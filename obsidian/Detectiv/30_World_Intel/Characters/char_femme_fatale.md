@@ -2,6 +2,7 @@
 id: char_femme_fatale
 tags: [character, major]
 tier: major
+design_only: true
 runtime_character_id: femme_fatale
 faction: fct_private_network
 aliases: ["Elise von Schwarzwald"]

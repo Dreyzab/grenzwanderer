@@ -3,6 +3,7 @@ id: char_apothecary
 tags: [character, major]
 tier: major
 runtime_character_id: apothecary
+npc_identity: npc_apothecary
 faction: fct_merchants
 aliases: ["Herr Adalbert Weiss"]
 ---
@@ -48,3 +49,7 @@ aliases: ["Herr Adalbert Weiss"]
 - Appears in: [[10_Narrative/Scenes/node_case1_first_lead_selection|node_case1_first_lead_selection]]
 - Appears in: [[10_Narrative/Scenes/node_case1_bank_investigation|node_case1_bank_investigation]]
 - Linked quest: [[00_Map_Room/qst_main_case_01|qst_main_case_01]]
+
+## Player Dossier
+
+- (reveal: met_apothecary_intro) **The Distributor**: Herr Weiss sells legal tonics across the counter and laboratory chemicals beneath it — magnesium, iron oxide, reagents, for the right buyer.

@@ -1,6 +1,32 @@
 import "@testing-library/jest-dom";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { MouseEvent, ReactNode } from "react";
 import { vi } from "vitest";
+
+const originalFetch = globalThis.fetch;
+const bundledSnapshotPath = join(
+  process.cwd(),
+  "content",
+  "vn",
+  "pilot.snapshot.json",
+);
+
+globalThis.fetch = async (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> => {
+  const url = typeof input === "string" ? input : input.toString();
+  if (url.includes("/content/vn/pilot.snapshot.json")) {
+    const body = readFileSync(bundledSnapshotPath, "utf8");
+    return new Response(body, {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  return originalFetch(input, init);
+};
 
 vi.mock("mapbox-gl", () => ({
   default: {},

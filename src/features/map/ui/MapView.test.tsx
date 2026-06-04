@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
     travelTo: Symbol("travelTo"),
     setFlag: Symbol("setFlag"),
     setVar: Symbol("setVar"),
+    commitMapDiscovery: Symbol("commitMapDiscovery"),
     unlockGroup: Symbol("unlockGroup"),
     startScenario: Symbol("startScenario"),
   },

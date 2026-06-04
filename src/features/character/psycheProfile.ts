@@ -11,6 +11,8 @@ import {
   readPsycheState,
   resolveOverallInnerVoiceSelection,
   toCompassPercent,
+  getDnDAlignment,
+  type DnDAlignment,
 } from "../../shared/game/innerVoiceModel";
 import {
   LEGACY_LAYER_BY_FACTION_ID,
@@ -118,6 +120,7 @@ export interface PsycheInnerCompassSummary {
   axisXPercent: number;
   axisYPercent: number;
   approachPercent: number;
+  dndAlignment: DnDAlignment;
   voices: PsycheInnerCompassVoice[];
 }
 
@@ -372,6 +375,7 @@ const resolveInnerCompass = (
     axisXPercent: toCompassPercent(state.axisX),
     axisYPercent: toCompassPercent(state.axisY),
     approachPercent: toCompassPercent(state.approach),
+    dndAlignment: getDnDAlignment(state),
     voices: selection.ordered.map((entry) => {
       const definition = INNER_VOICE_DEFINITIONS[entry.voiceId];
       return {

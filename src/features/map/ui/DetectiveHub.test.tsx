@@ -1,7 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CANONICAL_FACTION_REGISTRY } from "../../../../data/factionContract";
 import type { RuntimeMapPoint } from "../types";
 import { DetectiveHub } from "./DetectiveHub";
 
@@ -10,7 +9,6 @@ const mocks = vi.hoisted(() => ({
   useReducerMock: vi.fn(),
   advanceQuestInstanceMock: vi.fn(),
   useIdentityMock: vi.fn(),
-  parseSnapshotMock: vi.fn(),
   tablesMock: {
     myPlayerInventory: Symbol("myPlayerInventory"),
     myRelationships: Symbol("myRelationships"),
@@ -27,6 +25,32 @@ const mocks = vi.hoisted(() => ({
     startScenario: Symbol("startScenario"),
   },
   questInstanceRows: [] as unknown[],
+  socialSnapshot: {
+    socialCatalog: {
+      factions: [],
+      npcIdentities: [
+        {
+          id: "npc_anna_mahler",
+          displayName: "Anna Mahler",
+          factionId: "city_network",
+          publicRole: "Railway fixer",
+          rosterTier: "major",
+        },
+      ],
+      services: [],
+      rumors: [],
+      careerRanks: [
+        {
+          id: "trainee",
+          label: "Стажёр",
+          order: 0,
+          standingRequired: -100,
+          serviceCriteriaNeeded: 0,
+          privileges: [],
+        },
+      ],
+    },
+  },
 }));
 
 vi.mock("spacetimedb/react", () => ({
@@ -43,36 +67,27 @@ vi.mock("../../../shared/spacetime/bindings", () => ({
   reducers: mocks.reducersMock,
 }));
 
-vi.mock("../../vn/vnContent", () => ({
-  parseSnapshot: (...args: unknown[]) => mocks.parseSnapshotMock(...args),
+vi.mock("../../../shared/content/activeSnapshot", () => ({
+  useActiveContentSnapshot: () => ({
+    snapshot: mocks.socialSnapshot,
+    activeVersion: null,
+    contentReady: true,
+  }),
 }));
 
-const socialSnapshot = {
-  socialCatalog: {
-    factions: CANONICAL_FACTION_REGISTRY,
-    npcIdentities: [
-      {
-        id: "npc_anna_mahler",
-        displayName: "Anna Mahler",
-        factionId: "city_network",
-        publicRole: "Railway fixer",
-        rosterTier: "major",
-      },
-    ],
-    services: [],
-    rumors: [],
-    careerRanks: [
-      {
-        id: "trainee",
-        label: "Ð¡Ñ‚Ð°Ð¶Ñ‘Ñ€",
-        order: 0,
-        standingRequired: -100,
-        serviceCriteriaNeeded: 0,
-        privileges: [],
-      },
-    ],
+vi.mock("../../../shared/game/itemCatalog", () => ({
+  getItemDefinition: (itemId: string) => {
+    if (itemId === "lockpick_kit") {
+      return {
+        id: "lockpick_kit",
+        name: "Lockpick Kit",
+        nameRu: "Набор отмычек",
+        type: "Utility tool",
+      };
+    }
+    return undefined;
   },
-};
+}));
 
 const basePoint: RuntimeMapPoint = {
   id: "loc_agency",
@@ -120,7 +135,6 @@ describe("DetectiveHub", () => {
     mocks.questInstanceRows = [];
     mocks.advanceQuestInstanceMock.mockResolvedValue(undefined);
     mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
-    mocks.parseSnapshotMock.mockReturnValue(socialSnapshot);
     mocks.useReducerMock.mockImplementation((reducer: symbol) => {
       if (reducer === mocks.reducersMock.advanceQuestInstance) {
         return mocks.advanceQuestInstanceMock;
@@ -225,7 +239,7 @@ describe("DetectiveHub", () => {
     expect(
       screen.getByText(/first briefing is still pending/i),
     ).toBeInTheDocument();
-    expect(screen.getByText("Ð¡Ñ‚Ð°Ð¶Ñ‘Ñ€")).toBeInTheDocument();
+    expect(screen.getByText("Стажёр")).toBeInTheDocument();
     expect(screen.getByText("Duty Roster")).toBeInTheDocument();
     expect(screen.getByText("Lotte Weber")).toBeInTheDocument();
     expect(screen.getByText("Marta Klein")).toBeInTheDocument();
@@ -233,7 +247,7 @@ describe("DetectiveHub", () => {
     expect(screen.getByText("0 entries")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Inventory" }));
-    expect(screen.getByText("lockpick_kit")).toBeInTheDocument();
+    expect(screen.getByText("Lockpick Kit")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Partners" }));
     expect(screen.getByText("Anna Mahler")).toBeInTheDocument();

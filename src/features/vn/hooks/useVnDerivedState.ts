@@ -45,6 +45,7 @@ import {
   formatVoiceLabel,
   hasOptionalValue,
   isAutoContinueChoice,
+  resolveEffectiveAutoContinueChoice,
   normalizeBody,
   normalizeLetterBody,
   normalizeNumeric,
@@ -84,6 +85,10 @@ import {
   resolveEffectiveFortune,
 } from "../../../shared/game/narrativeResources";
 import { isSkillVoiceId } from "../../../../data/innerVoiceContract";
+import {
+  resolveEffectiveSkillCheckBonus,
+  resolveOriginIdFromFlags,
+} from "../../../shared/game/characterProgression";
 import { isSkillRankGateSatisfiedFromVars } from "../../../shared/game/skillProgression";
 
 interface UseVnDerivedStateParams {
@@ -389,7 +394,10 @@ export function useVnDerivedState({
     return items;
   }, [currentNode, mySkillResults, selectedScenarioId]);
 
-  const currentVisibleChoices = useMemo(
+  // All visible non-auto choices, regardless of hotspot. Used for legacy
+  // consumers and for `hasNoChoices`/lock-state checks where the kind of
+  // surface (text vs hotspot) does not matter.
+  const currentVisibleChoicesAll = useMemo(
     () =>
       currentNode?.choices.filter(
         (choice: VnChoice) =>
@@ -399,13 +407,33 @@ export function useVnDerivedState({
     [choiceEvaluationContext, currentNode, myFlags, myVars],
   );
 
+  // Text-only visible choices feed VnChoicesRenderer, log layout, lock-state
+  // checks and auto-continue detection. Hotspot choices are intentionally
+  // excluded so they never accidentally render as text buttons or block
+  // tap-to-continue.
+  const currentVisibleChoices = useMemo(
+    () =>
+      currentVisibleChoicesAll.filter((choice: VnChoice) => !choice.hotspot),
+    [currentVisibleChoicesAll],
+  );
+
+  // Visible hotspot choices for the hub overlay. Already filtered by
+  // visibility conditions. Disambiguation across multiple choices targeting
+  // the same zone is performed downstream via `hotspot.priority`.
+  const currentVisibleHotspotChoices = useMemo(
+    () =>
+      currentVisibleChoicesAll.filter((choice: VnChoice) => !!choice.hotspot),
+    [currentVisibleChoicesAll],
+  );
+
   const currentAutoContinueChoice = useMemo(
     () =>
-      currentNode?.choices.find(
-        (choice: VnChoice) =>
-          isAutoContinueChoice(choice) &&
-          isChoiceVisible(choice, myFlags, myVars, choiceEvaluationContext),
-      ) ?? null,
+      resolveEffectiveAutoContinueChoice(
+        currentNode?.choices,
+        myFlags,
+        myVars,
+        choiceEvaluationContext,
+      ),
     [choiceEvaluationContext, currentNode, myFlags, myVars],
   );
 
@@ -699,10 +727,19 @@ export function useVnDerivedState({
       return undefined;
     }
 
+    const resolvedVoiceLevel = isSkillVoiceId(choice.skillCheck.voiceId)
+      ? resolveEffectiveSkillCheckBonus(myVars, choice.skillCheck.voiceId, {
+          originId: resolveOriginIdFromFlags(myFlags),
+          synergyId: choice.skillCheck.synergyId,
+          choiceSource: choice.choiceSource,
+          choiceType: choice.choiceType,
+        }).total
+      : (myVars[choice.skillCheck.voiceId] ?? 0);
+
     return calculateSkillCheckSuccessPercent({
       diceMode: currentDiceMode,
       difficulty: effectiveDifficulty,
-      voiceLevel: myVars[choice.skillCheck.voiceId] ?? 0,
+      voiceLevel: resolvedVoiceLevel,
     });
   };
 
@@ -729,6 +766,8 @@ export function useVnDerivedState({
     completionTargetLabel,
     passiveCheckItems,
     currentVisibleChoices,
+    currentVisibleChoicesAll,
+    currentVisibleHotspotChoices,
     currentAutoContinueChoice,
     hasPendingPassiveChecks,
     currentNarrativeText,

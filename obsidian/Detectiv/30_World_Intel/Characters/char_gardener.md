@@ -2,6 +2,7 @@
 id: char_gardener
 tags: [character, minor]
 tier: minor
+design_only: true
 runtime_character_id: gardener
 ---
 

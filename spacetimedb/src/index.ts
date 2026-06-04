@@ -11,6 +11,7 @@ export {
   my_command_sessions,
   my_evidence,
   my_faction_signals,
+  my_favor_ledger,
   my_map_events,
   my_mind_cases,
   my_mind_facts,
@@ -19,6 +20,7 @@ export {
   my_npc_state,
   my_player_flags,
   my_player_inventory,
+  my_player_equipment,
   my_player_location,
   my_player_profile,
   my_player_vars,
@@ -72,6 +74,8 @@ export {
   unlock_group,
   grant_xp,
   grant_item,
+  equip_item,
+  unequip_item,
 } from "./reducers/core";
 export { emit_case_event } from "./reducers/case_events";
 export {
@@ -88,7 +92,11 @@ export {
   start_scenario,
   perform_skill_check,
 } from "./reducers/vn";
-export { map_interact, redeem_map_code } from "./reducers/map";
+export {
+  commit_map_discovery,
+  map_interact,
+  redeem_map_code,
+} from "./reducers/map";
 export {
   discover_fact,
   set_hypothesis_focus,

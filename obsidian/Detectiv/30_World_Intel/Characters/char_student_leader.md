@@ -3,6 +3,7 @@ id: char_student_leader
 tags: [character, functional]
 tier: functional
 runtime_character_id: student_leader
+design_only: true
 faction: fct_free_yards
 aliases: ["Student Leader"]
 ---

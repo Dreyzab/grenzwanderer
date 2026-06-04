@@ -12,6 +12,7 @@ import {
 } from "../src/shared/case01Canon";
 import { skillXpVarKeyFor } from "../src/shared/game/skillProgression";
 import { VN_CONDITION_TYPES, VN_EFFECT_TYPES } from "../src/shared/vn-contract";
+import { PLAYER_FLAG_KEYS, PLAYER_VAR_KEYS } from "../src/entities/player/keys";
 
 export const CONDITION_OPERATORS = new Set<string>(VN_CONDITION_TYPES);
 
@@ -81,7 +82,7 @@ const BASE_FLAG_KEYS = new Set<string>([
   "ghost_human_cover_suspected",
   "ghost_route_unlocked",
   "ghost_session_hook_baroness_debt",
-  "ghost_session_hook_karl_smuggling_key",
+  "ghost_session_hook_sasha_smuggling_key",
   "ghost_session_hook_spirit_bargain",
   "ghost_truth_proven",
   "ghost_veil_resonance_seen",
@@ -109,6 +110,7 @@ const BASE_FLAG_KEYS = new Set<string>([
   "origin_journalist_handoff_done",
   "origin_witch_handoff_done",
   "origin_veteran_handoff_done",
+  "witch_hotel_checked_in",
   "calibrated_thermometer",
   "detective_prologue_done",
   "priority_bank_first",
@@ -242,6 +244,14 @@ for (const profile of originProfiles) {
       BASE_SPEAKER_POOL_IDS.add(stat.key);
     }
   }
+}
+
+for (const flagKey of PLAYER_FLAG_KEYS) {
+  BASE_FLAG_KEYS.add(flagKey);
+}
+
+for (const varKey of PLAYER_VAR_KEYS) {
+  BASE_VAR_KEYS.add(varKey as string);
 }
 
 export const FLAG_KEYS = BASE_FLAG_KEYS;

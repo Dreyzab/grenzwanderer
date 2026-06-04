@@ -18,6 +18,16 @@ describe("useShellNavigation", () => {
     expect(result.current.vnScenarioId).toBe("scenario_alpha");
   });
 
+  it("coerces dev tab URLs back to the default player route", () => {
+    window.history.replaceState(null, "", "/?tab=dev");
+
+    const { result } = renderHook(() =>
+      useShellNavigation("freiburg_detective"),
+    );
+
+    expect(result.current.activeTab).toBe("home");
+  });
+
   it("applies popstate changes", async () => {
     const { result } = renderHook(() =>
       useShellNavigation("freiburg_detective"),

@@ -297,6 +297,69 @@ export const acceptanceFlows: AcceptanceFlow[] = [
     notes:
       "Snapshot-backed deduction smoke for Freiburg evidence-to-hypothesis closure.",
   },
+  {
+    id: "freiburg_witch_one_shot",
+    label: "Freiburg witch one-shot",
+    kind: "player_flow",
+    entryPath:
+      "witch origin branch -> canonical witch handoff nodes -> dining and investigation beats",
+    smokeCommand: "smoke:witch-one-shot",
+    smokeLabel: "Witch one-shot",
+    includeInSmokeAll: true,
+    gates: {
+      extract: true,
+      manifest: true,
+      drift: true,
+    },
+    notes:
+      "Snapshot-backed witch branch smoke; also runs in content:gate:local.",
+  },
+  {
+    id: "legacy_phase1_pilot",
+    label: "Legacy phase1 pilot (manual)",
+    kind: "runtime_contract",
+    entryPath: "Historical phase1 reducer contract checks",
+    smokeCommand: "smoke:phase1",
+    smokeLabel: "Phase1 legacy",
+    includeInSmokeAll: false,
+    gates: {
+      extract: false,
+      manifest: false,
+      drift: false,
+    },
+    notes:
+      "Registered for script discovery; not part of supported Case01 smoke:all.",
+  },
+  {
+    id: "legacy_origin_handoff",
+    label: "Legacy origin handoff (manual)",
+    kind: "player_flow",
+    entryPath: "Historical origin handoff smoke",
+    smokeCommand: "smoke:origin-handoff",
+    smokeLabel: "Origin handoff legacy",
+    includeInSmokeAll: false,
+    gates: {
+      extract: false,
+      manifest: false,
+      drift: false,
+    },
+    notes: "Superseded by smoke:origin-entry in supported matrix.",
+  },
+  {
+    id: "legacy_mvp_routes",
+    label: "Legacy MVP routes (manual)",
+    kind: "player_flow",
+    entryPath: "Historical MVP route smoke",
+    smokeCommand: "smoke:mvp-routes",
+    smokeLabel: "MVP routes legacy",
+    includeInSmokeAll: false,
+    gates: {
+      extract: false,
+      manifest: false,
+      drift: false,
+    },
+    notes: "Exploratory smoke outside supported Freiburg Case01 scope.",
+  },
 ];
 
 export interface SmokePipelineStep {

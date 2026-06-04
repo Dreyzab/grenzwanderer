@@ -26,6 +26,9 @@ export interface TestTable<Row = TestRow> {
 }
 
 const keyToString = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return JSON.stringify(value.map(keyToString));
+  }
   if (
     value &&
     typeof value === "object" &&
@@ -42,6 +45,25 @@ const keyToString = (value: unknown): string => {
 
 const selectKey = (selector: KeySelector, row: TestRow): unknown =>
   typeof selector === "function" ? selector(row) : row[selector];
+
+const keyParts = (value: unknown): string[] =>
+  Array.isArray(value) ? value.map(keyToString) : [keyToString(value)];
+
+const keyMatches = (
+  actual: unknown,
+  expected: unknown,
+  allowPrefix: boolean,
+): boolean => {
+  const actualParts = keyParts(actual);
+  const expectedParts = keyParts(expected);
+  if (expectedParts.length > actualParts.length) {
+    return false;
+  }
+  if (!allowPrefix && actualParts.length !== expectedParts.length) {
+    return false;
+  }
+  return expectedParts.every((part, index) => actualParts[index] === part);
+};
 
 export const createTestIdentity = (hex = "player-test"): TestIdentity => ({
   toHexString: () => hex,
@@ -80,15 +102,13 @@ export const createTestTable = (
 
   const createIndex = (selector: KeySelector): TestIndex => ({
     find(key: unknown): TestRow | undefined {
-      const expected = keyToString(key);
-      return data.find(
-        (row) => keyToString(selectKey(selector, row)) === expected,
+      return data.find((row) =>
+        keyMatches(selectKey(selector, row), key, false),
       );
     },
     filter(key: unknown): TestRow[] {
-      const expected = keyToString(key);
-      return data.filter(
-        (row) => keyToString(selectKey(selector, row)) === expected,
+      return data.filter((row) =>
+        keyMatches(selectKey(selector, row), key, true),
       );
     },
     update(row: TestRow): void {
@@ -129,28 +149,70 @@ export const createReducerTestDb = () => ({
   adminIdentity: createTestTable("identity", "identity"),
   workerAllowlist: createTestTable("identity", "identity"),
   workerIdentity: createTestTable("identity", "identity"),
-  vnSession: createTestTable("sessionKey", "sessionKey"),
-  vnSkillCheckResult: createTestTable("resultKey", "resultKey"),
-  playerFlag: createTestTable("flagId", "flagId"),
-  playerVar: createTestTable("varId", "varId"),
-  playerEvidence: createTestTable("evidenceKey", "evidenceKey"),
-  playerQuest: createTestTable("questKey", "questKey"),
-  playerInventory: createTestTable("inventoryKey", "inventoryKey"),
-  playerRelationship: createTestTable("relationshipKey", "relationshipKey"),
-  playerUnlockGroup: createTestTable("unlockKey", "unlockKey"),
+  vnSession: createTestTable("sessionKey", "sessionKey", {
+    vn_session_player_id: "playerId",
+  }),
+  vnSkillCheckResult: createTestTable("resultKey", "resultKey", {
+    vn_skill_check_result_player_id: "playerId",
+  }),
+  playerFlag: createTestTable("flagId", "flagId", {
+    player_flag_player_id: "playerId",
+  }),
+  playerVar: createTestTable("varId", "varId", {
+    player_var_player_id: "playerId",
+  }),
+  playerEvidence: createTestTable("evidenceKey", "evidenceKey", {
+    player_evidence_player_id: "playerId",
+  }),
+  playerQuest: createTestTable("questKey", "questKey", {
+    player_quest_player_id: "playerId",
+  }),
+  playerInventory: createTestTable("inventoryKey", "inventoryKey", {
+    player_inventory_player_id: "playerId",
+  }),
+  playerRelationship: createTestTable("relationshipKey", "relationshipKey", {
+    player_relationship_player_id: "playerId",
+  }),
+  playerUnlockGroup: createTestTable("unlockKey", "unlockKey", {
+    player_unlock_group_player_id: "playerId",
+  }),
   playerAgencyCareer: createTestTable("playerId", "playerId"),
   playerMapEvent: createTestTable("eventId", "eventId", {
     player_map_event_player_id: "playerId",
   }),
-  playerNpcState: createTestTable("npcStateKey", "npcStateKey"),
-  playerNpcFavor: createTestTable("favorKey", "favorKey"),
-  playerFactionSignal: createTestTable("signalKey", "signalKey"),
-  playerRumorState: createTestTable("rumorStateKey", "rumorStateKey"),
+  playerNpcState: createTestTable("npcStateKey", "npcStateKey", {
+    player_npc_state_player_id: "playerId",
+  }),
+  playerNpcFavor: createTestTable("favorKey", "favorKey", {
+    player_npc_favor_player_id: "playerId",
+  }),
+  playerFavorLedger: createTestTable("ledgerEntryKey", "ledgerEntryKey", {
+    player_favor_ledger_player_id: "playerId",
+  }),
+  playerFactionSignal: createTestTable("signalKey", "signalKey", {
+    player_faction_signal_player_id: "playerId",
+  }),
+  playerRumorState: createTestTable("rumorStateKey", "rumorStateKey", {
+    player_rumor_state_player_id: "playerId",
+  }),
   playerServiceCriterion: createTestTable("criterionKey", "criterionKey"),
   telemetryEvent: createTestTable("eventId", (_row) => Symbol()),
-  contentVersion: createTestTable("version", "version"),
+  aiRequest: createTestTable("id", "id", {
+    ai_request_player_id: "playerId",
+    ai_request_kind_status_created_at: (row) => [
+      row.kind,
+      row.status,
+      row.createdAt,
+    ],
+  }),
+  contentVersion: createTestTable("version", "version", {
+    content_version_checksum: "checksum",
+    content_version_is_active: "isActive",
+  }),
   contentSnapshot: createTestTable("checksum", "checksum"),
-  caseVersion: createTestTable("caseVersionKey", "caseVersionKey"),
+  caseVersion: createTestTable("caseVersionKey", "caseVersionKey", {
+    case_version_case_id: "caseId",
+  }),
   caseEventLog: createTestTable("eventId", (_row) => Symbol()),
   questInstance: createTestTable("questInstanceKey", "questInstanceKey", {
     quest_instance_player_id: "playerId",
@@ -159,17 +221,34 @@ export const createReducerTestDb = () => ({
   }),
   mindCase: createTestTable("caseId", "caseId"),
   mindFact: createTestTable("factId", "factId"),
-  mindHypothesis: createTestTable("hypothesisId", "hypothesisId"),
-  playerMindCase: createTestTable("playerCaseKey", "playerCaseKey"),
-  playerMindFact: createTestTable("playerFactKey", "playerFactKey"),
+  mindHypothesis: createTestTable("hypothesisId", "hypothesisId", {
+    mind_hypothesis_case_id: "caseId",
+  }),
+  playerMindCase: createTestTable("playerCaseKey", "playerCaseKey", {
+    player_mind_case_player_id: "playerId",
+  }),
+  playerMindFact: createTestTable("playerFactKey", "playerFactKey", {
+    player_mind_fact_player_id: "playerId",
+  }),
   playerMindHypothesis: createTestTable(
     "playerHypothesisKey",
     "playerHypothesisKey",
+    {
+      player_mind_hypothesis_player_id: "playerId",
+    },
   ),
-  playerRedeemedCode: createTestTable("redemptionId", "redemptionId"),
+  playerRedeemedCode: createTestTable("redemptionId", "redemptionId", {
+    player_redeemed_code_player_id: "playerId",
+    player_redeemed_code_player_code_result: (row) => [
+      row.playerId,
+      row.codeId,
+      row.result,
+    ],
+  }),
   commandSession: createTestTable("sessionKey", "sessionKey"),
   commandPartyMember: createTestTable("memberKey", "memberKey", {
     command_party_member_player_id: "playerId",
+    command_party_member_session_key: "sessionKey",
   }),
   commandOrderHistory: createTestTable("historyKey", "historyKey", {
     command_order_history_player_id: "playerId",
@@ -178,14 +257,20 @@ export const createReducerTestDb = () => ({
   battleSession: createTestTable("sessionKey", "sessionKey"),
   battleCombatant: createTestTable("combatantKey", "combatantKey", {
     battle_combatant_player_id: "playerId",
+    battle_combatant_session_key: "sessionKey",
   }),
   battleCardInstance: createTestTable("cardInstanceKey", "cardInstanceKey", {
     battle_card_instance_player_id: "playerId",
+    battle_card_instance_session_key: "sessionKey",
   }),
   battleHistory: createTestTable("historyKey", "historyKey", {
     battle_history_player_id: "playerId",
+    battle_history_session_key: "sessionKey",
   }),
   idempotencyLog: createTestTable("idempotencyKey", "idempotencyKey"),
+  playerEquipment: createTestTable("equipmentKey", "equipmentKey", {
+    player_equipment_player_id: "playerId",
+  }),
 });
 
 export const createReducerTestContext = (

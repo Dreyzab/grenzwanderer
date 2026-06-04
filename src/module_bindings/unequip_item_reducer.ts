@@ -10,8 +10,7 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default __t.row({
-  checksum: __t.string().primaryKey(),
-  payloadJson: __t.string().name("payload_json"),
-  createdAt: __t.timestamp().name("created_at"),
-});
+export default {
+  requestId: __t.string(),
+  slotId: __t.string(),
+};

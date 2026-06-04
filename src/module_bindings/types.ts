@@ -306,6 +306,9 @@ export type MyEvidence = __Infer<typeof MyEvidence>;
 export const MyFactionSignals = __t.object("MyFactionSignals", {});
 export type MyFactionSignals = __Infer<typeof MyFactionSignals>;
 
+export const MyFavorLedger = __t.object("MyFavorLedger", {});
+export type MyFavorLedger = __Infer<typeof MyFavorLedger>;
+
 export const MyMapEvents = __t.object("MyMapEvents", {});
 export type MyMapEvents = __Infer<typeof MyMapEvents>;
 
@@ -323,6 +326,9 @@ export type MyNpcFavors = __Infer<typeof MyNpcFavors>;
 
 export const MyNpcState = __t.object("MyNpcState", {});
 export type MyNpcState = __Infer<typeof MyNpcState>;
+
+export const MyPlayerEquipment = __t.object("MyPlayerEquipment", {});
+export type MyPlayerEquipment = __Infer<typeof MyPlayerEquipment>;
 
 export const MyPlayerFlags = __t.object("MyPlayerFlags", {});
 export type MyPlayerFlags = __Infer<typeof MyPlayerFlags>;
@@ -379,6 +385,15 @@ export const PlayerAgencyCareer = __t.object("PlayerAgencyCareer", {
   promotedAt: __t.option(__t.timestamp()),
 });
 export type PlayerAgencyCareer = __Infer<typeof PlayerAgencyCareer>;
+
+export const PlayerEquipment = __t.object("PlayerEquipment", {
+  equipmentKey: __t.string(),
+  playerId: __t.identity(),
+  slotId: __t.string(),
+  itemId: __t.string(),
+  updatedAt: __t.timestamp(),
+});
+export type PlayerEquipment = __Infer<typeof PlayerEquipment>;
 
 export const PlayerEvidence = __t.object("PlayerEvidence", {
   evidenceKey: __t.string(),

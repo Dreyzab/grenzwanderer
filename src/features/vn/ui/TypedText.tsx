@@ -7,13 +7,29 @@
   useState,
   type KeyboardEvent,
   type MouseEvent,
+  type ReactNode,
 } from "react";
+import { useReducedMotion } from "framer-motion";
 import {
   parseTypedTextMarkup,
   type ParsedTypedSegment,
   type ParsedTypedToken,
 } from "./TypedTextParser";
 import "./TypedText.css";
+
+/** Sentence-final punctuation gets the longest dwell; clause breaks a shorter one. */
+const SENTENCE_END_CHARS = new Set([".", "!", "?", "…"]);
+const CLAUSE_BREAK_CHARS = new Set([",", ";", ":", "—", "–"]);
+
+const pauseMultiplierFor = (char: string): number => {
+  if (SENTENCE_END_CHARS.has(char)) {
+    return 16;
+  }
+  if (CLAUSE_BREAK_CHARS.has(char)) {
+    return 7;
+  }
+  return 1;
+};
 
 export interface TypedTextHandle {
   finish: () => void;
@@ -78,6 +94,8 @@ const getVisibleSegments = (
       output.push({
         kind: "text",
         text: visibleText,
+        bold: segment.bold,
+        italic: segment.italic,
       });
     }
 
@@ -104,19 +122,23 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
   ) => {
     const [visibleChars, setVisibleChars] = useState(0);
     const completionNotifiedRef = useRef(false);
+    const prefersReducedMotion = useReducedMotion();
 
     const segments = useMemo(() => parseTypedTextMarkup(text), [text]);
-    const totalChars = useMemo(
-      () => segments.reduce((sum, segment) => sum + segment.text.length, 0),
+    const fullText = useMemo(
+      () => segments.map((segment) => segment.text).join(""),
       [segments],
     );
+    const totalChars = fullText.length;
 
     const frameDelay = Math.max(1, speed);
+    /** Reduced-motion users see the full line at once (no typewriter). */
+    const skipAnimation = instant || Boolean(prefersReducedMotion);
 
     useEffect(() => {
       completionNotifiedRef.current = false;
-      setVisibleChars(instant ? totalChars : 0);
-    }, [instant, text, totalChars]);
+      setVisibleChars(skipAnimation ? totalChars : 0);
+    }, [skipAnimation, text, totalChars]);
 
     useEffect(() => {
       const isTyping = visibleChars < totalChars;
@@ -132,7 +154,7 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
     }, [instant, onComplete, onTypingChange, totalChars, visibleChars]);
 
     useEffect(() => {
-      if (instant) {
+      if (skipAnimation) {
         return;
       }
       if (visibleChars >= totalChars) {
@@ -142,14 +164,23 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
       let rafId = 0;
       let lastTimestamp = 0;
 
+      // Dwell longer after the previously revealed char if it ended a clause/sentence.
+      const previousChar = fullText[visibleChars - 1] ?? "";
+      const isDwelling = pauseMultiplierFor(previousChar) > 1;
+      const requiredDelay = frameDelay * pauseMultiplierFor(previousChar);
+
       const tick = (timestamp: number) => {
         if (lastTimestamp === 0) {
           lastTimestamp = timestamp;
         }
 
         const elapsed = timestamp - lastTimestamp;
-        if (elapsed >= frameDelay) {
-          const advanceBy = Math.max(1, Math.floor(elapsed / frameDelay));
+        if (elapsed >= requiredDelay) {
+          // After a dwell, reveal a single char so the next pause is honoured;
+          // otherwise batch to recover from dropped frames.
+          const advanceBy = isDwelling
+            ? 1
+            : Math.max(1, Math.floor(elapsed / frameDelay));
           setVisibleChars((previous) =>
             Math.min(totalChars, previous + advanceBy),
           );
@@ -163,7 +194,7 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
       return () => {
         cancelAnimationFrame(rafId);
       };
-    }, [instant, frameDelay, totalChars, visibleChars]);
+    }, [skipAnimation, frameDelay, fullText, totalChars, visibleChars]);
 
     useImperativeHandle(
       ref,
@@ -254,7 +285,16 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
             );
           }
 
-          return <span key={key}>{segment.text}</span>;
+          let content: ReactNode = segment.text;
+          if (segment.italic) {
+            content = <em className="vn-typed-text__em">{content}</em>;
+          }
+          if (segment.bold) {
+            content = (
+              <strong className="vn-typed-text__strong">{content}</strong>
+            );
+          }
+          return <span key={key}>{content}</span>;
         })}
         {isTyping ? (
           <span className="vn-typed-text__cursor" aria-hidden />

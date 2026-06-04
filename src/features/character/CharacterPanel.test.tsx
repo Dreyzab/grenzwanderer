@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CANONICAL_FACTION_REGISTRY } from "../../../data/factionContract";
+import { __bindTestSnapshotResolver } from "../../shared/content/activeSnapshot";
 import { CharacterPanel } from "./CharacterPanel";
 
 const mocks = vi.hoisted(() => ({
@@ -19,6 +20,8 @@ const mocks = vi.hoisted(() => ({
     myAgencyCareer: Symbol("myAgencyCareer"),
     contentVersion: Symbol("contentVersion"),
     contentSnapshot: Symbol("contentSnapshot"),
+    myPlayerEquipment: Symbol("myPlayerEquipment"),
+    myPlayerInventory: Symbol("myPlayerInventory"),
   },
 }));
 
@@ -184,7 +187,7 @@ const fullSnapshot = {
     observations: [
       {
         id: "obs_hidden_platform",
-        kind: "trace",
+        kind: "trace" as const,
         title: "Hidden Platform Draft",
         text: "The rail kept its cold after the traffic cleared.",
         entityArchetypeId: "echo_hound",
@@ -205,6 +208,7 @@ const fullSnapshot = {
         lat: 47.99,
         lng: 7.85,
         locationId: "loc_freiburg_bank",
+        category: "PUBLIC" as const,
         bindings: [],
       },
       {
@@ -214,6 +218,7 @@ const fullSnapshot = {
         lat: 47.991,
         lng: 7.851,
         locationId: "loc_rathaus",
+        category: "PUBLIC" as const,
         bindings: [],
       },
       {
@@ -223,6 +228,7 @@ const fullSnapshot = {
         lat: 47.992,
         lng: 7.852,
         locationId: "loc_workers_pub",
+        category: "PUBLIC" as const,
         bindings: [],
       },
     ],
@@ -273,7 +279,7 @@ const fullSnapshot = {
         displayName: "Anna Mahler",
         factionId: "city_network",
         publicRole: "Railway fixer",
-        rosterTier: "major",
+        rosterTier: "major" as const,
         serviceIds: ["svc_anna_info", "svc_anna_intro"],
       },
       {
@@ -281,7 +287,7 @@ const fullSnapshot = {
         displayName: "Archivist Otto",
         factionId: "city_chancellery",
         publicRole: "Archive clerk",
-        rosterTier: "functional",
+        rosterTier: "functional" as const,
         serviceIds: ["svc_otto_archives"],
       },
       {
@@ -289,7 +295,7 @@ const fullSnapshot = {
         displayName: "Johann Kessler",
         factionId: "house_of_pledges",
         publicRole: "Bank director",
-        rosterTier: "major",
+        rosterTier: "major" as const,
         introFlag: "banker_intro_seen",
       },
     ],
@@ -297,21 +303,21 @@ const fullSnapshot = {
       {
         id: "svc_anna_info",
         npcId: "npc_anna_mahler",
-        role: "information",
+        role: "information" as const,
         label: "Information",
         baseAccess: "Shared during field meetings.",
       },
       {
         id: "svc_anna_intro",
         npcId: "npc_anna_mahler",
-        role: "social_introduction",
+        role: "social_introduction" as const,
         label: "Social Introduction",
         baseAccess: "Requires basic rapport.",
       },
       {
         id: "svc_otto_archives",
         npcId: "npc_archivist_otto",
-        role: "archives",
+        role: "archives" as const,
         label: "Archives",
         baseAccess: "Agency filing access.",
       },
@@ -323,8 +329,8 @@ const fullSnapshot = {
         caseId: "quest_banker",
         leadPointId: "loc_freiburg_bank",
         sourceNpcId: "npc_anna_mahler",
-        verifiesOn: ["map_unlock"],
-        careerCriterionOnVerify: "verified_rumor_chain",
+        verifiesOn: ["map_unlock" as const],
+        careerCriterionOnVerify: "verified_rumor_chain" as const,
       },
     ],
     careerRanks: [
@@ -350,6 +356,10 @@ const fullSnapshot = {
 };
 
 describe("CharacterPanel", () => {
+  afterEach(() => {
+    __bindTestSnapshotResolver(null);
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -381,6 +391,7 @@ describe("CharacterPanel", () => {
     });
 
     mocks.parseSnapshotMock.mockReturnValue(fullSnapshot);
+    __bindTestSnapshotResolver(() => fullSnapshot);
 
     mocks.useTableMock.mockImplementation((table: symbol) => {
       if (table === mocks.tablesMock.myPlayerProfile) {
@@ -473,6 +484,9 @@ describe("CharacterPanel", () => {
     render(<CharacterPanel />);
 
     expect(screen.getByRole("tab", { name: /Profile/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: /Equipment|Снаряжение|Ausrüstung/i }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("tab", { name: /Development/i }),
     ).toBeInTheDocument();
@@ -603,11 +617,11 @@ describe("CharacterPanel", () => {
   });
 
   it("shows empty-state copy when no quest catalog is available", () => {
-    mocks.parseSnapshotMock.mockReturnValue({
+    __bindTestSnapshotResolver(() => ({
       ...fullSnapshot,
       map: { ...fullSnapshot.map, points: [] },
       questCatalog: [],
-    });
+    }));
 
     render(<CharacterPanel />);
     fireEvent.click(screen.getByRole("tab", { name: /Journal/i }));

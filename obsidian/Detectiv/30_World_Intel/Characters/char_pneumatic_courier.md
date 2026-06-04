@@ -2,6 +2,7 @@
 id: char_pneumatic_courier
 tags: [character, functional, lore/imvr]
 tier: functional
+design_only: true
 runtime_character_id: unknown
 faction: bg_imperial_resonance
 aliases: ["Pneumatic Courier", "Куратор пневмосабспура", "Mittwoch Operator"]

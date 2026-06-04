@@ -2,6 +2,7 @@
 id: char_student
 tags: [character, generic]
 tier: generic
+design_only: true
 runtime_character_id: student
 faction: fct_corps
 aliases: ["Friedrich von Holtz"]

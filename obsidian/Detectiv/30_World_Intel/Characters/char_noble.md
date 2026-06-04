@@ -2,6 +2,7 @@
 id: char_noble
 tags: [character, major]
 tier: major
+design_only: true
 runtime_character_id: noble
 faction: fct_council
 aliases: ["Noble Patron"]

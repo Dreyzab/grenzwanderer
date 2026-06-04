@@ -2,6 +2,7 @@
 id: char_academic
 tags: [character, major]
 tier: major
+design_only: true
 runtime_character_id: professor
 faction: fct_university
 aliases: ["Academic Contact"]

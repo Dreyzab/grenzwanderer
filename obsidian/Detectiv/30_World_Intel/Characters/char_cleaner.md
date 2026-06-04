@@ -2,6 +2,7 @@
 id: char_cleaner
 tags: [character, generic]
 tier: generic
+design_only: true
 runtime_character_id: cleaner
 faction: fct_free_yards
 aliases: ["Old Gustav"]

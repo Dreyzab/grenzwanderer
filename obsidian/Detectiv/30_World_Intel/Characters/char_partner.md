@@ -68,3 +68,8 @@ Felix is subject to apathy episodes with gameplay consequences:
 - **Faction**: `house_of_pledges` → potential drift to `college_of_reason`
 - **Service**: `svc_felix_legal_analysis`
 - **Coverage status**: Full authored dossier. System-integrated.
+
+## Player Dossier
+
+- **Mother's Shadow**: Travels under Eleonora's umbrella, preparing for law faculty — and quietly suffocating under the family name.
+- (reveal: flag_defended_felix) **The Deferred Jurist**: He cites law before experience, but once you back him in the field he starts trusting his own read.

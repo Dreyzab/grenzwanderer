@@ -13,6 +13,7 @@ export default tseslint.config(
       "src/module_bindings",
       "obsidian",
       "src/shared/spacetime/generated_row_schemas",
+      ".logs",
     ],
   },
   {

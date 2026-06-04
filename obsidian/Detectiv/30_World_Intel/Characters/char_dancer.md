@@ -2,6 +2,7 @@
 id: char_dancer
 tags: [character, generic]
 tier: generic
+design_only: true
 runtime_character_id: dancer
 faction: fct_nightlife
 aliases: ["Marlene Vogt"]

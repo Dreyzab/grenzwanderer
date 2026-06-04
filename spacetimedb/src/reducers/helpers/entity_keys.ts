@@ -15,6 +15,11 @@ export const createInventoryKey = (
   itemId: string,
 ): string => `${identityKey(player)}::${itemId}`;
 
+export const createEquipmentKey = (
+  player: { toHexString(): string },
+  slotId: string,
+): string => `${identityKey(player)}::equip::${slotId}`;
+
 export const createQuestKey = (
   player: { toHexString(): string },
   questId: string,

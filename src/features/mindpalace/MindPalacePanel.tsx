@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useReducer, useTable } from "spacetimedb/react";
 import { usePlayerBindings } from "../../entities/player/hooks/usePlayerBindings";
+import { useMindPalaceCatalog } from "../../shared/content/useMindPalaceCatalog";
 import { reducers, tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
 import { MindBoardCanvas } from "../mindboard/MindBoardCanvas";
@@ -21,8 +22,7 @@ export const MindPalacePanel = () => {
   const { identityHex } = useIdentity();
   const { vars: varsByKey } = usePlayerBindings();
 
-  const [mindCases] = useTable(tables.mindCase);
-  const [mindHypotheses] = useTable(tables.mindHypothesis);
+  const { mindCases, mindHypotheses } = useMindPalaceCatalog();
   const [playerMindFacts] = useTable(tables.myMindFacts);
   const [playerMindHypotheses] = useTable(tables.myMindHypotheses);
   const [playerMindCases] = useTable(tables.myMindCases);
@@ -87,7 +87,7 @@ export const MindPalacePanel = () => {
     );
 
     const hypothesesForCase = mindHypotheses.filter(
-      (entry) => entry.caseId === selectedCaseId,
+      (entry: any) => entry.caseId === selectedCaseId,
     );
 
     let readyCount = 0;

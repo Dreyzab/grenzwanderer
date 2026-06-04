@@ -115,6 +115,14 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "Inventory is player-private state used in map and detective hub surfaces.",
   ),
   entry(
+    "player_equipment",
+    "playerEquipment",
+    "player-scoped",
+    "my_player_equipment",
+    "wave3-core-progression",
+    "Player equipment slots are player-private progression state.",
+  ),
+  entry(
     "player_spirit_state",
     "playerSpiritState",
     "player-scoped",
@@ -149,10 +157,10 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
   entry(
     "content_snapshot",
     "contentSnapshot",
-    "public-by-design",
-    "retain public active content snapshot",
-    "retain-public",
-    "The current runtime content payload is the client-consumed source for VN and map content.",
+    "operational-private",
+    "bundled snapshot loader (useActiveContentSnapshot)",
+    "wave1-operational",
+    "Full narrative payloads are served from the shipped snapshot artifact; DB rows remain publish/rollback source of truth for operators.",
   ),
   entry(
     "case_version",
@@ -161,6 +169,30 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "retain public case-level content metadata",
     "retain-public",
     "Case-level content version rows are shared metadata for editor, release, and runtime diagnostics.",
+  ),
+  entry(
+    "content_translation",
+    "contentTranslation",
+    "public-by-design",
+    "retain public localized content text",
+    "retain-public",
+    "Localized UI/content strings are shared runtime text, not player-private progression data.",
+  ),
+  entry(
+    "admin_identity",
+    "adminIdentity",
+    "operational-private",
+    "no client read path",
+    "wave1-operational",
+    "Admin identities are privilege infrastructure state and must not be browser-readable.",
+  ),
+  entry(
+    "worker_allowlist",
+    "workerAllowlist",
+    "operational-private",
+    "no client read path",
+    "wave1-operational",
+    "Worker allowlist rows are backend authorization state with no player-facing read path.",
   ),
   entry(
     "idempotency_log",
@@ -221,26 +253,26 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
   entry(
     "mind_case",
     "mindCase",
-    "public-by-design",
-    "retain public shared case catalog",
-    "retain-public",
-    "Mind Palace case definitions are shared authored content rather than player-private progression.",
+    "operational-private",
+    "bundled snapshot mindPalace catalog (useMindPalaceCatalog)",
+    "wave1-operational",
+    "Mind Palace case definitions ship inside the active snapshot artifact instead of raw public tables.",
   ),
   entry(
     "mind_fact",
     "mindFact",
-    "public-by-design",
-    "retain public shared fact catalog",
-    "retain-public",
-    "Fact definitions are authored content used to render Mind Palace state for every client.",
+    "operational-private",
+    "bundled snapshot mindPalace catalog (useMindPalaceCatalog)",
+    "wave1-operational",
+    "Fact definitions ship inside the active snapshot artifact instead of raw public tables.",
   ),
   entry(
     "mind_hypothesis",
     "mindHypothesis",
-    "public-by-design",
-    "retain public shared hypothesis catalog",
-    "retain-public",
-    "Hypothesis definitions are shared authored content that pair with player-specific validation state.",
+    "operational-private",
+    "bundled snapshot mindPalace catalog (useMindPalaceCatalog)",
+    "wave1-operational",
+    "Hypothesis definitions ship inside the active snapshot artifact instead of raw public tables.",
   ),
   entry(
     "player_mind_case",
@@ -313,6 +345,14 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "my_npc_favors",
     "wave3-core-progression",
     "Favor balances are player-private social currency used across VN and Freiburg social smokes.",
+  ),
+  entry(
+    "player_favor_ledger",
+    "playerFavorLedger",
+    "player-scoped",
+    "my_favor_ledger",
+    "wave3-core-progression",
+    "Favor obligation details are player-private social state and should follow the same scoped surface as favor balances.",
   ),
   entry(
     "player_faction_signal",
@@ -658,8 +698,14 @@ const summarizeConsumers = (consumers: ConsumerInventory): string => {
   return labels.join(", ") || "unreferenced";
 };
 
-export const validateVisibilityMatrix = (): void => {
-  const schemaTables = extractSchemaTables();
+export const validateVisibilityMatrix = (
+  options: {
+    matrix?: VisibilityMatrixEntry[];
+    schemaSource?: string;
+  } = {},
+): void => {
+  const matrix = options.matrix ?? visibilityMatrix;
+  const schemaTables = extractSchemaTables(options.schemaSource);
   const schemaTableMap = new Map(
     schemaTables.map((tableInfo) => [tableInfo.tableName, tableInfo] as const),
   );
@@ -668,12 +714,12 @@ export const validateVisibilityMatrix = (): void => {
       (tableInfo) => [tableInfo.schemaExport, tableInfo] as const,
     ),
   );
-  const schemaViewNames = extractSchemaViewNames();
+  const schemaViewNames = extractSchemaViewNames(options.schemaSource);
   const seenTableNames = new Set<string>();
   const seenSchemaExports = new Set<string>();
   const problems: string[] = [];
 
-  for (const entryValue of visibilityMatrix) {
+  for (const entryValue of matrix) {
     if (seenTableNames.has(entryValue.tableName)) {
       problems.push(
         `Duplicate matrix entry for table '${entryValue.tableName}'.`,
@@ -740,6 +786,14 @@ export const validateVisibilityMatrix = (): void => {
     ) {
       problems.push(
         `Replacement read path '${entryValue.replacementReadPath}' is missing a server view export.`,
+      );
+    }
+  }
+
+  for (const schemaTable of schemaTables) {
+    if (!seenTableNames.has(schemaTable.tableName)) {
+      problems.push(
+        `Schema table '${schemaTable.tableName}' is missing from the visibility matrix.`,
       );
     }
   }

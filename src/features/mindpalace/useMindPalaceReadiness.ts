@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTable } from "spacetimedb/react";
 import { usePlayerBindings } from "../../entities/player/hooks/usePlayerBindings";
+import { useMindPalaceCatalog } from "../../shared/content/useMindPalaceCatalog";
 import { tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
 import {
@@ -17,8 +18,7 @@ export interface MindPalaceReadiness {
 export const useMindPalaceReadiness = (): MindPalaceReadiness => {
   const { identityHex } = useIdentity();
 
-  const [mindCases] = useTable(tables.mindCase);
-  const [mindHypotheses] = useTable(tables.mindHypothesis);
+  const { mindCases, mindHypotheses } = useMindPalaceCatalog();
   const [playerMindFacts] = useTable(tables.myMindFacts);
   const [playerMindHypotheses] = useTable(tables.myMindHypotheses);
 
@@ -26,7 +26,9 @@ export const useMindPalaceReadiness = (): MindPalaceReadiness => {
 
   return useMemo(() => {
     const activeCaseIds = new Set(
-      mindCases.filter((entry) => entry.isActive).map((entry) => entry.caseId),
+      mindCases
+        .filter((entry: any) => entry.isActive)
+        .map((entry: any) => entry.caseId),
     );
 
     if (activeCaseIds.size === 0) {

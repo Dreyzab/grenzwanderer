@@ -2,6 +2,7 @@
 id: char_pub_owner
 tags: [character, major]
 tier: major
+design_only: true
 runtime_character_id: pub_owner
 faction: fct_free_yards
 aliases: ["Pub Owner"]

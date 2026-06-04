@@ -394,4 +394,52 @@ describe("VnChoiceButton", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("72%")).toBeInTheDocument();
   });
+
+  it("renders source badges for common, origin, and synergy choices", () => {
+    const { rerender } = render(
+      <VnChoiceButton
+        choice={baseChoice}
+        index={0}
+        onClick={() => undefined}
+      />,
+    );
+
+    expect(screen.getByTestId("choice-source-badge")).toHaveAttribute(
+      "data-choice-source",
+      "common",
+    );
+
+    rerender(
+      <VnChoiceButton
+        choice={{ ...baseChoice, choiceSource: "origin" }}
+        index={0}
+        onClick={() => undefined}
+      />,
+    );
+    expect(screen.getByTestId("choice-source-badge")).toHaveAttribute(
+      "data-choice-source",
+      "origin",
+    );
+
+    rerender(
+      <VnChoiceButton
+        choice={{
+          ...baseChoice,
+          choiceSource: "synergy",
+          skillCheck: {
+            id: "logic_empathy_check",
+            voiceId: "attr_logic",
+            difficulty: 8,
+            synergyId: "mind_empathy_soft_contradiction",
+          },
+        }}
+        index={0}
+        onClick={() => undefined}
+      />,
+    );
+    expect(screen.getByTestId("choice-source-badge")).toHaveAttribute(
+      "data-choice-source",
+      "synergy",
+    );
+  });
 });

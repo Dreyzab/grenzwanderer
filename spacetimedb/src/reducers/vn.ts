@@ -1,6 +1,7 @@
 import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
 import { CASE_CATALOG } from "../../../src/shared/vn-contract";
+import { assertClientStartScenarioAllowed } from "./helpers/progression_guard";
 import {
   addToVar,
   applyEffects,
@@ -18,10 +19,12 @@ import {
   getFlag,
   getNode,
   getScenario,
+  getVars,
   getVar,
   isChoiceAllowed,
   isSkillCheckRankGateSatisfied,
   isNodeEntryAllowed,
+  resolveActiveOriginId,
   resolveKarmaBand,
   resolveKarmaDifficultyDelta,
   resolveSkillCheckOutcome,
@@ -36,6 +39,11 @@ import {
   resolveEffectiveFortune,
   type DifficultyBreakdownEntry,
 } from "../../../src/shared/game/narrativeResources";
+import {
+  resolveEffectiveSkillCheckBonus,
+  resolveIndicatorRank,
+} from "../../../src/shared/game/characterProgression";
+import { isSkillVoiceId } from "../../../data/innerVoiceContract";
 
 const hasOptionalValue = (value: unknown): boolean => {
   if (value === undefined || value === null) {
@@ -68,12 +76,31 @@ const withScenarioFlowTag = (
     ? { ...tags, systemFlow: "origin_bootstrap" }
     : tags;
 
-const CASE01_HBF_ARRIVAL_SCENARIO_ID = "case01_hbf_arrival";
-const CASE01_OPENING_ARRIVAL_NODE_ID = "scene_case01_opening_arrival_video";
-const CASE01_OPENING_ARRIVAL_CHOICE_ID =
-  "AUTO_CONTINUE_SCENE_CASE01_OPENING_ARRIVAL_VIDEO";
-const CASE01_TRAIN_COMPARTMENT_LETTER_NODE_ID =
-  "scene_case01_train_compartment_letter";
+const resolveScenarioStartNode = (
+  ctx: any,
+  snapshot: any,
+  scenario: { startNodeId: string },
+) => {
+  const startNode = getNode(snapshot, scenario.startNodeId);
+  if (
+    startNode.id !== "scene_case01_opening_arrival_video" ||
+    getFlag(ctx, "origin_witch") !== true
+  ) {
+    return startNode;
+  }
+
+  const witchStartChoice = startNode.choices?.find(
+    (choice: { id?: string }) => choice.id === "CASE01_WITCH_START_TO_DROWSE",
+  );
+  if (
+    !witchStartChoice?.nextNodeId ||
+    !isChoiceAllowed(ctx, witchStartChoice)
+  ) {
+    return startNode;
+  }
+
+  return getNode(snapshot, witchStartChoice.nextNodeId);
+};
 
 const clampFortuneSpend = (value: number | undefined): number =>
   Math.max(0, Math.min(2, Math.trunc(value ?? 0)));
@@ -106,7 +133,7 @@ export const startScenarioInternal = (
 
   const { snapshot, activeVersion } = getActiveSnapshot(ctx);
   const scenario = getScenario(snapshot, scenarioId);
-  const startNode = getNode(snapshot, scenario.startNodeId);
+  const startNode = resolveScenarioStartNode(ctx, snapshot, scenario);
 
   const inboundScenarios = snapshot.scenarios.filter(
     (entry) => entry.completionRoute?.nextScenarioId === scenarioId,
@@ -307,7 +334,26 @@ export const perform_skill_check = spacetimedb.reducer(
 
     const diceMode = resolveDiceMode(snapshot, scenarioId);
     const roll = rollSkillDie(ctx.timestamp, ctx.sender, checkId, diceMode);
-    const voiceLevel = Math.floor(getVar(ctx, check.voiceId));
+    const playerVars = getVars(ctx);
+    const originId = resolveActiveOriginId(ctx);
+    const resolvedSkillBonus = isSkillVoiceId(check.voiceId)
+      ? resolveEffectiveSkillCheckBonus(playerVars, check.voiceId, {
+          originId,
+          synergyId: check.synergyId,
+          choiceSource: checkOwnerChoice?.choiceSource,
+          choiceType: checkOwnerChoice?.choiceType,
+        })
+      : {
+          total: Math.floor(getVar(ctx, check.voiceId)),
+          breakdown: [
+            {
+              source: "voice",
+              sourceId: check.voiceId,
+              delta: Math.floor(getVar(ctx, check.voiceId)),
+            },
+          ],
+        };
+    const voiceLevel = Math.max(0, Math.floor(resolvedSkillBonus.total));
     const baseDifficulty = normalizeDifficulty(check.difficulty);
     const karmaValue = Math.trunc(getVar(ctx, RESOURCE_KARMA_VAR));
     const fortuneBalance = Math.trunc(getVar(ctx, RESOURCE_FORTUNE_VAR));
@@ -332,7 +378,7 @@ export const perform_skill_check = spacetimedb.reducer(
 
     // Resolve modifiers deterministically from player state
     const breakdown: { source: string; sourceId: string; delta: number }[] = [
-      { source: "voice", sourceId: check.voiceId, delta: voiceLevel },
+      ...resolvedSkillBonus.breakdown,
     ];
     let modifierTotal = 0;
     if (check.modifiers) {
@@ -381,7 +427,7 @@ export const perform_skill_check = spacetimedb.reducer(
       baseDifficulty + karmaDelta + fortuneMod - normalizedFortuneSpend * 2,
     );
 
-    const total = roll + voiceLevel + modifierTotal;
+    const total = roll + resolvedSkillBonus.total + modifierTotal;
     const passed = total >= effectiveDifficulty;
     const margin = total - effectiveDifficulty;
 
@@ -481,6 +527,7 @@ export const perform_skill_check = spacetimedb.reducer(
       voiceId: check.voiceId,
       roll,
       voiceLevel,
+      resolvedSkillBonus: resolvedSkillBonus.total,
       modifierTotal,
       difficulty: effectiveDifficulty,
       baseDifficulty,
@@ -508,6 +555,8 @@ export const start_scenario = spacetimedb.reducer(
   },
   (ctx, { requestId, scenarioId }) => {
     ensureIdempotent(ctx, requestId, "start_scenario");
+    ensurePlayerProfile(ctx);
+    assertClientStartScenarioAllowed(ctx, scenarioId);
     startScenarioInternal(ctx, scenarioId, {
       caseEventIdempotencyKey: requestId,
     });
@@ -602,12 +651,7 @@ export const record_choice = spacetimedb.reducer(
       }
     }
 
-    const nextNodeId =
-      scenarioId === CASE01_HBF_ARRIVAL_SCENARIO_ID &&
-      currentNode.id === CASE01_OPENING_ARRIVAL_NODE_ID &&
-      choice.id === CASE01_OPENING_ARRIVAL_CHOICE_ID
-        ? CASE01_TRAIN_COMPARTMENT_LETTER_NODE_ID
-        : choice.nextNodeId;
+    const nextNodeId = choice.nextNodeId;
     const nextNode = getNode(snapshot, nextNodeId);
     if (nextNode.scenarioId !== scenarioId) {
       throw new SenderError("Choice points to node outside scenario");
@@ -628,6 +672,13 @@ export const record_choice = spacetimedb.reducer(
       sourceId: `${scenarioId}::${currentNode.id}::${choiceId}`,
     });
 
+    if (
+      choice.choiceType === "inquiry" &&
+      resolveIndicatorRank(getVars(ctx), "talker") >= 2
+    ) {
+      addToVar(ctx, "stress_index", -0.05);
+    }
+
     applyEffects(ctx, nextNode.onEnter, {
       sourceType: "vn_on_enter",
       sourceId: `${scenarioId}::${nextNode.id}`,
@@ -645,6 +696,9 @@ export const record_choice = spacetimedb.reducer(
       fromNodeId: currentNode.id,
       choiceId,
       toNodeId: nextNode.id,
+      talkerStressRelief:
+        choice.choiceType === "inquiry" &&
+        resolveIndicatorRank(getVars(ctx), "talker") >= 2,
       contentVersion: activeVersion.version,
       terminal: Boolean(nextNode.terminal),
     });

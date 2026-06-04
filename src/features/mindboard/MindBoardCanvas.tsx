@@ -15,6 +15,7 @@ import "@xyflow/react/dist/style.css";
 
 import { useReducer, useTable } from "spacetimedb/react";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
+import { useMindPalaceCatalog } from "../../shared/content/useMindPalaceCatalog";
 import { reducers, tables } from "../../shared/spacetime/bindings";
 import { useToast } from "../../shared/hooks/useToast";
 import {
@@ -45,21 +46,19 @@ export function MindBoardCanvas({ caseId }: { caseId: string }) {
   const toast = useToast();
   const { vars: varsByKey } = usePlayerBindings();
 
-  const [mindCases] = useTable(tables.mindCase);
-  const [mindFacts] = useTable(tables.mindFact);
-  const [mindHypotheses] = useTable(tables.mindHypothesis);
+  const { mindCases, mindFacts, mindHypotheses } = useMindPalaceCatalog();
   const [playerMindFacts] = useTable(tables.myMindFacts);
   const [playerMindHypotheses] = useTable(tables.myMindHypotheses);
 
   const validateHypothesis = useReducer(reducers.validateHypothesis);
 
   const factsForCase = useMemo(
-    () => mindFacts.filter((entry) => entry.caseId === caseId),
+    () => mindFacts.filter((entry: any) => entry.caseId === caseId),
     [mindFacts, caseId],
   );
 
   const hypothesesForCase = useMemo(
-    () => mindHypotheses.filter((entry) => entry.caseId === caseId),
+    () => mindHypotheses.filter((entry: any) => entry.caseId === caseId),
     [mindHypotheses, caseId],
   );
 
@@ -191,7 +190,9 @@ export function MindBoardCanvas({ caseId }: { caseId: string }) {
 
       // After adding edge, check if hypothesis is ready to complete
       const hypId = params.target.replace("hyp-", "");
-      const hypData = hypothesesForCase.find((h) => h.hypothesisId === hypId);
+      const hypData = hypothesesForCase.find(
+        (h: any) => h.hypothesisId === hypId,
+      );
 
       if (hypData) {
         const requiredFacts = parseRequiredFactIds(hypData.requiredFactIdsJson);

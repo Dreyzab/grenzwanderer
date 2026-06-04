@@ -12,6 +12,7 @@ import {
   upsertFlag,
   validateHypothesisInternal,
 } from "./helpers";
+import { assertVnInteractiveDiscoverFactAllowed } from "./helpers/progression_guard";
 
 export const start_mind_case = spacetimedb.reducer(
   {
@@ -71,6 +72,8 @@ export const discover_fact = spacetimedb.reducer(
     }
 
     ensureIdempotent(ctx, requestId, "discover_fact");
+    ensurePlayerProfile(ctx);
+    assertVnInteractiveDiscoverFactAllowed(ctx, caseId, factId);
     discoverFactInternal(ctx, caseId, factId, {
       sourceType: "reducer",
       sourceId: "discover_fact",

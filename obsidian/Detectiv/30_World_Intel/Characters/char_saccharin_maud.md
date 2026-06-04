@@ -3,6 +3,7 @@ id: char_saccharin_maud
 tags: [character, generic]
 tier: generic
 runtime_character_id: saccharin_maud
+design_only: true
 faction: fct_underworld
 aliases: ["Saccharin-Maud"]
 ---

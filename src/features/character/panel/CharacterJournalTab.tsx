@@ -12,7 +12,10 @@ import {
   Bookmark,
   Layers,
   Inbox,
+  Lock,
+  Users,
 } from "lucide-react";
+import type { NpcDossierEntry } from "../../../shared/game/socialPresentation";
 import type { getCharacterStrings } from "../../i18n/uiStrings";
 import { C, TAB_TRANSITION } from "./characterPanel.theme";
 import type {
@@ -28,12 +31,14 @@ import {
 } from "../../../shared/services/openviking_rag";
 
 export const CharacterJournalTab = ({
+  dossierEntries,
   entityKnowledge,
   getObjectivePointLabel,
   observationEntries,
   questJournalEntries,
   t,
 }: {
+  dossierEntries: NpcDossierEntry[];
   entityKnowledge: Array<{
     id: string;
     label: string;
@@ -52,6 +57,8 @@ export const CharacterJournalTab = ({
 
   // Reflections state
   const [reflections, setReflections] = useState<string | null>(null);
+  // Dev-only retrieval provenance: which viking:// resources fed the flavour.
+  const [provenance, setProvenance] = useState<string | null>(null);
   const [isRagFetching, setIsRagFetching] = useState<boolean>(false);
   const [isRagOffline, setIsRagOffline] = useState<boolean>(false);
   const [showAllSteps, setShowAllSteps] = useState<boolean>(false);
@@ -60,6 +67,7 @@ export const CharacterJournalTab = ({
   useEffect(() => {
     if (!selectedQuestId) {
       setReflections(null);
+      setProvenance(null);
       setIsRagOffline(false);
       return;
     }
@@ -67,6 +75,7 @@ export const CharacterJournalTab = ({
     const quest = questJournalEntries.find((q) => q.id === selectedQuestId);
     if (!quest || quest.kind !== "procedural") {
       setReflections(null);
+      setProvenance(null);
       setIsRagOffline(false);
       return;
     }
@@ -75,6 +84,7 @@ export const CharacterJournalTab = ({
     setIsRagFetching(true);
     setIsRagOffline(false);
     setShowAllSteps(false); // Reset step collapse when switching cases
+    setProvenance(null);
 
     const activeStep = quest.steps.find((s) => s.status === "active");
     const locationId = activeStep?.nodeId;
@@ -85,6 +95,7 @@ export const CharacterJournalTab = ({
         if (!active) return;
         if (data && (data.insights || data.fieldNotes)) {
           setReflections(data.insights || data.fieldNotes || null);
+          setProvenance(data.fieldNotes ?? null);
           setIsRagOffline(false);
         } else {
           // Timeout or server offline -> fallback closed to local memories
@@ -597,6 +608,20 @@ export const CharacterJournalTab = ({
                           "{reflections || "No reflections logged yet."}"
                         </p>
                       )}
+
+                      {isOpenVikingDevEnabled() &&
+                        provenance &&
+                        !isRagFetching && (
+                          <div className="mt-3 border-t border-stone-850/70 pt-2 flex items-start gap-1.5 text-[9px] font-mono text-stone-500">
+                            <Database
+                              size={9}
+                              className="text-stone-400 mt-0.5 shrink-0"
+                            />
+                            <span className="break-all leading-relaxed">
+                              {provenance}
+                            </span>
+                          </div>
+                        )}
                     </div>
                   )}
 
@@ -753,6 +778,83 @@ export const CharacterJournalTab = ({
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Field Dossiers: progressive NPC bios that fill in as you investigate */}
+      <SectionCard
+        accent={C.brass}
+        eyebrow="Field Dossiers"
+        title="People of Interest"
+      >
+        {dossierEntries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 border border-dashed border-stone-800/60 rounded-[0.5rem] bg-stone-950/10">
+            <Users className="text-stone-600 mb-2" size={24} />
+            <p className="text-sm leading-relaxed text-stone-500">
+              No one is on file yet. Dossiers open as you meet people in the
+              field and learn what they are hiding.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            {dossierEntries.map((entry) => (
+              <article
+                key={entry.id}
+                className="rounded-[0.25rem] border border-white/5 bg-black/15 px-4 py-3.5"
+              >
+                <div className="flex items-start gap-3">
+                  {entry.portraitUrl ? (
+                    <img
+                      src={entry.portraitUrl}
+                      alt=""
+                      className="h-12 w-12 rounded-[2px] object-cover border border-stone-800 grayscale-[35%]"
+                    />
+                  ) : (
+                    <div className="h-12 w-12 rounded-[2px] border border-stone-800 bg-stone-950/60 flex items-center justify-center text-stone-600">
+                      <Users size={18} />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <strong className="block text-sm tracking-wide text-stone-100">
+                      {entry.displayName}
+                    </strong>
+                    <span className="block text-[10px] uppercase tracking-[0.2em] text-stone-500 font-mono">
+                      {entry.publicRole}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="mt-2.5 text-xs leading-relaxed text-stone-300 font-serif">
+                  {entry.summary}
+                </p>
+
+                {entry.revealedStages.length > 0 && (
+                  <div className="mt-3 space-y-2.5 border-t border-stone-850 pt-3">
+                    {entry.revealedStages.map((stage) => (
+                      <div key={stage.heading}>
+                        <h5 className="text-[10px] uppercase tracking-[0.2em] text-amber-500/80 font-bold font-sans">
+                          {stage.heading}
+                        </h5>
+                        <p className="mt-1 text-xs leading-relaxed text-stone-300 font-serif">
+                          {stage.text}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {entry.lockedStageCount > 0 && (
+                  <div className="mt-3 flex items-center gap-1.5 text-[10px] text-stone-500 font-mono">
+                    <Lock size={10} className="text-stone-600" />
+                    <span>
+                      {entry.lockedStageCount} insight
+                      {entry.lockedStageCount > 1 ? "s" : ""} still to uncover
+                    </span>
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
+      </SectionCard>
 
       {/* Lower Section: Anomalous Registry & Archetype Fragments */}
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_320px]">

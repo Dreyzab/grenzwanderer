@@ -17,7 +17,7 @@ import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
 import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
 import { CASE_CATALOG } from "../../../shared/vn-contract";
 import type { QuestStepInstance } from "../../../shared/vn-contract";
-import { parseSnapshot } from "../../vn/vnContent";
+import { useActiveContentSnapshot } from "../../../shared/content/activeSnapshot";
 import type { RuntimeMapBinding, RuntimeMapPoint } from "../types";
 import {
   collectCaseIdsFromMapConditions,
@@ -26,6 +26,7 @@ import {
 import { findPrimaryInternalizedThought } from "../../mindpalace/thoughtCabinet";
 import { derivePsychogeographicNote } from "../psychogeography";
 import { getMapStrings } from "../../i18n/uiStrings";
+import { getItemDefinition } from "../../../shared/game/itemCatalog";
 
 type HubTab = "briefing" | "inventory" | "partners";
 
@@ -123,23 +124,7 @@ export const DetectiveHub = ({
   const [agencyCareerRows] = useTable(tables.myAgencyCareer);
   const [flagRows] = useTable(tables.myPlayerFlags);
   const [questInstanceRows] = useTable(tables.myQuestInstances);
-  const [versionRows] = useTable(tables.contentVersion);
-  const [snapshotRows] = useTable(tables.contentSnapshot);
-
-  const activeVersion = useMemo(
-    () => versionRows.find((row) => row.isActive) ?? null,
-    [versionRows],
-  );
-
-  const snapshot = useMemo(() => {
-    if (!activeVersion) {
-      return null;
-    }
-    const row =
-      snapshotRows.find((entry) => entry.checksum === activeVersion.checksum) ??
-      null;
-    return row ? parseSnapshot(row.payloadJson) : null;
-  }, [activeVersion, snapshotRows]);
+  const { snapshot } = useActiveContentSnapshot();
   const activeLens = useMemo(
     () =>
       findActiveHypothesisLens(
@@ -260,10 +245,10 @@ export const DetectiveHub = ({
 
     return (snapshot?.socialCatalog?.npcIdentities ?? [])
       .filter(
-        (identity) =>
+        (identity: any) =>
           trustByNpcId.has(identity.id) || favorByNpcId.has(identity.id),
       )
-      .map((identity) => {
+      .map((identity: any) => {
         const trust = trustByNpcId.get(identity.id) ?? 0;
         const favor = favorByNpcId.get(identity.id) ?? 0;
         return {
@@ -612,20 +597,29 @@ export const DetectiveHub = ({
                   {mapStrings.no_equipment}
                 </div>
               ) : (
-                inventoryItems.map((item) => (
-                  <article
-                    key={item.inventoryKey}
-                    className="gw-hub-inventory-item"
-                  >
-                    <div>
-                      <h4 className="gw-hub-item-title">{item.itemId}</h4>
-                      <p className="gw-secondary-text">Filed for bureau use.</p>
-                    </div>
-                    <span className="gw-hub-quantity">
-                      {mapStrings.qty} {formatValue(item.quantity)}
-                    </span>
-                  </article>
-                ))
+                inventoryItems.map((item) => {
+                  const itemDef = getItemDefinition(item.itemId);
+                  const displayName = itemDef
+                    ? language === "ru"
+                      ? itemDef.nameRu
+                      : itemDef.name
+                    : item.itemId;
+                  const description = itemDef?.type ?? item.itemId;
+                  return (
+                    <article
+                      key={item.inventoryKey}
+                      className="gw-hub-inventory-item"
+                    >
+                      <div>
+                        <h4 className="gw-hub-item-title">{displayName}</h4>
+                        <p className="gw-secondary-text">{description}</p>
+                      </div>
+                      <span className="gw-hub-quantity">
+                        {mapStrings.qty} {formatValue(item.quantity)}
+                      </span>
+                    </article>
+                  );
+                })
               )}
             </section>
           ) : null}
@@ -637,7 +631,7 @@ export const DetectiveHub = ({
                   {mapStrings.no_partners}
                 </div>
               ) : (
-                companions.map((companion) => (
+                companions.map((companion: any) => (
                   <article key={companion.id} className="gw-hub-grid-item">
                     <div>
                       <h4 className="gw-hub-item-title">

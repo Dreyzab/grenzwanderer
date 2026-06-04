@@ -2,6 +2,7 @@
 id: char_archive_keeper
 tags: [character, functional]
 tier: functional
+design_only: true
 runtime_character_id: archive_keeper
 faction: fct_city_chancellery
 aliases: ["Archive Keeper"]

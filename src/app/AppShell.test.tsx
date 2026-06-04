@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   useIdentityMock: vi.fn(),
   useTableMock: vi.fn(),
   lastVnProps: null as null | Record<string, unknown>,
+  mapShouldThrow: false,
   tables: {
     myCommandSessions: Symbol("myCommandSessions"),
     myBattleSessions: Symbol("myBattleSessions"),
@@ -87,7 +88,14 @@ vi.mock("../pages/HomePage", () => ({
   ),
 }));
 
-vi.mock("../pages/MapPage", () => ({ MapPage: () => <div>map</div> }));
+vi.mock("../pages/MapPage", () => ({
+  MapPage: () => {
+    if (mocks.mapShouldThrow) {
+      throw new Error("map boom");
+    }
+    return <div>map</div>;
+  },
+}));
 vi.mock("../pages/CharacterPage", () => ({
   CharacterPage: () => <div>character</div>,
 }));
@@ -132,6 +140,7 @@ describe("AppShell URL synchronization", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.lastVnProps = null;
+    mocks.mapShouldThrow = false;
     mocks.useIdentityMock.mockReturnValue({
       identity: { toHexString: () => "me" },
       identityHex: "me",
@@ -151,6 +160,12 @@ describe("AppShell URL synchronization", () => {
       );
     });
     expect(mocks.lastVnProps?.initialScenarioId).toBe("scenario_alpha");
+  });
+
+  it("does not expose the dev debug overlay during tests or production-like runs", () => {
+    renderAppShell();
+
+    expect(screen.queryByTestId("dev-debug-button")).not.toBeInTheDocument();
   });
 
   it("applies popstate changes for tab and vnScenario", async () => {
@@ -242,5 +257,34 @@ describe("AppShell URL synchronization", () => {
       expect(screen.getByTestId("battle-page")).toBeInTheDocument();
     });
     expect(window.location.search).toContain("tab=battle");
+  });
+
+  it("keeps shell navigation mounted when a routed page crashes", async () => {
+    window.history.replaceState(null, "", "/?tab=map");
+    mocks.mapShouldThrow = true;
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    renderAppShell();
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Something went wrong",
+      );
+    });
+    expect(
+      screen.getByRole("button", { name: "tab-home" }),
+    ).toBeInTheDocument();
+
+    mocks.mapShouldThrow = false;
+    fireEvent.click(screen.getByRole("button", { name: "tab-home" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "open-vn" }),
+      ).toBeInTheDocument();
+    });
+    consoleError.mockRestore();
   });
 });

@@ -363,11 +363,10 @@ const replaceBattleCombatants = (
   sessionKey: string,
   combatants: readonly BattleCombatantState[],
 ): void => {
-  for (const row of ctx.db.battleCombatant.iter()) {
-    if (
-      row.sessionKey === sessionKey &&
-      identityKey(row.playerId) === identityKey(ctx.sender)
-    ) {
+  for (const row of ctx.db.battleCombatant.battle_combatant_session_key.filter(
+    sessionKey,
+  )) {
+    if (identityKey(row.playerId) === identityKey(ctx.sender)) {
       ctx.db.battleCombatant.combatantKey.delete(row.combatantKey);
     }
   }
@@ -407,11 +406,10 @@ const replaceBattleCards = (
   player: BattleCombatantState,
   phase: BattlePhase,
 ): void => {
-  for (const row of ctx.db.battleCardInstance.iter()) {
-    if (
-      row.sessionKey === sessionKey &&
-      identityKey(row.playerId) === identityKey(ctx.sender)
-    ) {
+  for (const row of ctx.db.battleCardInstance.battle_card_instance_session_key.filter(
+    sessionKey,
+  )) {
+    if (identityKey(row.playerId) === identityKey(ctx.sender)) {
       ctx.db.battleCardInstance.cardInstanceKey.delete(row.cardInstanceKey);
     }
   }
@@ -479,11 +477,10 @@ const appendBattleHistory = (
 };
 
 const clearBattleHistory = (ctx: any, sessionKey: string): void => {
-  for (const row of ctx.db.battleHistory.iter()) {
-    if (
-      row.sessionKey === sessionKey &&
-      identityKey(row.playerId) === identityKey(ctx.sender)
-    ) {
+  for (const row of ctx.db.battleHistory.battle_history_session_key.filter(
+    sessionKey,
+  )) {
+    if (identityKey(row.playerId) === identityKey(ctx.sender)) {
       ctx.db.battleHistory.historyKey.delete(row.historyKey);
     }
   }
@@ -503,12 +500,8 @@ const readBattleCombatants = (
   ctx: any,
   sessionKey: string,
 ): BattleCombatantState[] =>
-  [...ctx.db.battleCombatant.iter()]
-    .filter(
-      (row) =>
-        row.sessionKey === sessionKey &&
-        identityKey(row.playerId) === identityKey(ctx.sender),
-    )
+  [...ctx.db.battleCombatant.battle_combatant_session_key.filter(sessionKey)]
+    .filter((row) => identityKey(row.playerId) === identityKey(ctx.sender))
     .map((row) => ({
       combatantId: row.combatantId,
       side: (row.side === "enemy" ? "enemy" : "player") as BattleSide,
@@ -536,12 +529,12 @@ const readBattleCards = (
   sessionKey: string,
 ): BattleCardInstanceState[] =>
   normalizeBattleCardZones(
-    [...ctx.db.battleCardInstance.iter()]
-      .filter(
-        (row) =>
-          row.sessionKey === sessionKey &&
-          identityKey(row.playerId) === identityKey(ctx.sender),
-      )
+    [
+      ...ctx.db.battleCardInstance.battle_card_instance_session_key.filter(
+        sessionKey,
+      ),
+    ]
+      .filter((row) => identityKey(row.playerId) === identityKey(ctx.sender))
       .map((row) => ({
         instanceId: row.instanceId,
         ownerCombatantId: row.ownerCombatantId,

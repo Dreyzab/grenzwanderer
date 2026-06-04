@@ -2,6 +2,7 @@
 id: char_corrupt_cop
 tags: [character, major]
 tier: major
+design_only: true
 runtime_character_id: corrupt_cop
 faction: null
 aliases: ["Kommissar Dietrich Richter"]

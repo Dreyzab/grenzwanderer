@@ -1,12 +1,44 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { visibilityMatrix } from "./visibility-matrix";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 
 const appShellPath = path.join(repoRoot, "src", "app", "AppShell.tsx");
+const mainPath = path.join(repoRoot, "src", "main.tsx");
+const shellRouteRendererPath = path.join(
+  repoRoot,
+  "src",
+  "app",
+  "ShellRouteRenderer.tsx",
+);
+const shellTabsPath = path.join(repoRoot, "src", "app", "shellTabs.ts");
+const shellNavigationTypesPath = path.join(
+  repoRoot,
+  "src",
+  "shared",
+  "navigation",
+  "shellNavigationTypes.ts",
+);
+const navbarPath = path.join(
+  repoRoot,
+  "src",
+  "widgets",
+  "navbar",
+  "Navbar.tsx",
+);
+const battleTypesPath = path.join(
+  repoRoot,
+  "src",
+  "features",
+  "battle",
+  "model",
+  "types.ts",
+);
+const battlePagePath = path.join(repoRoot, "src", "pages", "BattlePage.tsx");
 const vnPagePath = path.join(repoRoot, "src", "pages", "VnPage.tsx");
 const sharedBindingsPath = path.join(
   repoRoot,
@@ -18,6 +50,7 @@ const sharedBindingsPath = path.join(
 const devPagePath = path.join(repoRoot, "src", "pages", "DevPage.tsx");
 const srcRoot = path.join(repoRoot, "src");
 const scriptsRoot = path.join(repoRoot, "scripts");
+const backendRoot = path.join(repoRoot, "spacetimedb", "src");
 
 const operationalPrivateRelations = [
   "idempotency_log",
@@ -26,6 +59,8 @@ const operationalPrivateRelations = [
   "telemetry_aggregate_checkpoint",
   "ai_request",
   "worker_identity",
+  "admin_identity",
+  "worker_allowlist",
 ] as const;
 
 const playerScopedRelations = [
@@ -46,6 +81,7 @@ const playerScopedRelations = [
   "player_relationship",
   "player_npc_state",
   "player_npc_favor",
+  "player_favor_ledger",
   "player_faction_signal",
   "player_agency_career",
   "player_rumor_state",
@@ -76,6 +112,8 @@ const governedPrivateTableAliases = new Set<string>([
   "vnSession",
   "vnSkillCheckResult",
   "aiRequest",
+  "adminIdentity",
+  "workerAllowlist",
   "playerMindCase",
   "playerMindFact",
   "playerMindHypothesis",
@@ -85,6 +123,7 @@ const governedPrivateTableAliases = new Set<string>([
   "playerRelationship",
   "playerNpcState",
   "playerNpcFavor",
+  "playerFavorLedger",
   "playerFactionSignal",
   "playerAgencyCareer",
   "playerRumorState",
@@ -126,6 +165,9 @@ const walk = (rootDir: string): string[] => {
 const toRepoPath = (fullPath: string): string =>
   path.relative(repoRoot, fullPath).replace(/\\/g, "/");
 
+const snakeToCamel = (value: string): string =>
+  value.replace(/_([a-z0-9])/g, (_match, char: string) => char.toUpperCase());
+
 const fail = (issues: string[]): never => {
   for (const issue of issues) {
     console.error(`- ${issue}`);
@@ -136,6 +178,14 @@ const fail = (issues: string[]): never => {
 const browserFacingScriptPaths = walk(scriptsRoot).filter((filePath) =>
   /(^|\\)(smoke-[^\\]+\.ts|[a-z-]*smoke-helpers\.ts)$/i.test(filePath),
 );
+
+const allowedBackendIterPathPatterns = [
+  /(?:^|\/)__tests__\//,
+  /\.test\.ts$/,
+  /^spacetimedb\/src\/procedures\/maintenance\.ts$/,
+  /^spacetimedb\/src\/reducers\/helpers\/content_migration\.ts$/,
+  /^spacetimedb\/src\/reducers\/helpers\/mind_sync\.ts$/,
+];
 
 const rawPrivateQueryPatterns = governedPrivateRelations.map(
   (relationName) =>
@@ -171,6 +221,75 @@ if (
 ) {
   issues.push("src/app/AppShell.tsx still exposes admin/debug navigation.");
 }
+if (
+  /import\s+\{[^}]*DebugOverlay[^}]*\}\s+from\s+["'][^"']*shared\/devtools/.test(
+    appShellContent,
+  ) ||
+  /<DebugOverlay\b/.test(appShellContent)
+) {
+  issues.push(
+    "src/app/AppShell.tsx must not statically import or render DebugOverlay.",
+  );
+}
+if (
+  /\bDebugOverlay\b/.test(appShellContent) &&
+  !/import\.meta\.env\.DEV[\s\S]{0,360}import\(["']\.\.\/shared\/devtools\/DebugOverlay["']\)/.test(
+    appShellContent,
+  )
+) {
+  issues.push(
+    "src/app/AppShell.tsx may only load DebugOverlay through an import.meta.env.DEV dynamic import.",
+  );
+}
+
+const mainContent = readFileSync(mainPath, "utf8");
+if (
+  /import\s+\{[^}]*installDevLogger[^}]*\}\s+from\s+["'][^"']*shared\/devtools/.test(
+    mainContent,
+  ) ||
+  /from\s+["']\.\/shared\/devtools["']/.test(mainContent)
+) {
+  issues.push("src/main.tsx must not statically import devtools.");
+}
+if (
+  /\binstallDevLogger\s*\(\s*\)/.test(mainContent) &&
+  !/import\.meta\.env\.DEV[\s\S]{0,260}installDevLogger\s*\(\s*\)/.test(
+    mainContent,
+  )
+) {
+  issues.push(
+    "src/main.tsx must gate installDevLogger behind import.meta.env.DEV.",
+  );
+}
+
+for (const filePath of [
+  appShellPath,
+  shellRouteRendererPath,
+  shellTabsPath,
+  shellNavigationTypesPath,
+  navbarPath,
+  battleTypesPath,
+  battlePagePath,
+]) {
+  const source = readFileSync(filePath, "utf8");
+  for (const pattern of [
+    /\|\s*["']dev["']/,
+    /\|\s*["']admin["']/,
+    /\{\s*id:\s*["']dev["']/,
+    /\{\s*id:\s*["']admin["']/,
+    /case\s+["']dev["']/,
+    /case\s+["']admin["']/,
+    /\btab=dev\b/,
+    /\btab=admin\b/,
+  ]) {
+    if (pattern.test(source)) {
+      issues.push(
+        `${toRepoPath(filePath)} still exposes a dev/admin route token.`,
+      );
+      break;
+    }
+  }
+}
 
 const vnPageContent = readFileSync(vnPagePath, "utf8");
 if (
@@ -203,6 +322,30 @@ for (const forbiddenReducer of [
     );
   }
 }
+for (const entry of visibilityMatrix) {
+  if (!/^my_[a-z0-9_]+$/.test(entry.replacementReadPath)) {
+    continue;
+  }
+  const alias = snakeToCamel(entry.replacementReadPath);
+  if (
+    !new RegExp(
+      String.raw`\b${alias}:\s*BaseDbView\["${entry.replacementReadPath}"\]`,
+    ).test(sharedBindingsContent)
+  ) {
+    issues.push(
+      `src/shared/spacetime/bindings.ts is missing DbConnection alias ${alias} for ${entry.replacementReadPath}.`,
+    );
+  }
+  if (
+    !new RegExp(
+      String.raw`\b${alias}:\s*queryTables\.${entry.replacementReadPath}\b`,
+    ).test(sharedBindingsContent)
+  ) {
+    issues.push(
+      `src/shared/spacetime/bindings.ts is missing tables.${alias} for ${entry.replacementReadPath}.`,
+    );
+  }
+}
 
 const devPageContent = readFileSync(devPagePath, "utf8");
 for (const forbiddenToken of [
@@ -216,6 +359,16 @@ for (const forbiddenToken of [
 }
 
 for (const filePath of walk(srcRoot)) {
+  if (
+    !/\.test\.(ts|tsx)$/i.test(filePath) &&
+    !/[\\/]pages[\\/](DevPage|AdminPage)\.tsx$/i.test(filePath)
+  ) {
+    const source = readFileSync(filePath, "utf8");
+    if (/\b(DevPage|AdminPage)\b/.test(source)) {
+      issues.push(`${toRepoPath(filePath)} references DevPage/AdminPage.`);
+    }
+  }
+
   const source = readFileSync(filePath, "utf8");
   for (const { pattern, description } of forbiddenBrowserDebugPatterns) {
     if (pattern.test(source)) {
@@ -240,6 +393,22 @@ for (const filePath of browserFacingScriptPaths) {
         `${toRepoPath(filePath)} still issues raw SQL against a governed private relation: ${pattern.source}.`,
       );
     }
+  }
+}
+
+for (const filePath of walk(backendRoot)) {
+  const repoPath = toRepoPath(filePath);
+  if (
+    allowedBackendIterPathPatterns.some((pattern) => pattern.test(repoPath))
+  ) {
+    continue;
+  }
+
+  const source = readFileSync(filePath, "utf8");
+  if (/\.iter\s*\(/.test(source)) {
+    issues.push(
+      `${repoPath} uses table-wide .iter(); use indexed lookups or add an explicit security-surface-check allowlist entry.`,
+    );
   }
 }
 

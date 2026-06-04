@@ -152,6 +152,11 @@ export interface GenerateCharacterReactionPayload {
   playerPrompt?: string;
   visibleFacts: string[];
   relationshipState: CharacterRelationshipState;
+  // Topics this NPC is primed on / steers toward in the scene.
+  topics?: readonly string[];
+  // The NPC's relative memory — what THIS character knows/remembers (may differ
+  // from the objective truth and from what other characters know).
+  npcMemory?: readonly string[];
 }
 
 export interface CharacterReactionProposal {
@@ -284,6 +289,51 @@ export interface DmSuggestedStateDelta {
   reason: string;
 }
 
+export type InnerVoiceStance = "supports" | "opposes";
+export type InnerVoiceRole = "dominant" | "support" | "counter";
+
+// One of the player's currently-resonant inner voices, supplied to the DM so it
+// can voice a short in-character debate before offering options.
+export interface DmInnerVoiceInput {
+  voiceId: string;
+  role: InnerVoiceRole;
+  stance: InnerVoiceStance;
+  label: string;
+  worldview: string;
+  toneDescriptor: string;
+}
+
+// A single line spoken by an inner voice during the pre-decision debate.
+export interface DmInnerVoiceLine {
+  voiceId: string;
+  stance: InnerVoiceStance;
+  line: string;
+}
+
+// One of the (up to 3) concrete moves offered to the player after the debate.
+// Choosing it loops back into a new DM turn as the next action.
+export interface DmTurnOption {
+  id: string;
+  label: string;
+  detail?: string;
+}
+
+// A single beat the player queues in the director console. The chain runner
+// fires one DM turn per directive, in order, each continuing from the last.
+// - atmosphere: slow sensory prose, no decision and no options.
+// - complication: introduce an obstacle / raise stakes, no options.
+// - debate_options: the inner-voice debate + exactly 3 options (decision beat).
+export const BEAT_DIRECTIVE_KINDS = [
+  "atmosphere",
+  "complication",
+  "debate_options",
+] as const;
+export type BeatDirectiveKind = (typeof BEAT_DIRECTIVE_KINDS)[number];
+
+export interface BeatDirective {
+  kind: BeatDirectiveKind;
+}
+
 export interface GenerateDmTurnPayload {
   source: typeof AI_DM_TURN_SOURCE_SIDE_PANEL;
   scenarioId: string;
@@ -311,12 +361,23 @@ export interface GenerateDmTurnPayload {
   acceptedRemarks: readonly PlayerRemark[];
   visibleFacts: readonly string[];
   activeFlags: readonly string[];
+  // The player's currently-resonant inner voices (dominant/support/counter).
+  innerVoices?: readonly DmInnerVoiceInput[];
+  // The previous DM narration, so the continuation stays consistent with it.
+  priorNarration?: string;
+  // What this beat should be when the director console chains beats.
+  // Absent = the default decision beat (debate + options).
+  beatDirective?: BeatDirective;
   toneMode: DmToneMode;
   locale: "ru";
 }
 
 export interface DmTurnProposal {
   narration: string;
+  // Short in-character debate among the supplied inner voices, shown before the options.
+  innerVoiceDialogue?: DmInnerVoiceLine[];
+  // Up to 3 concrete moves the player can pick; choosing one loops a new DM turn.
+  options?: DmTurnOption[];
   checks: Array<{
     id: string;
     label: string;
@@ -415,6 +476,38 @@ export const DM_TURN_PROPOSAL_JSON_SCHEMA = {
       description:
         "Playable Russian narration for the player's free-form action. It proposes outcomes only.",
     },
+    innerVoiceDialogue: {
+      type: "array",
+      description:
+        "A short debate in Russian among the player's supplied inner voices, shown before the options. Each entry is one line; use the provided voiceId and stance. The counter voice must push back.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          voiceId: { type: "string" },
+          stance: { type: "string", enum: ["supports", "opposes"] },
+          line: { type: "string" },
+        },
+        required: ["voiceId", "stance", "line"],
+      },
+      maxItems: 4,
+    },
+    options: {
+      type: "array",
+      description:
+        "Exactly 3 distinct moves the player can choose next, in Russian. Each must continue the established story consistently. label is a short action; detail is optional one-line color.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          id: { type: "string" },
+          label: { type: "string" },
+          detail: { type: "string" },
+        },
+        required: ["id", "label"],
+      },
+      maxItems: 3,
+    },
     checks: {
       type: "array",
       description:
@@ -498,6 +591,8 @@ export const DM_TURN_PROPOSAL_JSON_SCHEMA = {
   ],
   propertyOrdering: [
     "narration",
+    "innerVoiceDialogue",
+    "options",
     "checks",
     "sessionFacts",
     "suggestedStateDeltas",
@@ -860,7 +955,13 @@ export const isGenerateCharacterReactionPayload = (
       typeof payload.playerPrompt === "string") &&
     Array.isArray(payload.visibleFacts) &&
     payload.visibleFacts.every((entry) => typeof entry === "string") &&
-    isCharacterRelationshipState(payload.relationshipState)
+    isCharacterRelationshipState(payload.relationshipState) &&
+    (payload.topics === undefined ||
+      (Array.isArray(payload.topics) &&
+        payload.topics.every((entry) => typeof entry === "string"))) &&
+    (payload.npcMemory === undefined ||
+      (Array.isArray(payload.npcMemory) &&
+        payload.npcMemory.every((entry) => typeof entry === "string")))
   );
 };
 
@@ -1200,6 +1301,80 @@ const isDmBloodCurseProfile = (
   );
 };
 
+const isInnerVoiceStance = (value: unknown): value is InnerVoiceStance =>
+  value === "supports" || value === "opposes";
+
+const isInnerVoiceRole = (value: unknown): value is InnerVoiceRole =>
+  value === "dominant" || value === "support" || value === "counter";
+
+const isDmInnerVoiceInput = (value: unknown): value is DmInnerVoiceInput => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const voice = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(voice, [
+      "voiceId",
+      "role",
+      "stance",
+      "label",
+      "worldview",
+      "toneDescriptor",
+    ]) &&
+    typeof voice.voiceId === "string" &&
+    voice.voiceId.trim().length > 0 &&
+    isInnerVoiceRole(voice.role) &&
+    isInnerVoiceStance(voice.stance) &&
+    typeof voice.label === "string" &&
+    typeof voice.worldview === "string" &&
+    typeof voice.toneDescriptor === "string"
+  );
+};
+
+const isDmInnerVoiceLine = (value: unknown): value is DmInnerVoiceLine => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const line = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(line, ["voiceId", "stance", "line"]) &&
+    typeof line.voiceId === "string" &&
+    line.voiceId.trim().length > 0 &&
+    isInnerVoiceStance(line.stance) &&
+    typeof line.line === "string" &&
+    line.line.trim().length > 0
+  );
+};
+
+const isBeatDirectiveKind = (value: unknown): value is BeatDirectiveKind =>
+  typeof value === "string" &&
+  (BEAT_DIRECTIVE_KINDS as readonly string[]).includes(value);
+
+const isBeatDirective = (value: unknown): value is BeatDirective => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const directive = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(directive, ["kind"]) && isBeatDirectiveKind(directive.kind)
+  );
+};
+
+const isDmTurnOption = (value: unknown): value is DmTurnOption => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const option = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(option, ["id", "label", "detail"]) &&
+    typeof option.id === "string" &&
+    option.id.trim().length > 0 &&
+    typeof option.label === "string" &&
+    option.label.trim().length > 0 &&
+    (option.detail === undefined || typeof option.detail === "string")
+  );
+};
+
 export const isGenerateDmTurnPayload = (
   value: unknown,
 ): value is GenerateDmTurnPayload => {
@@ -1225,6 +1400,9 @@ export const isGenerateDmTurnPayload = (
       "acceptedRemarks",
       "visibleFacts",
       "activeFlags",
+      "innerVoices",
+      "priorNarration",
+      "beatDirective",
       "toneMode",
       "locale",
     ]) &&
@@ -1250,6 +1428,13 @@ export const isGenerateDmTurnPayload = (
     payload.visibleFacts.every((entry) => typeof entry === "string") &&
     Array.isArray(payload.activeFlags) &&
     payload.activeFlags.every((entry) => typeof entry === "string") &&
+    (payload.innerVoices === undefined ||
+      (Array.isArray(payload.innerVoices) &&
+        payload.innerVoices.every(isDmInnerVoiceInput))) &&
+    (payload.priorNarration === undefined ||
+      typeof payload.priorNarration === "string") &&
+    (payload.beatDirective === undefined ||
+      isBeatDirective(payload.beatDirective)) &&
     isDmToneMode(payload.toneMode) &&
     payload.locale === "ru"
   );
@@ -1313,6 +1498,8 @@ export const isDmTurnProposal = (value: unknown): value is DmTurnProposal => {
   return (
     hasOnlyKeys(proposal, [
       "narration",
+      "innerVoiceDialogue",
+      "options",
       "checks",
       "sessionFacts",
       "suggestedStateDeltas",
@@ -1323,6 +1510,12 @@ export const isDmTurnProposal = (value: unknown): value is DmTurnProposal => {
     ]) &&
     typeof proposal.narration === "string" &&
     proposal.narration.trim().length > 0 &&
+    (proposal.innerVoiceDialogue === undefined ||
+      (Array.isArray(proposal.innerVoiceDialogue) &&
+        proposal.innerVoiceDialogue.every(isDmInnerVoiceLine))) &&
+    (proposal.options === undefined ||
+      (Array.isArray(proposal.options) &&
+        proposal.options.every(isDmTurnOption))) &&
     Array.isArray(proposal.checks) &&
     proposal.checks.every(isDmCheckProposal) &&
     Array.isArray(proposal.sessionFacts) &&

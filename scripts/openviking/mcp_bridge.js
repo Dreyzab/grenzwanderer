@@ -10,6 +10,14 @@ const SERVER_URL = process.env.OPENVIKING_BASE_URL ?? "http://127.0.0.1:1933";
 const API_KEY = process.env.OPENVIKING_API_KEY ?? "";
 const LOG_FILE = path.join(__dirname, "mcp.bridge.log");
 const PROTOCOL_VERSION = "2024-11-05";
+const HTTP_TIMEOUT_MS =
+  Number.parseInt(process.env.OPENVIKING_HTTP_TIMEOUT_MS ?? "", 10) || 30000;
+// Bound a small TTL-LRU of semantic query results. Set max <= 0 to disable.
+const QUERY_CACHE_MAX =
+  Number.parseInt(process.env.OPENVIKING_QUERY_CACHE_MAX ?? "", 10) || 128;
+const QUERY_CACHE_TTL_MS =
+  Number.parseInt(process.env.OPENVIKING_QUERY_CACHE_TTL_MS ?? "", 10) ||
+  5 * 60_000;
 
 const TOOL_DEFINITIONS = [
   {
@@ -341,29 +349,81 @@ async function apiRequest(endpoint, { method = "GET", body, query } = {}) {
     headers["Content-Type"] = "application/json";
   }
 
-  const response = await fetch(url, {
-    method,
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const rawText = await response.text();
-  let payload = rawText;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), HTTP_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const rawText = await response.text();
+    let payload = rawText;
 
-  if (rawText) {
-    try {
-      payload = JSON.parse(rawText);
-    } catch {
-      payload = rawText;
+    if (rawText) {
+      try {
+        payload = JSON.parse(rawText);
+      } catch {
+        payload = rawText;
+      }
     }
-  }
 
-  if (!response.ok) {
-    throw new Error(
-      `OpenViking request failed (${response.status} ${response.statusText}): ${formatJson(payload)}`,
-    );
-  }
+    if (!response.ok) {
+      throw new Error(
+        `OpenViking request failed (${response.status} ${response.statusText}): ${formatJson(payload)}`,
+      );
+    }
 
-  return payload;
+    return payload;
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error(
+        `OpenViking request timed out after ${HTTP_TIMEOUT_MS}ms (${method} ${endpoint}). Is the server running at ${SERVER_URL}?`,
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+// TTL-bounded LRU for semantic query results. Repeated query_context calls
+// with identical parameters otherwise recompute a Gemini embedding on every
+// request. Keyed on the exact find-request body; bounded by size and age so a
+// reindex cannot keep serving stale matches indefinitely.
+const queryCache = new Map();
+
+function queryCacheGet(key) {
+  if (QUERY_CACHE_MAX <= 0) {
+    return undefined;
+  }
+  const entry = queryCache.get(key);
+  if (entry === undefined) {
+    return undefined;
+  }
+  if (entry.expiresAt <= Date.now()) {
+    queryCache.delete(key);
+    return undefined;
+  }
+  // Refresh recency: Map preserves insertion order, so re-insert moves to newest.
+  queryCache.delete(key);
+  queryCache.set(key, entry);
+  return entry.value;
+}
+
+function queryCacheSet(key, value) {
+  if (QUERY_CACHE_MAX <= 0) {
+    return;
+  }
+  if (queryCache.has(key)) {
+    queryCache.delete(key);
+  }
+  queryCache.set(key, { value, expiresAt: Date.now() + QUERY_CACHE_TTL_MS });
+  while (queryCache.size > QUERY_CACHE_MAX) {
+    const oldestKey = queryCache.keys().next().value;
+    queryCache.delete(oldestKey);
+  }
 }
 
 async function handleQueryContext(args) {
@@ -392,10 +452,17 @@ async function handleQueryContext(args) {
     ...(isRecord(args.filter) ? { filter: args.filter } : {}),
   };
 
-  const response = await apiRequest("/api/v1/search/find", {
-    method: "POST",
-    body,
-  });
+  const cacheKey = JSON.stringify(body);
+  let response = queryCacheGet(cacheKey);
+  if (response === undefined) {
+    response = await apiRequest("/api/v1/search/find", {
+      method: "POST",
+      body,
+    });
+    queryCacheSet(cacheKey, response);
+  } else {
+    log("query_cache_hit", { key: cacheKey });
+  }
   const result =
     isRecord(response) && isRecord(response.result) ? response.result : {};
   const total =

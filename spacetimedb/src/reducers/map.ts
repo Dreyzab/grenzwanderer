@@ -36,6 +36,10 @@ import type {
   MapPointState,
 } from "./helpers";
 import { normalizeRumorStatus } from "./helpers/rumor_status";
+import {
+  hasPriorSuccessfulRedeem,
+  hasRecentRejectedRedeem,
+} from "./helpers/map_redemption";
 import { startScenarioInternal } from "./vn";
 
 const visitedFlagKey = (pointId: string): string => `VISITED_${pointId}`;
@@ -54,7 +58,6 @@ const rejectMapInteraction = (
   throw new SenderError(reason);
 };
 
-const MAP_CODE_RETRY_COOLDOWN_MICROS = 60n * 1_000_000n;
 const EARTH_RADIUS_METERS = 6_371_000;
 
 type AttemptLocation = {
@@ -81,27 +84,6 @@ const resolveAttemptLocation = (
   }
 
   return { lat, lng };
-};
-
-const timestampMicros = (value: unknown): bigint => {
-  if (
-    value &&
-    typeof value === "object" &&
-    "microsSinceUnixEpoch" in (value as Record<string, unknown>)
-  ) {
-    const micros = (value as { microsSinceUnixEpoch?: unknown })
-      .microsSinceUnixEpoch;
-    if (typeof micros === "bigint") {
-      return micros;
-    }
-    if (typeof micros === "number" && Number.isFinite(micros)) {
-      return BigInt(Math.trunc(micros));
-    }
-    if (typeof micros === "string" && micros.trim().length > 0) {
-      return BigInt(micros);
-    }
-  }
-  return 0n;
 };
 
 const toRadians = (value: number): number => (value * Math.PI) / 180;
@@ -632,49 +614,6 @@ const normalizeMapActionError = (error: unknown): SenderError => {
   return new SenderError("map_interact_failed");
 };
 
-const iterateRedeemRowsByCodeForSender = (
-  ctx: any,
-  codeId: string,
-): Iterable<any> => {
-  const senderHex = ctx.sender.toHexString();
-  return [
-    ...ctx.db.playerRedeemedCode.player_redeemed_code_code_id.filter(codeId),
-  ].filter((row) => row.playerId.toHexString() === senderHex);
-};
-
-const hasPriorSuccessfulRedeem = (ctx: any, codeId: string): boolean => {
-  for (const row of iterateRedeemRowsByCodeForSender(ctx, codeId)) {
-    if (row.result === "applied" || row.result === "queued_after_briefing") {
-      return true;
-    }
-  }
-  return false;
-};
-
-const hasRecentRejectedRedeem = (
-  ctx: any,
-  codeId: string,
-  nowMicros: bigint,
-): boolean => {
-  for (const row of iterateRedeemRowsByCodeForSender(ctx, codeId)) {
-    if (
-      row.result !== "blocked_flags" &&
-      row.result !== "location_required" &&
-      row.result !== "outside_geofence"
-    ) {
-      continue;
-    }
-
-    if (
-      timestampMicros(row.redeemedAt) + MAP_CODE_RETRY_COOLDOWN_MICROS >
-      nowMicros
-    ) {
-      return true;
-    }
-  }
-  return false;
-};
-
 export const map_interact = spacetimedb.reducer(
   {
     requestId: t.string(),
@@ -1000,6 +939,46 @@ export const redeem_map_code = spacetimedb.reducer(
       codeId: entry.codeId,
       result: queuedAfterBriefing ? "queued_after_briefing" : "applied",
       contentVersion: activeVersion.version,
+    });
+  },
+);
+
+export const commit_map_discovery = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    pointId: t.string(),
+  },
+  (ctx, { requestId, pointId }) => {
+    if (!pointId || pointId.trim().length === 0) {
+      throw new SenderError("pointId must not be empty");
+    }
+
+    ensureIdempotent(ctx, requestId, "commit_map_discovery");
+    ensurePlayerProfile(ctx);
+
+    const { snapshot } = getActiveSnapshot(ctx);
+    const point = snapshot.map?.points.find((entry) => entry.id === pointId);
+    if (!point) {
+      throw new SenderError(`Unknown map point ${pointId}`);
+    }
+
+    upsertFlag(ctx, `DISCOVERED_${pointId}`, true);
+
+    if (point.unlockGroup) {
+      const unlockKey = createUnlockGroupKey(ctx.sender, point.unlockGroup);
+      if (!ctx.db.playerUnlockGroup.unlockKey.find(unlockKey)) {
+        ctx.db.playerUnlockGroup.insert({
+          unlockKey,
+          playerId: ctx.sender,
+          groupId: point.unlockGroup,
+          unlockedAt: ctx.timestamp,
+        });
+      }
+    }
+
+    emitTelemetry(ctx, "map_point_discovered", {
+      pointId,
+      unlockGroup: point.unlockGroup,
     });
   },
 );

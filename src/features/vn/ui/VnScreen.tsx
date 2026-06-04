@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTable } from "spacetimedb/react";
+import { tables } from "../../../shared/spacetime/bindings";
+import { resolvePlayerPortrait } from "../../../shared/game/playerPortrait";
+import { getOriginProfileByFlags } from "../../character/originProfiles";
+import type { EquipmentSlot } from "../../../shared/game/itemCatalog";
 import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
 import { useKarlsruheSceneBackground } from "../../release/sceneGeneration";
 import { getVnStrings } from "../../i18n/uiStrings";
@@ -33,6 +38,7 @@ import {
 } from "./VnTokenFeedbackOverlay";
 import { VnJournalEntryToast } from "./VnJournalEntryToast";
 import { VnDmSidePanel } from "./VnDmSidePanel";
+import { SceneComposer } from "./SceneComposer";
 import {
   playVnSkillCheckSfx,
   playVnTokenSfx,
@@ -41,6 +47,12 @@ import {
 } from "./vnSkillCheckAudio";
 import { VnNarrativePanel } from "../../../widgets/vn-overlay/VnNarrativePanel";
 import { AUTO_CONTINUE_PREFIX } from "../vnScreenUtils";
+import { VnHubOverlay } from "./hub/VnHubOverlay";
+import { VnHubOverlayButton } from "./hub/VnHubOverlayButton";
+import { VnHubSchema } from "./hub/VnHubSchema";
+import { collectVisibleOccupantNpcIds } from "./hub/evaluateOccupants";
+import { useCurrentHubZone } from "../hooks/useCurrentHubZone";
+import { isChoiceAvailable } from "../vnContent";
 import type {
   ActiveAiThoughtContext,
   AwaitingSkillChoice,
@@ -63,6 +75,9 @@ interface VnScreenProps {
       | "battle",
   ) => void;
 }
+
+const CASE01_OPENING_VIDEO_NODE_ID = "scene_case01_opening_arrival_video";
+const CASE01_WITCH_START_CHOICE_ID = "CASE01_WITCH_START_TO_DROWSE";
 
 const createVnTokenRequestId = (): string => {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -124,8 +139,6 @@ export const VnScreen = ({
   const {
     versions,
     versionsReady,
-    snapshots,
-    snapshotsReady,
     sessions,
     sessionsReady,
     skillResults,
@@ -184,6 +197,7 @@ export const VnScreen = ({
   const tokenFeedbackTimerRef = useRef<number | null>(null);
   const tokenFeedbackIdRef = useRef(0);
   const pendingTokenActionsRef = useRef<Set<string>>(new Set());
+  const skippedWitchIntroNodeRef = useRef<string | null>(null);
   const tutorialActionsRef = useRef<{
     startRecordingFact: (factPayload: string) => void;
     showJournalToast: (factPayload: string) => void;
@@ -191,6 +205,40 @@ export const VnScreen = ({
   } | null>(null);
 
   const { flags: myFlags, vars: myVars } = usePlayerBindings();
+  const [equipmentRows] = useTable(tables.myPlayerEquipment);
+  const equippedBySlot = useMemo(() => {
+    const equipped: Record<string, string> = {
+      head: "",
+      body: "",
+      hands: "",
+      weapon: "",
+      accessory: "",
+    };
+    for (const row of equipmentRows) {
+      equipped[row.slotId] = row.itemId;
+    }
+    return equipped as Record<EquipmentSlot, string>;
+  }, [equipmentRows]);
+
+  const playerPortraitUrl = useMemo(
+    () => resolvePlayerPortrait(myFlags, equippedBySlot),
+    [myFlags, equippedBySlot],
+  );
+
+  const activeOrigin = useMemo(
+    () => getOriginProfileByFlags(myFlags),
+    [myFlags],
+  );
+
+  const playerProfileForLog = useMemo(() => {
+    if (!activeOrigin) return null;
+    return {
+      name: activeOrigin.dossier.characterName,
+      avatarUrl: playerPortraitUrl,
+      accentColor: activeOrigin.dossier.accentColor,
+    };
+  }, [activeOrigin, playerPortraitUrl]);
+
   const uiLanguage = useUiLanguage(myFlags);
   const { dictionary, localePackReady } = useI18n();
   const t = useMemo(() => getVnStrings(uiLanguage), [uiLanguage]);
@@ -224,8 +272,6 @@ export const VnScreen = ({
   const { activeVersion, contentReady, selectedScenario, snapshot } =
     useVnContentSnapshot({
       selectedScenarioId,
-      snapshots,
-      snapshotsReady,
       versions,
       versionsReady,
     });
@@ -284,6 +330,7 @@ export const VnScreen = ({
     completionTargetLabel,
     passiveCheckItems,
     currentVisibleChoices,
+    currentVisibleHotspotChoices,
     currentAutoContinueChoice,
     hasPendingPassiveChecks,
     currentNarrativeText,
@@ -665,6 +712,7 @@ export const VnScreen = ({
     providenceThoughtCard,
     innerVoiceCards,
     visibleChoices,
+    visibleHotspotChoices,
     autoContinueChoice,
     narrativeText,
     resolvedBgUrl,
@@ -693,6 +741,7 @@ export const VnScreen = ({
     myVars,
     choiceEvaluationContext,
     currentVisibleChoices,
+    currentVisibleHotspotChoices,
     currentAutoContinueChoice,
     currentNarrativeText,
     currentResolvedBgUrl: effectiveBackgroundUrl,
@@ -809,6 +858,77 @@ export const VnScreen = ({
     effectiveNarrativeLayout === "fullscreen" ||
     effectiveNarrativeLayout === "letter_overlay";
   const isWitchDmMode = Boolean(myFlags.origin_witch);
+  const isEleonoraTrainPrologue =
+    isWitchDmMode &&
+    (currentNode?.sceneGroupId === "witch_train_compartment" ||
+      currentNode?.sceneGroupId === "train_bahn_video");
+
+  useEffect(() => {
+    if (
+      !isWitchDmMode ||
+      currentNode?.id !== CASE01_OPENING_VIDEO_NODE_ID ||
+      autoContinueChoice?.id !== CASE01_WITCH_START_CHOICE_ID ||
+      transitionState !== "idle" ||
+      pendingChoiceId ||
+      skippedWitchIntroNodeRef.current === currentNode.id ||
+      !mySession
+    ) {
+      return;
+    }
+
+    skippedWitchIntroNodeRef.current = currentNode.id;
+    void handleChoiceClick(autoContinueChoice, false);
+  }, [
+    autoContinueChoice,
+    currentNode?.id,
+    handleChoiceClick,
+    isWitchDmMode,
+    mySession,
+    pendingChoiceId,
+    transitionState,
+  ]);
+
+  const isHubNode = currentNode?.interactionMode === "hub";
+  const hubSchema = isHubNode ? (currentNode?.hubSchema ?? null) : null;
+  const currentHubZoneId = useCurrentHubZone(hubSchema, myFlags);
+  const visibleHubOccupantsByZoneId = useMemo(() => {
+    if (!hubSchema) {
+      return undefined;
+    }
+
+    return Object.fromEntries(
+      hubSchema.zones.map((zone) => [
+        zone.id,
+        collectVisibleOccupantNpcIds(
+          zone,
+          myFlags,
+          myVars,
+          choiceEvaluationContext,
+        ),
+      ]),
+    );
+  }, [choiceEvaluationContext, hubSchema, myFlags, myVars]);
+  const isHubChoiceLocked = useCallback(
+    (choice: VnChoice) =>
+      !mySession ||
+      !isChoiceAvailable(choice, myFlags, myVars, choiceEvaluationContext),
+    [choiceEvaluationContext, myFlags, mySession, myVars],
+  );
+  const [isHubOverlayOpen, setIsHubOverlayOpen] = useState(false);
+  // Auto-close the overlay whenever the active node changes — a hotspot
+  // choice transitions to a new node, and the next node should decide its
+  // own surface mode.
+  useEffect(() => {
+    setIsHubOverlayOpen(false);
+  }, [currentNode?.id]);
+
+  const handleHotspotChoiceClick = useCallback(
+    (choice: VnChoice) => {
+      setIsHubOverlayOpen(false);
+      void handleChoiceClick(choice, isHubChoiceLocked(choice));
+    },
+    [handleChoiceClick, isHubChoiceLocked],
+  );
 
   const { handleSurfaceTap, handleVideoEnded } = useVnSurfaceInteraction({
     autoContinueChoice,
@@ -822,6 +942,7 @@ export const VnScreen = ({
     handleChoiceClick,
     handleStartScenario,
     isTyping,
+    isBlocked: isHubOverlayOpen,
     markInteractionHandled,
     myFlags,
     mySession,
@@ -899,9 +1020,13 @@ export const VnScreen = ({
     Boolean(awaitingSkillChoice) ||
     Boolean(activeSkillResolve) ||
     hasPendingPassiveChecks;
+  const isHubInteractionDisabled = isInteractionLocked || isTyping;
   const canTriggerCompletion =
     transitionState !== "handoff_in_flight" &&
     transitionState !== "handoff_failed";
+  const hasPlayerFacingChoices = choiceDisplayItems.some(
+    (item) => !item.choice.id.startsWith(AUTO_CONTINUE_PREFIX),
+  );
 
   return (
     <section className="vn-screen-root">
@@ -927,6 +1052,7 @@ export const VnScreen = ({
         characterId={currentNode?.characterId}
         characterName={speakerLabel === "Narrator" ? undefined : speakerLabel}
         narrativeText={narrativeText}
+        hasVisibleChoices={hasPlayerFacingChoices}
         backgroundImageUrl={resolvedBgUrl ?? undefined}
         backgroundVideoUrl={currentNode?.backgroundVideoUrl}
         backgroundVideoPosterUrl={currentNode?.backgroundVideoPosterUrl}
@@ -936,6 +1062,7 @@ export const VnScreen = ({
         narrativePresentation={currentNode?.narrativePresentation}
         logState={narrativeLog.state}
         logSnapshot={snapshot}
+        playerProfile={playerProfileForLog}
         letterOverlayRevealDelayMs={currentNode?.letterOverlayRevealDelayMs}
         onTypingChange={handleTypingChange}
         isTyping={isTyping}
@@ -947,6 +1074,7 @@ export const VnScreen = ({
         onDismissTutorialTooltip={tutorialState.dismissTooltip}
         onVideoEnded={handleVideoEnded}
         videoPlaybackComplete={videoEnded}
+        suppressImmersiveSurfaceOverlay={isEleonoraTrainPrologue}
         choicesSlot={
           <VnScreenChoicesSlot
             activeLensBadgeText={activeLensBadgeText}
@@ -1039,6 +1167,14 @@ export const VnScreen = ({
           onError={setError}
         />
       ) : null}
+      {selectedScenarioId ? (
+        <SceneComposer
+          scenarioId={selectedScenarioId}
+          enqueueAiRequest={enqueueAiRequest}
+          reactionRequests={myReactionRequests}
+          onError={setError}
+        />
+      ) : null}
       <VnSkillCheckToast
         toast={skillCheckToast}
         onClose={clearSkillCheckToast}
@@ -1049,6 +1185,29 @@ export const VnScreen = ({
         t={t}
         onDismiss={tutorialState.clearJournalToast}
       />
+      {isHubNode && hubSchema ? (
+        <>
+          <VnHubOverlayButton
+            onClick={() => setIsHubOverlayOpen(true)}
+            disabled={isHubInteractionDisabled}
+          />
+          <VnHubOverlay
+            open={isHubOverlayOpen}
+            onClose={() => setIsHubOverlayOpen(false)}
+            title={currentNode?.title}
+          >
+            <VnHubSchema
+              schema={hubSchema}
+              hotspotChoices={visibleHotspotChoices}
+              currentZoneId={currentHubZoneId}
+              visibleOccupantsByZoneId={visibleHubOccupantsByZoneId}
+              onZoneSelect={handleHotspotChoiceClick}
+              isChoiceLocked={isHubChoiceLocked}
+              disabled={isHubInteractionDisabled}
+            />
+          </VnHubOverlay>
+        </>
+      ) : null}
     </section>
   );
 };

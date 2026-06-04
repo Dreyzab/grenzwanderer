@@ -32,7 +32,7 @@ const NPC_PROFILES: NpcCastProfile[] = [
     displayName: "Lotte Weber",
     publicRole: "Chief Telephone Operator",
     sceneNote:
-      "Manages the switchboard and incoming contract files. Reads line traffic the way a hunter reads tracks.",
+      "Manages the switchboard, supervises the telephone women, and quietly sells city notes to a newspaper. Reads line traffic the way a hunter reads tracks.",
   },
   {
     id: "npc_klein_analyst",
@@ -53,6 +53,13 @@ const NPC_PROFILES: NpcCastProfile[] = [
     publicRole: "Aristocratic Patron",
     sceneNote:
       "Manages access and reputation through implicit obligation. Never commands — arranges inevitability.",
+  },
+  {
+    id: "npc_sasha_hartmann_servant",
+    displayName: 'Alexander "Sasha"',
+    publicRole: "Hartmann Family Servant",
+    sceneNote:
+      "Private Hartmann household support: service routes, luggage, and quiet crisis handling. Reads Eleonora's symptoms but not the occult truth behind them.",
   },
 ];
 
@@ -81,6 +88,13 @@ const LOCATION_CAST_ENTRIES: LocationCastEntry[] = [
     dramaticFunction: "information_relay",
     primaryNpcId: "npc_weber_dispatcher",
     supportNpcIds: [],
+  },
+  {
+    locationId: "loc_freiburg_estate",
+    tone: "contained",
+    dramaticFunction: "household_support",
+    primaryNpcId: "npc_mother_hartmann",
+    supportNpcIds: ["npc_sasha_hartmann_servant", "npc_felix_hartmann"],
   },
 ];
 

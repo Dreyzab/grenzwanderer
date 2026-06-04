@@ -2,6 +2,7 @@
 id: char_bank_teller
 tags: [character, functional]
 tier: functional
+design_only: true
 runtime_character_id: bank_teller
 faction: fct_house_of_pledges
 aliases: ["Bank Teller"]

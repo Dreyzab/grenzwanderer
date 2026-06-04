@@ -2,6 +2,10 @@ import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MapDataSource } from "../types";
 import { useMapRuntimeState } from "./useMapRuntimeState";
+import { __bindTestSnapshotResolver } from "../../../shared/content/activeSnapshot";
+
+let currentTestSnapshot: any = null;
+__bindTestSnapshotResolver(() => currentTestSnapshot);
 
 const mocks = vi.hoisted(() => ({
   useTableMock: vi.fn(),
@@ -66,6 +70,12 @@ const testDataSource: MapDataSource = {
 describe("useMapRuntimeState", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    const originalMockReturnValue = mocks.parseSnapshotMock.mockReturnValue;
+    mocks.parseSnapshotMock.mockReturnValue = (val: any) => {
+      currentTestSnapshot = val;
+      return originalMockReturnValue.call(mocks.parseSnapshotMock, val);
+    };
 
     mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
     mocks.parseSnapshotMock.mockReturnValue({

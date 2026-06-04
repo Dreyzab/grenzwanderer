@@ -217,6 +217,73 @@ export const isNpcIdentityRevealed = (
   );
 };
 
+export interface NpcDossierStage {
+  heading: string;
+  text: string;
+}
+
+export interface NpcDossierEntry {
+  id: string;
+  displayName: string;
+  publicRole: string;
+  portraitUrl?: string;
+  /** Tagline shown as soon as the NPC is met. */
+  summary: string;
+  /** Stages whose reveal flag is set (or that have no gate). */
+  revealedStages: NpcDossierStage[];
+  /** Count of still-locked stages, surfaced as a "more to learn" teaser. */
+  lockedStageCount: number;
+}
+
+/**
+ * Builds the player-facing dossier list for the journal: every met NPC that has
+ * a bio, with its summary plus any bio stages the player has unlocked. Pure so
+ * the reveal gating can be unit-tested without the React layer.
+ */
+export const buildNpcDossierEntries = (
+  socialCatalog: SocialCatalogSnapshot | undefined,
+  flags: Record<string, boolean>,
+  trustByNpcId: IdPresenceLookup,
+  favorByNpcId: IdPresenceLookup,
+): NpcDossierEntry[] => {
+  const entries: NpcDossierEntry[] = [];
+
+  for (const identity of socialCatalog?.npcIdentities ?? []) {
+    if (!identity.bio) {
+      continue;
+    }
+    if (!isNpcIdentityRevealed(identity, flags, trustByNpcId, favorByNpcId)) {
+      continue;
+    }
+
+    const stages = identity.bio.stages ?? [];
+    const revealedStages: NpcDossierStage[] = [];
+    let lockedStageCount = 0;
+
+    for (const stage of stages) {
+      if (!stage.revealFlag || flags[stage.revealFlag] === true) {
+        revealedStages.push({ heading: stage.heading, text: stage.text });
+      } else {
+        lockedStageCount += 1;
+      }
+    }
+
+    entries.push({
+      id: identity.id,
+      displayName: identity.displayName,
+      publicRole: identity.publicRole,
+      portraitUrl: identity.portraitUrl,
+      summary: identity.bio.summary,
+      revealedStages,
+      lockedStageCount,
+    });
+  }
+
+  return entries.sort((left, right) =>
+    left.displayName.localeCompare(right.displayName),
+  );
+};
+
 export const getRevealedFactionState = ({
   factionSignals,
   favorByNpcId,

@@ -18,9 +18,9 @@ const asSharedSnapshot = (snapshot: VnSnapshot): IndexedSnapshot =>
 export const getActiveSnapshot = (
   ctx: any,
 ): { activeVersion: any; snapshot: VnSnapshot } => {
-  const activeVersion = [...ctx.db.contentVersion.iter()].find(
-    (row: any) => row.isActive,
-  );
+  const activeVersion = [
+    ...ctx.db.contentVersion.content_version_is_active.filter(true),
+  ][0];
   if (!activeVersion) {
     throw new SenderError("No active content version");
   }

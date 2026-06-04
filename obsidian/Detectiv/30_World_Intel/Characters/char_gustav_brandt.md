@@ -3,6 +3,7 @@ id: char_gustav_brandt
 tags: [character, functional]
 tier: functional
 runtime_character_id: gustav_brandt
+design_only: true
 faction: fct_free_yards
 aliases: ["Gustav Brandt"]
 ---

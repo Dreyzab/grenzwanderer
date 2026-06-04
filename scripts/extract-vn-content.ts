@@ -33,6 +33,7 @@ import {
   validateCaseIr,
 } from "../src/shared/vn-contract";
 import {
+  designDocsRoot,
   normalizeContentReleaseProfile,
   repoRoot,
   resolveContentSnapshotPath,
@@ -40,6 +41,10 @@ import {
   storyRoot,
   validateStoryRoot,
 } from "./content-authoring-contract";
+import {
+  applyDossierExcerpts,
+  collectDossierExcerpts,
+} from "./character-dossier-extract";
 import { CONTENT_IDS } from "./content-ids";
 import {
   CONDITION_OPERATORS,
@@ -1382,6 +1387,10 @@ const validateEffectBlueprint = (effect: VnEffect, context: string): void => {
       assertKnownVarKey(effect.key, `effect.key in ${context}`);
     }
   }
+  if (effect.type === "set_hub_zone") {
+    assertAscii(effect.hubSchemaId, `effect.hubSchemaId in ${context}`);
+    assertAscii(effect.zoneId, `effect.zoneId in ${context}`);
+  }
   if (effect.type === "change_psyche_axis") {
     if (
       effect.axis !== "x" &&
@@ -1702,6 +1711,105 @@ const validateNodeBlueprint = (node: NodeBlueprint): void => {
       throw new Error(
         `node(${node.id}).letterOverlayRevealDelayMs must be 0..120000`,
       );
+    }
+  }
+  if (node.interactionMode !== undefined) {
+    if (node.interactionMode !== "standard" && node.interactionMode !== "hub") {
+      throw new Error(
+        `node(${node.id}) has unsupported interactionMode: ${String(node.interactionMode)}`,
+      );
+    }
+  }
+  if (node.interactionMode === "hub") {
+    if (!node.hubSchema) {
+      throw new Error(
+        `node(${node.id}) has interactionMode="hub" but no hubSchema`,
+      );
+    }
+  }
+  if (node.hubSchema !== undefined) {
+    const schema = node.hubSchema;
+    if (
+      !/^-?\d+(?:\.\d+)?(?:\s+-?\d+(?:\.\d+)?){3}$/.test(schema.viewBox.trim())
+    ) {
+      throw new Error(
+        `node(${node.id}).hubSchema.viewBox must be "minX minY width height"`,
+      );
+    }
+    if (
+      typeof schema.aspectRatio !== "number" ||
+      !Number.isFinite(schema.aspectRatio) ||
+      schema.aspectRatio <= 0
+    ) {
+      throw new Error(
+        `node(${node.id}).hubSchema.aspectRatio must be a positive finite number`,
+      );
+    }
+    if (!Array.isArray(schema.zones) || schema.zones.length === 0) {
+      throw new Error(
+        `node(${node.id}).hubSchema.zones must be a non-empty array`,
+      );
+    }
+    const zoneIds = new Set<string>();
+    for (const zone of schema.zones) {
+      if (!zone.id || !zone.label || !zone.svgPath) {
+        throw new Error(
+          `node(${node.id}).hubSchema.zones[*] requires id, label, svgPath`,
+        );
+      }
+      if (zoneIds.has(zone.id)) {
+        throw new Error(
+          `node(${node.id}).hubSchema.zones contains duplicate id ${zone.id}`,
+        );
+      }
+      zoneIds.add(zone.id);
+      for (const occupant of zone.occupants ?? []) {
+        assertAscii(
+          occupant.npcId,
+          `node(${node.id}).hubSchema.zone(${zone.id}).occupants.npcId`,
+        );
+        assertKnownId(
+          FREIBURG_SOCIAL_NPC_IDS,
+          occupant.npcId,
+          `node(${node.id}).hubSchema.zone(${zone.id}).occupants.npcId`,
+        );
+        for (const condition of occupant.visibleIfAll ?? []) {
+          validateConditionBlueprint(
+            condition,
+            `node(${node.id}).hubSchema.zone(${zone.id}).occupants.visibleIfAll`,
+          );
+        }
+        for (const condition of occupant.visibleIfAny ?? []) {
+          validateConditionBlueprint(
+            condition,
+            `node(${node.id}).hubSchema.zone(${zone.id}).occupants.visibleIfAny`,
+          );
+        }
+      }
+    }
+    if (
+      schema.defaultCurrentZoneId !== undefined &&
+      !zoneIds.has(schema.defaultCurrentZoneId)
+    ) {
+      throw new Error(
+        `node(${node.id}).hubSchema.defaultCurrentZoneId ${schema.defaultCurrentZoneId} is not a declared zone`,
+      );
+    }
+    for (const choice of node.choices) {
+      if (choice.hotspot && !zoneIds.has(choice.hotspot.zoneId)) {
+        throw new Error(
+          `node(${node.id}).choice(${choice.id}).hotspot.zoneId ${choice.hotspot.zoneId} is not a declared zone`,
+        );
+      }
+    }
+  }
+  if (node.interactionMode !== "hub") {
+    for (const choice of node.choices) {
+      if (choice.hotspot) {
+        throw new Error(
+          `node(${node.id}).choice(${choice.id}) carries hotspot but node is not interactionMode="hub"`,
+        );
+      }
     }
   }
   if (node.activeSpeakers) {
@@ -2458,6 +2566,12 @@ const buildRuntimeNode = (node: NodeBlueprint): VnNode => {
   if (node.letterOverlayRevealDelayMs !== undefined) {
     vnNode.letterOverlayRevealDelayMs = node.letterOverlayRevealDelayMs;
   }
+  if (node.interactionMode !== undefined) {
+    vnNode.interactionMode = node.interactionMode;
+  }
+  if (node.hubSchema !== undefined) {
+    vnNode.hubSchema = node.hubSchema;
+  }
 
   return vnNode;
 };
@@ -2493,6 +2607,87 @@ const buildRuntimeScenario = (scenario: ScenarioBlueprint): VnScenario => {
   }
 
   return vnScenario;
+};
+
+const validateHubZoneEffectTargets = (nodes: VnNode[]): void => {
+  const zonesBySchemaId = new Map<string, Set<string>>();
+
+  for (const node of nodes) {
+    if (node.interactionMode !== "hub" || !node.hubSchema) {
+      continue;
+    }
+    const existing = zonesBySchemaId.get(node.hubSchema.id);
+    const zoneIds = new Set(node.hubSchema.zones.map((zone) => zone.id));
+    if (existing) {
+      for (const zoneId of zoneIds) {
+        existing.add(zoneId);
+      }
+      continue;
+    }
+    zonesBySchemaId.set(node.hubSchema.id, zoneIds);
+  }
+
+  const assertEffectTarget = (effect: VnEffect, context: string) => {
+    if (effect.type !== "set_hub_zone") {
+      return;
+    }
+    const zoneIds = zonesBySchemaId.get(effect.hubSchemaId);
+    if (!zoneIds) {
+      throw new Error(
+        `${context} references unknown hubSchemaId ${effect.hubSchemaId}`,
+      );
+    }
+    if (!zoneIds.has(effect.zoneId)) {
+      throw new Error(
+        `${context} references unknown zoneId ${effect.zoneId} for hubSchemaId ${effect.hubSchemaId}`,
+      );
+    }
+  };
+
+  const inspectSkillCheck = (
+    choice: VnChoice,
+    nodeId: string,
+    choiceId: string,
+  ) => {
+    if (!choice.skillCheck) {
+      return;
+    }
+    const branches = [
+      ["onSuccess", choice.skillCheck.onSuccess],
+      ["onFail", choice.skillCheck.onFail],
+      ["onCritical", choice.skillCheck.onCritical],
+      ["onSuccessWithCost", choice.skillCheck.onSuccessWithCost],
+    ] as const;
+
+    for (const [branchName, branch] of branches) {
+      for (const effect of branch?.effects ?? []) {
+        assertEffectTarget(
+          effect,
+          `node(${nodeId}).choice(${choiceId}).skillCheck.${branchName}`,
+        );
+      }
+    }
+
+    for (const effect of choice.skillCheck.onSuccessWithCost?.costEffects ??
+      []) {
+      assertEffectTarget(
+        effect,
+        `node(${nodeId}).choice(${choiceId}).skillCheck.onSuccessWithCost.costEffects`,
+      );
+    }
+  };
+
+  for (const node of nodes) {
+    for (const effect of node.onEnter ?? []) {
+      assertEffectTarget(effect, `node(${node.id}).onEnter`);
+    }
+    for (const choice of node.choices) {
+      for (const effect of choice.effects ?? []) {
+        assertEffectTarget(effect, `node(${node.id}).choice(${choice.id})`);
+      }
+      inspectSkillCheck(choice, node.id, choice.id);
+    }
+  }
 };
 
 const stableSerialize = (value: unknown): string => {
@@ -2686,6 +2881,7 @@ const releaseNodes = isKarlsruheEventRelease
       .filter((node) => KARLSRUHE_EVENT_SCENARIO_IDS.has(node.scenarioId ?? ""))
       .map(sanitizeKarlsruheNode)
   : builtNodes;
+validateHubZoneEffectTargets(releaseNodes);
 const availableScenarioIds = new Set(
   releaseScenarios.map((scenario) => scenario.id),
 );
@@ -2705,7 +2901,13 @@ const releaseSocialCatalog: SocialCatalogSnapshot = isKarlsruheEventRelease
       careerRanks: [],
       factions: [],
     }
-  : FREIBURG_SOCIAL_CATALOG;
+  : {
+      ...FREIBURG_SOCIAL_CATALOG,
+      npcIdentities: applyDossierExcerpts(
+        FREIBURG_SOCIAL_CATALOG.npcIdentities,
+        collectDossierExcerpts([designDocsRoot, storyRoot]),
+      ),
+    };
 
 const seenPointIds = new Set<string>();
 const seenBindingIds = new Set<string>();

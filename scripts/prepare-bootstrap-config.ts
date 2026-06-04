@@ -17,17 +17,18 @@ const outputPath = path.join(
 const hashBootstrapCode = (value: string): string =>
   createHash("sha256").update(value, "utf8").digest("hex");
 
+export const DEFAULT_DEV_ADMIN_BOOTSTRAP_CODE =
+  "dev_admin_bootstrap_secret_code";
+
 const resolveBootstrapHash = (): string | null => {
   const explicitHash = process.env.ADMIN_BOOTSTRAP_CODE_HASH?.trim();
   if (explicitHash) {
     return explicitHash;
   }
 
-  const bootstrapCode = process.env.ADMIN_BOOTSTRAP_CODE?.trim();
-  if (!bootstrapCode) {
-    return null;
-  }
-
+  const bootstrapCode =
+    process.env.ADMIN_BOOTSTRAP_CODE?.trim() ||
+    DEFAULT_DEV_ADMIN_BOOTSTRAP_CODE;
   return hashBootstrapCode(bootstrapCode);
 };
 

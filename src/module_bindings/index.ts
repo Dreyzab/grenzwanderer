@@ -48,6 +48,7 @@ import ChangeRelationshipReducer from "./change_relationship_reducer";
 import ClaimNextAiRequestReducer from "./claim_next_ai_request_reducer";
 import CloseBattleModeReducer from "./close_battle_mode_reducer";
 import CloseCommandModeReducer from "./close_command_mode_reducer";
+import CommitMapDiscoveryReducer from "./commit_map_discovery_reducer";
 import CompleteAiRequestReducer from "./complete_ai_request_reducer";
 import CompleteQuestInstanceReducer from "./complete_quest_instance_reducer";
 import DiscoverFactReducer from "./discover_fact_reducer";
@@ -55,6 +56,7 @@ import EmitCaseEventReducer from "./emit_case_event_reducer";
 import EndBattleTurnReducer from "./end_battle_turn_reducer";
 import EnqueueAiRequestReducer from "./enqueue_ai_request_reducer";
 import EnqueueProvidenceDialogueReducer from "./enqueue_providence_dialogue_reducer";
+import EquipItemReducer from "./equip_item_reducer";
 import FailAiRequestReducer from "./fail_ai_request_reducer";
 import GrantAdminIdentityReducer from "./grant_admin_identity_reducer";
 import GrantEvidenceReducer from "./grant_evidence_reducer";
@@ -86,6 +88,7 @@ import StartMindCaseReducer from "./start_mind_case_reducer";
 import StartScenarioReducer from "./start_scenario_reducer";
 import TrackEventReducer from "./track_event_reducer";
 import TravelToReducer from "./travel_to_reducer";
+import UnequipItemReducer from "./unequip_item_reducer";
 import UnlockGroupReducer from "./unlock_group_reducer";
 import UpdateTranslationsReducer from "./update_translations_reducer";
 import ValidateHypothesisReducer from "./validate_hypothesis_reducer";
@@ -95,12 +98,8 @@ import VerifyRumorReducer from "./verify_rumor_reducer";
 
 // Import all table schema definitions
 import CaseVersionRow from "./case_version_table";
-import ContentSnapshotRow from "./content_snapshot_table";
 import ContentTranslationRow from "./content_translation_table";
 import ContentVersionRow from "./content_version_table";
-import MindCaseRow from "./mind_case_table";
-import MindFactRow from "./mind_fact_table";
-import MindHypothesisRow from "./mind_hypothesis_table";
 import MyAgencyCareerRow from "./my_agency_career_table";
 import MyAiRequestsRow from "./my_ai_requests_table";
 import MyBattleCardsRow from "./my_battle_cards_table";
@@ -112,12 +111,14 @@ import MyCommandPartyRow from "./my_command_party_table";
 import MyCommandSessionsRow from "./my_command_sessions_table";
 import MyEvidenceRow from "./my_evidence_table";
 import MyFactionSignalsRow from "./my_faction_signals_table";
+import MyFavorLedgerRow from "./my_favor_ledger_table";
 import MyMapEventsRow from "./my_map_events_table";
 import MyMindCasesRow from "./my_mind_cases_table";
 import MyMindFactsRow from "./my_mind_facts_table";
 import MyMindHypothesesRow from "./my_mind_hypotheses_table";
 import MyNpcFavorsRow from "./my_npc_favors_table";
 import MyNpcStateRow from "./my_npc_state_table";
+import MyPlayerEquipmentRow from "./my_player_equipment_table";
 import MyPlayerFlagsRow from "./my_player_flags_table";
 import MyPlayerInventoryRow from "./my_player_inventory_table";
 import MyPlayerLocationRow from "./my_player_location_table";
@@ -158,17 +159,6 @@ const tablesSchema = __schema({
       { name: 'case_version_case_version_key_key', constraint: 'unique', columns: ['caseVersionKey'] },
     ],
   }, CaseVersionRow),
-  contentSnapshot: __table({
-    name: 'content_snapshot',
-    indexes: [
-      { name: 'checksum', algorithm: 'btree', columns: [
-        'checksum',
-      ] },
-    ],
-    constraints: [
-      { name: 'content_snapshot_checksum_key', constraint: 'unique', columns: ['checksum'] },
-    ],
-  }, ContentSnapshotRow),
   contentTranslation: __table({
     name: 'content_translation',
     indexes: [
@@ -207,60 +197,6 @@ const tablesSchema = __schema({
       { name: 'content_version_version_key', constraint: 'unique', columns: ['version'] },
     ],
   }, ContentVersionRow),
-  mindCase: __table({
-    name: 'mind_case',
-    indexes: [
-      { name: 'caseId', algorithm: 'btree', columns: [
-        'caseId',
-      ] },
-      { name: 'mind_case_is_active', algorithm: 'btree', columns: [
-        'isActive',
-      ] },
-      { name: 'mind_case_schema_version', algorithm: 'btree', columns: [
-        'schemaVersion',
-      ] },
-    ],
-    constraints: [
-      { name: 'mind_case_case_id_key', constraint: 'unique', columns: ['caseId'] },
-    ],
-  }, MindCaseRow),
-  mindFact: __table({
-    name: 'mind_fact',
-    indexes: [
-      { name: 'mind_fact_case_id', algorithm: 'btree', columns: [
-        'caseId',
-      ] },
-      { name: 'factId', algorithm: 'btree', columns: [
-        'factId',
-      ] },
-      { name: 'mind_fact_source_id', algorithm: 'btree', columns: [
-        'sourceId',
-      ] },
-      { name: 'mind_fact_source_type', algorithm: 'btree', columns: [
-        'sourceType',
-      ] },
-    ],
-    constraints: [
-      { name: 'mind_fact_fact_id_key', constraint: 'unique', columns: ['factId'] },
-    ],
-  }, MindFactRow),
-  mindHypothesis: __table({
-    name: 'mind_hypothesis',
-    indexes: [
-      { name: 'mind_hypothesis_case_id', algorithm: 'btree', columns: [
-        'caseId',
-      ] },
-      { name: 'hypothesisId', algorithm: 'btree', columns: [
-        'hypothesisId',
-      ] },
-      { name: 'mind_hypothesis_key', algorithm: 'btree', columns: [
-        'key',
-      ] },
-    ],
-    constraints: [
-      { name: 'mind_hypothesis_hypothesis_id_key', constraint: 'unique', columns: ['hypothesisId'] },
-    ],
-  }, MindHypothesisRow),
   my_agency_career: __table({
     name: 'my_agency_career',
     indexes: [
@@ -338,6 +274,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyFactionSignalsRow),
+  my_favor_ledger: __table({
+    name: 'my_favor_ledger',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyFavorLedgerRow),
   my_map_events: __table({
     name: 'my_map_events',
     indexes: [
@@ -380,6 +323,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyNpcStateRow),
+  my_player_equipment: __table({
+    name: 'my_player_equipment',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyPlayerEquipmentRow),
   my_player_flags: __table({
     name: 'my_player_flags',
     indexes: [
@@ -503,6 +453,7 @@ const reducersSchema = __reducers(
   __reducerSchema("claim_next_ai_request", ClaimNextAiRequestReducer),
   __reducerSchema("close_battle_mode", CloseBattleModeReducer),
   __reducerSchema("close_command_mode", CloseCommandModeReducer),
+  __reducerSchema("commit_map_discovery", CommitMapDiscoveryReducer),
   __reducerSchema("complete_ai_request", CompleteAiRequestReducer),
   __reducerSchema("complete_quest_instance", CompleteQuestInstanceReducer),
   __reducerSchema("discover_fact", DiscoverFactReducer),
@@ -510,6 +461,7 @@ const reducersSchema = __reducers(
   __reducerSchema("end_battle_turn", EndBattleTurnReducer),
   __reducerSchema("enqueue_ai_request", EnqueueAiRequestReducer),
   __reducerSchema("enqueue_providence_dialogue", EnqueueProvidenceDialogueReducer),
+  __reducerSchema("equip_item", EquipItemReducer),
   __reducerSchema("fail_ai_request", FailAiRequestReducer),
   __reducerSchema("grant_admin_identity", GrantAdminIdentityReducer),
   __reducerSchema("grant_evidence", GrantEvidenceReducer),
@@ -541,6 +493,7 @@ const reducersSchema = __reducers(
   __reducerSchema("start_scenario", StartScenarioReducer),
   __reducerSchema("track_event", TrackEventReducer),
   __reducerSchema("travel_to", TravelToReducer),
+  __reducerSchema("unequip_item", UnequipItemReducer),
   __reducerSchema("unlock_group", UnlockGroupReducer),
   __reducerSchema("update_translations", UpdateTranslationsReducer),
   __reducerSchema("validate_hypothesis", ValidateHypothesisReducer),

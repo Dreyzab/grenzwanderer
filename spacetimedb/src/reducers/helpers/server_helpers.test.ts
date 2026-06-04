@@ -89,6 +89,37 @@ import {
 import { emitTelemetry } from "./telemetry";
 import { ensureIdempotent } from "./idempotency";
 
+const forbidProgressTableIter = (
+  ctx: ReturnType<typeof createReducerTestContext>,
+): void => {
+  for (const tableName of [
+    "vnSession",
+    "vnSkillCheckResult",
+    "playerFlag",
+    "playerVar",
+    "playerInventory",
+    "playerEvidence",
+    "playerQuest",
+    "playerRelationship",
+    "playerNpcState",
+    "playerNpcFavor",
+    "playerFavorLedger",
+    "playerFactionSignal",
+    "playerRumorState",
+    "playerUnlockGroup",
+    "playerMapEvent",
+    "playerMindCase",
+    "playerMindFact",
+    "playerMindHypothesis",
+    "playerRedeemedCode",
+    "playerEquipment",
+  ] as const) {
+    ctx.db[tableName].iter = vi.fn(() => {
+      throw new Error(`${tableName}.iter should not be called`);
+    });
+  }
+};
+
 describe("server helper facades", () => {
   it("builds stable player-scoped keys", () => {
     const player = createTestIdentity("player-a");
@@ -268,6 +299,17 @@ describe("server helper facades", () => {
       status: "active",
       expiresAt: createTestTimestamp(999_000_000n),
     });
+    ctx.db.playerFavorLedger.insert({
+      ledgerEntryKey: playerKey(ctx.sender, "favor-a"),
+      playerId: ctx.sender,
+      favorId: "favor-a",
+      npcId: "npc-a",
+      favorType: "information",
+      weight: 1,
+      status: "open",
+      createdAt: ctx.timestamp,
+      updatedAt: ctx.timestamp,
+    });
     ctx.db.playerFlag.insert({
       flagId: playerKey(other, "gate_open"),
       playerId: other,
@@ -275,6 +317,19 @@ describe("server helper facades", () => {
       value: true,
       updatedAt: ctx.timestamp,
     });
+    ctx.db.playerFavorLedger.insert({
+      ledgerEntryKey: playerKey(other, "favor-a"),
+      playerId: other,
+      favorId: "favor-a",
+      npcId: "npc-a",
+      favorType: "information",
+      weight: 1,
+      status: "open",
+      createdAt: ctx.timestamp,
+      updatedAt: ctx.timestamp,
+    });
+
+    forbidProgressTableIter(ctx);
 
     expect(hasPlayerGameplayProgress(ctx)).toBe(true);
     expect(getPlayerActiveMapEventByEventId(ctx, "event-active")).toMatchObject(
@@ -289,6 +344,10 @@ describe("server helper facades", () => {
     expect(ctx.db.playerVar.rows()).toHaveLength(0);
     expect(ctx.db.playerInventory.rows()).toHaveLength(0);
     expect(ctx.db.playerMapEvent.rows()).toHaveLength(0);
+    expect(ctx.db.playerFavorLedger.rows()).toHaveLength(1);
+    expect(ctx.db.playerFavorLedger.rows()[0]).toMatchObject({
+      playerId: other,
+    });
     expect(ctx.db.playerFlag.rows()).toHaveLength(1);
     expect(ctx.db.playerFlag.rows()[0]).toMatchObject({ playerId: other });
     expect(ctx.db.playerLocation.playerId.find(ctx.sender)).toMatchObject({

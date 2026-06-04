@@ -273,12 +273,7 @@ export const BattlePage = ({ onNavigateTab }: BattlePageProps) => {
               <h2 style={{ margin: "0.4rem 0 0" }}>{activeSession.title}</h2>
             </div>
             <span className="pill-label">
-              {t.returnLabel}:{" "}
-              {returnTab === "vn"
-                ? t.story
-                : returnTab === "dev"
-                  ? t.debug
-                  : t.map}
+              {t.returnLabel}: {returnTab === "vn" ? t.story : t.map}
             </span>
           </div>
           <p style={{ margin: 0, lineHeight: 1.65 }}>

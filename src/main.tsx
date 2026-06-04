@@ -7,13 +7,13 @@ import { I18nProvider } from "./features/i18n/I18nProvider";
 import { SPACETIMEDB_DB_NAME, SPACETIMEDB_HOST } from "./config";
 import { DbConnection, ErrorContext } from "./module_bindings";
 import { PlayerBindingsProvider } from "./entities/player/hooks/usePlayerBindings";
+import { ErrorBoundary } from "./shared/ui/ErrorBoundary";
 import {
   captureMonitoringException,
   clearMonitoringIdentity,
   initializeMonitoring,
   setMonitoringIdentity,
 } from "./shared/monitoring/sentry";
-import { installDevLogger } from "./shared/devtools";
 import "./index.css";
 
 const TOKEN_KEY = `${SPACETIMEDB_HOST}/${SPACETIMEDB_DB_NAME}/auth_token`;
@@ -36,7 +36,13 @@ const retryWithoutStoredToken = () => {
 };
 
 initializeMonitoring();
-installDevLogger();
+if (import.meta.env.DEV) {
+  void import("./shared/devtools/installDevLogger").then(
+    ({ installDevLogger }) => {
+      installDevLogger();
+    },
+  );
+}
 
 const onConnect = (_conn: DbConnection, identity: Identity, token: string) => {
   connectedOnce = true;
@@ -68,12 +74,14 @@ const connectionBuilder = DbConnection.builder()
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <SpacetimeDBProvider connectionBuilder={connectionBuilder}>
-      <PlayerBindingsProvider>
-        <I18nProvider>
-          <App />
-        </I18nProvider>
-      </PlayerBindingsProvider>
-    </SpacetimeDBProvider>
+    <ErrorBoundary boundaryId="root">
+      <SpacetimeDBProvider connectionBuilder={connectionBuilder}>
+        <PlayerBindingsProvider>
+          <I18nProvider>
+            <App />
+          </I18nProvider>
+        </PlayerBindingsProvider>
+      </SpacetimeDBProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );

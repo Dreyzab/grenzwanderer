@@ -45,10 +45,9 @@ export const getHypothesisReadiness = (
   const rewardEffects = parseRewardEffects(hypothesisRow.rewardEffectsJson);
 
   const discoveredFacts = new Set<string>();
-  for (const row of ctx.db.playerMindFact.iter()) {
-    if (row.playerId.toHexString() !== ctx.sender.toHexString()) {
-      continue;
-    }
+  for (const row of ctx.db.playerMindFact.player_mind_fact_player_id.filter(
+    ctx.sender,
+  )) {
     if (row.caseId !== caseId) {
       continue;
     }
@@ -73,18 +72,17 @@ export const getHypothesisReadiness = (
 };
 
 const maybeCompleteMindCase = (ctx: any, caseId: string): boolean => {
-  const hypothesisRows = [...ctx.db.mindHypothesis.iter()].filter(
-    (row) => row.caseId === caseId,
-  );
+  const hypothesisRows = [
+    ...ctx.db.mindHypothesis.mind_hypothesis_case_id.filter(caseId),
+  ];
   if (hypothesisRows.length === 0) {
     return false;
   }
 
   const validated = new Set<string>();
-  for (const row of ctx.db.playerMindHypothesis.iter()) {
-    if (row.playerId.toHexString() !== ctx.sender.toHexString()) {
-      continue;
-    }
+  for (const row of ctx.db.playerMindHypothesis.player_mind_hypothesis_player_id.filter(
+    ctx.sender,
+  )) {
     if (row.caseId !== caseId) {
       continue;
     }

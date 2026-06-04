@@ -35,6 +35,7 @@ describe("acceptance matrix", () => {
       { label: "Inner Parliament D1", script: "smoke:inner-parliament" },
       { label: "MindPalace", script: "smoke:mindpalace" },
       { label: "Dog Deduction", script: "smoke:dog-deduction" },
+      { label: "Witch one-shot", script: "smoke:witch-one-shot" },
     ]);
   });
 

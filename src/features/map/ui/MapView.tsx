@@ -200,7 +200,7 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
   const travelTo = useReducer(reducers.travelTo);
   const setFlag = useReducer(reducers.setFlag);
   const setVar = useReducer(reducers.setVar);
-  const unlockGroup = useReducer(reducers.unlockGroup);
+  const commitMapDiscovery = useReducer(reducers.commitMapDiscovery);
   const startScenario = useReducer(reducers.startScenario);
   const openCommandMode = useReducer(reducers.openCommandMode);
   const openBattleMode = useReducer(reducers.openBattleMode);
@@ -271,15 +271,12 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
       if (!point) {
         return;
       }
-      if (point.unlockGroup) {
-        await unlockGroup({
-          requestId: createRequestId("journey_unlock", point.id),
-          groupId: point.unlockGroup,
-        });
-      }
-      await setFlag({ key: `DISCOVERED_${point.id}`, value: true });
+      await commitMapDiscovery({
+        requestId: createRequestId("journey_discovery", point.id),
+        pointId: point.id,
+      });
     },
-    [journeyDiscoveryCandidates, setFlag, unlockGroup],
+    [commitMapDiscovery, journeyDiscoveryCandidates],
   );
 
   const completeJourney = useCallback(

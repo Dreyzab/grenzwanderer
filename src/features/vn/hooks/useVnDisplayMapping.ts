@@ -47,6 +47,7 @@ interface UseVnDisplayMappingParams {
   myVars: Record<string, number>;
   choiceEvaluationContext: any;
   currentVisibleChoices: any[];
+  currentVisibleHotspotChoices?: any[];
   currentAutoContinueChoice: any;
   currentNarrativeText: string;
   currentResolvedBgUrl: string | null;
@@ -91,6 +92,7 @@ export function useVnDisplayMapping({
   myVars,
   choiceEvaluationContext,
   currentVisibleChoices,
+  currentVisibleHotspotChoices,
   currentAutoContinueChoice,
   currentNarrativeText,
   currentResolvedBgUrl,
@@ -181,6 +183,25 @@ export function useVnDisplayMapping({
       uiLanguage,
     ],
   );
+  const visibleHotspotChoices = useMemo(() => {
+    const baseVisibleHotspotChoices = currentVisibleHotspotChoices ?? [];
+    return localePackReady || uiLanguage === "en"
+      ? localizeVnChoices(
+          uiLanguage,
+          presentationScenarioId,
+          presentationNodeId,
+          baseVisibleHotspotChoices,
+          dictionary,
+        )
+      : baseVisibleHotspotChoices;
+  }, [
+    currentVisibleHotspotChoices,
+    dictionary,
+    localePackReady,
+    presentationNodeId,
+    presentationScenarioId,
+    uiLanguage,
+  ]);
   const autoContinueChoice = useMemo(() => {
     if (!baseAutoContinueChoice) {
       return null;
@@ -464,6 +485,7 @@ export function useVnDisplayMapping({
     thoughtCard,
     providenceThoughtCard,
     visibleChoices,
+    visibleHotspotChoices,
     autoContinueChoice,
     narrativeText,
     resolvedBgUrl,

@@ -99,7 +99,10 @@ export const ensureAdminAccess = async (conn: DbConnection): Promise<void> => {
   // First, try to bootstrap if the database has no admins yet.
   // This will fail silently if admins already exist (it's gated in the reducer).
   try {
-    await conn.reducers.bootstrapAdminIdentity({});
+    const bootstrapCode =
+      process.env.ADMIN_BOOTSTRAP_CODE?.trim() ||
+      "dev_admin_bootstrap_secret_code";
+    await conn.reducers.bootstrapAdminIdentity({ bootstrapCode });
   } catch (_error) {
     // Ignore error if already bootstrapped.
   }

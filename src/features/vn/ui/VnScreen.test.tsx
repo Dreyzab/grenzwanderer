@@ -6,6 +6,8 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { __bindTestSnapshotResolver } from "../../../shared/content/activeSnapshot";
+import { parseSnapshot } from "../vnContent";
 import { VnScreen } from "./VnScreen";
 import {
   AI_CHARACTER_REACTION_SOURCE_VN_SCENE,
@@ -300,6 +302,11 @@ describe("VnScreen critical behavior", () => {
       evidenceRows: [],
       inventoryRows: [],
     };
+
+    __bindTestSnapshotResolver(() => {
+      const row = state.contentSnapshotRows[0];
+      return row ? parseSnapshot(row.payloadJson) : null;
+    });
 
     mocks.useIdentityMock.mockReturnValue({
       identityHex: "me",

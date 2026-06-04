@@ -161,6 +161,14 @@ const DEFAULT_RETRY_BASE_MS = 5_000;
 const DEFAULT_RETRY_MAX_MS = 60_000;
 
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta";
+
+const buildGeminiGenerateContentUrl = (model: string): string =>
+  `${GEMINI_ENDPOINT}/models/${model}:generateContent`;
+
+const buildGeminiRequestHeaders = (apiKey: string): Record<string, string> => ({
+  "Content-Type": "application/json",
+  "x-goog-api-key": apiKey,
+});
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const WITCH_TABLETOP_DM_RULES_PATH = resolve(
   REPO_ROOT,
@@ -643,12 +651,10 @@ export const generateDialogueWithGemini = async (
   const now = getNow(deps.now);
   const startedAt = now();
   const response = await fetchImpl(
-    `${GEMINI_ENDPOINT}/models/${config.geminiModel}:generateContent?key=${config.geminiApiKey}`,
+    buildGeminiGenerateContentUrl(config.geminiModel),
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: buildGeminiRequestHeaders(config.geminiApiKey),
       body: JSON.stringify({
         systemInstruction: {
           parts: [{ text: buildSystemPrompt(payload) }],
@@ -706,6 +712,8 @@ const buildCharacterReactionSystemPrompt = (): string =>
     "reactionType must match how the NPC handles the stimulus.",
     "text must be playable dialogue or diegetic narration; stay under ~320 characters.",
     "Do not invent facts that contradict visibleFacts or the relationship snapshot.",
+    "The NPC speaks ONLY from its own memory (the 'NPC memory' list — what THIS character knows). It is relative: it may differ from the objective truth and from what other characters know. Never let the NPC reference things outside its memory + visible facts; if asked about something it does not know, it can be ignorant, guess, deflect, or lie.",
+    "Let the NPC's topics shape what it cares about and steers the exchange toward, in character.",
     "suggestedEffects and revealHintFactId are display-only metadata; never imply that they apply state changes.",
     "Prefer subtlety unless reactionType is conflict.",
   ].join("\n");
@@ -717,6 +725,14 @@ const buildCharacterReactionUserPrompt = (
     payload.visibleFacts.length > 0
       ? payload.visibleFacts.map((entry) => `- ${entry}`).join("\n")
       : "- none";
+  const memory =
+    payload.npcMemory && payload.npcMemory.length > 0
+      ? payload.npcMemory.map((entry) => `- ${entry}`).join("\n")
+      : "- none";
+  const topics =
+    payload.topics && payload.topics.length > 0
+      ? payload.topics.map((entry) => `- ${entry}`).join("\n")
+      : "- none";
   return [
     `Source: ${payload.source}`,
     `Character ID: ${payload.characterId}`,
@@ -724,12 +740,14 @@ const buildCharacterReactionUserPrompt = (
     `Node ID: ${payload.nodeId ?? "none"}`,
     `Trust: ${payload.relationshipState.trust}`,
     `Disposition: ${payload.relationshipState.disposition}`,
+    `NPC memory (what THIS character knows; relative, may be incomplete or biased):\n${memory}`,
+    `NPC topics (what it cares about and steers toward):\n${topics}`,
     `Event stimulus:\n${payload.eventText}`,
     payload.playerPrompt
       ? `Player prompt / pressure:\n${payload.playerPrompt}`
       : "",
-    `Visible facts:\n${facts}`,
-    `Set characterId in the JSON to exactly "${payload.characterId}".`,
+    `Visible facts (present in the scene):\n${facts}`,
+    `Answer strictly from NPC memory + visible facts; do not invent knowledge the NPC lacks. Set characterId in the JSON to exactly "${payload.characterId}".`,
   ]
     .filter((block) => block.length > 0)
     .join("\n\n");
@@ -768,12 +786,10 @@ export const generateCharacterReactionWithGemini = async (
   const fetchImpl = deps.fetchImpl ?? fetch;
 
   const response = await fetchImpl(
-    `${GEMINI_ENDPOINT}/models/${config.geminiModel}:generateContent?key=${config.geminiApiKey}`,
+    buildGeminiGenerateContentUrl(config.geminiModel),
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: buildGeminiRequestHeaders(config.geminiApiKey),
       body: JSON.stringify({
         systemInstruction: {
           parts: [{ text: buildCharacterReactionSystemPrompt() }],
@@ -899,12 +915,10 @@ export const generateDirectorStepWithGemini = async (
   const fetchImpl = deps.fetchImpl ?? fetch;
 
   const response = await fetchImpl(
-    `${GEMINI_ENDPOINT}/models/${config.geminiModel}:generateContent?key=${config.geminiApiKey}`,
+    buildGeminiGenerateContentUrl(config.geminiModel),
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: buildGeminiRequestHeaders(config.geminiApiKey),
       body: JSON.stringify({
         systemInstruction: {
           parts: [{ text: buildDirectorStepSystemPrompt() }],
@@ -970,7 +984,12 @@ const buildDmTurnSystemPrompt = (rulesText: string): string =>
     "The core Grand Estate truth is Both true: a real spirit is present, and people exploit or cover the haunting for a human secret.",
     "Respect the private player remark as hidden intent; do not quote it as if NPCs heard it.",
     "Use risks and canonRemarks to surface bargains, exposure, blood pressure, debt, and promotion candidates.",
-    'Shape: {"narration":"...","checks":[],"sessionFacts":[],"suggestedStateDeltas":[],"risks":[],"toneMode":"safe_chekhovian"|"gothic_mystery"|"threat","canonRemarks":[],"resourceCosts?":{}}.',
+    "This turn is one BEAT in a director-driven chain. The requested beat directive (see user message) decides the response shape. Every beat MUST continue consistently from the prior narration, accepted facts, and the player's action — never contradict them.",
+    "Beat 'atmosphere': write only `narration` — a slow, sensory, atmospheric moment that moves the mood, not the plot. Do NOT decide anything. Leave `options` empty and `innerVoiceDialogue` empty (or at most one quiet line).",
+    "Beat 'complication': write `narration` that introduces an obstacle, twist, or rising pressure. Do NOT resolve it and do NOT offer options; just raise the stakes. `options` empty.",
+    "Beat 'debate_options' (the decision beat): First write `innerVoiceDialogue` — a short debate (2-4 lines) among ONLY the inner voices listed under 'Active inner voices', each using its exact voiceId and given stance, voiced in character per its worldview and tone; the 'opposes' voice (counter) MUST push back. THEN write `options`: EXACTLY 3 distinct next moves, each a short Russian action `label` (optional one-line `detail`), roughly spanning the debate (dominant/support line, counter line, a third/middle path). Keep `narration` to a brief 1-3 sentence framing that does not resolve the scene.",
+    "If no beat directive is given, treat it as 'debate_options'.",
+    'Shape: {"narration":"...","innerVoiceDialogue":[{"voiceId":"inner_x","stance":"supports|opposes","line":"..."}],"options":[{"id":"opt_a","label":"...","detail":"..."}],"checks":[],"sessionFacts":[],"suggestedStateDeltas":[],"risks":[],"toneMode":"safe_chekhovian"|"gothic_mystery"|"threat","canonRemarks":[],"resourceCosts?":{}}.',
     "",
     "Authoritative Witch Tabletop DM Rules Bible follows. Treat it as binding session policy:",
     rulesText,
@@ -995,6 +1014,15 @@ const buildDmTurnUserPrompt = (payload: GenerateDmTurnPayload): string => {
     payload.activeFlags.length > 0
       ? payload.activeFlags.map((entry) => `- ${entry}`).join("\n")
       : "- none";
+  const activeVoices =
+    payload.innerVoices && payload.innerVoices.length > 0
+      ? payload.innerVoices
+          .map(
+            (voice) =>
+              `- ${voice.voiceId} [${voice.role}/${voice.stance}] ${voice.label}: ${voice.worldview} (tone: ${voice.toneDescriptor})`,
+          )
+          .join("\n")
+      : "- none";
 
   return [
     `Source: ${payload.source}`,
@@ -1002,6 +1030,9 @@ const buildDmTurnUserPrompt = (payload: GenerateDmTurnPayload): string => {
     `Node ID: ${payload.nodeId}`,
     `Tone mode: ${payload.toneMode}`,
     `Player action: ${payload.actionText}`,
+    `Beat directive: ${payload.beatDirective?.kind ?? "debate_options"}`,
+    `Prior narration (continue consistently from this; do not contradict it):\n${payload.priorNarration?.trim() || "none"}`,
+    `Active inner voices (voice the debate using EXACTLY these, with their stance):\n${activeVoices}`,
     `Private remark: ${payload.remark?.text ?? "none"}`,
     `Spend Fate token: ${payload.spendFateToken}`,
     `Fortune spend: ${payload.fortuneSpend ?? 0}`,
@@ -1014,7 +1045,7 @@ const buildDmTurnUserPrompt = (payload: GenerateDmTurnPayload): string => {
     `Accepted session facts:\n${activeFacts}`,
     `Accepted private notes:\n${acceptedRemarks}`,
     "If spendFateToken is false, do not introduce new sessionFacts; only narrate, ask for checks, or list risks.",
-    "Reply with one JSON object conforming to the schema. Keep narration playable and concise enough for a side panel.",
+    "Produce exactly the shape required by the Beat directive above (atmosphere/complication = narration only, empty options; debate_options = innerVoiceDialogue using only the active inner voices + exactly 3 options). Reply with one JSON object conforming to the schema. Keep narration concise enough for a side panel.",
   ]
     .filter((block) => block.length > 0)
     .join("\n\n");
@@ -1046,12 +1077,10 @@ export const generateDmTurnWithGemini = async (
   const rulesText = deps.loadDmRulesTextImpl?.() ?? loadWitchTabletopDmRules();
 
   const response = await fetchImpl(
-    `${GEMINI_ENDPOINT}/models/${config.geminiModel}:generateContent?key=${config.geminiApiKey}`,
+    buildGeminiGenerateContentUrl(config.geminiModel),
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: buildGeminiRequestHeaders(config.geminiApiKey),
       body: JSON.stringify({
         systemInstruction: {
           parts: [{ text: buildDmTurnSystemPrompt(rulesText) }],

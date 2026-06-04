@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useTable } from "spacetimedb/react";
+import { useMindPalaceCatalog } from "../../shared/content/useMindPalaceCatalog";
 import { tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
 import { useToast } from "../../shared/hooks/useToast";
@@ -9,7 +10,7 @@ export const useFactDiscoveryToast = () => {
   const { showToast } = useToast();
 
   const [playerMindFacts, factsReady] = useTable(tables.myMindFacts);
-  const [mindFacts] = useTable(tables.mindFact);
+  const { mindFacts } = useMindPalaceCatalog();
 
   const knownFactIdsRef = useRef<Set<string>>(new Set());
   const initializedRef = useRef(false);
@@ -32,7 +33,7 @@ export const useFactDiscoveryToast = () => {
         continue;
       }
 
-      const factDef = mindFacts.find((fact) => fact.factId === factId);
+      const factDef = mindFacts.find((fact: any) => fact.factId === factId);
       const factLabel = factDef?.text ?? factId;
       showToast({
         message: `New Fact: ${factLabel}`,

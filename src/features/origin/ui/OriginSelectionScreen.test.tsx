@@ -123,7 +123,7 @@ describe("OriginSelectionScreen", () => {
     expect(onConfirmOrigin).toHaveBeenCalledWith("journalist");
   });
 
-  it("confirms Eleanor Vance as the Witch origin", () => {
+  it("confirms Eleonora Hartmann as the Witch origin", () => {
     const onConfirmOrigin = vi.fn();
 
     render(
@@ -133,7 +133,7 @@ describe("OriginSelectionScreen", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /Eleanor Vance/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Eleonora Hartmann/i }));
     fireEvent.click(
       screen.getByRole("button", { name: /BEGIN INVESTIGATION/i }),
     );

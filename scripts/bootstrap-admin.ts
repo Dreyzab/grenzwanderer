@@ -44,7 +44,14 @@ const main = async (): Promise<void> => {
   const conn = await connectOperatorConnection(host, database, existingToken);
 
   try {
-    await conn.reducers.bootstrapAdminIdentity({});
+    const bootstrapCode = process.env.ADMIN_BOOTSTRAP_CODE?.trim();
+    if (!bootstrapCode) {
+      throw new Error(
+        "ADMIN_BOOTSTRAP_CODE must be set in the environment for bootstrap:admin",
+      );
+    }
+
+    await conn.reducers.bootstrapAdminIdentity({ bootstrapCode });
     const identityHex = conn.identity?.toHexString() ?? "unknown";
     console.log(
       `Bootstrapped admin identity ${identityHex} for ${host}/${database}.`,

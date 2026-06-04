@@ -57,6 +57,8 @@ interface SpeakerHeaderProps {
   accentColor: string;
   fallbackIcon: LucideIcon;
   ariaLabel: string;
+  /** Skewed accent-tab nameplate (ADV / dossier look) for embodied speakers. */
+  tab?: boolean;
 }
 
 function SpeakerHeader({
@@ -65,6 +67,7 @@ function SpeakerHeader({
   accentColor,
   fallbackIcon: FallbackIcon,
   ariaLabel,
+  tab = false,
 }: SpeakerHeaderProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = Boolean(avatarUrl) && !imageFailed;
@@ -99,13 +102,28 @@ function SpeakerHeader({
           />
         )}
       </span>
-      <span
-        className="mb-1 block text-[0.66rem] leading-none font-bold uppercase tracking-[0.18em] drop-shadow-md"
-        data-testid="vn-speaker-name"
-        style={{ color: accentColor }}
-      >
-        {name}
-      </span>
+      {tab ? (
+        <span
+          className="mb-1.5 inline-flex max-w-full -skew-x-12 items-center border-l-[3px] bg-stone-950/75 px-2.5 py-1 align-top shadow-[0_4px_14px_rgba(0,0,0,0.5)]"
+          style={{ borderLeftColor: accentColor }}
+        >
+          <span
+            className="skew-x-12 text-[0.66rem] leading-none font-bold uppercase tracking-[0.18em] drop-shadow-md"
+            data-testid="vn-speaker-name"
+            style={{ color: accentColor }}
+          >
+            {name}
+          </span>
+        </span>
+      ) : (
+        <span
+          className="mb-1 block text-[0.66rem] leading-none font-bold uppercase tracking-[0.18em] drop-shadow-md"
+          data-testid="vn-speaker-name"
+          style={{ color: accentColor }}
+        >
+          {name}
+        </span>
+      )}
     </>
   );
 }
@@ -128,6 +146,8 @@ export function LogSegmentRenderer({
   const isNarrator = segment.category === "narrator";
   const isInnerVoice = segment.category === "inner_voice";
   const isPlayer = segment.category === "player";
+  // Entrance fade only for live beats; historical (dimmed) entries are already settled.
+  const enterAnimation = dimmed ? "" : "vn-log-segment-in";
 
   const renderedText = (
     <TypedText
@@ -147,6 +167,7 @@ export function LogSegmentRenderer({
     return (
       <article
         className={[
+          enterAnimation,
           "pt-1 transition-opacity duration-500",
           dimmed ? "opacity-50" : "opacity-100",
         ].join(" ")}
@@ -178,6 +199,7 @@ export function LogSegmentRenderer({
     return (
       <article
         className={[
+          enterAnimation,
           "transition-opacity duration-500",
           dimmed ? "opacity-50" : "opacity-100",
         ].join(" ")}
@@ -238,6 +260,7 @@ export function LogSegmentRenderer({
   return (
     <article
       className={[
+        enterAnimation,
         "pt-2 transition-opacity duration-500",
         dimmed ? "opacity-50" : "opacity-100",
       ].join(" ")}
@@ -255,6 +278,7 @@ export function LogSegmentRenderer({
             avatarUrl={avatarUrl}
             fallbackIcon={isPlayer ? ChevronRight : CircleUserRound}
             name={displayName}
+            tab
           />
         ) : null}
         {renderedText}

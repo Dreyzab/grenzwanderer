@@ -4,9 +4,12 @@ import {
   Brain,
   FileText,
   Fingerprint,
+  Shield,
   type LucideIcon,
 } from "lucide-react";
-import { useTable } from "spacetimedb/react";
+import { useTable, useReducer } from "spacetimedb/react";
+import { resolvePlayerPortrait } from "../../../shared/game/playerPortrait";
+import type { EquipmentSlot } from "../../../shared/game/itemCatalog";
 import {
   INNER_VOICE_DEFINITIONS,
   INNER_VOICE_IDS,
@@ -24,6 +27,7 @@ import {
 import { ENABLE_DEBUG_CONTENT_SEED } from "../../../config";
 import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
 import {
+  buildNpcDossierEntries,
   getAgencyStandingPresentation,
   getCareerRankLabel,
   getFactionCatalogForUi,
@@ -38,22 +42,31 @@ import {
   skillXpVarKeyFor,
 } from "../../../shared/game/skillProgression";
 import {
+  resolveAllCharacterSynergyStates,
+  resolveAllCoreCharacteristicStates,
+  resolveIndicatorRank,
+  resolveOriginIdFromFlags,
+} from "../../../shared/game/characterProgression";
+import {
   getNextSkillRankPerk,
   getUnlockedSkillRankPerks,
 } from "../../../shared/game/skillPerks";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
 import {
   CASE_CATALOG,
+  type NpcRuntimeIdentity,
+  type NpcServiceDefinition,
+  type QuestCatalogEntry,
   type QuestStepInstance,
 } from "../../../shared/vn-contract";
-import { tables } from "../../../shared/spacetime/bindings";
+import { tables, reducers } from "../../../shared/spacetime/bindings";
 import { getCharacterStrings } from "../../i18n/uiStrings";
 import {
   buildEntityKnowledge,
   formatObservationKindLabel,
   resolveUnlockedObservationEntries,
 } from "../../mysticism/model/mysticism";
-import { parseSnapshot } from "../../vn/vnContent";
+import { useActiveContentSnapshot } from "../../../shared/content/activeSnapshot";
 import type { CharacterTabId } from "../characterScreenModel";
 import {
   getOriginProfileByFlags,
@@ -63,9 +76,12 @@ import { buildPsycheProfile } from "../psycheProfile";
 import type { CharacterRadarDatum } from "../ui/CharacterRadarChart";
 import type {
   AgencyCareerSummary,
+  CharacterCoreCard,
+  CharacterIndicatorCard,
   CharacterContactEntry,
   CharacterObservationEntry,
   CharacterQuestJournalEntry,
+  CharacterSynergyCard,
   PatronVoiceCard,
 } from "./characterPanel.types";
 import {
@@ -86,8 +102,11 @@ export const useCharacterPanelViewModel = () => {
   const factionSignalRows = playerBindings.factionSignals;
   const agencyCareerRows = playerBindings.rows.agencyCareer;
   const [versions] = useTable(tables.contentVersion);
-  const [snapshots] = useTable(tables.contentSnapshot);
+  const { snapshot: activeSnapshot } = useActiveContentSnapshot();
   const [questInstanceRows] = useTable(tables.myQuestInstances);
+  const [equipmentRows] = useTable(tables.myPlayerEquipment);
+  const [inventoryRows] = useTable(tables.myPlayerInventory);
+
   const uiLanguage = useUiLanguage(myFlags);
   const t = useMemo(() => getCharacterStrings(uiLanguage), [uiLanguage]);
   const dossierTabs = useMemo<
@@ -99,11 +118,50 @@ export const useCharacterPanelViewModel = () => {
   >(
     () => [
       { id: "profile", icon: FileText, label: t.tabs.profile },
+      { id: "equipment", icon: Shield, label: t.tabs.equipment },
       { id: "development", icon: Brain, label: t.tabs.development },
       { id: "psyche", icon: Fingerprint, label: t.tabs.psyche },
       { id: "journal", icon: BookOpenText, label: t.tabs.journal },
     ],
     [t],
+  );
+
+  const equippedBySlot = useMemo(() => {
+    const equipped: Record<string, string> = {
+      head: "",
+      body: "",
+      hands: "",
+      weapon: "",
+      accessory: "",
+    };
+    for (const row of equipmentRows) {
+      equipped[row.slotId] = row.itemId;
+    }
+    return equipped as Record<EquipmentSlot, string>;
+  }, [equipmentRows]);
+
+  const portraitUrl = useMemo(
+    () => resolvePlayerPortrait(myFlags, equippedBySlot),
+    [myFlags, equippedBySlot],
+  );
+
+  const equipItemAction = useReducer(reducers.equipItem);
+  const unequipItemAction = useReducer(reducers.unequipItem);
+
+  const equipItem = useCallback(
+    async (slotId: string, itemId: string) => {
+      const requestId = crypto.randomUUID();
+      await equipItemAction({ requestId, slotId, itemId });
+    },
+    [equipItemAction],
+  );
+
+  const unequipItem = useCallback(
+    async (slotId: string) => {
+      const requestId = crypto.randomUUID();
+      await unequipItemAction({ requestId, slotId });
+    },
+    [unequipItemAction],
   );
   const activeOrigin = useMemo(
     () => getOriginProfileByFlags(myFlags),
@@ -113,6 +171,7 @@ export const useCharacterPanelViewModel = () => {
     () => (activeOrigin ? getSelectedOriginTrack(activeOrigin, myFlags) : null),
     [activeOrigin, myFlags],
   );
+  const activeOriginId = activeOrigin?.id ?? resolveOriginIdFromFlags(myFlags);
   const playerNickname = useMemo(
     () => unwrapOptionalString(playerProfileRows[0]?.nickname),
     [playerProfileRows],
@@ -122,21 +181,6 @@ export const useCharacterPanelViewModel = () => {
     () => versions.find((entry) => entry.isActive) ?? null,
     [versions],
   );
-
-  const activeSnapshot = useMemo(() => {
-    if (!activeVersion) {
-      return null;
-    }
-
-    const snapshotRow = snapshots.find(
-      (entry) => entry.checksum === activeVersion.checksum,
-    );
-    if (!snapshotRow) {
-      return null;
-    }
-
-    return parseSnapshot(snapshotRow.payloadJson);
-  }, [activeVersion, snapshots]);
 
   const socialCatalog = activeSnapshot?.socialCatalog;
   const factionCatalog = useMemo(
@@ -237,11 +281,12 @@ export const useCharacterPanelViewModel = () => {
 
   const contactEntries = useMemo<CharacterContactEntry[]>(() => {
     const serviceLabelById = new Map<string, string>();
-    for (const service of socialCatalog?.services ?? []) {
+    for (const service of (socialCatalog?.services ??
+      []) as NpcServiceDefinition[]) {
       serviceLabelById.set(service.id, service.label);
     }
 
-    return (socialCatalog?.npcIdentities ?? [])
+    return ((socialCatalog?.npcIdentities ?? []) as NpcRuntimeIdentity[])
       .filter((identity) =>
         isNpcIdentityRevealed(
           identity,
@@ -278,6 +323,17 @@ export const useCharacterPanelViewModel = () => {
     socialCatalog?.services,
   ]);
 
+  const dossierEntries = useMemo(
+    () =>
+      buildNpcDossierEntries(
+        socialCatalog,
+        myFlags,
+        socialRelationshipState.trustByNpcId,
+        socialRelationshipState.favorByNpcId,
+      ),
+    [socialCatalog, myFlags, socialRelationshipState],
+  );
+
   const getObjectivePointLabel = useCallback(
     (pointId: string): string => {
       const title = pointTitleById.get(pointId);
@@ -290,7 +346,7 @@ export const useCharacterPanelViewModel = () => {
   );
 
   const questJournalEntries = useMemo<CharacterQuestJournalEntry[]>(() => {
-    const catalog = activeSnapshot?.questCatalog ?? [];
+    const catalog = (activeSnapshot?.questCatalog ?? []) as QuestCatalogEntry[];
 
     const canonEntries: CharacterQuestJournalEntry[] = catalog.map((quest) => {
       const sortedStages = [...quest.stages].sort(
@@ -491,10 +547,36 @@ export const useCharacterPanelViewModel = () => {
     [patronVoiceCards],
   );
 
+  const coreCharacteristics = useMemo<CharacterCoreCard[]>(
+    () => resolveAllCoreCharacteristicStates(myVars, activeOriginId),
+    [activeOriginId, myVars],
+  );
+
+  const characterSynergies = useMemo<CharacterSynergyCard[]>(
+    () => resolveAllCharacterSynergyStates(myVars),
+    [myVars],
+  );
+
+  const indicators = useMemo<CharacterIndicatorCard[]>(
+    () => [
+      {
+        id: "talker",
+        label: "\u0411\u043e\u043b\u0442\u0443\u043d",
+        rank: resolveIndicatorRank(myVars, "talker"),
+        description:
+          "Inquiry options, calmer questioning, rephrases, and veil dialogue at high rank.",
+      },
+    ],
+    [myVars],
+  );
+
   return {
     activeOrigin,
     agencyCareerSummary,
+    characterSynergies,
     contactEntries,
+    coreCharacteristics,
+    dossierEntries,
     debugEnabled: ENABLE_DEBUG_CONTENT_SEED,
     dossierTabs,
     entityKnowledge,
@@ -504,10 +586,16 @@ export const useCharacterPanelViewModel = () => {
     playerNickname,
     patronVoiceCards,
     profile,
+    indicators,
     questJournalEntries,
     observationEntries,
     radarData,
     selectedTrack,
     t,
+    portraitUrl,
+    equippedBySlot,
+    equipItem,
+    unequipItem,
+    inventoryRows,
   };
 };

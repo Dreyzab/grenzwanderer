@@ -2,3 +2,10 @@
 bun run test
 spacetime build --module-path spacetimedb
 bun run scripts/content-pre-push.ts
+
+# OpenViking Case01 retrieval gate. Self-skips when the server is down or when
+# PowerShell is unavailable (non-Windows); blocks the push if the smoke fails
+# while the server is up. Kept last so its exit code gates the push.
+if command -v powershell >/dev/null 2>&1; then
+  bun run openviking:gate:case01
+fi

@@ -19,7 +19,7 @@ jobs:
       STDB_UPDATER_SHA256: "1ec25f3b7060e651887b04492e38257f6ee81e35daf73e52d682d20d50475fbd"
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Verify GCP Secrets
         run: |

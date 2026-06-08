@@ -1,0 +1,9 @@
+{
+  "characterId": "npc_krebs_mugger",
+  "displayName": "Krebs Mugger",
+  "assetStage": "body_base_casefile_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "524ee86f014dbbb757208ded8231dbb4e1d934776f01f784abcb512b0bd68236",
+  "notes": "Street contractor sprite: Free Yards pressure, scraped knuckles, evaluates a purse before a face. Facial layer variants are not produced yet."
+}

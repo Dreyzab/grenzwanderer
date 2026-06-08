@@ -55,6 +55,18 @@ export interface DialoguePsycheProfile {
   activeInnerVoiceIds: string[];
 }
 
+/**
+ * Structured rewrite context attached to a generation payload when a creator
+ * regenerates an existing beat/line from a low quality rating. Replaces the
+ * legacy hack of appending author notes into `actionText` as freeform text.
+ */
+export interface RegenerationContext {
+  previousOutput: string;
+  authorFeedback: string;
+  rating?: number;
+  qualityIssues?: string[];
+}
+
 export interface GenerateDialoguePayload {
   source: typeof AI_DIALOGUE_SOURCE_SKILL_CHECK;
   scenarioId: string;
@@ -85,6 +97,7 @@ export interface GenerateDialoguePayload {
   activeSpeakers?: string[];
   psycheProfile?: DialoguePsycheProfile;
   sceneResultEnvelope?: SceneResultEnvelope;
+  regenerationContext?: RegenerationContext;
 }
 
 export interface GenerateDialogueResponse {
@@ -370,6 +383,8 @@ export interface GenerateDmTurnPayload {
   beatDirective?: BeatDirective;
   toneMode: DmToneMode;
   locale: "ru";
+  // Structured rewrite context when a creator regenerates this beat.
+  regenerationContext?: RegenerationContext;
 }
 
 export interface DmTurnProposal {
@@ -737,6 +752,30 @@ const hasOnlyKeys = (
   allowedKeys: readonly string[],
 ): boolean => Object.keys(value).every((key) => allowedKeys.includes(key));
 
+export const isRegenerationContext = (
+  value: unknown,
+): value is RegenerationContext => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const context = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(context, [
+      "previousOutput",
+      "authorFeedback",
+      "rating",
+      "qualityIssues",
+    ]) &&
+    typeof context.previousOutput === "string" &&
+    typeof context.authorFeedback === "string" &&
+    (context.rating === undefined || isFiniteNumber(context.rating)) &&
+    (context.qualityIssues === undefined ||
+      (Array.isArray(context.qualityIssues) &&
+        context.qualityIssues.every((entry) => typeof entry === "string")))
+  );
+};
+
 const isDialoguePsycheProfile = (
   value: unknown,
 ): value is DialoguePsycheProfile => {
@@ -853,7 +892,9 @@ export const isGenerateDialoguePayload = (
     (payload.psycheProfile === undefined ||
       isDialoguePsycheProfile(payload.psycheProfile)) &&
     (payload.sceneResultEnvelope === undefined ||
-      isValidSceneResultEnvelope(payload.sceneResultEnvelope))
+      isValidSceneResultEnvelope(payload.sceneResultEnvelope)) &&
+    (payload.regenerationContext === undefined ||
+      isRegenerationContext(payload.regenerationContext))
   );
 };
 
@@ -1405,6 +1446,7 @@ export const isGenerateDmTurnPayload = (
       "beatDirective",
       "toneMode",
       "locale",
+      "regenerationContext",
     ]) &&
     payload.source === AI_DM_TURN_SOURCE_SIDE_PANEL &&
     typeof payload.scenarioId === "string" &&
@@ -1436,7 +1478,9 @@ export const isGenerateDmTurnPayload = (
     (payload.beatDirective === undefined ||
       isBeatDirective(payload.beatDirective)) &&
     isDmToneMode(payload.toneMode) &&
-    payload.locale === "ru"
+    payload.locale === "ru" &&
+    (payload.regenerationContext === undefined ||
+      isRegenerationContext(payload.regenerationContext))
   );
 };
 

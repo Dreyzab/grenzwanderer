@@ -1727,6 +1727,21 @@ const validateNodeBlueprint = (node: NodeBlueprint): void => {
       );
     }
   }
+  if (node.hubPresentation !== undefined) {
+    if (
+      node.hubPresentation !== "overlay" &&
+      node.hubPresentation !== "inline_panel"
+    ) {
+      throw new Error(
+        `node(${node.id}) has unsupported hubPresentation: ${String(node.hubPresentation)}`,
+      );
+    }
+    if (node.interactionMode !== "hub") {
+      throw new Error(
+        `node(${node.id}) sets hubPresentation but is not interactionMode="hub"`,
+      );
+    }
+  }
   if (node.hubSchema !== undefined) {
     const schema = node.hubSchema;
     if (
@@ -2571,6 +2586,9 @@ const buildRuntimeNode = (node: NodeBlueprint): VnNode => {
   }
   if (node.hubSchema !== undefined) {
     vnNode.hubSchema = node.hubSchema;
+  }
+  if (node.hubPresentation !== undefined) {
+    vnNode.hubPresentation = node.hubPresentation;
   }
 
   return vnNode;

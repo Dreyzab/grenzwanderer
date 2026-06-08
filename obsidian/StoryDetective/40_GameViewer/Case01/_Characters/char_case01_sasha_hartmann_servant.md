@@ -4,6 +4,8 @@ node_type: character
 case: case01
 phase: investigation
 status: active
+runtime_character_id: npc_sasha_hartmann_servant
+npc_identity: npc_sasha_hartmann_servant
 tags:
   - type/character
   - origin/witch
@@ -47,3 +49,7 @@ tags:
 - `scene_case01_hbf_luggage_sasha_soft` — Саша у багажа
 - `scene_case01_hbf_luggage_sasha_thirst` — Рука Саши
 - `scene_case01_estate_vaults_witch` — Холодные Архивы
+
+## Player Dossier
+
+- (reveal: met_sasha_servant_intro) **The Quiet Veteran**: The Hartmann household servant who moves the luggage and covers Eleonora's spells in public. An old scar and a soldier's bearing hint at a war he never speaks of.

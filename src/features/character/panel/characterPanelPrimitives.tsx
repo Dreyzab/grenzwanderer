@@ -60,7 +60,7 @@ export const DossierTabButton = ({
     aria-selected={active}
     className={`relative overflow-hidden rounded-[1rem] border px-4 py-3 text-left transition-colors ${
       active
-        ? "border-amber-700/50 text-stone-100"
+        ? "border-ember-700/50 text-stone-100"
         : "border-stone-700/60 text-stone-400 hover:border-stone-500/70 hover:text-stone-200"
     }`}
     id={`character-tab-${id}`}

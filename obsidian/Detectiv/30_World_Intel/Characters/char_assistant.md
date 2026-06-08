@@ -4,7 +4,7 @@ tags: [character, major]
 tier: major
 runtime_character_id: victoria_sterling
 faction: fct_university
-aliases: ["Victoria Sterling"]
+aliases: ["Victoria Sterling", "Victoria Adlersheim Sterling", "Frau Sterling"]
 ---
 
 # Victoria Sterling
@@ -14,7 +14,7 @@ aliases: ["Victoria Sterling"]
 - **Role**: Scientific companion, unofficial Rathaus access key, and volatile personal stakes.
 - **Age / Appearance**: 23, severe lab posture, restless focus.
 - **Archetype**: The Vengeful Analyst
-- **Origin**: Freiburg university chemistry circles; daughter of the Oberbuergermeister.
+- **Origin**: Freiburg university chemistry circles; Victoria Adlersheim by birth, daughter of the Oberbuergermeister.
 - **Public Name**: Frau Sterling, the married name she kept after her husband's death.
 - **Case01 Status**: Private scientific consultant attached under Elias Thorne's responsibility after the Polizeidirektor refuses to recognize a woman criminologist.
 - **Compatibility Note**: `assistant` is a legacy role key, not a permanent identity. Felix can occupy an early assistant/logistics role; Victoria occupies the scientific consultant role from Rathaus/Bank onward.
@@ -33,6 +33,17 @@ aliases: ["Victoria Sterling"]
 - **Hidden**: Keeps unsanctioned notes on her husband's prior death
 - **Core**: Volition reveals vigilante impulse
 - **Case01 Rule**: The bank residue can echo the old death, but Case 01 must not solve it outright.
+
+## Family
+
+Family bible: [[30_World_Intel/Families/family_adlersheim_sterling|Adlersheim-Sterling Family]].
+
+- **Otto Adlersheim** - father and Oberbuergermeister; his help is real, but every writ is shaped to be deniable.
+- **Margarethe Adlersheim** - mother; trained Victoria's public composure and treats reputation as care.
+- **Konstantin Adlersheim** - older brother; civic heir, wary of Victoria's unsanctioned methods.
+- **Anneliese Adlersheim** - younger sister; salon/poetry listener and soft key for `qst_victoria_poetry`, not a first-pass runtime NPC.
+- **Dr. Julian Sterling** - late husband; chemist whose murder is shadow context only in Case 01.
+- **Edmund Sterling** - father-in-law; keeper of some Sterling papers outside both Rathaus and university control.
 
 ## Relationships
 

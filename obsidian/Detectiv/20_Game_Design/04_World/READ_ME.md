@@ -11,6 +11,7 @@ Scope of this domain:
 - [[20_Game_Design/Systems/Sys_FogOfWar|Sys FogOfWar]]
 - [[MOC_Locations]]
 - [[MOC_Timeline]]
+- [[20_Game_Design/04_World/Freiburg_1900_Lore|Freiburg 1900 Lore and Cosmology]]
 
 ## Main loop links
 

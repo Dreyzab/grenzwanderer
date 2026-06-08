@@ -7,9 +7,13 @@ import {
   VISUAL_VARIANTS_OUTPUT_PATH,
   VN_SCENE_BACKGROUND_MANIFEST_OUTPUT_PATH,
   VN_SCENE_BACKGROUND_MISSING_OUTPUT_PATH,
+  CHARACTER_SPRITE_MANIFEST_OUTPUT_PATH,
+  CHARACTER_SPRITE_MISSING_OUTPUT_PATH,
   buildCase01VisualScaffoldOutput,
   buildCase01VnSceneBackgroundManifest,
   buildCase01VnSceneBackgroundMissingReport,
+  buildCase01CharacterSpriteManifest,
+  buildCase01CharacterSpriteMissingReport,
 } from "./data/freiburg_visual_assets";
 
 const OUTPUT_FILES = [
@@ -18,6 +22,8 @@ const OUTPUT_FILES = [
   VISUAL_MISSING_OUTPUT_PATH,
   VN_SCENE_BACKGROUND_MANIFEST_OUTPUT_PATH,
   VN_SCENE_BACKGROUND_MISSING_OUTPUT_PATH,
+  CHARACTER_SPRITE_MANIFEST_OUTPUT_PATH,
+  CHARACTER_SPRITE_MISSING_OUTPUT_PATH,
 ] as const;
 
 const toJson = (value: unknown): string =>
@@ -38,6 +44,10 @@ const main = (): void => {
   const vnSceneBackgroundMissing = buildCase01VnSceneBackgroundMissingReport(
     vnSceneBackgroundManifest,
   );
+  const characterSpriteManifest = buildCase01CharacterSpriteManifest();
+  const characterSpriteMissing = buildCase01CharacterSpriteMissingReport(
+    characterSpriteManifest,
+  );
 
   if (scaffold.parity.errors.length > 0) {
     throw new Error(
@@ -57,6 +67,8 @@ const main = (): void => {
       toJson(vnSceneBackgroundManifest),
     ],
     [VN_SCENE_BACKGROUND_MISSING_OUTPUT_PATH, toJson(vnSceneBackgroundMissing)],
+    [CHARACTER_SPRITE_MANIFEST_OUTPUT_PATH, toJson(characterSpriteManifest)],
+    [CHARACTER_SPRITE_MISSING_OUTPUT_PATH, toJson(characterSpriteMissing)],
   ]);
 
   if (checkOnly) {
@@ -89,6 +101,10 @@ const main = (): void => {
     console.log(
       `VN scene background missing entries: ${vnSceneBackgroundMissing.length}`,
     );
+    console.log(`Character sprite entries: ${characterSpriteManifest.length}`);
+    console.log(
+      `Character sprite missing entries: ${characterSpriteMissing.length}`,
+    );
     return;
   }
 
@@ -109,6 +125,10 @@ const main = (): void => {
   );
   console.log(
     `VN scene background missing entries: ${vnSceneBackgroundMissing.length}`,
+  );
+  console.log(`Character sprite entries: ${characterSpriteManifest.length}`);
+  console.log(
+    `Character sprite missing entries: ${characterSpriteMissing.length}`,
   );
 };
 

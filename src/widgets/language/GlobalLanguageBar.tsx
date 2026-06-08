@@ -44,7 +44,7 @@ export function GlobalLanguageBar() {
   const buttonClass = (code: UiLanguage) =>
     `h-8 min-w-[42px] px-2 text-[10px] font-bold tracking-widest transition-all duration-300 ${
       language === code
-        ? "bg-amber-700 text-stone-100 shadow-[0_0_12px_rgba(180,83,9,0.3)] border-amber-600/50"
+        ? "bg-ember-700 text-stone-100 shadow-[0_0_12px_rgba(180,83,9,0.3)] border-ember-600/50"
         : "bg-stone-900/80 text-stone-400 hover:bg-stone-800 hover:text-stone-200 border-stone-800"
     } disabled:cursor-not-allowed disabled:opacity-50 border first:rounded-l-md last:rounded-r-md -ml-[1px] first:ml-0`;
 
@@ -78,7 +78,7 @@ export function GlobalLanguageBar() {
 
         <div className="flex flex-col items-end gap-0.5 px-1 min-h-[14px]">
           {isUpdating ? (
-            <span className="text-[9px] font-medium uppercase tracking-wider text-amber-500/80 animate-pulse">
+            <span className="text-[9px] font-medium uppercase tracking-wider text-ember-500/80 animate-pulse">
               {home.languageSwitching}
             </span>
           ) : null}

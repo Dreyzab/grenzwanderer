@@ -56,6 +56,14 @@ describe("parsePlayerDossier", () => {
     expect(excerpt?.stages).toHaveLength(1);
     expect(JSON.stringify(excerpt)).not.toContain("crisis spoiler");
   });
+
+  it("captures a (summary) line", () => {
+    const excerpt = parsePlayerDossier(
+      note("## Player Dossier\n- (summary) The short tagline.\n- **A**: b"),
+    );
+    expect(excerpt?.summary).toBe("The short tagline.");
+    expect(excerpt?.stages.map((s) => s.heading)).toEqual(["A"]);
+  });
 });
 
 describe("applyDossierExcerpts", () => {
@@ -83,11 +91,23 @@ describe("applyDossierExcerpts", () => {
     ]);
   });
 
-  it("skips NPCs without a bio (catalog owns the summary)", () => {
+  it("skips NPCs without a bio when the excerpt has no (summary)", () => {
     const result = applyDossierExcerpts(npcs, [
       { npcIdentity: "npc_no_bio", stages: [{ heading: "X", text: "y" }] },
     ]);
     expect(result[1].bio).toBeUndefined();
+  });
+
+  it("seeds a bio from a (summary) excerpt when the catalog has none", () => {
+    const result = applyDossierExcerpts(npcs, [
+      {
+        npcIdentity: "npc_no_bio",
+        summary: "Seeded from note.",
+        stages: [{ heading: "X", text: "y" }],
+      },
+    ]);
+    expect(result[1].bio?.summary).toBe("Seeded from note.");
+    expect(result[1].bio?.stages?.map((s) => s.heading)).toEqual(["X"]);
   });
 
   it("dedupes by heading so re-runs are idempotent", () => {

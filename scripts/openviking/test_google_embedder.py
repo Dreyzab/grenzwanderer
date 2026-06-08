@@ -12,7 +12,7 @@ try:
     # We need a token to initialize, even if we don't call the API
     # But let's just test the instantiation
     embedder = GoogleDenseEmbedder(
-        model_name="gemini-embedding-2-preview",
+        model_name="gemini-embedding-2",
         api_key="dummy_token_for_init_test"
     )
     print(f"Embedder initialized: {embedder.model_name}")

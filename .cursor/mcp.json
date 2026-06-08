@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "openviking": {
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "scripts/openviking/start-mcp.ps1",
+        "-Transport",
+        "stdio"
+      ],
+      "env": {
+        "OPENVIKING_BASE_URL": "http://127.0.0.1:1933"
+      }
+    }
+  }
+}

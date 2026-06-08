@@ -269,6 +269,15 @@ export type VnNarrativePresentation = "letter";
  */
 export type VnInteractionMode = "standard" | "hub";
 
+/**
+ * How a hub node surfaces its schematic map.
+ * "overlay" (default) keeps the classic flow: a floating button opens the map
+ * in a modal/bottom-sheet. "inline_panel" renders the map directly over the
+ * neutral background as a compact navigation panel anchored top-left, with no
+ * open button — used when the map *is* the current game state.
+ */
+export type VnHubPresentation = "overlay" | "inline_panel";
+
 export interface VnHubZoneOccupant {
   /** Character/NPC id from socialCatalog whose presence highlights this zone. */
   npcId: string;
@@ -342,6 +351,12 @@ export interface VnNode {
   interactionMode?: VnInteractionMode;
   /** Required when `interactionMode === "hub"`. */
   hubSchema?: VnHubSchema;
+  /**
+   * Presentation of the hub map. Only meaningful when
+   * `interactionMode === "hub"`. Defaults to "overlay" when omitted so existing
+   * hub nodes keep their open-button + modal behaviour.
+   */
+  hubPresentation?: VnHubPresentation;
 }
 
 export interface VnScenario {

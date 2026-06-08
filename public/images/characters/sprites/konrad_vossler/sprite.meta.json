@@ -1,0 +1,9 @@
+{
+  "characterId": "npc_konrad_vossler",
+  "displayName": "Konrad Vossler",
+  "assetStage": "body_base_casefile_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "1037f458c57ac774fea1b088e3c47a8beaeb7934bb6bb8cb8ae9365545924319",
+  "notes": "Mirror-not-accomplice sprite: former pioneer turned chemistry teacher, sulfur-stained cuffs, the life Stoll might have had. Facial layer variants are not produced yet."
+}

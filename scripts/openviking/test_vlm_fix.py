@@ -14,12 +14,12 @@ async def test():
     config = {
         "provider": "google",
         "api_key": "dummy-key", # doesn't matter for URL verification
-        "model": "gemini-3-flash-preview",
+        "model": "gemini-3.5-flash",
         "api_base": ""
     }
     vlm = GoogleVLM(config)
     print(f"VLM api_base: {vlm.api_base}")
-    url = vlm._get_url("gemini-3-flash-preview")
+    url = vlm._get_url("gemini-3.5-flash")
     print(f"Generated URL: {url}")
     
     if "v1beta" in url:

@@ -1,0 +1,9 @@
+{
+  "characterId": "npc_weber_dispatcher",
+  "displayName": "Lotte Weber",
+  "assetStage": "body_base_approved_style_test_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "1dbad896165b46e872195f670c16d9748ff3275b162a859bcdd5b7a2a72919e9",
+  "notes": "Promoted from approved style-test sprite. Facial layer variants are not produced yet."
+}

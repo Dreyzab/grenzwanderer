@@ -187,7 +187,7 @@ export const CharacterPsycheTab = ({
                 </div>
                 <div className="mt-4 h-2.5 overflow-hidden rounded-full border border-white/8 bg-black/40">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-sky-500 via-amber-400 to-emerald-400"
+                    className="h-full rounded-full bg-gradient-to-r from-sky-500 via-ember-400 to-emerald-400"
                     style={{
                       width: `${profile.innerCompass.approachPercent}%`,
                     }}
@@ -471,7 +471,7 @@ export const CharacterPsycheTab = ({
                 </div>
                 <div className="mt-3 h-2 overflow-hidden rounded-full border border-white/8 bg-black/25">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-amber-700 via-amber-500 to-amber-300"
+                    className="h-full rounded-full bg-gradient-to-r from-ember-700 via-ember-500 to-ember-300"
                     style={{ width: `${track.progressPercent}%` }}
                   />
                 </div>

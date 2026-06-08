@@ -458,6 +458,22 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "wave3-core-progression",
     "Redeemed code history is player-private map/runtime state and should become self-scoped.",
   ),
+  entry(
+    "content_rating",
+    "contentRating",
+    "player-scoped",
+    "my_content_ratings",
+    "wave3-core-progression",
+    "Per-player VN content quality ratings are private feedback state consumed through self-scoped reads.",
+  ),
+  entry(
+    "dialogue_rating",
+    "dialogueRating",
+    "player-scoped",
+    "my_dialogue_ratings",
+    "wave3-core-progression",
+    "Per-player dialogue line ratings are private feedback state consumed through self-scoped reads.",
+  ),
 ];
 
 const readCachedUtf8 = (filePath: string): string => {

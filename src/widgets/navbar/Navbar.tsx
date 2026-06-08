@@ -98,7 +98,7 @@ export const Navbar = <TTab extends string>({
 
     const update = () => {
       const h = Math.round(el.getBoundingClientRect().height);
-      // Как в CSS: calc(100% - 1.5rem - env(safe-area-inset-bottom))
+      // ÐšÐ°Ðº Ð² CSS: calc(100% - 1.5rem - env(safe-area-inset-bottom))
       const peek = 24; // 1.5rem
       const barRow = barRowRef.current;
       const safe =
@@ -189,7 +189,7 @@ export const Navbar = <TTab extends string>({
                 onClick={() => onTabChange(tab.id)}
                 className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors duration-200 border-none bg-transparent shadow-none hover:bg-transparent ${
                   isActive
-                    ? "text-amber-500"
+                    ? "text-ember-500"
                     : "text-stone-500 hover:text-stone-300"
                 }`}
                 type="button"
@@ -197,7 +197,7 @@ export const Navbar = <TTab extends string>({
                 <div className="relative">
                   {getIconForTab(tab.id)}
                   {badges?.[tab.id] && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-ember-500 animate-pulse" />
                   )}
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider">

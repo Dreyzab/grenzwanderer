@@ -1,0 +1,9 @@
+{
+  "characterId": "npc_emil_roth",
+  "displayName": "Emil Roth",
+  "assetStage": "body_base_casefile_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "3dae38938cbc24b0c046912c5cfe3cae07f4d04097cd0f1cc28642c7bc3fb249",
+  "notes": "Restorer-informant sprite: thin wax-and-ink hands, measuring tools, false-center energy without killer weight. Facial layer variants are not produced yet."
+}

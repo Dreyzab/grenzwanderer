@@ -1,0 +1,856 @@
+[
+  {
+    "characterId": "detective",
+    "displayName": "Detective",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/images/characters/detective_portrait/detective_portrait.png",
+    "sourcePortraitRefs": [
+      "/images/characters/detective_portrait/detective_portrait.png"
+    ],
+    "expectedRootPath": "public/images/characters/sprites/detective",
+    "expectedMetaPath": "public/images/characters/sprites/detective/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "notebook_ready",
+      "coat_closed",
+      "hat_low",
+      "evidence_presented"
+    ],
+    "specialOverlays": ["travel_dust", "rain_specks"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/detective/body/body_base.png",
+      "faceBase": "/images/characters/sprites/detective/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/detective/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/detective/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/detective/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/detective/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "working detective in sober travel clothes, readable coat and hat silhouette",
+      "face": "observant, tired, controlled, not heroic",
+      "hair": "kept practical under hat",
+      "costume": "period detective coat, waistcoat, gloves or notebook, agency practicality",
+      "palette": ["brown wool", "ink black", "weathered tan", "brass"],
+      "anchors": [
+        "player-facing investigator rather than action hero",
+        "hands often tied to notebook, evidence, or restraint",
+        "keeps expression useful rather than expressive"
+      ],
+      "forbiddenDrift": [
+        "modern noir trenchcoat",
+        "police uniform",
+        "Sherlock caricature",
+        "overly clean fashion model"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of the detective protagonist in sober 1900 investigative travel clothes, European gothic VN style, transparent background.",
+    "promptBriefSha256": "bc9d7ee2c93bcf15e23d92cdf1509c827c449e3b5e70d4d4ef6710255aa26a81"
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "displayName": "Oberleutnant Albrecht Stoll",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/images/characters/albrecht_stoll/albrecht_stoll.webp",
+    "sourcePortraitRefs": [
+      "/images/characters/albrecht_stoll/albrecht_stoll.webp"
+    ],
+    "expectedRootPath": "public/images/characters/sprites/albrecht_stoll",
+    "expectedMetaPath": "public/images/characters/sprites/albrecht_stoll/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "gloved_hands_counting",
+      "postal_coat_closed",
+      "uniform_seam_visible",
+      "scar_knuckle_rub"
+    ],
+    "specialOverlays": ["thermite_soot", "postal_coat", "chemical_gloves"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/albrecht_stoll/body/body_base.png",
+      "faceBase": "/images/characters/sprites/albrecht_stoll/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/albrecht_stoll/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/albrecht_stoll/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/albrecht_stoll/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/albrecht_stoll/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "bridge-shouldered serving pioneer officer, posture too military for disguise",
+      "face": "disciplined severe face, sleeps because the calculation balanced",
+      "hair": "short military grooming, practical and strict",
+      "costume": "postal coat sitting wrongly over hidden military tunic, chemical gloves, burn-darkened cuffs",
+      "palette": ["field grey", "postal dark blue", "thermite black", "brass"],
+      "anchors": [
+        "discipline as danger",
+        "uniform leaking through disguise",
+        "thermite is admitted, theft is denied"
+      ],
+      "forbiddenDrift": [
+        "generic soldier in parade uniform",
+        "wild pyromaniac",
+        "street robber",
+        "fantasy sapper"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of Oberleutnant Albrecht Stoll, serving pioneer officer and Sapper, postal coat over military tunic, chemical gloves, disciplined posture, transparent background.",
+    "promptBriefSha256": "b4ece33b419fd1b5270efb265ba5de5270c3c26b7b947dca072b09cd7e09aa9e"
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "displayName": "Anton Weber",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/images/characters/anton_weber/anton_weber.webp",
+    "sourcePortraitRefs": ["/images/characters/anton_weber/anton_weber.webp"],
+    "expectedRootPath": "public/images/characters/sprites/anton_weber",
+    "expectedMetaPath": "public/images/characters/sprites/anton_weber/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "twine_held",
+      "route_clipboard",
+      "cap_in_hand",
+      "order_folded"
+    ],
+    "specialOverlays": ["postal_twine", "rain_on_uniform"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/anton_weber/body/body_base.png",
+      "faceBase": "/images/characters/sprites/anton_weber/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/anton_weber/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/anton_weber/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/anton_weber/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/anton_weber/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "nervous Reichspost clerk, uniform slightly too large, hands always cleaning or arranging",
+      "face": "meticulous frightened man, pride bruised by official misuse",
+      "hair": "neat practical postal grooming under cap",
+      "costume": "period Reichspost uniform with black-yellow route twine and delivery satchel",
+      "palette": [
+        "postal blue",
+        "black-yellow twine",
+        "paper cream",
+        "wet grey"
+      ],
+      "anchors": [
+        "professional signature turned into evidence",
+        "obedience bent by forged authority",
+        "not thief, but movement"
+      ],
+      "forbiddenDrift": [
+        "criminal mastermind",
+        "carefree courier",
+        "modern postman",
+        "military officer"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of Anton Weber, nervous Reichspost route clerk with black-yellow twine and forged order, transparent background.",
+    "promptBriefSha256": "d2a6afdee6f0b701124642be07f140523cfc259f2dfa6603f9d4cc5bc978da6d"
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "displayName": "Bureau Master",
+    "assetKind": "character_sprite",
+    "productionTier": "T2_COMPOSITE",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/images/characters/bureau_master/bureau_master.webp",
+    "sourcePortraitRefs": [
+      "/images/characters/bureau_master/bureau_master.webp"
+    ],
+    "expectedRootPath": "public/images/characters/sprites/bureau_master",
+    "expectedMetaPath": "public/images/characters/sprites/bureau_master/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "vial_offered",
+      "folder_held",
+      "hand_on_desk",
+      "occult_gaze"
+    ],
+    "specialOverlays": ["crimson_relic_reflection", "bureau_gaslight"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/bureau_master/body/body_base.png",
+      "faceBase": "/images/characters/sprites/bureau_master/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/bureau_master/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/bureau_master/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/bureau_master/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/bureau_master/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "older severe supervisor, formal dark clothing, still authority",
+      "face": "lined controlled face, cold eyes, no theatrical villainy",
+      "hair": "grey or silver hair, severe grooming",
+      "costume": "dark formal Bureau clothing, waistcoat, no robes, no flamboyant occult costume",
+      "palette": ["black", "old oak brown", "gaslight amber", "muted crimson"],
+      "anchors": [
+        "institutional discipline",
+        "occult knowledge expressed through restraint",
+        "vials, dossiers, and desk geometry are his props"
+      ],
+      "forbiddenDrift": [
+        "wizard robes",
+        "mad scientist",
+        "kindly grandfather",
+        "modern bureaucrat"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of the severe older Bureau Master, occult supervisor in sober formal clothing, controlled authority, transparent background.",
+    "promptBriefSha256": "17dde0577cf86230aecab667baa87d56e4bfe7cb5b578cfc8a2dae78c61d78e0"
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "displayName": "Emil Roth",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/images/characters/emil_roth/emil_roth.webp",
+    "sourcePortraitRefs": ["/images/characters/emil_roth/emil_roth.webp"],
+    "expectedRootPath": "public/images/characters/sprites/emil_roth",
+    "expectedMetaPath": "public/images/characters/sprites/emil_roth/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "binding_calipers",
+      "waxed_fingers",
+      "ledger_note",
+      "defensive_hands"
+    ],
+    "specialOverlays": ["ink_stains", "wax_on_fingers"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/emil_roth/body/body_base.png",
+      "faceBase": "/images/characters/sprites/emil_roth/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/emil_roth/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/emil_roth/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/emil_roth/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/emil_roth/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "thin scholarly craftsman, narrow shoulders, careful hands held forward",
+      "face": "awed nervous restorer, reverence curdled into fear after he understands the use",
+      "hair": "tidy thinning hair, workshop practical",
+      "costume": "restorer's dark work coat over modest shirt, ink and wax at cuffs, no occult robes",
+      "palette": ["ink black", "old paper", "warm wax", "dust brown"],
+      "anchors": [
+        "technical measurements as guilt",
+        "false center, not knife hand",
+        "hands are more incriminating than expression"
+      ],
+      "forbiddenDrift": [
+        "mad occultist",
+        "wealthy collector",
+        "knife-wielding villain",
+        "comic old scholar"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of Emil Roth, thin book restorer who supplied Razlom measurements, ink and wax stained fingers, anxious reverence, transparent background.",
+    "promptBriefSha256": "3dae38938cbc24b0c046912c5cfe3cae07f4d04097cd0f1cc28642c7bc3fb249"
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "displayName": "Felix Hartmann",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/Characters/Felix/felix_portrait_fixed_jaw_1776590978986.png",
+    "sourcePortraitRefs": [
+      "/Characters/Felix/felix_portrait_fixed_jaw_1776590978986.png",
+      "/Characters/Felix/felix_portrait_younger_1776590887801.png"
+    ],
+    "expectedRootPath": "public/images/characters/sprites/felix_hartmann",
+    "expectedMetaPath": "public/images/characters/sprites/felix_hartmann/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "hat_held",
+      "collar_adjusted",
+      "looking_away",
+      "defensive_stance"
+    ],
+    "specialOverlays": ["train_soot", "rain_specks"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/felix_hartmann/body/body_base.png",
+      "faceBase": "/images/characters/sprites/felix_hartmann/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/felix_hartmann/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/felix_hartmann/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/felix_hartmann/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/felix_hartmann/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "young Hartmann gentleman, narrow formal posture, tension in shoulders",
+      "face": "tired intelligent youth, jaw set too carefully",
+      "hair": "curled brown hair, slightly unruly despite good grooming",
+      "costume": "dark young gentleman suit with period waistcoat, no detective coat",
+      "palette": [
+        "black wool",
+        "smoke blue",
+        "cream shirt",
+        "muted gold chain"
+      ],
+      "anchors": [
+        "son trying to behave older than he feels",
+        "apathy as exhaustion rather than stupidity",
+        "hands often hold hat or collar when pressured"
+      ],
+      "forbiddenDrift": [
+        "childlike boy",
+        "cocky romantic lead",
+        "modern school uniform",
+        "comic sidekick"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of Felix Hartmann, young exhausted noble son in a dark 1900 suit, restrained and watchful, transparent background.",
+    "promptBriefSha256": "818f3b57d35426c7cf1d80ca68c1fe74be57d5bf4c1826f7d5d7c571df787dd0"
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "displayName": "Heinrich Galdermann",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/images/characters/heinrich_galdermann/heinrich_galdermann.webp",
+    "sourcePortraitRefs": [
+      "/images/characters/heinrich_galdermann/heinrich_galdermann.webp"
+    ],
+    "expectedRootPath": "public/images/characters/sprites/heinrich_galdermann",
+    "expectedMetaPath": "public/images/characters/sprites/heinrich_galdermann/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "handkerchief_to_hairline",
+      "report_over_ledger",
+      "signature_pen",
+      "smelling_salts_nearby"
+    ],
+    "specialOverlays": ["sweat_hairline", "ledger_shadow"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/heinrich_galdermann/body/body_base.png",
+      "faceBase": "/images/characters/sprites/heinrich_galdermann/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/heinrich_galdermann/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/heinrich_galdermann/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/heinrich_galdermann/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/heinrich_galdermann/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "broad respectable bank officer, heavy frame like an iron safe, expensive waistcoat",
+      "face": "polished smile that feels notarized, controlled panic around the eyes",
+      "hair": "perfect side part with damp sweat at the roots, repeatedly dabbed with a handkerchief",
+      "costume": "costly 1900 banker suit, waistcoat richer than a clerk's yearly pay, no criminal street markers",
+      "palette": ["banker black", "cream linen", "old gold", "ink brown"],
+      "anchors": [
+        "crime through signatures, not tools",
+        "respectability as concealment",
+        "handkerchief and report are part of his gesture language"
+      ],
+      "forbiddenDrift": [
+        "street thief",
+        "cartoon villain",
+        "thin nervous clerk",
+        "modern finance executive"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of Heinrich Galdermann, broad respectable Prokurist of Bankhaus Krebs, expensive waistcoat, polished smile, sweat at perfect hair part, transparent background.",
+    "promptBriefSha256": "1de7ffd26a15f1149f1322d09d4e7f64b11ce321a9c4a795c709fac742aa1512"
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "displayName": "Konrad Vossler",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/images/characters/konrad_vossler/konrad_vossler.webp",
+    "sourcePortraitRefs": [
+      "/images/characters/konrad_vossler/konrad_vossler.webp"
+    ],
+    "expectedRootPath": "public/images/characters/sprites/konrad_vossler",
+    "expectedMetaPath": "public/images/characters/sprites/konrad_vossler/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "chalk_hand",
+      "sulfur_cuff",
+      "voice_cut_short",
+      "lesson_pointer"
+    ],
+    "specialOverlays": ["sulfur_on_cuffs", "chalk_dust"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/konrad_vossler/body/body_base.png",
+      "faceBase": "/images/characters/sprites/konrad_vossler/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/konrad_vossler/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/konrad_vossler/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/konrad_vossler/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/konrad_vossler/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "former pioneer turned chemistry teacher, disciplined posture softened by classroom habit",
+      "face": "controlled man who has refused something once and still remembers the cost",
+      "hair": "sober schoolmaster grooming with military residue",
+      "costume": "chemistry teacher suit and protective apron or lab coat, sulfur on cuffs, no active uniform",
+      "palette": [
+        "chalk white",
+        "sulfur yellow",
+        "old black",
+        "laboratory brown"
+      ],
+      "anchors": [
+        "mirror to Stoll, not accomplice",
+        "same demolition school, different refusal",
+        "Dead Registry / Case02 hook"
+      ],
+      "forbiddenDrift": [
+        "active criminal sapper",
+        "mad professor",
+        "wizard",
+        "military officer in uniform"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of Konrad Vossler, former pioneer chemistry teacher and Case02 mirror to Stoll, sulfur cuffs, restrained refusal, transparent background.",
+    "promptBriefSha256": "1037f458c57ac774fea1b088e3c47a8beaeb7934bb6bb8cb8ae9365545924319"
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "displayName": "Krebs Mugger",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/images/characters/krebs_mugger/krebs_mugger.webp",
+    "sourcePortraitRefs": ["/images/characters/krebs_mugger/krebs_mugger.webp"],
+    "expectedRootPath": "public/images/characters/sprites/krebs_mugger",
+    "expectedMetaPath": "public/images/characters/sprites/krebs_mugger/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "knuckles_forward",
+      "wallet_scan",
+      "alley_step",
+      "blood_bond_mark"
+    ],
+    "specialOverlays": ["bruised_knuckles", "alley_blood"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/krebs_mugger/body/body_base.png",
+      "faceBase": "/images/characters/sprites/krebs_mugger/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/krebs_mugger/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/krebs_mugger/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/krebs_mugger/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/krebs_mugger/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "street-level contracted muscle, compact threat, shoulders angled toward impact",
+      "face": "calculating low-level enforcer, looks at the purse before the face",
+      "hair": "rough practical street grooming",
+      "costume": "worn street coat and rough work clothes, no military or banker polish",
+      "palette": ["dirty wool", "brick shadow", "dried blood", "cheap brass"],
+      "anchors": [
+        "contracted fist beneath respectable signatures",
+        "Free Yards affiliation at street level",
+        "grotesque ordinary worker-for-hire logic"
+      ],
+      "forbiddenDrift": [
+        "mastermind",
+        "romantic rogue",
+        "uniformed guard",
+        "clean gentleman criminal"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of Krebs Mugger, Free Yards street enforcer on Krebs contract, bruised knuckles, alley threat, transparent background.",
+    "promptBriefSha256": "524ee86f014dbbb757208ded8231dbb4e1d934776f01f784abcb512b0bd68236"
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "displayName": "Eleonora Hartmann",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/Characters/Eleonora/eleonora_mother_fixed_1776592259184.png",
+    "sourcePortraitRefs": [
+      "/Characters/Eleonora/eleonora_mother_fixed_1776592259184.png",
+      "/images/characters/witch_portrait/witch_portrait.png"
+    ],
+    "expectedRootPath": "public/images/characters/sprites/eleonora_hartmann",
+    "expectedMetaPath": "public/images/characters/sprites/eleonora_hartmann/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous",
+      "composed",
+      "softened",
+      "hungry",
+      "cracking",
+      "predatory",
+      "controlled_panic"
+    ],
+    "optionalPoseVariants": [
+      "hands_folded",
+      "glove_adjust",
+      "half_turn_command",
+      "veil_touch"
+    ],
+    "specialOverlays": ["occult_filter", "hunger_flush", "wet_travel_cloak"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/eleonora_hartmann/body/body_base.png",
+      "faceBase": "/images/characters/sprites/eleonora_hartmann/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/eleonora_hartmann/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/eleonora_hartmann/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/eleonora_hartmann/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/eleonora_hartmann/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "upright mature noblewoman, controlled posture, black mourning lace over an ivory high-neck dress",
+      "face": "refined older face, composed mouth, sharp attentive eyes",
+      "hair": "light curled updo under black lace or travel hat",
+      "costume": "Hartmann widow travel dress, gloves, restrained jewelry, no military or servant markers",
+      "palette": ["black lace", "ivory", "old gold", "cold crimson accent"],
+      "anchors": [
+        "aristocratic restraint",
+        "danger hidden behind etiquette",
+        "hands and gloves are always narratively important"
+      ],
+      "forbiddenDrift": [
+        "young ingenue",
+        "anime proportions",
+        "open monster design",
+        "overly seductive vampire costume"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of Eleonora Hartmann, mature noble widow and hidden witch, painterly semi-realistic European gothic style, transparent background, readable silhouette.",
+    "promptBriefSha256": "8b938889b2da9493d96abe170f0d8aed8522ee6f56e0df8d046a7b0d5e2af5eb"
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "displayName": "Rudi Kempf",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/images/characters/rudi_kempf/rudi_kempf.webp",
+    "sourcePortraitRefs": ["/images/characters/rudi_kempf/rudi_kempf.webp"],
+    "expectedRootPath": "public/images/characters/sprites/rudi_kempf",
+    "expectedMetaPath": "public/images/characters/sprites/rudi_kempf/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "union_card",
+      "cigarette_reach",
+      "angry_point",
+      "arms_crossed"
+    ],
+    "specialOverlays": ["coal_stains", "registry_slash"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/rudi_kempf/body/body_base.png",
+      "faceBase": "/images/characters/sprites/rudi_kempf/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/rudi_kempf/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/rudi_kempf/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/rudi_kempf/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/rudi_kempf/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "heavy rail-yard worker, broad chest, protest stance, fists built for labor",
+      "face": "angry sincere worker, loud enough to be used as cover, not cunning enough to be the vault mind",
+      "hair": "rough worker hair under cap or sweat",
+      "costume": "work shirt, heavy trousers, worn vest, union card, coal-stained hands",
+      "palette": ["coal black", "rust red", "workshop grey", "union paper"],
+      "anchors": [
+        "noise as false trail",
+        "anger used as someone else's weather",
+        "innocent of the breach, guilty of leverage"
+      ],
+      "forbiddenDrift": [
+        "elegant banker",
+        "secret engineer",
+        "comic drunk",
+        "clean aristocrat"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of Rudi Kempf, heavy rail-yard worker and protest noise false trail, coal-stained hands, angry sincerity, transparent background.",
+    "promptBriefSha256": "b3cf01bd3560a46d19d3225aa6c64ba406ae71131bc1b0cc16d50ed3db03ba90"
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "displayName": "Alexander \"Sasha\"",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/images/characters/sasha_hartmann_servant/sasha_hartmann_servant.webp",
+    "sourcePortraitRefs": [
+      "/images/characters/sasha_hartmann_servant/sasha_hartmann_servant.webp"
+    ],
+    "expectedRootPath": "public/images/characters/sprites/sasha_hartmann_servant",
+    "expectedMetaPath": "public/images/characters/sprites/sasha_hartmann_servant/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "hands_behind_back",
+      "luggage_ready",
+      "bandaged_hand",
+      "protective_step"
+    ],
+    "specialOverlays": ["wrapped_hand", "rain_on_livery"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/sasha_hartmann_servant/body/body_base.png",
+      "faceBase": "/images/characters/sprites/sasha_hartmann_servant/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/sasha_hartmann_servant/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/sasha_hartmann_servant/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/sasha_hartmann_servant/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/sasha_hartmann_servant/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "tall physically strong servant with military bearing and heavy shoulders",
+      "face": "restrained older face, old scar, pain endured without display",
+      "hair": "short dark hair, practical and unadorned",
+      "costume": "plain dark travel livery, serviceable coat, no medals, no visible uniform",
+      "palette": ["charcoal", "worn leather", "linen white", "dull brass"],
+      "anchors": [
+        "ethical stubbornness under discipline",
+        "servant by refuge and duty, not servility",
+        "large hands and stillness carry his history"
+      ],
+      "forbiddenDrift": [
+        "decorated war hero",
+        "aristocrat",
+        "frightened extra",
+        "Russian military uniform"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of Sasha, a strong 44-year-old Russian veteran serving the Hartmann family, plain travel livery, scar, disciplined stillness, transparent background.",
+    "promptBriefSha256": "6eb080b8f97208f930f361cd3b9d56b921f8dcbb06fabad8bd4416341365c4a6"
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "displayName": "Lotte Weber",
+    "assetKind": "character_sprite",
+    "productionTier": "T1_VN",
+    "runtimeLayout": "split",
+    "sourceFraming": "full_body",
+    "backgroundPolicy": "transparent",
+    "styleFamily": "painterly_semi_realistic_european_gothic_vn",
+    "portraitUrl": "/Characters/lotte_weber_portrait.png",
+    "sourcePortraitRefs": [
+      "/Characters/lotte_weber_portrait.png",
+      "/Characters/lotte_weber.png",
+      "/Characters/lotte_portrait.png"
+    ],
+    "expectedRootPath": "public/images/characters/sprites/lotte_weber",
+    "expectedMetaPath": "public/images/characters/sprites/lotte_weber/sprite.meta.json",
+    "requiredEmotions": [
+      "neutral",
+      "warm",
+      "tense",
+      "suspicious",
+      "hurt",
+      "commanding",
+      "dangerous"
+    ],
+    "optionalPoseVariants": [
+      "notebook_held",
+      "lean_forward",
+      "hand_to_receiver",
+      "bright_half_turn"
+    ],
+    "specialOverlays": ["switchboard_glow", "rain_specks"],
+    "renderingRules": [
+      "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      "Avoid harsh or choppy facial brush marks, muddy skin texture, soot-like grime, over-sharp makeup edges, and high-contrast patches that make the face look dirty or artificially aged."
+    ],
+    "layerTemplates": {
+      "bodyBase": "/images/characters/sprites/lotte_weber/body/body_base.png",
+      "faceBase": "/images/characters/sprites/lotte_weber/face/face_base.png",
+      "eyesByEmotion": "/images/characters/sprites/lotte_weber/face/eyes/{emotion}.png",
+      "browsByEmotion": "/images/characters/sprites/lotte_weber/face/brows/{emotion}.png",
+      "mouthByEmotion": "/images/characters/sprites/lotte_weber/face/mouth/{emotion}.png",
+      "overlayById": "/images/characters/sprites/lotte_weber/overlays/{overlay}.png"
+    },
+    "identity": {
+      "silhouette": "young energetic woman with compact professional posture and a quick forward lean",
+      "face": "pretty lively face, alert smile, eyes that notice too much",
+      "hair": "vivid red hair, tidy enough for work but visually bright",
+      "costume": "green 1900 business suit, telephone office respectability, no aristocratic luxury",
+      "palette": [
+        "telephone green",
+        "copper red",
+        "cream blouse",
+        "warm brass"
+      ],
+      "anchors": [
+        "joy as intelligence, not naivety",
+        "reporter energy hidden inside office manners",
+        "notebook or schedule logic may appear in pose variants"
+      ],
+      "forbiddenDrift": [
+        "pure comic relief",
+        "modern journalist outfit",
+        "anime schoolgirl",
+        "generic operator uniform"
+      ]
+    },
+    "promptBrief": "Full-body layered VN sprite of Lotte Weber, red-haired chief telephone operator and hidden journalist in a green business suit, lively but observant, transparent background.",
+    "promptBriefSha256": "1dbad896165b46e872195f670c16d9748ff3275b162a859bcdd5b7a2a72919e9"
+  }
+]

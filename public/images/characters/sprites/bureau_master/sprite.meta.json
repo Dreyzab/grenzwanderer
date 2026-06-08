@@ -1,0 +1,9 @@
+{
+  "characterId": "npc_bureau_master",
+  "displayName": "Bureau Master",
+  "assetStage": "body_base_clean_face_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "17dde0577cf86230aecab667baa87d56e4bfe7cb5b578cfc8a2dae78c61d78e0",
+  "notes": "Clean-face full-body VN sprite base. Facial layer variants are not produced yet."
+}

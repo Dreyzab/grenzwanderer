@@ -542,7 +542,8 @@ export const originProfiles: OriginProfileDefinition[] = [
       cityOrigin: "Karlsruhe (Hochadel)",
       quote:
         "The curse does not sleep. It waits — and the price of silence is paid in blood.",
-      avatarUrl: "/images/characters/witch_portrait/witch_portrait.png",
+      avatarUrl:
+        "/Characters/Eleonora/eleonora_mother_refined_1776592048672.png",
       accentColor: "#8B1A2B",
     },
   },

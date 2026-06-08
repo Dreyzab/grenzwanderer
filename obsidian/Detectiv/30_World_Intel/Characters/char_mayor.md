@@ -4,17 +4,17 @@ tags: [character, major]
 tier: major
 runtime_character_id: mayor
 faction: fct_council
-aliases: ["Otto Winterer II"]
+aliases: ["Otto Adlersheim"]
 ---
 
-# Otto Winterer II
+# Otto Adlersheim
 
 ## Dossier
 
 - **Role**: Political stabilizer limiting scandal spread.
 - **Age / Appearance**: 58, ceremonial formality, hidden stress.
 - **Archetype**: The Civic Balancer
-- **Origin**: City council executive
+- **Origin**: City council executive and patriarch of the Adlersheim family.
 
 ## Psyche Profile (Parliament Perception)
 
@@ -26,14 +26,22 @@ aliases: ["Otto Winterer II"]
 
 ## Secrets
 
-- **Surface**: Demands quiet resolution
-- **Hidden**: Has private banker correspondence
-- **Core**: Logic exposes evidence-limiting instruction
+- **Surface**: Demands quiet resolution.
+- **Hidden**: Has private banker correspondence and uses family access to keep Victoria's work deniable.
+- **Core**: Logic exposes evidence-limiting instruction.
+
+## Family
+
+Family bible: [[30_World_Intel/Families/family_adlersheim_sterling|Adlersheim-Sterling Family]].
+
+Otto loves Victoria, but his language for love is appointment, permit,
+restriction, and reputation. He opens doors for her only in forms the Rathaus can
+disown if the room turns hostile.
 
 ## Relationships
 
 - [[30_World_Intel/Characters/char_assistant|char_assistant]] - daughter; private scientific leverage and public vulnerability.
-- [[30_World_Intel/Characters/char_noble|char_noble]] - family pressure.
+- [[30_World_Intel/Characters/char_noble|char_noble]] - legacy/design-only family pressure shard.
 - [[30_World_Intel/Characters/char_inspector|char_inspector]] - key investigation axis.
 - Factions: [[00_Map_Room/MOC_Factions|MOC_Factions]]
 

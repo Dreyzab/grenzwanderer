@@ -1,0 +1,2645 @@
+[
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/detective/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "rain_specks",
+    "expectedImagePath": "public/images/characters/sprites/detective/overlays/rain_specks.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "detective",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "travel_dust",
+    "expectedImagePath": "public/images/characters/sprites/detective/overlays/travel_dust.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "chemical_gloves",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/overlays/chemical_gloves.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "postal_coat",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/overlays/postal_coat.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_albrecht_stoll",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "thermite_soot",
+    "expectedImagePath": "public/images/characters/sprites/albrecht_stoll/overlays/thermite_soot.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "postal_twine",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/overlays/postal_twine.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_anton_weber",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "rain_on_uniform",
+    "expectedImagePath": "public/images/characters/sprites/anton_weber/overlays/rain_on_uniform.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "bureau_gaslight",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/overlays/bureau_gaslight.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_bureau_master",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "crimson_relic_reflection",
+    "expectedImagePath": "public/images/characters/sprites/bureau_master/overlays/crimson_relic_reflection.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "ink_stains",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/overlays/ink_stains.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_emil_roth",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "wax_on_fingers",
+    "expectedImagePath": "public/images/characters/sprites/emil_roth/overlays/wax_on_fingers.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "rain_specks",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/overlays/rain_specks.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_felix_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "train_soot",
+    "expectedImagePath": "public/images/characters/sprites/felix_hartmann/overlays/train_soot.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "ledger_shadow",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/overlays/ledger_shadow.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_heinrich_galdermann",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "sweat_hairline",
+    "expectedImagePath": "public/images/characters/sprites/heinrich_galdermann/overlays/sweat_hairline.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "chalk_dust",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/overlays/chalk_dust.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_konrad_vossler",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "sulfur_on_cuffs",
+    "expectedImagePath": "public/images/characters/sprites/konrad_vossler/overlays/sulfur_on_cuffs.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "alley_blood",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/overlays/alley_blood.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_krebs_mugger",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "bruised_knuckles",
+    "expectedImagePath": "public/images/characters/sprites/krebs_mugger/overlays/bruised_knuckles.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "composed",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/composed.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "controlled_panic",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/controlled_panic.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "cracking",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/cracking.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hungry",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/hungry.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "predatory",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/predatory.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "softened",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/softened.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "composed",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/composed.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "controlled_panic",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/controlled_panic.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "cracking",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/cracking.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hungry",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/hungry.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "predatory",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/predatory.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "softened",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/softened.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "composed",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/composed.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "controlled_panic",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/controlled_panic.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "cracking",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/cracking.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hungry",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/hungry.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "predatory",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/predatory.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "softened",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/softened.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "hunger_flush",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/overlays/hunger_flush.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "occult_filter",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/overlays/occult_filter.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_mother_hartmann",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "wet_travel_cloak",
+    "expectedImagePath": "public/images/characters/sprites/eleonora_hartmann/overlays/wet_travel_cloak.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "coal_stains",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/overlays/coal_stains.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_rudi_kempf",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "registry_slash",
+    "expectedImagePath": "public/images/characters/sprites/rudi_kempf/overlays/registry_slash.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "rain_on_livery",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/overlays/rain_on_livery.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_sasha_hartmann_servant",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "wrapped_hand",
+    "expectedImagePath": "public/images/characters/sprites/sasha_hartmann_servant/overlays/wrapped_hand.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/brows/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/brows/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/brows/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/brows/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/brows/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/brows/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "brows",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/brows/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/eyes/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/eyes/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/eyes/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/eyes/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/eyes/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/eyes/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "eyes",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/eyes/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "face_base",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/face_base.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "commanding",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/mouth/commanding.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "dangerous",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/mouth/dangerous.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "hurt",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/mouth/hurt.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "neutral",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/mouth/neutral.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "suspicious",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/mouth/suspicious.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "tense",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/mouth/tense.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "mouth",
+    "emotion": "warm",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/face/mouth/warm.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "rain_specks",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/overlays/rain_specks.png",
+    "issues": ["missing_sprite_layer"]
+  },
+  {
+    "characterId": "npc_weber_dispatcher",
+    "assetKind": "character_sprite",
+    "layerKind": "overlay",
+    "overlay": "switchboard_glow",
+    "expectedImagePath": "public/images/characters/sprites/lotte_weber/overlays/switchboard_glow.png",
+    "issues": ["missing_sprite_layer"]
+  }
+]

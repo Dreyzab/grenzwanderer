@@ -24,8 +24,10 @@ import type {
   CommandPartyMember,
   CommandSession,
   CaseVersion,
+  ContentRating,
   ContentTranslation,
   ContentVersion,
+  DialogueRating,
   PlayerAgencyCareer,
   PlayerEvidence,
   PlayerFactionSignal,
@@ -70,6 +72,8 @@ type ViewDbAliases = {
   myVnSessions: BaseDbView["my_vn_sessions"];
   myVnSkillResults: BaseDbView["my_vn_skill_results"];
   myAiRequests: BaseDbView["my_ai_requests"];
+  myContentRatings: BaseDbView["my_content_ratings"];
+  myDialogueRatings: BaseDbView["my_dialogue_ratings"];
   workerAiRequests: BaseDbView["worker_ai_requests"];
   /** Alias for public `content_translation` table (no server view; avoids full-table view materialization on publish). */
   contentTranslations: BaseDbView["contentTranslation"];
@@ -110,6 +114,8 @@ const viewDbAliases: Readonly<Record<keyof ViewDbAliases, keyof BaseDbView>> = {
   myVnSessions: "my_vn_sessions",
   myVnSkillResults: "my_vn_skill_results",
   myAiRequests: "my_ai_requests",
+  myContentRatings: "my_content_ratings",
+  myDialogueRatings: "my_dialogue_ratings",
   workerAiRequests: "worker_ai_requests",
   contentTranslations: "contentTranslation",
   caseVersion: "caseVersion",
@@ -227,6 +233,8 @@ export const tables = {
   myVnSessions: queryTables.my_vn_sessions,
   myVnSkillResults: queryTables.my_vn_skill_results,
   myAiRequests: queryTables.my_ai_requests,
+  myContentRatings: queryTables.my_content_ratings,
+  myDialogueRatings: queryTables.my_dialogue_ratings,
   workerAiRequests: queryTables.worker_ai_requests,
   myMindCases: queryTables.my_mind_cases,
   myMindFacts: queryTables.my_mind_facts,
@@ -267,6 +275,8 @@ export const reducers = {
   closeBattleMode: generatedReducers.closeBattleMode,
   closeCommandMode: generatedReducers.closeCommandMode,
   commitMapDiscovery: generatedReducers.commitMapDiscovery,
+  deleteContentRating: generatedReducers.deleteContentRating,
+  deleteDialogueRating: generatedReducers.deleteDialogueRating,
   discoverFact: generatedReducers.discoverFact,
   endBattleTurn: generatedReducers.endBattleTurn,
   enqueueAiRequest: generatedReducers.enqueueAiRequest,
@@ -298,6 +308,8 @@ export const reducers = {
   unequipItem: generatedReducers.unequipItem,
   unlockGroup: generatedReducers.unlockGroup,
   updateTranslations: generatedReducers.updateTranslations,
+  upsertContentRating: generatedReducers.upsertContentRating,
+  upsertDialogueRating: generatedReducers.upsertDialogueRating,
   validateHypothesis: generatedReducers.validateHypothesis,
   verifyRumor: generatedReducers.verifyRumor,
 } as const;
@@ -354,8 +366,10 @@ export type {
   CommandPartyMember,
   CommandSession,
   CaseVersion,
+  ContentRating,
   ContentTranslation,
   ContentVersion,
+  DialogueRating,
   PlayerAgencyCareer,
   PlayerEvidence,
   PlayerFactionSignal,

@@ -382,6 +382,8 @@
       "startNodeId": "scene_case01_warehouse_entry",
       "nodeIds": [
         "scene_case01_warehouse_entry",
+        "scene_case01_sapper_flashback",
+        "scene_case01_warehouse_sapper",
         "scene_case01_warehouse_lawful",
         "scene_case01_warehouse_compromised"
       ],
@@ -3819,7 +3821,8 @@
             "svgPath": "M2000 300 H2360 V780 H2000 Z"
           }
         ]
-      }
+      },
+      "hubPresentation": "inline_panel"
     },
     {
       "id": "scene_case01_train_compartment_revisit",
@@ -6589,7 +6592,79 @@
       "body": "The warehouse smells of wet timber, ledger ink, and a job that expected to end before witnesses arrived. Galdermann is not alone, but he is the one who understands what the room means if you leave with the right papers.",
       "choices": [
         {
-          "id": "CASE01_WAREHOUSE_LAWFUL",
+          "id": "CASE01_WAREHOUSE_TRACE_SAPPER_OFFICIAL",
+          "text": "Hold the room under warrant and identify the trained hand behind the cut.",
+          "nextNodeId": "scene_case01_sapper_flashback",
+          "visibleIfAll": [
+            {
+              "type": "var_gte",
+              "key": "convergence_route",
+              "value": 1
+            },
+            {
+              "type": "var_lte",
+              "key": "convergence_route",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "CASE01_WAREHOUSE_TRACE_SAPPER_COVERT",
+          "text": "Keep the ledger quiet and identify the trained hand behind the cut.",
+          "nextNodeId": "scene_case01_sapper_flashback",
+          "visibleIfAll": [
+            {
+              "type": "var_gte",
+              "key": "convergence_route",
+              "value": 2
+            },
+            {
+              "type": "var_lte",
+              "key": "convergence_route",
+              "value": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene_case01_sapper_flashback",
+      "scenarioId": "case01_warehouse_finale",
+      "title": "Scene: The Clean Cut (Sapper Flashback)",
+      "body": "The memory comes to you the way evidence does — out of order, from the metal up. A gloved hand. Heavy, chemical-resistant, not the soft cotton a postman would wear. It sets a packed charge against the throat of a private deposit box with the unhurried care of a man laying a fu...",
+      "choices": [
+        {
+          "id": "CASE01_SAPPER_FLASHBACK_LOGIC",
+          "text": "(Logic) A daytime breach on that timetable needs a trained demolition hand.",
+          "nextNodeId": "scene_case01_warehouse_sapper"
+        },
+        {
+          "id": "CASE01_SAPPER_FLASHBACK_PERCEPTION",
+          "text": "(Perception) The slag ratio and the burned cuffs are the same signature.",
+          "nextNodeId": "scene_case01_warehouse_sapper"
+        }
+      ],
+      "onEnter": [
+        {
+          "type": "set_flag",
+          "key": "case01_sapper_profiled",
+          "value": true
+        },
+        {
+          "type": "set_flag",
+          "key": "false_trail_post_route_refuted",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "scene_case01_warehouse_sapper",
+      "scenarioId": "case01_warehouse_finale",
+      "title": "Scene: The Technical Guard (Warehouse)",
+      "body": "Galdermann is not alone. The second man does not look like a banker's hire — he stands the way a soldier stands when the room is a position to be held. Broad shoulders, a postman's coat that still fits him wrong, chemical-resistant gloves he has not bothered to take off. The s...",
+      "choices": [
+        {
+          "id": "CASE01_WAREHOUSE_SAPPER_LAWFUL",
           "text": "Seal the floor, call the warrant, and force a lawful close.",
           "nextNodeId": "scene_case01_warehouse_lawful",
           "visibleIfAll": [
@@ -6606,7 +6681,7 @@
           ]
         },
         {
-          "id": "CASE01_WAREHOUSE_COMPROMISE",
+          "id": "CASE01_WAREHOUSE_SAPPER_NEGOTIATE",
           "text": "Use the bureau ledger and force a compromised truth instead of a public one.",
           "nextNodeId": "scene_case01_warehouse_compromised",
           "visibleIfAll": [
@@ -16062,7 +16137,14 @@
           "svc_bureau_occult_protocol"
         ],
         "bio": {
-          "summary": "Occult supervisor of the Bureau. Grants sanctioned cover for field incidents — and rations the curse suppressant that keeps Witch agents standing."
+          "summary": "Occult supervisor of the Bureau. Grants sanctioned cover for field incidents — and rations the curse suppressant that keeps Witch agents standing.",
+          "stages": [
+            {
+              "revealFlag": "met_bureau_master_intro",
+              "heading": "The Bureau's Eye",
+              "text": "He receives you in the secret office beneath the HBF, offers the sanctioned suppressant, and treats discipline as the Bureau's standing answer to coven excess."
+            }
+          ]
         }
       },
       {
@@ -16078,7 +16160,14 @@
           "svc_sasha_service_corridors"
         ],
         "bio": {
-          "summary": "Hartmann household servant who knows every service corridor and how to settle a domestic crisis without a sound. Reads Eleonora's symptoms but not the occult truth behind them."
+          "summary": "Hartmann household servant who knows every service corridor and how to settle a domestic crisis without a sound. Reads Eleonora's symptoms but not the occult truth behind them.",
+          "stages": [
+            {
+              "revealFlag": "met_sasha_servant_intro",
+              "heading": "The Quiet Veteran",
+              "text": "The Hartmann household servant who moves the luggage and covers Eleonora's spells in public. An old scar and a soldier's bearing hint at a war he never speaks of."
+            }
+          ]
         }
       },
       {
@@ -16136,6 +16225,11 @@
               "revealFlag": "flag_witch_maid_bribed",
               "heading": "Bought Discretion",
               "text": "Bribed at the Adler, she keeps the staff quietly aligned: ruined clothing disappears and Felix hears no rumor at breakfast — for exactly as long as nothing forces her to choose between your coin and the police."
+            },
+            {
+              "revealFlag": "met_hotel_maid_intro",
+              "heading": "The Morning Maid",
+              "text": "She knocks the morning after the alley and reads the room for the price of discretion before she reads the dress for evidence."
             }
           ]
         }
@@ -16158,6 +16252,154 @@
               "revealFlag": "met_apothecary_intro",
               "heading": "The Distributor",
               "text": "Herr Weiss sells legal tonics across the counter and laboratory chemicals beneath it — magnesium, iron oxide, reagents, for the right buyer."
+            }
+          ]
+        }
+      },
+      {
+        "id": "npc_heinrich_galdermann",
+        "displayName": "Heinrich Galdermann",
+        "factionId": "house_of_pledges",
+        "publicRole": "Prokurist, Bankhaus Krebs",
+        "rosterTier": "major",
+        "portraitUrl": "/images/characters/heinrich_galdermann/heinrich_galdermann.webp",
+        "introFlag": "met_galdermann",
+        "workPointId": "loc_freiburg_bank",
+        "serviceIds": [
+          "svc_galdermann_signature_chain"
+        ],
+        "bio": {
+          "summary": "Respectable culprit of Bankhaus Krebs: a broad, polished Prokurist whose smile feels notarized and whose panic hides under a damp handkerchief.",
+          "stages": [
+            {
+              "revealFlag": "clue_galdermann_preseed_confirmed",
+              "heading": "The Pen, Not the Crowbar",
+              "text": "Galdermann did not kill, burn, or steal by hand. He signed. The horror of his crime is procedural: liquidity moved through ink, the robbery became cover, and the official report keeps sliding over the grossbuch like a napkin over broken porcelain."
+            },
+            {
+              "revealFlag": "freiburg_finale_open",
+              "heading": "Half-Truth Bargain",
+              "text": "When cornered he can break into confession or bargain with half the truth. He can name the signature chain, the warehouse, and the paid hands, but the superior will behind the operation remains outside the room."
+            }
+          ]
+        }
+      },
+      {
+        "id": "npc_albrecht_stoll",
+        "displayName": "Oberleutnant Albrecht Stoll",
+        "factionId": "city_chancellery",
+        "publicRole": "Serving pioneer officer",
+        "rosterTier": "major",
+        "portraitUrl": "/images/characters/albrecht_stoll/albrecht_stoll.webp",
+        "introFlag": "case01_sapper_profiled",
+        "workPointId": "loc_freiburg_warehouse",
+        "serviceIds": [
+          "svc_stoll_breach_math"
+        ],
+        "bio": {
+          "summary": "The Sapper: a serving engineer officer whose discipline turns theft into an equation and whose postal coat cannot quite hide the uniform beneath.",
+          "stages": [
+            {
+              "revealFlag": "false_trail_post_route_refuted",
+              "heading": "Uniform Leaking Through",
+              "text": "His forged dispatch works because it borrows real authority. The postal disguise fits badly at the shoulders; the officer's body refuses to pretend it is only a postman's coat."
+            },
+            {
+              "revealFlag": "case02_hook_university_network",
+              "heading": "The Command He Will Not Name",
+              "text": "Stoll denies being a thief, not the thermite. He sleeps because the cut was clean, and he obeys an unnamed former commander with reflexive respect even under pressure."
+            }
+          ]
+        }
+      },
+      {
+        "id": "npc_emil_roth",
+        "displayName": "Emil Roth",
+        "factionId": "masters_union",
+        "publicRole": "Book restorer",
+        "rosterTier": "functional",
+        "portraitUrl": "/images/characters/emil_roth/emil_roth.webp",
+        "introFlag": "false_trail_grimoire_refuted",
+        "workPointId": "loc_munster",
+        "serviceIds": [
+          "svc_roth_binding_measurements"
+        ],
+        "bio": {
+          "summary": "Restorer-scout with ink and wax on thin fingers. He did not hold the knife, but he measured the sheath so precisely that the blade found its way.",
+          "stages": [
+            {
+              "revealFlag": "false_trail_grimoire_refuted",
+              "heading": "Technical Reverence",
+              "text": "Roth gave the Architect the weight, thickness, and binding measurements of Razlom. He thought he was speaking to greatness; he was giving a surgeon the cut line."
+            }
+          ]
+        }
+      },
+      {
+        "id": "npc_anton_weber",
+        "displayName": "Anton Weber",
+        "factionId": "city_chancellery",
+        "publicRole": "Reichspost route clerk",
+        "rosterTier": "functional",
+        "portraitUrl": "/images/characters/anton_weber/anton_weber.webp",
+        "introFlag": "false_trail_post_route_refuted",
+        "workPointId": "loc_hbf",
+        "serviceIds": [
+          "svc_weber_post_route"
+        ],
+        "bio": {
+          "summary": "Postman whose real route was bent by a forged military order. His black-yellow twine became the professional signature that framed the wrong people.",
+          "stages": [
+            {
+              "revealFlag": "false_trail_post_route_refuted",
+              "heading": "Bent Route",
+              "text": "Weber's guilt is obedience under official pressure. He did not design the theft; he supplied movement, timing, and a postal craft mark that became evidence against everyone else."
+            }
+          ]
+        }
+      },
+      {
+        "id": "npc_rudi_kempf",
+        "displayName": "Rudi Kempf",
+        "factionId": "city_network",
+        "publicRole": "Rail yard worker",
+        "rosterTier": "functional",
+        "portraitUrl": "/images/characters/rudi_kempf/rudi_kempf.webp",
+        "introFlag": "false_trail_workers_refuted",
+        "workPointId": "loc_workers_pub",
+        "serviceIds": [
+          "svc_rudi_protest_noise"
+        ],
+        "bio": {
+          "summary": "Worker whose protest made the square loud enough to hide a surgical breach. He thinks he was only fighting the bank; the bank used his anger as weather.",
+          "stages": [
+            {
+              "revealFlag": "false_trail_workers_refuted",
+              "heading": "Noise, Not Poison",
+              "text": "Rudi is a cover victim with a temper, not the vault mind. His shouted timing and crowd rhythm made witnesses useless while the thermite did its quiet work."
+            }
+          ]
+        }
+      },
+      {
+        "id": "npc_konrad_vossler",
+        "displayName": "Konrad Vossler",
+        "factionId": "college_of_reason",
+        "publicRole": "Chemistry teacher",
+        "rosterTier": "functional",
+        "portraitUrl": "/images/characters/konrad_vossler/konrad_vossler.webp",
+        "introFlag": "case02_hook_university_network",
+        "workPointId": "loc_uni_chem",
+        "serviceIds": [
+          "svc_vossler_demolition_mirror"
+        ],
+        "bio": {
+          "summary": "Former pioneer from the same demolition school as Stoll, now a chemistry teacher. He is not an accomplice; he is the path Stoll might have taken after one refusal.",
+          "stages": [
+            {
+              "revealFlag": "case02_hook_university_network",
+              "heading": "Dead Registry Mirror",
+              "text": "Sulfur on his cuffs and a voice that cuts off too quickly make him look guilty at first glance. The point is sharper: Vossler is evidence that training does not force obedience forever."
             }
           ]
         }
@@ -16280,6 +16522,66 @@
         "unlockFlag": "flag_witch_maid_bribed",
         "qualityNote": "Quiet back-channel through hotel staff: laundry vanishes, room logs stay clean, and Felix hears no rumor at breakfast.",
         "consequenceNote": "Discretion lasts as long as nothing forces the maid to choose between her bribe and the police."
+      },
+      {
+        "id": "svc_galdermann_signature_chain",
+        "npcId": "npc_heinrich_galdermann",
+        "role": "archives",
+        "label": "Signature Chain",
+        "baseAccess": "Available after Galdermann has been met and the bank ledger route is active.",
+        "unlockFlag": "met_galdermann",
+        "qualityNote": "Connects missing liquidity, sealed statements, and authority to move money without a crowbar.",
+        "consequenceNote": "Pressure makes Galdermann choose between confession and half-truth; either way the higher name remains protected."
+      },
+      {
+        "id": "svc_stoll_breach_math",
+        "npcId": "npc_albrecht_stoll",
+        "role": "information",
+        "label": "Breach Mathematics",
+        "baseAccess": "Available only after the thermite, forged dispatch, and post-route anomalies converge into the Sapper profile.",
+        "unlockFlag": "case01_sapper_profiled",
+        "qualityNote": "Explains how one private box was burned open while the building remained standing.",
+        "consequenceNote": "Stoll may trade the shape of the Architect for a quiet exit, but reflexive command loyalty blocks the name."
+      },
+      {
+        "id": "svc_roth_binding_measurements",
+        "npcId": "npc_emil_roth",
+        "role": "information",
+        "label": "Binding Measurements",
+        "baseAccess": "Available once Roth's grimoire lead is refuted as motive rather than theft.",
+        "unlockFlag": "false_trail_grimoire_refuted",
+        "qualityNote": "Supplies Razlom's weight, thickness, and binding geometry: the missing target data behind the surgical burn.",
+        "consequenceNote": "Over-accusing Roth turns a frightened craftsman into noise and can obscure the Architect's technical interest."
+      },
+      {
+        "id": "svc_weber_post_route",
+        "npcId": "npc_anton_weber",
+        "role": "transport",
+        "label": "Bent Postal Route",
+        "baseAccess": "Available after Weber's route statement is taken apart without making him the thief.",
+        "unlockFlag": "false_trail_post_route_refuted",
+        "qualityNote": "Shows how a real Reichspost route and black-yellow twine became the physical screen for the theft.",
+        "consequenceNote": "Publicly breaking Weber damages civic cooperation while leaving the forged military order's author untouched."
+      },
+      {
+        "id": "svc_rudi_protest_noise",
+        "npcId": "npc_rudi_kempf",
+        "role": "information",
+        "label": "Protest Noise",
+        "baseAccess": "Available after the workers' false trail is separated from the vault breach.",
+        "unlockFlag": "false_trail_workers_refuted",
+        "qualityNote": "Separates crowd noise and labor anger from the thermite operation's technical precision.",
+        "consequenceNote": "Treating Rudi as the core culprit turns a cover victim into a scapegoat and lets the bank story stay neat."
+      },
+      {
+        "id": "svc_vossler_demolition_mirror",
+        "npcId": "npc_konrad_vossler",
+        "role": "information",
+        "label": "Demolition School Mirror",
+        "baseAccess": "Case02 hook only: available once the university network thread survives Case01.",
+        "unlockFlag": "case02_hook_university_network",
+        "qualityNote": "Contrasts Stoll's obedience with a former pioneer who left demolition for chemistry teaching.",
+        "consequenceNote": "Misreading Vossler as an accomplice muddies the Architect line and repeats the false-trail pattern."
       }
     ],
     "rumors": [
@@ -16314,6 +16616,43 @@
         "verifiesOn": [
           "flag_set"
         ]
+      },
+      {
+        "id": "rumor_galdermann_signature_pressure",
+        "title": "The Signature That Moved Before the Theft",
+        "caseId": "quest_banker",
+        "leadPointId": "loc_freiburg_bank",
+        "sourceNpcId": "npc_heinrich_galdermann",
+        "verifiesOn": [
+          "evidence",
+          "flag_set"
+        ],
+        "careerCriterionOnVerify": "clean_closure"
+      },
+      {
+        "id": "rumor_sapper_clean_cut",
+        "title": "Not a Thief, an Engineer",
+        "caseId": "quest_banker",
+        "leadPointId": "loc_freiburg_warehouse",
+        "sourceNpcId": "npc_albrecht_stoll",
+        "verifiesOn": [
+          "evidence",
+          "fact"
+        ],
+        "careerCriterionOnVerify": "university_contact_established"
+      },
+      {
+        "id": "rumor_architect_absent_shape",
+        "title": "The Architect's Missing Face",
+        "caseId": "quest_banker",
+        "leadPointId": "loc_uni_chem",
+        "sourceType": "environment",
+        "subject": "The Architect",
+        "locationHint": "A former command relation, a grimoire target, and false trails too clean for a mere thief.",
+        "verifiesOn": [
+          "flag_set"
+        ],
+        "careerCriterionOnVerify": "university_contact_established"
       }
     ],
     "careerRanks": [
@@ -16368,5 +16707,5 @@
       }
     ]
   },
-  "checksum": "a370fa0a52588432f2453787da038f87c64ee9cb72c4d3be236a313311b7257a"
+  "checksum": "8ee886788f85ae296680afafdfc2399a85dadbec380018b7c035f8c20efee30e"
 }

@@ -26,7 +26,7 @@
 
 .gw-map-header {
   position: absolute;
-  top: 1rem;
+  top: 4.15rem;
   left: 1rem;
   z-index: 5;
   pointer-events: none;
@@ -227,6 +227,46 @@
   overflow: hidden;
   min-height: calc(100dvh - env(safe-area-inset-bottom) - 4rem);
   background: #15100d;
+}
+
+.gw-map-mode-switch {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  z-index: 9;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(5.6rem, 1fr));
+  gap: 0.35rem;
+  width: min(14rem, calc(100% - 2rem));
+  padding: 0.28rem;
+  border: 1px solid rgba(255, 245, 214, 0.16);
+  border-radius: 0.5rem;
+  background: rgba(12, 9, 7, 0.82);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
+  transform: translateX(-50%);
+  backdrop-filter: blur(10px);
+}
+
+.gw-map-mode-switch button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: rgba(248, 238, 215, 0.74);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+}
+
+.gw-map-mode-switch button:hover,
+.gw-map-mode-switch button[data-active="true"] {
+  border-color: rgba(242, 208, 136, 0.36);
+  background: rgba(54, 36, 20, 0.86);
+  color: #fff4d9;
 }
 
 .gw-map-inline-note,
@@ -1719,7 +1759,7 @@
 
 @media (max-width: 720px) {
   .gw-map-header {
-    top: 0.85rem;
+    top: 4.05rem;
     left: 0.85rem;
   }
 

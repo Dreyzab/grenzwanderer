@@ -553,20 +553,45 @@ try {
   );
 
   const warehouseEntry = findNode(snapshot, "scene_case01_warehouse_entry");
-  const lawfulChoice = warehouseEntry.choices.find(
-    (choice) => choice.id === "CASE01_WAREHOUSE_LAWFUL",
+  const officialTraceChoice = warehouseEntry.choices.find(
+    (choice) => choice.id === "CASE01_WAREHOUSE_TRACE_SAPPER_OFFICIAL",
   );
-  const compromisedChoice = warehouseEntry.choices.find(
-    (choice) => choice.id === "CASE01_WAREHOUSE_COMPROMISE",
+  const covertTraceChoice = warehouseEntry.choices.find(
+    (choice) => choice.id === "CASE01_WAREHOUSE_TRACE_SAPPER_COVERT",
+  );
+
+  assert(
+    hasVisibleRoute(officialTraceChoice, CASE01_ROUTE_VALUE_OFFICIAL),
+    "Warehouse official trace choice must be gated by the official route value",
+  );
+  assert(
+    hasVisibleRoute(covertTraceChoice, CASE01_ROUTE_VALUE_COVERT),
+    "Warehouse covert trace choice must be gated by the covert route value",
+  );
+  assert(
+    officialTraceChoice?.nextNodeId === "scene_case01_sapper_flashback",
+    "Official warehouse trace must lead into the sapper flashback",
+  );
+  assert(
+    covertTraceChoice?.nextNodeId === "scene_case01_sapper_flashback",
+    "Covert warehouse trace must lead into the sapper flashback",
+  );
+
+  const warehouseSapper = findNode(snapshot, "scene_case01_warehouse_sapper");
+  const lawfulChoice = warehouseSapper.choices.find(
+    (choice) => choice.id === "CASE01_WAREHOUSE_SAPPER_LAWFUL",
+  );
+  const compromisedChoice = warehouseSapper.choices.find(
+    (choice) => choice.id === "CASE01_WAREHOUSE_SAPPER_NEGOTIATE",
   );
 
   assert(
     hasVisibleRoute(lawfulChoice, CASE01_ROUTE_VALUE_OFFICIAL),
-    "Warehouse lawful choice must be gated by the official route value",
+    "Warehouse sapper lawful choice must be gated by the official route value",
   );
   assert(
     hasVisibleRoute(compromisedChoice, CASE01_ROUTE_VALUE_COVERT),
-    "Warehouse compromised choice must be gated by the covert route value",
+    "Warehouse sapper compromised choice must be gated by the covert route value",
   );
   assert(
     hasEffect(findNode(snapshot, "scene_case01_warehouse_lawful").onEnter, {

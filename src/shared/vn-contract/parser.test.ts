@@ -247,6 +247,36 @@ describe("VN Snapshot Parser — hub nodes", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("accepts hub nodes with an explicit hubPresentation", () => {
+    for (const presentation of ["overlay", "inline_panel"]) {
+      const result = parseVnSnapshotPayload(
+        JSON.stringify(buildFixture({ hubPresentation: presentation })),
+      );
+      expect(result.ok, `hubPresentation=${presentation}`).toBe(true);
+    }
+  });
+
+  it("rejects an unknown hubPresentation value", () => {
+    const result = parseVnSnapshotPayload(
+      JSON.stringify(buildFixture({ hubPresentation: "sidebar" })),
+    );
+    expect(result.ok).toBe(false);
+  });
+
+  it("rejects hubPresentation on a non-hub node", () => {
+    const result = parseVnSnapshotPayload(
+      JSON.stringify(
+        buildFixture({
+          interactionMode: "standard",
+          hubSchema: undefined,
+          choices: [],
+          hubPresentation: "inline_panel",
+        }),
+      ),
+    );
+    expect(result.ok).toBe(false);
+  });
+
   it("rejects hub nodes with a malformed viewBox", () => {
     const result = parseVnSnapshotPayload(
       JSON.stringify(

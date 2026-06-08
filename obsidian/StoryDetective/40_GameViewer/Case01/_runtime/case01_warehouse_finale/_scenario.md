@@ -4,6 +4,8 @@ title: "Case 01: Warehouse Finale"
 start_node_id: scene_case01_warehouse_entry
 scene_order:
   - scene_case01_warehouse_entry
+  - scene_case01_sapper_flashback
+  - scene_case01_warehouse_sapper
   - scene_case01_warehouse_lawful
   - scene_case01_warehouse_compromised
 mode: fullscreen

@@ -6,9 +6,9 @@
 
 ## Summary
 
-- Char notes scanned: 76
-- With runtime_character_id: 62
-- Findings: 0 error, 1 warn, 53 info
+- Char notes scanned: 81
+- With runtime_character_id: 74
+- Findings: 0 error, 2 warn, 46 info
 
 ## Duplicate runtime id (same vault) — ambiguous (1)
 
@@ -22,6 +22,12 @@
 | -------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | info     | victoria_sterling | runtime_character_id 'victoria_sterling' has a design + runtime dossier across vaults (intended split): obsidian/Detectiv/30_World_Intel/Characters/char_assistant.md, obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_assistant.md. |
 
+## Unresolved runtime_character_id — design-only or drift (1)
+
+| Severity | Subject                                                                            | Detail                                                                                                                                                  |
+| -------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| warn     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_case01_architect.md | npc_identity 'none' / runtime_character_id 'npc_architect' does not resolve to any runtime registry (socialCatalog / location cast / character assets). |
+
 ## Dossier in both vaults (intended design/runtime split) (6)
 
 | Severity | Subject              | Detail                                                                                                                                                                                                                                           |
@@ -33,24 +39,17 @@
 | info     | char_pub_owner       | Dossier 'char_pub_owner' has copies across vaults (intended design/runtime split): obsidian/Detectiv/30_World_Intel/Characters/char_pub_owner.md, obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_pub_owner.md.                   |
 | info     | char_tailor_master   | Dossier 'char_tailor_master' has copies across vaults (intended design/runtime split): obsidian/Detectiv/30_World_Intel/Characters/char_tailor_master.md, obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_tailor_master.md.       |
 
-## No runtime binding (design/archetype note) (14)
+## No runtime binding (design/archetype note) (7)
 
-| Severity | Subject                                                                                         | Detail                                                                                                                                      |
-| -------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_apothecary.md                    | Design/archetype note 'char_apothecary' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.                    |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_baroness_elise.md                | Design/archetype note 'npc_baroness_elise' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.                 |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_case01_bureau_master.md          | Design/archetype note 'char_case01_bureau_master' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.          |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_case01_hotel_maid.md             | Design/archetype note 'char_case01_hotel_maid' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.             |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_case01_krebs_mugger.md           | Design/archetype note 'char_case01_krebs_mugger' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.           |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_case01_postman_weber.md          | Design/archetype note 'char_case01_postman_weber' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.          |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_case01_restorer_roth.md          | Design/archetype note 'char_case01_restorer_roth' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.          |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_case01_sasha_hartmann_servant.md | Design/archetype note 'char_case01_sasha_hartmann_servant' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime. |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_case01_worker_rudi.md            | Design/archetype note 'char_case01_worker_rudi' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.            |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_clara_altenburg.md               | Design/archetype note 'char_clara_altenburg' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.               |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_fritz_muller.md                  | Design/archetype note 'char_fritz_muller' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.                  |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_pub_owner.md                     | Design/archetype note 'char_pub_owner' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.                     |
-| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_tailor_master.md                 | Design/archetype note 'char_tailor_master' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.                 |
-| info     | obsidian/StoryDetective/40_GameViewer/Sandbox_KA/00_Global/char_partner.md                      | Design/archetype note 'char_partner' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.                       |
+| Severity | Subject                                                                           | Detail                                                                                                                        |
+| -------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_apothecary.md      | Design/archetype note 'char_apothecary' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.      |
+| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_baroness_elise.md  | Design/archetype note 'npc_baroness_elise' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.   |
+| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_clara_altenburg.md | Design/archetype note 'char_clara_altenburg' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime. |
+| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_fritz_muller.md    | Design/archetype note 'char_fritz_muller' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.    |
+| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_pub_owner.md       | Design/archetype note 'char_pub_owner' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.       |
+| info     | obsidian/StoryDetective/40_GameViewer/Case01/\_Characters/char_tailor_master.md   | Design/archetype note 'char_tailor_master' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.   |
+| info     | obsidian/StoryDetective/40_GameViewer/Sandbox_KA/00_Global/char_partner.md        | Design/archetype note 'char_partner' has neither runtime_character_id nor npc_identity; cannot be bridged to runtime.         |
 
 ## Design-only archetype (intentionally unbound) (32)
 

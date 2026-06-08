@@ -1,0 +1,9 @@
+{
+  "characterId": "npc_albrecht_stoll",
+  "displayName": "Oberleutnant Albrecht Stoll",
+  "assetStage": "body_base_casefile_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "b4ece33b419fd1b5270efb265ba5de5270c3c26b7b947dca072b09cd7e09aa9e",
+  "notes": "Sapper sprite: disciplined pioneer officer with chemical gloves, controlled posture, thermite residue implied. Facial layer variants are not produced yet."
+}

@@ -141,6 +141,13 @@ export const NPC_ROSTER: readonly NpcRosterEntry[] = [
   { id: "npc_anna_mahler", name: "Анна Малер" },
   { id: "npc_major_falk", name: "Майор Фальк" },
   { id: "npc_kessler_banker", name: "Банкир Кесслер" },
+  { id: "npc_heinrich_galdermann", name: "Heinrich Galdermann" },
+  { id: "npc_albrecht_stoll", name: "Oberleutnant Albrecht Stoll" },
+  { id: "npc_emil_roth", name: "Emil Roth" },
+  { id: "npc_anton_weber", name: "Anton Weber" },
+  { id: "npc_rudi_kempf", name: "Rudi Kempf" },
+  { id: "npc_krebs_mugger", name: "Krebs Mugger" },
+  { id: "npc_konrad_vossler", name: "Konrad Vossler" },
 ];
 
 const BACKGROUND_BY_ID = new Map(

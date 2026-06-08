@@ -1106,6 +1106,7 @@ export const arrivalNodes: NodeBlueprint[] = [
     backgroundUrl: CASE01_TRAIN_COMPARTMENT_BG,
     narrativeLayout: "log",
     interactionMode: "hub",
+    hubPresentation: "inline_panel",
     sceneGroupId: "train_corridor",
     hubSchema: trainHubSchema,
     choices: [

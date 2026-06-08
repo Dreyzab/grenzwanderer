@@ -1,7 +1,7 @@
 import { useToast, type ToastType } from "../hooks/useToast";
 
 const typeStyles: Record<ToastType, string> = {
-  fact: "border-amber-500/60 bg-amber-950/90 text-amber-100",
+  fact: "border-ember-500/60 bg-ember-950/90 text-ember-100",
   reward: "border-emerald-500/60 bg-emerald-950/90 text-emerald-100",
   info: "border-stone-500/60 bg-stone-900/90 text-stone-200",
 };

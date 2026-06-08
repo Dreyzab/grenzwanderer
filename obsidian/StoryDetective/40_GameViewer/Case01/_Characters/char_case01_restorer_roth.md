@@ -4,25 +4,36 @@ node_type: character
 case: case01
 phase: false_trail
 status: active
+runtime_character_id: npc_emil_roth
+npc_identity: npc_emil_roth
 tags:
   - type/character
+  - role/false_trail
+  - faction/masters_union
 ---
 
-# Roth (Book Restorer)
+# Emil Roth
 
-![Roth Portrait](file:///C:/Users/lol/.gemini/antigravity/brain/023ef4ac-9c35-4e66-b765-9642a676aeff/char_case01_restorer_roth_portrait_1778177922699.png)
+![Portrait](/images/characters/emil_roth/emil_roth.webp)
 
-
-**Role**: Occult Book Restorer
-**Affiliation**: Munsterplatz Guild
+**Runtime id**: `npc_emil_roth`
+**Role**: Book restorer / target-data scout
+**Affiliation**: Munsterplatz craft circle
+**Roster tier**: functional
 
 ## Profile
 
-- An elderly, scholarly man with ink-stained fingers and thick spectacles.
-- Obsessed with the preservation of "lost" knowledge.
-- Leaked the location of the *Grimoire of the Shattered Boundary* (Razlom) under pressure from a "technical" investigator.
-- Unwittingly provided the motive and target data for the Architect's heist.
+- Thin fingers of a man who has spent his life repairing other people's treasures.
+- Ink and wax on the hands; reverence in the voice when he says "the Architect's order."
+- Measured Razlom too well: dimensions, weight, binding thickness, and handling tolerances.
+- He thought he was touching greatness. He was touching a knife.
 
-## Appearances
+## Investigation Function
 
-- [[40_GameViewer/Case01/_runtime/case01_false_trail_grimoire/scene_case01_grimoire_roth|📚 Grimoire Lead: Roth]]
+- False center: noisy, frightened, and morally implicated, but not the hand that burned the box.
+- Provides the technical data that lets Stoll cut with surgical precision.
+- His confession should redirect the player from occult panic to engineering intent.
+
+## Player Dossier
+
+- (reveal: `false_trail_grimoire_refuted`) **Technical Reverence**: Roth did not steal Razlom; he told someone exactly how it could be stolen.

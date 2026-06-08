@@ -1,0 +1,11 @@
+{
+  "characterId": "victoria_sterling",
+  "displayName": "Viktoria Sterling",
+  "assetStage": "body_base_v1",
+  "generatedAt": "2026-06-07",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "d3ffe54126a675cf3a09ff0c1f7fb8a914072f24c6f3c07531799a28905ea8f9",
+  "bodyBase": "/Characters/Viktoria/body/body_base.png",
+  "chromaSource": "/Characters/Viktoria/body/body_base_chromakey.png",
+  "notes": "Full-body production sprite generated to match the public/images/characters/sprites body-base style and format. Mirrored under /images/characters/sprites/viktoria_sterling for standard VN sprite runtime usage."
+}

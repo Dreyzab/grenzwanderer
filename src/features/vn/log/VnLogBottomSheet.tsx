@@ -331,7 +331,7 @@ export function VnLogBottomSheet({
           </motion.button>
         </div>
 
-        <div className="h-[2px] shrink-0 bg-linear-to-r from-transparent via-amber-600/80 to-transparent" />
+        <div className="h-[2px] shrink-0 bg-linear-to-r from-transparent via-ember-600/80 to-transparent" />
         <div className="min-h-0 flex-1 overflow-hidden">
           <VnNarrativeLog
             state={state}
@@ -351,7 +351,7 @@ export function VnLogBottomSheet({
 
         {hasPendingAdvance ? (
           <motion.div
-            className="pointer-events-none absolute right-4 bottom-3 z-10 text-amber-400/85 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
+            className="pointer-events-none absolute right-4 bottom-3 z-10 text-ember-400/85 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
             aria-hidden="true"
             animate={{ opacity: [0.25, 1, 0.25], x: [0, 2, 0] }}
             transition={{ duration: 1.1, ease: "easeInOut", repeat: Infinity }}

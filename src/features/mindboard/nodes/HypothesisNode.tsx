@@ -9,7 +9,7 @@ export function HypothesisNode({
     <div
       className={`relative p-5 w-64 border-l-8 shadow-2xl flex flex-col transition-colors ${
         data.validated
-          ? "bg-amber-950/90 border-amber-500 text-amber-100"
+          ? "bg-ember-950/90 border-ember-500 text-ember-100"
           : "bg-red-950/90 border-red-600 text-red-100"
       }`}
     >

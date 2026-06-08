@@ -4,6 +4,12 @@ import path from "node:path";
 import { repoRoot } from "../content-authoring-contract";
 import { CASE_01_POINTS, type Case01PointSource } from "./case_01_points";
 import { GENERATED_STATIC_FREIBURG_CASE01_POINTS } from "../../src/features/map/data/generated-static-points";
+import {
+  CHARACTER_SPRITE_PLANS,
+  getRequiredCharacterSpriteAssets,
+  type CharacterSpriteLayerKind,
+  type CharacterSpritePlan,
+} from "../../src/features/vn/characterSprites";
 
 export type FreiburgRuntimeDistrict =
   | "altstadt"
@@ -139,6 +145,40 @@ export interface Case01VnSceneBackgroundMissingEntry {
   issues: string[];
 }
 
+export interface Case01CharacterSpriteManifestEntry {
+  characterId: string;
+  displayName: string;
+  assetKind: "character_sprite";
+  productionTier: CharacterSpritePlan["productionTier"];
+  runtimeLayout: CharacterSpritePlan["runtimeLayout"];
+  sourceFraming: CharacterSpritePlan["sourceFraming"];
+  backgroundPolicy: CharacterSpritePlan["backgroundPolicy"];
+  styleFamily: CharacterSpritePlan["styleFamily"];
+  portraitUrl: string;
+  sourcePortraitRefs: string[];
+  expectedRootPath: string;
+  expectedMetaPath: string;
+  requiredEmotions: string[];
+  optionalPoseVariants: string[];
+  specialOverlays: string[];
+  renderingRules: string[];
+  layerTemplates: CharacterSpritePlan["layerTemplates"];
+  identity: CharacterSpritePlan["identity"];
+  promptBrief: string;
+  promptBriefSha256: string;
+}
+
+export interface Case01CharacterSpriteMissingEntry {
+  characterId: string;
+  assetKind: "character_sprite";
+  layerKind: CharacterSpriteLayerKind | "manifest_meta";
+  emotion?: string;
+  overlay?: string;
+  expectedImagePath?: string;
+  expectedMetaPath?: string;
+  issues: string[];
+}
+
 export interface Case01VnSceneBackgroundFileProbe {
   existsSync: (absolutePath: string) => boolean;
   readFileSync: (absolutePath: string) => string;
@@ -168,6 +208,14 @@ export const VN_SCENE_BACKGROUND_MANIFEST_OUTPUT_PATH = path.join(
 export const VN_SCENE_BACKGROUND_MISSING_OUTPUT_PATH = path.join(
   VISUAL_OUTPUT_DIR,
   "freiburg-case01.vn-scene-bg.missing.json",
+);
+export const CHARACTER_SPRITE_MANIFEST_OUTPUT_PATH = path.join(
+  VISUAL_OUTPUT_DIR,
+  "freiburg-case01.character-sprites.manifest.json",
+);
+export const CHARACTER_SPRITE_MISSING_OUTPUT_PATH = path.join(
+  VISUAL_OUTPUT_DIR,
+  "freiburg-case01.character-sprites.missing.json",
 );
 
 export const UNIVERSITY_NEOGOTHIC_PILOT_LOCATION_IDS = [
@@ -479,6 +527,11 @@ const locationIdsFromPoints = (
 
 const toRepoRelativePath = (absolutePath: string): string =>
   path.relative(repoRoot, absolutePath).replaceAll("\\", "/");
+
+const runtimeAssetPathToRepoRelativePath = (runtimePath: string): string =>
+  runtimePath.startsWith("/")
+    ? `public${runtimePath}`
+    : `public/${runtimePath}`;
 
 const sha256 = (value: string): string =>
   createHash("sha256").update(value, "utf8").digest("hex");
@@ -1119,3 +1172,130 @@ export const buildCase01VnSceneBackgroundMissingReport = (
     .sort((left, right) =>
       left.sceneBackgroundId.localeCompare(right.sceneBackgroundId),
     );
+
+export const buildCase01CharacterSpriteManifest =
+  (): Case01CharacterSpriteManifestEntry[] =>
+    [...CHARACTER_SPRITE_PLANS]
+      .map((plan): Case01CharacterSpriteManifestEntry => ({
+        characterId: plan.characterId,
+        displayName: plan.displayName,
+        assetKind: "character_sprite",
+        productionTier: plan.productionTier,
+        runtimeLayout: plan.runtimeLayout,
+        sourceFraming: plan.sourceFraming,
+        backgroundPolicy: plan.backgroundPolicy,
+        styleFamily: plan.styleFamily,
+        portraitUrl: plan.portraitUrl,
+        sourcePortraitRefs: [...plan.sourcePortraitRefs],
+        expectedRootPath: runtimeAssetPathToRepoRelativePath(
+          plan.rootRuntimePath,
+        ),
+        expectedMetaPath: runtimeAssetPathToRepoRelativePath(
+          `${plan.rootRuntimePath}/sprite.meta.json`,
+        ),
+        requiredEmotions: [...plan.requiredEmotions],
+        optionalPoseVariants: [...plan.optionalPoseVariants],
+        specialOverlays: [...plan.specialOverlays],
+        renderingRules: [...plan.renderingRules],
+        layerTemplates: plan.layerTemplates,
+        identity: plan.identity,
+        promptBrief: plan.promptBrief,
+        promptBriefSha256: sha256(plan.promptBrief),
+      }))
+      .sort((left, right) => left.characterId.localeCompare(right.characterId));
+
+export const buildCase01CharacterSpriteMissingReport = (
+  manifest: readonly Case01CharacterSpriteManifestEntry[] =
+    buildCase01CharacterSpriteManifest(),
+  plans: readonly CharacterSpritePlan[] = CHARACTER_SPRITE_PLANS,
+  probe: Case01VnSceneBackgroundFileProbe = {
+    existsSync,
+    readFileSync: (absolutePath) => readFileSync(absolutePath, "utf8"),
+  },
+): Case01CharacterSpriteMissingEntry[] => {
+  const manifestByCharacterId = new Map(
+    manifest.map((entry) => [entry.characterId, entry]),
+  );
+
+  return plans
+    .flatMap((plan): Case01CharacterSpriteMissingEntry[] => {
+      const manifestEntry = manifestByCharacterId.get(plan.characterId);
+      const entries: Case01CharacterSpriteMissingEntry[] = [];
+
+      if (!manifestEntry) {
+        entries.push({
+          characterId: plan.characterId,
+          assetKind: "character_sprite",
+          layerKind: "manifest_meta",
+          issues: ["missing_manifest_entry"],
+        });
+        return entries;
+      }
+
+      const metaAbsolutePath = path.join(repoRoot, manifestEntry.expectedMetaPath);
+      if (!probe.existsSync(metaAbsolutePath)) {
+        entries.push({
+          characterId: plan.characterId,
+          assetKind: "character_sprite",
+          layerKind: "manifest_meta",
+          expectedMetaPath: manifestEntry.expectedMetaPath,
+          issues: ["missing_sprite_meta"],
+        });
+      } else {
+        const meta = readJsonIfExists(metaAbsolutePath, probe);
+        const metaRecord =
+          meta && typeof meta === "object"
+            ? (meta as Record<string, unknown>)
+            : {};
+        const issues: string[] = [];
+        if (metaRecord.characterId !== plan.characterId) {
+          issues.push("stale_sprite_meta_character_id");
+        }
+        if (metaRecord.promptBriefSha256 !== manifestEntry.promptBriefSha256) {
+          issues.push("stale_sprite_meta_prompt_hash");
+        }
+        if (issues.length > 0) {
+          entries.push({
+            characterId: plan.characterId,
+            assetKind: "character_sprite",
+            layerKind: "manifest_meta",
+            expectedMetaPath: manifestEntry.expectedMetaPath,
+            issues,
+          });
+        }
+      }
+
+      for (const asset of getRequiredCharacterSpriteAssets(plan)) {
+        const expectedImagePath = runtimeAssetPathToRepoRelativePath(
+          asset.runtimePath,
+        );
+        const expectedImageAbsolutePath = path.join(repoRoot, expectedImagePath);
+        if (!probe.existsSync(expectedImageAbsolutePath)) {
+          entries.push({
+            characterId: plan.characterId,
+            assetKind: "character_sprite",
+            layerKind: asset.layerKind,
+            ...(asset.emotion ? { emotion: asset.emotion } : {}),
+            ...(asset.overlay ? { overlay: asset.overlay } : {}),
+            expectedImagePath,
+            issues: ["missing_sprite_layer"],
+          });
+        }
+      }
+
+      return entries;
+    })
+    .sort((left, right) => {
+      const characterOrder = left.characterId.localeCompare(right.characterId);
+      if (characterOrder !== 0) {
+        return characterOrder;
+      }
+      const layerOrder = left.layerKind.localeCompare(right.layerKind);
+      if (layerOrder !== 0) {
+        return layerOrder;
+      }
+      return (left.emotion ?? left.overlay ?? "").localeCompare(
+        right.emotion ?? right.overlay ?? "",
+      );
+    });
+};

@@ -1502,6 +1502,74 @@ export const playerSpiritState = table(
   },
 );
 
+export const contentRating = table(
+  {
+    name: "content_rating",
+    public: false,
+    indexes: [
+      {
+        accessor: "content_rating_player_id",
+        algorithm: "btree",
+        columns: ["raterId"],
+      },
+      {
+        accessor: "content_rating_target",
+        algorithm: "btree",
+        columns: ["targetType", "targetId"],
+      },
+    ],
+  },
+  {
+    ratingId: t.string().primaryKey(),
+    raterId: t.identity(),
+    targetType: t.string(),
+    targetId: t.string(),
+    scenarioId: t.string().optional(),
+    contentVersion: t.string().optional(),
+    visualScore: t.u32().optional(),
+    scenicScore: t.u32().optional(),
+    textScore: t.u32().optional(),
+    overallScore: t.u32().optional(),
+    comment: t.string().optional(),
+    createdAt: t.timestamp(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+export const dialogueRating = table(
+  {
+    name: "dialogue_rating",
+    public: false,
+    indexes: [
+      {
+        accessor: "dialogue_rating_player_id",
+        algorithm: "btree",
+        columns: ["raterId"],
+      },
+      {
+        accessor: "dialogue_rating_node_id",
+        algorithm: "btree",
+        columns: ["nodeId"],
+      },
+    ],
+  },
+  {
+    ratingId: t.string().primaryKey(),
+    raterId: t.identity(),
+    nodeId: t.string(),
+    scenarioId: t.string().optional(),
+    lineKey: t.string(),
+    speaker: t.string(),
+    segmentIndex: t.u32(),
+    textHash: t.string(),
+    contentVersion: t.string().optional(),
+    score: t.u32(),
+    comment: t.string().optional(),
+    createdAt: t.timestamp(),
+    updatedAt: t.timestamp(),
+  },
+);
+
 const spacetimedb = schema({
   playerProfile,
   playerFlag,
@@ -1554,6 +1622,8 @@ const spacetimedb = schema({
   playerRedeemedCode,
   playerSpiritState,
   playerEquipment,
+  contentRating,
+  dialogueRating,
 });
 
 const rowsFromIndex = (
@@ -1658,6 +1728,20 @@ export const my_ai_requests = spacetimedb.view(
   { name: "my_ai_requests", public: true },
   t.array(aiRequest.rowType),
   (ctx) => selfScopedByPlayerId(ctx, "aiRequest", "ai_request_player_id"),
+);
+
+export const my_content_ratings = spacetimedb.view(
+  { name: "my_content_ratings", public: true },
+  t.array(contentRating.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(ctx, "contentRating", "content_rating_player_id"),
+);
+
+export const my_dialogue_ratings = spacetimedb.view(
+  { name: "my_dialogue_ratings", public: true },
+  t.array(dialogueRating.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(ctx, "dialogueRating", "dialogue_rating_player_id"),
 );
 
 export const worker_ai_requests = spacetimedb.view(

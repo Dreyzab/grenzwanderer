@@ -21,6 +21,8 @@ Clara's strongest functions now belong to Victoria:
 
 - daughter of the Oberbuergermeister and therefore a contested Rathaus access
   key;
+- Adlersheim family pressure: love expressed through permits, reputation, and
+  deniable protection;
 - forensic support whose competence makes police misogyny visible;
 - widowhood as the source of her criminology obsession;
 - moral pressure between official order and the truth.

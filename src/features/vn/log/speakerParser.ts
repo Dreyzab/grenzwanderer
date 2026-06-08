@@ -144,3 +144,40 @@ export function parseSpeakerSegments(
 
   return segments;
 }
+
+const splitNarratorParagraphs = (text: string): string[] =>
+  text
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split(/\n\s*\n+/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+
+/**
+ * Creator assessment rates each on-screen narrator paragraph separately.
+ * Gameplay keeps multi-paragraph narrator blocks as one advance segment.
+ */
+export function expandNarratorParagraphs(
+  segments: SpeakerSegment[],
+): SpeakerSegment[] {
+  const expanded: SpeakerSegment[] = [];
+
+  for (const segment of segments) {
+    if (segment.category !== "narrator") {
+      expanded.push(segment);
+      continue;
+    }
+
+    const paragraphs = splitNarratorParagraphs(segment.text);
+    if (paragraphs.length <= 1) {
+      expanded.push(segment);
+      continue;
+    }
+
+    for (const paragraph of paragraphs) {
+      expanded.push({ ...segment, text: paragraph });
+    }
+  }
+
+  return expanded;
+}

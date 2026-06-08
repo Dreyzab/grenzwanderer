@@ -4,6 +4,8 @@ node_type: character
 case: case01
 phase: onboarding
 status: active
+runtime_character_id: npc_bureau_master
+npc_identity: npc_bureau_master
 tags:
   - type/character
   - origin/witch
@@ -37,3 +39,7 @@ tags:
 
 - [[40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival|🚂 HBF Arrival]] —
   `scene_case01_witch_bureau_master_meeting`
+
+## Player Dossier
+
+- (reveal: met_bureau_master_intro) **The Bureau's Eye**: He receives you in the secret office beneath the HBF, offers the sanctioned suppressant, and treats discipline as the Bureau's standing answer to coven excess.

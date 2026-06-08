@@ -198,6 +198,23 @@ export const CommandSession = __t.object("CommandSession", {
 });
 export type CommandSession = __Infer<typeof CommandSession>;
 
+export const ContentRating = __t.object("ContentRating", {
+  ratingId: __t.string(),
+  raterId: __t.identity(),
+  targetType: __t.string(),
+  targetId: __t.string(),
+  scenarioId: __t.option(__t.string()),
+  contentVersion: __t.option(__t.string()),
+  visualScore: __t.option(__t.u32()),
+  scenicScore: __t.option(__t.u32()),
+  textScore: __t.option(__t.u32()),
+  overallScore: __t.option(__t.u32()),
+  comment: __t.option(__t.string()),
+  createdAt: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+});
+export type ContentRating = __Infer<typeof ContentRating>;
+
 export const ContentSnapshot = __t.object("ContentSnapshot", {
   checksum: __t.string(),
   payloadJson: __t.string(),
@@ -222,6 +239,23 @@ export const ContentVersion = __t.object("ContentVersion", {
   isActive: __t.bool(),
 });
 export type ContentVersion = __Infer<typeof ContentVersion>;
+
+export const DialogueRating = __t.object("DialogueRating", {
+  ratingId: __t.string(),
+  raterId: __t.identity(),
+  nodeId: __t.string(),
+  scenarioId: __t.option(__t.string()),
+  lineKey: __t.string(),
+  speaker: __t.string(),
+  segmentIndex: __t.u32(),
+  textHash: __t.string(),
+  contentVersion: __t.option(__t.string()),
+  score: __t.u32(),
+  comment: __t.option(__t.string()),
+  createdAt: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+});
+export type DialogueRating = __Infer<typeof DialogueRating>;
 
 export const IdempotencyCleanupSchedule = __t.object("IdempotencyCleanupSchedule", {
   scheduledId: __t.u64(),
@@ -299,6 +333,12 @@ export type MyCommandParty = __Infer<typeof MyCommandParty>;
 
 export const MyCommandSessions = __t.object("MyCommandSessions", {});
 export type MyCommandSessions = __Infer<typeof MyCommandSessions>;
+
+export const MyContentRatings = __t.object("MyContentRatings", {});
+export type MyContentRatings = __Infer<typeof MyContentRatings>;
+
+export const MyDialogueRatings = __t.object("MyDialogueRatings", {});
+export type MyDialogueRatings = __Infer<typeof MyDialogueRatings>;
 
 export const MyEvidence = __t.object("MyEvidence", {});
 export type MyEvidence = __Infer<typeof MyEvidence>;

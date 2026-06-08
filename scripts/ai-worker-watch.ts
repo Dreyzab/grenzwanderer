@@ -29,6 +29,7 @@ import {
   type GenerateDialogueEnvelope,
   type GenerateDialoguePayload,
   type GenerateDirectorStepPayload,
+  type RegenerationContext,
 } from "../src/features/ai/contracts";
 import { buildSceneContext, type SceneContext } from "./ai-context-builder";
 import {
@@ -487,6 +488,29 @@ const buildSystemPrompt = (payload: GenerateDialoguePayload): string => {
   return baseInstructions.join("\n");
 };
 
+const formatRegenerationBlock = (
+  context: RegenerationContext,
+  label: string,
+): string => {
+  const lines = [
+    `REGENERATION REQUEST — rewrite the previous ${label}.`,
+    `Previous output:\n${context.previousOutput.trim() || "(empty)"}`,
+    `Evaluator feedback: ${context.authorFeedback.trim() || "(none)"}`,
+  ];
+  if (context.rating !== undefined) {
+    lines.push(`Evaluator rating: ${context.rating}`);
+  }
+  if (context.qualityIssues && context.qualityIssues.length > 0) {
+    lines.push(
+      `Quality issues to resolve: ${context.qualityIssues.join(", ")}`,
+    );
+  }
+  lines.push(
+    "Improve the content specifically to resolve this feedback while staying consistent with the prior narration, accepted facts, and scene context.",
+  );
+  return lines.join("\n");
+};
+
 const buildUserPrompt = (
   payload: GenerateDialoguePayload,
   sceneContext: SceneContext,
@@ -515,8 +539,16 @@ const buildUserPrompt = (
     `Scene snapshot: ${sceneContext.sceneSnapshot}`,
     `Recent dialogue:\n- ${recentDialogue}`,
     `Active quest summary: ${activeQuestSummary}`,
+    payload.regenerationContext
+      ? formatRegenerationBlock(
+          payload.regenerationContext,
+          "inner-thought line",
+        )
+      : "",
     "Write a single inner-thought line that sharpens the moment without resolving the scene for the player.",
-  ].join("\n\n");
+  ]
+    .filter((block) => block.length > 0)
+    .join("\n\n");
 };
 
 export const extractJsonObject = (value: string): string | null => {
@@ -1032,6 +1064,9 @@ const buildDmTurnUserPrompt = (payload: GenerateDmTurnPayload): string => {
     `Player action: ${payload.actionText}`,
     `Beat directive: ${payload.beatDirective?.kind ?? "debate_options"}`,
     `Prior narration (continue consistently from this; do not contradict it):\n${payload.priorNarration?.trim() || "none"}`,
+    payload.regenerationContext
+      ? formatRegenerationBlock(payload.regenerationContext, "beat")
+      : "",
     `Active inner voices (voice the debate using EXACTLY these, with their stance):\n${activeVoices}`,
     `Private remark: ${payload.remark?.text ?? "none"}`,
     `Spend Fate token: ${payload.spendFateToken}`,

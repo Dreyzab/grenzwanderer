@@ -1,0 +1,9 @@
+{
+  "characterId": "npc_heinrich_galdermann",
+  "displayName": "Heinrich Galdermann",
+  "assetStage": "body_base_casefile_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "1de7ffd26a15f1149f1322d09d4e7f64b11ce321a9c4a795c709fac742aa1512",
+  "notes": "Respectable culprit sprite: broad bank prokurist, damp handkerchief, expensive waistcoat, polished official smile. Facial layer variants are not produced yet."
+}

@@ -4,6 +4,8 @@ node_type: character
 case: case01
 phase: investigation
 status: active
+runtime_character_id: npc_hotel_maid
+npc_identity: npc_hotel_maid
 tags:
   - type/character
   - origin/witch
@@ -36,3 +38,7 @@ tags:
 ## Appearances
 
 - `scene_case01_hotel_morning_witch` — Утро после...
+
+## Player Dossier
+
+- (reveal: met_hotel_maid_intro) **The Morning Maid**: She knocks the morning after the alley and reads the room for the price of discretion before she reads the dress for evidence.

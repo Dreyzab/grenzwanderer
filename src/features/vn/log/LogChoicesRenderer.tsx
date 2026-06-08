@@ -100,7 +100,7 @@ export function LogChoicesRenderer({
         {canTriggerCompletion ? (
           <button
             type="button"
-            className="border border-amber-500/50 bg-amber-700/16 px-4 py-3 text-left text-sm text-amber-100 transition-colors hover:bg-amber-700/25 disabled:cursor-not-allowed disabled:opacity-50"
+            className="border border-ember-500/50 bg-ember-700/16 px-4 py-3 text-left text-sm text-ember-100 transition-colors hover:bg-ember-700/25 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={(event) => {
               event.stopPropagation();
               onCompletionTransition();

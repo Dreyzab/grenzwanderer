@@ -49,14 +49,14 @@ const StatusCard = ({ card }: { card: InlineStatusCard }) => (
     className={
       card.tone === "reaction"
         ? "rounded-[1.4rem] border border-sky-200/20 bg-slate-950/55 px-4 py-4 text-left shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md"
-        : "rounded-[1.4rem] border border-amber-200/20 bg-black/40 px-4 py-4 text-left shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md"
+        : "rounded-[1.4rem] border border-ember-200/20 bg-black/40 px-4 py-4 text-left shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md"
     }
   >
     <p
       className={
         card.tone === "reaction"
           ? "text-[10px] uppercase tracking-[0.18em] text-sky-100/70"
-          : "text-[10px] uppercase tracking-[0.18em] text-amber-200/70"
+          : "text-[10px] uppercase tracking-[0.18em] text-ember-200/70"
       }
     >
       {card.title}
@@ -65,7 +65,7 @@ const StatusCard = ({ card }: { card: InlineStatusCard }) => (
       className={
         card.tone === "reaction"
           ? "mt-2 text-sm uppercase tracking-[0.14em] text-sky-50/85"
-          : "mt-2 text-sm uppercase tracking-[0.14em] text-amber-100/85"
+          : "mt-2 text-sm uppercase tracking-[0.14em] text-ember-100/85"
       }
     >
       {card.eyebrow}
@@ -139,7 +139,9 @@ const CustomInputChoice = ({
     if (!text.trim()) return;
 
     if (providenceCount < 1) {
-      setLocalWarning("Недостаточно Жетонов Провидения");
+      setLocalWarning(
+        "ÐÐµÐ´Ð¾ÑÑ‚Ð°Ñ‚Ð¾Ñ‡Ð½Ð¾ Ð–ÐµÑ‚Ð¾Ð½Ð¾Ð² ÐŸÑ€Ð¾Ð²Ð¸Ð´ÐµÐ½Ð¸Ñ",
+      );
       if (onInsufficientTokens) {
         onInsufficientTokens();
       }
@@ -164,10 +166,14 @@ const CustomInputChoice = ({
   const isSubmitDisabled = disabled || !text.trim();
 
   return (
-    <div className="bg-slate-950/45 backdrop-blur-md border border-amber-500/20 shadow-lg rounded-[0.8rem] p-4 flex flex-col gap-3 transition-all duration-300 focus-within:border-amber-500/50 focus-within:shadow-[0_0_15px_rgba(245,158,11,0.15)] w-full text-left">
+    <div className="bg-slate-950/45 backdrop-blur-md border border-ember-500/20 shadow-lg rounded-[0.8rem] p-4 flex flex-col gap-3 transition-all duration-300 focus-within:border-ember-500/50 focus-within:shadow-[0_0_15px_rgba(245,158,11,0.15)] w-full text-left">
       <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.18em]">
-        <span className="text-stone-400 font-semibold">Свой вариант</span>
-        <span className="text-amber-500/90 font-bold">1 Жетон Провидения</span>
+        <span className="text-stone-400 font-semibold">
+          Ð¡Ð²Ð¾Ð¹ Ð²Ð°Ñ€Ð¸Ð°Ð½Ñ‚
+        </span>
+        <span className="text-ember-500/90 font-bold">
+          1 Ð–ÐµÑ‚Ð¾Ð½ ÐŸÑ€Ð¾Ð²Ð¸Ð´ÐµÐ½Ð¸Ñ
+        </span>
       </div>
 
       <textarea
@@ -177,15 +183,15 @@ const CustomInputChoice = ({
           if (localWarning) setLocalWarning(null);
         }}
         onKeyDown={handleKeyDown}
-        placeholder="Опишите ваши действия..."
+        placeholder="ÐžÐ¿Ð¸ÑˆÐ¸Ñ‚Ðµ Ð²Ð°ÑˆÐ¸ Ð´ÐµÐ¹ÑÑ‚Ð²Ð¸Ñ..."
         disabled={disabled}
-        className="w-full bg-slate-950/50 text-slate-100 placeholder-stone-500 border border-stone-800 rounded-[0.6rem] px-3 py-2 text-sm focus:outline-none focus:border-amber-500/40 resize-none h-[72px] transition-all duration-300"
+        className="w-full bg-slate-950/50 text-slate-100 placeholder-stone-500 border border-stone-800 rounded-[0.6rem] px-3 py-2 text-sm focus:outline-none focus:border-ember-500/40 resize-none h-[72px] transition-all duration-300"
       />
 
       <div className="flex items-center justify-between gap-3 min-h-[32px]">
-        <div className="text-xs text-amber-500/80 font-medium">
+        <div className="text-xs text-ember-500/80 font-medium">
           {localWarning ? (
-            <span className="text-amber-500 font-bold animate-pulse">
+            <span className="text-ember-500 font-bold animate-pulse">
               ⚠️ {localWarning}
             </span>
           ) : null}
@@ -194,9 +200,9 @@ const CustomInputChoice = ({
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitDisabled}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[0.4rem] text-xs font-semibold uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-100 transition-all duration-300 hover:bg-amber-500/20 hover:border-amber-500/65 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[0.4rem] text-xs font-semibold uppercase tracking-wider bg-ember-500/10 border border-ember-500/30 text-ember-100 transition-all duration-300 hover:bg-ember-500/20 hover:border-ember-500/65 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
-          <span>Отправить</span>
+          <span>ÐžÑ‚Ð¿Ñ€Ð°Ð²Ð¸Ñ‚ÑŒ</span>
           <svg
             className="w-3.5 h-3.5 stroke-current"
             fill="none"
@@ -253,7 +259,7 @@ export const VnChoicesRenderer = ({
     {thoughtCard && providenceCtaLabel ? (
       <button
         type="button"
-        className="rounded-[1rem] border border-amber-200/20 bg-amber-300/10 px-4 py-3 text-left text-sm text-amber-50 transition-colors hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-[1rem] border border-ember-200/20 bg-ember-300/10 px-4 py-3 text-left text-sm text-ember-50 transition-colors hover:bg-ember-300/16 disabled:cursor-not-allowed disabled:opacity-50"
         disabled={!canExpandThoughtWithProvidence}
         onClick={onProvidenceExpand}
       >
@@ -270,7 +276,7 @@ export const VnChoicesRenderer = ({
       </div>
     ) : null}
     {internalizedThoughtBadgeText ? (
-      <div className="rounded-full border border-amber-200/20 bg-amber-400/10 px-4 py-2 text-center text-[11px] uppercase tracking-[0.16em] text-amber-100">
+      <div className="rounded-full border border-ember-200/20 bg-ember-400/10 px-4 py-2 text-center text-[11px] uppercase tracking-[0.16em] text-ember-100">
         {internalizedThoughtBadgeText}
       </div>
     ) : null}
@@ -322,7 +328,7 @@ export const VnChoicesRenderer = ({
         {canTriggerCompletion ? (
           <button
             type="button"
-            className="px-4 py-3 rounded-md border border-amber-600/60 bg-amber-800/20 text-amber-100 hover:bg-amber-700/30 transition-colors"
+            className="px-4 py-3 rounded-md border border-ember-600/60 bg-ember-800/20 text-ember-100 hover:bg-ember-700/30 transition-colors"
             onClick={onCompletionTransition}
             disabled={isInteractionLocked}
           >

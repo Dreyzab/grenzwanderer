@@ -14,15 +14,15 @@ understands what the room means if you leave with the right papers.
 
 ```vn-logic
 choices:
-  - id: CASE01_WAREHOUSE_LAWFUL
-    text: Seal the floor, call the warrant, and force a lawful close.
-    next: scene_case01_warehouse_lawful
+  - id: CASE01_WAREHOUSE_TRACE_SAPPER_OFFICIAL
+    text: Hold the room under warrant and identify the trained hand behind the cut.
+    next: scene_case01_sapper_flashback
     visible_if_all:
       - var_gte(convergence_route,1)
       - var_lte(convergence_route,1)
-  - id: CASE01_WAREHOUSE_COMPROMISE
-    text: Use the bureau ledger and force a compromised truth instead of a public one.
-    next: scene_case01_warehouse_compromised
+  - id: CASE01_WAREHOUSE_TRACE_SAPPER_COVERT
+    text: Keep the ledger quiet and identify the trained hand behind the cut.
+    next: scene_case01_sapper_flashback
     visible_if_all:
       - var_gte(convergence_route,2)
       - var_lte(convergence_route,2)

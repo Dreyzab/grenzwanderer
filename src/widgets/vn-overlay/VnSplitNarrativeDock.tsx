@@ -105,7 +105,7 @@ export const VnSplitNarrativeDock = ({
       exit={{ opacity: 0, y: 18 }}
       transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="h-[2px] bg-linear-to-r from-transparent via-amber-600/80 to-transparent shrink-0" />
+      <div className="h-[2px] bg-linear-to-r from-transparent via-ember-600/80 to-transparent shrink-0" />
 
       {/* Character Portrait */}
       {!isThoughtLog && portraitUrl && (
@@ -131,7 +131,7 @@ export const VnSplitNarrativeDock = ({
                 }}
               />
               {/* Subtle rim light effect */}
-              <div className="absolute inset-0 bg-linear-to-tr from-amber-500/10 to-transparent opacity-30 mix-blend-overlay" />
+              <div className="absolute inset-0 bg-linear-to-tr from-ember-500/10 to-transparent opacity-30 mix-blend-overlay" />
             </div>
           </motion.div>
         </div>
@@ -139,12 +139,12 @@ export const VnSplitNarrativeDock = ({
 
       {characterName && (
         <div className="absolute left-0 -top-5 z-20 flex items-end group">
-          <div className="absolute left-8 top-full h-4 w-[2px] bg-amber-500/40" />
-          <div className="relative px-6 py-2 bg-stone-950 border-l-[3px] border-amber-500 shadow-[0_5px_15px_rgba(0,0,0,0.5)] transform -skew-x-12 origin-bottom-left transition-transform duration-300 group-hover:-skew-x-6">
-            <div className="transform skew-x-12 text-amber-500 font-bold tracking-widest uppercase text-base">
+          <div className="absolute left-8 top-full h-4 w-[2px] bg-ember-500/40" />
+          <div className="relative px-6 py-2 bg-stone-950 border-l-[3px] border-ember-500 shadow-[0_5px_15px_rgba(0,0,0,0.5)] transform -skew-x-12 origin-bottom-left transition-transform duration-300 group-hover:-skew-x-6">
+            <div className="transform skew-x-12 text-ember-500 font-bold tracking-widest uppercase text-base">
               {characterName.replace(/\s*\(\?\?\?\)\s*/g, "").trim()}
             </div>
-            <div className="absolute -top-px -right-px w-2 h-2 border-t border-r border-amber-500/60" />
+            <div className="absolute -top-px -right-px w-2 h-2 border-t border-r border-ember-500/60" />
           </div>
         </div>
       )}
@@ -161,7 +161,7 @@ export const VnSplitNarrativeDock = ({
         ].join(" ")}
         onClick={onSurfaceInteraction}
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-amber-900/10 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-ember-900/10 via-transparent to-transparent pointer-events-none" />
         <div className="absolute inset-0 bg-stone-950/40 pointer-events-none" />
         <div className="fixed inset-0 opacity-[0.05] mix-blend-overlay pointer-events-none" />
 

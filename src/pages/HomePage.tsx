@@ -417,7 +417,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
           </div>
 
           {pageStatus ? (
-            <p className="text-[12px] text-amber-200/80 mb-4">{pageStatus}</p>
+            <p className="text-[12px] text-ember-200/80 mb-4">{pageStatus}</p>
           ) : null}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">

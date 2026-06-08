@@ -259,9 +259,10 @@ export const investigationNodes: NodeBlueprint[] = [
     id: "scene_case01_bank_manager",
     scenarioId: CASE01_SCENARIO_IDS.bankInvestigation,
     sourcePath: "40_GameViewer/Case01/Plot/03_Bank/scene_manager_dialogue.md",
-    titleOverride: "Director Galdermann",
+    characterId: "npc_heinrich_galdermann",
+    titleOverride: "Prokurist Galdermann",
     bodyOverride:
-      "Heinrich Galdermann receives you with a smile polished for committees. He calls the open vault an internal matter, nudges suspicion toward frightened clerks, and asks whether Fritz Muller's sealed statements reached you intact. The question arrives too early.",
+      "Heinrich Galdermann receives you with a smile polished for committees and a handkerchief already damp at the fold. He calls the open vault an internal matter, nudges suspicion toward frightened clerks, and slides the official robbery report over the grossbuch before asking whether Fritz Muller's sealed statements reached you intact. The question arrives too early.",
     backgroundUrl: CASE01_BG_BANK_OFFICE,
     choices: [
       {

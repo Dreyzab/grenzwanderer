@@ -36,6 +36,7 @@ export type NodeBlueprint = {
   letterOverlayRevealDelayMs?: VnNode["letterOverlayRevealDelayMs"];
   interactionMode?: VnNode["interactionMode"];
   hubSchema?: VnNode["hubSchema"];
+  hubPresentation?: VnNode["hubPresentation"];
   titleOverride?: string;
   bodyOverride?: string;
 };

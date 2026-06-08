@@ -72,7 +72,7 @@ export const VnFilmSoundPromptOverlay = ({
           }}
           className="w-full max-w-md rounded-[1.8rem] border border-white/12 bg-stone-950/90 px-6 py-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl"
         >
-          <p className="text-[11px] uppercase tracking-[0.22em] text-amber-300/80">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-ember-300/80">
             {t.filmAudio}
           </p>
           <h2 className="mt-3 text-2xl font-display text-white">
@@ -84,7 +84,7 @@ export const VnFilmSoundPromptOverlay = ({
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
-              className="flex-1 rounded-2xl border border-amber-300/30 bg-amber-200/10 px-4 py-3 text-sm font-semibold text-amber-50 transition-colors hover:bg-amber-200/16"
+              className="flex-1 rounded-2xl border border-ember-300/30 bg-ember-200/10 px-4 py-3 text-sm font-semibold text-ember-50 transition-colors hover:bg-ember-200/16"
               onClick={onSoundAllow}
             >
               {t.enableSound}

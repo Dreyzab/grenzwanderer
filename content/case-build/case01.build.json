@@ -4,14 +4,14 @@
   "caseId": "case01_mainline",
   "source": {
     "snapshotPath": "content/vn/pilot.snapshot.json",
-    "snapshotChecksum": "91b734b7f5ac3b6edfea7f7f63f1cec71e3d7bcf0f86b386f43898ac504ba0bb",
+    "snapshotChecksum": "8ee886788f85ae296680afafdfc2399a85dadbec380018b7c035f8c20efee30e",
     "snapshotSchemaVersion": 9,
     "caseIrSource": "vn_snapshot"
   },
   "caseLedger": {
     "summary": {
-      "totalNodes": 138,
-      "coveredNodes": 46,
+      "totalNodes": 140,
+      "coveredNodes": 48,
       "bridgedNodes": 92,
       "missingNodes": 0,
       "identityDriftNodes": 0
@@ -1591,6 +1591,19 @@
       {
         "scenarioId": "case01_warehouse_finale",
         "scenarioTitle": "Case 01: Warehouse Finale",
+        "nodeId": "scene_case01_sapper_flashback",
+        "nodeTitle": "Scene: The Clean Cut (Sapper Flashback)",
+        "status": "COVERED",
+        "ownerLayer": "StoryDetective authoritative",
+        "identityFindings": [],
+        "sourcePaths": [
+          "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_warehouse_finale/scene_case01_sapper_flashback.md"
+        ],
+        "note": ""
+      },
+      {
+        "scenarioId": "case01_warehouse_finale",
+        "scenarioTitle": "Case 01: Warehouse Finale",
         "nodeId": "scene_case01_warehouse_compromised",
         "nodeTitle": "Scene: Compromised Truth",
         "status": "COVERED",
@@ -1624,6 +1637,19 @@
         "identityFindings": [],
         "sourcePaths": [
           "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_warehouse_finale/scene_case01_warehouse_lawful.md"
+        ],
+        "note": ""
+      },
+      {
+        "scenarioId": "case01_warehouse_finale",
+        "scenarioTitle": "Case 01: Warehouse Finale",
+        "nodeId": "scene_case01_warehouse_sapper",
+        "nodeTitle": "Scene: The Technical Guard (Warehouse)",
+        "status": "COVERED",
+        "ownerLayer": "StoryDetective authoritative",
+        "identityFindings": [],
+        "sourcePaths": [
+          "obsidian/StoryDetective/40_GameViewer/Case01/_runtime/case01_warehouse_finale/scene_case01_warehouse_sapper.md"
         ],
         "note": ""
       }
@@ -1892,6 +1918,8 @@
         "startNodeId": "scene_case01_warehouse_entry",
         "nodeIds": [
           "scene_case01_warehouse_entry",
+          "scene_case01_sapper_flashback",
+          "scene_case01_warehouse_sapper",
           "scene_case01_warehouse_lawful",
           "scene_case01_warehouse_compromised"
         ]
@@ -3117,6 +3145,24 @@
         "id": "scene_case01_warehouse_entry",
         "scenarioId": "case01_warehouse_finale",
         "title": "Scene: Warehouse Door",
+        "terminal": false,
+        "choiceCount": 2,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_sapper_flashback",
+        "scenarioId": "case01_warehouse_finale",
+        "title": "Scene: The Clean Cut (Sapper Flashback)",
+        "terminal": false,
+        "choiceCount": 2,
+        "onEnterEffectCount": 2,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_warehouse_sapper",
+        "scenarioId": "case01_warehouse_finale",
+        "title": "Scene: The Technical Guard (Warehouse)",
         "terminal": false,
         "choiceCount": 2,
         "onEnterEffectCount": 0,
@@ -4832,19 +4878,51 @@
       },
       {
         "fromNodeId": "scene_case01_warehouse_entry",
+        "toId": "scene_case01_sapper_flashback",
+        "toKind": "node",
+        "scenarioId": "case01_warehouse_finale",
+        "via": "choice",
+        "viaId": "CASE01_WAREHOUSE_TRACE_SAPPER_OFFICIAL"
+      },
+      {
+        "fromNodeId": "scene_case01_warehouse_entry",
+        "toId": "scene_case01_sapper_flashback",
+        "toKind": "node",
+        "scenarioId": "case01_warehouse_finale",
+        "via": "choice",
+        "viaId": "CASE01_WAREHOUSE_TRACE_SAPPER_COVERT"
+      },
+      {
+        "fromNodeId": "scene_case01_sapper_flashback",
+        "toId": "scene_case01_warehouse_sapper",
+        "toKind": "node",
+        "scenarioId": "case01_warehouse_finale",
+        "via": "choice",
+        "viaId": "CASE01_SAPPER_FLASHBACK_LOGIC"
+      },
+      {
+        "fromNodeId": "scene_case01_sapper_flashback",
+        "toId": "scene_case01_warehouse_sapper",
+        "toKind": "node",
+        "scenarioId": "case01_warehouse_finale",
+        "via": "choice",
+        "viaId": "CASE01_SAPPER_FLASHBACK_PERCEPTION"
+      },
+      {
+        "fromNodeId": "scene_case01_warehouse_sapper",
         "toId": "scene_case01_warehouse_lawful",
         "toKind": "node",
         "scenarioId": "case01_warehouse_finale",
         "via": "choice",
-        "viaId": "CASE01_WAREHOUSE_LAWFUL"
+        "viaId": "CASE01_WAREHOUSE_SAPPER_LAWFUL"
       },
       {
-        "fromNodeId": "scene_case01_warehouse_entry",
+        "fromNodeId": "scene_case01_warehouse_sapper",
         "toId": "scene_case01_warehouse_compromised",
         "toKind": "node",
         "scenarioId": "case01_warehouse_finale",
         "via": "choice",
-        "viaId": "CASE01_WAREHOUSE_COMPROMISE"
+        "viaId": "CASE01_WAREHOUSE_SAPPER_NEGOTIATE"
       },
       {
         "fromNodeId": "scene_case01_archive_entry",
@@ -5987,10 +6065,28 @@
     ],
     "rumors": [
       {
+        "rumorId": "rumor_architect_absent_shape",
+        "caseId": "quest_banker",
+        "leadPointId": "loc_uni_chem",
+        "verifiesOn": ["flag_set"]
+      },
+      {
         "rumorId": "rumor_bank_rail_yard",
         "caseId": "quest_banker",
         "leadPointId": "loc_hbf",
         "verifiesOn": ["service_unlock"]
+      },
+      {
+        "rumorId": "rumor_galdermann_signature_pressure",
+        "caseId": "quest_banker",
+        "leadPointId": "loc_freiburg_bank",
+        "verifiesOn": ["evidence", "flag_set"]
+      },
+      {
+        "rumorId": "rumor_sapper_clean_cut",
+        "caseId": "quest_banker",
+        "leadPointId": "loc_freiburg_warehouse",
+        "verifiesOn": ["evidence", "fact"]
       },
       {
         "rumorId": "rumor_university_network",

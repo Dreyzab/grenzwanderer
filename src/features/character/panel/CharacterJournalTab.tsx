@@ -203,7 +203,7 @@ export const CharacterJournalTab = ({
                 onClick={() => setFilter("all")}
                 className={`px-3 py-1 text-xs font-semibold tracking-wider transition-colors rounded-[1px] ${
                   filter === "all"
-                    ? "bg-amber-800/20 border border-amber-700/30 text-amber-400 font-bold"
+                    ? "bg-ember-800/20 border border-ember-700/30 text-ember-400 font-bold"
                     : "text-stone-400 hover:text-stone-200 border border-transparent"
                 }`}
               >
@@ -213,7 +213,7 @@ export const CharacterJournalTab = ({
                 onClick={() => setFilter("canon")}
                 className={`px-3 py-1 text-xs font-semibold tracking-wider transition-colors rounded-[1px] ${
                   filter === "canon"
-                    ? "bg-amber-800/20 border border-amber-700/30 text-amber-400 font-bold"
+                    ? "bg-ember-800/20 border border-ember-700/30 text-ember-400 font-bold"
                     : "text-stone-400 hover:text-stone-200 border border-transparent"
                 }`}
               >
@@ -223,7 +223,7 @@ export const CharacterJournalTab = ({
                 onClick={() => setFilter("procedural")}
                 className={`px-3 py-1 text-xs font-semibold tracking-wider transition-colors rounded-[1px] ${
                   filter === "procedural"
-                    ? "bg-amber-800/20 border border-amber-700/30 text-amber-400 font-bold"
+                    ? "bg-ember-800/20 border border-ember-700/30 text-ember-400 font-bold"
                     : "text-stone-400 hover:text-stone-200 border border-transparent"
                 }`}
               >
@@ -237,7 +237,7 @@ export const CharacterJournalTab = ({
                 onClick={() => setSortBy("active")}
                 className={`px-2.5 py-1 text-[10px] uppercase tracking-wider transition-colors rounded-[1px] ${
                   sortBy === "active"
-                    ? "bg-amber-850/20 border border-amber-700/30 text-amber-400"
+                    ? "bg-ember-850/20 border border-ember-700/30 text-ember-400"
                     : "text-stone-500 hover:text-stone-300 border border-transparent"
                 }`}
               >
@@ -247,7 +247,7 @@ export const CharacterJournalTab = ({
                 onClick={() => setSortBy("recent")}
                 className={`px-2.5 py-1 text-[10px] uppercase tracking-wider transition-colors rounded-[1px] ${
                   sortBy === "recent"
-                    ? "bg-amber-850/20 border border-amber-700/30 text-amber-400"
+                    ? "bg-ember-850/20 border border-ember-700/30 text-ember-400"
                     : "text-stone-500 hover:text-stone-300 border border-transparent"
                 }`}
               >
@@ -276,20 +276,20 @@ export const CharacterJournalTab = ({
                     onClick={() => setSelectedQuestId(entry.id)}
                     className={`group cursor-pointer rounded-[0.25rem] border px-4 py-3.5 transition-all text-left relative overflow-hidden ${
                       isSelected
-                        ? "border-amber-700/60 bg-amber-800/10 shadow-[0_0_12px_rgba(181,133,43,0.1)]"
+                        ? "border-ember-700/60 bg-ember-800/10 shadow-[0_0_12px_rgba(181,133,43,0.1)]"
                         : "border-white/5 bg-black/15 hover:border-stone-700 hover:bg-stone-900/30"
                     }`}
                   >
                     {/* Visual left highlight */}
                     {isSelected && (
-                      <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-amber-500" />
+                      <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-ember-500" />
                     )}
 
                     <div className="flex flex-wrap items-center justify-between gap-3 relative z-10">
                       <div className="flex items-center gap-2">
                         {entry.kind === "procedural" ? (
                           <span title="Procedural State Overlay">
-                            <Layers size={13} className="text-amber-500/80" />
+                            <Layers size={13} className="text-ember-500/80" />
                           </span>
                         ) : (
                           <span title="Canonical Storyline">
@@ -297,7 +297,7 @@ export const CharacterJournalTab = ({
                           </span>
                         )}
                         <strong
-                          className={`font-sans text-sm tracking-wide ${isSelected ? "text-amber-400" : "text-stone-200 group-hover:text-stone-100"}`}
+                          className={`font-sans text-sm tracking-wide ${isSelected ? "text-ember-400" : "text-stone-200 group-hover:text-stone-100"}`}
                         >
                           {entry.title}
                         </strong>
@@ -328,7 +328,7 @@ export const CharacterJournalTab = ({
                         size={14}
                         className={`transition-transform duration-200 ${
                           isSelected
-                            ? "translate-x-1 text-amber-500"
+                            ? "translate-x-1 text-ember-500"
                             : "text-stone-600 group-hover:translate-x-0.5 group-hover:text-stone-400"
                         }`}
                       />
@@ -361,11 +361,11 @@ export const CharacterJournalTab = ({
                       : "Canon Case dossier"
                   }
                   title={selectedQuest.title}
-                  className="relative overflow-hidden border-amber-900/25 bg-[rgba(16,14,12,0.85)]"
+                  className="relative overflow-hidden border-ember-900/25 bg-[rgba(16,14,12,0.85)]"
                 >
                   {/* Metadata Row */}
                   <div className="flex flex-wrap items-center gap-3 border-b border-stone-800 pb-3 mb-5">
-                    <span className="rounded-[2px] border border-amber-700/30 bg-amber-800/10 px-2.5 py-0.5 text-[10px] uppercase font-mono tracking-widest text-amber-400">
+                    <span className="rounded-[2px] border border-ember-700/30 bg-ember-800/10 px-2.5 py-0.5 text-[10px] uppercase font-mono tracking-widest text-ember-400">
                       {selectedQuest.kind === "canon"
                         ? "Canon Source"
                         : "CAS Procedural"}
@@ -374,7 +374,7 @@ export const CharacterJournalTab = ({
                     {selectedQuest.kind === "procedural" && (
                       <>
                         <span className="text-[10px] text-stone-500 font-mono flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500/60" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-ember-500/60" />
                           source: "runtime_overlay"
                         </span>
 
@@ -427,7 +427,7 @@ export const CharacterJournalTab = ({
                                   >
                                     <Clock
                                       size={12}
-                                      className="text-amber-600/70 animate-pulse"
+                                      className="text-ember-600/70 animate-pulse"
                                     />
                                     <span>
                                       Show {hiddenCount} earlier completed event
@@ -450,10 +450,10 @@ export const CharacterJournalTab = ({
                                       "border-stone-800 bg-stone-950 text-stone-600";
                                     if (isCompleted) {
                                       markerStyle =
-                                        "border-amber-700/60 bg-stone-900 text-amber-500 shadow-[0_0_8px_rgba(181,133,43,0.15)]";
+                                        "border-ember-700/60 bg-stone-900 text-ember-500 shadow-[0_0_8px_rgba(181,133,43,0.15)]";
                                     } else if (isActive) {
                                       markerStyle =
-                                        "border-amber-500 bg-stone-950 text-amber-400 shadow-[0_0_12px_rgba(212,167,79,0.35)]";
+                                        "border-ember-500 bg-stone-950 text-ember-400 shadow-[0_0_12px_rgba(212,167,79,0.35)]";
                                     } else if (isFailed) {
                                       markerStyle =
                                         "border-red-900 bg-stone-950 text-red-500";
@@ -483,7 +483,7 @@ export const CharacterJournalTab = ({
                                                 repeat: Infinity,
                                                 ease: "easeInOut",
                                               }}
-                                              className="h-1.5 w-1.5 rounded-full bg-amber-400"
+                                              className="h-1.5 w-1.5 rounded-full bg-ember-400"
                                             />
                                           ) : (
                                             <span className="h-1 w-1 rounded-full bg-stone-700" />
@@ -495,12 +495,12 @@ export const CharacterJournalTab = ({
                                           className={`${isActive ? "opacity-100" : isPending ? "opacity-45" : "opacity-75 group-hover:opacity-100"} transition-opacity`}
                                         >
                                           <h5
-                                            className={`text-xs font-semibold tracking-wide ${isActive ? "text-amber-400" : isCompleted ? "text-stone-300" : "text-stone-500"}`}
+                                            className={`text-xs font-semibold tracking-wide ${isActive ? "text-ember-400" : isCompleted ? "text-stone-300" : "text-stone-500"}`}
                                           >
                                             {step.title}
                                           </h5>
                                           <p className="text-[10px] text-stone-500 mt-0.5 font-mono">
-                                            node: {step.nodeId || "none"} •{" "}
+                                            node: {step.nodeId || "none"} â€¢{" "}
                                             {step.status}
                                           </p>
                                         </div>
@@ -520,7 +520,7 @@ export const CharacterJournalTab = ({
                         {/* Completed milestones */}
                         {selectedQuest.currentStage > 1 && (
                           <div className="relative opacity-60">
-                            <span className="absolute -left-[35px] top-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full border border-amber-700/40 bg-stone-900 text-amber-600">
+                            <span className="absolute -left-[35px] top-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full border border-ember-700/40 bg-stone-900 text-ember-600">
                               <Check size={10} strokeWidth={3} />
                             </span>
                             <h5 className="text-xs text-stone-400">
@@ -535,14 +535,14 @@ export const CharacterJournalTab = ({
                         {/* Active stage */}
                         {selectedQuest.activeStage ? (
                           <div className="relative">
-                            <span className="absolute -left-[35px] top-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full border border-amber-500 bg-stone-950 text-amber-400 shadow-[0_0_10px_rgba(212,167,79,0.3)]">
+                            <span className="absolute -left-[35px] top-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full border border-ember-500 bg-stone-950 text-ember-400 shadow-[0_0_10px_rgba(212,167,79,0.3)]">
                               <motion.span
                                 animate={{ opacity: [0.4, 1, 0.4] }}
                                 transition={{ duration: 1.8, repeat: Infinity }}
-                                className="h-1.5 w-1.5 rounded-full bg-amber-400"
+                                className="h-1.5 w-1.5 rounded-full bg-ember-400"
                               />
                             </span>
-                            <h5 className="text-xs font-semibold text-amber-400 tracking-wide">
+                            <h5 className="text-xs font-semibold text-ember-400 tracking-wide">
                               {selectedQuest.activeStage.title}
                             </h5>
                             <p className="text-xs text-stone-300 mt-1 leading-relaxed italic">
@@ -560,14 +560,14 @@ export const CharacterJournalTab = ({
 
                   {/* Reflections / Dynamic Field notes */}
                   {selectedQuest.kind === "procedural" && (
-                    <div className="relative mt-6 rounded-[2px] border border-amber-900/20 bg-stone-950/45 p-4 font-serif">
+                    <div className="relative mt-6 rounded-[2px] border border-ember-900/20 bg-stone-950/45 p-4 font-serif">
                       {/* Decorative Typewriter stamp */}
-                      <div className="absolute right-4 top-4 select-none opacity-[0.08] pointer-events-none origin-bottom-right rotate-12 uppercase text-right tracking-[0.25em] font-sans font-black text-amber-500 text-2xl border-4 border-amber-500 p-2 rounded-[0.25rem]">
+                      <div className="absolute right-4 top-4 select-none opacity-[0.08] pointer-events-none origin-bottom-right rotate-12 uppercase text-right tracking-[0.25em] font-sans font-black text-ember-500 text-2xl border-4 border-ember-500 p-2 rounded-[0.25rem]">
                         Field Recall
                       </div>
 
                       <div className="flex items-center justify-between gap-3 border-b border-stone-850 pb-2 mb-3">
-                        <h4 className="font-sans text-xs uppercase tracking-[0.25em] text-amber-600/80 font-bold flex items-center gap-2">
+                        <h4 className="font-sans text-xs uppercase tracking-[0.25em] text-ember-600/80 font-bold flex items-center gap-2">
                           <FileText size={11} />
                           <span>Field Notes & Reflections</span>
                         </h4>
@@ -579,7 +579,7 @@ export const CharacterJournalTab = ({
                             <span>RAG Link</span>
                             {isRagFetching ? (
                               <span
-                                className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"
+                                className="h-1.5 w-1.5 rounded-full bg-ember-500 animate-pulse"
                                 title="Syncing OpenViking..."
                               />
                             ) : isRagOffline ? (
@@ -604,7 +604,7 @@ export const CharacterJournalTab = ({
                           <div className="h-2.5 bg-stone-900 rounded w-4/5" />
                         </div>
                       ) : (
-                        <p className="text-xs leading-relaxed text-stone-300 italic select-all selection:bg-amber-950 selection:text-amber-200">
+                        <p className="text-xs leading-relaxed text-stone-300 italic select-all selection:bg-ember-950 selection:text-ember-200">
                           "{reflections || "No reflections logged yet."}"
                         </p>
                       )}
@@ -662,9 +662,9 @@ export const CharacterJournalTab = ({
                             );
                           }
                           return (
-                            <div className="flex items-center justify-between gap-2 rounded-[2px] border border-amber-900/15 bg-black/10 px-3 py-2 text-xs text-stone-300">
+                            <div className="flex items-center justify-between gap-2 rounded-[2px] border border-ember-900/15 bg-black/10 px-3 py-2 text-xs text-stone-300">
                               <div className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-ember-500" />
                                 <span>{active.title}</span>
                               </div>
                               <span className="text-[9px] font-mono uppercase text-stone-500">
@@ -733,11 +733,11 @@ export const CharacterJournalTab = ({
                   {selectedQuest.status === "Completed" &&
                     selectedQuest.kind === "procedural" && (
                       <div className="mt-6 flex justify-center py-2 select-none pointer-events-none">
-                        <div className="border-2 border-dashed border-amber-800/40 px-6 py-2.5 rounded-[2px] text-center rotate-[-1.5deg] bg-amber-900/5">
-                          <span className="block text-[9px] font-sans uppercase tracking-[0.4em] text-amber-700/50 font-bold">
+                        <div className="border-2 border-dashed border-ember-800/40 px-6 py-2.5 rounded-[2px] text-center rotate-[-1.5deg] bg-ember-900/5">
+                          <span className="block text-[9px] font-sans uppercase tracking-[0.4em] text-ember-700/50 font-bold">
                             Registry Seal
                           </span>
-                          <span className="block mt-1 font-serif italic text-amber-600/70 text-xs font-semibold tracking-wider">
+                          <span className="block mt-1 font-serif italic text-ember-600/70 text-xs font-semibold tracking-wider">
                             "Closed without canon mutation"
                           </span>
                         </div>
@@ -830,7 +830,7 @@ export const CharacterJournalTab = ({
                   <div className="mt-3 space-y-2.5 border-t border-stone-850 pt-3">
                     {entry.revealedStages.map((stage) => (
                       <div key={stage.heading}>
-                        <h5 className="text-[10px] uppercase tracking-[0.2em] text-amber-500/80 font-bold font-sans">
+                        <h5 className="text-[10px] uppercase tracking-[0.2em] text-ember-500/80 font-bold font-sans">
                           {stage.heading}
                         </h5>
                         <p className="mt-1 text-xs leading-relaxed text-stone-300 font-serif">

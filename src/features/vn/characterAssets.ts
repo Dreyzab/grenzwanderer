@@ -18,15 +18,25 @@ const CHARACTER_PORTRAITS: Record<string, string> = {
   npc_bureau_master: "/images/characters/bureau_master/bureau_master.webp",
   npc_sasha_hartmann_servant:
     "/images/characters/sasha_hartmann_servant/sasha_hartmann_servant.webp",
+  npc_weber_dispatcher: "/Characters/lotte_weber_portrait.png",
+  lotte_weber: "/Characters/lotte_weber_portrait.png",
+  lotte: "/Characters/lotte_weber_portrait.png",
+  detective: "/images/characters/detective_portrait/detective_portrait.png",
   npc_friedrich_wagner:
     "/images/characters/friedrich_wagner/friedrich_wagner.webp",
   npc_krebs_mugger: "/images/characters/krebs_mugger/krebs_mugger.webp",
   npc_hotel_maid: "/images/characters/hotel_maid/hotel_maid.webp",
+  npc_heinrich_galdermann:
+    "/images/characters/heinrich_galdermann/heinrich_galdermann.webp",
+  npc_albrecht_stoll: "/images/characters/albrecht_stoll/albrecht_stoll.webp",
+  npc_emil_roth: "/images/characters/emil_roth/emil_roth.webp",
+  npc_anton_weber: "/images/characters/anton_weber/anton_weber.webp",
+  npc_rudi_kempf: "/images/characters/rudi_kempf/rudi_kempf.webp",
+  npc_konrad_vossler: "/images/characters/konrad_vossler/konrad_vossler.webp",
   npc_anna_mahler: "/images/characters/mayor/mayor.webp",
   npc_major_falk: "/images/characters/veteran_portrait/veteran_portrait.png",
 
   // Role-based Fallbacks (from public/images/characters)
-  npc_weber_dispatcher: "/images/characters/operator/operator.webp",
   npc_kessler_banker: "/images/characters/bank_manager/bank_manager.webp",
   npc_banker_kessler: "/images/characters/bank_manager/bank_manager.webp",
   npc_vetter_clerk: "/images/characters/worker/worker.webp",
@@ -72,6 +82,8 @@ export function getCharacterPortrait(
 
   // Specific patterns
   if (lowerId.includes("banker")) return CHARACTER_PORTRAITS.bank_manager;
+  if (lowerId.includes("lotte") || lowerId.includes("weber"))
+    return CHARACTER_PORTRAITS.lotte_weber;
   if (lowerId.includes("operator") || lowerId.includes("dispatcher"))
     return CHARACTER_PORTRAITS.operator;
   if (lowerId.includes("analyst")) return CHARACTER_PORTRAITS.assistant_generic;

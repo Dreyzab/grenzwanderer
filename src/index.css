@@ -1,8 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #f59f0a;
-  --color-background-dark: #181511;
+  /* Ember — warm bronze + crimson, forge vibes */
+  --color-primary: #c08552; /* bronze/copper — main accent (= ember-500) */
+  --color-accent: #b3261e; /* crimson — important actions */
+  --color-background-dark: #1a110e; /* deep red-brown */
+
+  /* Semantic bronze ramp — replaces hardcoded amber-* across the UI.
+     Keeps Tailwind shade/opacity syntax: text-ember-500, bg-ember-700/30, etc. */
+  --color-ember-50: #faf2e8;
+  --color-ember-100: #f3e2cd;
+  --color-ember-200: #e8c9a4;
+  --color-ember-300: #dcae7b;
+  --color-ember-400: #cd9763;
+  --color-ember-500: #c08552;
+  --color-ember-600: #a66f3f;
+  --color-ember-700: #875730;
+  --color-ember-800: #6b4526;
+  --color-ember-850: #563820;
+  --color-ember-900: #4a2f1c;
+  --color-ember-950: #2a1a10;
 
   --font-display: "Work Sans", "IBM Plex Sans", sans-serif;
   --font-serif: "Playfair Display", "Crimson Pro", serif;
@@ -57,20 +74,20 @@ code {
 @keyframes pulse-amber {
   0%,
   100% {
-    text-shadow: 0 0 4px rgba(245, 159, 10, 0);
+    text-shadow: 0 0 4px rgba(192, 133, 82, 0);
     box-shadow:
-      inset 0 0 0 0 rgba(245, 159, 10, 0),
-      0 0 0 0 rgba(245, 159, 10, 0);
+      inset 0 0 0 0 rgba(192, 133, 82, 0),
+      0 0 0 0 rgba(192, 133, 82, 0);
     transform: scale(1);
     border-color: rgba(255, 255, 255, 0.12);
   }
   50% {
-    text-shadow: 0 0 10px rgba(245, 159, 10, 0.8);
+    text-shadow: 0 0 10px rgba(192, 133, 82, 0.8);
     box-shadow:
-      inset 0 0 4px rgba(245, 159, 10, 0.2),
-      0 0 12px 2px rgba(245, 159, 10, 0.4);
+      inset 0 0 4px rgba(192, 133, 82, 0.2),
+      0 0 12px 2px rgba(192, 133, 82, 0.4);
     transform: scale(1.08);
-    border-color: rgba(245, 159, 10, 0.8);
+    border-color: rgba(192, 133, 82, 0.8);
   }
 }
 

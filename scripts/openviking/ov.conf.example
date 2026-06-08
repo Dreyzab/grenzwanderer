@@ -27,11 +27,11 @@
   "embedding": {
     "max_concurrent": 1,
     "dense": {
-      "api_base": "https://generativelanguage.googleapis.com/v1beta/openai/",
+      "api_base": "https://generativelanguage.googleapis.com/v1beta/",
       "api_key": "set-via-OPENVIKING_GOOGLE_API_KEY",
-      "provider": "openai",
-      "dimension": 768,
-      "model": "gemini-embedding-2-preview",
+      "provider": "google",
+      "dimension": 3072,
+      "model": "gemini-embedding-2",
       "input": "text"
     }
   },
@@ -40,11 +40,11 @@
     "api_key": "set-via-OPENVIKING_GOOGLE_API_KEY",
     "provider": "openai",
     "max_retries": 2,
-    "model": "gemini-3-flash-preview"
+    "model": "gemini-3.5-flash"
   },
   "bot": {
     "agents": {
-      "model": "gemini/gemini-2.5-flash",
+      "model": "gemini/gemini-3.5-flash",
       "provider": "gemini",
       "api_key": "set-via-OPENVIKING_GOOGLE_API_KEY",
       "api_base": ""

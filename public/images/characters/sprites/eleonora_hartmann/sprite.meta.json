@@ -1,0 +1,9 @@
+{
+  "characterId": "npc_mother_hartmann",
+  "displayName": "Eleonora Hartmann",
+  "assetStage": "body_base_clean_face_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "8b938889b2da9493d96abe170f0d8aed8522ee6f56e0df8d046a7b0d5e2af5eb",
+  "notes": "Revised to read as 38 years old: mature, controlled, not elderly. Facial layer variants are not produced yet."
+}

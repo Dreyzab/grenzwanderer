@@ -28,7 +28,7 @@ export const ConfirmationModal = ({
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(180,83,9,0.24),transparent_70%)]" />
 
       <div className="relative p-6">
-        <p className="mb-3 text-[11px] uppercase tracking-[0.32em] text-amber-300/80">
+        <p className="mb-3 text-[11px] uppercase tracking-[0.32em] text-ember-300/80">
           Confirm Destructive Action
         </p>
         <h2
@@ -51,7 +51,7 @@ export const ConfirmationModal = ({
             type="button"
             onClick={onConfirm}
             disabled={disabled}
-            className="h-11 border border-amber-700 bg-amber-700/90 px-4 text-xs font-semibold uppercase tracking-[0.16em] text-stone-950 transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="h-11 border border-ember-700 bg-ember-700/90 px-4 text-xs font-semibold uppercase tracking-[0.16em] text-stone-950 transition-colors hover:bg-ember-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {confirmLabel}
           </button>

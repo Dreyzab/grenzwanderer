@@ -30,7 +30,7 @@ describe("Player Portrait Resolver", () => {
     };
     const portrait = resolvePlayerPortrait(flags, equipped);
     expect(portrait).toBe(
-      "/images/characters/witch_portrait/witch_portrait.png",
+      "/Characters/Eleonora/eleonora_mother_refined_1776592048672.png",
     );
   });
 

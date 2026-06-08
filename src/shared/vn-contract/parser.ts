@@ -49,6 +49,7 @@ import type {
   VnHubSchema,
   VnHubZone,
   VnHubZoneOccupant,
+  VnHubPresentation,
   VnInteractionMode,
   VnNode,
   VnNarrativeLayout,
@@ -101,6 +102,9 @@ const isNarrativePresentation = (
 
 const isInteractionMode = (value: unknown): value is VnInteractionMode =>
   value === "standard" || value === "hub";
+
+const isHubPresentation = (value: unknown): value is VnHubPresentation =>
+  value === "overlay" || value === "inline_panel";
 
 const VIEW_BOX_PATTERN = /^-?\d+(?:\.\d+)?(?:\s+-?\d+(?:\.\d+)?){3}$/;
 
@@ -744,6 +748,9 @@ const isNode = (value: unknown): value is VnNode => {
     (value.interactionMode === undefined ||
       isInteractionMode(value.interactionMode)) &&
     (value.hubSchema === undefined || isHubSchema(value.hubSchema)) &&
+    (value.hubPresentation === undefined ||
+      (isHubPresentation(value.hubPresentation) &&
+        value.interactionMode === "hub")) &&
     // Cross-field rules: hub mode requires hubSchema and every hotspot
     // choice must point at an existing zone. Standard mode forbids hotspots.
     (value.interactionMode === "hub"

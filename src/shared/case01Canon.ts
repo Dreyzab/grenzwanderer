@@ -132,6 +132,7 @@ export const CASE01_CANON_FLAG_KEYS = [
   "false_trail_grimoire_pressure_used",
   "false_trail_convergence_complete",
   "military_engineer_operation_proven",
+  "case01_sapper_profiled",
   "estate_branch_complete",
   "lotte_interlude_complete",
   "lotte_warning_heeded",

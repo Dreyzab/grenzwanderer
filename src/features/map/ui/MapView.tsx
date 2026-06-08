@@ -6,7 +6,16 @@ import MapGL, {
   Source,
   type ViewStateChangeEvent,
 } from "react-map-gl/mapbox";
-import { MapPinPlus, Pause, Play, Route, Square, Trash2 } from "lucide-react";
+import {
+  Building2,
+  Map as MapIcon,
+  MapPinPlus,
+  Pause,
+  Play,
+  Route,
+  Square,
+  Trash2,
+} from "lucide-react";
 import { useReducer, useTable } from "spacetimedb/react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./mapExperience.css";
@@ -36,6 +45,7 @@ import { CartouchePanel } from "./CartouchePanel";
 import { CobblestoneMarker } from "./CobblestoneMarker";
 import { PlayerPin } from "./PlayerPin";
 import { JourneyReportModal } from "./JourneyReportModal";
+import { BureauFloorExplorer } from "./BureauFloorExplorer";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
 import { getMapStrings } from "../../i18n/uiStrings";
 
@@ -98,6 +108,8 @@ type MapCodeAttemptCoordinates = {
   attemptedFromLat?: number;
   attemptedFromLng?: number;
 };
+
+type MapExperienceMode = "city" | "bureau";
 
 const resolveAttemptCoordinates =
   async (): Promise<MapCodeAttemptCoordinates> => {
@@ -185,6 +197,8 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
   );
   const [networkNotice, setNetworkNotice] = useState<string | null>(null);
   const [isObservationMode, setIsObservationMode] = useState(false);
+  const [experienceMode, setExperienceMode] =
+    useState<MapExperienceMode>("city");
   const isZoomedOut = zoomLevel < SEMANTIC_ZOOM_THRESHOLD;
   const compactHeaderId = useRef(
     `gw-map-ledger-${Math.random().toString(36).slice(2)}`,
@@ -657,9 +671,42 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
     }
   }, [codeValue, isNetworkConnected, mapStrings.errors, redeemMapCode]);
 
+  const renderModeSwitch = () => (
+    <div className="gw-map-mode-switch" role="group" aria-label="Map mode">
+      <button
+        type="button"
+        data-active={experienceMode === "city" ? "true" : "false"}
+        aria-pressed={experienceMode === "city"}
+        onClick={() => setExperienceMode("city")}
+      >
+        <MapIcon size={15} />
+        City
+      </button>
+      <button
+        type="button"
+        data-active={experienceMode === "bureau" ? "true" : "false"}
+        aria-pressed={experienceMode === "bureau"}
+        onClick={() => setExperienceMode("bureau")}
+      >
+        <Building2 size={15} />
+        BÜRO
+      </button>
+    </div>
+  );
+
+  if (experienceMode === "bureau") {
+    return (
+      <section className="gw-map-shell gw-map-shell--bureau">
+        {renderModeSwitch()}
+        <BureauFloorExplorer />
+      </section>
+    );
+  }
+
   if (!MAPBOX_TOKEN) {
     return (
       <section className="gw-map-shell gw-map-shell--fallback">
+        {renderModeSwitch()}
         <article className="gw-map-empty-state gw-map-empty-state--token">
           <div className="gw-map-overlay-paper" />
           <p className="gw-map-label-eyebrow">{mapStrings.chamber}</p>
@@ -742,6 +789,7 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
       data-observation-mode={isObservationMode ? "true" : "false"}
     >
       <div className="gw-map-frame">
+        {renderModeSwitch()}
         <header
           className={`gw-map-header ${
             isCompactHud ? "gw-map-header--compact" : "gw-map-header--desktop"

@@ -11,10 +11,11 @@ aliases: ["Heinrich Galdermann"]
 
 ## Dossier
 
-- **Role**: Sponsor-facing client, public manager of the crisis, and final human face of the Case 01 cover-up.
+- **Role**: **Prokurist** (authorized signing manager) of Bankhaus J.A. Krebs — runs the daily ledger and sponsor relations beneath the Director, and is the human face of the Case 01 cover-up. Distinct from the bank's figurehead Director, Johann Kessler.
 - **Age / Appearance**: 55, broad frame, expensive waistcoat, measured gestures hiding panic.
 - **Archetype**: The Respectable Culprit
 - **Origin**: Old Freiburg banking lineage.
+- **Era note**: Under period German commercial law the **Prokura** gives Galdermann binding signing authority — enough to move vault liquidity without the Director's hand on the pen.
 
 ## Psyche Profile (Parliament Perception)
 
@@ -32,6 +33,7 @@ aliases: ["Heinrich Galdermann"]
 
 ## Relationships
 
+- [[30_World_Intel/Characters/char_bank_director|char_bank_director]] - Bankdirektor Johann Kessler, the figurehead above him; Galdermann holds the Prokura and the secrets.
 - [[30_World_Intel/Characters/char_inspector|char_inspector]] - employer attempting to steer conclusions.
 - [[30_World_Intel/Characters/char_journalist|char_journalist]] - reputational enemy.
 - [[30_World_Intel/Characters/char_pawnbroker|char_pawnbroker]] - indirect laundering conduit.

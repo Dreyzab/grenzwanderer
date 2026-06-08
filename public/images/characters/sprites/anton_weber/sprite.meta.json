@@ -1,0 +1,9 @@
+{
+  "characterId": "npc_anton_weber",
+  "displayName": "Anton Weber",
+  "assetStage": "body_base_casefile_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "d2a6afdee6f0b701124642be07f140523cfc259f2dfa6603f9d4cc5bc978da6d",
+  "notes": "False-trail postman sprite: professional route witness, yellow-black cord as evidence, more bent than corrupt. Facial layer variants are not produced yet."
+}

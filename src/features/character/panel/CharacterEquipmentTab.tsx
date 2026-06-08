@@ -37,11 +37,11 @@ export const CharacterEquipmentTab = ({
   const [isEquipping, setIsEquipping] = useState<string | null>(null);
 
   const slotLabels: Record<EquipmentSlot, { label: string; icon: string }> = {
-    head: { label: t.slots?.head ?? "Head", icon: "🦱" },
-    body: { label: t.slots?.body ?? "Body", icon: "🧥" },
-    hands: { label: t.slots?.hands ?? "Hands", icon: "🧤" },
-    weapon: { label: t.slots?.weapon ?? "Weapon", icon: "🗡️" },
-    accessory: { label: t.slots?.accessory ?? "Accessory", icon: "📿" },
+    head: { label: t.slots?.head ?? "Head", icon: "ðŸ¦±" },
+    body: { label: t.slots?.body ?? "Body", icon: "ðŸ§¥" },
+    hands: { label: t.slots?.hands ?? "Hands", icon: "ðŸ§¤" },
+    weapon: { label: t.slots?.weapon ?? "Weapon", icon: "ðŸ—¡ï¸" },
+    accessory: { label: t.slots?.accessory ?? "Accessory", icon: "ðŸ“¿" },
   };
 
   // Resolve inventory items suitable for slots
@@ -208,7 +208,7 @@ export const CharacterEquipmentTab = ({
                           />
                         </div>
                         {set.isComplete && (
-                          <div className="mt-2 flex items-center space-x-1.5 text-[10px] text-amber-400 font-medium">
+                          <div className="mt-2 flex items-center space-x-1.5 text-[10px] text-ember-400 font-medium">
                             <ArrowUp className="h-3 w-3 animate-bounce" />
                             <span>
                               {t.identityOverridden ??
@@ -377,10 +377,10 @@ export const CharacterEquipmentTab = ({
                                             : item.name}
                                         </span>
                                         {item.setId && (
-                                          <span className="block text-[9px] text-amber-500 font-mono">
-                                            ★{" "}
+                                          <span className="block text-[9px] text-ember-500 font-mono">
+                                            â˜…{" "}
                                             {t.isRussian
-                                              ? "Часть ведьминского сета"
+                                              ? "Ð§Ð°ÑÑ‚ÑŒ Ð²ÐµÐ´ÑŒÐ¼Ð¸Ð½ÑÐºÐ¾Ð³Ð¾ ÑÐµÑ‚Ð°"
                                               : "Set item"}
                                           </span>
                                         )}
@@ -393,7 +393,7 @@ export const CharacterEquipmentTab = ({
                                       onClick={() => handleEquip(slot, item.id)}
                                       className={`px-3 py-1 border font-mono text-[10px] disabled:opacity-40 ${
                                         isEquipped
-                                          ? "border-amber-500/30 text-amber-400 bg-amber-950/10 cursor-default"
+                                          ? "border-ember-500/30 text-ember-400 bg-ember-950/10 cursor-default"
                                           : "border-white/10 hover:border-white/30 text-stone-300 hover:bg-white/5"
                                       }`}
                                       style={{ borderRadius: "1px" }}

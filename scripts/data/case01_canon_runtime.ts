@@ -436,6 +436,8 @@ export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
     defaultBackgroundUrl: CASE01_BG_WAREHOUSE,
     nodeIds: [
       "scene_case01_warehouse_entry",
+      "scene_case01_sapper_flashback",
+      "scene_case01_warehouse_sapper",
       "scene_case01_warehouse_lawful",
       "scene_case01_warehouse_compromised",
     ],
@@ -2007,6 +2009,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     backgroundUrl: CASE01_TRAIN_COMPARTMENT_BG,
     narrativeLayout: "log",
     interactionMode: "hub",
+    hubPresentation: "inline_panel",
     sceneGroupId: "train_corridor",
     hubSchema: trainHubSchema,
     choices: [
@@ -3437,9 +3440,10 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     id: "scene_case01_bank_manager",
     scenarioId: CASE01_SCENARIO_IDS.bankInvestigation,
     sourcePath: "40_GameViewer/Case01/Plot/03_Bank/scene_manager_dialogue.md",
-    titleOverride: "Director Galdermann",
+    characterId: "npc_heinrich_galdermann",
+    titleOverride: "Prokurist Galdermann",
     bodyOverride:
-      "Heinrich Galdermann receives you with a smile polished for committees. He calls the open vault an internal matter, nudges suspicion toward frightened clerks, and asks whether Fritz Muller's sealed statements reached you intact. The question arrives too early.",
+      "Heinrich Galdermann receives you with a smile polished for committees and a handkerchief already damp at the fold. He calls the open vault an internal matter, nudges suspicion toward frightened clerks, and slides the official robbery report over the grossbuch before asking whether Fritz Muller's sealed statements reached you intact. The question arrives too early.",
     backgroundUrl: CASE01_BG_BANK_OFFICE,
     choices: [
       {
@@ -4141,13 +4145,63 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       "The warehouse smells of wet timber, ledger ink, and a job that expected to end before witnesses arrived. Galdermann is not alone, but he is the one who understands what the room means if you leave with the right papers.",
     choices: [
       {
-        id: "CASE01_WAREHOUSE_LAWFUL",
+        id: "CASE01_WAREHOUSE_TRACE_SAPPER_OFFICIAL",
+        text: "Hold the room under warrant and identify the trained hand behind the cut.",
+        nextNodeId: "scene_case01_sapper_flashback",
+        visibleIfAll: [...officialRouteConditions],
+      },
+      {
+        id: "CASE01_WAREHOUSE_TRACE_SAPPER_COVERT",
+        text: "Keep the ledger quiet and identify the trained hand behind the cut.",
+        nextNodeId: "scene_case01_sapper_flashback",
+        visibleIfAll: [...covertRouteConditions],
+      },
+    ],
+  },
+  {
+    id: "scene_case01_sapper_flashback",
+    scenarioId: CASE01_SCENARIO_IDS.warehouseFinale,
+    sourcePath:
+      "40_GameViewer/Case01/_runtime/case01_warehouse_finale/scene_case01_sapper_flashback.md",
+    titleOverride: "The Clean Cut",
+    characterId: "npc_albrecht_stoll",
+    bodyOverride:
+      "The memory comes out of order: a chemical glove, a packed charge, magnesium and iron oxide weighed twice by lamplight. The bank box blooms white-hot, but the room is left standing. A postman's coat sits badly on military shoulders. The spent canister is tied with black-yellow twine from habit, not panic. This was not a burglar's violence. It was an engineer's cut.",
+    onEnter: [
+      { type: "set_flag", key: "case01_sapper_profiled", value: true },
+      { type: "set_flag", key: "false_trail_post_route_refuted", value: true },
+    ],
+    choices: [
+      {
+        id: "CASE01_SAPPER_FLASHBACK_LOGIC",
+        text: "(Logic) A daytime breach on that timetable needs a trained demolition hand.",
+        nextNodeId: "scene_case01_warehouse_sapper",
+      },
+      {
+        id: "CASE01_SAPPER_FLASHBACK_PERCEPTION",
+        text: "(Perception) The slag ratio and the burned cuffs are the same signature.",
+        nextNodeId: "scene_case01_warehouse_sapper",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_warehouse_sapper",
+    scenarioId: CASE01_SCENARIO_IDS.warehouseFinale,
+    sourcePath:
+      "40_GameViewer/Case01/_runtime/case01_warehouse_finale/scene_case01_warehouse_sapper.md",
+    titleOverride: "The Technical Guard",
+    characterId: "npc_albrecht_stoll",
+    bodyOverride:
+      "Galdermann is not alone. The second man stands like a position to be held: broad shoulders, chemical gloves still on, a postman's coat that cannot teach his body to stop being an officer. He looks at the slag photographs and relaxes into recognition. \"You found the cut,\" he says. \"Then you know I left the building standing. A thief would have wrecked the room.\" He denies being a thief, not the thermite.",
+    choices: [
+      {
+        id: "CASE01_WAREHOUSE_SAPPER_LAWFUL",
         text: "Seal the floor, call the warrant, and force a lawful close.",
         nextNodeId: "scene_case01_warehouse_lawful",
         visibleIfAll: [...officialRouteConditions],
       },
       {
-        id: "CASE01_WAREHOUSE_COMPROMISE",
+        id: "CASE01_WAREHOUSE_SAPPER_NEGOTIATE",
         text: "Use the bureau ledger and force a compromised truth instead of a public one.",
         nextNodeId: "scene_case01_warehouse_compromised",
         visibleIfAll: [...covertRouteConditions],

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { parseSpeakerSegments } from "./speakerParser";
+import {
+  expandNarratorParagraphs,
+  parseSpeakerSegments,
+} from "./speakerParser";
 
 describe("parseSpeakerSegments", () => {
   it("treats unmarked text as narrator text", () => {
@@ -84,6 +87,32 @@ describe("parseSpeakerSegments", () => {
     expect(segments).toMatchObject([
       { speaker: "Assistant", category: "npc", text: "Hello." },
       { speaker: "inspector", category: "player", text: "My line." },
+    ]);
+  });
+});
+
+describe("expandNarratorParagraphs", () => {
+  it("splits multi-paragraph narrator blocks for assessment", () => {
+    const segments = parseSpeakerSegments(
+      "**[Narrator]**:\nFirst beat.\n\nSecond beat.\n\nThird beat.\n\n**[inner_cynic]**:\nOne thought.",
+    );
+
+    expect(expandNarratorParagraphs(segments)).toMatchObject([
+      { category: "narrator", text: "First beat." },
+      { category: "narrator", text: "Second beat." },
+      { category: "narrator", text: "Third beat." },
+      { category: "inner_voice", text: "One thought." },
+    ]);
+  });
+
+  it("keeps single-paragraph narrator and non-narrator segments unchanged", () => {
+    const segments = parseSpeakerSegments(
+      "**[Narrator]**:\nOnly one beat.\n\n**[Assistant]**:\nHello.",
+    );
+
+    expect(expandNarratorParagraphs(segments)).toMatchObject([
+      { category: "narrator", text: "Only one beat." },
+      { category: "npc", text: "Hello." },
     ]);
   });
 });

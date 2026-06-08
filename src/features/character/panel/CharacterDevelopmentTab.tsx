@@ -130,7 +130,7 @@ export const CharacterDevelopmentTab = ({
                 .map((indicator) => (
                   <span
                     key={indicator.id}
-                    className="rounded-[0.45rem] border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs font-semibold text-amber-100"
+                    className="rounded-[0.45rem] border border-ember-300/25 bg-ember-300/10 px-3 py-2 text-xs font-semibold text-ember-100"
                     title={indicator.description}
                   >
                     {`${indicator.label} ${indicatorRankLabel(indicator.rank)}`}

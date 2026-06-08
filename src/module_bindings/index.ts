@@ -51,6 +51,8 @@ import CloseCommandModeReducer from "./close_command_mode_reducer";
 import CommitMapDiscoveryReducer from "./commit_map_discovery_reducer";
 import CompleteAiRequestReducer from "./complete_ai_request_reducer";
 import CompleteQuestInstanceReducer from "./complete_quest_instance_reducer";
+import DeleteContentRatingReducer from "./delete_content_rating_reducer";
+import DeleteDialogueRatingReducer from "./delete_dialogue_rating_reducer";
 import DiscoverFactReducer from "./discover_fact_reducer";
 import EmitCaseEventReducer from "./emit_case_event_reducer";
 import EndBattleTurnReducer from "./end_battle_turn_reducer";
@@ -91,6 +93,8 @@ import TravelToReducer from "./travel_to_reducer";
 import UnequipItemReducer from "./unequip_item_reducer";
 import UnlockGroupReducer from "./unlock_group_reducer";
 import UpdateTranslationsReducer from "./update_translations_reducer";
+import UpsertContentRatingReducer from "./upsert_content_rating_reducer";
+import UpsertDialogueRatingReducer from "./upsert_dialogue_rating_reducer";
 import ValidateHypothesisReducer from "./validate_hypothesis_reducer";
 import VerifyRumorReducer from "./verify_rumor_reducer";
 
@@ -109,6 +113,8 @@ import MyBattleSessionsRow from "./my_battle_sessions_table";
 import MyCommandHistoryRow from "./my_command_history_table";
 import MyCommandPartyRow from "./my_command_party_table";
 import MyCommandSessionsRow from "./my_command_sessions_table";
+import MyContentRatingsRow from "./my_content_ratings_table";
+import MyDialogueRatingsRow from "./my_dialogue_ratings_table";
 import MyEvidenceRow from "./my_evidence_table";
 import MyFactionSignalsRow from "./my_faction_signals_table";
 import MyFavorLedgerRow from "./my_favor_ledger_table";
@@ -260,6 +266,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyCommandSessionsRow),
+  my_content_ratings: __table({
+    name: 'my_content_ratings',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyContentRatingsRow),
+  my_dialogue_ratings: __table({
+    name: 'my_dialogue_ratings',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyDialogueRatingsRow),
   my_evidence: __table({
     name: 'my_evidence',
     indexes: [
@@ -456,6 +476,8 @@ const reducersSchema = __reducers(
   __reducerSchema("commit_map_discovery", CommitMapDiscoveryReducer),
   __reducerSchema("complete_ai_request", CompleteAiRequestReducer),
   __reducerSchema("complete_quest_instance", CompleteQuestInstanceReducer),
+  __reducerSchema("delete_content_rating", DeleteContentRatingReducer),
+  __reducerSchema("delete_dialogue_rating", DeleteDialogueRatingReducer),
   __reducerSchema("discover_fact", DiscoverFactReducer),
   __reducerSchema("emit_case_event", EmitCaseEventReducer),
   __reducerSchema("end_battle_turn", EndBattleTurnReducer),
@@ -496,6 +518,8 @@ const reducersSchema = __reducers(
   __reducerSchema("unequip_item", UnequipItemReducer),
   __reducerSchema("unlock_group", UnlockGroupReducer),
   __reducerSchema("update_translations", UpdateTranslationsReducer),
+  __reducerSchema("upsert_content_rating", UpsertContentRatingReducer),
+  __reducerSchema("upsert_dialogue_rating", UpsertDialogueRatingReducer),
   __reducerSchema("validate_hypothesis", ValidateHypothesisReducer),
   __reducerSchema("verify_rumor", VerifyRumorReducer),
 );

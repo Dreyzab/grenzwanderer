@@ -1,0 +1,9 @@
+{
+  "characterId": "npc_rudi_kempf",
+  "displayName": "Rudi Kempf",
+  "assetStage": "body_base_casefile_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "b3cf01bd3560a46d19d3225aa6c64ba406ae71131bc1b0cc16d50ed3db03ba90",
+  "notes": "False-trail worker sprite: protest noise, honest anger, physical presence without case-core guilt. Facial layer variants are not produced yet."
+}

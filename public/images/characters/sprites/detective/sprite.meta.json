@@ -1,0 +1,9 @@
+{
+  "characterId": "detective",
+  "displayName": "Detective",
+  "assetStage": "body_base_clean_face_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "bc9d7ee2c93bcf15e23d92cdf1509c827c449e3b5e70d4d4ef6710255aa26a81",
+  "notes": "Clean-face full-body VN sprite base. Facial layer variants are not produced yet."
+}

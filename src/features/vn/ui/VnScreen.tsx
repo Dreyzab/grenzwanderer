@@ -39,6 +39,7 @@ import {
 import { VnJournalEntryToast } from "./VnJournalEntryToast";
 import { VnDmSidePanel } from "./VnDmSidePanel";
 import { SceneComposer } from "./SceneComposer";
+import { VnCreatorAssessmentPanel } from "./quality/VnCreatorAssessmentPanel";
 import {
   playVnSkillCheckSfx,
   playVnTokenSfx,
@@ -47,6 +48,7 @@ import {
 } from "./vnSkillCheckAudio";
 import { VnNarrativePanel } from "../../../widgets/vn-overlay/VnNarrativePanel";
 import { AUTO_CONTINUE_PREFIX } from "../vnScreenUtils";
+import { VnHubInlinePanel } from "./hub/VnHubInlinePanel";
 import { VnHubOverlay } from "./hub/VnHubOverlay";
 import { VnHubOverlayButton } from "./hub/VnHubOverlayButton";
 import { VnHubSchema } from "./hub/VnHubSchema";
@@ -858,6 +860,10 @@ export const VnScreen = ({
     effectiveNarrativeLayout === "fullscreen" ||
     effectiveNarrativeLayout === "letter_overlay";
   const isWitchDmMode = Boolean(myFlags.origin_witch);
+  const isCreatorMode = import.meta.env.DEV || isWitchDmMode;
+  // Phase 2 aggregation compares stored ratings against the content *version*
+  // (semantic), not the checksum, to flag stale ratings after a rebuild.
+  const contentVersionLabel = activeVersion?.version ?? undefined;
   const isEleonoraTrainPrologue =
     isWitchDmMode &&
     (currentNode?.sceneGroupId === "witch_train_compartment" ||
@@ -889,6 +895,8 @@ export const VnScreen = ({
   ]);
 
   const isHubNode = currentNode?.interactionMode === "hub";
+  const isHubInlinePanel =
+    isHubNode && currentNode?.hubPresentation === "inline_panel";
   const hubSchema = isHubNode ? (currentNode?.hubSchema ?? null) : null;
   const currentHubZoneId = useCurrentHubZone(hubSchema, myFlags);
   const visibleHubOccupantsByZoneId = useMemo(() => {
@@ -1175,6 +1183,13 @@ export const VnScreen = ({
           onError={setError}
         />
       ) : null}
+      {isCreatorMode ? (
+        <VnCreatorAssessmentPanel
+          node={currentNode}
+          scenario={selectedScenario}
+          contentVersion={contentVersionLabel}
+        />
+      ) : null}
       <VnSkillCheckToast
         toast={skillCheckToast}
         onClose={clearSkillCheckToast}
@@ -1186,16 +1201,8 @@ export const VnScreen = ({
         onDismiss={tutorialState.clearJournalToast}
       />
       {isHubNode && hubSchema ? (
-        <>
-          <VnHubOverlayButton
-            onClick={() => setIsHubOverlayOpen(true)}
-            disabled={isHubInteractionDisabled}
-          />
-          <VnHubOverlay
-            open={isHubOverlayOpen}
-            onClose={() => setIsHubOverlayOpen(false)}
-            title={currentNode?.title}
-          >
+        isHubInlinePanel ? (
+          <VnHubInlinePanel title={currentNode?.title}>
             <VnHubSchema
               schema={hubSchema}
               hotspotChoices={visibleHotspotChoices}
@@ -1205,8 +1212,30 @@ export const VnScreen = ({
               isChoiceLocked={isHubChoiceLocked}
               disabled={isHubInteractionDisabled}
             />
-          </VnHubOverlay>
-        </>
+          </VnHubInlinePanel>
+        ) : (
+          <>
+            <VnHubOverlayButton
+              onClick={() => setIsHubOverlayOpen(true)}
+              disabled={isHubInteractionDisabled}
+            />
+            <VnHubOverlay
+              open={isHubOverlayOpen}
+              onClose={() => setIsHubOverlayOpen(false)}
+              title={currentNode?.title}
+            >
+              <VnHubSchema
+                schema={hubSchema}
+                hotspotChoices={visibleHotspotChoices}
+                currentZoneId={currentHubZoneId}
+                visibleOccupantsByZoneId={visibleHubOccupantsByZoneId}
+                onZoneSelect={handleHotspotChoiceClick}
+                isChoiceLocked={isHubChoiceLocked}
+                disabled={isHubInteractionDisabled}
+              />
+            </VnHubOverlay>
+          </>
+        )
       ) : null}
     </section>
   );

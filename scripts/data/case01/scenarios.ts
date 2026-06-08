@@ -236,6 +236,8 @@ export const case01CanonScenarios: ScenarioBlueprint[] = [
     defaultBackgroundUrl: CASE01_BG_WAREHOUSE,
     nodeIds: [
       "scene_case01_warehouse_entry",
+      "scene_case01_sapper_flashback",
+      "scene_case01_warehouse_sapper",
       "scene_case01_warehouse_lawful",
       "scene_case01_warehouse_compromised",
     ],

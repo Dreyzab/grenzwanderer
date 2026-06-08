@@ -23,6 +23,8 @@ export interface DossierStage {
 
 export interface DossierExcerpt {
   npcIdentity: string;
+  /** Optional `- (summary) ...` line; used to seed a bio when the catalog has none. */
+  summary?: string;
   stages: DossierStage[];
 }
 
@@ -38,6 +40,7 @@ const FRONTMATTER_RE = /^\uFEFF?---\n([\s\S]*?)\n---/;
 const PLAYER_DOSSIER_RE = /^##\s+Player Dossier\s*$/m;
 const BULLET_RE =
   /^-\s*(?:\(reveal:\s*([a-z0-9_]+)\)\s*)?\*\*(.+?)\*\*\s*[:—-]\s*(.+?)\s*$/i;
+const SUMMARY_RE = /^-\s*\(summary\)\s*(.+?)\s*$/i;
 
 const scalarFrontmatterField = (
   frontmatter: string,
@@ -76,7 +79,13 @@ export const parsePlayerDossier = (markdown: string): DossierExcerpt | null => {
     nextHeading === -1 ? afterHeading : afterHeading.slice(0, nextHeading);
 
   const stages: DossierStage[] = [];
+  let summary: string | undefined;
   for (const line of section.split("\n")) {
+    const summaryMatch = line.match(SUMMARY_RE);
+    if (summaryMatch) {
+      summary = summaryMatch[1].trim();
+      continue;
+    }
     const match = line.match(BULLET_RE);
     if (!match) {
       continue;
@@ -89,7 +98,10 @@ export const parsePlayerDossier = (markdown: string): DossierExcerpt | null => {
     });
   }
 
-  return stages.length > 0 ? { npcIdentity, stages } : null;
+  if (stages.length === 0 && !summary) {
+    return null;
+  }
+  return { npcIdentity, ...(summary ? { summary } : {}), stages };
 };
 
 /**
@@ -107,8 +119,19 @@ export const applyDossierExcerpts = <T extends NpcIdentityLike>(
 
   return npcIdentities.map((identity) => {
     const excerpt = excerptById.get(identity.id);
-    if (!excerpt || !identity.bio) {
+    if (!excerpt) {
       return identity;
+    }
+
+    // Seed a bio from the note's (summary) line when the catalog has none.
+    if (!identity.bio) {
+      if (!excerpt.summary) {
+        return identity;
+      }
+      return {
+        ...identity,
+        bio: { summary: excerpt.summary, stages: [...excerpt.stages] },
+      };
     }
 
     const existingStages = identity.bio.stages ?? [];

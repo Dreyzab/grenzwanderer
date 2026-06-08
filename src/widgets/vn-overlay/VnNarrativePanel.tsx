@@ -92,7 +92,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
 
   /**
    * Journal scenes open on the background (admire beat) and reveal the dock after a
-   * short dwell — or immediately on tap. Content may override via the same delay field.
+   * short dwell â€” or immediately on tap. Content may override via the same delay field.
    */
   const LOG_AUTO_REVEAL_MS = 2000;
   const resolvedAutoRevealMs =
@@ -253,14 +253,14 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
       {!isImmersive && chromeRevealed && (
         <div className="absolute top-0 inset-x-0 p-6 pt-12 flex justify-between items-start z-100 bg-linear-to-b from-black/90 via-black/40 to-transparent pb-32 pointer-events-none border-t-0 border-l-0 border-r-0 border-b-0">
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-amber-500/90 uppercase tracking-[0.2em] text-[10px] font-bold">
-              <MapPin size={12} className="text-amber-500" />
+            <div className="flex items-center gap-2 text-ember-500/90 uppercase tracking-[0.2em] text-[10px] font-bold">
+              <MapPin size={12} className="text-ember-500" />
               <span>{t.currentLocation}</span>
             </div>
             <h1 className="text-4xl font-display text-white font-bold tracking-tight drop-shadow-2xl opacity-90 m-0">
               {locationName}
             </h1>
-            <div className="h-px w-24 bg-linear-to-r from-amber-500/50 to-transparent mt-1" />
+            <div className="h-px w-24 bg-linear-to-r from-ember-500/50 to-transparent mt-1" />
           </div>
         </div>
       )}

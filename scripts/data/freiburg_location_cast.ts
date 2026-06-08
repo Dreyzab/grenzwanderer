@@ -17,8 +17,9 @@ const NPC_PROFILES: NpcCastProfile[] = [
   {
     id: "npc_kessler_banker",
     displayName: "Johann Kessler",
-    publicRole: "Bank Director",
-    sceneNote: "Runs the bank floor — guarded, calculating, never off-duty.",
+    publicRole: "Bankdirektor",
+    sceneNote:
+      "Figurehead Director of Bankhaus J.A. Krebs — guarded, calculating, never off-duty. Chairs the house; his Prokurist Galdermann signs and conceals.",
   },
   {
     id: "npc_vetter_clerk",
@@ -26,6 +27,48 @@ const NPC_PROFILES: NpcCastProfile[] = [
     publicRole: "Ledger Clerk",
     sceneNote:
       "Monitors intake logs; alert to anything that breaks the daily pattern.",
+  },
+  {
+    id: "npc_heinrich_galdermann",
+    displayName: "Heinrich Galdermann",
+    publicRole: "Prokurist",
+    sceneNote:
+      "Respectable culprit of Bankhaus J.A. Krebs: wide, polished, and sweating at the hairline while the official report covers the grossbuch.",
+  },
+  {
+    id: "npc_albrecht_stoll",
+    displayName: "Oberleutnant Albrecht Stoll",
+    publicRole: "Pioneer Officer",
+    sceneNote:
+      "The Sapper: a serving engineer whose postal disguise fits badly because the uniform keeps leaking through.",
+  },
+  {
+    id: "npc_emil_roth",
+    displayName: "Emil Roth",
+    publicRole: "Book Restorer",
+    sceneNote:
+      "False center of the Razlom trail. Supplied measurements, not the knife.",
+  },
+  {
+    id: "npc_anton_weber",
+    displayName: "Anton Weber",
+    publicRole: "Reichspost Route Clerk",
+    sceneNote:
+      "His genuine route and black-yellow twine were bent into cover by a forged military order.",
+  },
+  {
+    id: "npc_rudi_kempf",
+    displayName: "Rudi Kempf",
+    publicRole: "Rail Yard Worker",
+    sceneNote:
+      "Protest noise made useful by someone else's plan. Angry, loud, and not the vault mind.",
+  },
+  {
+    id: "npc_konrad_vossler",
+    displayName: "Konrad Vossler",
+    publicRole: "Chemistry Teacher",
+    sceneNote:
+      "Dead Registry / Case02 mirror to Stoll: same school of demolition, one refusal away from a different life.",
   },
   {
     id: "npc_weber_dispatcher",
@@ -68,8 +111,43 @@ const LOCATION_CAST_ENTRIES: LocationCastEntry[] = [
     locationId: "loc_freiburg_bank",
     tone: "tense",
     dramaticFunction: "evidence_hub",
-    primaryNpcId: "npc_kessler_banker",
-    supportNpcIds: ["npc_vetter_clerk"],
+    primaryNpcId: "npc_heinrich_galdermann",
+    supportNpcIds: ["npc_kessler_banker", "npc_vetter_clerk"],
+  },
+  {
+    locationId: "loc_freiburg_warehouse",
+    tone: "dangerous",
+    dramaticFunction: "finale_pressure",
+    primaryNpcId: "npc_heinrich_galdermann",
+    supportNpcIds: ["npc_albrecht_stoll"],
+  },
+  {
+    locationId: "loc_munster",
+    tone: "scholarly",
+    dramaticFunction: "false_trail_grimoire",
+    primaryNpcId: "npc_emil_roth",
+    supportNpcIds: [],
+  },
+  {
+    locationId: "loc_workers_pub",
+    tone: "volatile",
+    dramaticFunction: "false_trail_noise",
+    primaryNpcId: "npc_rudi_kempf",
+    supportNpcIds: [],
+  },
+  {
+    locationId: "loc_hbf",
+    tone: "busy",
+    dramaticFunction: "route_and_pressure",
+    primaryNpcId: "npc_anton_weber",
+    supportNpcIds: ["npc_krebs_mugger"],
+  },
+  {
+    locationId: "loc_uni_chem",
+    tone: "guarded",
+    dramaticFunction: "case02_mirror",
+    primaryNpcId: "npc_konrad_vossler",
+    supportNpcIds: [],
   },
   {
     locationId: "loc_agency",

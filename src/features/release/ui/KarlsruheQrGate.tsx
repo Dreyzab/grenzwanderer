@@ -31,13 +31,13 @@ export const KarlsruheQrGate = ({
     <div className="min-h-[100dvh] bg-stone-950 text-stone-100 flex items-center justify-center p-6 pt-[calc(3.75rem+env(safe-area-inset-top))] relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,167,79,0.14),transparent_40%),linear-gradient(180deg,rgba(28,25,23,0.96),rgba(12,10,9,1))]" />
       <div className="absolute inset-0 bg-[url('/images/paper-texture.png')] opacity-[0.06] mix-blend-screen" />
-      <section className="relative z-10 w-full max-w-xl rounded-[32px] border border-amber-800/30 bg-stone-950/80 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl p-8 md:p-10">
+      <section className="relative z-10 w-full max-w-xl rounded-[32px] border border-ember-800/30 bg-stone-950/80 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl p-8 md:p-10">
         <div className="flex items-center gap-4 mb-6">
-          <div className="h-14 w-14 rounded-2xl border border-amber-700/40 bg-amber-500/10 flex items-center justify-center">
-            <QrCode className="h-7 w-7 text-amber-300" strokeWidth={2.2} />
+          <div className="h-14 w-14 rounded-2xl border border-ember-700/40 bg-ember-500/10 flex items-center justify-center">
+            <QrCode className="h-7 w-7 text-ember-300" strokeWidth={2.2} />
           </div>
           <div>
-            <p className="m-0 text-[11px] uppercase tracking-[0.35em] text-amber-300/80">
+            <p className="m-0 text-[11px] uppercase tracking-[0.35em] text-ember-300/80">
               Karlsruhe Event
             </p>
             <h1 className="m-0 text-3xl font-semibold tracking-tight text-stone-50">
@@ -52,10 +52,10 @@ export const KarlsruheQrGate = ({
         </p>
 
         <div className="mt-8 rounded-[28px] border border-stone-800 bg-stone-900/80 p-8 flex flex-col items-center justify-center gap-5">
-          <div className="relative h-48 w-48 rounded-[28px] border border-amber-700/40 bg-stone-950 flex items-center justify-center">
-            <div className="absolute inset-5 rounded-[20px] border border-dashed border-amber-600/35" />
+          <div className="relative h-48 w-48 rounded-[28px] border border-ember-700/40 bg-stone-950 flex items-center justify-center">
+            <div className="absolute inset-5 rounded-[20px] border border-dashed border-ember-600/35" />
             <ScanLine
-              className="h-24 w-24 text-amber-200/90"
+              className="h-24 w-24 text-ember-200/90"
               strokeWidth={1.6}
             />
           </div>
@@ -78,7 +78,7 @@ export const KarlsruheQrGate = ({
             className={`mt-6 rounded-2xl border px-4 py-3 text-sm ${
               state === "denied"
                 ? "border-rose-800/50 bg-rose-950/50 text-rose-200"
-                : "border-amber-800/40 bg-amber-950/30 text-amber-100"
+                : "border-ember-800/40 bg-ember-950/30 text-ember-100"
             }`}
           >
             {statusLabel}

@@ -477,6 +477,82 @@ describe("ai contracts", () => {
     expect(payload?.remark?.visibility).toBe("private_dm");
   });
 
+  const baseDmTurnPayload = {
+    source: AI_DM_TURN_SOURCE_SIDE_PANEL,
+    scenarioId: "sandbox_ghost_pilot",
+    nodeId: "scene_evidence_collection",
+    actionText: "Продолжай сцену.",
+    spendFateToken: false,
+    moveTags: [],
+    resources: { fate: 1, fortune: 0, fortuneMod: 0, karma: 0 },
+    psyche: {
+      axisX: 0,
+      axisY: 0,
+      approach: 0,
+      dominantInnerVoiceId: null,
+      activeInnerVoiceIds: [],
+    },
+    bloodCurse: {
+      tier: 0,
+      pressure: 0,
+      power: 0,
+      debt: 0,
+      alcoholAftertaste: 0,
+    },
+    activeSessionFacts: [],
+    acceptedRemarks: [],
+    visibleFacts: [],
+    activeFlags: [],
+    toneMode: "gothic_mystery",
+    locale: "ru",
+  } as const;
+
+  it("accepts DM turn payloads with a structured regenerationContext", () => {
+    const payload = parseGenerateDmTurnPayload(
+      JSON.stringify({
+        ...baseDmTurnPayload,
+        regenerationContext: {
+          previousOutput: "Прошлая слабая наррация.",
+          authorFeedback: "Усиль напряжение и убери клише.",
+          rating: 3,
+          qualityIssues: ["pacing", "cliche"],
+        },
+      }),
+    );
+
+    expect(payload?.regenerationContext?.previousOutput).toBe(
+      "Прошлая слабая наррация.",
+    );
+    expect(payload?.regenerationContext?.rating).toBe(3);
+  });
+
+  it("accepts DM turn payloads without a regenerationContext", () => {
+    const payload = parseGenerateDmTurnPayload(
+      JSON.stringify(baseDmTurnPayload),
+    );
+
+    expect(payload?.regenerationContext).toBeUndefined();
+  });
+
+  it("rejects DM turn payloads carrying an unknown extra key", () => {
+    const payload = parseGenerateDmTurnPayload(
+      JSON.stringify({ ...baseDmTurnPayload, bogusExtraKey: true }),
+    );
+
+    expect(payload).toBeNull();
+  });
+
+  it("rejects a malformed regenerationContext", () => {
+    const payload = parseGenerateDmTurnPayload(
+      JSON.stringify({
+        ...baseDmTurnPayload,
+        regenerationContext: { previousOutput: 42 },
+      }),
+    );
+
+    expect(payload).toBeNull();
+  });
+
   it("parses DM proposals with review-only session canon", () => {
     const proposal = parseDmTurnProposal(
       JSON.stringify({

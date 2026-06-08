@@ -20,8 +20,8 @@ tags:
 - Clara is no longer an active Case 01 companion.
 - Her useful functions moved to [[char_assistant|Victoria Sterling]] /
   `victoria_sterling`: political access through the Oberbuergermeister,
-  contested forensic authority, widowhood, and moral pressure around official
-  truth.
+  Adlersheim family pressure, contested forensic authority, widowhood, and moral
+  pressure around official truth.
 - Keep this file only to preserve old links and asset provenance.
 
 ## Appearances

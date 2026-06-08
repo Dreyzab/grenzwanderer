@@ -8,6 +8,7 @@ import {
   type DmTurnProposal,
   type GenerateDmTurnPayload,
   type PlayerRemark,
+  type RegenerationContext,
   type SessionCanonFact,
 } from "../../ai/contracts";
 import {
@@ -248,6 +249,7 @@ export const VnDmSidePanel = ({
       directive: BeatDirectiveKind,
       action: string,
       priorNarration?: string,
+      regenerationContext?: RegenerationContext,
     ): GenerateDmTurnPayload | null => {
       if (!nodeId) {
         return null;
@@ -288,6 +290,7 @@ export const VnDmSidePanel = ({
         beatDirective: { kind: directive },
         toneMode: resolveToneMode(nodeId, bloodCurse.pressure),
         locale: "ru",
+        regenerationContext,
       };
     },
     [
@@ -317,12 +320,18 @@ export const VnDmSidePanel = ({
       action: string,
       priorNarration?: string,
       mode: BeatMode = "append",
+      regenerationContext?: RegenerationContext,
     ) => {
       if (spendFateToken && !canSpendFate) {
         onError("Недостаточно жетонов Рока.");
         return;
       }
-      const payload = buildDmPayload(directive, action, priorNarration);
+      const payload = buildDmPayload(
+        directive,
+        action,
+        priorNarration,
+        regenerationContext,
+      );
       if (!payload) {
         return;
       }
@@ -528,16 +537,24 @@ export const VnDmSidePanel = ({
       return;
     }
     const notes = regenNotes.trim();
-    const action = notes
-      ? `${lastBeat.action}\n\n[Правки автора — учти и устрани слабые места: ${notes}]`
-      : lastBeat.action;
     const priorForLast =
       beats.length >= 2
         ? beats[beats.length - 2].proposal.narration
         : undefined;
+    const regenerationContext: RegenerationContext = {
+      previousOutput: lastBeat.proposal.narration,
+      authorFeedback:
+        notes || "Устрани слабые места и усиль сцену, сохранив канон.",
+    };
     setRegenOpen(false);
     setRegenNotes("");
-    void fireBeat(lastBeat.directive, action, priorForLast, "replace");
+    void fireBeat(
+      lastBeat.directive,
+      lastBeat.action,
+      priorForLast,
+      "replace",
+      regenerationContext,
+    );
   }, [beats, fireBeat, lastBeat, regenNotes]);
 
   const rollCheck = useCallback(

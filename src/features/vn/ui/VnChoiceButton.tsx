@@ -166,7 +166,7 @@ const chanceColorClassName = (chancePercent: number): string => {
     return "text-emerald-400";
   }
   if (tone === "risky") {
-    return "text-amber-400";
+    return "text-ember-400";
   }
   return "text-rose-400";
 };
@@ -391,7 +391,7 @@ function PrimaryVoiceFloat({ hint, children }: PrimaryVoiceFloatProps) {
                 className="block font-sans text-[9px] font-semibold uppercase tracking-[0.18em]"
                 style={{ color: hint.palette.accent }}
               >
-                {hint.label} · {stanceLabel}
+                {hint.label} Â· {stanceLabel}
               </span>
               <span
                 className="mt-1 block font-serif text-[13px] leading-snug italic"

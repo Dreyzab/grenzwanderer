@@ -1,0 +1,9 @@
+{
+  "characterId": "npc_felix_hartmann",
+  "displayName": "Felix Hartmann",
+  "assetStage": "body_base_clean_face_v1",
+  "generatedAt": "2026-06-04",
+  "generationMode": "built-in image_gen with local chroma-key removal",
+  "promptBriefSha256": "818f3b57d35426c7cf1d80ca68c1fe74be57d5bf4c1826f7d5d7c571df787dd0",
+  "notes": "Clean-face full-body VN sprite base. Facial layer variants are not produced yet."
+}

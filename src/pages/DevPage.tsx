@@ -90,28 +90,28 @@ export const DevPage = () => {
 
   return (
     <section className="panel-section h-full overflow-y-auto w-full p-4 space-y-4">
-      <div className="bg-slate-900 border border-amber-900/50 rounded-lg p-4">
-        <h2 className="text-amber-500 text-lg font-serif mb-4">
+      <div className="bg-slate-900 border border-ember-900/50 rounded-lg p-4">
+        <h2 className="text-ember-500 text-lg font-serif mb-4">
           Development Cheats
         </h2>
         <div className="flex gap-4 flex-wrap">
           <button
             type="button"
-            className="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/50 rounded text-amber-100 transition-colors"
+            className="px-4 py-2 bg-ember-500/10 hover:bg-ember-500/20 border border-ember-500/50 rounded text-ember-100 transition-colors"
             onClick={handleGrantDemoFact}
           >
             Grant Demo Fact
           </button>
           <button
             type="button"
-            className="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/50 rounded text-amber-100 transition-colors"
+            className="px-4 py-2 bg-ember-500/10 hover:bg-ember-500/20 border border-ember-500/50 rounded text-ember-100 transition-colors"
             onClick={handleStartDemoCase}
           >
             Start Demo Case
           </button>
           <button
             type="button"
-            className="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/50 rounded text-amber-100 transition-colors"
+            className="px-4 py-2 bg-ember-500/10 hover:bg-ember-500/20 border border-ember-500/50 rounded text-ember-100 transition-colors"
             onClick={handleOpenBattleDebug}
           >
             Open Son Duel

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { CASE_01_POINTS } from "./data/case_01_points";
 import {
   UNIVERSITY_NEOGOTHIC_PILOT_LOCATION_IDS,
+  buildCase01CharacterSpriteManifest,
+  buildCase01CharacterSpriteMissingReport,
   buildCase01VisualManifest,
   buildCase01VisualScaffoldOutput,
   buildCase01VisualVariants,
@@ -210,5 +212,99 @@ describe("freiburg visual asset scaffold", () => {
       "stale_expected_meta_tone_target",
       "stale_expected_meta_style_reference",
     ]);
+  });
+
+  it("scaffolds the first full-body layered character sprite batch", () => {
+    const manifest = buildCase01CharacterSpriteManifest();
+
+    expect(manifest.map((entry) => entry.characterId)).toEqual([
+      "detective",
+      "npc_albrecht_stoll",
+      "npc_anton_weber",
+      "npc_bureau_master",
+      "npc_emil_roth",
+      "npc_felix_hartmann",
+      "npc_heinrich_galdermann",
+      "npc_konrad_vossler",
+      "npc_krebs_mugger",
+      "npc_mother_hartmann",
+      "npc_rudi_kempf",
+      "npc_sasha_hartmann_servant",
+      "npc_weber_dispatcher",
+    ]);
+
+    for (const entry of manifest) {
+      expect(entry.assetKind).toBe("character_sprite");
+      expect(entry.runtimeLayout).toBe("split");
+      expect(entry.sourceFraming).toBe("full_body");
+      expect(entry.backgroundPolicy).toBe("transparent");
+      expect(entry.expectedRootPath).toMatch(
+        /^public\/images\/characters\/sprites\//,
+      );
+      expect(entry.expectedMetaPath).toBe(
+        `${entry.expectedRootPath}/sprite.meta.json`,
+      );
+      expect(entry.layerTemplates.bodyBase).toMatch(/body\/body_base\.png$/);
+      expect(entry.layerTemplates.eyesByEmotion).toContain("{emotion}");
+      expect(entry.requiredEmotions).toContain("neutral");
+      expect(entry.renderingRules).toContain(
+        "Face rendering: clean readable faces with smooth tonal transitions and soft skin-plane color shifts; keep strong visible brush texture on clothing, hair, and outer silhouette rather than across facial features.",
+      );
+      expect(entry.promptBriefSha256).toMatch(/^[a-f0-9]{64}$/);
+      expect(entry.identity.forbiddenDrift.length).toBeGreaterThan(0);
+    }
+
+    expect(
+      manifest.find((entry) => entry.characterId === "npc_mother_hartmann")
+        ?.requiredEmotions,
+    ).toContain("hungry");
+    expect(
+      manifest.find((entry) => entry.characterId === "npc_weber_dispatcher")
+        ?.portraitUrl,
+    ).toBe("/Characters/lotte_weber_portrait.png");
+  });
+
+  it("reports missing character sprite layers and stale sprite metadata", () => {
+    const [entry] = buildCase01CharacterSpriteManifest();
+    const missing = buildCase01CharacterSpriteMissingReport(
+      [entry],
+      undefined,
+      {
+        existsSync: () => false,
+        readFileSync: () => "",
+      },
+    );
+
+    expect(
+      missing.find((candidate) => candidate.layerKind === "manifest_meta"),
+    ).toMatchObject({
+      characterId: entry.characterId,
+      issues: ["missing_sprite_meta"],
+    });
+    expect(
+      missing.some(
+        (candidate) =>
+          candidate.layerKind === "body_base" &&
+          candidate.issues.includes("missing_sprite_layer"),
+      ),
+    ).toBe(true);
+
+    const stale = buildCase01CharacterSpriteMissingReport([entry], undefined, {
+      existsSync: (absolutePath) => absolutePath.endsWith("sprite.meta.json"),
+      readFileSync: () =>
+        JSON.stringify({
+          characterId: "wrong",
+          promptBriefSha256: "stale",
+        }),
+    });
+    expect(
+      stale.find((candidate) => candidate.layerKind === "manifest_meta"),
+    ).toMatchObject({
+      characterId: entry.characterId,
+      issues: [
+        "stale_sprite_meta_character_id",
+        "stale_sprite_meta_prompt_hash",
+      ],
+    });
   });
 });

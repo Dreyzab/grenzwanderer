@@ -46,7 +46,7 @@ const categoryTextClassName = (category: SpeakerSegment["category"]) => {
     return "italic";
   }
   if (category === "player") {
-    return "font-semibold text-amber-100";
+    return "font-semibold text-ember-100";
   }
   return "text-stone-100";
 };

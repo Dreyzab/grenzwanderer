@@ -9,7 +9,10 @@ tags:
 
 ## Premise
 
-Use cultural and personal clues from Victoria-linked scenes to decode a hidden social contact chain.
+Use cultural and personal clues from Victoria-linked scenes to decode a hidden
+social contact chain. Anneliese Adlersheim, Victoria's younger sister, is the
+soft cultural key: she hears dedications, salon verses, and "empty talk" that
+the Adlersheim household dismisses until it becomes a route.
 
 ## Entry Conditions
 
@@ -20,10 +23,16 @@ Use cultural and personal clues from Victoria-linked scenes to decode a hidden s
 
 | Stage            | Goal                                               | Primary Anchor         |
 | ---------------- | -------------------------------------------------- | ---------------------- |
-| stage_00_hook    | Rumor/encounter establishes Victoria-related motif | loc_workers_pub        |
+| stage_00_hook    | Rumor/encounter establishes Adlersheim/Victoria motif | loc_workers_pub        |
 | stage_01_decode  | Interpret poem fragments and references            | Mind Palace deductions |
 | stage_02_contact | Identify the intended recipient and meet safely    | street/interlude node  |
 | stage_03_payoff  | Gain trust-based clue or faction shift             | runtime quest resolver |
+
+## Family Anchor
+
+- **Anneliese Adlersheim** is a lore/contact-chain anchor, not a first-pass runtime NPC.
+- Her function is to connect Victoria's family presentation to poems, dedications, salon circulation, and coded social access.
+- Case 01 should use this thread as hints and trust texture only; it should not expand into a separate Adlersheim family branch.
 
 ## Failure and Recovery
 

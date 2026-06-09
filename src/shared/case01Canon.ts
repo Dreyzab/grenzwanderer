@@ -197,6 +197,7 @@ export const CASE01_CANON_FLAG_KEYS = [
   "flag_witch_drank_brandy_early",
   "flag_witch_absorbed_hbf_blood",
   "flag_witch_helped_sasha_hbf",
+  "flag_witch_warm_veto_sasha_hbf",
   "flag_witch_took_suppressant",
   "flag_witch_siphoned_relic",
   "flag_witch_master_suspicious",

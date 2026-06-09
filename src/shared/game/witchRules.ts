@@ -3,6 +3,7 @@ export const WITCH_BLOOD_CURSE_PRESSURE_VAR = "witch_blood_curse_pressure";
 export const WITCH_BLOOD_POWER_VAR = "witch_blood_power";
 export const WITCH_BLOOD_DEBT_VAR = "witch_blood_debt";
 export const WITCH_ALCOHOL_AFTERTASTE_VAR = "witch_alcohol_aftertaste";
+export const RESOURCE_VOLITION_TOKEN_VAR = "resource_volition_token";
 
 export const WITCH_STATE_VAR_KEYS = [
   WITCH_BLOOD_CURSE_TIER_VAR,
@@ -10,6 +11,7 @@ export const WITCH_STATE_VAR_KEYS = [
   WITCH_BLOOD_POWER_VAR,
   WITCH_BLOOD_DEBT_VAR,
   WITCH_ALCOHOL_AFTERTASTE_VAR,
+  RESOURCE_VOLITION_TOKEN_VAR,
 ] as const;
 
 export type WitchStateVarKey = (typeof WITCH_STATE_VAR_KEYS)[number];

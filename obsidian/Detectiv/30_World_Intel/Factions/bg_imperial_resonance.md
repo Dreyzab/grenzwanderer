@@ -73,7 +73,7 @@ T_release = (Φ_w · χ_lineage) / λ_vamp
 
 где `Φ_w` — магический потенциал донора, `χ_lineage` — совместимость династий, `λ_vamp` — скорость восстановления вампирских супрессоров в сыворотке.
 
-> **Designer note.** В мире Grenzwanderer этот прецедент **именно про** [[../Characters/char_eleanor_vance|Eleanor Vance]] (Witch origin). Её `flaw_blood_curse`, `witch_blood_curse_tier`, `witch_blood_curse_pressure` и `ability_spiritual_veil_sight` — это локальная игромеханическая проекция Eternal Malediction. ИВМР об Eleanor *знает* (или подозревает); сама Eleanor об ИВМР как структуре — нет. Это open lore window, использовать в депешах, обрывках архивов, в `[[char_pneumatic_courier]]`-диалогах.
+> **Designer note.** В мире Grenzwanderer этот прецедент **именно про** [[../Characters/char_mother_hartmann|Eleonora Hartmann]] (Witch origin). Её `flaw_blood_curse`, `witch_blood_curse_tier`, `witch_blood_curse_pressure` и `ability_spiritual_veil_sight` — это локальная игромеханическая проекция Eternal Malediction. ИВМР об Eleonora *знает* (или подозревает); сама Eleonora об ИВМР как структуре — нет. Это open lore window, использовать в депешах, обрывках архивов, в `[[char_pneumatic_courier]]`-диалогах.
 
 ## Историческая привязка (footnote anchors)
 
@@ -95,7 +95,7 @@ T_release = (Φ_w · χ_lineage) / λ_vamp
 
 ## Cross-references
 
-- Persons of record: [[../Characters/char_eleanor_vance|Eleanor Vance]] (если файл будет создан), [[char_fortune_teller|Fortune Teller]] (unsanctioned relay), [[char_pneumatic_courier|Pneumatic Courier]].
+- Persons of record: [[../Characters/char_mother_hartmann|Eleonora Hartmann]], [[char_fortune_teller|Fortune Teller]] (unsanctioned relay), [[char_pneumatic_courier|Pneumatic Courier]].
 - Artifacts: [[../Items/clue_imvr_pneumatic_capsule|ИВМР Pneumatic Capsule]].
 - Locations: [[../Locations/Loc_Telegraph_Office|Telegraph Office]] (pneumatic sub-spur), [[../Locations/Loc_Institute_Hygiene|Institute of Hygiene]] (потенциальный «холодный канал»).
 - Voices: [[../../20_Game_Design/Voices/Voice_Occultism|Voice_Occultism]] (passive checks могут опознавать сигилы Ультома и фрагменты леттеринга в архивных бумагах).
@@ -103,6 +103,6 @@ T_release = (Φ_w · χ_lineage) / λ_vamp
 ## Operational guardrails (для авторов сцен)
 
 - **Не выводить ИВМР на сцену напрямую.** Игрок узнаёт о Ведомстве через бумаги, депеши, отрывки разговоров — не через личное представительство.
-- **Не давать Eleanor осознанной аффилиации.** Если ИВМР с ней работает, то *за её спиной* (мониторинг, страховка, не вербовка).
+- **Не давать Eleonora осознанной аффилиации.** Если ИВМР с ней работает, то *за её спиной* (мониторинг, страховка, не вербовка).
 - **Не использовать классификации Кетер/Евклид как игромеханические тиры угроз.** Это нарративный язык документов, а не балансовая шкала.
 - **Тунгуска и Блайт-Роуд** — фоновые события прошлого, упоминаются в архивах и старых газетах. Не запускать их как активные сюжеты в case01.

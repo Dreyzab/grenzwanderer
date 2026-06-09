@@ -29,7 +29,7 @@ tags:
   - **Or** `Occultism` DC 9 — почувствовать «холодный шов» в стене (passive Veil Sight для Witch origin срабатывает автоматически).
   - **Or** контакт с [[../Characters/char_pneumatic_courier|Pneumatic Courier]] вне всякого расследования.
 - **Flag set:** `clue_imvr_pneumatic_capsule_found`.
-- **Secondary flag (Witch origin only):** `clue_imvr_eternal_malediction_self_recognition` — если читает её Eleanor.
+- **Secondary flag (Witch origin only):** `clue_imvr_eternal_malediction_self_recognition` — если читает её Eleonora.
 
 ## Архивная выдержка (содержимое капсулы)
 
@@ -52,9 +52,9 @@ tags:
 ## Gameplay Impact
 
 - **Lore unlock:** открывает упоминания ИВМР в архивах [[fct_college_of_reason|Коллегии Разума]] и в депешах [[fct_chapter_of_mercy|Капитула Милосердия]]. Не делает их враждебными или открыто союзными — просто проявляет «второе дно» уже существующих разговоров.
-- **Witch-origin branch:** для Eleanor флаг `clue_imvr_eternal_malediction_self_recognition` повышает `witch_blood_curse_pressure` на `+15` *один раз* в момент прочтения (узнавание себя в третьем лице — это давление, не облегчение). Открывает DM-tone permission «archival self-reading» для последующих сцен.
-- **Non-Witch-origin branch:** прочтение Eleanor *не присутствует*; флаг не ставится. Документ читается как чужой технический отчёт; пригоден как доказательство существования ИВМР для разговора с [[../Characters/char_journalist|Journalist]] или [[char_fortune_teller|Fortune Teller]].
-- **Ампула λ_v.** Содержит образец сыворотки с вампирскими супрессорами. В руках Eleanor — соблазн (см. Blood Absorption в [[../../../../docs/WITCH_TABLETOP_DM_RULES.md|Witch Rules Bible]]); в чужих руках — оккультная улика, ценная для [[fct_college_of_reason|Коллегии]].
+- **Witch-origin branch:** для Eleonora флаг `clue_imvr_eternal_malediction_self_recognition` повышает `witch_blood_curse_pressure` на `+15` *один раз* в момент прочтения (узнавание себя в третьем лице — это давление, не облегчение). Открывает DM-tone permission «archival self-reading» для последующих сцен.
+- **Non-Witch-origin branch:** прочтение Eleonora *не присутствует*; флаг не ставится. Документ читается как чужой технический отчёт; пригоден как доказательство существования ИВМР для разговора с [[../Characters/char_journalist|Journalist]] или [[char_fortune_teller|Fortune Teller]].
+- **Ампула λ_v.** Содержит образец сыворотки с вампирскими супрессорами. В руках Eleonora — соблазн (см. Blood Absorption в [[../../../../docs/WITCH_TABLETOP_DM_RULES.md|Witch Rules Bible]]); в чужих руках — оккультная улика, ценная для [[fct_college_of_reason|Коллегии]].
 
 ## Voice Reads (passive checks at handover)
 

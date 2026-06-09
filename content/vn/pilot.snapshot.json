@@ -4456,7 +4456,7 @@
       "id": "scene_case01_hbf_departure",
       "scenarioId": "case01_hbf_arrival",
       "title": "Leaving the Hauptbahnhof",
-      "body": "You shoulder through the tide of travelers - timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Two fronts are burning: the bank robbery and the political pressure from the Rathaus. For Eleanor Vance, a third front waits in the old estate: a real spirit and the living hands that learned to hide behind it.",
+      "body": "You shoulder through the tide of travelers - timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Two fronts are burning: the bank robbery and the political pressure from the Rathaus. For Eleonora Hartmann, a third front waits in the old estate: a real spirit and the living hands that learned to hide behind it.",
       "choices": [
         {
           "id": "CASE01_HBF_EXIT_BANK",

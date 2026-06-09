@@ -1008,7 +1008,7 @@ export const loadWitchTabletopDmRules = (): string => {
 
 const buildDmTurnSystemPrompt = (rulesText: string): string =>
   [
-    "You are a tabletop Dungeon Master for Grenzwanderer, serving Eleanor Vance's Witch one-shot.",
+    "You are a tabletop Dungeon Master for Grenzwanderer, serving Eleonora Hartmann's Witch one-shot.",
     "Return exactly one JSON object and nothing else. Do not wrap the JSON in markdown fences.",
     "All narration must be in Russian. Safe zones use lively Chekhovian social texture; investigation and threat scenes use literary Gothic/Mystery detective tone.",
     "You may propose session-canon facts only when the request spends a Fate token. Session canon is review-only until accepted by the player.",

@@ -20,6 +20,11 @@ export const WITCH_BLOOD_CURSE_MAX_TIER = 3;
 
 export const WITCH_ORIGIN_DEFAULTS = {
   resource_fate_token: 6,
+  // Discrete budget of will-acts the two Vetoes spend. Kept SEPARATE from
+  // resource_fate_token (which funds DM intervention) so the Warm Veto greying
+  // means "she spent her humanity", not "she bought a DM favour earlier".
+  // See docs/WITCH_VOLITION_AND_VETO_SPEC.md. First-pass value; tunable.
+  resource_volition_token: 3,
   resource_fortune: 0,
   resource_fortune_mod: -1,
   resource_karma: -10,
@@ -131,6 +136,32 @@ export const applyAlcoholRelief = (
     }),
     overflow: "none",
   };
+};
+
+export const applyRitualRelief = (
+  state: WitchBloodCurseState,
+  relief = 8,
+): WitchRuleResult => {
+  const normalized = normalizeWitchBloodCurseState(state);
+  return {
+    state: normalizeWitchBloodCurseState({
+      ...normalized,
+      pressure: normalized.pressure - Math.max(0, Math.trunc(relief)),
+    }),
+    overflow: "none",
+  };
+};
+
+export const FACADE_DC_PRESSURE_DIVISOR = 20;
+
+export const facadeDifficulty = (
+  baseDifficulty: number,
+  pressure: number,
+  divisor = FACADE_DC_PRESSURE_DIVISOR,
+): number => {
+  const safeDivisor = Math.max(1, Math.trunc(divisor));
+  const clampedPressure = clampInt(pressure, 0, WITCH_BLOOD_CURSE_MAX_PRESSURE);
+  return Math.trunc(baseDifficulty) + Math.floor(clampedPressure / safeDivisor);
 };
 
 export const applyBloodAbsorption = (

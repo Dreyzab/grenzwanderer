@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   applyAlcoholRelief,
   applyBloodAbsorption,
+  applyRitualRelief,
   applySpiritualVeilFocus,
+  facadeDifficulty,
   overflowForBloodCurseTier,
   WITCH_ORIGIN_DEFAULTS,
   type WitchBloodCurseState,
@@ -18,9 +20,10 @@ const baseState: WitchBloodCurseState = {
 };
 
 describe("witch rules", () => {
-  it("defines Eleanor's one-shot starting resources and curse state", () => {
+  it("defines Eleonora's one-shot starting resources and curse state", () => {
     expect(WITCH_ORIGIN_DEFAULTS).toMatchObject({
       resource_fate_token: 6,
+      resource_volition_token: 3,
       resource_fortune: 0,
       resource_fortune_mod: -1,
       resource_karma: -10,
@@ -60,6 +63,35 @@ describe("witch rules", () => {
 
     expect(result.state.pressure).toBe(23);
     expect(result.state.alcoholAftertaste).toBe(1);
+  });
+
+  it("lets a safe-zone ritual lower pressure without debt or aftertaste", () => {
+    const result = applyRitualRelief({ ...baseState, pressure: 50 });
+
+    expect(result.state.pressure).toBe(42);
+    expect(result.state.alcoholAftertaste).toBe(0);
+    expect(result.state.bloodDebt).toBe(0);
+    expect(result.overflow).toBe("none");
+  });
+
+  it("gives less relief than alcohol so the clean path stays slower", () => {
+    const ritual = applyRitualRelief({ ...baseState, pressure: 50 });
+    const alcohol = applyAlcoholRelief({ ...baseState, pressure: 50 });
+
+    expect(50 - ritual.state.pressure).toBeLessThan(
+      50 - alcohol.state.pressure,
+    );
+  });
+
+  it("raises the Facade check difficulty as curse pressure climbs", () => {
+    expect(facadeDifficulty(9, 35)).toBe(10);
+    expect(facadeDifficulty(13, 80)).toBe(17);
+    expect(facadeDifficulty(9, 0)).toBe(9);
+  });
+
+  it("clamps Facade difficulty pressure to the curse range", () => {
+    expect(facadeDifficulty(9, 999)).toBe(facadeDifficulty(9, 100));
+    expect(facadeDifficulty(9, -50)).toBe(9);
   });
 
   it("lets blood absorption grant power and debt while lowering pressure", () => {

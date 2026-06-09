@@ -2685,7 +2685,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     sourcePath: "40_GameViewer/Case01/Plot/01_Onboarding/scene_hbf_arrival.md",
     titleOverride: "Leaving the Hauptbahnhof",
     bodyOverride:
-      "You shoulder through the tide of travelers - timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Two fronts are burning: the bank robbery and the political pressure from the Rathaus. For Eleanor Vance, a third front waits in the old estate: a real spirit and the living hands that learned to hide behind it.",
+      "You shoulder through the tide of travelers - timetables, porters and polite lies that pretend to be small talk.\n\nThe glass doors spill you into Freiburg. Two fronts are burning: the bank robbery and the political pressure from the Rathaus. For Eleonora Hartmann, a third front waits in the old estate: a real spirit and the living hands that learned to hide behind it.",
     backgroundUrl: CASE01_HBF_BG,
     narrativeLayout: "log",
     sceneGroupId: "hbf_hall",
@@ -2930,6 +2930,27 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         ],
         inlineText:
           "**[Narrator]**:\nПальцы в тонкой лайковой перчатке скользят по холодной латуни. Горячая влага исчезает с металла быстрее, чем должна. Облегчение приходит тихо, почти прилично, и от этого становится хуже.\n\nСаша смотрит на свою ладонь, потом на вас. Он не понимает, что произошло. Но он понимает достаточно, чтобы больше не принимать ваше молчание за слабость.\n\n**[inner_cynic]**:\nОн выдержит. Такие всегда выдерживают. Вопрос только в том, что они потом помнят."
+      },
+      {
+        id: "WITCH_HBF_WARM_VETO_TEND_HAND",
+        text: "[Тёплое Вето] Перетянуть Сашину ладонь собственным платком — без расчёта.",
+        nextNodeId: "scene_case01_hbf_departure",
+        // Warm Veto: visible always, locks (greys) at 0 volition tokens — "кем она могла бы быть".
+        // Spends resource_volition_token (humanity budget), NOT resource_fate_token (DM intervention).
+        requireAll: [
+          { type: "var_gte", key: "resource_volition_token", value: 1 }
+        ],
+        effects: [
+          { type: "add_var", key: "resource_volition_token", value: -1 },
+          { type: "change_psyche_axis", axis: "y", delta: 5 },
+          { type: "change_relationship", characterId: "npc_sasha_hartmann_servant", delta: 15 },
+          { type: "change_relationship", characterId: "npc_felix_hartmann", delta: 2 },
+          { type: "grant_xp", amount: 10 },
+          { type: "set_flag", key: "flag_witch_helped_sasha_hbf", value: true },
+          { type: "set_flag", key: "flag_witch_warm_veto_sasha_hbf", value: true }
+        ],
+        inlineText:
+          "**[Narrator]**:\nВы делаете то, чего фрау в лайковых перчатках не делает на людях: опускаетесь к чужой руке. Жажда воет, требует, считает капли — а вы достаете свой платок, не его, и перетягиваете ладонь Саши ровно, как умеют только те, кто сам когда-то ждал чужой помощи и не дождался.\n\n**[inner_manipulator]**:\nЧто ты делаешь? Кровь сама пришла к руке. Это убыток без выгоды, и половина зала видит, как ты унижаешься.\n\n**[inner_guide]**:\nПусть видят. Это стоит тебе сил, которых почти нет, — и именно поэтому это все еще ты, а не то, что внутри.\n\n**[Саша]**:\n— Не нужно, госпожа.\n\n**[Элеонора]**:\n— Нужно. Держите руку ровно.\n\n**[Narrator]**:\nОн замолкает. Феликс смотрит во все глаза — мать на одном колене у руки слуги, — но Саша уже понял что-то, чему пока нет названия: эту женщину голод еще не доел."
       },
       {
         id: "WITCH_HBF_BLOOD_IGNORE",

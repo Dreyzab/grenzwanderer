@@ -1,6 +1,6 @@
 # Witch Tabletop DM Rules Bible
 
-This file defines the first playable one-shot for Eleanor Vance in the Grand Estate. It is a session-prep artifact, not an authored canon replacement.
+This file defines the first playable one-shot for Eleonora Hartmann in the Grand Estate. It is a session-prep artifact, not an authored canon replacement. (Her name is Eleonora Hartmann — never "Vance", which is the journalist origin.)
 
 ## Canon Policy
 
@@ -10,7 +10,7 @@ This file defines the first playable one-shot for Eleanor Vance in the Grand Est
 - Accepted session facts may later be promoted manually into Obsidian/CAS, but the DM cannot promote them by itself.
 - The AI DM may narrate, ask for checks, propose risks, and propose session facts; reducers remain the only authority for durable game state mutation.
 
-## Eleanor Start
+## Eleonora Start
 
 - `resource_fate_token = 6`
 - `resource_fortune = 0`
@@ -26,7 +26,7 @@ This file defines the first playable one-shot for Eleanor Vance in the Grand Est
 
 Passive Veil Sight is free. The DM can give sensory hints: cold seams in air, wrong dust, memory residue, a pressure behind a portrait, a spirit's attention.
 
-Spend to focus means Eleanor asks one precise occult question or requests one precise occult hint. The answer can be useful and sharp, but it raises Blood Curse pressure. The default pressure cost is `+15`.
+Spend to focus means Eleonora asks one precise occult question or requests one precise occult hint. The answer can be useful and sharp, but it raises Blood Curse pressure. The default pressure cost is `+15`.
 
 Examples:
 
@@ -107,7 +107,7 @@ Blood temptation scenes:
 - Karl cuts his hand on a latch while lying.
 - The Baroness offers wine that smells faintly metallic.
 - A sealed pantry contains old bandages, brown glass, and a fresh basin.
-- The spirit pulls warmth out of Eleanor and leaves hunger behind.
+- The spirit pulls warmth out of Eleonora and leaves hunger behind.
 
 ## DM Proposal Shape
 

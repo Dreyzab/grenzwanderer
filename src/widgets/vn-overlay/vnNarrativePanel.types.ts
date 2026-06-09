@@ -53,7 +53,7 @@ export interface VnNarrativePanelProps {
   videoPlaybackComplete?: boolean;
   characterId?: string;
   children?: React.ReactNode;
-  /** Hides the fullscreen tap-catcher (e.g. Eleanor/witch train prologue uses log + video beats). */
+  /** Hides the fullscreen tap-catcher (e.g. Eleonora/witch train prologue uses log + video beats). */
   suppressImmersiveSurfaceOverlay?: boolean;
 }
 

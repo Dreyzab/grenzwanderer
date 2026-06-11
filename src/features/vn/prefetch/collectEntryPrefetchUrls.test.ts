@@ -78,6 +78,24 @@ describe("collectScenarioVisualUrls", () => {
     expect(urls).toContain("/bg/b.png");
     expect(urls.indexOf("/bg/a.png")).toBeLessThan(urls.indexOf("/bg/b.png"));
   });
+
+  it("collects every frame in a node visual sequence", () => {
+    const snapshot = minimalSnapshot();
+    snapshot.nodes[1].visualSequence = {
+      frames: [
+        { imageUrl: "/memory/one.png", durationMs: 1000 },
+        { imageUrl: "/memory/two.png", durationMs: 1000 },
+      ],
+    };
+
+    expect(collectScenarioVisualUrls(snapshot, "case_test")).toEqual([
+      "/bg/a.png",
+      "/post/a.webp",
+      "/memory/one.png",
+      "/memory/two.png",
+      "/bg/b.png",
+    ]);
+  });
 });
 
 describe("collectOriginDossierUrls", () => {

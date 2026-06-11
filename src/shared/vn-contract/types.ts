@@ -320,6 +320,29 @@ export interface VnHubSchema {
   zones: VnHubZone[];
 }
 
+export type VnVisualSequenceTransition = "cut" | "crossfade";
+
+export interface VnVisualSequenceFocusPoint {
+  /** Horizontal object-position percentage, from 0 (left) to 100 (right). */
+  x: number;
+  /** Vertical object-position percentage, from 0 (top) to 100 (bottom). */
+  y: number;
+}
+
+export interface VnVisualSequenceFrame {
+  imageUrl: string;
+  durationMs: number;
+  caption?: string;
+  transition?: VnVisualSequenceTransition;
+  focusPoint?: VnVisualSequenceFocusPoint;
+}
+
+export interface VnVisualSequence {
+  frames: VnVisualSequenceFrame[];
+  skippable?: boolean;
+  advanceOnEnd?: boolean;
+}
+
 export interface VnNode {
   id: string;
   scenarioId: string;
@@ -338,6 +361,7 @@ export interface VnNode {
   narrativeLayout?: VnNarrativeLayout;
   narrativePresentation?: VnNarrativePresentation;
   advanceOnVideoEnd?: boolean;
+  visualSequence?: VnVisualSequence;
   letterOverlayRevealDelayMs?: number;
   terminal?: boolean;
   choices: VnChoice[];

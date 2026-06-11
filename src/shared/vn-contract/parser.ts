@@ -58,6 +58,7 @@ import type {
   VnScenarioCompletionRoute,
   VnScenario,
   VnSnapshot,
+  VnVisualSequence,
   VoicePresenceMode,
 } from "./types";
 import { createVnContractMetadata, isVnContractMetadata } from "./vocabulary";
@@ -693,6 +694,55 @@ const isChoice = (value: unknown): value is VnChoice => {
   );
 };
 
+const isVisualSequence = (value: unknown): value is VnVisualSequence => {
+  if (!isObject(value) || !Array.isArray(value.frames)) {
+    return false;
+  }
+
+  if (value.frames.length < 1 || value.frames.length > 24) {
+    return false;
+  }
+
+  const framesValid = value.frames.every((frame) => {
+    if (!isObject(frame)) {
+      return false;
+    }
+
+    const focusPointValid =
+      frame.focusPoint === undefined ||
+      (isObject(frame.focusPoint) &&
+        typeof frame.focusPoint.x === "number" &&
+        Number.isFinite(frame.focusPoint.x) &&
+        frame.focusPoint.x >= 0 &&
+        frame.focusPoint.x <= 100 &&
+        typeof frame.focusPoint.y === "number" &&
+        Number.isFinite(frame.focusPoint.y) &&
+        frame.focusPoint.y >= 0 &&
+        frame.focusPoint.y <= 100);
+
+    return (
+      typeof frame.imageUrl === "string" &&
+      frame.imageUrl.length > 0 &&
+      typeof frame.durationMs === "number" &&
+      Number.isFinite(frame.durationMs) &&
+      frame.durationMs >= 250 &&
+      frame.durationMs <= 120_000 &&
+      (frame.caption === undefined || typeof frame.caption === "string") &&
+      (frame.transition === undefined ||
+        frame.transition === "cut" ||
+        frame.transition === "crossfade") &&
+      focusPointValid
+    );
+  });
+
+  return (
+    framesValid &&
+    (value.skippable === undefined || typeof value.skippable === "boolean") &&
+    (value.advanceOnEnd === undefined ||
+      typeof value.advanceOnEnd === "boolean")
+  );
+};
+
 const isNode = (value: unknown): value is VnNode => {
   if (!isObject(value)) {
     return false;
@@ -726,6 +776,8 @@ const isNode = (value: unknown): value is VnNode => {
       isNarrativePresentation(value.narrativePresentation)) &&
     (value.advanceOnVideoEnd === undefined ||
       typeof value.advanceOnVideoEnd === "boolean") &&
+    (value.visualSequence === undefined ||
+      isVisualSequence(value.visualSequence)) &&
     (value.letterOverlayRevealDelayMs === undefined ||
       typeof value.letterOverlayRevealDelayMs === "number") &&
     (value.activeSpeakers === undefined ||

@@ -110,6 +110,47 @@ describe("VN Snapshot Parser Fix", () => {
   });
 });
 
+describe("VN Snapshot Parser - visual sequences", () => {
+  const buildFixture = () => {
+    const raw = readFileSync(pilotPath, "utf8");
+    const parsed = JSON.parse(raw);
+    parsed.nodes[0].visualSequence = {
+      skippable: true,
+      advanceOnEnd: true,
+      frames: [
+        {
+          imageUrl: "/VN/start/image/memory.png",
+          durationMs: 2400,
+          caption: "A remembered phrase",
+          transition: "crossfade",
+          focusPoint: { x: 45, y: 60 },
+        },
+      ],
+    };
+    return parsed;
+  };
+
+  it("accepts a well-formed visual sequence", () => {
+    expect(parseVnSnapshotPayload(JSON.stringify(buildFixture())).ok).toBe(
+      true,
+    );
+  });
+
+  it("rejects malformed duration, transition, and focus metadata", () => {
+    const invalidPatches = [
+      { durationMs: 10 },
+      { transition: "dissolve" },
+      { focusPoint: { x: 101, y: 50 } },
+    ];
+
+    for (const patch of invalidPatches) {
+      const fixture = buildFixture();
+      Object.assign(fixture.nodes[0].visualSequence.frames[0], patch);
+      expect(parseVnSnapshotPayload(JSON.stringify(fixture)).ok).toBe(false);
+    }
+  });
+});
+
 describe("VN Snapshot Parser - character progression contract", () => {
   const buildFixtureWithChoice = (choicePatch: Record<string, unknown>) => {
     const raw = readFileSync(pilotPath, "utf8");

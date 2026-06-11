@@ -20,6 +20,7 @@ const pushVisualUrls = (
   for (const url of [
     node.backgroundUrl,
     node.backgroundVideoPosterUrl,
+    ...(node.visualSequence?.frames.map((frame) => frame.imageUrl) ?? []),
   ] as string[]) {
     const trimmed = url?.trim();
     if (!trimmed || seenUrls.has(trimmed)) {

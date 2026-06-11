@@ -938,33 +938,34 @@ export const VnScreen = ({
     [handleChoiceClick, isHubChoiceLocked],
   );
 
-  const { handleSurfaceTap, handleVideoEnded } = useVnSurfaceInteraction({
-    autoContinueChoice,
-    awaitingSkillChoice,
-    choiceDisplayItemCount: choiceDisplayItems.length,
-    choiceEvaluationContext,
-    currentNode,
-    displayedScenarioCompleted,
-    effectiveNarrativeLayout,
-    handleActiveResolveInteraction,
-    handleChoiceClick,
-    handleStartScenario,
-    isTyping,
-    isBlocked: isHubOverlayOpen,
-    markInteractionHandled,
-    myFlags,
-    mySession,
-    myVars,
-    narrativeLog,
-    pendingChoiceId,
-    runCompletionTransition,
-    selectedScenarioId,
-    setIsTyping,
-    setVideoEnded,
-    transitionState,
-    typedTextRef,
-    typingFinishedAtRef,
-  });
+  const { handleSurfaceTap, handleVideoEnded, handleVisualSequenceEnded } =
+    useVnSurfaceInteraction({
+      autoContinueChoice,
+      awaitingSkillChoice,
+      choiceDisplayItemCount: choiceDisplayItems.length,
+      choiceEvaluationContext,
+      currentNode,
+      displayedScenarioCompleted,
+      effectiveNarrativeLayout,
+      handleActiveResolveInteraction,
+      handleChoiceClick,
+      handleStartScenario,
+      isTyping,
+      isBlocked: isHubOverlayOpen,
+      markInteractionHandled,
+      myFlags,
+      mySession,
+      myVars,
+      narrativeLog,
+      pendingChoiceId,
+      runCompletionTransition,
+      selectedScenarioId,
+      setIsTyping,
+      setVideoEnded,
+      transitionState,
+      typedTextRef,
+      typingFinishedAtRef,
+    });
 
   const tutorialState = useVnTutorialState({
     narrativeText,
@@ -1065,6 +1066,7 @@ export const VnScreen = ({
         backgroundVideoUrl={currentNode?.backgroundVideoUrl}
         backgroundVideoPosterUrl={currentNode?.backgroundVideoPosterUrl}
         backgroundVideoSoundPrompt={currentNode?.backgroundVideoSoundPrompt}
+        visualSequence={currentNode?.visualSequence}
         nextVisualUrls={nextVisualUrls}
         narrativeLayout={effectiveNarrativeLayout}
         narrativePresentation={currentNode?.narrativePresentation}
@@ -1081,6 +1083,7 @@ export const VnScreen = ({
         showTutorialTooltip={tutorialState.showTooltip}
         onDismissTutorialTooltip={tutorialState.dismissTooltip}
         onVideoEnded={handleVideoEnded}
+        onVisualSequenceEnded={handleVisualSequenceEnded}
         videoPlaybackComplete={videoEnded}
         suppressImmersiveSurfaceOverlay={isEleonoraTrainPrologue}
         choicesSlot={

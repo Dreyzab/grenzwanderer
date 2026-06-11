@@ -28,6 +28,9 @@ export function useNextVnVisualPrefetchUrls({
         resolvedBgUrl,
         currentNode?.backgroundUrl,
         currentNode?.backgroundVideoPosterUrl,
+        ...(currentNode?.visualSequence?.frames.map(
+          (frame) => frame.imageUrl,
+        ) ?? []),
       ].filter((url): url is string => Boolean(url)),
     );
 
@@ -41,7 +44,11 @@ export function useNextVnVisualPrefetchUrls({
         return;
       }
 
-      for (const url of [node.backgroundUrl, node.backgroundVideoPosterUrl]) {
+      for (const url of [
+        node.backgroundUrl,
+        node.backgroundVideoPosterUrl,
+        ...(node.visualSequence?.frames.map((frame) => frame.imageUrl) ?? []),
+      ]) {
         if (url && !currentVisualUrls.has(url)) {
           urls.push(url);
         }
@@ -58,6 +65,7 @@ export function useNextVnVisualPrefetchUrls({
     autoContinueChoice,
     currentNode?.backgroundUrl,
     currentNode?.backgroundVideoPosterUrl,
+    currentNode?.visualSequence,
     resolvedBgUrl,
     snapshot,
     visibleChoices,

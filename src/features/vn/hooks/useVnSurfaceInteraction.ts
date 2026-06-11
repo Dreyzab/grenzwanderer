@@ -81,9 +81,11 @@ export function useVnSurfaceInteraction({
   typingFinishedAtRef,
 }: UseVnSurfaceInteractionParams) {
   const videoEndedRef = useRef(false);
+  const visualSequenceEndedRef = useRef(false);
 
   useEffect(() => {
     videoEndedRef.current = false;
+    visualSequenceEndedRef.current = false;
     setVideoEnded(false);
   }, [currentNode?.id, setVideoEnded]);
 
@@ -131,6 +133,45 @@ export function useVnSurfaceInteraction({
     transitionState,
   ]);
 
+  const handleVisualSequenceEnded = useCallback(() => {
+    if (visualSequenceEndedRef.current) {
+      return;
+    }
+
+    visualSequenceEndedRef.current = true;
+    if (
+      !currentNode?.visualSequence?.advanceOnEnd ||
+      transitionState !== "idle" ||
+      !autoContinueChoice ||
+      !selectedScenarioId ||
+      !mySession
+    ) {
+      return;
+    }
+
+    const isAvailable = isChoiceAvailable(
+      autoContinueChoice,
+      myFlags,
+      myVars,
+      choiceEvaluationContext,
+    );
+    if (!isAvailable) {
+      return;
+    }
+
+    void handleChoiceClick(autoContinueChoice, false);
+  }, [
+    autoContinueChoice,
+    choiceEvaluationContext,
+    currentNode?.visualSequence?.advanceOnEnd,
+    handleChoiceClick,
+    myFlags,
+    mySession,
+    myVars,
+    selectedScenarioId,
+    transitionState,
+  ]);
+
   const handleSurfaceTap = useCallback(() => {
     if (isBlocked) {
       // #region agent log
@@ -154,6 +195,10 @@ export function useVnSurfaceInteraction({
         },
       ).catch(() => {});
       // #endregion
+      return;
+    }
+
+    if (currentNode?.visualSequence) {
       return;
     }
 
@@ -351,5 +396,6 @@ export function useVnSurfaceInteraction({
   return {
     handleSurfaceTap,
     handleVideoEnded,
+    handleVisualSequenceEnded,
   };
 }

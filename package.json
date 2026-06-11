@@ -120,7 +120,7 @@
     "openviking:audit:case01": "powershell -ExecutionPolicy Bypass -File scripts/openviking/run-semantic-auditor.ps1"
   },
   "dependencies": {
-    "@chenglou/pretext": "^0.0.4",
+    "@chenglou/pretext": "^0.0.7",
     "@react-three/fiber": "^8.18.0",
     "@sentry/node": "8.55.2",
     "@sentry/react": "8.55.2",

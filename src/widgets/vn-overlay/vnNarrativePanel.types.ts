@@ -4,6 +4,7 @@ import type {
   VnNarrativeLayout,
   VnNarrativePresentation,
   VnSnapshot,
+  VnVisualSequence,
 } from "../../features/vn/types";
 import type { VnStrings } from "../../features/i18n/uiStrings";
 import type { NarrativeLogState } from "../../features/vn/log/useNarrativeLog";
@@ -29,6 +30,7 @@ export interface VnNarrativePanelProps {
   backgroundVideoUrl?: string;
   backgroundVideoPosterUrl?: string;
   backgroundVideoSoundPrompt?: boolean;
+  visualSequence?: VnVisualSequence;
   nextVisualUrls?: string[];
   narrativeLayout?: VnNarrativeLayout;
   narrativePresentation?: VnNarrativePresentation;
@@ -49,6 +51,7 @@ export interface VnNarrativePanelProps {
   showTutorialTooltip?: boolean;
   onDismissTutorialTooltip?: () => void;
   onVideoEnded?: () => void;
+  onVisualSequenceEnded?: () => void;
   /** Parent marks natural/skip end - pauses the background video element to avoid double audio. */
   videoPlaybackComplete?: boolean;
   characterId?: string;

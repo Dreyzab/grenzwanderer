@@ -639,3 +639,20 @@ export const getParliamentPresetForOrigin = (
   profile: OriginProfileDefinition,
   selectedTrack?: OriginTrackDefinition | null,
 ): OriginParliamentPresetId => selectedTrack?.parliamentPresetId ?? profile.id;
+
+/**
+ * Resolve the active parliament preset id from player flags alone, composing
+ * origin detection + selected-track resolution. Returns null when no origin is
+ * set yet (e.g. before character creation). The preset keys the per-origin
+ * skin layer in `data/parliamentModules.ts`.
+ */
+export const getActiveParliamentPresetId = (
+  flags: Record<string, boolean>,
+): OriginParliamentPresetId | null => {
+  const profile = getOriginProfileByFlags(flags);
+  if (!profile) {
+    return null;
+  }
+  const selectedTrack = getSelectedOriginTrack(profile, flags);
+  return getParliamentPresetForOrigin(profile, selectedTrack);
+};

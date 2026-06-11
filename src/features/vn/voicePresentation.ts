@@ -2,6 +2,7 @@ import {
   INNER_VOICE_DEFINITIONS,
   isInnerVoiceId,
 } from "../../../data/innerVoiceContract";
+import { getVoiceSkin } from "../../../data/parliamentModules";
 import {
   getCanonicalVoiceLabel,
   getCanonicalVoicePromptProfile,
@@ -19,12 +20,23 @@ export interface VoicePresentation {
   ensembleRoles: string[];
 }
 
-export const getVoicePresentation = (voiceId: string): VoicePresentation => {
+/**
+ * Resolve how a voice presents. When `presetId` is supplied and the active
+ * parliament module skins this voice (see data/parliamentModules.ts), the
+ * skin's label/persona override the canonical defaults. The palette always
+ * stays canonical so a voice keeps its colour identity across origins.
+ */
+export const getVoicePresentation = (
+  voiceId: string,
+  presetId?: string,
+): VoicePresentation => {
+  const skin = getVoiceSkin(presetId, voiceId);
+
   if (isInnerVoiceId(voiceId)) {
     const definition = INNER_VOICE_DEFINITIONS[voiceId];
     return {
-      label: definition.label,
-      personaLabel: definition.label,
+      label: skin?.label ?? definition.label,
+      personaLabel: skin?.persona?.label ?? skin?.label ?? definition.label,
       palette: definition.palette,
       ensembleRoles: [definition.worldview],
     };
@@ -33,8 +45,9 @@ export const getVoicePresentation = (voiceId: string): VoicePresentation => {
   const loreProfile = getCanonicalVoicePromptProfile(voiceId);
   const label = getCanonicalVoiceLabel(voiceId);
   return {
-    label,
-    personaLabel: loreProfile?.archetype ?? label,
+    label: skin?.label ?? label,
+    personaLabel:
+      skin?.persona?.label ?? loreProfile?.archetype ?? skin?.label ?? label,
     palette: getSkillCheckVoicePalette(voiceId),
     ensembleRoles: getCanonicalVoiceRoleLabels(voiceId),
   };

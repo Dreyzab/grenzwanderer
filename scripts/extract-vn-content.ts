@@ -1701,6 +1701,54 @@ const validateNodeBlueprint = (node: NodeBlueprint): void => {
       );
     }
   }
+  if (node.visualSequence !== undefined) {
+    if (
+      !Array.isArray(node.visualSequence.frames) ||
+      node.visualSequence.frames.length < 1 ||
+      node.visualSequence.frames.length > 24
+    ) {
+      throw new Error(
+        `node(${node.id}).visualSequence.frames must contain 1..24 frames`,
+      );
+    }
+    for (const [index, frame] of node.visualSequence.frames.entries()) {
+      assertAscii(
+        frame.imageUrl,
+        `node(${node.id}).visualSequence.frames[${index}].imageUrl`,
+      );
+      if (
+        !Number.isFinite(frame.durationMs) ||
+        frame.durationMs < 250 ||
+        frame.durationMs > 120_000
+      ) {
+        throw new Error(
+          `node(${node.id}).visualSequence.frames[${index}].durationMs must be 250..120000`,
+        );
+      }
+      if (
+        frame.transition !== undefined &&
+        frame.transition !== "cut" &&
+        frame.transition !== "crossfade"
+      ) {
+        throw new Error(
+          `node(${node.id}).visualSequence.frames[${index}].transition is unsupported`,
+        );
+      }
+      if (
+        frame.focusPoint !== undefined &&
+        (!Number.isFinite(frame.focusPoint.x) ||
+          frame.focusPoint.x < 0 ||
+          frame.focusPoint.x > 100 ||
+          !Number.isFinite(frame.focusPoint.y) ||
+          frame.focusPoint.y < 0 ||
+          frame.focusPoint.y > 100)
+      ) {
+        throw new Error(
+          `node(${node.id}).visualSequence.frames[${index}].focusPoint must use 0..100 percentages`,
+        );
+      }
+    }
+  }
   if (node.letterOverlayRevealDelayMs !== undefined) {
     if (
       typeof node.letterOverlayRevealDelayMs !== "number" ||
@@ -2577,6 +2625,9 @@ const buildRuntimeNode = (node: NodeBlueprint): VnNode => {
   }
   if (node.advanceOnVideoEnd !== undefined) {
     vnNode.advanceOnVideoEnd = node.advanceOnVideoEnd;
+  }
+  if (node.visualSequence !== undefined) {
+    vnNode.visualSequence = node.visualSequence;
   }
   if (node.letterOverlayRevealDelayMs !== undefined) {
     vnNode.letterOverlayRevealDelayMs = node.letterOverlayRevealDelayMs;

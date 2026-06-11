@@ -15,6 +15,7 @@ import { VnNarrativeBackgroundVisuals } from "./VnNarrativeBackgroundVisuals";
 import { VnFilmSoundPromptOverlay } from "./VnFilmSoundPromptOverlay";
 import { VnLetterNarrativeLayer } from "./VnLetterNarrativeLayer";
 import { VnSplitNarrativeDock } from "./VnSplitNarrativeDock";
+import { VnVisualSequenceLayer } from "./VnVisualSequenceLayer";
 import type { VnNarrativePanelProps } from "./vnNarrativePanel.types";
 
 export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
@@ -31,6 +32,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   backgroundVideoUrl,
   backgroundVideoPosterUrl,
   backgroundVideoSoundPrompt,
+  visualSequence,
   nextVisualUrls,
   narrativeLayout,
   narrativePresentation,
@@ -48,6 +50,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   typedTextRef,
   onSurfaceTap,
   onVideoEnded,
+  onVisualSequenceEnded,
   videoPlaybackComplete,
   suppressImmersiveSurfaceOverlay = false,
   tokenStateByPayload,
@@ -62,6 +65,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   const isLetterOverlay = effectiveNarrativeLayout === "letter_overlay";
   const isLogLayout = effectiveNarrativeLayout === "log";
   const isThoughtLog = effectiveNarrativeLayout === "thought_log";
+  const hasVisualSequence = Boolean(visualSequence?.frames.length);
   const isImmersive = isFullscreen || isLetterOverlay;
   const isSplitLayout = !isFullscreen && !isLetterOverlay;
   const needsSoundPrompt = Boolean(
@@ -143,7 +147,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     videoPlaybackComplete,
     onVideoEnded,
   });
-  usePrefetchVnVisuals(nextVisualUrls, isVisualReady);
+  usePrefetchVnVisuals(nextVisualUrls, isVisualReady, { maxPrefetch: 12 });
   const displayedLetterRevealSettled =
     !isLetterOverlay || (chromeRevealed && letterRevealSettled);
   const backgroundFadeDuration = prefersReducedMotion ? 0.08 : 0.58;
@@ -191,15 +195,20 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
 
   const showSplitBgAdmireLayer =
     isSplitLayout &&
+    !hasVisualSequence &&
     !chromeRevealed &&
     (!needsSoundPrompt || soundPromptPhase === "playing");
 
   const showImmersiveSurfaceOverlay =
-    isFullscreen && !isLogLayout && !suppressImmersiveSurfaceOverlay;
+    isFullscreen &&
+    !isLogLayout &&
+    !hasVisualSequence &&
+    !suppressImmersiveSurfaceOverlay;
 
   const showNarrativeDock =
     !isLogLayout &&
     !isLetterOverlay &&
+    !hasVisualSequence &&
     chromeRevealed &&
     (!isFullscreen || Boolean(narrativeText.trim()) || Boolean(choicesSlot));
 
@@ -238,6 +247,16 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         ) : null}
       </div>
 
+      {hasVisualSequence && visualSequence && isVisualReady ? (
+        <VnVisualSequenceLayer
+          key={sceneId ?? visualSequence.frames[0]?.imageUrl}
+          sequence={visualSequence}
+          skipLabel={t.skipMemory}
+          prefersReducedMotion={Boolean(prefersReducedMotion)}
+          onComplete={onVisualSequenceEnded}
+        />
+      ) : null}
+
       <VnFilmSoundPromptOverlay
         allowSoundPromptChrome={allowSoundPromptChrome}
         backgroundVideoUrl={backgroundVideoUrl}
@@ -250,7 +269,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         onSoundDeny={handleSoundDeny}
       />
 
-      {!isImmersive && chromeRevealed && (
+      {!hasVisualSequence && !isImmersive && chromeRevealed && (
         <div className="absolute top-0 inset-x-0 p-6 pt-12 flex justify-between items-start z-100 bg-linear-to-b from-black/90 via-black/40 to-transparent pb-32 pointer-events-none border-t-0 border-l-0 border-r-0 border-b-0">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 text-ember-500/90 uppercase tracking-[0.2em] text-[10px] font-bold">
@@ -265,7 +284,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         </div>
       )}
 
-      {showVideoLoadingState ? (
+      {!hasVisualSequence && showVideoLoadingState ? (
         <div className="absolute right-5 bottom-5 z-125 rounded-full border border-white/10 bg-black/45 px-4 py-2 text-[11px] uppercase tracking-[0.16em] text-white/80 backdrop-blur-md">
           {t.bufferingReel}
         </div>
@@ -296,7 +315,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
       >
         {children}
       </div>
-      {isLetterOverlay ? (
+      {!hasVisualSequence && isLetterOverlay ? (
         <>
           <VnLetterNarrativeLayer
             chromeRevealed={chromeRevealed}
@@ -330,7 +349,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         </>
       ) : null}
 
-      {isLogLayout && chromeRevealed && logState ? (
+      {!hasVisualSequence && isLogLayout && chromeRevealed && logState ? (
         <VnLogBottomSheet
           sceneGroupId={sceneGroupId ?? null}
           state={logState}

@@ -57,24 +57,24 @@ Consequences for any manifesto work:
 Status legend: ✅ already in code · ◐ partially exists · ❌ deliberately rejected
 (reason given) · ✚ new, worth doing · ⚠ written for the wrong setting.
 
-| Manifesto claim                                                                | Status | Where it lives / why                                                                                                                                      |
-| ------------------------------------------------------------------------------ | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "Inner Parliament" of voices                                                   | ✅     | `innerVoiceContract.ts`: 8 `inner_*` + 24 `attr_*`, resonance-selected                                                                                    |
-| Voices have neuro/philosophical basis & style                                  | ◐      | personas exist (`worldview`, `toneDescriptor`); neuro labels are flavor, not mechanics                                                                    |
-| Two axes of worldview (Ego↔Altruism, Individ↔Collectiv)                        | ✅     | `psyche_axis_x`, `psyche_axis_y`, `psyche_approach`                                                                                                       |
-| Named voices (`[ДОФАМИН]`, `[ФАСАД]`, `[ТЕНЬ]`…)                               | ◐      | as **skins** over canonical ids across the two layers, never a flat list — see Constitution + WITCH_VOLITION spec                                         |
-| Dopamine / Serotonin / Cortisol / PFC dashboard                                | ◐      | no such vars exist; `moral_stress` + dialogue stress cover part — see Dashboard section                                                                   |
-| PFC Load / Воля as a stored meter                                              | ❌     | Variant 2: volition is **derived** from pressure/flaw checks, not a 5th meter (WITCH_VOLITION spec)                                                       |
-| Stress blocks/greys dialogue options ("amygdala hijack")                       | ❌→◐   | hard UI locks are **forbidden** (MORAL_STRESS: "no path blocked by moral identity"). Allowed only as _soft_: flaw checks, rising DC, `requireAll` greying |
-| Per-protagonist biochemical engine                                             | ✅     | one parliament + per-origin `statEffects`/`flaw`/`signature`/`tracks`                                                                                     |
-| Blood Curse / vampirism subsystem                                              | ✅     | `witchRules.ts` (pressure, tiers, blood debt, alcohol, veil focus)                                                                                        |
-| Veteran PTSD Freudian parliament (Ид/Эго/Суперэго/Тень)                        | ✚      | veteran origin exists; this specific parliament is an unbuilt optional skin                                                                               |
-| Veto (act against the dominant voice)                                          | ✅     | built for Eleonora via `resource_volition_token` — kept separate from `resource_fate_token`/DM intervention (WITCH_VOLITION spec); generalizable          |
-| Ritual/meditation in Safe zone restores control                                | ✅     | `applyRitualRelief` (witch); Safe-zone tags in DM rules                                                                                                   |
-| Protocol Trinity `Card = Weapon + Artifact + Voice`                            | ✚/❌   | **not in code at all.** If built, Voice must key on a neuro **axis**, not a voice name — see below                                                        |
-| Exact percentages in voice lines ("+23%")                                      | ◐      | allowed only as `[ЛОГИКА]`'s characteristic deformation; other voices stay qualitative (prior consult decision)                                           |
-| Circadian rhythm modifies the dashboard                                        | ✚      | not built; low priority, no time-of-day system referenced                                                                                                 |
-| FJR regiment, dosimeter (1970s), crypto-safe, "credits", AR-radar, ruined city | ⚠      | wrong setting — these are postapoc AI-boilerplate. Canon is **1900 Freiburg**; AR is a meta player-layer (phone scanning real city), not in-world tech    |
+| Manifesto claim                                                                | Status | Where it lives / why                                                                                                                                       |
+| ------------------------------------------------------------------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Inner Parliament" of voices                                                   | ✅     | `innerVoiceContract.ts`: 8 `inner_*` + 24 `attr_*`, resonance-selected                                                                                     |
+| Voices have neuro/philosophical basis & style                                  | ◐      | personas exist (`worldview`, `toneDescriptor`); neuro labels are flavor, not mechanics                                                                     |
+| Two axes of worldview (Ego↔Altruism, Individ↔Collectiv)                        | ✅     | `psyche_axis_x`, `psyche_axis_y`, `psyche_approach`                                                                                                        |
+| Named voices (`[ДОФАМИН]`, `[ФАСАД]`, `[ТЕНЬ]`…)                               | ◐      | as **skins** over canonical ids across the two layers, never a flat list — see Constitution + WITCH_VOLITION spec                                          |
+| Dopamine / Serotonin / Cortisol / PFC dashboard                                | ◐      | no such vars exist; `moral_stress` + dialogue stress cover part — see Dashboard section                                                                    |
+| PFC Load / Воля as a stored meter                                              | ❌     | Variant 2: volition is **derived** from pressure/flaw checks, not a 5th meter (WITCH_VOLITION spec)                                                        |
+| Stress blocks/greys dialogue options ("amygdala hijack")                       | ❌→◐   | hard UI locks are **forbidden** (MORAL*STRESS: "no path blocked by moral identity"). Allowed only as \_soft*: flaw checks, rising DC, `requireAll` greying |
+| Per-protagonist biochemical engine                                             | ✅     | one parliament + per-origin `statEffects`/`flaw`/`signature`/`tracks`                                                                                      |
+| Blood Curse / vampirism subsystem                                              | ✅     | `witchRules.ts` (pressure, tiers, blood debt, alcohol, veil focus)                                                                                         |
+| Veteran PTSD Freudian parliament (Ид/Эго/Суперэго/Тень)                        | ✚      | veteran origin exists; this specific parliament is an unbuilt optional skin                                                                                |
+| Veto (act against the dominant voice)                                          | ✅     | built for Eleonora via `resource_volition_token` — kept separate from `resource_fate_token`/DM intervention (WITCH_VOLITION spec); generalizable           |
+| Ritual/meditation in Safe zone restores control                                | ✅     | `applyRitualRelief` (witch); Safe-zone tags in DM rules                                                                                                    |
+| Protocol Trinity `Card = Weapon + Artifact + Voice`                            | ✚/❌   | **not in code at all.** If built, Voice must key on a neuro **axis**, not a voice name — see below                                                         |
+| Exact percentages in voice lines ("+23%")                                      | ◐      | allowed only as `[ЛОГИКА]`'s characteristic deformation; other voices stay qualitative (prior consult decision)                                            |
+| Circadian rhythm modifies the dashboard                                        | ✚      | not built; low priority, no time-of-day system referenced                                                                                                  |
+| FJR regiment, dosimeter (1970s), crypto-safe, "credits", AR-radar, ruined city | ⚠      | wrong setting — these are postapoc AI-boilerplate. Canon is **1900 Freiburg**; AR is a meta player-layer (phone scanning real city), not in-world tech     |
 
 ## The dashboard, mapped onto what exists
 
@@ -147,6 +147,9 @@ as fact. `[ЛОГИКА]` may sound clinical; the narrator must not.
 
 ## What is safe to do next (if/when asked)
 
+- **Per-origin modules** — the modular skin/emphasis/mode system that lets each of
+  the six origins get its own parliament over the one shared engine is specced in
+  [`PARLIAMENT_MODULES.md`](./PARLIAMENT_MODULES.md) (witch is the reference module).
 - **Veteran voice-skin** — map Ид/Эго/Суперэго/Тень onto the shared parliament
   (like the Eleonora skin table), no new system. Veteran origin already exists.
 - **Serotonin/status scale** — the one dashboard scale worth prototyping, scoped

@@ -4,7 +4,7 @@
   "caseId": "case01_mainline",
   "source": {
     "snapshotPath": "content/vn/pilot.snapshot.json",
-    "snapshotChecksum": "8ee886788f85ae296680afafdfc2399a85dadbec380018b7c035f8c20efee30e",
+    "snapshotChecksum": "b666aed5c2802ee301ab947dce4427b04d6a92eaba66d958e6384107e85ff74e",
     "snapshotSchemaVersion": 9,
     "caseIrSource": "vn_snapshot"
   },
@@ -2750,7 +2750,7 @@
         "scenarioId": "case01_hbf_arrival",
         "title": "Рука Саши",
         "terminal": false,
-        "choiceCount": 3,
+        "choiceCount": 4,
         "onEnterEffectCount": 0,
         "passiveCheckCount": 0
       },
@@ -4363,6 +4363,14 @@
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
         "viaId": "WITCH_HBF_BLOOD_ABSORB"
+      },
+      {
+        "fromNodeId": "scene_case01_hbf_luggage_sasha_thirst",
+        "toId": "scene_case01_hbf_departure",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "WITCH_HBF_WARM_VETO_TEND_HAND"
       },
       {
         "fromNodeId": "scene_case01_hbf_luggage_sasha_thirst",

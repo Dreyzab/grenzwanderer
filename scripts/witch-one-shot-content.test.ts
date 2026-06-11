@@ -56,18 +56,48 @@ describe("witch one-shot content", () => {
       )?.nextNodeId,
     ).toBe("scene_case01_opening_arrival_video_witch");
 
-    expect(
-      CASE01_CANON_NODES.find(
-        (node) => node.id === "scene_case01_opening_arrival_video_witch",
-      ),
-    ).toMatchObject({
+    const memoryNode = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_opening_arrival_video_witch",
+    );
+    expect(memoryNode).toMatchObject({
       backgroundUrl: "/VN/start/image/witch_compartment_drowse_final.png",
+      narrativeLayout: "fullscreen",
+      visualSequence: {
+        skippable: true,
+        advanceOnEnd: true,
+      },
     });
+    expect(memoryNode?.visualSequence?.frames).toHaveLength(10);
     expect(
-      CASE01_CANON_NODES.find(
-        (node) => node.id === "scene_case01_opening_arrival_video_witch",
-      )?.choices.map((choice) => choice.id),
-    ).toEqual(expect.arrayContaining(["AUTO_CONTINUE_WITCH_DROWSE_TO_THIRST"]));
+      memoryNode?.visualSequence?.frames.reduce(
+        (total, frame) => total + frame.durationMs,
+        0,
+      ),
+    ).toBe(27_000);
+    expect(memoryNode?.visualSequence?.frames.slice(-3)).toEqual([
+      expect.objectContaining({
+        imageUrl: "/VN/start/image/witch_memory/08_first_hunger.png",
+        caption: "Сначала пришёл голод.",
+      }),
+      expect.objectContaining({
+        imageUrl: "/VN/start/image/witch_memory/09_bureau_arrival.png",
+        caption: "«Спокойно. Мы из Бюро».",
+      }),
+      expect.objectContaining({
+        imageUrl: "/VN/start/image/witch_memory/10_bureau_offer.png",
+        caption: "Бюро предложило не спасение. Работу.",
+      }),
+    ]);
+    expect(memoryNode?.choices).toEqual([
+      expect.objectContaining({
+        id: "AUTO_CONTINUE_WITCH_DROWSE_TO_THIRST",
+        nextNodeId: "scene_case01_witch_thirst_mask",
+      }),
+    ]);
+    for (const frame of memoryNode?.visualSequence?.frames ?? []) {
+      expect(frame.imageUrl).toContain("/VN/start/image/witch_memory/");
+      expect(existsSync(path.join("public", frame.imageUrl))).toBe(true);
+    }
 
     expect(
       CASE01_CANON_NODES.find(

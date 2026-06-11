@@ -14,6 +14,7 @@ import {
   resolveInnerVoiceSelection,
 } from "../../../shared/game/innerVoiceModel";
 import { isInnerVoiceId } from "../../../../data/innerVoiceContract";
+import { getActiveParliamentPresetId } from "../../character/originProfiles";
 import { isChoiceAvailable } from "../vnContent";
 import {
   buildChoiceKey,
@@ -272,6 +273,11 @@ export function useVnDisplayMapping({
       ? activeAiThoughtResponse?.text
       : null;
 
+  const activeParliamentPresetId = useMemo(
+    () => getActiveParliamentPresetId(myFlags) ?? undefined,
+    [myFlags],
+  );
+
   const innerVoiceCards = useMemo<InnerVoiceCardDisplay[]>(() => {
     if (
       currentNode?.voicePresenceMode !== "parliament" ||
@@ -294,7 +300,10 @@ export function useVnDisplayMapping({
     );
 
     return selection.ordered.map((entry) => {
-      const presentation = getVoicePresentation(entry.voiceId);
+      const presentation = getVoicePresentation(
+        entry.voiceId,
+        activeParliamentPresetId,
+      );
       return {
         voiceId: entry.voiceId,
         label: presentation.label,
@@ -305,7 +314,12 @@ export function useVnDisplayMapping({
         palette: presentation.palette,
       };
     });
-  }, [currentNode?.activeSpeakers, currentNode?.voicePresenceMode, myVars]);
+  }, [
+    activeParliamentPresetId,
+    currentNode?.activeSpeakers,
+    currentNode?.voicePresenceMode,
+    myVars,
+  ]);
 
   const reactionCard = useMemo<InlineStatusCard | null>(() => {
     if (!showInlineReactionCard) {
@@ -441,7 +455,10 @@ export function useVnDisplayMapping({
         const innerVoiceHints: ChoiceInnerVoiceHintDisplay[] = (
           choice.innerVoiceHints ?? []
         ).map((hint: NonNullable<VnChoice["innerVoiceHints"]>[number]) => {
-          const presentation = getVoicePresentation(hint.voiceId);
+          const presentation = getVoicePresentation(
+            hint.voiceId,
+            activeParliamentPresetId,
+          );
           return {
             voiceId: hint.voiceId,
             label: presentation.label,
@@ -464,6 +481,7 @@ export function useVnDisplayMapping({
         };
       }),
     [
+      activeParliamentPresetId,
       activeSkillResolve,
       choiceEvaluationContext,
       currentNode?.id,

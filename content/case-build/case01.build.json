@@ -4,15 +4,15 @@
   "caseId": "case01_mainline",
   "source": {
     "snapshotPath": "content/vn/pilot.snapshot.json",
-    "snapshotChecksum": "22e4d749c4318e4da01cdc44830b5c9e6cbbe3592035891c25dad28bac136cfe",
+    "snapshotChecksum": "3dd4643a6532b95103965b21ad67dec92030775f804f9d9d0a3b95c7311379c8",
     "snapshotSchemaVersion": 9,
     "caseIrSource": "vn_snapshot"
   },
   "caseLedger": {
     "summary": {
-      "totalNodes": 140,
+      "totalNodes": 142,
       "coveredNodes": 48,
-      "bridgedNodes": 92,
+      "bridgedNodes": 94,
       "missingNodes": 0,
       "identityDriftNodes": 0
     },
@@ -1146,8 +1146,30 @@
       {
         "scenarioId": "case01_hbf_arrival",
         "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_coin_clang",
+        "nodeTitle": "Звук",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
         "nodeId": "scene_case01_witch_coin_wake",
         "nodeTitle": "Упавшая монета",
+        "status": "BRIDGED",
+        "ownerLayer": "temporary_runtime_bridge",
+        "identityFindings": [],
+        "sourcePaths": [],
+        "note": "Hardcoded in scripts/data/case01_canon_runtime.ts until migrated."
+      },
+      {
+        "scenarioId": "case01_hbf_arrival",
+        "scenarioTitle": "Case 01: Freiburg Arrival",
+        "nodeId": "scene_case01_witch_compartment_memory",
+        "nodeTitle": "Сон",
         "status": "BRIDGED",
         "ownerLayer": "temporary_runtime_bridge",
         "identityFindings": [],
@@ -1750,7 +1772,9 @@
         "nodeIds": [
           "scene_case01_opening_arrival_video",
           "scene_case01_opening_arrival_video_witch",
+          "scene_case01_witch_compartment_memory",
           "scene_case01_witch_thirst_mask",
+          "scene_case01_witch_coin_clang",
           "scene_case01_witch_coin_wake",
           "scene_case01_train_compartment_letter",
           "scene_case01_train_assistant_intro_witch",
@@ -2161,12 +2185,30 @@
         "passiveCheckCount": 0
       },
       {
+        "id": "scene_case01_witch_compartment_memory",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Сон",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
+        "passiveCheckCount": 0
+      },
+      {
         "id": "scene_case01_witch_thirst_mask",
         "scenarioId": "case01_hbf_arrival",
         "title": "Жажда",
         "terminal": false,
         "choiceCount": 1,
         "onEnterEffectCount": 1,
+        "passiveCheckCount": 0
+      },
+      {
+        "id": "scene_case01_witch_coin_clang",
+        "scenarioId": "case01_hbf_arrival",
+        "title": "Звук",
+        "terminal": false,
+        "choiceCount": 1,
+        "onEnterEffectCount": 0,
         "passiveCheckCount": 0
       },
       {
@@ -3430,6 +3472,14 @@
       },
       {
         "fromNodeId": "scene_case01_opening_arrival_video_witch",
+        "toId": "scene_case01_witch_compartment_memory",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_DROWSE_TO_MEMORY"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_compartment_memory",
         "toId": "scene_case01_witch_thirst_mask",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
@@ -3438,11 +3488,19 @@
       },
       {
         "fromNodeId": "scene_case01_witch_thirst_mask",
-        "toId": "scene_case01_witch_coin_wake",
+        "toId": "scene_case01_witch_coin_clang",
         "toKind": "node",
         "scenarioId": "case01_hbf_arrival",
         "via": "choice",
         "viaId": "AUTO_CONTINUE_WITCH_THIRST_TO_COIN"
+      },
+      {
+        "fromNodeId": "scene_case01_witch_coin_clang",
+        "toId": "scene_case01_witch_coin_wake",
+        "toKind": "node",
+        "scenarioId": "case01_hbf_arrival",
+        "via": "choice",
+        "viaId": "AUTO_CONTINUE_WITCH_COIN_CLANG_TO_WAKE"
       },
       {
         "fromNodeId": "scene_case01_witch_coin_wake",
@@ -5428,6 +5486,7 @@
           "bind_agency_caseboard",
           "bind_agency_student_intro_service",
           "bind_agency_promotion_review",
+          "bind_agency_archive_consult",
           "sys_travel_loc_agency"
         ],
         "scenarioIds": [
@@ -5695,6 +5754,7 @@
         "bindingIds": [
           "bind_pub_false_trail_workers",
           "bind_pub_covert_route",
+          "bind_pub_backroom",
           "bind_pub_rumor_raid",
           "bind_pub_dog_close",
           "bind_pub_ghost_start",
@@ -6142,6 +6202,103 @@
           "threatLevel": "low",
           "rewardClass": "information"
         }
+      },
+      {
+        "id": "trig.freiburg.rail_yard_route",
+        "schemaVersion": 1,
+        "kindVersion": 1,
+        "status": "active",
+        "eventName": "rumor.verified",
+        "conditions": [
+          {
+            "type": "rumor_state_is",
+            "rumorId": "rumor_bank_rail_yard",
+            "status": "verified"
+          }
+        ],
+        "effects": [
+          {
+            "type": "set_flag",
+            "key": "route_rail_yard_revealed",
+            "value": true
+          },
+          {
+            "type": "track_event",
+            "eventName": "freiburg_rail_yard_route_revealed"
+          }
+        ]
+      },
+      {
+        "id": "trig.freiburg.archive_access",
+        "schemaVersion": 1,
+        "kindVersion": 1,
+        "status": "active",
+        "eventName": "career.promoted",
+        "conditions": [
+          {
+            "type": "career_rank_gte",
+            "rankId": "junior_detective"
+          }
+        ],
+        "effects": [
+          {
+            "type": "set_flag",
+            "key": "agency_archive_access",
+            "value": true
+          },
+          {
+            "type": "track_event",
+            "eventName": "freiburg_archive_access_granted"
+          }
+        ]
+      },
+      {
+        "id": "trig.freiburg.informant_meeting",
+        "schemaVersion": 1,
+        "kindVersion": 1,
+        "status": "active",
+        "eventName": "career.criterion_recorded",
+        "effects": [
+          {
+            "type": "spawn_map_event",
+            "templateId": "evt_informant_meeting",
+            "ttlMinutes": 30
+          },
+          {
+            "type": "track_event",
+            "eventName": "freiburg_informant_meeting_spawned"
+          }
+        ]
+      },
+      {
+        "id": "trig.freiburg.pub_backroom",
+        "schemaVersion": 1,
+        "kindVersion": 1,
+        "status": "active",
+        "eventName": "map.interacted",
+        "conditions": [
+          {
+            "type": "flag_equals",
+            "key": "agency_briefing_complete",
+            "value": true
+          },
+          {
+            "type": "favor_balance_gte",
+            "npcId": "npc_rudi_kempf",
+            "value": 1
+          }
+        ],
+        "effects": [
+          {
+            "type": "set_flag",
+            "key": "pub_backroom_access",
+            "value": true
+          },
+          {
+            "type": "track_event",
+            "eventName": "freiburg_pub_backroom_unlocked"
+          }
+        ]
       }
     ],
     "questArchetypes": [
@@ -8435,8 +8592,20 @@
     {
       "severity": "warning",
       "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_coin_clang",
+      "message": "Case01 node 'scene_case01_witch_coin_clang' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
       "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_coin_wake",
       "message": "Case01 node 'scene_case01_witch_coin_wake' is still owned by temporary_runtime_bridge."
+    },
+    {
+      "severity": "warning",
+      "code": "case01_temporary_runtime_bridge",
+      "path": "caseLedger.case01_hbf_arrival.scene_case01_witch_compartment_memory",
+      "message": "Case01 node 'scene_case01_witch_compartment_memory' is still owned by temporary_runtime_bridge."
     },
     {
       "severity": "warning",

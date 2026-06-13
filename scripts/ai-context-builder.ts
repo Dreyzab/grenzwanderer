@@ -17,6 +17,13 @@ import {
   getSelectedOriginTrack,
   type OriginParliamentPresetId,
 } from "../src/features/character/originProfiles";
+import {
+  WITCH_ALCOHOL_AFTERTASTE_VAR,
+  WITCH_BLOOD_CURSE_PRESSURE_VAR,
+  WITCH_BLOOD_CURSE_TIER_VAR,
+  WITCH_BLOOD_DEBT_VAR,
+  WITCH_BLOOD_POWER_VAR,
+} from "../src/shared/game/witchRules";
 import { buildMysticStateSummary } from "../src/features/mysticism/model/mysticism";
 import {
   getNodeById,
@@ -67,6 +74,7 @@ export interface SceneContext {
   branchOpportunities?: string;
   proceduralBudget?: string;
   visualStateHints?: string;
+  witchCurse?: string;
 }
 
 export interface BuildSceneContextOptions {
@@ -443,6 +451,7 @@ const buildSceneSnapshot = (
     originLabel?: string;
     selectedTrackTitle?: string;
     parliamentPresetId?: OriginParliamentPresetId;
+    witchCurse?: string;
     occultRouteStatus?: string;
     routeStep?: string;
     occultExposure?: string;
@@ -547,6 +556,9 @@ const buildSceneSnapshot = (
   }
   if (sceneContext?.parliamentPresetId) {
     parts.push(`Parliament preset: ${sceneContext.parliamentPresetId}`);
+  }
+  if (sceneContext?.witchCurse) {
+    parts.push(`Witch blood curse: ${sceneContext.witchCurse}`);
   }
   if (sceneContext?.occultRouteStatus) {
     parts.push(`Hidden-layer status: ${sceneContext.occultRouteStatus}`);
@@ -768,6 +780,27 @@ const summarizeResourceProfile = (
     `effectiveFortune=${resolveEffectiveFortune(fortune, fortuneMod)}`,
     `karma=${karma}`,
     `karmaBand=${resolveKarmaBand(karma)}`,
+  ].join(", ");
+};
+
+const summarizeWitchCurseProfile = (
+  vars: Readonly<Record<string, number>>,
+  flags: Readonly<Record<string, boolean>>,
+): string => {
+  const pressure = vars[WITCH_BLOOD_CURSE_PRESSURE_VAR] ?? 0;
+  const tier = vars[WITCH_BLOOD_CURSE_TIER_VAR] ?? 1;
+  const power = vars[WITCH_BLOOD_POWER_VAR] ?? 0;
+  const debt = vars[WITCH_BLOOD_DEBT_VAR] ?? 0;
+  const alcohol = vars[WITCH_ALCOHOL_AFTERTASTE_VAR] ?? 0;
+  const somaticExhaustion = flags["flag_witch_somatic_exhaustion"] ?? false;
+
+  return [
+    `pressure=${pressure}`,
+    `tier=${tier}`,
+    `bloodPower=${power}`,
+    `bloodDebt=${debt}`,
+    `alcoholAftertaste=${alcohol}`,
+    `somaticExhaustion=${somaticExhaustion}`,
   ].join(", ");
 };
 
@@ -1148,6 +1181,10 @@ export const buildSceneContext = async (
   const parliamentPresetId = activeOrigin
     ? getParliamentPresetForOrigin(activeOrigin, selectedTrack)
     : undefined;
+  const witchCurse =
+    parliamentPresetId === "witch"
+      ? summarizeWitchCurseProfile(vars, flags)
+      : undefined;
   const occultRouteStatus = summarizeOccultRouteStatus(flags);
   const routeStep = summarizeRouteStep(payload, flags);
   const occultExposure = summarizeOccultExposure(vars);
@@ -1183,6 +1220,7 @@ export const buildSceneContext = async (
       originLabel: activeOrigin?.label,
       selectedTrackTitle: selectedTrack?.title,
       parliamentPresetId,
+      witchCurse,
       occultRouteStatus,
       routeStep,
       occultExposure,
@@ -1213,5 +1251,6 @@ export const buildSceneContext = async (
     branchOpportunities,
     proceduralBudget,
     visualStateHints,
+    witchCurse,
   };
 };

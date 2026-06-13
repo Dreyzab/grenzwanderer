@@ -49,6 +49,13 @@ vi.mock("framer-motion", async () => {
       },
     ),
     useReducedMotion: () => false,
+    useMotionValue: (initial: number) => ({
+      get: () => initial,
+      set: () => {},
+      on: () => () => {},
+    }),
+    useMotionTemplate: () => "",
+    animate: () => ({ stop: () => {} }),
   };
 });
 

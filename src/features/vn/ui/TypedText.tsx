@@ -1,5 +1,7 @@
-﻿import {
+import {
   forwardRef,
+  Fragment,
+  useContext,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -15,21 +17,26 @@ import {
   type ParsedTypedSegment,
   type ParsedTypedToken,
 } from "./TypedTextParser";
+import { VnTextSpeedContext } from "./VnTextSpeedContext";
 import "./TypedText.css";
 
-/** Sentence-final punctuation gets the longest dwell; clause breaks a shorter one. */
+/** Sentence-final punctuation dwells the longest; clause breaks pause a touch. */
 const SENTENCE_END_CHARS = new Set([".", "!", "?", "…"]);
 const CLAUSE_BREAK_CHARS = new Set([",", ";", ":", "—", "–"]);
 
-const pauseMultiplierFor = (char: string): number => {
-  if (SENTENCE_END_CHARS.has(char)) {
-    return 16;
-  }
-  if (CLAUSE_BREAK_CHARS.has(char)) {
-    return 7;
-  }
-  return 1;
-};
+/** Extra pause (ms) held after revealing a word that closes a sentence/clause. */
+const SENTENCE_DWELL_MS = 220;
+const CLAUSE_DWELL_MS = 90;
+/**
+ * Per-character cadence (at the default speed of 12) used to pace word reveals.
+ * Deliberately snappier than legacy char-typing so words flow in and their
+ * ~260ms fades overlap across several words — the Disco-Elysium "feed" cadence —
+ * instead of dripping one fully-settled word at a time.
+ */
+const WORD_MS_PER_CHAR_AT_DEFAULT = 5;
+/** Floor/ceiling on the per-word base delay so very short/long words still read well. */
+const MIN_WORD_MS = 18;
+const MAX_WORD_MS = 220;
 
 export interface TypedTextHandle {
   finish: () => void;
@@ -58,58 +65,96 @@ export interface TypedTextProps {
 const supportsStudiedState = (token: ParsedTypedToken): boolean =>
   token.type === "fact" || token.type === "lead";
 
-const getVisibleSegments = (
-  segments: ParsedTypedSegment[],
-  visibleChars: number,
-): ParsedTypedSegment[] => {
-  if (visibleChars <= 0) {
+/**
+ * A single reveal step. Plain words carry their surrounding whitespace as bare
+ * strings (`leading`/`trailing`) so wrapping still breaks between words; tokens
+ * stay whole (their highlight should never split mid-phrase).
+ */
+type RevealUnit =
+  | {
+      kind: "word";
+      key: string;
+      leading: string;
+      core: string;
+      trailing: string;
+      bold?: boolean;
+      italic?: boolean;
+    }
+  | { kind: "token"; key: string; token: ParsedTypedToken };
+
+/** Splits a text run into `<leading ws><word><trailing ws>` pieces, preserving every char. */
+const splitWords = (
+  text: string,
+): Array<{ leading: string; core: string; trailing: string }> => {
+  const pieces = text.match(/\s*\S+\s*/g);
+  if (!pieces) {
     return [];
   }
+  return pieces.map((piece) => {
+    const match = /^(\s*)(\S+)(\s*)$/.exec(piece);
+    return {
+      leading: match?.[1] ?? "",
+      core: match?.[2] ?? piece,
+      trailing: match?.[3] ?? "",
+    };
+  });
+};
 
-  let remaining = visibleChars;
-  const output: ParsedTypedSegment[] = [];
+const buildRevealUnits = (segments: ParsedTypedSegment[]): RevealUnit[] => {
+  const units: RevealUnit[] = [];
+  let index = 0;
+
+  const appendTrailingToPrevious = (whitespace: string): boolean => {
+    const last = units[units.length - 1];
+    if (last?.kind === "word") {
+      last.trailing += whitespace;
+      return true;
+    }
+    return false;
+  };
 
   for (const segment of segments) {
-    if (remaining <= 0) {
-      break;
-    }
-
-    const visibleText = segment.text.slice(0, remaining);
-    if (visibleText.length === 0) {
+    if (segment.kind === "token") {
+      units.push({ kind: "token", key: `u${index++}`, token: segment.token });
       continue;
     }
 
-    if (segment.kind === "token") {
-      const token = {
-        ...segment.token,
-        text: visibleText,
-      };
+    const words = splitWords(segment.text);
+    if (words.length === 0) {
+      // Whitespace-only run: fold it into the previous word so it isn't its own beat.
+      if (segment.text && !appendTrailingToPrevious(segment.text)) {
+        units.push({
+          kind: "word",
+          key: `u${index++}`,
+          leading: "",
+          core: "",
+          trailing: segment.text,
+        });
+      }
+      continue;
+    }
 
-      output.push({
-        kind: "token",
-        text: visibleText,
-        token,
-      });
-    } else {
-      output.push({
-        kind: "text",
-        text: visibleText,
+    for (const word of words) {
+      units.push({
+        kind: "word",
+        key: `u${index++}`,
+        leading: word.leading,
+        core: word.core,
+        trailing: word.trailing,
         bold: segment.bold,
         italic: segment.italic,
       });
     }
-
-    remaining -= visibleText.length;
   }
 
-  return output;
+  return units;
 };
 
 export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
   (
     {
       text,
-      speed = 12,
+      speed,
       instant = false,
       tokenStateByPayload,
       onComplete,
@@ -120,28 +165,29 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
     },
     ref,
   ) => {
-    const [visibleChars, setVisibleChars] = useState(0);
+    const [visibleUnits, setVisibleUnits] = useState(0);
     const completionNotifiedRef = useRef(false);
     const prefersReducedMotion = useReducedMotion();
+    // Explicit props win; otherwise fall back to the reader's pacing preference.
+    const speedPreference = useContext(VnTextSpeedContext);
+    const resolvedSpeed = speed ?? speedPreference.speed;
+    const resolvedInstant = instant || speedPreference.instant;
 
     const segments = useMemo(() => parseTypedTextMarkup(text), [text]);
-    const fullText = useMemo(
-      () => segments.map((segment) => segment.text).join(""),
-      [segments],
-    );
-    const totalChars = fullText.length;
+    const units = useMemo(() => buildRevealUnits(segments), [segments]);
+    const totalUnits = units.length;
 
-    const frameDelay = Math.max(1, speed);
-    /** Reduced-motion users see the full line at once (no typewriter). */
-    const skipAnimation = instant || Boolean(prefersReducedMotion);
+    const frameDelay = Math.max(1, resolvedSpeed);
+    /** Reduced-motion users see the full line at once (no word-by-word reveal). */
+    const skipAnimation = resolvedInstant || Boolean(prefersReducedMotion);
 
     useEffect(() => {
       completionNotifiedRef.current = false;
-      setVisibleChars(skipAnimation ? totalChars : 0);
-    }, [skipAnimation, text, totalChars]);
+      setVisibleUnits(skipAnimation ? totalUnits : 0);
+    }, [skipAnimation, text, totalUnits]);
 
     useEffect(() => {
-      const isTyping = visibleChars < totalChars;
+      const isTyping = visibleUnits < totalUnits;
       onTypingChange?.(isTyping);
 
       if (instant) {
@@ -151,42 +197,48 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
         completionNotifiedRef.current = true;
         onComplete?.();
       }
-    }, [instant, onComplete, onTypingChange, totalChars, visibleChars]);
+    }, [instant, onComplete, onTypingChange, totalUnits, visibleUnits]);
 
     useEffect(() => {
       if (skipAnimation) {
         return;
       }
-      if (visibleChars >= totalChars) {
+      if (visibleUnits >= totalUnits) {
         return;
+      }
+
+      // Dwell before the NEXT word, paced by the word just revealed: longer words
+      // take longer to "read", and clause/sentence punctuation adds a held pause.
+      const previous = units[visibleUnits - 1];
+      let requiredDelay = 0;
+      if (previous) {
+        const core =
+          previous.kind === "token" ? previous.token.text : previous.core;
+        const msPerChar = (frameDelay / 12) * WORD_MS_PER_CHAR_AT_DEFAULT;
+        const base = Math.min(
+          MAX_WORD_MS,
+          Math.max(MIN_WORD_MS, msPerChar * Math.max(1, core.length)),
+        );
+        const lastChar = core.slice(-1);
+        const dwell = SENTENCE_END_CHARS.has(lastChar)
+          ? SENTENCE_DWELL_MS
+          : CLAUSE_BREAK_CHARS.has(lastChar)
+            ? CLAUSE_DWELL_MS
+            : 0;
+        requiredDelay = base + dwell;
       }
 
       let rafId = 0;
       let lastTimestamp = 0;
 
-      // Dwell longer after the previously revealed char if it ended a clause/sentence.
-      const previousChar = fullText[visibleChars - 1] ?? "";
-      const isDwelling = pauseMultiplierFor(previousChar) > 1;
-      const requiredDelay = frameDelay * pauseMultiplierFor(previousChar);
-
       const tick = (timestamp: number) => {
         if (lastTimestamp === 0) {
           lastTimestamp = timestamp;
         }
-
-        const elapsed = timestamp - lastTimestamp;
-        if (elapsed >= requiredDelay) {
-          // After a dwell, reveal a single char so the next pause is honoured;
-          // otherwise batch to recover from dropped frames.
-          const advanceBy = isDwelling
-            ? 1
-            : Math.max(1, Math.floor(elapsed / frameDelay));
-          setVisibleChars((previous) =>
-            Math.min(totalChars, previous + advanceBy),
-          );
-          lastTimestamp = timestamp;
+        if (timestamp - lastTimestamp >= requiredDelay) {
+          setVisibleUnits((current) => Math.min(totalUnits, current + 1));
+          return;
         }
-
         rafId = requestAnimationFrame(tick);
       };
 
@@ -194,25 +246,26 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
       return () => {
         cancelAnimationFrame(rafId);
       };
-    }, [skipAnimation, frameDelay, fullText, totalChars, visibleChars]);
+    }, [skipAnimation, frameDelay, units, totalUnits, visibleUnits]);
 
     useImperativeHandle(
       ref,
       () => ({
         finish: () => {
-          setVisibleChars(totalChars);
+          setVisibleUnits(totalUnits);
         },
       }),
-      [totalChars],
+      [totalUnits],
     );
 
-    const visibleSegments = useMemo(
-      () => getVisibleSegments(segments, visibleChars),
-      [segments, visibleChars],
-    );
-
-    const isTyping = visibleChars < totalChars;
+    const isTyping = visibleUnits < totalUnits;
     const tokensInteractive = !isTyping;
+    /**
+     * While typing we render per-word spans so each word can fade in. Once the
+     * line has settled we collapse to one span per segment — leaner DOM, and it
+     * keeps historical/instant entries (and `getByText`) free of word splitting.
+     */
+    const renderCollapsed = skipAnimation || !isTyping;
 
     const handleTokenKeyDown = (
       token: ParsedTypedToken,
@@ -234,68 +287,112 @@ export const TypedText = forwardRef<TypedTextHandle, TypedTextProps>(
       onTokenClick?.(token, event as unknown as MouseEvent<HTMLSpanElement>);
     };
 
-    return (
-      <p className="vn-typed-text" aria-live="polite">
-        {visibleSegments.map((segment, index) => {
-          const key = `${segment.kind}-${index}`;
+    const renderToken = (token: ParsedTypedToken, key: string): ReactNode => {
+      const tokenState = supportsStudiedState(token)
+        ? tokenStateByPayload?.[token.payload.trim()]
+        : undefined;
+      const tokenInteractive = tokensInteractive && !tokenState;
+
+      return (
+        <span
+          key={key}
+          className={[
+            "vn-typed-text__token",
+            tokenInteractive ? "is-interactive" : "is-static",
+            !tokensInteractive ? "is-typing" : "",
+            tokenState === "recording" ? "is-recording" : "",
+            tokenState === "studied" ? "is-studied" : "",
+          ].join(" ")}
+          data-vn-payload={token.payload}
+          data-vn-token-state={tokenState}
+          data-vn-token-type={token.type}
+          role={tokenInteractive ? "button" : undefined}
+          tabIndex={tokenInteractive ? 0 : undefined}
+          onClick={(event) => {
+            if (!tokenInteractive) {
+              return;
+            }
+            event.stopPropagation();
+            onTokenClick?.(token, event);
+          }}
+          onKeyDown={(event) => handleTokenKeyDown(token, event)}
+          onMouseEnter={(event) => {
+            if (!tokenInteractive) {
+              return;
+            }
+            onTokenEnter?.(token, event);
+          }}
+          onMouseLeave={(event) => {
+            if (!tokenInteractive) {
+              return;
+            }
+            onTokenLeave?.(token, event);
+          }}
+        >
+          {token.text}
+        </span>
+      );
+    };
+
+    const withEmphasis = (
+      content: ReactNode,
+      bold?: boolean,
+      italic?: boolean,
+    ): ReactNode => {
+      let node = content;
+      if (italic) {
+        node = <em className="vn-typed-text__em">{node}</em>;
+      }
+      if (bold) {
+        node = <strong className="vn-typed-text__strong">{node}</strong>;
+      }
+      return node;
+    };
+
+    const body = renderCollapsed
+      ? segments.map((segment, index) => {
+          const key = `seg-${index}`;
           if (segment.kind === "token") {
-            const tokenState = supportsStudiedState(segment.token)
-              ? tokenStateByPayload?.[segment.token.payload.trim()]
-              : undefined;
-            const tokenInteractive = tokensInteractive && !tokenState;
-
+            return renderToken(segment.token, `${key}-${segment.token.key}`);
+          }
+          return (
+            <span key={key}>
+              {withEmphasis(segment.text, segment.bold, segment.italic)}
+            </span>
+          );
+        })
+      : units.slice(0, visibleUnits).map((unit) => {
+          if (unit.kind === "token") {
             return (
-              <span
-                key={`${key}-${segment.token.key}`}
-                className={[
-                  "vn-typed-text__token",
-                  tokenInteractive ? "is-interactive" : "is-static",
-                  !tokensInteractive ? "is-typing" : "",
-                  tokenState === "recording" ? "is-recording" : "",
-                  tokenState === "studied" ? "is-studied" : "",
-                ].join(" ")}
-                data-vn-payload={segment.token.payload}
-                data-vn-token-state={tokenState}
-                data-vn-token-type={segment.token.type}
-                role={tokenInteractive ? "button" : undefined}
-                tabIndex={tokenInteractive ? 0 : undefined}
-                onClick={(event) => {
-                  if (!tokenInteractive) {
-                    return;
-                  }
-                  event.stopPropagation();
-                  onTokenClick?.(segment.token, event);
-                }}
-                onKeyDown={(event) => handleTokenKeyDown(segment.token, event)}
-                onMouseEnter={(event) => {
-                  if (!tokenInteractive) {
-                    return;
-                  }
-                  onTokenEnter?.(segment.token, event);
-                }}
-                onMouseLeave={(event) => {
-                  if (!tokenInteractive) {
-                    return;
-                  }
-                  onTokenLeave?.(segment.token, event);
-                }}
-              >
-                {segment.text}
-              </span>
+              <Fragment key={unit.key}>
+                <span className="vn-typed-text__word">
+                  {renderToken(unit.token, `${unit.key}-tok`)}
+                </span>
+              </Fragment>
             );
           }
+          return (
+            <Fragment key={unit.key}>
+              {unit.leading}
+              {unit.core ? (
+                <span className="vn-typed-text__word">
+                  {withEmphasis(unit.core, unit.bold, unit.italic)}
+                </span>
+              ) : null}
+              {unit.trailing}
+            </Fragment>
+          );
+        });
 
-          let content: ReactNode = segment.text;
-          if (segment.italic) {
-            content = <em className="vn-typed-text__em">{content}</em>;
-          }
-          if (segment.bold) {
-            content = (
-              <strong className="vn-typed-text__strong">{content}</strong>
-            );
-          }
-          return <span key={key}>{content}</span>;
-        })}
+    return (
+      // aria-busy holds AT announcements while words stream in, then reads the
+      // settled line once — no per-word chatter, and no duplicate text node.
+      <p
+        className="vn-typed-text"
+        aria-live="polite"
+        aria-busy={isTyping ? "true" : undefined}
+      >
+        {body}
         {isTyping ? (
           <span className="vn-typed-text__cursor" aria-hidden />
         ) : null}

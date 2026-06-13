@@ -8,7 +8,7 @@ import {
   AI_REQUEST_STATUS_PENDING,
   AI_REQUEST_STATUS_PROCESSING,
 } from "./reducers/aiQueue";
-import { canReadWorkerQueue } from "./reducers/helpers/auth";
+import { canReadWorkerQueue, hasAdminIdentity } from "./reducers/helpers/auth";
 import { senderOf, type ReducerContextLike } from "./reducers/helpers/context";
 
 export const playerProfile = table(
@@ -1609,6 +1609,21 @@ export const contentRating = table(
         algorithm: "btree",
         columns: ["targetType", "targetId"],
       },
+      {
+        accessor: "content_rating_created_at",
+        algorithm: "btree",
+        columns: ["createdAt"],
+      },
+      {
+        accessor: "content_rating_content_version",
+        algorithm: "btree",
+        columns: ["contentVersion"],
+      },
+      {
+        accessor: "content_rating_scenario_id",
+        algorithm: "btree",
+        columns: ["scenarioId"],
+      },
     ],
   },
   {
@@ -1643,6 +1658,16 @@ export const dialogueRating = table(
         algorithm: "btree",
         columns: ["nodeId"],
       },
+      {
+        accessor: "dialogue_rating_created_at",
+        algorithm: "btree",
+        columns: ["createdAt"],
+      },
+      {
+        accessor: "dialogue_rating_content_version",
+        algorithm: "btree",
+        columns: ["contentVersion"],
+      },
     ],
   },
   {
@@ -1659,6 +1684,88 @@ export const dialogueRating = table(
     comment: t.string().optional(),
     createdAt: t.timestamp(),
     updatedAt: t.timestamp(),
+  },
+);
+
+export const feedbackAnalysisReport = table(
+  {
+    name: "feedback_analysis_report",
+    public: false,
+    indexes: [
+      {
+        accessor: "feedback_analysis_report_requested_by",
+        algorithm: "btree",
+        columns: ["requestedBy"],
+      },
+      {
+        accessor: "feedback_analysis_report_report_key",
+        algorithm: "btree",
+        columns: ["reportKey"],
+      },
+      {
+        accessor: "feedback_analysis_report_status",
+        algorithm: "btree",
+        columns: ["status"],
+      },
+      {
+        accessor: "feedback_analysis_report_ai_request_id",
+        algorithm: "btree",
+        columns: ["aiRequestId"],
+      },
+    ],
+  },
+  {
+    reportId: t.u64().primaryKey().autoInc(),
+    reportKey: t.string(),
+    version: t.u32(),
+    requestedBy: t.identity(),
+    filtersJson: t.string(),
+    outputLanguage: t.string(),
+    status: t.string(),
+    reviewState: t.string(),
+    snapshotHash: t.string(),
+    sourceCount: t.u32(),
+    aiRequestId: t.u64().optional(),
+    resultJson: t.string().optional(),
+    developerNote: t.string().optional(),
+    aiMetaJson: t.string().optional(),
+    error: t.string().optional(),
+    createdAt: t.timestamp(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+export const feedbackAnalysisSource = table(
+  {
+    name: "feedback_analysis_source",
+    public: false,
+    indexes: [
+      {
+        accessor: "feedback_analysis_source_report_id",
+        algorithm: "btree",
+        columns: ["reportId"],
+      },
+      {
+        accessor: "feedback_analysis_source_kind",
+        algorithm: "btree",
+        columns: ["kind"],
+      },
+    ],
+  },
+  {
+    sourceId: t.u64().primaryKey().autoInc(),
+    reportId: t.u64(),
+    evidenceId: t.string(),
+    kind: t.string(),
+    targetType: t.string(),
+    targetId: t.string(),
+    scenarioId: t.string().optional(),
+    nodeId: t.string().optional(),
+    contentVersion: t.string().optional(),
+    raterHash: t.string(),
+    scoresJson: t.string(),
+    comment: t.string().optional(),
+    ratedAt: t.timestamp(),
   },
 );
 
@@ -1719,6 +1826,8 @@ const spacetimedb = schema({
   playerEquipment,
   contentRating,
   dialogueRating,
+  feedbackAnalysisReport,
+  feedbackAnalysisSource,
 });
 
 const rowsFromIndex = (
@@ -1837,6 +1946,81 @@ export const my_dialogue_ratings = spacetimedb.view(
   t.array(dialogueRating.rowType),
   (ctx) =>
     selfScopedByPlayerId(ctx, "dialogueRating", "dialogue_rating_player_id"),
+);
+
+// Admin-only: lets the operator shell detect whether the current identity may
+// open the Feedback Center. Returns the sender's adminIdentity row (0 or 1).
+export const my_admin_identity = spacetimedb.view(
+  { name: "my_admin_identity", public: true },
+  t.array(adminIdentity.rowType),
+  (ctx) => {
+    try {
+      return rowsFromIndex(ctx.db.adminIdentity, "identity", senderOf(ctx));
+    } catch {
+      return [];
+    }
+  },
+);
+
+// Admin-only mirror of every feedback analysis report. Mirrors the
+// worker_ai_requests gating pattern: admin check + index-union (no .iter()).
+export const feedback_reports = spacetimedb.view(
+  { name: "feedback_reports", public: true },
+  t.array(feedbackAnalysisReport.rowType),
+  (ctx) => {
+    try {
+      if (!hasAdminIdentity(ctx)) {
+        return [];
+      }
+      return [
+        ...rowsFromIndex(
+          ctx.db.feedbackAnalysisReport,
+          "feedback_analysis_report_status",
+          "pending",
+        ),
+        ...rowsFromIndex(
+          ctx.db.feedbackAnalysisReport,
+          "feedback_analysis_report_status",
+          "ready",
+        ),
+        ...rowsFromIndex(
+          ctx.db.feedbackAnalysisReport,
+          "feedback_analysis_report_status",
+          "failed",
+        ),
+      ];
+    } catch {
+      return [];
+    }
+  },
+);
+
+// Admin-only mirror of every frozen evidence row. Unioned over the kind index
+// so the operator can resolve a report's citations to source records.
+export const feedback_report_sources = spacetimedb.view(
+  { name: "feedback_report_sources", public: true },
+  t.array(feedbackAnalysisSource.rowType),
+  (ctx) => {
+    try {
+      if (!hasAdminIdentity(ctx)) {
+        return [];
+      }
+      return [
+        ...rowsFromIndex(
+          ctx.db.feedbackAnalysisSource,
+          "feedback_analysis_source_kind",
+          "content",
+        ),
+        ...rowsFromIndex(
+          ctx.db.feedbackAnalysisSource,
+          "feedback_analysis_source_kind",
+          "dialogue",
+        ),
+      ];
+    } catch {
+      return [];
+    }
+  },
 );
 
 export const worker_ai_requests = spacetimedb.view(

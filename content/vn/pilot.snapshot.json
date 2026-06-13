@@ -2044,7 +2044,7 @@
         "frames": [
           {
             "imageUrl": "/VN/start/image/witch_memory/01_funeral_rain.png",
-            "durationMs": 2400,
+            "durationMs": 800,
             "caption": "Хартманны не плачут на людях. В тот день дождь взял это на себя.",
             "transition": "cut",
             "focusPoint": {
@@ -2054,7 +2054,7 @@
           },
           {
             "imageUrl": "/VN/start/image/witch_memory/02_ledgers_at_night.png",
-            "durationMs": 2800,
+            "durationMs": 933,
             "caption": "«Эта женщина не справится».",
             "transition": "crossfade",
             "focusPoint": {
@@ -2064,7 +2064,7 @@
           },
           {
             "imageUrl": "/VN/start/image/witch_memory/03_mother_son_alliance.png",
-            "durationMs": 2400,
+            "durationMs": 800,
             "caption": "«Мы удержим Дом. Слышишь, Феликс? Удержим».",
             "transition": "crossfade",
             "focusPoint": {
@@ -2074,7 +2074,7 @@
           },
           {
             "imageUrl": "/VN/start/image/witch_memory/04_bank_authority.png",
-            "durationMs": 2800,
+            "durationMs": 933,
             "caption": "Через десять лет банк кланялся первым.",
             "transition": "crossfade",
             "focusPoint": {
@@ -2084,7 +2084,7 @@
           },
           {
             "imageUrl": "/VN/start/image/witch_memory/05_project_refused.png",
-            "durationMs": 2800,
+            "durationMs": 933,
             "caption": "«Ты еще не готов».",
             "transition": "crossfade",
             "focusPoint": {
@@ -2093,8 +2093,8 @@
             }
           },
           {
-            "imageUrl": "/VN/start/image/witch_memory/08_first_hunger.png",
-            "durationMs": 2200,
+            "imageUrl": "/VN/start/image/witch_memory/07_first_hunger.png",
+            "durationMs": 733,
             "caption": "Сначала пришёл голод.",
             "transition": "crossfade",
             "focusPoint": {
@@ -2103,8 +2103,8 @@
             }
           },
           {
-            "imageUrl": "/VN/start/image/witch_memory/09_bureau_arrival.png",
-            "durationMs": 2400,
+            "imageUrl": "/VN/start/image/witch_memory/08_bureau_arrival.png",
+            "durationMs": 800,
             "caption": "«Спокойно. Мы из Бюро».",
             "transition": "crossfade",
             "focusPoint": {
@@ -2113,8 +2113,8 @@
             }
           },
           {
-            "imageUrl": "/VN/start/image/witch_memory/10_bureau_offer.png",
-            "durationMs": 2400,
+            "imageUrl": "/VN/start/image/witch_memory/09_bureau_offer.png",
+            "durationMs": 800,
             "caption": "Бюро предложило не спасение. Работу.",
             "transition": "crossfade",
             "focusPoint": {
@@ -2124,7 +2124,7 @@
           },
           {
             "imageUrl": "/VN/start/image/witch_memory/06_felix_says_no.png",
-            "durationMs": 3200,
+            "durationMs": 1067,
             "caption": "«Нет, матушка».",
             "transition": "crossfade",
             "focusPoint": {
@@ -2133,8 +2133,8 @@
             }
           },
           {
-            "imageUrl": "/VN/start/image/witch_memory/07_bureau_seal.png",
-            "durationMs": 3600,
+            "imageUrl": "/VN/start/image/witch_memory/10_bureau_seal.png",
+            "durationMs": 1200,
             "caption": "Печать Бюро не спорит и не просит. Она ждет.",
             "transition": "crossfade",
             "focusPoint": {
@@ -17442,5 +17442,5 @@
       }
     ]
   },
-  "checksum": "3dd4643a6532b95103965b21ad67dec92030775f804f9d9d0a3b95c7311379c8"
+  "checksum": "db3dd339d54cecffec90e68853542da9529db1957c4143b6f17acbe6ca10764a"
 }

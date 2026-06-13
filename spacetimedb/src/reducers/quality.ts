@@ -39,6 +39,16 @@ const assertScoreInRange = (
   }
 };
 
+const MAX_COMMENT_LENGTH = 2000;
+
+const assertCommentLength = (value: string | undefined): void => {
+  if (value !== undefined && value.length > MAX_COMMENT_LENGTH) {
+    throw new SenderError(
+      `comment must be at most ${MAX_COMMENT_LENGTH} characters`,
+    );
+  }
+};
+
 const normalizeOptionalText = (
   value: string | undefined,
 ): string | undefined => {
@@ -105,6 +115,7 @@ export const upsert_content_rating = spacetimedb.reducer(
     assertScoreInRange(scenicScore, "scenicScore", 1, 10);
     assertScoreInRange(textScore, "textScore", 1, 10);
     assertScoreInRange(overallScore, "overallScore", 1, 10);
+    assertCommentLength(comment);
 
     ensurePlayerProfile(ctx);
 
@@ -205,6 +216,7 @@ export const upsert_dialogue_rating = spacetimedb.reducer(
     if (!Number.isInteger(score) || score < 1 || score > 5) {
       throw new SenderError("score must be an integer between 1 and 5");
     }
+    assertCommentLength(comment);
 
     ensurePlayerProfile(ctx);
 

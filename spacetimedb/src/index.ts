@@ -9,8 +9,11 @@ export {
   my_command_history,
   my_command_party,
   my_command_sessions,
+  my_admin_identity,
   my_content_ratings,
   my_dialogue_ratings,
+  feedback_reports,
+  feedback_report_sources,
   my_evidence,
   my_faction_signals,
   my_favor_ledger,
@@ -126,6 +129,12 @@ export {
   upsert_dialogue_rating,
   delete_dialogue_rating,
 } from "./reducers/quality";
+export {
+  run_feedback_analysis,
+  reanalyze_feedback_report,
+  mark_feedback_report_reviewed,
+  save_feedback_report_note,
+} from "./reducers/feedbackAnalysis";
 export {
   close_command_mode,
   issue_command,

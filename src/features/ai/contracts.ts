@@ -1620,3 +1620,470 @@ export const matchesSkillCheckThought = (
 
   return true;
 };
+
+// ---------------------------------------------------------------------------
+// analyze_feedback — admin-triggered Feedback Center analysis.
+// The enqueue reducer freezes a slice of content/dialogue ratings (<=100) into
+// the payload, so the worker reads everything from the payload and never
+// touches the rating tables. The AI returns analysis only (no tasks, no rule
+// changes); every quote must cite a provided evidenceId.
+// ---------------------------------------------------------------------------
+
+export const AI_ANALYZE_FEEDBACK_KIND = "analyze_feedback";
+
+export const FEEDBACK_OUTPUT_LANGUAGES = ["en", "ru", "de"] as const;
+export type FeedbackOutputLanguage = (typeof FEEDBACK_OUTPUT_LANGUAGES)[number];
+
+export const FEEDBACK_REPORT_STATUSES = ["pending", "ready", "failed"] as const;
+export type FeedbackReportStatus = (typeof FEEDBACK_REPORT_STATUSES)[number];
+
+export const FEEDBACK_SOURCE_KINDS = ["content", "dialogue"] as const;
+export type FeedbackSourceKind = (typeof FEEDBACK_SOURCE_KINDS)[number];
+
+export const FEEDBACK_FINDING_SEVERITIES = [
+  "info",
+  "low",
+  "medium",
+  "high",
+] as const;
+export type FeedbackFindingSeverity =
+  (typeof FEEDBACK_FINDING_SEVERITIES)[number];
+
+export const FEEDBACK_ANALYSIS_MAX_SOURCES = 100;
+
+export interface AnalyzeFeedbackFilters {
+  contentVersion?: string;
+  fromMicros?: number;
+  toMicros?: number;
+  scenarioId?: string;
+  targetType?: string;
+  targetId?: string;
+}
+
+export interface FrozenFeedbackSource {
+  evidenceId: string;
+  kind: FeedbackSourceKind;
+  targetType: string;
+  targetId: string;
+  scenarioId?: string;
+  nodeId?: string;
+  contentVersion?: string;
+  scoresJson: string;
+  comment?: string;
+}
+
+export interface FeedbackRatingStats {
+  contentCount: number;
+  dialogueCount: number;
+  commentedCount: number;
+  averageOverall?: number;
+  averageDialogue?: number;
+}
+
+export interface AnalyzeFeedbackPayload {
+  source: "feedback_center";
+  reportId: string;
+  outputLanguage: FeedbackOutputLanguage;
+  filters: AnalyzeFeedbackFilters;
+  snapshotHash: string;
+  ratingStats: FeedbackRatingStats;
+  sources: FrozenFeedbackSource[];
+}
+
+export interface FeedbackQuote {
+  evidenceId: string;
+  text: string;
+}
+
+export interface FeedbackFinding {
+  title: string;
+  detail: string;
+  severity: FeedbackFindingSeverity;
+  confidence: number;
+  affectedTargets: string[];
+  quotes: FeedbackQuote[];
+}
+
+export interface FeedbackAnalysisReportV1 {
+  schemaVersion: "v1";
+  coverageSummary: string;
+  ratingStatsSummary: string;
+  strengths: FeedbackFinding[];
+  thematicFindings: FeedbackFinding[];
+  opinionSplits: FeedbackFinding[];
+  dataGaps: string[];
+  followupQuestions: string[];
+}
+
+const isFeedbackOutputLanguage = (
+  value: unknown,
+): value is FeedbackOutputLanguage =>
+  value === "en" || value === "ru" || value === "de";
+
+const isFeedbackSourceKind = (value: unknown): value is FeedbackSourceKind =>
+  value === "content" || value === "dialogue";
+
+const isFeedbackFindingSeverity = (
+  value: unknown,
+): value is FeedbackFindingSeverity =>
+  value === "info" || value === "low" || value === "medium" || value === "high";
+
+const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((entry) => typeof entry === "string");
+
+const isAnalyzeFeedbackFilters = (
+  value: unknown,
+): value is AnalyzeFeedbackFilters => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const filters = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(filters, [
+      "contentVersion",
+      "fromMicros",
+      "toMicros",
+      "scenarioId",
+      "targetType",
+      "targetId",
+    ]) &&
+    (filters.contentVersion === undefined ||
+      typeof filters.contentVersion === "string") &&
+    (filters.fromMicros === undefined || isFiniteNumber(filters.fromMicros)) &&
+    (filters.toMicros === undefined || isFiniteNumber(filters.toMicros)) &&
+    (filters.scenarioId === undefined ||
+      typeof filters.scenarioId === "string") &&
+    (filters.targetType === undefined ||
+      typeof filters.targetType === "string") &&
+    (filters.targetId === undefined || typeof filters.targetId === "string")
+  );
+};
+
+const isFrozenFeedbackSource = (
+  value: unknown,
+): value is FrozenFeedbackSource => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const source = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(source, [
+      "evidenceId",
+      "kind",
+      "targetType",
+      "targetId",
+      "scenarioId",
+      "nodeId",
+      "contentVersion",
+      "scoresJson",
+      "comment",
+    ]) &&
+    typeof source.evidenceId === "string" &&
+    source.evidenceId.trim().length > 0 &&
+    isFeedbackSourceKind(source.kind) &&
+    typeof source.targetType === "string" &&
+    typeof source.targetId === "string" &&
+    (source.scenarioId === undefined ||
+      typeof source.scenarioId === "string") &&
+    (source.nodeId === undefined || typeof source.nodeId === "string") &&
+    (source.contentVersion === undefined ||
+      typeof source.contentVersion === "string") &&
+    typeof source.scoresJson === "string" &&
+    (source.comment === undefined || typeof source.comment === "string")
+  );
+};
+
+const isFeedbackRatingStats = (
+  value: unknown,
+): value is FeedbackRatingStats => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const stats = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(stats, [
+      "contentCount",
+      "dialogueCount",
+      "commentedCount",
+      "averageOverall",
+      "averageDialogue",
+    ]) &&
+    isFiniteNumber(stats.contentCount) &&
+    isFiniteNumber(stats.dialogueCount) &&
+    isFiniteNumber(stats.commentedCount) &&
+    (stats.averageOverall === undefined ||
+      isFiniteNumber(stats.averageOverall)) &&
+    (stats.averageDialogue === undefined ||
+      isFiniteNumber(stats.averageDialogue))
+  );
+};
+
+export const isAnalyzeFeedbackPayload = (
+  value: unknown,
+): value is AnalyzeFeedbackPayload => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const payload = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(payload, [
+      "source",
+      "reportId",
+      "outputLanguage",
+      "filters",
+      "snapshotHash",
+      "ratingStats",
+      "sources",
+    ]) &&
+    payload.source === "feedback_center" &&
+    typeof payload.reportId === "string" &&
+    payload.reportId.trim().length > 0 &&
+    isFeedbackOutputLanguage(payload.outputLanguage) &&
+    isAnalyzeFeedbackFilters(payload.filters) &&
+    typeof payload.snapshotHash === "string" &&
+    payload.snapshotHash.trim().length > 0 &&
+    isFeedbackRatingStats(payload.ratingStats) &&
+    Array.isArray(payload.sources) &&
+    payload.sources.length <= FEEDBACK_ANALYSIS_MAX_SOURCES &&
+    payload.sources.every(isFrozenFeedbackSource)
+  );
+};
+
+export const parseAnalyzeFeedbackPayload = (
+  value: string | null | undefined,
+): AnalyzeFeedbackPayload | null => {
+  if (!value) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return isAnalyzeFeedbackPayload(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const isFeedbackQuote = (value: unknown): value is FeedbackQuote => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const quote = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(quote, ["evidenceId", "text"]) &&
+    typeof quote.evidenceId === "string" &&
+    quote.evidenceId.trim().length > 0 &&
+    typeof quote.text === "string" &&
+    quote.text.trim().length > 0
+  );
+};
+
+const isFeedbackFinding = (value: unknown): value is FeedbackFinding => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const finding = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(finding, [
+      "title",
+      "detail",
+      "severity",
+      "confidence",
+      "affectedTargets",
+      "quotes",
+    ]) &&
+    typeof finding.title === "string" &&
+    finding.title.trim().length > 0 &&
+    typeof finding.detail === "string" &&
+    finding.detail.trim().length > 0 &&
+    isFeedbackFindingSeverity(finding.severity) &&
+    isFiniteNumber(finding.confidence) &&
+    finding.confidence >= 0 &&
+    finding.confidence <= 1 &&
+    isStringArray(finding.affectedTargets) &&
+    Array.isArray(finding.quotes) &&
+    finding.quotes.every(isFeedbackQuote)
+  );
+};
+
+export const isFeedbackAnalysisReportV1 = (
+  value: unknown,
+): value is FeedbackAnalysisReportV1 => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const report = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(report, [
+      "schemaVersion",
+      "coverageSummary",
+      "ratingStatsSummary",
+      "strengths",
+      "thematicFindings",
+      "opinionSplits",
+      "dataGaps",
+      "followupQuestions",
+    ]) &&
+    report.schemaVersion === "v1" &&
+    typeof report.coverageSummary === "string" &&
+    typeof report.ratingStatsSummary === "string" &&
+    Array.isArray(report.strengths) &&
+    report.strengths.every(isFeedbackFinding) &&
+    Array.isArray(report.thematicFindings) &&
+    report.thematicFindings.every(isFeedbackFinding) &&
+    Array.isArray(report.opinionSplits) &&
+    report.opinionSplits.every(isFeedbackFinding) &&
+    isStringArray(report.dataGaps) &&
+    isStringArray(report.followupQuestions)
+  );
+};
+
+export const parseFeedbackAnalysisReportV1 = (
+  value: unknown,
+): FeedbackAnalysisReportV1 | null => {
+  const raw = unwrapOptionalString(value);
+  if (!raw) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return isFeedbackAnalysisReportV1(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+export const collectFeedbackReportQuoteEvidenceIds = (
+  report: FeedbackAnalysisReportV1,
+): string[] => {
+  const ids: string[] = [];
+  for (const group of [
+    report.strengths,
+    report.thematicFindings,
+    report.opinionSplits,
+  ]) {
+    for (const finding of group) {
+      for (const quote of finding.quotes) {
+        ids.push(quote.evidenceId);
+      }
+    }
+  }
+  return ids;
+};
+
+export const feedbackReportQuotesReferenceKnownEvidence = (
+  report: FeedbackAnalysisReportV1,
+  allowedEvidenceIds: ReadonlySet<string>,
+): boolean =>
+  collectFeedbackReportQuoteEvidenceIds(report).every((id) =>
+    allowedEvidenceIds.has(id),
+  );
+
+const feedbackFindingJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    title: { type: "string", description: "Short finding title." },
+    detail: {
+      type: "string",
+      description:
+        "One-paragraph explanation grounded only in the provided feedback. Never propose tasks or rule changes.",
+    },
+    severity: { type: "string", enum: FEEDBACK_FINDING_SEVERITIES },
+    confidence: {
+      type: "number",
+      description:
+        "Confidence 0..1 based on evidence strength and agreement among raters.",
+    },
+    affectedTargets: {
+      type: "array",
+      items: { type: "string" },
+      description:
+        "Target ids (node/scene/scenario/case) this finding concerns.",
+    },
+    quotes: {
+      type: "array",
+      description:
+        "Short anonymized quotes in their ORIGINAL language. Each evidenceId MUST be one of the provided source evidenceIds; never invent ids.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          evidenceId: { type: "string" },
+          text: { type: "string" },
+        },
+        required: ["evidenceId", "text"],
+        propertyOrdering: ["evidenceId", "text"],
+      },
+    },
+  },
+  required: [
+    "title",
+    "detail",
+    "severity",
+    "confidence",
+    "affectedTargets",
+    "quotes",
+  ],
+  propertyOrdering: [
+    "title",
+    "detail",
+    "severity",
+    "confidence",
+    "affectedTargets",
+    "quotes",
+  ],
+} as const;
+
+export const FEEDBACK_ANALYSIS_REPORT_V1_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    schemaVersion: { type: "string", enum: ["v1"] },
+    coverageSummary: {
+      type: "string",
+      description:
+        "What the analyzed slice covers (versions, period, scope). Analytical prose in the requested output language.",
+    },
+    ratingStatsSummary: {
+      type: "string",
+      description: "Prose summary of the score statistics.",
+    },
+    strengths: { type: "array", items: feedbackFindingJsonSchema },
+    thematicFindings: { type: "array", items: feedbackFindingJsonSchema },
+    opinionSplits: {
+      type: "array",
+      items: feedbackFindingJsonSchema,
+      description: "Findings where raters disagree.",
+    },
+    dataGaps: {
+      type: "array",
+      items: { type: "string" },
+      description: "What is missing or under-sampled in this slice.",
+    },
+    followupQuestions: {
+      type: "array",
+      items: { type: "string" },
+      description: "Questions worth further investigation.",
+    },
+  },
+  required: [
+    "schemaVersion",
+    "coverageSummary",
+    "ratingStatsSummary",
+    "strengths",
+    "thematicFindings",
+    "opinionSplits",
+    "dataGaps",
+    "followupQuestions",
+  ],
+  propertyOrdering: [
+    "schemaVersion",
+    "coverageSummary",
+    "ratingStatsSummary",
+    "strengths",
+    "thematicFindings",
+    "opinionSplits",
+    "dataGaps",
+    "followupQuestions",
+  ],
+} as const;

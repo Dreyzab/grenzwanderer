@@ -513,11 +513,19 @@
   color: rgba(224, 217, 205, 0.66);
 }
 
-.vn-sfx-toggle {
+/* Top-right control cluster: text-speed toggle + SFX toggle share one row. */
+.vn-overlay-controls {
   position: absolute;
   right: 1rem;
   top: max(1rem, env(safe-area-inset-top));
   z-index: 165;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vn-sfx-toggle,
+.vn-text-speed-toggle {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -536,6 +544,11 @@
 .vn-sfx-toggle.is-muted {
   border-color: rgba(164, 51, 66, 0.38);
   color: rgba(226, 154, 165, 0.96);
+}
+
+.vn-text-speed-toggle.is-instant {
+  border-color: rgba(226, 186, 109, 0.55);
+  color: rgba(247, 222, 160, 0.98);
 }
 
 @keyframes vn-check-core-orbit {

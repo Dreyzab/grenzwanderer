@@ -759,6 +759,20 @@ const isNode = (value: unknown): value is VnNode => {
     typeof value.body === "string" &&
     (value.backgroundUrl === undefined ||
       typeof value.backgroundUrl === "string") &&
+    (value.backgroundFocusPath === undefined ||
+      (Array.isArray(value.backgroundFocusPath) &&
+        value.backgroundFocusPath.every(
+          (point) =>
+            isObject(point) &&
+            typeof point.x === "number" &&
+            Number.isFinite(point.x) &&
+            point.x >= 0 &&
+            point.x <= 100 &&
+            typeof point.y === "number" &&
+            Number.isFinite(point.y) &&
+            point.y >= 0 &&
+            point.y <= 100,
+        ))) &&
     (value.backgroundVideoUrl === undefined ||
       typeof value.backgroundVideoUrl === "string") &&
     (value.backgroundVideoPosterUrl === undefined ||

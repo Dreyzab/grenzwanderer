@@ -114,7 +114,7 @@ const runSmoke = async () =>
           }
 
           // 4. Validate route hypothesis
-          await conn.reducers.validateHypothesis({
+          await conn.reducers.assertHypothesis({
             requestId: nextRequestId("validate_route"),
             caseId: "case_dog_trail",
             hypothesisId: "hyp_dog_route_reconstruction",
@@ -141,7 +141,7 @@ const runSmoke = async () =>
           });
 
           // 7. Validate handler hypothesis
-          await conn.reducers.validateHypothesis({
+          await conn.reducers.assertHypothesis({
             requestId: nextRequestId("validate_handler"),
             caseId: "case_dog_trail",
             hypothesisId: "hyp_dog_handler_exposed",

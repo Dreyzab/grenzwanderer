@@ -351,6 +351,13 @@ export interface VnNode {
   title: string;
   body: string;
   backgroundUrl?: string;
+  /**
+   * Optional authored camera path for the still background image. When present,
+   * the portrait floating-focus camera eases between these points (face → sign →
+   * hand …) instead of the default ambient drift. Each point is an object-position
+   * percentage. Ignored in landscape and when reduced motion is requested.
+   */
+  backgroundFocusPath?: VnVisualSequenceFocusPoint[];
   backgroundVideoUrl?: string;
   backgroundVideoPosterUrl?: string;
   backgroundVideoSoundPrompt?: boolean;

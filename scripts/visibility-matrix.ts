@@ -498,6 +498,22 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "wave3-core-progression",
     "Per-player dialogue line ratings are private feedback state consumed through self-scoped reads.",
   ),
+  entry(
+    "feedback_analysis_report",
+    "feedbackAnalysisReport",
+    "operational-private",
+    "feedback_reports",
+    "wave1-operational",
+    "Operational feedback reports should be accessed via views rather than exposing raw tables directly.",
+  ),
+  entry(
+    "feedback_analysis_source",
+    "feedbackAnalysisSource",
+    "operational-private",
+    "feedback_report_sources",
+    "wave1-operational",
+    "Feedback report sources are operational-private and should be accessed via views.",
+  ),
 ];
 
 const readCachedUtf8 = (filePath: string): string => {

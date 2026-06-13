@@ -37,6 +37,7 @@ import {
 import AdvanceQuestReducer from "./advance_quest_reducer";
 import AdvanceQuestInstanceReducer from "./advance_quest_instance_reducer";
 import AllowWorkerIdentityReducer from "./allow_worker_identity_reducer";
+import AssertHypothesisReducer from "./assert_hypothesis_reducer";
 import BeginFreiburgOriginReducer from "./begin_freiburg_origin_reducer";
 import BeginKarlsruheEventEntryReducer from "./begin_karlsruhe_event_entry_reducer";
 import BootstrapAdminIdentityReducer from "./bootstrap_admin_identity_reducer";
@@ -65,12 +66,15 @@ import GrantEvidenceReducer from "./grant_evidence_reducer";
 import GrantItemReducer from "./grant_item_reducer";
 import GrantXpReducer from "./grant_xp_reducer";
 import IssueCommandReducer from "./issue_command_reducer";
+import LinkFactReducer from "./link_fact_reducer";
 import MapInteractReducer from "./map_interact_reducer";
+import MarkFeedbackReportReviewedReducer from "./mark_feedback_report_reviewed_reducer";
 import OpenBattleModeReducer from "./open_battle_mode_reducer";
 import OpenCommandModeReducer from "./open_command_mode_reducer";
 import PerformSkillCheckReducer from "./perform_skill_check_reducer";
 import PlayBattleCardReducer from "./play_battle_card_reducer";
 import PublishContentReducer from "./publish_content_reducer";
+import ReanalyzeFeedbackReportReducer from "./reanalyze_feedback_report_reducer";
 import RecordChoiceReducer from "./record_choice_reducer";
 import RecordServiceCriterionReducer from "./record_service_criterion_reducer";
 import RedeemMapCodeReducer from "./redeem_map_code_reducer";
@@ -80,6 +84,9 @@ import RenewAiRequestLeaseReducer from "./renew_ai_request_lease_reducer";
 import RequeueAiRequestReducer from "./requeue_ai_request_reducer";
 import ResolveCommandReducer from "./resolve_command_reducer";
 import RollbackContentReducer from "./rollback_content_reducer";
+import RunFeedbackAnalysisReducer from "./run_feedback_analysis_reducer";
+import SaveBoardLayoutReducer from "./save_board_layout_reducer";
+import SaveFeedbackReportNoteReducer from "./save_feedback_report_note_reducer";
 import SeedPlayerAsEliasThorneReducer from "./seed_player_as_elias_thorne_reducer";
 import SetFlagReducer from "./set_flag_reducer";
 import SetHypothesisFocusReducer from "./set_hypothesis_focus_reducer";
@@ -91,11 +98,11 @@ import StartScenarioReducer from "./start_scenario_reducer";
 import TrackEventReducer from "./track_event_reducer";
 import TravelToReducer from "./travel_to_reducer";
 import UnequipItemReducer from "./unequip_item_reducer";
+import UnlinkFactReducer from "./unlink_fact_reducer";
 import UnlockGroupReducer from "./unlock_group_reducer";
 import UpdateTranslationsReducer from "./update_translations_reducer";
 import UpsertContentRatingReducer from "./upsert_content_rating_reducer";
 import UpsertDialogueRatingReducer from "./upsert_dialogue_rating_reducer";
-import ValidateHypothesisReducer from "./validate_hypothesis_reducer";
 import VerifyRumorReducer from "./verify_rumor_reducer";
 
 // Import all procedure arg schemas
@@ -104,6 +111,9 @@ import VerifyRumorReducer from "./verify_rumor_reducer";
 import CaseVersionRow from "./case_version_table";
 import ContentTranslationRow from "./content_translation_table";
 import ContentVersionRow from "./content_version_table";
+import FeedbackReportSourcesRow from "./feedback_report_sources_table";
+import FeedbackReportsRow from "./feedback_reports_table";
+import MyAdminIdentityRow from "./my_admin_identity_table";
 import MyAgencyCareerRow from "./my_agency_career_table";
 import MyAiRequestsRow from "./my_ai_requests_table";
 import MyBattleCardsRow from "./my_battle_cards_table";
@@ -119,9 +129,11 @@ import MyEvidenceRow from "./my_evidence_table";
 import MyFactionSignalsRow from "./my_faction_signals_table";
 import MyFavorLedgerRow from "./my_favor_ledger_table";
 import MyMapEventsRow from "./my_map_events_table";
+import MyMindBoardLayoutsRow from "./my_mind_board_layouts_table";
 import MyMindCasesRow from "./my_mind_cases_table";
 import MyMindFactsRow from "./my_mind_facts_table";
 import MyMindHypothesesRow from "./my_mind_hypotheses_table";
+import MyMindLinksRow from "./my_mind_links_table";
 import MyNpcFavorsRow from "./my_npc_favors_table";
 import MyNpcStateRow from "./my_npc_state_table";
 import MyPlayerEquipmentRow from "./my_player_equipment_table";
@@ -203,6 +215,27 @@ const tablesSchema = __schema({
       { name: 'content_version_version_key', constraint: 'unique', columns: ['version'] },
     ],
   }, ContentVersionRow),
+  feedback_report_sources: __table({
+    name: 'feedback_report_sources',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, FeedbackReportSourcesRow),
+  feedback_reports: __table({
+    name: 'feedback_reports',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, FeedbackReportsRow),
+  my_admin_identity: __table({
+    name: 'my_admin_identity',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyAdminIdentityRow),
   my_agency_career: __table({
     name: 'my_agency_career',
     indexes: [
@@ -308,6 +341,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyMapEventsRow),
+  my_mind_board_layouts: __table({
+    name: 'my_mind_board_layouts',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyMindBoardLayoutsRow),
   my_mind_cases: __table({
     name: 'my_mind_cases',
     indexes: [
@@ -329,6 +369,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyMindHypothesesRow),
+  my_mind_links: __table({
+    name: 'my_mind_links',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyMindLinksRow),
   my_npc_favors: __table({
     name: 'my_npc_favors',
     indexes: [
@@ -462,6 +509,7 @@ const reducersSchema = __reducers(
   __reducerSchema("advance_quest", AdvanceQuestReducer),
   __reducerSchema("advance_quest_instance", AdvanceQuestInstanceReducer),
   __reducerSchema("allow_worker_identity", AllowWorkerIdentityReducer),
+  __reducerSchema("assert_hypothesis", AssertHypothesisReducer),
   __reducerSchema("begin_freiburg_origin", BeginFreiburgOriginReducer),
   __reducerSchema("begin_karlsruhe_event_entry", BeginKarlsruheEventEntryReducer),
   __reducerSchema("bootstrap_admin_identity", BootstrapAdminIdentityReducer),
@@ -490,12 +538,15 @@ const reducersSchema = __reducers(
   __reducerSchema("grant_item", GrantItemReducer),
   __reducerSchema("grant_xp", GrantXpReducer),
   __reducerSchema("issue_command", IssueCommandReducer),
+  __reducerSchema("link_fact", LinkFactReducer),
   __reducerSchema("map_interact", MapInteractReducer),
+  __reducerSchema("mark_feedback_report_reviewed", MarkFeedbackReportReviewedReducer),
   __reducerSchema("open_battle_mode", OpenBattleModeReducer),
   __reducerSchema("open_command_mode", OpenCommandModeReducer),
   __reducerSchema("perform_skill_check", PerformSkillCheckReducer),
   __reducerSchema("play_battle_card", PlayBattleCardReducer),
   __reducerSchema("publish_content", PublishContentReducer),
+  __reducerSchema("reanalyze_feedback_report", ReanalyzeFeedbackReportReducer),
   __reducerSchema("record_choice", RecordChoiceReducer),
   __reducerSchema("record_service_criterion", RecordServiceCriterionReducer),
   __reducerSchema("redeem_map_code", RedeemMapCodeReducer),
@@ -505,6 +556,9 @@ const reducersSchema = __reducers(
   __reducerSchema("requeue_ai_request", RequeueAiRequestReducer),
   __reducerSchema("resolve_command", ResolveCommandReducer),
   __reducerSchema("rollback_content", RollbackContentReducer),
+  __reducerSchema("run_feedback_analysis", RunFeedbackAnalysisReducer),
+  __reducerSchema("save_board_layout", SaveBoardLayoutReducer),
+  __reducerSchema("save_feedback_report_note", SaveFeedbackReportNoteReducer),
   __reducerSchema("seed_player_as_elias_thorne", SeedPlayerAsEliasThorneReducer),
   __reducerSchema("set_flag", SetFlagReducer),
   __reducerSchema("set_hypothesis_focus", SetHypothesisFocusReducer),
@@ -516,11 +570,11 @@ const reducersSchema = __reducers(
   __reducerSchema("track_event", TrackEventReducer),
   __reducerSchema("travel_to", TravelToReducer),
   __reducerSchema("unequip_item", UnequipItemReducer),
+  __reducerSchema("unlink_fact", UnlinkFactReducer),
   __reducerSchema("unlock_group", UnlockGroupReducer),
   __reducerSchema("update_translations", UpdateTranslationsReducer),
   __reducerSchema("upsert_content_rating", UpsertContentRatingReducer),
   __reducerSchema("upsert_dialogue_rating", UpsertDialogueRatingReducer),
-  __reducerSchema("validate_hypothesis", ValidateHypothesisReducer),
   __reducerSchema("verify_rumor", VerifyRumorReducer),
 );
 

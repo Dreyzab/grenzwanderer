@@ -11,13 +11,9 @@ import {
 } from "spacetimedb";
 
 export default __t.row({
-  playerHypothesisKey: __t.string().name("player_hypothesis_key"),
+  playerBoardKey: __t.string().name("player_board_key"),
   playerId: __t.identity().name("player_id"),
   caseId: __t.string().name("case_id"),
-  hypothesisId: __t.string().name("hypothesis_id"),
-  status: __t.string(),
-  validatedAt: __t.option(__t.timestamp()).name("validated_at"),
-  lastAssertAt: __t.option(__t.timestamp()).name("last_assert_at"),
-  failedAttempts: __t.u32().name("failed_attempts"),
+  layoutJson: __t.string().name("layout_json"),
   updatedAt: __t.timestamp().name("updated_at"),
 });

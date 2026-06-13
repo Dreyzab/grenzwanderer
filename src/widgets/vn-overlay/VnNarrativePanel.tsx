@@ -29,6 +29,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   choicesSlot,
   hasVisibleChoices,
   backgroundImageUrl,
+  backgroundFocusPath,
   backgroundVideoUrl,
   backgroundVideoPosterUrl,
   backgroundVideoSoundPrompt,
@@ -222,6 +223,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
       <div className="absolute inset-0 z-0 pointer-events-none">
         <VnNarrativeBackgroundVisuals
           backgroundFadeDuration={backgroundFadeDuration}
+          backgroundFocusPath={backgroundFocusPath}
           backgroundImageUrl={backgroundImageUrl}
           backgroundVideoPosterUrl={backgroundVideoPosterUrl}
           backgroundVideoUrl={backgroundVideoUrl}

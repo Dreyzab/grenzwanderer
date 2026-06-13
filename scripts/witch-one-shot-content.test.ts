@@ -89,18 +89,18 @@ describe("witch one-shot content", () => {
         (total, frame) => total + frame.durationMs,
         0,
       ),
-    ).toBe(27_000);
+    ).toBe(8_999);
     expect(memoryNode?.visualSequence?.frames.slice(-5)).toEqual([
       expect.objectContaining({
-        imageUrl: "/VN/start/image/witch_memory/08_first_hunger.png",
+        imageUrl: "/VN/start/image/witch_memory/07_first_hunger.png",
         caption: "Сначала пришёл голод.",
       }),
       expect.objectContaining({
-        imageUrl: "/VN/start/image/witch_memory/09_bureau_arrival.png",
+        imageUrl: "/VN/start/image/witch_memory/08_bureau_arrival.png",
         caption: "«Спокойно. Мы из Бюро».",
       }),
       expect.objectContaining({
-        imageUrl: "/VN/start/image/witch_memory/10_bureau_offer.png",
+        imageUrl: "/VN/start/image/witch_memory/09_bureau_offer.png",
         caption: "Бюро предложило не спасение. Работу.",
       }),
       expect.objectContaining({
@@ -108,7 +108,7 @@ describe("witch one-shot content", () => {
         caption: "«Нет, матушка».",
       }),
       expect.objectContaining({
-        imageUrl: "/VN/start/image/witch_memory/07_bureau_seal.png",
+        imageUrl: "/VN/start/image/witch_memory/10_bureau_seal.png",
         caption: "Печать Бюро не спорит и не просит. Она ждет.",
       }),
     ]);

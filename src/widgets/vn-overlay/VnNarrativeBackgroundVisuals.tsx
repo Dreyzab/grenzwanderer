@@ -1,10 +1,12 @@
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { HIGH_PRIORITY_BACKGROUND_IMAGE_PROPS } from "./vnNarrativePanelConstants";
+import { VnFloatingFocusImage } from "./VnFloatingFocusImage";
 import type { VideoStatus } from "./vnNarrativePanel.types";
+import type { VnVisualSequenceFocusPoint } from "../../features/vn/types";
 
 interface VnNarrativeBackgroundVisualsProps {
   backgroundFadeDuration: number;
+  backgroundFocusPath?: VnVisualSequenceFocusPoint[];
   backgroundImageUrl?: string;
   backgroundVideoPosterUrl?: string;
   backgroundVideoUrl?: string;
@@ -31,6 +33,7 @@ interface VnNarrativeBackgroundVisualsProps {
 
 export const VnNarrativeBackgroundVisuals = ({
   backgroundFadeDuration,
+  backgroundFocusPath,
   backgroundImageUrl,
   backgroundVideoPosterUrl,
   backgroundVideoUrl,
@@ -108,12 +111,11 @@ export const VnNarrativeBackgroundVisuals = ({
             onEnded={onVideoEnded}
           />
         ) : backgroundImageUrl ? (
-          <img
+          <VnFloatingFocusImage
             src={backgroundImageUrl}
             className="absolute inset-0 h-full w-full object-cover brightness-[0.62] sepia-[0.16] contrast-[1.05]"
-            alt="Background"
-            decoding="async"
-            {...HIGH_PRIORITY_BACKGROUND_IMAGE_PROPS}
+            prefersReducedMotion={prefersReducedMotion}
+            focusPath={backgroundFocusPath}
             onLoad={onBackgroundImageLoad}
             onError={onBackgroundImageError}
           />

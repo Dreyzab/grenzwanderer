@@ -50,7 +50,7 @@ export function MindBoardCanvas({ caseId }: { caseId: string }) {
   const [playerMindFacts] = useTable(tables.myMindFacts);
   const [playerMindHypotheses] = useTable(tables.myMindHypotheses);
 
-  const validateHypothesis = useReducer(reducers.validateHypothesis);
+  const assertHypothesis = useReducer(reducers.assertHypothesis);
 
   const factsForCase = useMemo(
     () => mindFacts.filter((entry: any) => entry.caseId === caseId),
@@ -219,7 +219,7 @@ export function MindBoardCanvas({ caseId }: { caseId: string }) {
           });
 
           if (state.ready && !isAlreadyValid && caseId) {
-            validateHypothesis({
+            assertHypothesis({
               requestId: createRequestId(),
               caseId: caseId,
               hypothesisId: hypId,
@@ -240,7 +240,7 @@ export function MindBoardCanvas({ caseId }: { caseId: string }) {
       setEdges,
       hypothesesForCase,
       varsByKey,
-      validateHypothesis,
+      assertHypothesis,
       caseId,
       playerHypothesisMap,
       toast,

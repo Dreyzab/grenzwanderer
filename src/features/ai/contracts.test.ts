@@ -9,18 +9,172 @@ import {
   DIRECTOR_STEP_PROPOSAL_JSON_SCHEMA,
   DM_TURN_PROPOSAL_JSON_SCHEMA,
   GENERATE_DIALOGUE_ENVELOPE_JSON_SCHEMA,
+  collectFeedbackReportQuoteEvidenceIds,
+  feedbackReportQuotesReferenceKnownEvidence,
   isAllowedDirectorReturnBeatId,
   isAllowedDmStateDeltaKey,
+  isFeedbackAnalysisReportV1,
+  parseAnalyzeFeedbackPayload,
   parseCharacterReactionProposal,
   parseDmTurnProposal,
   parseDirectorStepProposal,
+  parseFeedbackAnalysisReportV1,
   parseGenerateCharacterReactionPayload,
   parseGenerateDialogueEnvelope,
   parseGenerateDialoguePayload,
   parseGenerateDialogueResponse,
   parseGenerateDmTurnPayload,
   parseGenerateDirectorStepPayload,
+  type FeedbackAnalysisReportV1,
 } from "./contracts";
+
+const baseAnalyzeFeedbackPayload = {
+  source: "feedback_center",
+  reportId: "42",
+  outputLanguage: "ru",
+  filters: { contentVersion: "v1.0.0", scenarioId: "case01" },
+  snapshotHash: "abc123",
+  ratingStats: {
+    contentCount: 2,
+    dialogueCount: 1,
+    commentedCount: 2,
+    averageOverall: 6.5,
+  },
+  sources: [
+    {
+      evidenceId: "src_1",
+      kind: "content",
+      targetType: "node",
+      targetId: "node_a",
+      scenarioId: "case01",
+      contentVersion: "v1.0.0",
+      scoresJson: '{"overallScore":6}',
+      comment: "Слишком затянуто.",
+    },
+    {
+      evidenceId: "src_2",
+      kind: "dialogue",
+      targetType: "node",
+      targetId: "node_b",
+      scenarioId: "case01",
+      scoresJson: '{"score":2}',
+      comment: "The line feels off.",
+    },
+  ],
+} as const;
+
+const baseFeedbackReport: FeedbackAnalysisReportV1 = {
+  schemaVersion: "v1",
+  coverageSummary: "Срез по версии v1.0.0.",
+  ratingStatsSummary: "Средний балл 6.5.",
+  strengths: [],
+  thematicFindings: [
+    {
+      title: "Темп проседает",
+      detail: "Несколько игроков отмечают затянутость.",
+      severity: "medium",
+      confidence: 0.7,
+      affectedTargets: ["node_a"],
+      quotes: [{ evidenceId: "src_1", text: "Слишком затянуто." }],
+    },
+  ],
+  opinionSplits: [],
+  dataGaps: ["Мало отзывов по боевым сценам."],
+  followupQuestions: ["Что именно ощущается затянутым?"],
+};
+
+describe("analyze_feedback contract", () => {
+  it("parses a valid analyze_feedback payload", () => {
+    const payload = parseAnalyzeFeedbackPayload(
+      JSON.stringify(baseAnalyzeFeedbackPayload),
+    );
+    expect(payload?.source).toBe("feedback_center");
+    expect(payload?.outputLanguage).toBe("ru");
+    expect(payload?.sources).toHaveLength(2);
+  });
+
+  it("rejects payloads over the 100-source cap", () => {
+    const tooMany = Array.from({ length: 101 }, (_unused, index) => ({
+      evidenceId: `src_${index + 1}`,
+      kind: "content" as const,
+      targetType: "node",
+      targetId: "node_a",
+      scoresJson: "{}",
+    }));
+    const payload = parseAnalyzeFeedbackPayload(
+      JSON.stringify({ ...baseAnalyzeFeedbackPayload, sources: tooMany }),
+    );
+    expect(payload).toBeNull();
+  });
+
+  it("rejects an invalid output language", () => {
+    const payload = parseAnalyzeFeedbackPayload(
+      JSON.stringify({ ...baseAnalyzeFeedbackPayload, outputLanguage: "fr" }),
+    );
+    expect(payload).toBeNull();
+  });
+
+  it("parses a valid FeedbackAnalysisReportV1", () => {
+    const report = parseFeedbackAnalysisReportV1(
+      JSON.stringify(baseFeedbackReport),
+    );
+    expect(report?.schemaVersion).toBe("v1");
+    expect(report?.thematicFindings[0]?.quotes[0]?.evidenceId).toBe("src_1");
+  });
+
+  it("collects every quote evidenceId across finding groups", () => {
+    const report: FeedbackAnalysisReportV1 = {
+      ...baseFeedbackReport,
+      opinionSplits: [
+        {
+          title: "Разные мнения",
+          detail: "Кто-то хвалит, кто-то ругает.",
+          severity: "low",
+          confidence: 0.4,
+          affectedTargets: ["node_b"],
+          quotes: [{ evidenceId: "src_2", text: "The line feels off." }],
+        },
+      ],
+    };
+    expect(collectFeedbackReportQuoteEvidenceIds(report).sort()).toEqual([
+      "src_1",
+      "src_2",
+    ]);
+  });
+
+  it("flags reports that cite an unknown evidenceId", () => {
+    const allowed = new Set(["src_1"]);
+    const report: FeedbackAnalysisReportV1 = {
+      ...baseFeedbackReport,
+      thematicFindings: [
+        {
+          ...baseFeedbackReport.thematicFindings[0],
+          quotes: [{ evidenceId: "src_999", text: "ghost quote" }],
+        },
+      ],
+    };
+    expect(feedbackReportQuotesReferenceKnownEvidence(report, allowed)).toBe(
+      false,
+    );
+  });
+
+  it("accepts reports whose quotes all reference known evidence", () => {
+    const allowed = new Set(["src_1", "src_2"]);
+    expect(
+      feedbackReportQuotesReferenceKnownEvidence(baseFeedbackReport, allowed),
+    ).toBe(true);
+  });
+
+  it("rejects a report with a confidence outside 0..1", () => {
+    const report = {
+      ...baseFeedbackReport,
+      thematicFindings: [
+        { ...baseFeedbackReport.thematicFindings[0], confidence: 1.7 },
+      ],
+    };
+    expect(isFeedbackAnalysisReportV1(report)).toBe(false);
+  });
+});
 
 describe("ai contracts", () => {
   it("parses dialogue payloads with ensemble metadata", () => {

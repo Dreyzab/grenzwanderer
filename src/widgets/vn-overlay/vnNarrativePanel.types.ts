@@ -5,6 +5,7 @@ import type {
   VnNarrativePresentation,
   VnSnapshot,
   VnVisualSequence,
+  VnVisualSequenceFocusPoint,
 } from "../../features/vn/types";
 import type { VnStrings } from "../../features/i18n/uiStrings";
 import type { NarrativeLogState } from "../../features/vn/log/useNarrativeLog";
@@ -27,6 +28,8 @@ export interface VnNarrativePanelProps {
   choicesSlot?: React.ReactNode;
   hasVisibleChoices?: boolean;
   backgroundImageUrl?: string;
+  /** Authored camera path for the portrait floating-focus background (optional). */
+  backgroundFocusPath?: VnVisualSequenceFocusPoint[];
   backgroundVideoUrl?: string;
   backgroundVideoPosterUrl?: string;
   backgroundVideoSoundPrompt?: boolean;

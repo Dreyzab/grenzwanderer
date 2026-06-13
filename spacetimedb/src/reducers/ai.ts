@@ -25,14 +25,17 @@ import {
   type SupportedAiKind,
 } from "./aiQueue";
 import {
+  AI_ANALYZE_FEEDBACK_KIND,
   AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_GENERATE_DIALOGUE_KIND,
   AI_PROPOSE_DIRECTOR_STEP_KIND,
   AI_PROPOSE_DM_TURN_KIND,
+  feedbackReportQuotesReferenceKnownEvidence,
   isAllowedDirectorReturnBeatId,
   parseCharacterReactionProposal,
   parseDmTurnProposal,
   parseDirectorStepProposal,
+  parseFeedbackAnalysisReportV1,
   parseGenerateCharacterReactionPayload,
   parseGenerateDmTurnPayload,
   parseGenerateDialogueEnvelope,
@@ -587,6 +590,41 @@ export const complete_ai_request = spacetimedb.reducer(
           "responseJson must contain a valid DmTurnProposal",
         );
       }
+    } else if (request.kind === AI_ANALYZE_FEEDBACK_KIND) {
+      const report = parseFeedbackAnalysisReportV1(normalizedResponseJson);
+      if (!report) {
+        throw new SenderError(
+          "responseJson must contain a valid FeedbackAnalysisReportV1",
+        );
+      }
+      const reportRow = [
+        ...ctx.db.feedbackAnalysisReport.feedback_analysis_report_ai_request_id.filter(
+          request.id,
+        ),
+      ][0];
+      if (!reportRow) {
+        throw new SenderError("No feedback report linked to this ai_request");
+      }
+      const allowedEvidenceIds = new Set<string>();
+      for (const source of ctx.db.feedbackAnalysisSource.feedback_analysis_source_report_id.filter(
+        reportRow.reportId,
+      )) {
+        allowedEvidenceIds.add(source.evidenceId);
+      }
+      if (
+        !feedbackReportQuotesReferenceKnownEvidence(report, allowedEvidenceIds)
+      ) {
+        throw new SenderError(
+          "FeedbackAnalysisReportV1 cites an evidenceId not present in the report snapshot",
+        );
+      }
+      ctx.db.feedbackAnalysisReport.reportId.update({
+        ...reportRow,
+        status: "ready",
+        resultJson: normalizedResponseJson,
+        error: undefined,
+        updatedAt: ctx.timestamp,
+      });
     } else if (request.kind === AI_PROPOSE_DIRECTOR_STEP_KIND) {
       const proposal = parseDirectorStepProposal(normalizedResponseJson);
       if (!proposal) {
@@ -687,6 +725,22 @@ export const fail_ai_request = spacetimedb.reducer(
         worker: workerHex,
       });
       return;
+    }
+
+    if (request.kind === AI_ANALYZE_FEEDBACK_KIND) {
+      const reportRow = [
+        ...ctx.db.feedbackAnalysisReport.feedback_analysis_report_ai_request_id.filter(
+          request.id,
+        ),
+      ][0];
+      if (reportRow) {
+        ctx.db.feedbackAnalysisReport.reportId.update({
+          ...reportRow,
+          status: "failed",
+          error: normalizedError,
+          updatedAt: ctx.timestamp,
+        });
+      }
     }
 
     const providencePayload = isProvidenceDialoguePayload(request.payloadJson);

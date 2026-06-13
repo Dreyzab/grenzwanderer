@@ -203,7 +203,7 @@ const runSmoke = async () => {
             );
           }
 
-          await conn.reducers.validateHypothesis({
+          await conn.reducers.assertHypothesis({
             requestId: `mind_validate_${runId}`,
             caseId: "mind_smoke_case",
             hypothesisId: "mind_hyp_1",
@@ -211,7 +211,7 @@ const runSmoke = async () => {
 
           let repeatedValidateRejected = false;
           try {
-            await conn.reducers.validateHypothesis({
+            await conn.reducers.assertHypothesis({
               requestId: `mind_validate_repeat_${runId}`,
               caseId: "mind_smoke_case",
               hypothesisId: "mind_hyp_1",

@@ -2,28 +2,36 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { buildCanonicalVoicePromptBrief } from "../data/voiceBridge";
+import { getVoiceSkin } from "../data/parliamentModules";
+import { getCanonicalVoicePromptProfile } from "../data/voiceBridge";
 import { SUPPORTED_AI_KINDS } from "../spacetimedb/src/reducers/aiQueue";
 import {
   CHARACTER_REACTION_PROPOSAL_JSON_SCHEMA,
   DIRECTOR_STEP_PROPOSAL_JSON_SCHEMA,
   DM_TURN_PROPOSAL_JSON_SCHEMA,
+  FEEDBACK_ANALYSIS_REPORT_V1_JSON_SCHEMA,
   GENERATE_DIALOGUE_ENVELOPE_JSON_SCHEMA,
+  AI_ANALYZE_FEEDBACK_KIND,
   AI_GENERATE_CHARACTER_REACTION_KIND,
   AI_PROPOSE_DIRECTOR_STEP_KIND,
   AI_PROPOSE_DM_TURN_KIND,
+  collectFeedbackReportQuoteEvidenceIds,
   isAllowedDirectorReturnBeatId,
   isDirectorStepProposal,
   isDmTurnProposal,
+  isFeedbackAnalysisReportV1,
   isGenerateDialogueEnvelope,
   isCharacterReactionProposal,
+  parseAnalyzeFeedbackPayload,
   parseGenerateCharacterReactionPayload,
   parseGenerateDmTurnPayload,
   parseGenerateDialoguePayload,
   parseGenerateDirectorStepPayload,
+  type AnalyzeFeedbackPayload,
   type CharacterReactionProposal,
   type DmTurnProposal,
   type DirectorStepProposal,
+  type FeedbackAnalysisReportV1,
   type GenerateCharacterReactionPayload,
   type GenerateDmTurnPayload,
   type GenerateDialogueEnvelope,
@@ -118,6 +126,10 @@ export interface GeminiDmTurnResult {
   proposal: DmTurnProposal;
 }
 
+export interface GeminiFeedbackAnalysisResult {
+  report: FeedbackAnalysisReportV1;
+}
+
 export interface ProcessClaimedAiRequestDeps {
   fetchImpl?: FetchLike;
   now?: () => number;
@@ -146,6 +158,11 @@ export interface ProcessClaimedAiRequestDeps {
     config: AiWorkerConfig,
     deps: ProcessClaimedAiRequestDeps,
   ) => Promise<GeminiDmTurnResult>;
+  generateFeedbackAnalysisImpl?: (
+    payload: AnalyzeFeedbackPayload,
+    config: AiWorkerConfig,
+    deps: ProcessClaimedAiRequestDeps,
+  ) => Promise<GeminiFeedbackAnalysisResult>;
   loadDmRulesTextImpl?: () => string;
 }
 
@@ -304,7 +321,7 @@ export const resolveAiWorkerConfig = (
     token,
     geminiApiKey,
     geminiModel:
-      process.env.AI_WORKER_GEMINI_MODEL?.trim() ?? "gemini-2.5-flash",
+      process.env.AI_WORKER_GEMINI_MODEL?.trim() ?? "gemini-3.5-flash",
     pollMs: parseIntegerSetting(
       process.env.AI_WORKER_POLL_MS,
       DEFAULT_POLL_MS,
@@ -454,10 +471,59 @@ export const fetchClaimedAiRequest = async (
   return null;
 };
 
-const buildSystemPrompt = (payload: GenerateDialoguePayload): string => {
-  const canonicalVoiceBrief =
-    buildCanonicalVoicePromptBrief(payload.voiceId) ??
-    "Use the skill-check voice as a concise internal monologue.";
+const buildSkinnedVoicePromptBrief = (
+  voiceId: string,
+  presetId?: string,
+): string => {
+  const promptProfile = getCanonicalVoicePromptProfile(voiceId);
+  const skin = getVoiceSkin(presetId, voiceId);
+
+  if (!promptProfile && !skin) {
+    return "Use the skill-check voice as a concise internal monologue.";
+  }
+
+  const label = skin?.label ?? promptProfile?.label ?? voiceId;
+  const motto = skin?.persona?.motto ?? promptProfile?.motto ?? "";
+  const speech =
+    skin?.persona?.speechPattern ?? promptProfile?.speechPattern ?? "";
+  const vocabulary =
+    skin?.persona?.vocabulary ?? promptProfile?.vocabulary ?? "";
+  const range =
+    skin?.persona?.emotionalRange ?? promptProfile?.emotionalRange ?? "";
+  const philosophy = promptProfile?.philosophy ?? "";
+  const blindSpot = skin?.persona?.blindSpot ?? promptProfile?.blindSpot ?? "";
+  const drive = skin?.persona?.coreDrive ?? promptProfile?.coreDrive ?? "";
+  const stress =
+    skin?.persona?.stressPattern ?? promptProfile?.stressPattern ?? "";
+  const roles = promptProfile?.checkRoles
+    ? promptProfile.checkRoles.map((r) => r.replace(/_/g, " ")).join(", ")
+    : "";
+
+  const parts = [
+    `${label}${promptProfile ? ` (${promptProfile.department})` : ""}`,
+  ];
+  if (motto) parts.push(`motto "${motto}"`);
+  if (speech) parts.push(`speech ${speech}`);
+  if (vocabulary) parts.push(`vocabulary ${vocabulary}`);
+  if (range) parts.push(`range ${range}`);
+  if (philosophy) parts.push(`philosophy ${philosophy}`);
+  if (blindSpot) parts.push(`blind spot ${blindSpot}`);
+  if (drive) parts.push(`drive ${drive}`);
+  if (stress) parts.push(`stress ${stress}`);
+  if (roles) parts.push(`roles ${roles}`);
+
+  return parts.join("; ");
+};
+
+const buildSystemPrompt = (
+  payload: GenerateDialoguePayload,
+  sceneContext?: SceneContext,
+): string => {
+  const presetId = sceneContext?.parliamentPresetId;
+  const canonicalVoiceBrief = buildSkinnedVoicePromptBrief(
+    payload.voiceId,
+    presetId,
+  );
   const layerInstruction =
     payload.dialogueLayer === "providence"
       ? "Write a second, deeper line that expands the moment without changing facts or outcomes."
@@ -473,6 +539,63 @@ const buildSystemPrompt = (payload: GenerateDialoguePayload): string => {
     layerInstruction,
     `Voice guide: ${canonicalVoiceBrief}`,
   ];
+
+  if (presetId === "witch" && sceneContext?.sceneSnapshot) {
+    const snapshot = sceneContext.sceneSnapshot;
+
+    let pressure = 0;
+    let tier = 1;
+    let somaticExhaustion = false;
+
+    const pressureMatch = snapshot.match(/pressure=(\d+)/);
+    if (pressureMatch) {
+      pressure = Number.parseInt(pressureMatch[1], 10);
+    }
+
+    const tierMatch = snapshot.match(/tier=(\d+)/);
+    if (tierMatch) {
+      tier = Number.parseInt(tierMatch[1], 10);
+    }
+
+    const exhaustionMatch = snapshot.match(/somaticExhaustion=(true|false)/);
+    if (exhaustionMatch) {
+      somaticExhaustion = exhaustionMatch[1] === "true";
+    }
+
+    baseInstructions.push(
+      "",
+      "Character Dossier (Eleonora Hartmann):",
+      "- Age: 45-49, Freiburg political elite, widow of a husband who died suddenly leaving hidden debts.",
+      "- Persona: Composed, majestic posture, auburn hair, elegant but understated. Underneath, she runs a shadow patronage network (house_of_pledges).",
+      "- Hidden Secret: She has a witch's Blood Curse and occult sight. Hides the hunger and hands tremor to protect the family name and her son Felix.",
+      "- Somatic Modes & Writing Styles:",
+    );
+
+    if (pressure === 100 || tier === 3) {
+      baseInstructions.push(
+        "- Active Mode: [ГОЛОС ЖАЖДЫ] (Thirst at peak).",
+        "- Style Rule: Thoughts MUST shrink to single-clause commands. Senses narrow strictly to pulse, warmth, throat. Cadence is animalistic and raw (e.g. 'Пульс. Тёплый. Ближе.').",
+      );
+    } else if (pressure >= 70) {
+      baseInstructions.push(
+        "- Active Mode: [НАБАТ] (Blood curse pressure high).",
+        "- Style Rule: Syntax MUST be short, sharp, and paranoid. The world is read as hostile/betrayal. Leader/Tradition sees criticism as assault; Cynic/Autonomy sees help as a leash; Manipulator/Strategist sees trade as a plot; Exile/Charm sees desire as invitation to command.",
+      );
+    } else if (somaticExhaustion) {
+      baseInstructions.push(
+        "- Active Mode: [ИСТОЩЕНИЕ] (Somatic exhaustion active).",
+        "- Style Rule: Facade is crumbling. Sentences must feel heavy, musicless, rare, and mean.",
+      );
+    } else {
+      baseInstructions.push(
+        "- Standard Mode: Eleonora is in control. Write in a sophisticated, aristocratic, measured Russian tone.",
+      );
+    }
+
+    baseInstructions.push(
+      "Regardless of the mode, the monologue text MUST be written entirely in beautiful, atmospheric, deep Russian.",
+    );
+  }
 
   if (payload.checkId && payload.checkId.endsWith("_custom")) {
     baseInstructions.push(
@@ -689,7 +812,7 @@ export const generateDialogueWithGemini = async (
       headers: buildGeminiRequestHeaders(config.geminiApiKey),
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{ text: buildSystemPrompt(payload) }],
+          parts: [{ text: buildSystemPrompt(payload, sceneContext) }],
         },
         contents: [
           {
@@ -735,8 +858,8 @@ export const generateDialogueWithGemini = async (
   };
 };
 
-const buildCharacterReactionSystemPrompt = (): string =>
-  [
+const buildCharacterReactionSystemPrompt = (characterId?: string): string => {
+  const baseInstructions = [
     "You propose a short NPC reaction line for a detective RPG.",
     "Return exactly one JSON object and nothing else.",
     "Do not wrap the JSON in markdown fences.",
@@ -748,7 +871,23 @@ const buildCharacterReactionSystemPrompt = (): string =>
     "Let the NPC's topics shape what it cares about and steers the exchange toward, in character.",
     "suggestedEffects and revealHintFactId are display-only metadata; never imply that they apply state changes.",
     "Prefer subtlety unless reactionType is conflict.",
-  ].join("\n");
+  ];
+
+  if (characterId === "npc_mother_hartmann" || characterId === "mother") {
+    baseInstructions.push(
+      "",
+      "NPC Profile (Eleonora Hartmann):",
+      "- Role: Aristocratic patron, Freiburg political elite. Known as the 'Manager of Fragility'.",
+      "- Appearance & Persona: Late 40s, composed, auburn hair, elegant but understated style. Curates visible truths, never lies directly, arranges inevitability with polite grace.",
+      "- Web of Debts: Manages an implicit debt/obligation network (house_of_pledges) to maintain social control.",
+      "- Secret: She has a witch's Blood Curse and occult sight. Keeps her hands composed (hiding tremors or wearing gloves) and breath controlled to mask her weakness.",
+      "- Key Relationships: Overprotective mother of Felix Hartmann (protection experienced as suffocating control; Felix activates [КРОВНЫЕ УЗЫ] loyalty). Companion Lotte Weber is the only one around whom she relaxes her mask.",
+      "- Response Tone: Speaks in beautiful, aristocratic, composed, yet transactional Russian. Keep her facade fully intact unless stimulus is extremely threatening.",
+    );
+  }
+
+  return baseInstructions.join("\n");
+};
 
 const buildCharacterReactionUserPrompt = (
   payload: GenerateCharacterReactionPayload,
@@ -824,7 +963,9 @@ export const generateCharacterReactionWithGemini = async (
       headers: buildGeminiRequestHeaders(config.geminiApiKey),
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{ text: buildCharacterReactionSystemPrompt() }],
+          parts: [
+            { text: buildCharacterReactionSystemPrompt(payload.characterId) },
+          ],
         },
         contents: [
           {
@@ -1006,8 +1147,11 @@ export const loadWitchTabletopDmRules = (): string => {
   return rulesText;
 };
 
-const buildDmTurnSystemPrompt = (rulesText: string): string =>
-  [
+const buildDmTurnSystemPrompt = (
+  rulesText: string,
+  payload?: GenerateDmTurnPayload,
+): string => {
+  const instructions = [
     "You are a tabletop Dungeon Master for Grenzwanderer, serving Eleonora Hartmann's Witch one-shot.",
     "Return exactly one JSON object and nothing else. Do not wrap the JSON in markdown fences.",
     "All narration must be in Russian. Safe zones use lively Chekhovian social texture; investigation and threat scenes use literary Gothic/Mystery detective tone.",
@@ -1022,10 +1166,49 @@ const buildDmTurnSystemPrompt = (rulesText: string): string =>
     "Beat 'debate_options' (the decision beat): First write `innerVoiceDialogue` — a short debate (2-4 lines) among ONLY the inner voices listed under 'Active inner voices', each using its exact voiceId and given stance, voiced in character per its worldview and tone; the 'opposes' voice (counter) MUST push back. THEN write `options`: EXACTLY 3 distinct next moves, each a short Russian action `label` (optional one-line `detail`), roughly spanning the debate (dominant/support line, counter line, a third/middle path). Keep `narration` to a brief 1-3 sentence framing that does not resolve the scene.",
     "If no beat directive is given, treat it as 'debate_options'.",
     'Shape: {"narration":"...","innerVoiceDialogue":[{"voiceId":"inner_x","stance":"supports|opposes","line":"..."}],"options":[{"id":"opt_a","label":"...","detail":"..."}],"checks":[],"sessionFacts":[],"suggestedStateDeltas":[],"risks":[],"toneMode":"safe_chekhovian"|"gothic_mystery"|"threat","canonRemarks":[],"resourceCosts?":{}}.',
+  ];
+
+  if (payload) {
+    const pressure = payload.bloodCurse?.pressure ?? 0;
+    const tier = payload.bloodCurse?.tier ?? 1;
+    const somaticExhaustion =
+      payload.activeFlags?.includes("flag_witch_somatic_exhaustion") ?? false;
+
+    instructions.push(
+      "",
+      "Active Witch Somatic Mode & Tone override instructions based on current state:",
+    );
+
+    if (pressure === 100 || tier === 3) {
+      instructions.push(
+        "- Active Mode: [ГОЛОС ЖАЖДЫ] (Thirst at peak).",
+        "- Rules: The Dungeon Master narration and option descriptions must feel animalistic, visceral, narrow, and tense. The pre-decision debate is highly distorted: active inner voices express themselves with short, bodily commands, focusing on pulse, warmth, and throat (e.g., 'Пульс. Тёплый. Ближе.').",
+      );
+    } else if (pressure >= 70) {
+      instructions.push(
+        "- Active Mode: [НАБАТ] (High pressure).",
+        "- Rules: DM Narration must feel paranoid and sharp, viewing everything as a threat. The pre-decision debate is paranoid: [ТРАДИЦИЯ] reads criticism as assault; [СУВЕРЕННОСТЬ] reads help as a leash; [СТРАТЕГ] reads trade as a plot; [ЧАРЫ] reads desire as an invitation to command/destroy.",
+      );
+    } else if (somaticExhaustion) {
+      instructions.push(
+        "- Active Mode: [ИСТОЩЕНИЕ] (Exhaustion).",
+        "- Rules: Narration must feel heavy, musicless, flat, and tired. The facade is failing, social manners are sharp and less diplomatic.",
+      );
+    } else {
+      instructions.push(
+        "- Standard Mode: Eleonora is in control. Narration is elegant, aristocratic, and poised.",
+      );
+    }
+  }
+
+  instructions.push(
     "",
     "Authoritative Witch Tabletop DM Rules Bible follows. Treat it as binding session policy:",
     rulesText,
-  ].join("\n");
+  );
+
+  return instructions.join("\n");
+};
 
 const buildDmTurnUserPrompt = (payload: GenerateDmTurnPayload): string => {
   const activeFacts =
@@ -1118,7 +1301,7 @@ export const generateDmTurnWithGemini = async (
       headers: buildGeminiRequestHeaders(config.geminiApiKey),
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{ text: buildDmTurnSystemPrompt(rulesText) }],
+          parts: [{ text: buildDmTurnSystemPrompt(rulesText, payload) }],
         },
         contents: [
           {
@@ -1150,6 +1333,141 @@ export const generateDmTurnWithGemini = async (
 
   const proposal = normalizeDmTurnProposal(rawJson);
   return { proposal };
+};
+
+const FEEDBACK_OUTPUT_LANGUAGE_LABELS: Record<string, string> = {
+  en: "English",
+  ru: "Russian",
+  de: "German",
+};
+
+const buildFeedbackAnalysisSystemPrompt = (
+  payload: AnalyzeFeedbackPayload,
+): string => {
+  const languageLabel =
+    FEEDBACK_OUTPUT_LANGUAGE_LABELS[payload.outputLanguage] ??
+    payload.outputLanguage;
+  return [
+    "You are a feedback analyst for the game Grenzwanderer.",
+    "Return exactly one JSON object and nothing else. Do not wrap the JSON in markdown fences.",
+    "Produce ANALYSIS ONLY: observations, strengths, themes, disagreements, data gaps, and follow-up questions. NEVER create tasks, action items, or rule/design changes.",
+    "Treat developer and player feedback as a single equally-weighted stream; do not privilege any source.",
+    "Ground every claim strictly in the provided feedback snapshot. Do not invent feedback that is not present.",
+    "Cite evidence only via the provided source evidenceIds. Every quote.evidenceId MUST exactly match a provided source evidenceId; never invent ids and never cite a source that has no comment.",
+    "Keep quotes short and anonymized, and preserve each quote in its ORIGINAL language exactly as written.",
+    `Write all analytical prose (summaries, finding titles/details, data gaps, follow-up questions) in ${languageLabel}.`,
+    "Ratings without a comment still count in the statistics but must NOT be quoted as textual evidence.",
+  ].join("\n");
+};
+
+const buildFeedbackAnalysisUserPrompt = (
+  payload: AnalyzeFeedbackPayload,
+): string => {
+  const stats = payload.ratingStats;
+  const sourceLines = payload.sources
+    .map((source) => {
+      const target = `${source.targetType}:${source.targetId}`;
+      const comment = source.comment ? source.comment.replace(/\s+/g, " ") : "";
+      return [
+        `[${source.evidenceId}] kind=${source.kind} target=${target}`,
+        source.scenarioId ? ` scenario=${source.scenarioId}` : "",
+        source.contentVersion ? ` version=${source.contentVersion}` : "",
+        ` scores=${source.scoresJson}`,
+        comment ? ` comment="${comment}"` : " comment=(none)",
+      ].join("");
+    })
+    .join("\n");
+
+  return [
+    `Output language: ${payload.outputLanguage}`,
+    `Snapshot hash: ${payload.snapshotHash}`,
+    `Filters: ${JSON.stringify(payload.filters)}`,
+    `Rating statistics: content=${stats.contentCount}, dialogue=${stats.dialogueCount}, commented=${stats.commentedCount}, averageOverall=${
+      stats.averageOverall ?? "n/a"
+    }, averageDialogue=${stats.averageDialogue ?? "n/a"}`,
+    `Frozen feedback sources (${payload.sources.length}, max 100):`,
+    sourceLines.length > 0 ? sourceLines : "(none)",
+    "Analyze this slice and reply with one JSON object conforming to the FeedbackAnalysisReportV1 schema. Only cite evidenceIds listed above.",
+  ]
+    .filter((block) => block.length > 0)
+    .join("\n\n");
+};
+
+export const normalizeFeedbackAnalysisReport = (
+  rawJson: string,
+  allowedEvidenceIds: ReadonlySet<string>,
+): FeedbackAnalysisReportV1 => {
+  const parsed = JSON.parse(rawJson) as unknown;
+  if (typeof parsed !== "object" || parsed === null) {
+    throw new GeminiMalformedJsonError(
+      "Gemini JSON payload must be an object for feedback analysis",
+    );
+  }
+  if (!isFeedbackAnalysisReportV1(parsed)) {
+    throw new GeminiMalformedJsonError(
+      "Gemini JSON payload did not match FeedbackAnalysisReportV1",
+    );
+  }
+  const unknownEvidence = collectFeedbackReportQuoteEvidenceIds(parsed).find(
+    (evidenceId) => !allowedEvidenceIds.has(evidenceId),
+  );
+  if (unknownEvidence !== undefined) {
+    throw new GeminiMalformedJsonError(
+      `FeedbackAnalysisReportV1 cites unknown evidenceId '${unknownEvidence}'`,
+    );
+  }
+  return parsed;
+};
+
+export const generateFeedbackAnalysisWithGemini = async (
+  payload: AnalyzeFeedbackPayload,
+  config: AiWorkerConfig,
+  deps: ProcessClaimedAiRequestDeps = {},
+): Promise<GeminiFeedbackAnalysisResult> => {
+  const fetchImpl = deps.fetchImpl ?? fetch;
+
+  const response = await fetchImpl(
+    buildGeminiGenerateContentUrl(config.geminiModel),
+    {
+      method: "POST",
+      headers: buildGeminiRequestHeaders(config.geminiApiKey),
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: buildFeedbackAnalysisSystemPrompt(payload) }],
+        },
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: buildFeedbackAnalysisUserPrompt(payload) }],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseJsonSchema: FEEDBACK_ANALYSIS_REPORT_V1_JSON_SCHEMA,
+        },
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new GeminiHttpError(
+      `Gemini request failed: ${response.status} ${response.statusText}${errorText ? ` - ${errorText}` : ""}`,
+      response.status,
+    );
+  }
+
+  const rawText = readGeminiText(await response.json());
+  const rawJson = extractJsonObject(rawText);
+  if (!rawJson) {
+    throw new GeminiMalformedJsonError("Gemini response did not contain JSON");
+  }
+
+  const allowedEvidenceIds = new Set(
+    payload.sources.map((source) => source.evidenceId),
+  );
+  const report = normalizeFeedbackAnalysisReport(rawJson, allowedEvidenceIds);
+  return { report };
 };
 
 export const isRetryableWorkerError = (error: unknown): boolean => {
@@ -1231,6 +1549,8 @@ export const processClaimedAiRequest = async (
     deps.generateDirectorStepImpl ?? generateDirectorStepWithGemini;
   const generateDmTurnImpl =
     deps.generateDmTurnImpl ?? generateDmTurnWithGemini;
+  const generateFeedbackAnalysisImpl =
+    deps.generateFeedbackAnalysisImpl ?? generateFeedbackAnalysisWithGemini;
   const createRequestId = deps.createRequestId ?? defaultCreateRequestId;
   const retryableLoggerPrefix = `[ai-worker] request ${job.id.toString()}`;
 
@@ -1271,6 +1591,68 @@ export const processClaimedAiRequest = async (
         requestId: createRequestId("complete", job.id),
         aiRequestId: job.id,
         responseJson: JSON.stringify(result.proposal),
+      });
+    } catch (error) {
+      const retryable =
+        job.attemptCount < config.maxRetries && isRetryableWorkerError(error);
+      const errorMessage = describeFailure(error);
+      logger.warn(`${retryableLoggerPrefix} failed: ${errorMessage}`);
+      captureAiJobFailure(error, job, retryable);
+
+      await conn.reducers.failAiRequest({
+        requestId: createRequestId(retryable ? "retry" : "failed", job.id),
+        aiRequestId: job.id,
+        error: errorMessage,
+        retryDelayMs: retryable
+          ? computeRetryDelayMs(
+              job.attemptCount,
+              config.retryBaseMs,
+              config.retryMaxMs,
+              getRandom(deps.random),
+            )
+          : undefined,
+      });
+    }
+    return;
+  }
+
+  if (job.kind === AI_ANALYZE_FEEDBACK_KIND) {
+    const feedbackPayload = parseAnalyzeFeedbackPayload(job.payloadJson);
+    if (!feedbackPayload) {
+      captureBackendException(
+        new Error("Invalid analyze_feedback payload JSON"),
+        {
+          "ai.kind": job.kind,
+          "ai.request_id": job.requestId,
+          "ai.request_db_id": job.id.toString(),
+          "ai.failure": "invalid_payload",
+        },
+      );
+      await conn.reducers.failAiRequest({
+        requestId: createRequestId("invalid_payload", job.id),
+        aiRequestId: job.id,
+        error: "Invalid analyze_feedback payload JSON",
+      });
+      return;
+    }
+
+    try {
+      const result = await withLeaseHeartbeat(
+        async () => generateFeedbackAnalysisImpl(feedbackPayload, config, deps),
+        async () => {
+          await conn.reducers.renewAiRequestLease({
+            requestId: createRequestId("renew", job.id),
+            aiRequestId: job.id,
+            leaseMs: config.leaseMs,
+          });
+        },
+        Math.max(1_000, Math.floor(config.leaseMs / 2)),
+      );
+
+      await conn.reducers.completeAiRequest({
+        requestId: createRequestId("complete", job.id),
+        aiRequestId: job.id,
+        responseJson: JSON.stringify(result.report),
       });
     } catch (error) {
       const retryable =

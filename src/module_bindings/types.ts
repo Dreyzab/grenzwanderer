@@ -257,6 +257,50 @@ export const DialogueRating = __t.object("DialogueRating", {
 });
 export type DialogueRating = __Infer<typeof DialogueRating>;
 
+export const FeedbackAnalysisReport = __t.object("FeedbackAnalysisReport", {
+  reportId: __t.u64(),
+  reportKey: __t.string(),
+  version: __t.u32(),
+  requestedBy: __t.identity(),
+  filtersJson: __t.string(),
+  outputLanguage: __t.string(),
+  status: __t.string(),
+  reviewState: __t.string(),
+  snapshotHash: __t.string(),
+  sourceCount: __t.u32(),
+  aiRequestId: __t.option(__t.u64()),
+  resultJson: __t.option(__t.string()),
+  developerNote: __t.option(__t.string()),
+  aiMetaJson: __t.option(__t.string()),
+  error: __t.option(__t.string()),
+  createdAt: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+});
+export type FeedbackAnalysisReport = __Infer<typeof FeedbackAnalysisReport>;
+
+export const FeedbackAnalysisSource = __t.object("FeedbackAnalysisSource", {
+  sourceId: __t.u64(),
+  reportId: __t.u64(),
+  evidenceId: __t.string(),
+  kind: __t.string(),
+  targetType: __t.string(),
+  targetId: __t.string(),
+  scenarioId: __t.option(__t.string()),
+  nodeId: __t.option(__t.string()),
+  contentVersion: __t.option(__t.string()),
+  raterHash: __t.string(),
+  scoresJson: __t.string(),
+  comment: __t.option(__t.string()),
+  ratedAt: __t.timestamp(),
+});
+export type FeedbackAnalysisSource = __Infer<typeof FeedbackAnalysisSource>;
+
+export const FeedbackReportSources = __t.object("FeedbackReportSources", {});
+export type FeedbackReportSources = __Infer<typeof FeedbackReportSources>;
+
+export const FeedbackReports = __t.object("FeedbackReports", {});
+export type FeedbackReports = __Infer<typeof FeedbackReports>;
+
 export const IdempotencyCleanupSchedule = __t.object("IdempotencyCleanupSchedule", {
   scheduledId: __t.u64(),
   scheduledAt: __t.scheduleAt(),
@@ -302,10 +346,16 @@ export const MindHypothesis = __t.object("MindHypothesis", {
   requiredFactIdsJson: __t.string(),
   requiredVarsJson: __t.string(),
   rewardEffectsJson: __t.string(),
+  failureEffectsJson: __t.string(),
+  verdict: __t.string(),
+  unlockFactIdsJson: __t.string(),
   createdAt: __t.timestamp(),
   updatedAt: __t.timestamp(),
 });
 export type MindHypothesis = __Infer<typeof MindHypothesis>;
+
+export const MyAdminIdentity = __t.object("MyAdminIdentity", {});
+export type MyAdminIdentity = __Infer<typeof MyAdminIdentity>;
 
 export const MyAgencyCareer = __t.object("MyAgencyCareer", {});
 export type MyAgencyCareer = __Infer<typeof MyAgencyCareer>;
@@ -352,6 +402,9 @@ export type MyFavorLedger = __Infer<typeof MyFavorLedger>;
 export const MyMapEvents = __t.object("MyMapEvents", {});
 export type MyMapEvents = __Infer<typeof MyMapEvents>;
 
+export const MyMindBoardLayouts = __t.object("MyMindBoardLayouts", {});
+export type MyMindBoardLayouts = __Infer<typeof MyMindBoardLayouts>;
+
 export const MyMindCases = __t.object("MyMindCases", {});
 export type MyMindCases = __Infer<typeof MyMindCases>;
 
@@ -360,6 +413,9 @@ export type MyMindFacts = __Infer<typeof MyMindFacts>;
 
 export const MyMindHypotheses = __t.object("MyMindHypotheses", {});
 export type MyMindHypotheses = __Infer<typeof MyMindHypotheses>;
+
+export const MyMindLinks = __t.object("MyMindLinks", {});
+export type MyMindLinks = __Infer<typeof MyMindLinks>;
 
 export const MyNpcFavors = __t.object("MyNpcFavors", {});
 export type MyNpcFavors = __Infer<typeof MyNpcFavors>;
@@ -510,6 +566,15 @@ export const PlayerMapEvent = __t.object("PlayerMapEvent", {
 });
 export type PlayerMapEvent = __Infer<typeof PlayerMapEvent>;
 
+export const PlayerMindBoardLayout = __t.object("PlayerMindBoardLayout", {
+  playerBoardKey: __t.string(),
+  playerId: __t.identity(),
+  caseId: __t.string(),
+  layoutJson: __t.string(),
+  updatedAt: __t.timestamp(),
+});
+export type PlayerMindBoardLayout = __Infer<typeof PlayerMindBoardLayout>;
+
 export const PlayerMindCase = __t.object("PlayerMindCase", {
   playerCaseKey: __t.string(),
   playerId: __t.identity(),
@@ -537,9 +602,21 @@ export const PlayerMindHypothesis = __t.object("PlayerMindHypothesis", {
   hypothesisId: __t.string(),
   status: __t.string(),
   validatedAt: __t.option(__t.timestamp()),
+  lastAssertAt: __t.option(__t.timestamp()),
+  failedAttempts: __t.u32(),
   updatedAt: __t.timestamp(),
 });
 export type PlayerMindHypothesis = __Infer<typeof PlayerMindHypothesis>;
+
+export const PlayerMindLink = __t.object("PlayerMindLink", {
+  playerLinkKey: __t.string(),
+  playerId: __t.identity(),
+  caseId: __t.string(),
+  factId: __t.string(),
+  hypothesisId: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type PlayerMindLink = __Infer<typeof PlayerMindLink>;
 
 export const PlayerNpcFavor = __t.object("PlayerNpcFavor", {
   favorKey: __t.string(),
@@ -634,6 +711,18 @@ export const PlayerSpiritState = __t.object("PlayerSpiritState", {
   updatedAt: __t.timestamp(),
 });
 export type PlayerSpiritState = __Infer<typeof PlayerSpiritState>;
+
+export const PlayerTriggerFire = __t.object("PlayerTriggerFire", {
+  fireKey: __t.string(),
+  playerId: __t.identity(),
+  ruleId: __t.string(),
+  eventName: __t.string(),
+  cooldownGroup: __t.option(__t.string()),
+  budgetKey: __t.option(__t.string()),
+  idempotencyKey: __t.string(),
+  firedAt: __t.timestamp(),
+});
+export type PlayerTriggerFire = __Infer<typeof PlayerTriggerFire>;
 
 export const PlayerUnlockGroup = __t.object("PlayerUnlockGroup", {
   unlockKey: __t.string(),

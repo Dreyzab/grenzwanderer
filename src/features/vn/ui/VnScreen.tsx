@@ -49,6 +49,14 @@ import {
   readVnSfxMuted,
   writeVnSfxMuted,
 } from "./vnSkillCheckAudio";
+import {
+  getVnTextSpeedSettings,
+  nextVnTextSpeed,
+  readVnTextSpeed,
+  writeVnTextSpeed,
+  type VnTextSpeed,
+} from "./vnTextSpeedPreference";
+import { VnTextSpeedContext } from "./VnTextSpeedContext";
 import { VnNarrativePanel } from "../../../widgets/vn-overlay/VnNarrativePanel";
 import { AUTO_CONTINUE_PREFIX } from "../vnScreenUtils";
 import { VnHubInlinePanel } from "./hub/VnHubInlinePanel";
@@ -183,6 +191,9 @@ export const VnScreen = ({
   const [error, setError] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isSfxMuted, setIsSfxMuted] = useState(() => readVnSfxMuted());
+  const [textSpeed, setTextSpeed] = useState<VnTextSpeed>(() =>
+    readVnTextSpeed(),
+  );
   const [activeAiThoughtContext, setActiveAiThoughtContext] =
     useState<ActiveAiThoughtContext | null>(null);
   const [activeProvidenceThoughtContext, setActiveProvidenceThoughtContext] =
@@ -269,6 +280,19 @@ export const VnScreen = ({
   useEffect(() => {
     writeVnSfxMuted(isSfxMuted);
   }, [isSfxMuted]);
+
+  useEffect(() => {
+    writeVnTextSpeed(textSpeed);
+  }, [textSpeed]);
+
+  const textSpeedSettings = useMemo(
+    () => getVnTextSpeedSettings(textSpeed),
+    [textSpeed],
+  );
+  const cycleTextSpeed = useCallback(
+    () => setTextSpeed((current) => nextVnTextSpeed(current)),
+    [],
+  );
 
   useEffect(() => {
     return () => {
@@ -1064,99 +1088,104 @@ export const VnScreen = ({
         />
       ) : null}
 
-      <VnNarrativePanel
-        t={t}
-        sceneId={currentNode?.id}
-        sceneGroupId={narrativeLog.state.sceneGroupId}
-        locationName={displayLocationName}
-        characterId={currentNode?.characterId}
-        characterName={speakerLabel === "Narrator" ? undefined : speakerLabel}
-        narrativeText={narrativeText}
-        hasVisibleChoices={hasPlayerFacingChoices}
-        backgroundImageUrl={resolvedBgUrl ?? undefined}
-        backgroundVideoUrl={currentNode?.backgroundVideoUrl}
-        backgroundVideoPosterUrl={currentNode?.backgroundVideoPosterUrl}
-        backgroundVideoSoundPrompt={currentNode?.backgroundVideoSoundPrompt}
-        visualSequence={currentNode?.visualSequence}
-        nextVisualUrls={nextVisualUrls}
-        narrativeLayout={effectiveNarrativeLayout}
-        narrativePresentation={currentNode?.narrativePresentation}
-        logState={narrativeLog.state}
-        logSnapshot={snapshot}
-        parliamentPresetId={activeParliamentPresetId}
-        playerProfile={playerProfileForLog}
-        letterOverlayRevealDelayMs={currentNode?.letterOverlayRevealDelayMs}
-        onTypingChange={handleTypingChange}
-        onNarrativeComplete={narrativeLog.finishCurrentSegment}
-        isTyping={isTyping}
-        typedTextRef={typedTextRef}
-        onTokenClick={handleTypedTextTokenClick}
-        onSurfaceTap={handleSurfaceTapWithTutorial}
-        tokenStateByPayload={tutorialState.tokenStateByPayload}
-        showTutorialTooltip={tutorialState.showTooltip}
-        onDismissTutorialTooltip={tutorialState.dismissTooltip}
-        onVideoEnded={handleVideoEnded}
-        onVisualSequenceEnded={handleVisualSequenceEnded}
-        videoPlaybackComplete={videoEnded}
-        suppressImmersiveSurfaceOverlay={isEleonoraTrainPrologue}
-        choicesSlot={
-          <VnScreenChoicesSlot
-            activeLensBadgeText={activeLensBadgeText}
-            canExpandThoughtWithProvidence={canExpandThoughtWithProvidence}
-            canTriggerCompletion={canTriggerCompletion}
-            choiceDisplayItems={choiceDisplayItems}
-            choiceEvaluationContext={choiceEvaluationContext}
-            completionRoute={completionRoute}
-            completionTargetLabel={completionTargetLabel}
-            currentNodePresent={Boolean(currentNode)}
-            displayedScenarioCompleted={displayedScenarioCompleted}
-            effectiveNarrativeLayout={effectiveNarrativeLayout}
-            hasAutoContinueChoice={hasAutoContinueChoice}
-            hideImmersiveChrome={hideImmersiveChrome}
-            innerVoiceCards={innerVoiceCards}
-            internalizedThoughtBadgeText={internalizedThoughtBadgeText}
-            isInteractionLocked={isInteractionLocked}
-            myFlags={myFlags}
-            mySession={mySession}
-            myVars={myVars}
-            providenceCtaLabel={providenceCtaLabel}
-            providenceThoughtCard={providenceThoughtCard}
-            reactionCard={reactionCard}
-            sessionReady={sessionReady}
-            showOriginCards={showOriginCards}
-            t={t}
-            thoughtCard={thoughtCard}
-            uiLanguage={uiLanguage}
-            visibleChoices={visibleChoices}
-            providenceCount={narrativeResources.providence}
-            onChoiceClick={handleLoggedChoiceClick}
-            onCompletionTransition={() => void runCompletionTransition()}
-            onCustomSubmit={handleCustomSubmit}
-            onInsufficientTokens={handleInsufficientTokens}
-            onProvidenceExpand={() => void handleProvidenceExpand()}
-            onRestartScene={() => void handleStartScenario()}
-          />
-        }
-      >
-        <VnScreenOverlaySlot
-          activeResolveAiStatus={activeResolveAiStatus}
-          activeResolveAiText={activeResolveAiText}
-          activeSkillResolve={activeSkillResolve}
-          aiThoughtVoiceLabel={activeAiThoughtVoiceLabel}
-          canRoll={Boolean(
-            armedSkillChoice &&
-            activeSkillResolve?.phase === "arming" &&
-            !awaitingSkillChoice,
-          )}
-          isSfxMuted={isSfxMuted}
-          passiveCheckItems={passiveCheckItems}
+      <VnTextSpeedContext.Provider value={textSpeedSettings}>
+        <VnNarrativePanel
           t={t}
-          onActiveResolveInteraction={handleActiveResolveInteraction}
-          onFortuneSpendChange={handleFortuneSpendChange}
-          onRoll={() => void confirmArmedSkillCheck()}
-          onSfxMutedChange={setIsSfxMuted}
-        />
-      </VnNarrativePanel>
+          sceneId={currentNode?.id}
+          sceneGroupId={narrativeLog.state.sceneGroupId}
+          locationName={displayLocationName}
+          characterId={currentNode?.characterId}
+          characterName={speakerLabel === "Narrator" ? undefined : speakerLabel}
+          narrativeText={narrativeText}
+          hasVisibleChoices={hasPlayerFacingChoices}
+          backgroundImageUrl={resolvedBgUrl ?? undefined}
+          backgroundFocusPath={currentNode?.backgroundFocusPath}
+          backgroundVideoUrl={currentNode?.backgroundVideoUrl}
+          backgroundVideoPosterUrl={currentNode?.backgroundVideoPosterUrl}
+          backgroundVideoSoundPrompt={currentNode?.backgroundVideoSoundPrompt}
+          visualSequence={currentNode?.visualSequence}
+          nextVisualUrls={nextVisualUrls}
+          narrativeLayout={effectiveNarrativeLayout}
+          narrativePresentation={currentNode?.narrativePresentation}
+          logState={narrativeLog.state}
+          logSnapshot={snapshot}
+          parliamentPresetId={activeParliamentPresetId}
+          playerProfile={playerProfileForLog}
+          letterOverlayRevealDelayMs={currentNode?.letterOverlayRevealDelayMs}
+          onTypingChange={handleTypingChange}
+          onNarrativeComplete={narrativeLog.finishCurrentSegment}
+          isTyping={isTyping}
+          typedTextRef={typedTextRef}
+          onTokenClick={handleTypedTextTokenClick}
+          onSurfaceTap={handleSurfaceTapWithTutorial}
+          tokenStateByPayload={tutorialState.tokenStateByPayload}
+          showTutorialTooltip={tutorialState.showTooltip}
+          onDismissTutorialTooltip={tutorialState.dismissTooltip}
+          onVideoEnded={handleVideoEnded}
+          onVisualSequenceEnded={handleVisualSequenceEnded}
+          videoPlaybackComplete={videoEnded}
+          suppressImmersiveSurfaceOverlay={isEleonoraTrainPrologue}
+          choicesSlot={
+            <VnScreenChoicesSlot
+              activeLensBadgeText={activeLensBadgeText}
+              canExpandThoughtWithProvidence={canExpandThoughtWithProvidence}
+              canTriggerCompletion={canTriggerCompletion}
+              choiceDisplayItems={choiceDisplayItems}
+              choiceEvaluationContext={choiceEvaluationContext}
+              completionRoute={completionRoute}
+              completionTargetLabel={completionTargetLabel}
+              currentNodePresent={Boolean(currentNode)}
+              displayedScenarioCompleted={displayedScenarioCompleted}
+              effectiveNarrativeLayout={effectiveNarrativeLayout}
+              hasAutoContinueChoice={hasAutoContinueChoice}
+              hideImmersiveChrome={hideImmersiveChrome}
+              innerVoiceCards={innerVoiceCards}
+              internalizedThoughtBadgeText={internalizedThoughtBadgeText}
+              isInteractionLocked={isInteractionLocked}
+              myFlags={myFlags}
+              mySession={mySession}
+              myVars={myVars}
+              providenceCtaLabel={providenceCtaLabel}
+              providenceThoughtCard={providenceThoughtCard}
+              reactionCard={reactionCard}
+              sessionReady={sessionReady}
+              showOriginCards={showOriginCards}
+              t={t}
+              thoughtCard={thoughtCard}
+              uiLanguage={uiLanguage}
+              visibleChoices={visibleChoices}
+              providenceCount={narrativeResources.providence}
+              onChoiceClick={handleLoggedChoiceClick}
+              onCompletionTransition={() => void runCompletionTransition()}
+              onCustomSubmit={handleCustomSubmit}
+              onInsufficientTokens={handleInsufficientTokens}
+              onProvidenceExpand={() => void handleProvidenceExpand()}
+              onRestartScene={() => void handleStartScenario()}
+            />
+          }
+        >
+          <VnScreenOverlaySlot
+            activeResolveAiStatus={activeResolveAiStatus}
+            activeResolveAiText={activeResolveAiText}
+            activeSkillResolve={activeSkillResolve}
+            aiThoughtVoiceLabel={activeAiThoughtVoiceLabel}
+            canRoll={Boolean(
+              armedSkillChoice &&
+              activeSkillResolve?.phase === "arming" &&
+              !awaitingSkillChoice,
+            )}
+            isSfxMuted={isSfxMuted}
+            passiveCheckItems={passiveCheckItems}
+            t={t}
+            textSpeed={textSpeed}
+            onActiveResolveInteraction={handleActiveResolveInteraction}
+            onFortuneSpendChange={handleFortuneSpendChange}
+            onRoll={() => void confirmArmedSkillCheck()}
+            onSfxMutedChange={setIsSfxMuted}
+            onTextSpeedCycle={cycleTextSpeed}
+          />
+        </VnNarrativePanel>
+      </VnTextSpeedContext.Provider>
 
       {statusLine ? <p className="status-line success">{statusLine}</p> : null}
       {error ? <p className="status-line error">{error}</p> : null}

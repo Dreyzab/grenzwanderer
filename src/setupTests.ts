@@ -4,6 +4,20 @@ import { join } from "node:path";
 import type { MouseEvent, ReactNode } from "react";
 import { vi } from "vitest";
 
+// jsdom has no matchMedia; default to landscape so floating-focus stays static in tests.
+if (typeof window !== "undefined" && !window.matchMedia) {
+  window.matchMedia = ((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+}
+
 const originalFetch = globalThis.fetch;
 const bundledSnapshotPath = join(
   process.cwd(),

@@ -9,6 +9,7 @@ import {
   AI_DM_TURN_SOURCE_SIDE_PANEL,
   AI_PROPOSE_DIRECTOR_STEP_KIND,
   AI_PROPOSE_DM_TURN_KIND,
+  AI_ANALYZE_FEEDBACK_KIND,
   type GenerateDialoguePayload,
   type GenerateDmTurnPayload,
   type GenerateDirectorStepPayload,
@@ -112,7 +113,7 @@ const baseConfig: AiWorkerConfig = {
   database: "grezwandererdata",
   token: "operator-token",
   geminiApiKey: "test-api-key",
-  geminiModel: "gemini-2.5-flash",
+  geminiModel: "gemini-3.5-flash",
   pollMs: 100,
   leaseMs: 1_000,
   maxRetries: 3,
@@ -246,7 +247,7 @@ describe("ai-worker-watch", () => {
         },
       ],
       metadata: {
-        modelId: "gemini-2.5-flash",
+        modelId: "gemini-3.5-flash",
         latencyMs: 0,
         promptTokens: 11,
         completionTokens: 7,
@@ -423,7 +424,7 @@ describe("ai-worker-watch", () => {
           text: "He wants the room calm before the break.",
           canonicalVoiceId: "charisma",
           metadata: {
-            modelId: "gemini-2.5-flash",
+            modelId: "gemini-3.5-flash",
             latencyMs: 42,
           },
         },
@@ -439,7 +440,7 @@ describe("ai-worker-watch", () => {
         text: "He wants the room calm before the break.",
         canonicalVoiceId: "charisma",
         metadata: {
-          modelId: "gemini-2.5-flash",
+          modelId: "gemini-3.5-flash",
           latencyMs: 42,
         },
       }),
@@ -708,7 +709,8 @@ describe("ai-worker-watch", () => {
         .mockReturnValueOnce("claim-2")
         .mockReturnValueOnce("claim-3")
         .mockReturnValueOnce("claim-4")
-        .mockReturnValueOnce("claim-5"),
+        .mockReturnValueOnce("claim-5")
+        .mockReturnValueOnce("claim-6"),
       createRequestId: (scope) => `req-${scope}`,
       buildSceneContextImpl: vi.fn(async () => ({
         sceneSnapshot: "Scene snapshot",
@@ -724,7 +726,7 @@ describe("ai-worker-watch", () => {
     });
 
     expect(processed).toBe(1);
-    expect(conn.reducers.claimNextAiRequest).toHaveBeenCalledTimes(5);
+    expect(conn.reducers.claimNextAiRequest).toHaveBeenCalledTimes(6);
     expect(conn.reducers.claimNextAiRequest).toHaveBeenNthCalledWith(1, {
       requestId: "req-claim",
       kind: AI_GENERATE_DIALOGUE_KIND,
@@ -754,6 +756,12 @@ describe("ai-worker-watch", () => {
       kind: AI_PROPOSE_DM_TURN_KIND,
       leaseMs: baseConfig.leaseMs,
       claimToken: "claim-5",
+    });
+    expect(conn.reducers.claimNextAiRequest).toHaveBeenNthCalledWith(6, {
+      requestId: "req-claim",
+      kind: AI_ANALYZE_FEEDBACK_KIND,
+      leaseMs: baseConfig.leaseMs,
+      claimToken: "claim-6",
     });
     expect(conn.reducers.completeAiRequest).toHaveBeenCalledTimes(1);
     expect(

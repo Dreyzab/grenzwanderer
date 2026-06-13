@@ -310,7 +310,7 @@ export const reducers = {
   updateTranslations: generatedReducers.updateTranslations,
   upsertContentRating: generatedReducers.upsertContentRating,
   upsertDialogueRating: generatedReducers.upsertDialogueRating,
-  validateHypothesis: generatedReducers.validateHypothesis,
+  assertHypothesis: generatedReducers.assertHypothesis,
   verifyRumor: generatedReducers.verifyRumor,
 } as const;
 

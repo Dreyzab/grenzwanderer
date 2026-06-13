@@ -6,8 +6,11 @@ import {
   expectRejected,
   getAgencyCareer,
   getPlayerFlagValue,
+  getPlayerMapEventByTemplate,
+  getRumorStatus,
   hasMindFact,
   hasUnlockGroup,
+  isRumorRegisteredLike,
   loadPilotSnapshot,
   openAgencyStudentIntro,
   openStudentHouseAccess,
@@ -91,6 +94,38 @@ const runSmoke = async () =>
           if (!agencyCareer?.sourceCriterionComplete) {
             throw new Error(
               "Service unlock did not record preserved_source_network",
+            );
+          }
+
+          const informantEvent = await getPlayerMapEventByTemplate(
+            conn,
+            playerHex,
+            "evt_informant_meeting",
+          );
+          if (!informantEvent) {
+            throw new Error(
+              "career.criterion_recorded trigger did not spawn evt_informant_meeting",
+            );
+          }
+          await conn.reducers.mapInteract({
+            requestId: nextRequestId("meet_informant"),
+            pointId: informantEvent.eventId,
+            bindingId: "bind_evt_informant_meet",
+            trigger: "map_pin",
+            attemptedFromLat: undefined,
+            attemptedFromLng: undefined,
+          });
+          if (
+            !isRumorRegisteredLike(
+              getRumorStatus(
+                conn,
+                playerHex,
+                "rumor_galdermann_signature_pressure",
+              ),
+            )
+          ) {
+            throw new Error(
+              "Informant meeting did not register the Galdermann pressure rumor",
             );
           }
 

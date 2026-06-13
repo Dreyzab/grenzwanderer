@@ -227,6 +227,8 @@ export interface VnChoice {
   nextNodeId: string;
   choiceType?: "action" | "inquiry" | "flavor";
   choiceSource?: VnChoiceSource;
+  /** Canonical method/motive used to present this choice without requiring a roll. */
+  presentationVoiceId?: SkillVoiceId | InnerVoiceId;
   allowCustomInput?: boolean;
   aiMode?: VnAiMode;
   providenceCost?: number;
@@ -502,6 +504,8 @@ export interface CaseEventEnvelope {
 
 export type TriggerRuleStatus = "active" | "paused" | "retired";
 
+export type TriggerRepeatPolicy = "once_per_player" | "repeatable";
+
 export interface TriggerRule {
   id: string;
   schemaVersion: number;
@@ -509,9 +513,21 @@ export interface TriggerRule {
   status: TriggerRuleStatus;
   eventName: string;
   caseId?: string;
+  /** Once a player fired this rule, repeat firing is blocked unless "repeatable". */
+  repeatPolicy?: TriggerRepeatPolicy;
   cooldownGroup?: string;
+  /** Window the cooldownGroup stays hot after a fire; defaults server-side. */
+  cooldownMinutes?: number;
   budgetKey?: string;
+  /** Max fires per budgetKey per player per day; defaults server-side. */
+  budgetLimit?: number;
   conditions?: VnCondition[];
+  /**
+   * Lightweight authoritative consequences applied when the rule fires.
+   * Restricted server-side to the trigger effect allowlist
+   * (see procedural-permissions).
+   */
+  effects?: VnEffect[];
   generatedNamespace?: string;
   allowedArchetypeIds?: string[];
   plannerConstraints?: QuestPlannerConstraints;
@@ -663,6 +679,7 @@ export type TriggerEvaluationSkipReason =
   | "rule_inactive"
   | "event_name_mismatch"
   | "case_scope_mismatch"
+  | "already_fired"
   | "conditions_failed"
   | "cooldown_active"
   | "budget_exhausted";
@@ -710,6 +727,8 @@ export interface MindRequiredVar {
   value: number;
 }
 
+export type MindHypothesisVerdict = "true" | "decoy";
+
 export interface MindHypothesisContent {
   id: string;
   caseId: string;
@@ -718,6 +737,9 @@ export interface MindHypothesisContent {
   requiredFactIds: string[];
   requiredVars: MindRequiredVar[];
   rewardEffects: VnEffect[];
+  failureEffects?: VnEffect[];
+  verdict?: MindHypothesisVerdict;
+  unlockFactIds?: string[];
 }
 
 export type MindThoughtState = "available" | "researching" | "internalized";
@@ -1209,6 +1231,16 @@ export interface MapSnapshot {
   testDefaults?: MapTestDefaults;
 }
 
+/**
+ * Trigger rules and quest archetypes shipped inside the published snapshot.
+ * Authored in src/shared/vn-contract/case-catalog (compile-time source);
+ * the snapshot copy is the runtime truth once published.
+ */
+export interface CaseCatalogSnapshot {
+  triggerRules: TriggerRule[];
+  questArchetypes: QuestArchetype[];
+}
+
 export interface VnSnapshot {
   schemaVersion: number;
   contractMetadata?: VnContractMetadata;
@@ -1220,4 +1252,5 @@ export interface VnSnapshot {
   map?: MapSnapshot;
   questCatalog?: QuestCatalogEntry[];
   socialCatalog?: SocialCatalogSnapshot;
+  caseCatalog?: CaseCatalogSnapshot;
 }

@@ -1,19 +1,21 @@
 import React from "react";
 import type { VnChoice } from "../types";
 import {
-  formatSkillCheckVoiceLabel,
   formatSkillCheckDifficulty,
   getSkillCheckVoicePalette,
 } from "../skillCheckPalette";
+import { getVoicePresentation } from "../voicePresentation";
 
 interface VnChoiceListProps {
   choices: VnChoice[];
+  parliamentPresetId?: string;
   onChoiceSelect: (choice: VnChoice) => void;
   disabled?: boolean;
 }
 
 export const VnChoiceList: React.FC<VnChoiceListProps> = ({
   choices,
+  parliamentPresetId,
   onChoiceSelect,
   disabled,
 }) => {
@@ -43,8 +45,8 @@ export const VnChoiceList: React.FC<VnChoiceListProps> = ({
           >
             {check && (
               <span className="skill-badge">
-                [{formatSkillCheckVoiceLabel(check.voiceId)}:{" "}
-                {formatSkillCheckDifficulty(check.difficulty)}]
+                [{getVoicePresentation(check.voiceId, parliamentPresetId).label}
+                : {formatSkillCheckDifficulty(check.difficulty)}]
               </span>
             )}
             <span className="choice-text">{choice.text}</span>

@@ -213,7 +213,9 @@ export function useVnSurfaceInteraction({
       return;
     }
 
-    if (isTyping) {
+    const segmentTypingActive = isTyping || narrativeLog.state.isTypingSegment;
+
+    if (segmentTypingActive) {
       narrativeLog.finishCurrentSegment();
       typedTextRef.current?.finish();
       setIsTyping(false);
@@ -251,41 +253,15 @@ export function useVnSurfaceInteraction({
       const isFinalSegment =
         narrativeLog.state.currentSegmentIndex + 1 >=
         narrativeLog.state.currentNodeSegments.length;
-      const shouldRevealLogStateOnly =
+      const pendingLogSegmentsOnly =
         !isFinalSegment ||
         choiceDisplayItemCount > 0 ||
         displayedScenarioCompleted ||
         !autoContinueChoice;
 
-      if (shouldRevealLogStateOnly) {
-        // #region agent log
-        fetch(
-          "http://127.0.0.1:7294/ingest/ef318824-e957-404b-968c-a90292600258",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Debug-Session-Id": "b6c52c",
-            },
-            body: JSON.stringify({
-              sessionId: "b6c52c",
-              runId: "post-fix",
-              hypothesisId: "E",
-              location: "useVnSurfaceInteraction.ts:handleSurfaceTap",
-              message: "log layout advance segment",
-              data: {
-                nodeId: currentNode?.id ?? null,
-                segmentIndex: narrativeLog.state.currentSegmentIndex,
-                segmentCount: narrativeLog.state.currentNodeSegments.length,
-                isFinalSegment,
-                choiceDisplayItemCount,
-              },
-              timestamp: Date.now(),
-            }),
-          },
-        ).catch(() => {});
-        // #endregion
-        narrativeLog.advanceSegment();
+      narrativeLog.advanceSegment();
+
+      if (pendingLogSegmentsOnly) {
         markInteractionHandled();
         return;
       }

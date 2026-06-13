@@ -13,4 +13,7 @@ import {
 export default {
   requestId: __t.string(),
   pointId: __t.string(),
+  channel: __t.string(),
+  attemptedFromLat: __t.option(__t.f64()),
+  attemptedFromLng: __t.option(__t.f64()),
 };

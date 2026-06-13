@@ -34,7 +34,10 @@ export const assertClientSetFlagAllowed = (ctx: any, key: string): void => {
   if (CLIENT_ALLOWLISTED_FLAG_KEYS.has(key)) {
     return;
   }
-  if (key.startsWith("DISCOVERED_") || key.startsWith("VISITED_")) {
+  // VISITED_* stays writable for the legacy_v2 client binding path;
+  // DISCOVERED_* must go through commit_map_discovery so the server can
+  // validate channel, distance, and discovery rules.
+  if (key.startsWith("VISITED_")) {
     return;
   }
   throw new SenderError(`Direct flag mutation is not allowed for key ${key}`);

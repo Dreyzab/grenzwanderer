@@ -37,6 +37,7 @@ export interface VnNarrativePanelProps {
   logState?: NarrativeLogState;
   logSnapshot?: VnSnapshot | null;
   playerProfile?: PlayerProfileForLog | null;
+  parliamentPresetId?: string;
   letterOverlayRevealDelayMs?: number;
   onChoiceSelect?: (choiceId: string) => void;
   isTyping?: boolean;

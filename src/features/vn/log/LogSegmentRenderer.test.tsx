@@ -34,6 +34,41 @@ describe("LogSegmentRenderer", () => {
     );
   });
 
+  it("keeps historical Shame segments visible through the witch skin", () => {
+    render(
+      <LogSegmentRenderer
+        parliamentPresetId="witch"
+        segment={{
+          speaker: "inner_hermit",
+          speakerLabel: "Hermit",
+          category: "inner_voice",
+          text: "Name the harm before the excuse arrives.",
+        }}
+      />,
+    );
+
+    expect(screen.getByText("[СТЫД]")).toBeInTheDocument();
+    expect(
+      screen.getByText("Name the harm before the excuse arrives."),
+    ).toBeInTheDocument();
+  });
+
+  it("renders witch method speakers with their method skin", () => {
+    render(
+      <LogSegmentRenderer
+        parliamentPresetId="witch"
+        segment={{
+          speaker: "attr_composure",
+          speakerLabel: "Composure",
+          category: "method_voice",
+          text: "Give the room nothing.",
+        }}
+      />,
+    );
+
+    expect(screen.getByText("[ФАСАД]")).toBeInTheDocument();
+  });
+
   it("keeps npc dialogue out of thought card styling", () => {
     render(
       <LogSegmentRenderer

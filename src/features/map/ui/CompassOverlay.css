@@ -331,14 +331,6 @@
   align-items: baseline;
 }
 
-.gw-compass__readout-distance {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--compass-gold-accent);
-  letter-spacing: 0.02em;
-}
-
 .gw-compass__readout-speed {
   font-family: var(--font-mono);
   font-size: 0.55rem;
@@ -367,15 +359,6 @@
 /* ═══════════════════════════════════════════════════════════════════
    STATE MODIFIERS
    ═══════════════════════════════════════════════════════════════════ */
-
-/* ─── Navigation State: gold accents ─── */
-.gw-compass--navigating .gw-compass__case {
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.6),
-    0 0 12px rgba(217, 167, 67, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-}
 
 /* ─── Search Zone State: teal pulse + needle tremble ─── */
 .gw-compass--search .gw-compass__case {
@@ -438,6 +421,24 @@
       rgba(255, 255, 255, 0.04) 0%,
       transparent 40%
     );
+}
+
+/* ─── Tracking State: approximate objective heading ─── */
+.gw-compass--tracking .gw-compass__case {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.6),
+    0 0 10px rgba(217, 167, 67, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Slow drift sells "approximate" — the needle hints, it does not pinpoint. */
+.gw-compass--tracking .gw-compass__needle-assembly {
+  animation: needle-drift 2.6s ease-in-out infinite alternate;
+}
+
+.gw-compass__readout-status--tracking {
+  color: var(--compass-gold-accent);
 }
 
 /* ─── Idle State: dimmed ─── */
@@ -623,10 +624,6 @@
 
   .gw-compass__readout-label {
     font-size: 0.55rem;
-  }
-
-  .gw-compass__readout-distance {
-    font-size: 0.6rem;
   }
 
   .gw-compass__action {

@@ -298,6 +298,42 @@ export const parseRewardEffects = (rewardEffectsJson: string): VnEffect[] => {
   return parsed;
 };
 
+export const parseUnlockFactIds = (unlockFactIdsJson: string): string[] => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(unlockFactIdsJson);
+  } catch (_error) {
+    return [];
+  }
+
+  if (
+    !Array.isArray(parsed) ||
+    !parsed.every((entry) => typeof entry === "string")
+  ) {
+    return [];
+  }
+
+  return parsed;
+};
+
+export const parseFailureEffects = (failureEffectsJson: string): VnEffect[] => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(failureEffectsJson);
+  } catch (_error) {
+    return [];
+  }
+
+  if (!Array.isArray(parsed) || !parsed.every((effect) => isVnEffect(effect))) {
+    return [];
+  }
+
+  return parsed;
+};
+
+export const parseVerdict = (verdict: unknown): "true" | "decoy" =>
+  verdict === "decoy" ? "decoy" : "true";
+
 export const parseRequiredFactIdsJson = (
   requiredFactIdsJson: string,
 ): string[] => parseRequiredFactIds(requiredFactIdsJson);

@@ -57,6 +57,21 @@ describe("parseSpeakerSegments", () => {
     });
   });
 
+  it("recognizes canonical skill speakers as method voices", () => {
+    const segments = parseSpeakerSegments(
+      "**[attr_composure]**:\nHold the mask steady.",
+    );
+
+    expect(segments).toMatchObject([
+      {
+        speaker: "attr_composure",
+        speakerLabel: "Composure",
+        category: "method_voice",
+        text: "Hold the mask steady.",
+      },
+    ]);
+  });
+
   it("keeps narrator text before the first explicit speaker", () => {
     const segments = parseSpeakerSegments(
       "A pause.\n\n**[Assistant]**:\nWe are nearly there.",

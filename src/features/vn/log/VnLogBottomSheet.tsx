@@ -26,7 +26,12 @@ const MAX_AUTO_FRACTION = SNAP_FRACTIONS[2];
 /** Chrome above the scrollable log: drag handle + accent rule. */
 const SHEET_CHROME_PX = 44;
 const STORAGE_KEY = "vn-log-sheet-snap";
-const SPRING = { type: "spring" as const, damping: 28, stiffness: 280 };
+const SHEET_HEIGHT_SPRING = {
+  type: "spring" as const,
+  damping: 34,
+  stiffness: 240,
+  mass: 0.82,
+};
 const TAP_MAX_DRIFT_PX = 18;
 const TAP_MAX_MS = 380;
 
@@ -36,6 +41,7 @@ interface VnLogBottomSheetProps {
   snapshot: VnSnapshot | null;
   choicesSlot?: ReactNode;
   playerProfile?: PlayerProfileForLog | null;
+  parliamentPresetId?: string;
   typedTextRef?: RefObject<TypedTextHandle>;
   onTypingChange?: (typing: boolean) => void;
   onSegmentComplete?: () => void;
@@ -104,6 +110,7 @@ export function VnLogBottomSheet({
   snapshot,
   choicesSlot,
   playerProfile,
+  parliamentPresetId,
   typedTextRef,
   onTypingChange,
   onSegmentComplete,
@@ -182,6 +189,11 @@ export function VnLogBottomSheet({
     });
     setDragFrac(null);
   }, [setDragFrac]);
+
+  // Re-enable content tracking on each new beat within the same scene group.
+  useEffect(() => {
+    setUserControlled(false);
+  }, [state.currentNodeId]);
 
   useEffect(() => {
     if (previousSceneGroupIdRef.current === undefined) {
@@ -301,8 +313,9 @@ export function VnLogBottomSheet({
     >
       <motion.div
         className="pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-t-xl border-t border-white/10 bg-stone-950/88 shadow-[0_-24px_60px_rgba(0,0,0,0.62)] backdrop-blur-md"
+        layout
         animate={{ height: `${fracVisible * 100}vh` }}
-        transition={dragFrac !== null ? { duration: 0 } : SPRING}
+        transition={dragFrac !== null ? { duration: 0 } : SHEET_HEIGHT_SPRING}
         onClick={onSurfaceTap}
       >
         <div className="flex shrink-0 justify-center bg-stone-950/40 pt-1">
@@ -339,6 +352,7 @@ export function VnLogBottomSheet({
             typedTextRef={typedTextRef}
             choicesSlot={choicesSlot}
             playerProfile={playerProfile}
+            parliamentPresetId={parliamentPresetId}
             onTypingChange={onTypingChange}
             onSegmentComplete={onSegmentComplete}
             onTokenClick={onTokenClick}

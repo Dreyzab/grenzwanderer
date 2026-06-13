@@ -1,23 +1,13 @@
-import { SenderError } from "spacetimedb/server";
-import {
-  createPlayerMindCaseKey,
-  createPlayerMindHypothesisKey,
-} from "./entity_keys";
-import { applyEffects } from "./effects";
+import { createPlayerMindCaseKey } from "./entity_keys";
 import {
   parseRequiredFactIds,
   parseRequiredVars,
   parseRewardEffects,
+  parseVerdict,
 } from "./payload_json";
 import { getVar } from "./player_progression";
-import { ensurePlayerProfile } from "./player_profile";
 import { emitTelemetry } from "./telemetry";
 import type { HypothesisReadiness, MindRequiredVar } from "./types";
-import {
-  ensureMindCaseActive,
-  ensureMindHypothesisForCase,
-} from "./mind_guards";
-import { ensurePlayerMindCaseRow } from "./mind_discover";
 
 const doesVarConditionPass = (
   ctx: any,
@@ -35,27 +25,17 @@ const doesVarConditionPass = (
   return current === requiredVar.value;
 };
 
-export const getHypothesisReadiness = (
+export const getHypothesisReadinessForFacts = (
   ctx: any,
-  caseId: string,
   hypothesisRow: any,
+  factIds: Set<string>,
 ): HypothesisReadiness => {
   const requiredFacts = parseRequiredFactIds(hypothesisRow.requiredFactIdsJson);
   const requiredVars = parseRequiredVars(hypothesisRow.requiredVarsJson);
   const rewardEffects = parseRewardEffects(hypothesisRow.rewardEffectsJson);
 
-  const discoveredFacts = new Set<string>();
-  for (const row of ctx.db.playerMindFact.player_mind_fact_player_id.filter(
-    ctx.sender,
-  )) {
-    if (row.caseId !== caseId) {
-      continue;
-    }
-    discoveredFacts.add(row.factId);
-  }
-
   const missingFacts = requiredFacts.filter(
-    (requiredFactId) => !discoveredFacts.has(requiredFactId),
+    (requiredFactId) => !factIds.has(requiredFactId),
   );
   const failedVarConditions = requiredVars.filter(
     (requiredVar) => !doesVarConditionPass(ctx, requiredVar),
@@ -71,11 +51,39 @@ export const getHypothesisReadiness = (
   };
 };
 
-const maybeCompleteMindCase = (ctx: any, caseId: string): boolean => {
+export const getDiscoveredFactIds = (ctx: any, caseId: string): Set<string> => {
+  const discoveredFacts = new Set<string>();
+  for (const row of ctx.db.playerMindFact.player_mind_fact_player_id.filter(
+    ctx.sender,
+  )) {
+    if (row.caseId !== caseId) {
+      continue;
+    }
+    discoveredFacts.add(row.factId);
+  }
+
+  return discoveredFacts;
+};
+
+export const getHypothesisReadiness = (
+  ctx: any,
+  caseId: string,
+  hypothesisRow: any,
+): HypothesisReadiness =>
+  getHypothesisReadinessForFacts(
+    ctx,
+    hypothesisRow,
+    getDiscoveredFactIds(ctx, caseId),
+  );
+
+export const maybeCompleteMindCase = (ctx: any, caseId: string): boolean => {
   const hypothesisRows = [
     ...ctx.db.mindHypothesis.mind_hypothesis_case_id.filter(caseId),
   ];
-  if (hypothesisRows.length === 0) {
+  const requiredRows = hypothesisRows.filter(
+    (row) => parseVerdict(row.verdict) === "true",
+  );
+  if (requiredRows.length === 0) {
     return false;
   }
 
@@ -91,7 +99,7 @@ const maybeCompleteMindCase = (ctx: any, caseId: string): boolean => {
     }
   }
 
-  const allValidated = hypothesisRows.every((row) =>
+  const allValidated = requiredRows.every((row) =>
     validated.has(row.hypothesisId),
   );
   if (!allValidated) {
@@ -115,66 +123,10 @@ const maybeCompleteMindCase = (ctx: any, caseId: string): boolean => {
     updatedAt: ctx.timestamp,
   });
 
-  emitTelemetry(ctx, "mind_case_completed", {
-    caseId,
-  });
+  const completedMicros = ctx.timestamp.microsSinceUnixEpoch as bigint;
+  const startedMicros = caseRow.startedAt.microsSinceUnixEpoch as bigint;
+  const solveSeconds = Number((completedMicros - startedMicros) / 1_000_000n);
+  emitTelemetry(ctx, "mind_case_completed", { caseId }, solveSeconds);
 
   return true;
-};
-
-export const validateHypothesisInternal = (
-  ctx: any,
-  caseId: string,
-  hypothesisId: string,
-): { caseCompleted: boolean } => {
-  ensurePlayerProfile(ctx);
-  ensureMindCaseActive(ctx, caseId);
-  const hypothesis = ensureMindHypothesisForCase(ctx, caseId, hypothesisId);
-  ensurePlayerMindCaseRow(ctx, caseId);
-
-  const readiness = getHypothesisReadiness(ctx, caseId, hypothesis);
-  if (!readiness.ready) {
-    throw new SenderError("Hypothesis requirements are not satisfied");
-  }
-
-  const playerHypothesisKey = createPlayerMindHypothesisKey(
-    ctx.sender,
-    caseId,
-    hypothesisId,
-  );
-  const existing =
-    ctx.db.playerMindHypothesis.playerHypothesisKey.find(playerHypothesisKey);
-  if (existing?.status === "validated") {
-    throw new SenderError("Hypothesis already validated");
-  }
-
-  const nextRow = {
-    playerHypothesisKey,
-    playerId: ctx.sender,
-    caseId,
-    hypothesisId,
-    status: "validated",
-    validatedAt: ctx.timestamp,
-    updatedAt: ctx.timestamp,
-  };
-
-  if (existing) {
-    ctx.db.playerMindHypothesis.playerHypothesisKey.update({
-      ...existing,
-      ...nextRow,
-    });
-  } else {
-    ctx.db.playerMindHypothesis.insert(nextRow);
-  }
-
-  applyEffects(ctx, readiness.rewardEffects);
-
-  emitTelemetry(ctx, "mind_hypothesis_validated", {
-    caseId,
-    hypothesisId,
-  });
-
-  return {
-    caseCompleted: maybeCompleteMindCase(ctx, caseId),
-  };
 };

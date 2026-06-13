@@ -36,7 +36,9 @@ import {
   createRumorStateKey,
   createVarKey,
 } from "./entity_keys";
+import { CASE_EVENT_NAMES } from "./case_event_names";
 import { getFactionIdValidationError } from "./factionSignalGuard";
+import { publishCaseEvent } from "./quest_instances";
 import {
   createFlagKey,
   createNpcStateKey,
@@ -940,6 +942,12 @@ const promoteAgencyCareerIfEligible = (ctx: any): void => {
       updatedAt: ctx.timestamp,
     };
     ctx.db.playerAgencyCareer.playerId.update(current);
+
+    publishCaseEvent(ctx, {
+      eventName: CASE_EVENT_NAMES.careerPromoted,
+      payloadJson: JSON.stringify({ rankId: nextRank.id }),
+      idempotencyKey: `career_promoted:${nextRank.id}:${ctx.timestamp.microsSinceUnixEpoch.toString()}`,
+    });
   }
 };
 
@@ -984,6 +992,14 @@ export const recordServiceCriterionInternal = (
   criterionId: AgencyServiceCriterionId,
 ): void => {
   const current = ensureAgencyCareerRow(ctx);
+  const wasComplete =
+    criterionId === "verified_rumor_chain"
+      ? current.rumorCriterionComplete
+      : criterionId === "preserved_source_network"
+        ? current.sourceCriterionComplete
+        : criterionId === "clean_closure"
+          ? current.cleanClosureCriterionComplete
+          : true;
   const nextRow = {
     ...current,
     rumorCriterionComplete:
@@ -1001,6 +1017,15 @@ export const recordServiceCriterionInternal = (
     updatedAt: ctx.timestamp,
   };
   ctx.db.playerAgencyCareer.playerId.update(nextRow);
+
+  if (!wasComplete) {
+    publishCaseEvent(ctx, {
+      eventName: CASE_EVENT_NAMES.careerCriterionRecorded,
+      payloadJson: JSON.stringify({ criterionId }),
+      idempotencyKey: `career_criterion:${criterionId}:${ctx.timestamp.microsSinceUnixEpoch.toString()}`,
+    });
+  }
+
   promoteAgencyCareerIfEligible(ctx);
 };
 
@@ -1075,6 +1100,7 @@ export const verifyRumorInternal = (
     throw new SenderError(`Rumor ${rumorId} could not be registered`);
   }
 
+  const wasVerified = normalizeRumorStatus(existing.status) === "verified";
   ctx.db.playerRumorState.rumorStateKey.update({
     ...existing,
     status: "verified",
@@ -1082,6 +1108,14 @@ export const verifyRumorInternal = (
     verifiedAt: ctx.timestamp,
     updatedAt: ctx.timestamp,
   });
+
+  if (!wasVerified) {
+    publishCaseEvent(ctx, {
+      eventName: CASE_EVENT_NAMES.rumorVerified,
+      payloadJson: JSON.stringify({ rumorId, verificationKind }),
+      idempotencyKey: `rumor_verified:${rumorId}:${ctx.timestamp.microsSinceUnixEpoch.toString()}`,
+    });
+  }
 
   if (template?.careerCriterionOnVerify) {
     recordServiceCriterionInternal(ctx, template.careerCriterionOnVerify);

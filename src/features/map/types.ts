@@ -11,6 +11,13 @@ import type {
 
 export type PinVisualState = "locked" | "discovered" | "visited" | "completed";
 
+export const MAP_POINT_STATES = [
+  "locked",
+  "discovered",
+  "visited",
+  "completed",
+] as const satisfies readonly PinVisualState[];
+
 export type MapRegionId = string;
 export type MapRegion = MapRegionSnapshot;
 
@@ -19,7 +26,6 @@ export interface MapPoint extends Omit<
   "bindings" | "category"
 > {
   bindings?: MapBinding[];
-  legacyScenarioIds?: string[];
   category?: MapPointCategory;
   isSearchZone?: boolean;
   radius?: number;
@@ -64,12 +70,6 @@ export type JourneyDiscoveryCandidate = RuntimeMapPoint;
 export interface RuntimeMapRoute extends Omit<MapShadowRoute, "pointIds"> {
   pointIds: string[];
   coordinates: [number, number][];
-}
-
-export interface MapDataSource {
-  getRegions(): MapRegion[];
-  getPoints(regionId: MapRegionId): MapPoint[];
-  getDefaultRegionId(): MapRegionId;
 }
 
 export interface MapResolverContext {

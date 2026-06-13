@@ -7,7 +7,7 @@ import {
   CASE01_DINING_FLAGS,
   CASE01_SCENARIO_IDS,
 } from "../src/shared/case01Canon";
-import { resolveLegacyScenarioId } from "../src/features/map/data/scenario-mapping";
+import { resolveLegacyScenarioId } from "./data/case_01_points";
 
 type SnapshotPoint = {
   id: string;

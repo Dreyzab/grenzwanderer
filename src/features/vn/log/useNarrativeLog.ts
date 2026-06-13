@@ -8,6 +8,7 @@ import { parseSpeakerSegments, type SpeakerSegment } from "./speakerParser";
 export type LogEntryType = "segment" | "player_choice" | "skill_check_result";
 
 export interface LogSkillCheckResult {
+  voiceId?: string;
   voiceLabel: string;
   passed: boolean;
   roll: number;

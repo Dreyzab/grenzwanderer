@@ -27,6 +27,7 @@ export const CHOICE_SOURCE_IDS = [
   "synergy",
   "signature",
   "flaw",
+  "volition",
 ] as const;
 
 export type VnChoiceSource = (typeof CHOICE_SOURCE_IDS)[number];

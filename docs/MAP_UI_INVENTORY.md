@@ -455,8 +455,7 @@ API эскиз:
 - Mapbox styling (`MAPBOX_STYLE` URL) — внешняя tile-вёрстка дорог/зданий, не редактируется в коде проекта.
 - `src/features/map/hooks/` — рантайм-логика (journey, ephemeral state), не визуальный layer.
 - `src/features/map/model/` — geo-математика и derivePointState, не UI.
-- `src/features/map/data/` — статические данные точек, не UI.
-- Generated points ([generated-static-points.ts](../src/features/map/data/generated-static-points.ts), [karlsruhe-event-static-points.ts](../src/features/map/data/karlsruhe-event-static-points.ts)) — авто-генерируемые, см. `bun run content:extract`.
+- `src/features/map/data/` — авторский mirror точек (generated-static-points.ts, авто-генерируемый через `bun run content:extract`); рантайм-карта читает только active content snapshot, клиентского fallback-источника больше нет.
 - Тесты карты ([MapView.test.tsx](../src/features/map/ui/MapView.test.tsx), [CaseCard.test.tsx](../src/features/map/ui/CaseCard.test.tsx), [DetectiveHub.test.tsx](../src/features/map/ui/DetectiveHub.test.tsx), [DetectiveMapPin.test.tsx](../src/features/map/ui/DetectiveMapPin.test.tsx)) — не правим в этом проходе, но они станут ground truth при будущих миграциях.
 
 ## 8. Public API impact

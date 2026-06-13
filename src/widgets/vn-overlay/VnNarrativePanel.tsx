@@ -39,6 +39,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   logState,
   logSnapshot,
   playerProfile,
+  parliamentPresetId,
   letterOverlayRevealDelayMs,
   onChoiceSelect,
   isTyping,
@@ -95,10 +96,10 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     useState(!isLetterOverlay);
 
   /**
-   * Journal scenes open on the background (admire beat) and reveal the dock after a
-   * short dwell â€” or immediately on tap. Content may override via the same delay field.
+   * Log scenes reveal the dock as soon as the background is ready so typed text
+   * can grow the sheet smoothly. Per-node override via letterOverlayRevealDelayMs.
    */
-  const LOG_AUTO_REVEAL_MS = 2000;
+  const LOG_AUTO_REVEAL_MS = 0;
   const resolvedAutoRevealMs =
     letterOverlayRevealDelayMs ??
     (isLogLayout && !needsSoundPrompt ? LOG_AUTO_REVEAL_MS : undefined);
@@ -195,6 +196,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
 
   const showSplitBgAdmireLayer =
     isSplitLayout &&
+    !isLogLayout &&
     !hasVisualSequence &&
     !chromeRevealed &&
     (!needsSoundPrompt || soundPromptPhase === "playing");
@@ -211,6 +213,9 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     !hasVisualSequence &&
     chromeRevealed &&
     (!isFullscreen || Boolean(narrativeText.trim()) || Boolean(choicesSlot));
+
+  const showLogBackgroundContinueLayer =
+    !hasVisualSequence && isLogLayout && chromeRevealed;
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-black font-serif text-stone-200 select-none">
@@ -350,20 +355,32 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
       ) : null}
 
       {!hasVisualSequence && isLogLayout && chromeRevealed && logState ? (
-        <VnLogBottomSheet
-          sceneGroupId={sceneGroupId ?? null}
-          state={logState}
-          snapshot={logSnapshot ?? null}
-          playerProfile={playerProfile}
-          typedTextRef={typedTextRef}
-          choicesSlot={choicesSlot}
-          onTypingChange={onTypingChange}
-          onSegmentComplete={onNarrativeComplete}
-          onSurfaceTap={handleSurfaceInteraction}
-          onTokenClick={onTokenClick}
-          onTokenEnter={onTokenEnter}
-          onTokenLeave={onTokenLeave}
-        />
+        <>
+          {showLogBackgroundContinueLayer ? (
+            <div
+              className="absolute inset-x-0 top-0 bottom-[30vh] z-[145] cursor-pointer touch-manipulation"
+              role="button"
+              tabIndex={-1}
+              aria-label="Continue narrative"
+              onClick={handleSurfaceInteraction}
+            />
+          ) : null}
+          <VnLogBottomSheet
+            sceneGroupId={sceneGroupId ?? null}
+            state={logState}
+            snapshot={logSnapshot ?? null}
+            playerProfile={playerProfile}
+            parliamentPresetId={parliamentPresetId}
+            typedTextRef={typedTextRef}
+            choicesSlot={choicesSlot}
+            onTypingChange={onTypingChange}
+            onSegmentComplete={onNarrativeComplete}
+            onSurfaceTap={handleSurfaceInteraction}
+            onTokenClick={onTokenClick}
+            onTokenEnter={onTokenEnter}
+            onTokenLeave={onTokenLeave}
+          />
+        </>
       ) : null}
       <AnimatePresence initial={false}>
         {showNarrativeDock ? (

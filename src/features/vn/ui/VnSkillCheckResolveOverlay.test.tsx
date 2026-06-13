@@ -72,7 +72,7 @@ const baseState: VnSkillCheckResolveState = {
   choiceId: "choice_probe",
   choiceText: "Probe witness",
   voiceId: "attr_social",
-  voiceLabel: "Social",
+  voiceLabel: "[ФАСАД]",
   diceMode: "d20",
   phase: "rolling",
   passed: true,
@@ -125,7 +125,9 @@ describe("VnSkillCheckResolveOverlay", () => {
       />,
     );
 
-    expect(screen.getByTestId("vn-skill-dice-fallback")).toBeInTheDocument();
+    expect(screen.getByTestId("vn-skill-dice-fallback")).toHaveTextContent(
+      "[ФАСАД]",
+    );
     expect(screen.queryByTestId("vn-skill-dice-scene")).toBeNull();
   });
 

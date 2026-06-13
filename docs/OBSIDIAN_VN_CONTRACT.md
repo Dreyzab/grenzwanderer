@@ -41,7 +41,7 @@ requirements.
 - `content:drift:verify` is read-only and checks that the local snapshot artifacts agree with each other after normalization.
 - `content:drift:against-head` is the explicit git-`HEAD` comparison command for release-baseline work.
 - `content:gate:local` is the intended local convenience gate when authoring content and includes the Case01 smoke pack before verification.
-- Supported Freiburg fallback map data is generated from the extracted snapshot into `src/features/map/data/generated-static-points.ts`; do not hand-maintain a second Freiburg player-facing map source.
+- `src/features/map/data/generated-static-points.ts` is an authoring-side mirror generated from the extracted snapshot (consumed by authoring scripts and the Case01 smoke pack); the runtime map reads exclusively from the active content snapshot — there is no client-side fallback map source.
 - `tmp/vn-obsidian-migration-report.json` records ownership, locale, and dual-run
   diagnostics for Obsidian runtime scenarios.
 - `obsidian/StoryDetective/40_GameViewer/Case01/CASE01_CANON_LEDGER.md`

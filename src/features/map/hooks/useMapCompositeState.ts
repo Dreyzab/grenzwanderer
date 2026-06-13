@@ -5,12 +5,7 @@ import {
   resolveAvailableBindings,
   resolveScenarioIdFromBindings,
 } from "../model/mapResolver";
-import type {
-  MapDataSource,
-  MapRegionId,
-  RuntimeMapPoint,
-  RuntimeMapRoute,
-} from "../types";
+import type { MapRegionId, RuntimeMapPoint, RuntimeMapRoute } from "../types";
 import { useMapEphemeralState } from "./useMapEphemeralState";
 import {
   type UseMapPersistentStateResult,
@@ -19,7 +14,7 @@ import {
 
 export interface UseMapCompositeStateResult extends Pick<
   UseMapPersistentStateResult,
-  | "source"
+  | "isMapAvailable"
   | "region"
   | "currentLocationId"
   | "journeyDiscoveryCandidates"
@@ -31,10 +26,9 @@ export interface UseMapCompositeStateResult extends Pick<
 }
 
 export const useMapCompositeState = (
-  mapDataSource?: MapDataSource,
   regionId?: MapRegionId,
 ): UseMapCompositeStateResult => {
-  const persistent = useMapPersistentState(mapDataSource, regionId);
+  const persistent = useMapPersistentState(regionId);
   const ephemeral = useMapEphemeralState();
 
   const ephemeralPoints = useMemo(() => {
@@ -121,7 +115,7 @@ export const useMapCompositeState = (
   }, [persistent.activeFlags, persistent.points, persistent.shadowRoutes]);
 
   return {
-    source: persistent.source,
+    isMapAvailable: persistent.isMapAvailable,
     region: persistent.region,
     currentLocationId: persistent.currentLocationId,
     points: [...persistent.points, ...ephemeralPoints],

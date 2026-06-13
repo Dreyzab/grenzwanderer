@@ -113,6 +113,10 @@ describe("useMapJourney", () => {
     runNextFrame(frames, 20_000);
 
     expect(onDiscoverPoint).toHaveBeenCalledTimes(1);
+    expect(onDiscoverPoint).toHaveBeenCalledWith("loc_hidden", [
+      expect.any(Number),
+      expect.any(Number),
+    ]);
     expect(result.current.discoveredPoints[0]?.point.id).toBe("loc_hidden");
   });
 

@@ -88,6 +88,8 @@ interface CobblestoneMarkerProps {
   point: RuntimeMapPoint;
   selected: boolean;
   nearby?: boolean;
+  /** Active-objective beacon: slow gold bloom so the task reads at a glance. */
+  objective?: boolean;
   /** Disc diameter in px (default 56). */
   size?: number;
   /** `limestone` (default, cream stone) or `basalt` (dark stone for HUD modes). */
@@ -138,6 +140,7 @@ export const CobblestoneMarker = ({
   point,
   selected,
   nearby = false,
+  objective = false,
   size = 56,
   theme = "limestone",
   onClick,
@@ -178,6 +181,7 @@ export const CobblestoneMarker = ({
       aria-label={`${point.title} (${stateLabel})`}
       data-state={point.state}
       data-selected={selected ? "true" : "false"}
+      data-objective={objective ? "true" : "false"}
       data-mosaic-symbol={resolveMosaicSymbol(point)}
       data-testid="gw-cobblestone-marker"
       onClick={handleClick}
@@ -225,6 +229,33 @@ export const CobblestoneMarker = ({
             animation: "gw-cob-near 2.6s ease-in-out infinite",
           }}
         />
+      ) : null}
+      {objective && !selected ? (
+        <>
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: -4,
+              borderRadius: "50%",
+              border: "1.5px solid #d9a743",
+              opacity: 0.85,
+              pointerEvents: "none",
+              filter: "drop-shadow(0 0 4px rgba(217, 167, 67, 0.6))",
+            }}
+          />
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: -4,
+              borderRadius: "50%",
+              border: "1.5px solid #d9a743",
+              pointerEvents: "none",
+              animation: "gw-cob-objective 2.2s ease-out infinite",
+            }}
+          />
+        </>
       ) : null}
       <svg
         viewBox="0 0 100 100"
@@ -319,6 +350,10 @@ if (typeof document !== "undefined" && !document.getElementById(STYLE_ID)) {
     @keyframes gw-cob-near {
       0%, 100% { opacity: 0.45; transform: scale(0.95); }
       50%      { opacity: 0.95; transform: scale(1.08); }
+    }
+    @keyframes gw-cob-objective {
+      0%   { opacity: 0.75; transform: scale(1); }
+      100% { opacity: 0;    transform: scale(1.45); }
     }
   `;
   document.head.appendChild(styleEl);

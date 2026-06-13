@@ -65,6 +65,18 @@ export const resetForSchemaMigration = (ctx: any): void => {
       hypothesisRow.playerHypothesisKey,
     );
   }
+
+  const playerMindLinks = [...ctx.db.playerMindLink.iter()];
+  for (const linkRow of playerMindLinks) {
+    ctx.db.playerMindLink.playerLinkKey.delete(linkRow.playerLinkKey);
+  }
+
+  const playerMindBoardLayouts = [...ctx.db.playerMindBoardLayout.iter()];
+  for (const layoutRow of playerMindBoardLayouts) {
+    ctx.db.playerMindBoardLayout.playerBoardKey.delete(
+      layoutRow.playerBoardKey,
+    );
+  }
 };
 
 export const deactivateContentVersions = (ctx: any): void => {

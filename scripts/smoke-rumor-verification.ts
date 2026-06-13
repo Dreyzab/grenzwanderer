@@ -5,6 +5,8 @@ import {
   expectRejected,
   getAgencyCareer,
   getFavorBalance,
+  getPlayerFlagValue,
+  getPlayerMapEventByTemplate,
   hasMindFact,
   getRumorStatus,
   isRumorRegisteredLike,
@@ -113,6 +115,24 @@ const runSmoke = async () =>
           ) {
             throw new Error(
               "Rumor verification did not discover the verified rail-yard fact",
+            );
+          }
+
+          if (
+            !getPlayerFlagValue(conn, playerHex, "route_rail_yard_revealed")
+          ) {
+            throw new Error(
+              "rumor.verified trigger did not reveal the rail yard watch route",
+            );
+          }
+          const informantEvent = await getPlayerMapEventByTemplate(
+            conn,
+            playerHex,
+            "evt_informant_meeting",
+          );
+          if (!informantEvent) {
+            throw new Error(
+              "career.criterion_recorded trigger did not spawn evt_informant_meeting",
             );
           }
 

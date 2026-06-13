@@ -143,7 +143,7 @@ describe("MapView", () => {
     mocks.useTableMock.mockReturnValue([[], true]);
     mocks.useIdentityMock.mockReturnValue({ identityHex: "me" });
     mocks.useMapRuntimeStateMock.mockReturnValue({
-      source: "snapshot_v3",
+      isMapAvailable: true,
       region: {
         id: "FREIBURG_1905",
         name: "Freiburg",

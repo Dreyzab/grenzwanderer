@@ -77,6 +77,7 @@ export function LogChoicesRenderer({
                 hasFailedCheck={item.hasFailedCheck}
                 chancePercent={item.chancePercent}
                 innerVoiceHints={item.innerVoiceHints}
+                sourcePresentation={item.sourcePresentation}
                 skillCheckState={item.skillCheckState}
                 onClick={() => {
                   if (disabled) return;

@@ -32,6 +32,9 @@ export interface DiscoverySignalResult {
   target: RuntimeMapPoint | null;
   distanceMeters: number | null;
   ambiguity: boolean;
+  /** Discovery channel of the winning rule — lets the HUD tell a QR cache
+   *  apart from a generic hidden POI. Null while idle. */
+  channel: MapDiscoveryRule["channel"] | null;
 }
 
 export const DEFAULT_DISCOVERY_SIGNAL_RADII: DiscoverySignalPhaseRadii = {
@@ -202,6 +205,7 @@ export const resolveDiscoverySignal = ({
       target: null,
       distanceMeters: null,
       ambiguity: false,
+      channel: null,
     };
   }
 
@@ -249,6 +253,7 @@ export const resolveDiscoverySignal = ({
       target: null,
       distanceMeters: null,
       ambiguity: false,
+      channel: null,
     };
   }
 
@@ -283,5 +288,6 @@ export const resolveDiscoverySignal = ({
     target: primary.point,
     distanceMeters: primary.distanceMeters,
     ambiguity,
+    channel: primary.rule.channel,
   };
 };

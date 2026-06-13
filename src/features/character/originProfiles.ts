@@ -1,4 +1,8 @@
-import { isSkillVoiceId } from "../../../data/innerVoiceContract";
+import {
+  innerVoiceRankVarKeyFor,
+  isSkillVoiceId,
+} from "../../../data/innerVoiceContract";
+import { getParliamentModule } from "../../../data/parliamentModules";
 import {
   buildOriginCoreVarEntries,
   indicatorRankVarKeyFor,
@@ -572,54 +576,69 @@ const ORIGIN_TALKER_DEFAULT_RANK_BY_ID: Record<string, number> = {
 
 export const buildOriginChoiceEffects = (
   profile: OriginProfileDefinition,
-): VnEffect[] => [
-  ...profile.statEffects.map(
-    (stat): VnEffect => ({
+): VnEffect[] => {
+  const parliamentEmphasis = Object.entries(
+    getParliamentModule(profile.id)?.emphasis ?? {},
+  );
+
+  return [
+    ...profile.statEffects.map(
+      (stat): VnEffect => ({
+        type: "set_var",
+        key: stat.key,
+        value: stat.value,
+      }),
+    ),
+    ...profile.statEffects.flatMap((stat): VnEffect[] =>
+      isSkillVoiceId(stat.key)
+        ? [
+            {
+              type: "set_var",
+              key: skillXpVarKeyFor(stat.key),
+              value: stat.value * 100,
+            },
+          ]
+        : [],
+    ),
+    ...buildOriginCoreVarEntries(profile.id).map(
+      (entry): VnEffect => ({
+        type: "set_var",
+        key: entry.key,
+        value: entry.value,
+      }),
+    ),
+    ...parliamentEmphasis.map(
+      ([voiceId, value]): VnEffect => ({
+        type: "set_var",
+        key: innerVoiceRankVarKeyFor(
+          voiceId as Parameters<typeof innerVoiceRankVarKeyFor>[0],
+        ),
+        value,
+      }),
+    ),
+    {
       type: "set_var",
-      key: stat.key,
-      value: stat.value,
-    }),
-  ),
-  ...profile.statEffects.flatMap((stat): VnEffect[] =>
-    isSkillVoiceId(stat.key)
-      ? [
-          {
-            type: "set_var",
-            key: skillXpVarKeyFor(stat.key),
-            value: stat.value * 100,
-          },
-        ]
-      : [],
-  ),
-  ...buildOriginCoreVarEntries(profile.id).map(
-    (entry): VnEffect => ({
-      type: "set_var",
-      key: entry.key,
-      value: entry.value,
-    }),
-  ),
-  {
-    type: "set_var",
-    key: indicatorRankVarKeyFor("talker"),
-    value: ORIGIN_TALKER_DEFAULT_RANK_BY_ID[profile.id] ?? 0,
-  },
-  { type: "set_flag", key: profile.originFlagKey, value: true },
-  { type: "set_flag", key: profile.flawFlagKey, value: true },
-  { type: "set_flag", key: profile.signatureAbilityFlagKey, value: true },
-  { type: "set_flag", key: "char_creation_complete", value: true },
-  ...profile.tracks.map(
-    (track): VnEffect => ({
-      type: "set_var",
-      key: track.progressVarKey,
-      value: 0,
-    }),
-  ),
-  {
-    type: "track_event",
-    eventName: "origin_selected",
-    tags: { origin: profile.id },
-  },
-];
+      key: indicatorRankVarKeyFor("talker"),
+      value: ORIGIN_TALKER_DEFAULT_RANK_BY_ID[profile.id] ?? 0,
+    },
+    { type: "set_flag", key: profile.originFlagKey, value: true },
+    { type: "set_flag", key: profile.flawFlagKey, value: true },
+    { type: "set_flag", key: profile.signatureAbilityFlagKey, value: true },
+    { type: "set_flag", key: "char_creation_complete", value: true },
+    ...profile.tracks.map(
+      (track): VnEffect => ({
+        type: "set_var",
+        key: track.progressVarKey,
+        value: 0,
+      }),
+    ),
+    {
+      type: "track_event",
+      eventName: "origin_selected",
+      tags: { origin: profile.id },
+    },
+  ];
+};
 
 export const getSelectedOriginTrack = (
   profile: OriginProfileDefinition,

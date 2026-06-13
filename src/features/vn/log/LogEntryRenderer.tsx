@@ -5,6 +5,7 @@ import {
 } from "./LogSegmentRenderer";
 import type { TypedTextTokenState } from "../ui/TypedText";
 import type { LogEntry } from "./useNarrativeLog";
+import { getVoicePresentation } from "../voicePresentation";
 
 interface LogEntryRendererProps {
   entry: LogEntry;
@@ -12,6 +13,7 @@ interface LogEntryRendererProps {
   showSpeaker?: boolean;
   previousSpeakerId?: string | null;
   playerProfile?: PlayerProfileForLog | null;
+  parliamentPresetId?: string;
   tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
 }
 
@@ -21,6 +23,7 @@ export function LogEntryRenderer({
   showSpeaker = true,
   previousSpeakerId,
   playerProfile,
+  parliamentPresetId,
   tokenStateByPayload,
 }: LogEntryRendererProps) {
   if (entry.type === "segment" && entry.segment) {
@@ -31,6 +34,7 @@ export function LogEntryRenderer({
         showSpeaker={showSpeaker}
         previousSpeakerId={previousSpeakerId}
         playerProfile={playerProfile}
+        parliamentPresetId={parliamentPresetId}
         tokenStateByPayload={tokenStateByPayload}
       />
     );
@@ -43,6 +47,7 @@ export function LogEntryRenderer({
         showSpeaker={false}
         previousSpeakerId={previousSpeakerId}
         playerProfile={playerProfile}
+        parliamentPresetId={parliamentPresetId}
         tokenStateByPayload={tokenStateByPayload}
         segment={{
           speaker: "player",
@@ -55,7 +60,10 @@ export function LogEntryRenderer({
   }
 
   if (entry.type === "skill_check_result" && entry.checkResult) {
-    const { voiceLabel, passed, roll, dc } = entry.checkResult;
+    const { voiceId, voiceLabel, passed, roll, dc } = entry.checkResult;
+    const resolvedVoiceLabel = voiceId
+      ? getVoicePresentation(voiceId, parliamentPresetId).label
+      : voiceLabel;
     return (
       <div
         className={[
@@ -66,7 +74,7 @@ export function LogEntryRenderer({
       >
         <Dice5 size={14} />
         <span>
-          {voiceLabel} {passed ? "pass" : "fail"} - {roll} vs DC {dc}
+          {resolvedVoiceLabel} {passed ? "pass" : "fail"} - {roll} vs DC {dc}
         </span>
       </div>
     );

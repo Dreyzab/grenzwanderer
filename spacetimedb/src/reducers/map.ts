@@ -2,49 +2,39 @@ import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
 import {
   applyEffects,
+  CASE_EVENT_NAMES,
   cleanupExpiredMapEvents,
-  createEvidenceKey,
-  createHypothesisFocusFlagKey,
-  createInventoryKey,
-  createQuestKey,
+  createMapEvaluationCache,
   createUnlockGroupKey,
   createRedeemedCodeKey,
+  discoveredFlagKey,
   emitTelemetry,
   ensureIdempotent,
-  ensureAgencyCareerRow,
   ensurePlayerProfile,
+  evaluateMapCondition,
   getActiveSnapshot,
-  getAgencyStandingScore,
   getFlag,
-  getFavorBalance,
-  getCareerRankOrder,
   getPlayerActiveMapEventByEventId,
-  getRelationshipValue,
-  getRumorStatus,
-  getVar,
+  hasGeofenceCondition,
   type MapAction,
   markMapEventResolved,
+  normalizeAttemptCoordinate,
   parseStoredMapEventPayload,
+  publishCaseEvent,
+  resolveAttemptLocation,
+  resolvePointState,
   sha256Hex,
   spawnMapEventInternal,
   upsertFlag,
+  validateMapDiscovery,
+  visitedFlagKey,
 } from "./helpers";
-import type {
-  MapBinding,
-  MapCondition,
-  MapPoint,
-  MapPointState,
-} from "./helpers";
-import { normalizeRumorStatus } from "./helpers/rumor_status";
+import type { MapBinding, MapPoint } from "./helpers";
 import {
   hasPriorSuccessfulRedeem,
   hasRecentRejectedRedeem,
 } from "./helpers/map_redemption";
 import { startScenarioInternal } from "./vn";
-
-const visitedFlagKey = (pointId: string): string => `VISITED_${pointId}`;
-const completedFlagKey = (pointId: string): string => `COMPLETED_${pointId}`;
-const discoveredFlagKey = (pointId: string): string => `DISCOVERED_${pointId}`;
 
 const rejectMapInteraction = (
   ctx: any,
@@ -56,197 +46,6 @@ const rejectMapInteraction = (
     reason,
   });
   throw new SenderError(reason);
-};
-
-const EARTH_RADIUS_METERS = 6_371_000;
-
-type AttemptLocation = {
-  lat: number;
-  lng: number;
-};
-
-type MapEvaluationCache = {
-  currentCareerRankOrder?: number;
-  careerRankOrderByRankId: Map<string, number>;
-};
-
-const normalizeAttemptCoordinate = (value: unknown): number | undefined =>
-  typeof value === "number" && Number.isFinite(value) ? value : undefined;
-
-const resolveAttemptLocation = (
-  attemptedFromLat: unknown,
-  attemptedFromLng: unknown,
-): AttemptLocation | null => {
-  const lat = normalizeAttemptCoordinate(attemptedFromLat);
-  const lng = normalizeAttemptCoordinate(attemptedFromLng);
-  if (lat === undefined || lng === undefined) {
-    return null;
-  }
-
-  return { lat, lng };
-};
-
-const toRadians = (value: number): number => (value * Math.PI) / 180;
-
-const haversineDistanceMeters = (
-  from: AttemptLocation,
-  to: AttemptLocation,
-): number => {
-  const dLat = toRadians(to.lat - from.lat);
-  const dLng = toRadians(to.lng - from.lng);
-  const lat1 = toRadians(from.lat);
-  const lat2 = toRadians(to.lat);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-  return 2 * EARTH_RADIUS_METERS * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
-
-const hasGeofenceCondition = (condition: MapCondition): boolean => {
-  if (condition.type === "geofence_within") {
-    return true;
-  }
-  if (condition.type === "logic_and" || condition.type === "logic_or") {
-    return condition.conditions.some((entry) => hasGeofenceCondition(entry));
-  }
-  if (condition.type === "logic_not") {
-    return hasGeofenceCondition(condition.condition);
-  }
-  return false;
-};
-
-const getCareerRankOrderCached = (
-  ctx: any,
-  rankId: string,
-  cache: MapEvaluationCache,
-): number => {
-  const cached = cache.careerRankOrderByRankId.get(rankId);
-  if (cached !== undefined) {
-    return cached;
-  }
-
-  const resolved = getCareerRankOrder(ctx, rankId);
-  cache.careerRankOrderByRankId.set(rankId, resolved);
-  return resolved;
-};
-
-const getCurrentPlayerCareerRankOrderCached = (
-  ctx: any,
-  cache: MapEvaluationCache,
-): number => {
-  if (cache.currentCareerRankOrder !== undefined) {
-    return cache.currentCareerRankOrder;
-  }
-  const rankId = ensureAgencyCareerRow(ctx).rankId;
-  const resolved = getCareerRankOrderCached(ctx, rankId, cache);
-  cache.currentCareerRankOrder = resolved;
-  return resolved;
-};
-
-const evaluateQrCodeCondition = (
-  ctx: any,
-  condition: MapCondition,
-  attemptedLocation: AttemptLocation | null,
-  cache: MapEvaluationCache,
-): boolean => {
-  if (condition.type === "flag_is") {
-    return getFlag(ctx, condition.key) === condition.value;
-  }
-  if (condition.type === "var_gte") {
-    return getVar(ctx, condition.key) >= condition.value;
-  }
-  if (condition.type === "var_lte") {
-    return getVar(ctx, condition.key) <= condition.value;
-  }
-  if (condition.type === "has_item") {
-    const inventoryKey = createInventoryKey(ctx.sender, condition.itemId);
-    const row = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
-    return row ? row.quantity > 0 : false;
-  }
-  if (condition.type === "has_evidence") {
-    const evidenceKey = createEvidenceKey(ctx.sender, condition.evidenceId);
-    return !!ctx.db.playerEvidence.evidenceKey.find(evidenceKey);
-  }
-  if (condition.type === "quest_stage_gte") {
-    const questKey = createQuestKey(ctx.sender, condition.questId);
-    const row = ctx.db.playerQuest.questKey.find(questKey);
-    return row ? row.stage >= condition.stage : false;
-  }
-  if (condition.type === "relationship_gte") {
-    return getRelationshipValue(ctx, condition.characterId) >= condition.value;
-  }
-  if (condition.type === "favor_balance_gte") {
-    return getFavorBalance(ctx, condition.npcId) >= condition.value;
-  }
-  if (condition.type === "agency_standing_gte") {
-    return getAgencyStandingScore(ctx) >= condition.value;
-  }
-  if (condition.type === "rumor_state_is") {
-    const desired = normalizeRumorStatus(condition.status);
-    return (
-      desired !== null && getRumorStatus(ctx, condition.rumorId) === desired
-    );
-  }
-  if (condition.type === "hypothesis_focus_is") {
-    return getFlag(
-      ctx,
-      createHypothesisFocusFlagKey(condition.caseId, condition.hypothesisId),
-    );
-  }
-  if (condition.type === "thought_state_is") {
-    if (condition.state === "internalized") {
-      return getFlag(ctx, `mind_internalized::${condition.thoughtId}`);
-    }
-    if (condition.state === "researching") {
-      return getFlag(ctx, `mind_researching::${condition.thoughtId}`);
-    }
-    return getFlag(ctx, `mind_unlocked::${condition.thoughtId}`);
-  }
-  if (condition.type === "career_rank_gte") {
-    return (
-      getCurrentPlayerCareerRankOrderCached(ctx, cache) >=
-      getCareerRankOrderCached(ctx, condition.rankId, cache)
-    );
-  }
-  if (condition.type === "unlock_group_has") {
-    const unlockKey = createUnlockGroupKey(ctx.sender, condition.groupId);
-    return !!ctx.db.playerUnlockGroup.unlockKey.find(unlockKey);
-  }
-  if (condition.type === "point_state_is") {
-    return false;
-  }
-  if (condition.type === "logic_and") {
-    return condition.conditions.every((entry) =>
-      evaluateQrCodeCondition(ctx, entry, attemptedLocation, cache),
-    );
-  }
-  if (condition.type === "logic_or") {
-    return condition.conditions.some((entry) =>
-      evaluateQrCodeCondition(ctx, entry, attemptedLocation, cache),
-    );
-  }
-  if (condition.type === "logic_not") {
-    return !evaluateQrCodeCondition(
-      ctx,
-      condition.condition,
-      attemptedLocation,
-      cache,
-    );
-  }
-  if (condition.type === "geofence_within") {
-    if (!attemptedLocation) {
-      return false;
-    }
-
-    return (
-      haversineDistanceMeters(attemptedLocation, {
-        lat: condition.lat,
-        lng: condition.lng,
-      }) <= condition.radiusMeters
-    );
-  }
-
-  return false;
 };
 
 const insertRedeemAttempt = (
@@ -270,33 +69,6 @@ const insertRedeemAttempt = (
   });
 };
 
-const resolvePointState = (ctx: any, point: MapPoint): MapPointState => {
-  if (getFlag(ctx, completedFlagKey(point.id))) {
-    return "completed";
-  }
-  if (getFlag(ctx, visitedFlagKey(point.id))) {
-    return "visited";
-  }
-
-  const currentLocation = ctx.db.playerLocation.playerId.find(ctx.sender);
-  if (currentLocation?.locationId === point.locationId) {
-    return "visited";
-  }
-
-  if (point.unlockGroup) {
-    const unlockKey = createUnlockGroupKey(ctx.sender, point.unlockGroup);
-    if (ctx.db.playerUnlockGroup.unlockKey.find(unlockKey)) {
-      return "discovered";
-    }
-  }
-
-  if (getFlag(ctx, discoveredFlagKey(point.id))) {
-    return "discovered";
-  }
-
-  return point.defaultState ?? "locked";
-};
-
 const isPointInteractable = (ctx: any, point: MapPoint): boolean => {
   if (point.category === "HUB") {
     return true;
@@ -312,99 +84,6 @@ const isPointInteractable = (ctx: any, point: MapPoint): boolean => {
   }
 
   return resolvePointState(ctx, point) !== "locked";
-};
-
-const evaluateMapCondition = (
-  ctx: any,
-  point: MapPoint,
-  condition: MapCondition,
-  cache: MapEvaluationCache,
-): boolean => {
-  switch (condition.type) {
-    case "flag_is": {
-      return getFlag(ctx, condition.key) === condition.value;
-    }
-    case "var_gte": {
-      return getVar(ctx, condition.key) >= condition.value;
-    }
-    case "var_lte": {
-      return getVar(ctx, condition.key) <= condition.value;
-    }
-    case "has_item": {
-      const inventoryKey = createInventoryKey(ctx.sender, condition.itemId);
-      const row = ctx.db.playerInventory.inventoryKey.find(inventoryKey);
-      return row ? row.quantity > 0 : false;
-    }
-    case "has_evidence": {
-      const evidenceKey = createEvidenceKey(ctx.sender, condition.evidenceId);
-      return !!ctx.db.playerEvidence.evidenceKey.find(evidenceKey);
-    }
-    case "quest_stage_gte": {
-      const questKey = createQuestKey(ctx.sender, condition.questId);
-      const row = ctx.db.playerQuest.questKey.find(questKey);
-      return row ? row.stage >= condition.stage : false;
-    }
-    case "relationship_gte": {
-      return (
-        getRelationshipValue(ctx, condition.characterId) >= condition.value
-      );
-    }
-    case "favor_balance_gte": {
-      return getFavorBalance(ctx, condition.npcId) >= condition.value;
-    }
-    case "agency_standing_gte": {
-      return getAgencyStandingScore(ctx) >= condition.value;
-    }
-    case "rumor_state_is": {
-      const desired = normalizeRumorStatus(condition.status);
-      return (
-        desired !== null && getRumorStatus(ctx, condition.rumorId) === desired
-      );
-    }
-    case "hypothesis_focus_is": {
-      return getFlag(
-        ctx,
-        createHypothesisFocusFlagKey(condition.caseId, condition.hypothesisId),
-      );
-    }
-    case "thought_state_is": {
-      if (condition.state === "internalized") {
-        return getFlag(ctx, `mind_internalized::${condition.thoughtId}`);
-      }
-      if (condition.state === "researching") {
-        return getFlag(ctx, `mind_researching::${condition.thoughtId}`);
-      }
-      return getFlag(ctx, `mind_unlocked::${condition.thoughtId}`);
-    }
-    case "career_rank_gte": {
-      return (
-        getCurrentPlayerCareerRankOrderCached(ctx, cache) >=
-        getCareerRankOrderCached(ctx, condition.rankId, cache)
-      );
-    }
-    case "unlock_group_has": {
-      const unlockKey = createUnlockGroupKey(ctx.sender, condition.groupId);
-      return !!ctx.db.playerUnlockGroup.unlockKey.find(unlockKey);
-    }
-    case "point_state_is": {
-      return resolvePointState(ctx, point) === condition.state;
-    }
-    case "logic_and": {
-      return condition.conditions.every((entry) =>
-        evaluateMapCondition(ctx, point, entry, cache),
-      );
-    }
-    case "logic_or": {
-      return condition.conditions.some((entry) =>
-        evaluateMapCondition(ctx, point, entry, cache),
-      );
-    }
-    case "logic_not": {
-      return !evaluateMapCondition(ctx, point, condition.condition, cache);
-    }
-    default:
-      return false;
-  }
 };
 
 const assertUnsupportedMapAction = (action: never): never => {
@@ -620,8 +299,20 @@ export const map_interact = spacetimedb.reducer(
     pointId: t.string(),
     bindingId: t.string(),
     trigger: t.string(),
+    attemptedFromLat: t.f64().optional(),
+    attemptedFromLng: t.f64().optional(),
   },
-  (ctx, { requestId, pointId, bindingId, trigger }) => {
+  (
+    ctx,
+    {
+      requestId,
+      pointId,
+      bindingId,
+      trigger,
+      attemptedFromLat,
+      attemptedFromLng,
+    },
+  ) => {
     if (!pointId || pointId.trim().length === 0) {
       throw new SenderError("pointId must not be empty");
     }
@@ -677,11 +368,23 @@ export const map_interact = spacetimedb.reducer(
       return;
     }
 
-    const mapEvaluationCache: MapEvaluationCache = {
-      careerRankOrderByRankId: new Map<string, number>(),
-    };
-    const conditionsMet = (binding.conditions ?? []).every((condition) =>
-      evaluateMapCondition(ctx, runtimePoint, condition, mapEvaluationCache),
+    const attemptedLocation = resolveAttemptLocation(
+      attemptedFromLat,
+      attemptedFromLng,
+    );
+    const bindingConditions = binding.conditions ?? [];
+    if (
+      !attemptedLocation &&
+      bindingConditions.some((condition) => hasGeofenceCondition(condition))
+    ) {
+      rejectMapInteraction(ctx, telemetryBase, "location_required");
+      return;
+    }
+
+    const mapEvaluationCache = createMapEvaluationCache();
+    const conditionScope = { point: runtimePoint, attemptedLocation };
+    const conditionsMet = bindingConditions.every((condition) =>
+      evaluateMapCondition(ctx, condition, conditionScope, mapEvaluationCache),
     );
     if (!conditionsMet) {
       rejectMapInteraction(ctx, telemetryBase, "conditions_failed");
@@ -717,6 +420,17 @@ export const map_interact = spacetimedb.reducer(
       ...telemetryBase,
       intent: binding.intent,
       startedScenarioId,
+    });
+    publishCaseEvent(ctx, {
+      eventName: CASE_EVENT_NAMES.mapInteracted,
+      payloadJson: JSON.stringify({
+        pointId,
+        bindingId,
+        trigger,
+        intent: binding.intent,
+        startedScenarioId,
+      }),
+      idempotencyKey: `${requestId}:map_interacted`,
     });
   },
 );
@@ -858,16 +572,15 @@ export const redeem_map_code = spacetimedb.reducer(
       throw new SenderError("code_location_required");
     }
 
-    const evaluationCache: MapEvaluationCache = {
-      careerRankOrderByRankId: new Map<string, number>(),
-    };
+    const evaluationCache = createMapEvaluationCache();
+    const qrConditionScope = { attemptedLocation };
     let geofenceFailed = false;
     let conditionsMet = true;
     for (const check of conditionChecks) {
-      const conditionMet = evaluateQrCodeCondition(
+      const conditionMet = evaluateMapCondition(
         ctx,
         check.condition,
-        attemptedLocation,
+        qrConditionScope,
         evaluationCache,
       );
       if (!conditionMet) {
@@ -940,6 +653,13 @@ export const redeem_map_code = spacetimedb.reducer(
       result: queuedAfterBriefing ? "queued_after_briefing" : "applied",
       contentVersion: activeVersion.version,
     });
+    if (!queuedAfterBriefing) {
+      publishCaseEvent(ctx, {
+        eventName: CASE_EVENT_NAMES.mapCodeRedeemed,
+        payloadJson: JSON.stringify({ codeId: entry.codeId }),
+        idempotencyKey: `${requestId}:map_code_redeemed`,
+      });
+    }
   },
 );
 
@@ -947,10 +667,19 @@ export const commit_map_discovery = spacetimedb.reducer(
   {
     requestId: t.string(),
     pointId: t.string(),
+    channel: t.string(),
+    attemptedFromLat: t.f64().optional(),
+    attemptedFromLng: t.f64().optional(),
   },
-  (ctx, { requestId, pointId }) => {
+  (
+    ctx,
+    { requestId, pointId, channel, attemptedFromLat, attemptedFromLng },
+  ) => {
     if (!pointId || pointId.trim().length === 0) {
       throw new SenderError("pointId must not be empty");
+    }
+    if (!channel || channel.trim().length === 0) {
+      throw new SenderError("channel must not be empty");
     }
 
     ensureIdempotent(ctx, requestId, "commit_map_discovery");
@@ -962,7 +691,27 @@ export const commit_map_discovery = spacetimedb.reducer(
       throw new SenderError(`Unknown map point ${pointId}`);
     }
 
-    upsertFlag(ctx, `DISCOVERED_${pointId}`, true);
+    const attemptedLocation = resolveAttemptLocation(
+      attemptedFromLat,
+      attemptedFromLng,
+    );
+    const validation = validateMapDiscovery(ctx, point, {
+      channel,
+      attemptedLocation,
+      cache: createMapEvaluationCache(),
+    });
+    if (!validation.ok) {
+      emitTelemetry(ctx, "map_discovery_rejected", {
+        pointId,
+        channel,
+        reason: validation.reason,
+        attemptedFromLat: normalizeAttemptCoordinate(attemptedFromLat),
+        attemptedFromLng: normalizeAttemptCoordinate(attemptedFromLng),
+      });
+      throw new SenderError(validation.reason);
+    }
+
+    upsertFlag(ctx, discoveredFlagKey(pointId), true);
 
     if (point.unlockGroup) {
       const unlockKey = createUnlockGroupKey(ctx.sender, point.unlockGroup);
@@ -978,7 +727,13 @@ export const commit_map_discovery = spacetimedb.reducer(
 
     emitTelemetry(ctx, "map_point_discovered", {
       pointId,
+      channel,
       unlockGroup: point.unlockGroup,
+    });
+    publishCaseEvent(ctx, {
+      eventName: CASE_EVENT_NAMES.mapPointDiscovered,
+      payloadJson: JSON.stringify({ pointId, channel }),
+      idempotencyKey: `${requestId}:map_point_discovered`,
     });
   },
 );

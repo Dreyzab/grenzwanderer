@@ -102,8 +102,12 @@ export const CONTENT_IDS = {
     "loc_apothecary",
     "loc_pub",
     "loc_street_event",
+    "loc_informant_meeting",
     "loc_telephone",
   ]),
   mapQrCodeIds: new Set<string>(["qr_warehouse_dock"]),
-  mapEventTemplateIds: new Set<string>(["evt_workers_pub_raid"]),
+  mapEventTemplateIds: new Set<string>([
+    "evt_workers_pub_raid",
+    "evt_informant_meeting",
+  ]),
 };

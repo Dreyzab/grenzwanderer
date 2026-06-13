@@ -16,6 +16,8 @@ import {
   resolveOverallInnerVoiceSelection,
 } from "../../../shared/game/innerVoiceModel";
 import { INNER_VOICE_DEFINITIONS } from "../../../../data/innerVoiceContract";
+import { getVoiceSkin } from "../../../../data/parliamentModules";
+import { isParliamentVoiceVisible } from "../parliamentVisibility";
 import { getVoicePresentation } from "../voicePresentation";
 import {
   WITCH_ALCOHOL_AFTERTASTE_VAR,
@@ -46,6 +48,7 @@ interface VnDmSidePanelProps {
   };
   myFlags: Record<string, boolean>;
   myVars: Record<string, number>;
+  parliamentPresetId?: string;
   visibleFacts: readonly string[];
   activeRequest: AiRequest | null;
   activeProposal: DmTurnProposal | null;
@@ -155,13 +158,14 @@ export const VnDmSidePanel = ({
   narrativeResources,
   myFlags,
   myVars,
+  parliamentPresetId,
   visibleFacts,
   activeRequest,
   activeProposal,
   enqueueAiRequest,
   onError,
 }: VnDmSidePanelProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [viewMode, setViewMode] = useState<DmViewMode>("simple");
   const [activeTab, setActiveTab] = useState<DmTab>("play");
   const [actionText, setActionText] = useState("");
@@ -226,18 +230,27 @@ export const VnDmSidePanel = ({
   );
   const innerVoices = useMemo<DmInnerVoiceInput[]>(
     () =>
-      innerVoiceSelection.ordered.map((entry) => {
-        const definition = INNER_VOICE_DEFINITIONS[entry.voiceId];
-        return {
-          voiceId: entry.voiceId,
-          role: entry.role,
-          stance: entry.stance,
-          label: definition.label,
-          worldview: definition.worldview,
-          toneDescriptor: definition.toneDescriptor,
-        };
-      }),
-    [innerVoiceSelection],
+      innerVoiceSelection.ordered
+        .filter((entry) =>
+          isParliamentVoiceVisible(entry.voiceId, myFlags, parliamentPresetId),
+        )
+        .map((entry) => {
+          const definition = INNER_VOICE_DEFINITIONS[entry.voiceId];
+          const skin = getVoiceSkin(parliamentPresetId, entry.voiceId);
+          return {
+            voiceId: entry.voiceId,
+            role: entry.role,
+            stance: entry.stance,
+            label: skin?.label ?? definition.label,
+            worldview:
+              skin?.persona?.coreDrive ??
+              skin?.persona?.motto ??
+              definition.worldview,
+            toneDescriptor:
+              skin?.persona?.speechPattern ?? definition.toneDescriptor,
+          };
+        }),
+    [innerVoiceSelection, myFlags, parliamentPresetId],
   );
   const isPending =
     activeRequest?.status === "pending" ||
@@ -711,7 +724,10 @@ export const VnDmSidePanel = ({
         proposal.innerVoiceDialogue.length > 0 ? (
           <div className="vn-dm-panel__voices" data-testid="vn-dm-voices">
             {proposal.innerVoiceDialogue.map((entry, index) => {
-              const presentation = getVoicePresentation(entry.voiceId);
+              const presentation = getVoicePresentation(
+                entry.voiceId,
+                parliamentPresetId,
+              );
               return (
                 <p
                   key={`${entry.voiceId}-${index}`}

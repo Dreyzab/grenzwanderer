@@ -52,6 +52,14 @@ export interface VoiceSkin {
   persona?: VoiceSkinPersona;
   /** The "useful but costly" tax — an authoring note, not yet a mechanic. */
   cost: string;
+  /**
+   * In-character fallback line when the voice supports the considered move.
+   * Shown on parliament cards when no AI line is available; overrides the
+   * canonical `supportText`. Required on motive skins (ru locale).
+   */
+  supportText?: string;
+  /** Same as `supportText`, for the opposing stance. */
+  opposeText?: string;
 }
 
 /** A derived-state overlay (e.g. [НАБАТ]). NOT a speaker, NOT a stored meter. */
@@ -69,6 +77,18 @@ export interface ParliamentMode {
 export interface HiddenVoice {
   label: string;
   sourceRole: "concealed_threat";
+  /**
+   * The seated `inner_*` voice this reveal hides behind, when the hidden voice
+   * is a skin over a parliament member (the witch's [СТЫД] over inner_hermit).
+   * Absent when the reveal is purely narrative (no seated voice is concealed).
+   */
+  targetId?: InnerVoiceId;
+  /**
+   * Runtime flag that surfaces the concealed voice. While unset, `targetId`
+   * stays invisible in the parliament for this preset. Absent = nothing is
+   * concealed at runtime yet (reveal is authored content only).
+   */
+  revealFlagKey?: string;
   /** Flags/conditions that surface it (Player Dossier gating). */
   revealTriggers: string[];
   /** A representative line, for tone reference. */
@@ -142,6 +162,10 @@ const witchModule: ParliamentModule = {
         speechPattern: "measured, codex-like, appeals to precedent",
       },
       cost: "merges [ДОМ] + [ИЕРАРХИЯ]: dynastic loyalty + status/rank radar; reads people as ranks and obligations",
+      supportText:
+        "Имя держало этот город, когда рушились мосты. Встань так, чтобы Дому не пришлось краснеть.",
+      opposeText:
+        "Не разменивай столетие рода на минуту собственной слабости.",
     },
     {
       label: "[НЕЖНОСТЬ]",
@@ -151,6 +175,10 @@ const witchModule: ParliamentModule = {
         blindSpot: "dissolves boundaries; rescues people who did not ask",
       },
       cost: "sees pain, fear and unfreedom — sharpest with women, children, the defenseless; over-merges with them",
+      supportText:
+        "Посмотри, как она прячет руки. Ей страшно — подойди первой.",
+      opposeText:
+        "Не превращай чужую боль в довод. Ей нужна ты, а не твоя правота.",
     },
     {
       label: "[СУВЕРЕННОСТЬ]",
@@ -160,11 +188,19 @@ const witchModule: ParliamentModule = {
         blindSpot: "reads help as a leash, compromise as surrender",
       },
       cost: "guards dignity and the right to refuse; isolates her exactly when accepting help would be strength",
+      supportText:
+        "Откажись. Право сказать «нет» — последнее, что у тебя не отняли.",
+      opposeText:
+        "Не надевай поводок только потому, что его назвали помощью.",
     },
     {
       label: "[СТРАТЕГ]",
       targetId: "inner_manipulator",
       cost: "leverage accounting (was [МАКИАВЕЛЛИСТ]); erodes the capacity to trust",
+      supportText:
+        "У каждого в этой комнате есть цена. Узнай её раньше, чем назовут твою.",
+      opposeText:
+        "Не сжигай рычаг ради красивого жеста — сантименты долгов не возвращают.",
     },
     {
       label: "[ЧАРЫ]",
@@ -177,6 +213,10 @@ const witchModule: ParliamentModule = {
         speechPattern: "velvet imperative; sensory, magnetic, faintly dangerous",
       },
       cost: "magnetism + witch-glamour as an outward instrument; intoxicated by her own effect — every scene tempts her to become a demonstration",
+      supportText:
+        "Один взгляд — и комната твоя. Зачем тратить слова на спор?",
+      opposeText:
+        "Не туши собственный свет. Серость тебя не спрячет — только съест.",
     },
     {
       label: "[СТЫД]",
@@ -187,6 +227,10 @@ const witchModule: ParliamentModule = {
           "swaps responsibility for self-hatred; at the extreme: 'you are already a monster, so stop resisting'",
       },
       cost: "hidden until first reveal (see hiddenVoice); three registers — social 'unseemly', moral 'you caused harm', monstrous 'look what you wanted'",
+      supportText:
+        "Назови вред своим именем — пока его не назвали за тебя другие.",
+      opposeText:
+        "Не путай расплату с искуплением. Ей нужна была ты, а не твоя казнь.",
     },
   ],
   modes: [
@@ -216,6 +260,8 @@ const witchModule: ParliamentModule = {
   hiddenVoice: {
     label: "[СТЫД]",
     sourceRole: "concealed_threat",
+    targetId: "inner_hermit",
+    revealFlagKey: "flag_witch_shame_revealed",
     revealTriggers: [
       "first significant harm she caused and rationalized (any register: social, moral, monstrous)",
       "failed attr_composure at high pressure in a crowded scene (the loud Masquerade break)",
@@ -332,6 +378,10 @@ const detectiveModule: ParliamentModule = {
         speechPattern: "calm, fast, three steps ahead",
       },
       cost: "was [АНАЛИТИК]; the efficient line ignores the cost paid by people; between cases the world is grey noise",
+      supportText:
+        "Вот оно, противоречие. Потяни за него — остальное подождёт.",
+      opposeText:
+        "Не бросай цепочку недоказанной. Оборванная нить вернётся за тобой.",
     },
     {
       label: "[СКЕПСИС]",
@@ -341,6 +391,10 @@ const detectiveModule: ParliamentModule = {
         blindSpot: "in trigger-state alienates the honest; truth told well reads as rehearsed",
       },
       cost: "was [ЦИНИК]; situational, not constant — fires on smooth first answers, appeals to authority/sentiment, institutions covering their own; spends rapport he needed",
+      supportText:
+        "Слишком гладкий ответ. Первым лжёт тот, кто отвечает без паузы.",
+      opposeText:
+        "Не сжигай свидетеля недоверием — правда тоже умеет говорить складно.",
     },
     {
       label: "[ПРОВОКАТОР]",
@@ -350,6 +404,10 @@ const detectiveModule: ParliamentModule = {
         blindSpot: "people are lab rats; ethics is someone else's variable",
       },
       cost: "Mentalist-style social experiments break cases and burn trust; wins the read, loses the room",
+      supportText:
+        "Подтолкни его. Реакция скажет больше, чем час вежливого допроса.",
+      opposeText:
+        "Не ставь опыт на человеке, который уже сказал тебе правду.",
     },
     {
       label: "[ИЗНАНКА]",
@@ -360,11 +418,19 @@ const detectiveModule: ParliamentModule = {
         speechPattern: "fragmentary, liminal, addressed half to him, half to the room's residue",
       },
       cost: "the Occult Sleuth pull made a full voice; argues with [МЕТОД] over what counts as real",
+      supportText:
+        "Тише. Комната ещё помнит, что здесь случилось, — слушай её, а не их.",
+      opposeText:
+        "Не записывай в улики шёпот пустоты — потеряешь землю под ногами.",
     },
     {
       label: "[СВИДЕТЕЛЬ]",
       targetId: "inner_hermit",
       cost: "counter-voice; conscience; slow, unprofitable, keeps him honest and alone",
+      supportText:
+        "Сделай честно и медленно. Никто не увидит — этого достаточно.",
+      opposeText:
+        "Не закрывай дело ценой человека. Закрытое так не закрывается.",
     },
   ],
   modes: [
@@ -466,11 +532,19 @@ const journalistModule: ParliamentModule = {
       label: "[ОХОТНИК]",
       targetId: "inner_manipulator",
       cost: "turns sources into tools before they speak",
+      supportText:
+        "Он не собеседник, он источник. Наведи прицел и дожми вопросом.",
+      opposeText:
+        "Не жги источник ради красного словца — охота длиннее одного номера.",
     },
     {
       label: "[ПРИСПОСОБЛЕНЕЦ]",
       targetId: "inner_adapter",
       cost: "rides the winning current; last on a collapsing story",
+      supportText:
+        "Чувствуешь, куда дует? Встань по ветру — герои тонут первыми.",
+      opposeText:
+        "Не держись за тонущую историю. Последним с неё сходит некролог.",
     },
   ],
   modes: [
@@ -533,11 +607,19 @@ const aristocratModule: ParliamentModule = {
       label: "[ИЕРАРХИЯ]",
       targetId: "inner_cynic",
       cost: "status radar; humiliates non-threats",
+      supportText:
+        "Сочти комнату: кто выше, кто ниже, кто притворяется. И стой на своей ступени.",
+      opposeText:
+        "Не кланяйся ниже положенного — в этих залах такого не прощают.",
     },
     {
       label: "[СТРАТЕГ]",
       targetId: "inner_manipulator",
       cost: "leverage accounting; erodes trust",
+      supportText:
+        "Услуга сейчас — вексель потом. Подпиши эту комнату на долги.",
+      opposeText:
+        "Не плати доверием там, где хватило бы расписки.",
     },
   ],
   modes: [
@@ -629,6 +711,10 @@ const veteranModule: ParliamentModule = {
         speechPattern: "командный тон мёртвого командира; приказ, не довод",
       },
       cost: "the Superego in uniform: orders relieve guilt by replacing judgment; demands the mission even from a man with nothing left",
+      supportText:
+        "Приказ ясен: держать строй. Исполняй — вина подождёт отбоя.",
+      opposeText:
+        "С поста уходят по смене или в землю. Не позорь мундир.",
     },
     {
       label: "[ОПЕРАТИВНИК]",
@@ -640,6 +726,10 @@ const veteranModule: ParliamentModule = {
         speechPattern: "dry tactical assessment, numbered, no adjectives",
       },
       cost: "the Ego as field officer: turns grief, love and fear into logistics; the only voice all the others will still listen to",
+      supportText:
+        "Разбей на задачи: выход, укрытие, люди. Работаем по порядку.",
+      opposeText:
+        "Не пори горячку. Необдуманный рывок кладёт всё отделение.",
     },
     {
       label: "[ЧАСОВОЙ]",
@@ -650,6 +740,10 @@ const veteranModule: ParliamentModule = {
         blindSpot: "cannot stand down; a trigger and a threat feel identical",
       },
       cost: "was [ВЫЖИВШИЙ]; hypervigilance as a person — sometimes spots the ambush first, sometimes builds one out of a door-creak",
+      supportText:
+        "Дверь скрипнула дважды. Это не сквозняк — проверь фланг.",
+      opposeText:
+        "Не верь тишине. Засаду готовят именно так.",
     },
     {
       label: "[ВЫЖИВАЛЬЩИК]",
@@ -660,6 +754,10 @@ const veteranModule: ParliamentModule = {
         speechPattern: "животный, хриплый, короткий; глотка, колено, темнота",
       },
       cost: "was [ОДИНОЧКА]; the Id off its leash keeps him alive and costs him everyone watching",
+      supportText:
+        "Глотка, колено, темнота. Бей первым — разбираться будем живыми.",
+      opposeText:
+        "Не геройствуй. Герои остаются там — выжившие выходят.",
     },
     {
       label: "[ТЕНЬ]",
@@ -671,6 +769,10 @@ const veteranModule: ParliamentModule = {
         speechPattern: "издевательский, соблазняющий, на 'ты'",
       },
       cost: "the Jungian Shadow: the repressed taste for power, fear and breakage that [УСТАВ] filed under 'orders'; open from scene one — his daily war",
+      supportText:
+        "Признайся: тебе понравится. У страха в их глазах знакомый вкус.",
+      opposeText:
+        "Только не строй из себя святого — мы оба помним, что ты делал по приказу. И без.",
     },
   ],
   modes: [
@@ -767,11 +869,19 @@ const archivistModule: ParliamentModule = {
       label: "[АНАЛИТИК]",
       targetId: "inner_analyst",
       cost: "the efficient line; people are entries",
+      supportText:
+        "Сначала опись, потом чувства. Разложи факты — пробел подсветится сам.",
+      opposeText:
+        "Не верь выводу без описи. Одна непроверенная ссылка рушит весь свод.",
     },
     {
       label: "[ОТШЕЛЬНИК]",
       targetId: "inner_hermit",
       cost: "counter-voice; least harm, ask little — but also: hide in the stacks",
+      supportText:
+        "Тише. Помочь можно, не входя в комнату, — оставь нужную страницу открытой.",
+      opposeText:
+        "Не прячься в хранилище. Эта полка не заменит человека за дверью.",
     },
   ],
   modes: [

@@ -1,0 +1,79 @@
+/* ═══════════════════════════════════════════════════════════════════
+   EdgeAlertOverlay — screen-edge vignette pulse
+   ═══════════════════════════════════════════════════════════════════
+   Breathing glow hugging the map frame edges. Kind sets the hue:
+     discovery    — aged gold (hidden POI nearby)
+     qr_cache     — cool blue (QR cache nearby)
+     interference — teal flicker (two signals overlap, bearing unreliable)
+     danger       — radium red (hostile presence; enemy track)
+   Cadence and strength come from inline CSS vars set by the component:
+     --edge-alert-intensity (0..1), --edge-alert-period (seconds).
+   ═══════════════════════════════════════════════════════════════════ */
+
+.gw-edge-alert {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  border-radius: inherit;
+  --edge-alert-color: rgba(217, 167, 67, 0.55);
+  --edge-alert-color-soft: rgba(217, 167, 67, 0.22);
+  box-shadow:
+    inset 0 0 calc(18px + 38px * var(--edge-alert-intensity, 0.5))
+      calc(2px + 8px * var(--edge-alert-intensity, 0.5))
+      var(--edge-alert-color-soft),
+    inset 0 0 calc(8px + 18px * var(--edge-alert-intensity, 0.5))
+      var(--edge-alert-color);
+  animation: gw-edge-alert-pulse var(--edge-alert-period, 1.6s) ease-in-out
+    infinite;
+}
+
+.gw-edge-alert[data-kind="qr_cache"] {
+  --edge-alert-color: rgba(89, 180, 222, 0.55);
+  --edge-alert-color-soft: rgba(89, 180, 222, 0.22);
+}
+
+.gw-edge-alert[data-kind="interference"] {
+  --edge-alert-color: rgba(105, 193, 163, 0.55);
+  --edge-alert-color-soft: rgba(105, 193, 163, 0.2);
+  animation-name: gw-edge-alert-flicker;
+  animation-timing-function: steps(2, end);
+}
+
+.gw-edge-alert[data-kind="danger"] {
+  --edge-alert-color: rgba(196, 43, 43, 0.6);
+  --edge-alert-color-soft: rgba(196, 43, 43, 0.26);
+}
+
+@keyframes gw-edge-alert-pulse {
+  0%,
+  100% {
+    opacity: calc(0.35 * var(--edge-alert-intensity, 0.5));
+  }
+  50% {
+    opacity: calc(0.4 + 0.6 * var(--edge-alert-intensity, 0.5));
+  }
+}
+
+@keyframes gw-edge-alert-flicker {
+  0%,
+  100% {
+    opacity: calc(0.3 * var(--edge-alert-intensity, 0.5));
+  }
+  25% {
+    opacity: calc(0.35 + 0.55 * var(--edge-alert-intensity, 0.5));
+  }
+  55% {
+    opacity: calc(0.2 * var(--edge-alert-intensity, 0.5));
+  }
+  75% {
+    opacity: calc(0.3 + 0.5 * var(--edge-alert-intensity, 0.5));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gw-edge-alert {
+    animation: none;
+    opacity: calc(0.45 * var(--edge-alert-intensity, 0.5));
+  }
+}

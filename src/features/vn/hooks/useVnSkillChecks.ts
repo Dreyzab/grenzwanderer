@@ -41,6 +41,7 @@ import {
   buildSkillProgressFeedback,
   formatSkillProgressStatus,
 } from "../skillProgressFeedback";
+import { getVoicePresentation } from "../voicePresentation";
 
 interface UseVnSkillChecksParams {
   selectedScenarioId: string;
@@ -53,6 +54,7 @@ interface UseVnSkillChecksParams {
   currentSessionPointer: string | null;
   myFlags: Record<string, boolean>;
   myVars: Record<string, number>;
+  activeParliamentPresetId?: string;
   choiceEvaluationContext: VnChoiceEvaluationContext;
   mySkillResults: SkillCheckResultLike[];
   currentDiceMode: "d20" | "d10";
@@ -111,6 +113,7 @@ export function useVnSkillChecks({
   currentSessionPointer,
   myFlags,
   myVars,
+  activeParliamentPresetId,
   choiceEvaluationContext,
   mySkillResults,
   currentDiceMode,
@@ -331,6 +334,10 @@ export function useVnSkillChecks({
         scenarioId: selectedScenarioId,
         nodeId: currentNode.id,
         choice,
+        voiceLabel: getVoicePresentation(
+          choice.skillCheck.voiceId,
+          activeParliamentPresetId,
+        ).label,
         diceMode: currentDiceMode,
         chancePercent: getChoiceChancePercent(choice, fortuneSpend),
         effectiveDifficulty,
@@ -345,6 +352,7 @@ export function useVnSkillChecks({
       });
     },
     [
+      activeParliamentPresetId,
       choiceEvaluationContext,
       currentDiceMode,
       currentNode,

@@ -1,12 +1,10 @@
 import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
-import { CASE_CATALOG } from "../../../src/shared/vn-contract";
 import {
-  emitCaseEvent,
   emitTelemetry,
   ensureIdempotent,
   ensurePlayerProfile,
-  processCaseEventTriggers,
+  publishCaseEvent,
 } from "./helpers";
 import { assertDirectProgressionReducerAllowed } from "./helpers/progression_guard";
 
@@ -39,7 +37,7 @@ export const emit_case_event = spacetimedb.reducer(
     ensurePlayerProfile(ctx);
     ensureIdempotent(ctx, requestId, "emit_case_event");
     assertDirectProgressionReducerAllowed(ctx, "emit_case_event");
-    const eventRow = emitCaseEvent(ctx, {
+    publishCaseEvent(ctx, {
       eventName,
       payloadJson,
       caseId,
@@ -47,17 +45,6 @@ export const emit_case_event = spacetimedb.reducer(
       nodeId,
       questInstanceId,
       idempotencyKey: requestId,
-    });
-    processCaseEventTriggers(ctx, CASE_CATALOG, {
-      eventName: eventRow.eventName,
-      scope: {
-        caseId: eventRow.caseId,
-        scenarioId: eventRow.scenarioId,
-        nodeId: eventRow.nodeId,
-        questInstanceId: eventRow.questInstanceId,
-      },
-      idempotencyKey: eventRow.idempotencyKey,
-      payload: JSON.parse(eventRow.payloadJson) as Record<string, unknown>,
     });
     emitTelemetry(ctx, "case_event_recorded", {
       eventName,

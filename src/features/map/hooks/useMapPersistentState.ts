@@ -4,8 +4,6 @@ import { useActiveContentSnapshot } from "../../../shared/content/activeSnapshot
 import { getCareerRanks } from "../../../shared/game/socialPresentation";
 import { tables } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
-import { staticMapDataSource } from "../data/mapDataSource";
-import { resolveScenarioForPoint } from "../data/scenario-mapping";
 import { derivePointState } from "../model/derivePointState";
 import { isPointEligibleForDiscoverySignal } from "../model/discoverySignal";
 import {
@@ -20,8 +18,6 @@ import {
   isSightModeAllowed,
 } from "../../mysticism/model/mysticism";
 import type {
-  MapDataSource,
-  MapPoint,
   MapRegion,
   MapRegionId,
   MapResolverInputs,
@@ -39,7 +35,12 @@ const FALLBACK_REGION: MapRegion = {
 };
 
 export interface UseMapPersistentStateResult {
-  source: "legacy_v2" | "snapshot_v3";
+  /**
+   * False while the active content snapshot is loading or lacks a map
+   * (schemaVersion < 3). The snapshot is the only map data source; there is
+   * no client-side fallback.
+   */
+  isMapAvailable: boolean;
   region: MapRegion;
   currentLocationId: string | null;
   points: RuntimeMapPoint[];
@@ -52,39 +53,6 @@ export interface UseMapPersistentStateResult {
 
 const normalizeNumber = (value: number | bigint): number =>
   typeof value === "bigint" ? Number(value) : value;
-
-const makeLegacyBindings = (
-  point: MapPoint,
-  resolvedScenarioId: string | null,
-): RuntimeMapBinding[] => {
-  const bindings: RuntimeMapBinding[] = [
-    {
-      id: `sys_travel_${point.id}`,
-      trigger: "card_secondary",
-      label: "Travel",
-      priority: 10,
-      intent: "travel",
-      actions: [{ type: "travel_to", locationId: point.locationId }],
-      hasStartScenario: false,
-      hasTravelAction: true,
-    },
-  ];
-
-  if (resolvedScenarioId) {
-    bindings.unshift({
-      id: `legacy_start_${point.id}`,
-      trigger: "card_primary",
-      label: "Start Scenario",
-      priority: 100,
-      intent: "interaction",
-      actions: [{ type: "start_scenario", scenarioId: resolvedScenarioId }],
-      hasStartScenario: true,
-      hasTravelAction: false,
-    });
-  }
-
-  return bindings;
-};
 
 const appendAgencyCommandBinding = (
   point: { id: string },
@@ -229,7 +197,6 @@ const resolvePersistentVisibility = (
 };
 
 export const useMapPersistentState = (
-  mapDataSource: MapDataSource = staticMapDataSource,
   regionId?: MapRegionId,
 ): UseMapPersistentStateResult => {
   const { identityHex } = useIdentity();
@@ -258,20 +225,14 @@ export const useMapPersistentState = (
     const snapshot = activeSnapshot;
     const contentReady =
       (versionsReady && snapshotReady) || Boolean(activeVersion && snapshot);
-    const source =
+    const snapshotMap =
       snapshot?.schemaVersion && snapshot.schemaVersion >= 3 && snapshot.map
-        ? "snapshot_v3"
-        : "legacy_v2";
+        ? snapshot.map
+        : null;
+    const isMapAvailable = snapshotMap !== null;
 
-    const regions =
-      source === "snapshot_v3" && snapshot?.map
-        ? snapshot.map.regions
-        : mapDataSource.getRegions();
-    const selectedRegionId =
-      regionId ??
-      (source === "snapshot_v3" && snapshot?.map
-        ? snapshot.map.defaultRegionId
-        : mapDataSource.getDefaultRegionId());
+    const regions = snapshotMap?.regions ?? [];
+    const selectedRegionId = regionId ?? snapshotMap?.defaultRegionId;
     const selectedRegion =
       regions.find((entry: any) => entry.id === selectedRegionId) ??
       regions[0] ??
@@ -374,9 +335,6 @@ export const useMapPersistentState = (
       Object.fromEntries(varsByKey.entries()),
     );
 
-    const availableScenarioIds = new Set<string>(
-      snapshot?.scenarios.map((scenario: any) => scenario.id) ?? [],
-    );
     const objectivePointIds = resolveQuestObjectivePointIds(
       snapshot?.questCatalog,
       questStages,
@@ -387,11 +345,9 @@ export const useMapPersistentState = (
     );
 
     const sourcePoints =
-      source === "snapshot_v3" && snapshot?.map
-        ? snapshot.map.points.filter(
-            (point: any) => point.regionId === selectedRegion.id,
-          )
-        : mapDataSource.getPoints(selectedRegion.id);
+      snapshotMap?.points.filter(
+        (point: any) => point.regionId === selectedRegion.id,
+      ) ?? [];
 
     const runtimePoints: RuntimeMapPoint[] = sourcePoints.map((point: any) => {
       const normalizedCategory =
@@ -405,79 +361,48 @@ export const useMapPersistentState = (
         discoveredFlags,
       );
 
-      if (source === "snapshot_v3") {
-        const availableBindings = appendAgencyCommandBinding(
-          point,
-          resolveAvailableBindings(point.bindings, {
-            ...resolverInputs,
-            pointState: state,
-          }),
-        );
-
-        const primaryBinding = pickPrimaryBinding(availableBindings);
-        const travelBinding = pickTravelBinding(availableBindings);
-        const resolvedScenarioId =
-          resolveScenarioIdFromBindings(availableBindings);
-        const canStartScenario = resolvedScenarioId !== null;
-
-        const runtimePoint: RuntimeMapPoint = {
-          ...point,
-          category: normalizedCategory,
-          state,
-          availableBindings,
-          primaryBinding,
-          travelBinding,
-          isObjectiveActive:
-            objectivePointIds.has(point.id) ||
-            availableBindings.some((binding) => binding.intent === "objective"),
-          canTravel: travelBinding !== null,
-          resolvedScenarioId,
-          canStartScenario,
-          isVisible: false,
-          runtimeSource: "persistent",
-        };
-
-        return {
-          ...runtimePoint,
-          isVisible: resolvePersistentVisibility(
-            runtimePoint,
-            agencyBriefingComplete,
-            case01OnboardingComplete,
-            snapshot?.vnRuntime?.releaseProfile,
-            resolverInputs,
-            mysticState,
-          ),
-        };
-      }
-
-      const legacyPoint = point as MapPoint;
-      const resolvedScenarioId = resolveScenarioForPoint(
-        legacyPoint.legacyScenarioIds,
-        availableScenarioIds,
-      );
       const availableBindings = appendAgencyCommandBinding(
-        legacyPoint,
-        makeLegacyBindings(legacyPoint, resolvedScenarioId),
+        point,
+        resolveAvailableBindings(point.bindings, {
+          ...resolverInputs,
+          pointState: state,
+        }),
       );
+
       const primaryBinding = pickPrimaryBinding(availableBindings);
       const travelBinding = pickTravelBinding(availableBindings);
+      const resolvedScenarioId =
+        resolveScenarioIdFromBindings(availableBindings);
+      const canStartScenario = resolvedScenarioId !== null;
 
       const runtimePoint: RuntimeMapPoint = {
-        ...legacyPoint,
+        ...point,
         category: normalizedCategory,
         state,
         availableBindings,
         primaryBinding,
         travelBinding,
-        isObjectiveActive: false,
+        isObjectiveActive:
+          objectivePointIds.has(point.id) ||
+          availableBindings.some((binding) => binding.intent === "objective"),
         canTravel: travelBinding !== null,
         resolvedScenarioId,
-        canStartScenario: resolvedScenarioId !== null,
-        isVisible: true,
+        canStartScenario,
+        isVisible: false,
         runtimeSource: "persistent",
       };
 
-      return runtimePoint;
+      return {
+        ...runtimePoint,
+        isVisible: resolvePersistentVisibility(
+          runtimePoint,
+          agencyBriefingComplete,
+          case01OnboardingComplete,
+          snapshot?.vnRuntime?.releaseProfile,
+          resolverInputs,
+          mysticState,
+        ),
+      };
     });
 
     const points = runtimePoints.filter((point) => point.isVisible);
@@ -489,18 +414,16 @@ export const useMapPersistentState = (
     );
 
     return {
-      source,
+      isMapAvailable,
       region: selectedRegion,
       currentLocationId,
       points,
       journeyDiscoveryCandidates,
       activeFlags,
       shadowRoutes:
-        source === "snapshot_v3" && snapshot?.map
-          ? (snapshot.map.shadowRoutes?.filter(
-              (route: any) => route.regionId === selectedRegion.id,
-            ) ?? [])
-          : [],
+        snapshotMap?.shadowRoutes?.filter(
+          (route: any) => route.regionId === selectedRegion.id,
+        ) ?? [],
       resolverInputs,
       isReady:
         locationsReady &&
@@ -529,7 +452,6 @@ export const useMapPersistentState = (
     inventoryReady,
     locations,
     locationsReady,
-    mapDataSource,
     npcFavors,
     npcFavorsReady,
     npcStates,

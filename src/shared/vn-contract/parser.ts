@@ -677,6 +677,10 @@ const isChoice = (value: unknown): value is VnChoice => {
       typeof value.allowCustomInput === "boolean") &&
     (value.choiceSource === undefined ||
       isVnChoiceSource(value.choiceSource)) &&
+    (value.presentationVoiceId === undefined ||
+      (typeof value.presentationVoiceId === "string" &&
+        (isSkillVoiceId(value.presentationVoiceId) ||
+          isInnerVoiceId(value.presentationVoiceId)))) &&
     (value.aiMode === undefined || isVnAiMode(value.aiMode)) &&
     (value.providenceCost === undefined ||
       typeof value.providenceCost === "number") &&
@@ -1923,6 +1927,56 @@ const parseMap = (
   };
 };
 
+const isValidSnapshotTriggerRule = (entry: unknown): boolean =>
+  isObject(entry) &&
+  typeof entry.id === "string" &&
+  typeof entry.schemaVersion === "number" &&
+  typeof entry.kindVersion === "number" &&
+  (entry.status === "active" ||
+    entry.status === "paused" ||
+    entry.status === "retired") &&
+  typeof entry.eventName === "string" &&
+  (entry.conditions === undefined || Array.isArray(entry.conditions)) &&
+  (entry.effects === undefined || Array.isArray(entry.effects)) &&
+  (entry.allowedArchetypeIds === undefined ||
+    (Array.isArray(entry.allowedArchetypeIds) &&
+      entry.allowedArchetypeIds.every((id) => typeof id === "string")));
+
+const isValidSnapshotQuestArchetype = (entry: unknown): boolean =>
+  isObject(entry) &&
+  typeof entry.id === "string" &&
+  typeof entry.version === "number" &&
+  typeof entry.kind === "string" &&
+  typeof entry.title === "string" &&
+  Array.isArray(entry.triggerRuleIds) &&
+  entry.triggerRuleIds.every((id) => typeof id === "string") &&
+  Array.isArray(entry.stepNodeIds) &&
+  entry.stepNodeIds.every((id) => typeof id === "string");
+
+// Shallow structural validation only: deep trigger/archetype invariants
+// (effects allowlist, namespace rules, dangling ids) are enforced by the
+// case-ir lint gate at authoring time, before the snapshot is built.
+const parseCaseCatalog = (
+  value: unknown,
+): VnSnapshot["caseCatalog"] | undefined | null => {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isObject(value)) {
+    return null;
+  }
+  if (
+    !Array.isArray(value.triggerRules) ||
+    !value.triggerRules.every(isValidSnapshotTriggerRule) ||
+    !Array.isArray(value.questArchetypes) ||
+    !value.questArchetypes.every(isValidSnapshotQuestArchetype)
+  ) {
+    return null;
+  }
+
+  return value as unknown as VnSnapshot["caseCatalog"];
+};
+
 const parseSocialCatalog = (
   value: unknown,
   schemaVersion: number,
@@ -2340,6 +2394,14 @@ const parseSnapshotInternal = (payloadJson: string): InternalParseResult => {
       message: "Invalid socialCatalog structure",
     };
   }
+  const caseCatalog = parseCaseCatalog(parsed.caseCatalog);
+  if (caseCatalog === null) {
+    return {
+      ok: false,
+      path: "caseCatalog",
+      message: "Invalid caseCatalog structure",
+    };
+  }
 
   if (
     parsed.schemaVersion >= MIN_VN_SCHEMA_WITH_MIND_PALACE &&
@@ -2368,6 +2430,7 @@ const parseSnapshotInternal = (payloadJson: string): InternalParseResult => {
       map,
       questCatalog,
       socialCatalog,
+      caseCatalog,
     },
   };
 };

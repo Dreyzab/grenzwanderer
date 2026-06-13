@@ -301,6 +301,8 @@ const runSmoke = async () =>
             pointId: ids.pointTravel,
             bindingId: ids.bindingTravel,
             trigger: "card_secondary",
+            attemptedFromLat: undefined,
+            attemptedFromLng: undefined,
           });
 
           const travelLocation = [...conn.db.playerLocation.iter()][0];
@@ -325,6 +327,8 @@ const runSmoke = async () =>
             pointId: ids.pointCase,
             bindingId: ids.bindingCaseStart,
             trigger: "card_primary",
+            attemptedFromLat: undefined,
+            attemptedFromLng: undefined,
           });
 
           const scenarioSession = [...conn.db.vnSession.iter()].find(
@@ -352,6 +356,8 @@ const runSmoke = async () =>
                 pointId: ids.pointLocked,
                 bindingId: ids.bindingLocked,
                 trigger: "card_primary",
+                attemptedFromLat: undefined,
+                attemptedFromLng: undefined,
               }),
             "conditions_failed",
           );

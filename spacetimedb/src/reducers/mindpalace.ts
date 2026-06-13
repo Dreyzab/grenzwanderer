@@ -1,6 +1,7 @@
 import { SenderError, t } from "spacetimedb/server";
 import spacetimedb from "../schema";
 import {
+  assertHypothesisInternal,
   createHypothesisFocusFlagKey,
   createPlayerMindCaseKey,
   discoverFactInternal,
@@ -9,8 +10,10 @@ import {
   ensureMindCaseActive,
   ensureMindHypothesisForCase,
   ensurePlayerProfile,
+  linkFactInternal,
+  saveBoardLayoutInternal,
+  unlinkFactInternal,
   upsertFlag,
-  validateHypothesisInternal,
 } from "./helpers";
 import { assertVnInteractiveDiscoverFactAllowed } from "./helpers/progression_guard";
 
@@ -81,7 +84,67 @@ export const discover_fact = spacetimedb.reducer(
   },
 );
 
-export const validate_hypothesis = spacetimedb.reducer(
+export const link_fact = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    caseId: t.string(),
+    factId: t.string(),
+    hypothesisId: t.string(),
+  },
+  (ctx, { requestId, caseId, factId, hypothesisId }) => {
+    if (!caseId || caseId.trim().length === 0) {
+      throw new SenderError("caseId must not be empty");
+    }
+    if (!factId || factId.trim().length === 0) {
+      throw new SenderError("factId must not be empty");
+    }
+    if (!hypothesisId || hypothesisId.trim().length === 0) {
+      throw new SenderError("hypothesisId must not be empty");
+    }
+
+    ensureIdempotent(ctx, requestId, "link_fact");
+    linkFactInternal(ctx, caseId, factId, hypothesisId);
+  },
+);
+
+export const unlink_fact = spacetimedb.reducer(
+  {
+    requestId: t.string(),
+    caseId: t.string(),
+    factId: t.string(),
+    hypothesisId: t.string(),
+  },
+  (ctx, { requestId, caseId, factId, hypothesisId }) => {
+    if (!caseId || caseId.trim().length === 0) {
+      throw new SenderError("caseId must not be empty");
+    }
+    if (!factId || factId.trim().length === 0) {
+      throw new SenderError("factId must not be empty");
+    }
+    if (!hypothesisId || hypothesisId.trim().length === 0) {
+      throw new SenderError("hypothesisId must not be empty");
+    }
+
+    ensureIdempotent(ctx, requestId, "unlink_fact");
+    unlinkFactInternal(ctx, caseId, factId, hypothesisId);
+  },
+);
+
+export const save_board_layout = spacetimedb.reducer(
+  {
+    caseId: t.string(),
+    layoutJson: t.string(),
+  },
+  (ctx, { caseId, layoutJson }) => {
+    if (!caseId || caseId.trim().length === 0) {
+      throw new SenderError("caseId must not be empty");
+    }
+
+    saveBoardLayoutInternal(ctx, caseId, layoutJson);
+  },
+);
+
+export const assert_hypothesis = spacetimedb.reducer(
   {
     requestId: t.string(),
     caseId: t.string(),
@@ -95,8 +158,8 @@ export const validate_hypothesis = spacetimedb.reducer(
       throw new SenderError("hypothesisId must not be empty");
     }
 
-    ensureIdempotent(ctx, requestId, "validate_hypothesis");
-    validateHypothesisInternal(ctx, caseId, hypothesisId);
+    ensureIdempotent(ctx, requestId, "assert_hypothesis");
+    assertHypothesisInternal(ctx, caseId, hypothesisId);
   },
 );
 

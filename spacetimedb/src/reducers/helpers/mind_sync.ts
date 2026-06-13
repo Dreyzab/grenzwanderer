@@ -72,6 +72,9 @@ export const syncMindPalaceContentTables = (
       requiredFactIdsJson: JSON.stringify(hypothesisDef.requiredFactIds),
       requiredVarsJson: JSON.stringify(hypothesisDef.requiredVars),
       rewardEffectsJson: JSON.stringify(hypothesisDef.rewardEffects),
+      failureEffectsJson: JSON.stringify(hypothesisDef.failureEffects ?? []),
+      verdict: hypothesisDef.verdict ?? "true",
+      unlockFactIdsJson: JSON.stringify(hypothesisDef.unlockFactIds ?? []),
       createdAt: ctx.timestamp,
       updatedAt: ctx.timestamp,
     });

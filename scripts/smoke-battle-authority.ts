@@ -206,6 +206,8 @@ const runSmoke = async () =>
             pointId: ids.pointBattle,
             bindingId: ids.bindingBattle,
             trigger: "card_primary",
+            attemptedFromLat: undefined,
+            attemptedFromLng: undefined,
           });
 
           const mapSession = getCurrentBattleSession(conn, playerHex);

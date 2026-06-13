@@ -1,4 +1,10 @@
 import type { NodeBlueprint, ScenarioBlueprint } from "../vn-blueprint-types";
+import type {
+  InnerVoiceId,
+  SkillVoiceId,
+} from "../../data/innerVoiceContract";
+import type { VnChoiceSource } from "../../src/shared/game/characterProgression";
+import type { VnChoice } from "../../src/features/vn/types";
 import {
   CASE01_DEFAULT_ENTRY_SCENARIO_ID,
   CASE01_DINING_FLAGS,
@@ -204,7 +210,9 @@ export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
     nodeIds: [
       "scene_case01_opening_arrival_video",
       "scene_case01_opening_arrival_video_witch",
+      "scene_case01_witch_compartment_memory",
       "scene_case01_witch_thirst_mask",
+      "scene_case01_witch_coin_clang",
       "scene_case01_witch_coin_wake",
       "scene_case01_train_compartment_letter",
       "scene_case01_train_assistant_intro_witch",
@@ -445,7 +453,236 @@ export const CASE01_CANON_SCENARIOS: ScenarioBlueprint[] = [
   },
 ];
 
-export const CASE01_CANON_NODES: NodeBlueprint[] = [
+type WitchPresentationVoiceId = SkillVoiceId | InnerVoiceId;
+
+interface WitchChoicePresentationConfig {
+  choiceSource: VnChoiceSource;
+  presentationVoiceId?: WitchPresentationVoiceId;
+}
+
+const WITCH_CHOICE_PRESENTATION = {
+  WITCH_COIN_REBUKE: { choiceSource: "flaw" },
+  WITCH_COIN_DRY_JOKE: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_COIN_SOFT_ARISTOCRATIC: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_guide",
+  },
+  WITCH_LETTER_AFTERTHOUGHT_VEIL_FOCUS: {
+    choiceSource: "signature",
+    presentationVoiceId: "attr_spirit",
+  },
+  WITCH_LETTER_AFTERTHOUGHT_DRINK_BRANDY: { choiceSource: "flaw" },
+  WITCH_LETTER_AFTERTHOUGHT_COMPOSE: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_LOTTE_COUNTER_OBSERVE: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_exile",
+  },
+  WITCH_LOTTE_COUNTER_APPROACH: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_leader",
+  },
+  WITCH_LOTTE_GREETING_COMPOSURE: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_LOTTE_GREETING_HONEST: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_guide",
+  },
+  WITCH_LOTTE_GREETING_SOCIAL: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_exile",
+  },
+  WITCH_LOTTE_GREETING_CYNIC: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_cynic",
+  },
+  WITCH_LOTTE_GREETING_AUTHORITY: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_leader",
+  },
+  WITCH_LOTTE_GREETING_BLOOD_SENSE: { choiceSource: "flaw" },
+  WITCH_COLLAR_COMMAND: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_leader",
+  },
+  WITCH_COLLAR_DRY_JOKE: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_COLLAR_RARE_TRUST: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_guide",
+  },
+  WITCH_LOTTE_INTRO_RATIONAL: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_LOTTE_INTRO_SOMATIC: {
+    choiceSource: "signature",
+    presentationVoiceId: "attr_spirit",
+  },
+  WITCH_LOTTE_INTRO_MARRIAGE: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_leader",
+  },
+  WITCH_LOTTE_MONOLOGUE_CYNIC: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_cynic",
+  },
+  WITCH_LOTTE_MONOLOGUE_GRIEF: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_guide",
+  },
+  WITCH_LOTTE_MONOLOGUE_PRACTICAL: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_manipulator",
+  },
+  WITCH_HBF_SASHA_ACCEPT_COVER: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_guide",
+  },
+  WITCH_HBF_SASHA_THANK_QUIETLY: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_guide",
+  },
+  WITCH_HBF_SASHA_DISMISS_CONCERN: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_leader",
+  },
+  WITCH_HBF_BLOOD_ABSORB: { choiceSource: "flaw" },
+  WITCH_HBF_WARM_VETO_TEND_HAND: { choiceSource: "volition" },
+  WITCH_HBF_BLOOD_IGNORE: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_HBF_SEND_FELIX_AWAY: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_manipulator",
+  },
+  WITCH_BUREAU_MASTER_DRINK_SUPPRESSANT: { choiceSource: "flaw" },
+  WITCH_BUREAU_MASTER_DRINK_SUPPRESSANT_NOTICED: { choiceSource: "flaw" },
+  WITCH_BUREAU_MASTER_SIPHON_RELIC: {
+    choiceSource: "signature",
+    presentationVoiceId: "attr_spirit",
+  },
+  WITCH_BUREAU_MASTER_COMPOSURE: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_BARONESS_PRESS: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_leader",
+  },
+  WITCH_BARONESS_BRIBE: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_manipulator",
+  },
+  WITCH_BARONESS_RESIST_SUPPRESSANT: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_BARONESS_RESIST_RELIC: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_BARONESS_FEED: { choiceSource: "flaw" },
+  WITCH_BARONESS_COVER_PROTOCOL: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_manipulator",
+  },
+  WITCH_BARONESS_COVER_SUGGESTION: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_exile",
+  },
+  WITCH_VAULTS_FEED_RATS: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_agility",
+  },
+  WITCH_VAULTS_FEED_SASHA: { choiceSource: "flaw" },
+  WITCH_VAULTS_PROCEED_COLD: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_cynic",
+  },
+  WITCH_GHOST_JUSTICE: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_leader",
+  },
+  WITCH_GHOST_SUBJUGATE: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_exile",
+  },
+  WITCH_GHOST_BANISH: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_manipulator",
+  },
+  WITCH_MUGGER_PAYOFF: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_manipulator",
+  },
+  WITCH_MUGGER_THREATEN: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_exile",
+  },
+  WITCH_MUGGER_SIPHON_BREAK: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_MORNING_BRIBE_MAID: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_manipulator",
+  },
+  WITCH_MORNING_SORCERY_CLEANSE: {
+    choiceSource: "signature",
+    presentationVoiceId: "attr_spirit",
+  },
+  WITCH_HOTEL_COPPER_TRACE_STEADY: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_perception",
+  },
+  WITCH_LOBBY_VEIL_SIGHT: {
+    choiceSource: "signature",
+    presentationVoiceId: "attr_spirit",
+  },
+  WITCH_LOBBY_COMPOSED_PASS: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_LOBBY_COMPOSED_PASS_COPPER: {
+    choiceSource: "voice",
+    presentationVoiceId: "attr_composure",
+  },
+  WITCH_LOBBY_GREET: {
+    choiceSource: "voice",
+    presentationVoiceId: "inner_leader",
+  },
+} satisfies Record<string, WitchChoicePresentationConfig>;
+
+const applyWitchChoicePresentation = (choice: VnChoice): VnChoice => {
+  const presentation = WITCH_CHOICE_PRESENTATION[
+    choice.id as keyof typeof WITCH_CHOICE_PRESENTATION
+  ] as WitchChoicePresentationConfig | undefined;
+  if (!presentation) {
+    return choice;
+  }
+
+  return {
+    ...choice,
+    text: choice.text.replace(/^\[[^\]]+\]\s*/, ""),
+    choiceSource: presentation.choiceSource,
+    ...(presentation.presentationVoiceId
+      ? { presentationVoiceId: presentation.presentationVoiceId }
+      : {}),
+  };
+};
+
+const CASE01_CANON_NODE_BLUEPRINTS: NodeBlueprint[] = [
   {
     id: "scene_case01_opening_arrival_video",
     scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
@@ -494,6 +731,24 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     bodyOverride:
       "**[Narrator]**:\nПоезд держит ритм, как вышколенный слуга: ничего лишнего, ничего внезапного. Дождь мелко перебирает стекло; на стыках лампа вздрагивает, и тогда в темном окне на мгновение проступает женщина — прямая спина, безупречная шляпка, лицо, которому никто не подписывал разрешения уставать.\n\nЭлеонора Хартманн дремлет сидя, как умеют немногие: сон — тоже поза, и она держит ее, как держала все прочие. Дыхание ровное, светское, почти гостевое.\n\nТолько пальцы под перчатками время от времени медленно сжимаются — будто что-то держат. Или кого-то не отпускают.",
     backgroundUrl: CASE01_WITCH_COMPARTMENT_DROWSE_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "witch_train_compartment",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_WITCH_DROWSE_TO_MEMORY",
+        text: "Continue.",
+        nextNodeId: "scene_case01_witch_compartment_memory",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_witch_compartment_memory",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Сон",
+    bodyOverride: "",
+    backgroundUrl: CASE01_WITCH_COMPARTMENT_DROWSE_BG,
     narrativeLayout: "fullscreen",
     sceneGroupId: "witch_train_compartment",
     visualSequence: {
@@ -536,20 +791,6 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
           focusPoint: { x: 50, y: 50 },
         },
         {
-          imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/06_felix_says_no.png`,
-          durationMs: 3200,
-          caption: "«Нет, матушка».",
-          transition: "crossfade",
-          focusPoint: { x: 50, y: 48 },
-        },
-        {
-          imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/07_bureau_seal.png`,
-          durationMs: 3600,
-          caption: "Печать Бюро не спорит и не просит. Она ждет.",
-          transition: "crossfade",
-          focusPoint: { x: 50, y: 52 },
-        },
-        {
           imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/08_first_hunger.png`,
           durationMs: 2200,
           caption: "Сначала пришёл голод.",
@@ -570,6 +811,20 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
           transition: "crossfade",
           focusPoint: { x: 48, y: 52 },
         },
+        {
+          imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/06_felix_says_no.png`,
+          durationMs: 3200,
+          caption: "«Нет, матушка».",
+          transition: "crossfade",
+          focusPoint: { x: 50, y: 48 },
+        },
+        {
+          imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/07_bureau_seal.png`,
+          durationMs: 3600,
+          caption: "Печать Бюро не спорит и не просит. Она ждет.",
+          transition: "crossfade",
+          focusPoint: { x: 50, y: 52 },
+        },
       ],
     },
     choices: [
@@ -587,7 +842,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     titleOverride: "Жажда",
     bodyOverride:
-      "**[Narrator]**:\nСон отступает, как хорошая прислуга, — пятясь, не поворачиваясь спиной. Возвращаются мелочи: влажный холод от стекла, приглушенный запах коньяка из несессера, сухость во рту, которой не хватает честности назваться похмельем.\n\nИ еще одно. Под языком, под ребрами, под кожей — внимание. Тело прислушивается к вагону, как ростовщик к чужому разговору о деньгах: без участия, но не пропуская ни слова. Через стенку, в служебном купе, дремлет проводник. У него теплая шея и медленный, доверчивый пульс.\n\nВы знаете это, не просыпаясь. Уже два года вы узнаете такие вещи раньше, чем успеваете запретить себе их узнавать.\n\n**[attr_composure]**:\nПодбородок выше. Ресницы — вниз, на полтакта. Когда откроешь глаза, на лице должна быть скука, а не голод. Скука тебе идет.\n\n**[inner_cynic]**:\nТело опять торгуется. Не подписывай утренних векселей: к вечеру оно все равно поменяет цену.\n\n**[Narrator]**:\nВ несессере лежит фляжка. Мысль о глотке приходит без приглашения и садится напротив, как дальняя родственница, — со всеми правами и без малейшего стыда.\n\nПотом за дверью звенит серебро.",
+      "**[Narrator]**:\nСон отступает, как хорошая прислуга, — пятясь, не поворачиваясь спиной. Возвращаются мелочи: влажный холод от стекла, приглушенный запах коньяка из несессера, сухость во рту, которой не хватает честности назваться похмельем.\n\nИ еще одно. Под языком, под ребрами, под кожей — внимание. Тело прислушивается к вагону, как ростовщик к чужому разговору о деньгах: без участия, но не пропуская ни слова. Через стенку, в служебном купе, дремлет проводник. У него теплая шея и медленный, доверчивый пульс.\n\nВы знаете это, не просыпаясь. Уже два года вы узнаете такие вещи раньше, чем успеваете запретить себе их узнавать.\n\n**[attr_composure]**:\nПодбородок выше. Ресницы — вниз, на полтакта. Когда откроешь глаза, на лице должна быть скука, а не голод. Скука тебе идет.",
     backgroundUrl: CASE01_WITCH_THIRST_CLOSEUP_BG,
     narrativeLayout: "log",
     sceneGroupId: "witch_train_compartment",
@@ -597,6 +852,25 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     choices: [
       {
         id: "AUTO_CONTINUE_WITCH_THIRST_TO_COIN",
+        text: "Continue.",
+        nextNodeId: "scene_case01_witch_coin_clang",
+      },
+    ],
+  },
+  {
+    id: "scene_case01_witch_coin_clang",
+    scenarioId: CASE01_DEFAULT_ENTRY_SCENARIO_ID,
+    sourcePath:
+      "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
+    titleOverride: "Звук",
+    bodyOverride:
+      "**[Narrator]**:\n*Кляк.* Металл лязгает о плотную древесину пола — один сухой удар, от которого в ушах остается звон.",
+    backgroundUrl: CASE01_WITCH_THIRST_CLOSEUP_BG,
+    narrativeLayout: "log",
+    sceneGroupId: "witch_train_compartment",
+    choices: [
+      {
+        id: "AUTO_CONTINUE_WITCH_COIN_CLANG_TO_WAKE",
         text: "Continue.",
         nextNodeId: "scene_case01_witch_coin_wake",
       },
@@ -609,7 +883,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     titleOverride: "Упавшая монета",
     bodyOverride:
-      "**[Narrator]**:\nМонета падает и катится по купе — неприлично долго, со звоном, который в вашем доме сочли бы дурным воспитанием.\n\nЭлеонора открывает глаза. В дверях стоит Феликс: уже наклонился за серебряной монетой и замер, поняв, что разбудил вас. Ему двадцать три. Сейчас, с этой короткой виной на лице, — снова восемь.\n\n**[Феликс]**:\n— Простите, матушка. Я не хотел...\n\n**[Narrator]**:\nВ висках стучит. Чужая вина — быстрое лекарство; тело уже подсказывает дозировку.\n\n**[inner_leader]**:\nДом не повышает голоса из-за монеты. Дом ставит границу усмешкой — холодной ровно настолько, чтобы ее запомнили.\n\n**[inner_guide]**:\nПосмотри на его руку: он так и не поднял монету. Ждет приговора. Это Феликс уронил серебро — не тебя.",
+      "**[Narrator]**:\nЛязг метала заставляет напрячься каждый мускул, а восприятие обостриться.\n\nЭлеонора открывает глаза. В дверях стоит Феликс — ему девятнадцать, но с этой короткой виной на лице он снова кажется восьмилетним. Он уже наклонился за серебряной монетой и замер, поняв, что разбудил вас.\n\n**[Феликс]**:\n— Простите, матушка. Я не хотел...\n\n**[Narrator]**:\nВ висках стучит. Чужая вина — быстрое лекарство; тело уже подсказывает дозировку.\n\n**[inner_leader]**:\nДом не повышает голоса из-за монеты. Дом ставит границу усмешкой — холодной ровно настолько, чтобы ее запомнили.\n\n**[inner_guide]**:\nПосмотри на его руку: он так и не поднял монету. Ждет приговора. Это Феликс уронил серебро — не тебя.",
     backgroundUrl: CASE01_WITCH_COIN_FLOOR_BG,
     narrativeLayout: "log",
     sceneGroupId: "witch_train_compartment",
@@ -925,7 +1199,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
       "40_GameViewer/Case01/Plot/01_Onboarding/scene_intro_journey.md",
     titleOverride: "Сын",
     bodyOverride:
-      "**[Narrator]**:\nФеликс остается у двери. Монета уже в жилетном кармане, но он не уходит: извинение было только передней, и теперь он ищет дверь в кабинет.\n\n**[Феликс]**:\n— Матушка, через несколько минут остановка. Я выйду на платформу — газеты, телеграф, объявления Rathaus. Если город уже заговорил о деле, лучше узнать это до Фрайбурга.\n\n**[Narrator]**:\nДвадцать три года, наследник Дома Хартманн — и он спрашивает разрешения выйти за газетами. Вы хорошо его выучили. Слово «хорошо» здесь можно произносить с любой интонацией.\n\n**[inner_cynic]**:\nЗаметь: он смотрит не на письмо и не на станцию — на тебя. В этой семье одна погода, и все сверяются с нею.\n\n**[Narrator]**:\nВоротник его пальто смят с дороги. На полпальца, не больше. Достаточно.\n\n**[Элеонора]**:\n— Подойдите, Феликс. Развернитесь.",
+      "**[Narrator]**:\nФеликс остается у двери. Монета уже в жилетном кармане, но он не уходит: извинение было только передней, и теперь он ищет дверь в кабинет.\n\n**[Феликс]**:\n— Матушка, через несколько минут остановка. Я выйду на платформу — газеты, телеграф, объявления Rathaus. Если город уже заговорил о деле, лучше узнать это до Фрайбурга.\n\n**[Narrator]**:\nДевятнадцать лет, наследник Дома Хартманн — и он спрашивает разрешения выйти за газетами. Вы хорошо его выучили. Слово «хорошо» здесь можно произносить с любой интонацией.\n\n**[inner_cynic]**:\nЗаметь: он смотрит не на письмо и не на станцию — на тебя. В этой семье одна погода, и все сверяются с нею.\n\n**[Narrator]**:\nВоротник его пальто смят с дороги. На полпальца, не больше. Достаточно.\n\n**[Элеонора]**:\n— Подойдите, Феликс. Развернитесь.",
     backgroundUrl: CASE01_WITCH_COIN_FLOOR_BG,
     narrativeLayout: "log",
     sceneGroupId: "witch_train_compartment",
@@ -3003,6 +3277,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
           { type: "add_var", key: "witch_blood_power", value: 1 },
           { type: "add_var", key: "witch_blood_debt", value: 16 },
           { type: "set_flag", key: "flag_witch_absorbed_hbf_blood", value: true },
+          { type: "set_flag", key: "flag_witch_shame_revealed", value: true },
           { type: "set_flag", key: "ghost_sasha_testimony_compromised", value: true },
           { type: "change_relationship", characterId: "npc_sasha_hartmann_servant", delta: -15 }
         ],
@@ -4449,7 +4724,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
             },
             onFail: {
               effects: [
-                { type: "set_flag", key: "flag_witch_baroness_suspicious", value: true }
+                { type: "set_flag", key: "flag_witch_baroness_suspicious", value: true },
+                { type: "set_flag", key: "flag_witch_shame_revealed", value: true }
               ],
               inlineText:
                 "**[Composure — Провал]**:\nДаже под супрессантом твои глаза хищно расширяются, впиваясь в рану. Твои руки дрожат. Баронесса замечает этот жуткий, нечеловеческий взгляд и в испуге прижимает порезанную руку к груди, бледнея от подозрения."
@@ -4481,7 +4757,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
             },
             onFail: {
               effects: [
-                { type: "set_flag", key: "flag_witch_baroness_suspicious", value: true }
+                { type: "set_flag", key: "flag_witch_baroness_suspicious", value: true },
+                { type: "set_flag", key: "flag_witch_shame_revealed", value: true }
               ],
               inlineText:
                 "**[Composure — Провал]**:\nСила реликвии бьет по венам, лишая контроля. Твои губы приоткрываются, обнажая клыки. Баронесса видит твое искаженное жаждой лицо и в ужасе отскакивает от стола, прижимая раненый палец к груди."
@@ -4494,7 +4771,8 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
         text: "[Somatic Feed] Поддаться Жажде и слизать свежую кровь.",
         nextNodeId: "scene_case01_baroness_office_feed_coverup",
         effects: [
-          { type: "add_var", key: "witch_blood_curse_pressure", value: -25 }
+          { type: "add_var", key: "witch_blood_curse_pressure", value: -25 },
+          { type: "set_flag", key: "flag_witch_shame_revealed", value: true }
         ],
         inlineText:
           "**[Narrator]**:\nЗверь побеждает. Сделав молниеносное движение, ты перехватываешь её руку и прижимает раненый палец к своим губам. Горячая, сладкая кровь обжигает язык, мгновенно принося блаженное облегчение и гася пожар проклятия.\n\nБаронесса застывает в немом ужасе, бледная как смерть, пытаясь вырвать ладонь. Ты должна немедленно спасти Маскарад!"
@@ -4598,6 +4876,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
           { type: "add_var", key: "witch_blood_curse_pressure", value: -25 },
           { type: "set_flag", key: "flag_witch_somatic_exhaustion", value: false },
           { type: "set_flag", key: "flag_witch_attacked_sasha", value: true },
+          { type: "set_flag", key: "flag_witch_shame_revealed", value: true },
           { type: "set_flag", key: "ghost_sasha_testimony_compromised", value: true },
           { type: "change_relationship", characterId: "npc_sasha_hartmann_servant", delta: -40 },
           { type: "change_faction_signal", factionId: "house_of_pledges", delta: -5, reason: "Witch fed on Sasha in the estate vaults" }
@@ -4761,6 +5040,7 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
               effects: [
                 { type: "set_var", key: "witch_blood_curse_pressure", value: 0 },
                 { type: "set_flag", key: "flag_witch_mugger_killed", value: true },
+                { type: "set_flag", key: "flag_witch_shame_revealed", value: true },
                 { type: "add_heat", amount: 2 }
               ],
               inlineText:
@@ -5021,3 +5301,9 @@ export const CASE01_CANON_NODES: NodeBlueprint[] = [
     choices: [],
   },
 ];
+
+export const CASE01_CANON_NODES: NodeBlueprint[] =
+  CASE01_CANON_NODE_BLUEPRINTS.map((node) => ({
+    ...node,
+    choices: node.choices.map(applyWitchChoicePresentation),
+  }));

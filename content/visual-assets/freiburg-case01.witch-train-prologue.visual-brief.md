@@ -8,7 +8,7 @@ Status: v1 generated on 2026-05-31 with the built-in image generation tool. v2 g
 
 Target directory: `public/VN/start/image/witch_memory/`
 
-Ten 16:9 comic-painterly memory frames play for 27 seconds over Eleonora's half-sleep. The style follows the detective prologue's broad-brush European graphic-novel look rather than the route's realistic event CGs. The sequence moves from her husband's funeral through the shared financial crisis, Eleonora's rise, Felix's growing independence, the Bureau letter, her first manifestation of the blood curse, and the Bureau's recruitment. Carmine remains absent until the final beats and never reads as literal gore.
+Ten 16:9 comic-painterly memory frames play for 27 seconds over Eleonora's half-sleep. The style follows the detective prologue's broad-brush European graphic-novel look rather than the route's realistic event CGs. The sequence moves from her husband's funeral through the shared financial crisis, Eleonora's rise, her first manifestation of the blood curse, the Bureau's recruitment, Felix's present-day refusal, and finally the current train compartment. Carmine remains absent until the final beats and never reads as literal gore.
 
 Runtime order:
 
@@ -17,11 +17,11 @@ Runtime order:
 3. `03_mother_son_alliance.png` — mother and son work together to preserve the house.
 4. `04_bank_authority.png` — Eleonora faces the bankers as Felix watches.
 5. `05_project_refused.png` — her glove closes his university proposal.
-6. `06_felix_says_no.png` — Felix quietly stands beside the detective and refuses her.
-7. `07_bureau_seal.png` — the sealed Bureau letter opens an older, hidden memory.
-8. `08_first_hunger.png` — a maid's pulse becomes a carmine thread and Eleonora sees the curse in her reflection.
-9. `09_bureau_arrival.png` — a male magician and a young agent with restrained demonic power contain the episode without attacking her.
-10. `10_bureau_offer.png` — the Bureau offers suppressant and employment; the wax seal dissolves into the train's warm reflection.
+6. `08_first_hunger.png` — a maid's pulse becomes a carmine thread and Eleonora sees the curse in her reflection.
+7. `09_bureau_arrival.png` — a male magician and a young agent with restrained demonic power contain the episode without attacking her.
+8. `10_bureau_offer.png` — the Bureau offers suppressant and employment.
+9. `06_felix_says_no.png` — Felix quietly stands beside the detective and refuses her in the present-day departure sequence.
+10. `07_bureau_seal.png` — present-day Eleonora, now visibly older, holds the sealed Bureau letter in the train compartment as the dream returns to reality.
 
 The Bureau pair are intentionally unnamed in this flashback. The magician reads as an experienced occult field officer rather than the later Freiburg Master, while the young woman's demonic nature is visible only through ember geometry and an impossible shadow. Their intervention should feel like rescue, assessment, and recruitment at the same time.
 

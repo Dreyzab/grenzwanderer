@@ -776,6 +776,7 @@ const mapStrings = {
       queued: "queued",
     },
     forensic_zone: "Forensic Zone",
+    objective_bearing: "Objective bearing",
     report: {
       title: "Field report",
       paused: "Journey Paused",
@@ -911,6 +912,7 @@ const mapStrings = {
       queued: "в очереди",
     },
     forensic_zone: "Криминалистическая зона",
+    objective_bearing: "Направление к задаче",
     report: {
       title: "Отчет с места",
       paused: "Путь приостановлен",
@@ -1048,6 +1050,7 @@ const mapStrings = {
       queued: "geplant",
     },
     forensic_zone: "Forensische Zone",
+    objective_bearing: "Peilung zum Ziel",
     report: {
       title: "Feldbericht",
       paused: "Reise unterbrochen",

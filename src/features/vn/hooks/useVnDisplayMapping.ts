@@ -14,7 +14,6 @@ import {
   resolveInnerVoiceSelection,
 } from "../../../shared/game/innerVoiceModel";
 import { isInnerVoiceId } from "../../../../data/innerVoiceContract";
-import { getActiveParliamentPresetId } from "../../character/originProfiles";
 import { isChoiceAvailable } from "../vnContent";
 import {
   buildChoiceKey,
@@ -22,7 +21,9 @@ import {
   unwrapOptionalString,
 } from "../vnScreenUtils";
 import { parseGenerateDialoguePayload } from "../../ai/contracts";
-import { getVoicePalette, getVoicePresentation } from "../voicePresentation";
+import { getVoicePresentation } from "../voicePresentation";
+import { resolveChoiceSourcePresentation } from "../choiceSourcePresentation";
+import { isParliamentVoiceVisible } from "../parliamentVisibility";
 import type {
   ActiveAiThoughtContext,
   ActiveReactionContext,
@@ -46,6 +47,7 @@ interface UseVnDisplayMappingParams {
   mySession: any;
   myFlags: Record<string, boolean>;
   myVars: Record<string, number>;
+  activeParliamentPresetId?: string;
   choiceEvaluationContext: any;
   currentVisibleChoices: any[];
   currentVisibleHotspotChoices?: any[];
@@ -91,6 +93,7 @@ export function useVnDisplayMapping({
   mySession,
   myFlags,
   myVars,
+  activeParliamentPresetId,
   choiceEvaluationContext,
   currentVisibleChoices,
   currentVisibleHotspotChoices,
@@ -273,11 +276,6 @@ export function useVnDisplayMapping({
       ? activeAiThoughtResponse?.text
       : null;
 
-  const activeParliamentPresetId = useMemo(
-    () => getActiveParliamentPresetId(myFlags) ?? undefined,
-    [myFlags],
-  );
-
   const innerVoiceCards = useMemo<InnerVoiceCardDisplay[]>(() => {
     if (
       currentNode?.voicePresenceMode !== "parliament" ||
@@ -286,7 +284,11 @@ export function useVnDisplayMapping({
       return [];
     }
 
-    const pool = currentNode.activeSpeakers.filter(isInnerVoiceId);
+    const pool = currentNode.activeSpeakers.filter(
+      (voiceId: string) =>
+        isInnerVoiceId(voiceId) &&
+        isParliamentVoiceVisible(voiceId, myFlags, activeParliamentPresetId),
+    );
     if (pool.length === 0) {
       return [];
     }
@@ -307,7 +309,11 @@ export function useVnDisplayMapping({
       return {
         voiceId: entry.voiceId,
         label: presentation.label,
-        text: buildInnerVoiceFallbackText(entry.voiceId, entry.stance),
+        text: buildInnerVoiceFallbackText(
+          entry.voiceId,
+          entry.stance,
+          activeParliamentPresetId,
+        ),
         role: entry.role,
         stance: entry.stance,
         resonance: entry.resonance,
@@ -318,6 +324,7 @@ export function useVnDisplayMapping({
     activeParliamentPresetId,
     currentNode?.activeSpeakers,
     currentNode?.voicePresenceMode,
+    myFlags,
     myVars,
   ]);
 
@@ -454,19 +461,27 @@ export function useVnDisplayMapping({
             : "idle";
         const innerVoiceHints: ChoiceInnerVoiceHintDisplay[] = (
           choice.innerVoiceHints ?? []
-        ).map((hint: NonNullable<VnChoice["innerVoiceHints"]>[number]) => {
-          const presentation = getVoicePresentation(
-            hint.voiceId,
-            activeParliamentPresetId,
-          );
-          return {
-            voiceId: hint.voiceId,
-            label: presentation.label,
-            text: hint.text,
-            stance: hint.stance,
-            palette: getVoicePalette(hint.voiceId),
-          };
-        });
+        )
+          .filter((hint: NonNullable<VnChoice["innerVoiceHints"]>[number]) =>
+            isParliamentVoiceVisible(
+              hint.voiceId,
+              myFlags,
+              activeParliamentPresetId,
+            ),
+          )
+          .map((hint: NonNullable<VnChoice["innerVoiceHints"]>[number]) => {
+            const presentation = getVoicePresentation(
+              hint.voiceId,
+              activeParliamentPresetId,
+            );
+            return {
+              voiceId: hint.voiceId,
+              label: presentation.label,
+              text: hint.text,
+              stance: hint.stance,
+              palette: presentation.palette,
+            };
+          });
 
         return {
           choice,
@@ -478,6 +493,11 @@ export function useVnDisplayMapping({
           isPending: pendingChoiceId === choice.id,
           hasFailedCheck: Boolean(failedChoiceKeys[choiceKey]),
           innerVoiceHints,
+          sourcePresentation: resolveChoiceSourcePresentation(
+            choice,
+            innerVoiceHints,
+            activeParliamentPresetId,
+          ),
         };
       }),
     [

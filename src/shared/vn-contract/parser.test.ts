@@ -169,7 +169,8 @@ describe("VN Snapshot Parser - character progression contract", () => {
     const result = parseVnSnapshotPayload(
       JSON.stringify(
         buildFixtureWithChoice({
-          choiceSource: "synergy",
+          choiceSource: "volition",
+          presentationVoiceId: "inner_leader",
           requireAll: [
             { type: "core_gte", coreId: "mind", value: 6 },
             { type: "indicator_rank_gte", indicatorId: "talker", value: 2 },
@@ -197,6 +198,18 @@ describe("VN Snapshot Parser - character progression contract", () => {
     );
 
     expect(result.ok).toBe(true);
+  });
+
+  it("rejects unknown presentation voice ids", () => {
+    const result = parseVnSnapshotPayload(
+      JSON.stringify(
+        buildFixtureWithChoice({
+          presentationVoiceId: "inner_impossible",
+        }),
+      ),
+    );
+
+    expect(result.ok).toBe(false);
   });
 
   it("rejects unknown core ids, indicator ids, synergy ids, and modifier sources", () => {

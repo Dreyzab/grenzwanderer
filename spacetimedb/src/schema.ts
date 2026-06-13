@@ -661,6 +661,9 @@ export const mindHypothesis = table(
     requiredFactIdsJson: t.string(),
     requiredVarsJson: t.string(),
     rewardEffectsJson: t.string(),
+    failureEffectsJson: t.string(),
+    verdict: t.string(),
+    unlockFactIdsJson: t.string(),
     createdAt: t.timestamp(),
     updatedAt: t.timestamp(),
   },
@@ -764,6 +767,66 @@ export const playerMindHypothesis = table(
     hypothesisId: t.string(),
     status: t.string(),
     validatedAt: t.timestamp().optional(),
+    lastAssertAt: t.timestamp().optional(),
+    failedAttempts: t.u32(),
+    updatedAt: t.timestamp(),
+  },
+);
+
+export const playerMindLink = table(
+  {
+    name: "player_mind_link",
+    public: false,
+    indexes: [
+      {
+        accessor: "player_mind_link_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "player_mind_link_case_id",
+        algorithm: "btree",
+        columns: ["caseId"],
+      },
+      {
+        accessor: "player_mind_link_hypothesis_id",
+        algorithm: "btree",
+        columns: ["hypothesisId"],
+      },
+    ],
+  },
+  {
+    playerLinkKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    caseId: t.string(),
+    factId: t.string(),
+    hypothesisId: t.string(),
+    createdAt: t.timestamp(),
+  },
+);
+
+export const playerMindBoardLayout = table(
+  {
+    name: "player_mind_board_layout",
+    public: false,
+    indexes: [
+      {
+        accessor: "player_mind_board_layout_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "player_mind_board_layout_case_id",
+        algorithm: "btree",
+        columns: ["caseId"],
+      },
+    ],
+  },
+  {
+    playerBoardKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    caseId: t.string(),
+    layoutJson: t.string(),
     updatedAt: t.timestamp(),
   },
 );
@@ -1468,6 +1531,35 @@ export const playerRedeemedCode = table(
   },
 );
 
+export const playerTriggerFire = table(
+  {
+    name: "player_trigger_fire",
+    public: false,
+    indexes: [
+      {
+        accessor: "player_trigger_fire_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "player_trigger_fire_player_rule",
+        algorithm: "btree",
+        columns: ["playerId", "ruleId"],
+      },
+    ],
+  },
+  {
+    fireKey: t.string().primaryKey(),
+    playerId: t.identity(),
+    ruleId: t.string(),
+    eventName: t.string(),
+    cooldownGroup: t.string().optional(),
+    budgetKey: t.string().optional(),
+    idempotencyKey: t.string(),
+    firedAt: t.timestamp(),
+  },
+);
+
 export const playerSpiritState = table(
   {
     name: "player_spirit_state",
@@ -1598,6 +1690,8 @@ const spacetimedb = schema({
   playerMindCase,
   playerMindFact,
   playerMindHypothesis,
+  playerMindLink,
+  playerMindBoardLayout,
   idempotencyCleanupSchedule,
   telemetryAggregateSchedule,
   telemetryCleanupSchedule,
@@ -1620,6 +1714,7 @@ const spacetimedb = schema({
   playerUnlockGroup,
   playerMapEvent,
   playerRedeemedCode,
+  playerTriggerFire,
   playerSpiritState,
   playerEquipment,
   contentRating,
@@ -1791,6 +1886,24 @@ export const my_mind_hypotheses = spacetimedb.view(
       ctx,
       "playerMindHypothesis",
       "player_mind_hypothesis_player_id",
+    ),
+);
+
+export const my_mind_links = spacetimedb.view(
+  { name: "my_mind_links", public: true },
+  t.array(playerMindLink.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(ctx, "playerMindLink", "player_mind_link_player_id"),
+);
+
+export const my_mind_board_layouts = spacetimedb.view(
+  { name: "my_mind_board_layouts", public: true },
+  t.array(playerMindBoardLayout.rowType),
+  (ctx) =>
+    selfScopedByPlayerId(
+      ctx,
+      "playerMindBoardLayout",
+      "player_mind_board_layout_player_id",
     ),
 );
 

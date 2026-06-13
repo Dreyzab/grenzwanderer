@@ -114,6 +114,48 @@ const runSmoke = async () =>
             );
           }
 
+          // Freiburg depth: favor with Rudi Kempf + any map interaction lets
+          // trig.freiburg.pub_backroom open the Red Cog back room.
+          await conn.reducers.changeFavorBalance({
+            requestId: nextRequestId("grant_rudi_favor"),
+            npcId: "npc_rudi_kempf",
+            delta: 1,
+            reason: "smoke_backroom_setup",
+          });
+          await conn.reducers.mapInteract({
+            requestId: nextRequestId("pub_presence"),
+            pointId: "loc_workers_pub",
+            bindingId: "sys_travel_loc_workers_pub",
+            trigger: "card_secondary",
+            attemptedFromLat: undefined,
+            attemptedFromLng: undefined,
+          });
+          if (!getPlayerFlagValue(conn, playerHex, "pub_backroom_access")) {
+            throw new Error(
+              "map.interacted trigger did not unlock the pub back room",
+            );
+          }
+          await conn.reducers.mapInteract({
+            requestId: nextRequestId("enter_backroom"),
+            pointId: "loc_workers_pub",
+            bindingId: "bind_pub_backroom",
+            trigger: "card_primary",
+            attemptedFromLat: undefined,
+            attemptedFromLng: undefined,
+          });
+          if (!getPlayerFlagValue(conn, playerHex, "pub_backroom_visited")) {
+            throw new Error("Back room interaction did not complete");
+          }
+          if (
+            !isRumorRegisteredLike(
+              getRumorStatus(conn, playerHex, "rumor_sapper_clean_cut"),
+            )
+          ) {
+            throw new Error(
+              "Back room interaction did not register the sapper rumor",
+            );
+          }
+
           finished = true;
           conn.disconnect();
           resolve();

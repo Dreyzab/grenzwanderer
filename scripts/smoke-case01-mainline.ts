@@ -3,8 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { CASE01_SCENARIO_IDS } from "../src/shared/case01Canon";
-import { staticMapDataSource } from "../src/features/map/data/mapDataSource";
-import { resolveLegacyScenarioId } from "../src/features/map/data/scenario-mapping";
+import { GENERATED_STATIC_FREIBURG_CASE01_POINTS } from "../src/features/map/data/generated-static-points";
+import { resolveLegacyScenarioId } from "./data/case_01_points";
 
 type SnapshotPoint = {
   id: string;
@@ -138,10 +138,9 @@ try {
   const warehouseBindings = scenarioBindingsForPoint(
     findPoint(snapshot, "loc_freiburg_warehouse"),
   );
-  const staticPointIds = staticMapDataSource
-    .getPoints("FREIBURG_1905")
-    .map((point) => point.id)
-    .sort();
+  const staticPointIds = GENERATED_STATIC_FREIBURG_CASE01_POINTS.map(
+    (point) => point.id,
+  ).sort();
   const snapshotPointIds = (snapshot.map?.points ?? [])
     .filter((point) => point.regionId === "FREIBURG_1905")
     .map((point) => point.id)
@@ -247,11 +246,18 @@ try {
   );
   assert(
     JSON.stringify(staticPointIds) === JSON.stringify(snapshotPointIds),
-    "static Freiburg fallback points must be generated from the canonical snapshot map feed",
+    "generated Freiburg authoring points must match the canonical snapshot map feed",
   );
+
+  const karlsruheSnapshot = JSON.parse(
+    readFileSync(
+      path.join(repoRoot, "content", "vn", "karlsruhe.snapshot.json"),
+      "utf8",
+    ),
+  ) as SnapshotPayload;
   assert(
-    staticMapDataSource.getPoints("KARLSRUHE_1905").length > 0,
-    "KARLSRUHE_1905 fallback points must remain available in the static map source",
+    (karlsruheSnapshot.map?.points.length ?? 0) > 0,
+    "KARLSRUHE_1905 map points must remain available in the Karlsruhe snapshot",
   );
 
   for (const legacyId of [

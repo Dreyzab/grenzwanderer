@@ -153,6 +153,8 @@ const runBenchmark = async () =>
               pointId: mapPointId,
               bindingId: mapBindingId,
               trigger: "card_secondary",
+              attemptedFromLat: undefined,
+              attemptedFromLng: undefined,
             });
             mapLatenciesMs.push(performance.now() - startedAt);
           }

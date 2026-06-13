@@ -233,6 +233,7 @@ export const CASE01_CANON_FLAG_KEYS = [
   "flag_witch_felix_noticed_copper_smell",
   "flag_witch_somatic_exhaustion",
   "flag_witch_attacked_sasha",
+  "flag_witch_shame_revealed",
   "witch_enter_ghost_sandbox",
   "witch_hotel_checked_in",
   "met_bureau_master_intro",

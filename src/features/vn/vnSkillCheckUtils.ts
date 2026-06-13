@@ -52,6 +52,7 @@ interface CreateAwaitingSkillChoiceParams {
   scenarioId: string;
   nodeId: string;
   choice: Pick<VnChoice, "id" | "text" | "skillCheck">;
+  voiceLabel?: string;
   diceMode: VnDiceMode;
   chancePercent?: number;
   effectiveDifficulty: number;
@@ -127,6 +128,7 @@ export const createAwaitingSkillChoice = ({
   scenarioId,
   nodeId,
   choice,
+  voiceLabel,
   diceMode,
   chancePercent,
   effectiveDifficulty,
@@ -145,7 +147,7 @@ export const createAwaitingSkillChoice = ({
   checkId: choice.skillCheck!.id,
   choiceText: choice.text,
   voiceId: choice.skillCheck!.voiceId,
-  voiceLabel: formatVoiceLabel(choice.skillCheck!.voiceId),
+  voiceLabel: voiceLabel ?? formatVoiceLabel(choice.skillCheck!.voiceId),
   diceMode,
   chancePercent,
   baseDifficulty: choice.skillCheck!.difficulty,

@@ -1,50 +1,45 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import MapGL, {
-  Layer,
-  Marker,
-  NavigationControl,
-  Source,
-  type ViewStateChangeEvent,
-} from "react-map-gl/mapbox";
-import {
-  Building2,
-  Map as MapIcon,
-  MapPinPlus,
-  Pause,
-  Play,
-  Route,
-  Square,
-  Trash2,
-} from "lucide-react";
+import { Building2, Map as MapIcon } from "lucide-react";
 import { useReducer, useTable } from "spacetimedb/react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./mapExperience.css";
 import type { OpenVnScenarioOptions } from "../../../shared/navigation/shellNavigationTypes";
-import { MAPBOX_STYLE, MAPBOX_TOKEN, RELEASE_PROFILE } from "../../../config";
+import { MAPBOX_TOKEN } from "../../../config";
 import { reducers, tables } from "../../../shared/spacetime/bindings";
 import { useIdentity } from "../../../shared/spacetime/useIdentity";
 import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
 import { usePlayerVars } from "../../../entities/player/hooks/usePlayerVars";
-import { DESKTOP_JOURNEY_SPEED_KMH, type LngLatTuple } from "../model/geo";
+import {
+  DESKTOP_JOURNEY_SPEED_KMH,
+  calculateBearingDegrees,
+  haversineDistanceMeters,
+  quantizeBearingDegrees,
+  resolveDiscoveryRadiusMeters,
+  type LngLatTuple,
+} from "../model/geo";
 import {
   resolveDiscoverySignal,
   type DiscoverySignalMemory,
 } from "../model/discoverySignal";
+import { resolveEdgeAlert } from "../model/edgeAlert";
 import { useCompassFeedback } from "../hooks/useCompassFeedback";
 import { useMapJourney } from "../hooks/useMapJourney";
 import { useMapRuntimeState } from "../hooks/useMapRuntimeState";
+import { MAP_POINT_STATES } from "../types";
 import type {
   RuntimeMapBinding,
   RuntimeMapPoint,
   RuntimeMapRoute,
 } from "../types";
 import { CaseCard } from "./CaseCard";
-import { CompassOverlay } from "./CompassOverlay";
+import { CompassOverlay, type CompassObjectiveGuide } from "./CompassOverlay";
+import { EdgeAlertOverlay } from "./EdgeAlertOverlay";
+import type { PlayerPinState } from "./PlayerPin";
 import { DetectiveHub } from "./DetectiveHub";
-import { CartouchePanel } from "./CartouchePanel";
-import { CobblestoneMarker } from "./CobblestoneMarker";
-import { PlayerPin } from "./PlayerPin";
+import { JourneyControls } from "./JourneyControls";
 import { JourneyReportModal } from "./JourneyReportModal";
+import { MapCanvas } from "./MapCanvas";
+import { MapHeader } from "./MapHeader";
 import { BureauFloorExplorer } from "./BureauFloorExplorer";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
 import { getMapStrings } from "../../i18n/uiStrings";
@@ -60,18 +55,6 @@ interface MapViewProps {
 const COMPACT_HUD_QUERY = "(max-width: 960px)";
 const SEMANTIC_ZOOM_THRESHOLD = 14.5;
 const GEOLOCATION_TIMEOUT_MS = 2500;
-const MAP_POINT_STATES = [
-  "locked",
-  "discovered",
-  "visited",
-  "completed",
-] as const;
-const MAP_GL_LAYOUT_PROPS = {
-  style: {
-    width: "100%",
-    height: "calc(100dvh - env(safe-area-inset-bottom) - 4rem)",
-  },
-} as const;
 
 const hasObservationLensRule = (point: RuntimeMapPoint | null): boolean =>
   Boolean(
@@ -167,7 +150,7 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
   const { identityHex, isConnected } = useIdentity();
   const isNetworkConnected = isConnected !== false;
   const {
-    source,
+    isMapAvailable,
     region,
     points,
     journeyDiscoveryCandidates = [],
@@ -212,12 +195,8 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
   const mapInteract = useReducer(reducers.mapInteract);
   const redeemMapCode = useReducer(reducers.redeemMapCode);
   const travelTo = useReducer(reducers.travelTo);
-  const setFlag = useReducer(reducers.setFlag);
   const setVar = useReducer(reducers.setVar);
   const commitMapDiscovery = useReducer(reducers.commitMapDiscovery);
-  const startScenario = useReducer(reducers.startScenario);
-  const openCommandMode = useReducer(reducers.openCommandMode);
-  const openBattleMode = useReducer(reducers.openBattleMode);
 
   const STATE_LABELS: Record<RuntimeMapPoint["state"], string> = useMemo(
     () => ({
@@ -277,7 +256,11 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
   );
 
   const discoverJourneyPoint = useCallback(
-    async (pointId: string) => {
+    async (
+      pointId: string,
+      channel: "proximity" | "observation_lens",
+      position: LngLatTuple | null,
+    ) => {
       const point =
         journeyDiscoveryCandidates.find(
           (candidate) => candidate.id === pointId,
@@ -288,9 +271,26 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
       await commitMapDiscovery({
         requestId: createRequestId("journey_discovery", point.id),
         pointId: point.id,
+        channel,
+        attemptedFromLat: position?.[1],
+        attemptedFromLng: position?.[0],
       });
     },
     [commitMapDiscovery, journeyDiscoveryCandidates],
+  );
+
+  const handleJourneyDiscovery = useCallback(
+    (pointId: string, position: LngLatTuple) => {
+      void discoverJourneyPoint(pointId, "proximity", position).catch(() => {
+        setRejectedPointIds((current) => {
+          const next = new Set(current);
+          next.add(pointId);
+          return next;
+        });
+        setNetworkNotice("Map trace rejected by server");
+      });
+    },
+    [discoverJourneyPoint],
   );
 
   const completeJourney = useCallback(
@@ -307,7 +307,7 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
     discoveryCandidates: journeyDiscoveryCandidates,
     speedKmH: DESKTOP_JOURNEY_SPEED_KMH,
     onCommitGameTime: commitJourneyGameTime,
-    onDiscoverPoint: discoverJourneyPoint,
+    onDiscoverPoint: handleJourneyDiscovery,
     onJourneyComplete: completeJourney,
   });
 
@@ -355,7 +355,11 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
     }
 
     try {
-      await discoverJourneyPoint(target.id);
+      await discoverJourneyPoint(
+        target.id,
+        "observation_lens",
+        journey.position,
+      );
       journey.revealDiscoveryPoint(target.id);
       setRejectedPointIds((current) => {
         const next = new Set(current);
@@ -392,6 +396,73 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
 
     return [...points, ...revealedJourneyPoints];
   }, [journey.discoveredPoints, points]);
+
+  const effectivePlayerPosition = journey.position ?? playerStartCoordinate;
+
+  // The active task's objective point — activation is story-driven (quest
+  // stages → objectivePointIds; later also manual tracking in the journal),
+  // so no proximity math: take the first active objective in catalog order.
+  // Bearing is quantized to 15° sectors: the needle hints, it doesn't pinpoint.
+  const objectiveGuide = useMemo<CompassObjectiveGuide | null>(() => {
+    const objective =
+      displayedPoints.find((point) => point.isObjectiveActive) ?? null;
+    if (!objective) {
+      return null;
+    }
+    return {
+      id: objective.id,
+      label: objective.title,
+      bearingDegrees: quantizeBearingDegrees(
+        calculateBearingDegrees(effectivePlayerPosition, [
+          objective.lng,
+          objective.lat,
+        ]),
+      ),
+    };
+  }, [displayedPoints, effectivePlayerPosition]);
+
+  const nearbyPointIds = useMemo<ReadonlySet<string>>(() => {
+    const nearby = new Set<string>();
+    for (const point of displayedPoints) {
+      const reactionRadius = resolveDiscoveryRadiusMeters(point) * 1.25;
+      const distance = haversineDistanceMeters(effectivePlayerPosition, [
+        point.lng,
+        point.lat,
+      ]);
+      if (distance <= reactionRadius) {
+        nearby.add(point.id);
+      }
+    }
+    return nearby;
+  }, [displayedPoints, effectivePlayerPosition]);
+
+  const playerPinState = useMemo<PlayerPinState>(() => {
+    if (discoverySignal.phase === "hot") {
+      return "discovering";
+    }
+    if (journey.inSearchZone) {
+      return "at_poi";
+    }
+    if (journey.isMoving) {
+      return "moving";
+    }
+    if (journey.isPaused) {
+      return "paused";
+    }
+    return "idle";
+  }, [
+    discoverySignal.phase,
+    journey.inSearchZone,
+    journey.isMoving,
+    journey.isPaused,
+  ]);
+
+  const playerSpeedRatio = Math.max(0, Math.min(1, journey.speedKmH / 30));
+
+  const edgeAlert = useMemo(
+    () => resolveEdgeAlert({ signal: discoverySignal }),
+    [discoverySignal],
+  );
 
   const selectedPoint = useMemo(
     () => displayedPoints.find((point) => point.id === selectedPointId) ?? null,
@@ -506,68 +577,6 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
     });
   }, [displayedPoints, isZoomedOut, routes, selectedRouteAnchorId]);
 
-  const runLegacyBinding = useCallback(
-    async (point: RuntimeMapPoint, binding: RuntimeMapBinding) => {
-      let scenarioToOpen: string | null = null;
-
-      for (const action of binding.actions) {
-        if (action.type === "travel_to") {
-          await travelTo({ locationId: action.locationId });
-          await setFlag({ key: `VISITED_${point.id}`, value: true });
-          continue;
-        }
-        if (action.type === "start_scenario") {
-          await startScenario({
-            requestId: createRequestId("map_start", point.id),
-            scenarioId: action.scenarioId,
-          });
-          await setFlag({ key: `VISITED_${point.id}`, value: true });
-          scenarioToOpen = action.scenarioId;
-          continue;
-        }
-        if (action.type === "open_command_mode") {
-          if (RELEASE_PROFILE === "karlsruhe_event") {
-            continue;
-          }
-          await openCommandMode({
-            requestId: createRequestId("map_command", point.id),
-            scenarioId: action.scenarioId,
-            returnTab: action.returnTab,
-            sourceTab: "map",
-          });
-          continue;
-        }
-        if (action.type === "open_battle_mode") {
-          if (RELEASE_PROFILE === "karlsruhe_event") {
-            continue;
-          }
-          await openBattleMode({
-            requestId: createRequestId("map_battle", point.id),
-            scenarioId: action.scenarioId,
-            returnTab: action.returnTab,
-            sourceTab: "map",
-          });
-          continue;
-        }
-        if (action.type === "set_flag") {
-          await setFlag({ key: action.key, value: action.value });
-        }
-      }
-
-      if (scenarioToOpen) {
-        onOpenVnScenario(scenarioToOpen);
-      }
-    },
-    [
-      onOpenVnScenario,
-      openBattleMode,
-      openCommandMode,
-      setFlag,
-      startScenario,
-      travelTo,
-    ],
-  );
-
   const runBinding = useCallback(
     async (point: RuntimeMapPoint, binding: RuntimeMapBinding) => {
       if (!isNetworkConnected) {
@@ -575,40 +584,31 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
         throw new Error("Agent network disconnected");
       }
 
-      if (source === "snapshot_v3") {
-        try {
-          await mapInteract({
-            requestId: createRequestId("map_interact", point.id),
-            pointId: point.id,
-            bindingId: binding.id,
-            trigger: binding.trigger,
-          });
-        } catch (error) {
-          setRejectedPointIds((current) => {
-            const next = new Set(current);
-            next.add(point.id);
-            return next;
-          });
-          setNetworkNotice("Map trace rejected by server");
-          throw error;
-        }
-
-        const scenarioId = getStartScenarioId(binding);
-        if (scenarioId) {
-          onOpenVnScenario(scenarioId);
-        }
-        return;
+      try {
+        await mapInteract({
+          requestId: createRequestId("map_interact", point.id),
+          pointId: point.id,
+          bindingId: binding.id,
+          trigger: binding.trigger,
+          attemptedFromLat: journey.position?.[1],
+          attemptedFromLng: journey.position?.[0],
+        });
+      } catch (error) {
+        setRejectedPointIds((current) => {
+          const next = new Set(current);
+          next.add(point.id);
+          return next;
+        });
+        setNetworkNotice("Map trace rejected by server");
+        throw error;
       }
 
-      await runLegacyBinding(point, binding);
+      const scenarioId = getStartScenarioId(binding);
+      if (scenarioId) {
+        onOpenVnScenario(scenarioId);
+      }
     },
-    [
-      isNetworkConnected,
-      mapInteract,
-      onOpenVnScenario,
-      runLegacyBinding,
-      source,
-    ],
+    [isNetworkConnected, journey.position, mapInteract, onOpenVnScenario],
   );
 
   const submitMapCode = useCallback(async () => {
@@ -720,7 +720,7 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
     );
   }
 
-  const sourceLabel = source === "snapshot_v3" ? "Snapshot v3" : "Legacy v2";
+  const sourceLabel = isMapAvailable ? "Snapshot v3" : "Snapshot unavailable";
   const selectionLabel = selectedPoint
     ? `${selectedPoint.title} (${STATE_LABELS[selectedPoint.state]})`
     : mapStrings.no_selection;
@@ -790,251 +790,31 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
     >
       <div className="gw-map-frame">
         {renderModeSwitch()}
-        <header
-          className={`gw-map-header ${
-            isCompactHud ? "gw-map-header--compact" : "gw-map-header--desktop"
-          }`}
-        >
-          {isCompactHud ? (
-            <>
-              <CartouchePanel
-                label="Plate XII · Cartography Chamber"
-                padding="1rem 1.1rem"
-                className="gw-map-compact-card gw-map-cartouche-full"
-              >
-                <div className="gw-map-compact-card__top">
-                  <div>
-                    <h2 className="gw-map-compact-card__title">
-                      {region.name}
-                    </h2>
-                  </div>
-                  <div className="gw-map-compact-header-layout">
-                    <button
-                      type="button"
-                      aria-expanded={isLedgerOpen}
-                      aria-controls={compactHeaderId.current}
-                      className="gw-map-compact-card__toggle"
-                      onClick={toggleLedger}
-                    >
-                      {isLedgerOpen
-                        ? mapStrings.close_ledger
-                        : mapStrings.open_ledger}
-                    </button>
-                    <button
-                      type="button"
-                      className="gw-map-compact-card__toggle"
-                      aria-expanded={isCodeEntryOpen}
-                      onClick={toggleCodeEntry}
-                    >
-                      {isCodeEntryOpen
-                        ? mapStrings.hide_code
-                        : mapStrings.redeem_code}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="gw-map-compact-card__summary">
-                  {compactSummaryItems.map((item) => (
-                    <span
-                      key={item}
-                      className="gw-map-compact-card__summary-pill"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="gw-map-compact-card__states">
-                  {MAP_POINT_STATES.map((state) => (
-                    <span
-                      key={state}
-                      className="gw-map-compact-card__state-pill"
-                      data-state={state}
-                    >
-                      <span className="gw-map-status-dot gw-map-status-dot--compact" />
-                      {STATE_LABELS[state]}: {pointStateSummary[state]}
-                    </span>
-                  ))}
-                </div>
-              </CartouchePanel>
-
-              {isLedgerOpen ? (
-                <CartouchePanel
-                  label={mapStrings.ledger}
-                  padding="1rem 1.1rem"
-                  className="gw-map-ledger-drawer gw-map-cartouche-full gw-map-cartouche-ink"
-                >
-                  <div
-                    id={compactHeaderId.current}
-                    className="gw-map-ledger-drawer__frame"
-                  >
-                    <div className="gw-map-ledger-drawer__header">
-                      <button
-                        type="button"
-                        aria-label="Dismiss ledger"
-                        className="gw-map-ledger-drawer__toggle"
-                        onClick={toggleLedger}
-                      >
-                        {mapStrings.close_ledger}
-                      </button>
-                    </div>
-
-                    <div className="gw-map-ledger-grid">
-                      {ledgerItems.map(([label, value]) => (
-                        <div key={label} className="gw-map-ledger-grid__item">
-                          <span className="gw-map-ledger-grid__label">
-                            {label}
-                          </span>
-                          <strong className="gw-map-ledger-value">
-                            {value}
-                          </strong>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div
-                      className="gw-map-ledger-status"
-                      data-sync-state={isReady ? "live" : "syncing"}
-                    >
-                      <span className="gw-map-status-dot" />
-                      {isReady ? mapStrings.live : mapStrings.syncing}
-                    </div>
-                  </div>
-                </CartouchePanel>
-              ) : null}
-
-              {isCodeEntryOpen ? (
-                <CartouchePanel
-                  label="QR Ledger"
-                  padding="1rem 1.1rem"
-                  className="gw-map-cartouche-full gw-map-cartouche-ink"
-                >
-                  <div className="gw-map-ledger-drawer__frame">
-                    <div className="gw-map-ledger-drawer__header">
-                      <button
-                        type="button"
-                        className="gw-map-ledger-drawer__toggle"
-                        onClick={toggleCodeEntry}
-                      >
-                        {mapStrings.close_ledger}
-                      </button>
-                    </div>
-                    <div className="gw-map-code-entry-grid">
-                      <input
-                        value={codeValue}
-                        onChange={(event) => setCodeValue(event.target.value)}
-                        placeholder={mapStrings.enter_archived_code}
-                        className="gw-map-input-themed"
-                      />
-                      <button
-                        type="button"
-                        onClick={submitMapCode}
-                        disabled={isRedeemingCode || !isNetworkConnected}
-                        className="gw-map-ledger-drawer__toggle gw-map-submit-inline"
-                      >
-                        {isRedeemingCode
-                          ? mapStrings.archiving
-                          : mapStrings.archive_lead}
-                      </button>
-                      {codeStatus ? (
-                        <p className="gw-map-code-entry-status">{codeStatus}</p>
-                      ) : null}
-                    </div>
-                  </div>
-                </CartouchePanel>
-              ) : null}
-            </>
-          ) : (
-            <>
-              <CartouchePanel
-                label="Plate XII · Cartography Chamber"
-                padding="1.1rem 1.25rem"
-              >
-                <h2 className="gw-map-desktop-title">{region.name}</h2>
-                <p className="gw-map-desktop-copy">
-                  A living city atlas layered over live Spacetime subscriptions.
-                  Travel, scenario starts, and objective focus still run on the
-                  current authoritative bindings.
-                </p>
-                <div className="gw-map-state-pill-row">
-                  {MAP_POINT_STATES.map((state) => (
-                    <span
-                      key={state}
-                      className="gw-map-pill"
-                      data-state={state}
-                    >
-                      <span className="gw-map-status-dot" />
-                      {STATE_LABELS[state]}
-                    </span>
-                  ))}
-                </div>
-              </CartouchePanel>
-
-              <CartouchePanel
-                label={mapStrings.ledger}
-                padding="1.1rem 1.25rem"
-                className="gw-map-cartouche-ink"
-              >
-                <div className="gw-map-ledger-grid-desktop">
-                  {ledgerItems.map(([label, value]) => (
-                    <div key={label} className="gw-map-ledger-item-desktop">
-                      <span className="gw-map-ledger-item-desktop__label">
-                        {label}
-                      </span>
-                      <strong className="gw-map-ledger-value">{value}</strong>
-                    </div>
-                  ))}
-                </div>
-                <div
-                  className="gw-map-ledger-status"
-                  data-sync-state={isReady ? "live" : "syncing"}
-                >
-                  <span className="gw-map-status-dot" />
-                  {isReady ? mapStrings.live : mapStrings.syncing}
-                </div>
-                <button
-                  type="button"
-                  onClick={toggleCodeEntry}
-                  className="gw-map-code-toggle"
-                >
-                  {isCodeEntryOpen
-                    ? mapStrings.hide_code
-                    : mapStrings.redeem_code}
-                </button>
-                {isCodeEntryOpen ? (
-                  <div className="gw-map-code-entry-panel">
-                    <input
-                      value={codeValue}
-                      onChange={(event) => setCodeValue(event.target.value)}
-                      placeholder={mapStrings.enter_archived_code}
-                      className="gw-map-input-themed"
-                    />
-                    <div className="gw-map-code-entry-actions">
-                      <button
-                        type="button"
-                        onClick={submitMapCode}
-                        disabled={isRedeemingCode || !isNetworkConnected}
-                        className="gw-map-code-submit"
-                      >
-                        {isRedeemingCode
-                          ? mapStrings.archiving
-                          : mapStrings.archive_lead}
-                      </button>
-                      {codeStatus ? (
-                        <span className="gw-map-code-entry-status">
-                          {codeStatus}
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                ) : null}
-              </CartouchePanel>
-            </>
-          )}
-        </header>
+        <MapHeader
+          isCompactHud={isCompactHud}
+          regionName={region.name}
+          mapStrings={mapStrings}
+          stateLabels={STATE_LABELS}
+          pointStateSummary={pointStateSummary}
+          ledgerItems={ledgerItems}
+          compactSummaryItems={compactSummaryItems}
+          compactHeaderId={compactHeaderId.current}
+          isReady={isReady}
+          isLedgerOpen={isLedgerOpen}
+          isCodeEntryOpen={isCodeEntryOpen}
+          onToggleLedger={toggleLedger}
+          onToggleCodeEntry={toggleCodeEntry}
+          codeValue={codeValue}
+          onCodeValueChange={setCodeValue}
+          onSubmitCode={submitMapCode}
+          isRedeemingCode={isRedeemingCode}
+          isNetworkConnected={isNetworkConnected}
+          codeStatus={codeStatus}
+        />
 
         <div className="gw-map-overlay-tint" />
         <div className="gw-map-overlay-vignette" />
+        <EdgeAlertOverlay alert={edgeAlert} />
 
         {!isReady ? (
           <div className="gw-map-inline-note gw-map-status-pill">
@@ -1075,61 +855,23 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
           ))}
         </div>
 
-        <div className="gw-map-journey-controls">
-          <button
-            type="button"
-            className="gw-map-journey-controls__button"
-            data-active={isRouteMode ? "true" : "false"}
-            aria-pressed={isRouteMode}
-            onClick={() => setIsRouteMode((current) => !current)}
-          >
-            <MapPinPlus size={16} />
-            {mapStrings.journey.route_mode}
-          </button>
-          <button
-            type="button"
-            className="gw-map-journey-controls__button"
-            disabled={journey.waypoints.length === 0}
-            onClick={() =>
-              journey.isPaused ? journey.resume() : journey.pause()
-            }
-          >
-            {journey.isPaused ? <Play size={16} /> : <Pause size={16} />}
-            {journey.isPaused
-              ? mapStrings.journey.resume
-              : mapStrings.journey.pause}
-          </button>
-          <button
-            type="button"
-            className="gw-map-journey-controls__button"
-            disabled={!journey.isMoving && !journey.isPaused}
-            onClick={journey.stopForInteraction}
-          >
-            <Square size={15} />
-            {mapStrings.journey.stop}
-          </button>
-          <button
-            type="button"
-            className="gw-map-journey-controls__button"
-            disabled={journey.waypoints.length === 0}
-            onClick={journey.clear}
-          >
-            <Trash2 size={16} />
-            {mapStrings.journey.clear}
-          </button>
-          <div className="gw-map-journey-controls__status">
-            <Route size={16} />
-            <span>
-              {journey.waypoints.length} {mapStrings.journey.queued}
-            </span>
-          </div>
-        </div>
+        <JourneyControls
+          strings={mapStrings.journey}
+          isRouteMode={isRouteMode}
+          onToggleRouteMode={() => setIsRouteMode((current) => !current)}
+          waypointCount={journey.waypoints.length}
+          isPaused={journey.isPaused}
+          isMoving={journey.isMoving}
+          onPauseResume={() =>
+            journey.isPaused ? journey.resume() : journey.pause()
+          }
+          onStop={journey.stopForInteraction}
+          onClear={journey.clear}
+        />
 
         <CompassOverlay
-          activeWaypoint={journey.activeWaypoint}
-          bearingToTarget={journey.bearingToTarget}
+          objectiveGuide={objectiveGuide}
           inSearchZone={journey.inSearchZone}
-          remainingDistanceMeters={journey.remainingDistanceMeters}
           searchTarget={journey.searchTarget}
           speedKmH={journey.speedKmH}
           discoverySignal={discoverySignal}
@@ -1140,139 +882,24 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
           onInspectObservationTarget={inspectObservationTarget}
         />
 
-        <MapGL
-          initialViewState={{
-            longitude: region.geoCenterLng,
-            latitude: region.geoCenterLat,
-            zoom: region.zoom,
-          }}
-          mapStyle={MAPBOX_STYLE}
-          mapboxAccessToken={MAPBOX_TOKEN}
-          onClick={handleMapClick}
-          onZoomEnd={(evt: ViewStateChangeEvent) =>
-            setZoomLevel(evt.viewState.zoom)
-          }
-          reuseMaps
-          {...MAP_GL_LAYOUT_PROPS}
-        >
-          <NavigationControl position="bottom-right" />
-
-          {journey.plannedPath.length > 1 ? (
-            <Source
-              id="gw-journey-planned-route"
-              type="geojson"
-              data={{
-                type: "Feature",
-                properties: {},
-                geometry: {
-                  type: "LineString",
-                  coordinates: journey.plannedPath,
-                },
-              }}
-            >
-              <Layer
-                id="gw-journey-planned-route-line"
-                type="line"
-                paint={{
-                  "line-color": "#f2d088",
-                  "line-width": 4,
-                  "line-opacity": 0.72,
-                  "line-dasharray": [0.8, 1.1],
-                }}
-              />
-            </Source>
-          ) : null}
-
-          {journey.traveledPath.length > 1 ? (
-            <Source
-              id="gw-journey-traveled-route"
-              type="geojson"
-              data={{
-                type: "Feature",
-                properties: {},
-                geometry: {
-                  type: "LineString",
-                  coordinates: journey.traveledPath,
-                },
-              }}
-            >
-              <Layer
-                id="gw-journey-traveled-route-line"
-                type="line"
-                paint={{
-                  "line-color": "#69c1a3",
-                  "line-width": 5,
-                  "line-opacity": 0.84,
-                }}
-              />
-            </Source>
-          ) : null}
-
-          {visibleRoutes.map((route) => (
-            <Source
-              key={route.id}
-              id={route.id}
-              type="geojson"
-              data={{
-                type: "Feature",
-                properties: {},
-                geometry: {
-                  type: "LineString",
-                  coordinates: route.coordinates,
-                },
-              }}
-            >
-              <Layer
-                id={`${route.id}-line`}
-                type="line"
-                paint={{
-                  "line-color": route.color ?? "#b88943",
-                  "line-width": 3,
-                  "line-opacity": 0.82,
-                  "line-dasharray": [1.2, 1.1],
-                }}
-              />
-            </Source>
-          ))}
-
-          {displayedPoints.map((point) => (
-            <Marker
-              key={point.id}
-              longitude={point.lng}
-              latitude={point.lat}
-              anchor="center"
-            >
-              <div
-                className="gw-map-marker-shell"
-                data-rejected={
-                  rejectedPointIds.has(point.id) ? "true" : "false"
-                }
-              >
-                <CobblestoneMarker
-                  point={point}
-                  selected={point.id === selectedPointId}
-                  size={isZoomedOut ? 40 : 56}
-                  onClick={() => handlePointClick(point)}
-                />
-              </div>
-            </Marker>
-          ))}
-
-          {journey.position ? (
-            <Marker
-              longitude={journey.position[0]}
-              latitude={journey.position[1]}
-              anchor="center"
-            >
-              <div aria-label="Player position">
-                <PlayerPin
-                  variant="trace"
-                  state={journey.isMoving ? "moving" : "idle"}
-                />
-              </div>
-            </Marker>
-          ) : null}
-        </MapGL>
+        <MapCanvas
+          region={region}
+          onMapClick={handleMapClick}
+          onZoomEnd={setZoomLevel}
+          plannedPath={journey.plannedPath}
+          traveledPath={journey.traveledPath}
+          routes={visibleRoutes}
+          points={displayedPoints}
+          rejectedPointIds={rejectedPointIds}
+          nearbyPointIds={nearbyPointIds}
+          selectedPointId={selectedPointId}
+          isZoomedOut={isZoomedOut}
+          onPointClick={handlePointClick}
+          playerPosition={journey.position}
+          playerState={playerPinState}
+          playerBearing={journey.bearing}
+          playerSpeedRatio={playerSpeedRatio}
+        />
       </div>
 
       {selectedPoint?.category === "HUB" ? (

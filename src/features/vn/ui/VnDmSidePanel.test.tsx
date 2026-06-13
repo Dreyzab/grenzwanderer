@@ -62,6 +62,10 @@ const renderPanel = (overrides: Partial<PanelProps> = {}) => {
   return { enqueueAiRequest, rerender };
 };
 
+const expandPanel = () => {
+  fireEvent.click(screen.getByTestId("vn-dm-panel-toggle"));
+};
+
 describe("VnDmSidePanel", () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -69,6 +73,7 @@ describe("VnDmSidePanel", () => {
 
   it("submits Action and private Remark as a DM turn payload", async () => {
     const { enqueueAiRequest } = renderPanel();
+    expandPanel();
 
     fireEvent.change(screen.getByTestId("vn-dm-action"), {
       target: { value: "Я запугиваю Карла у двери кладовой." },
@@ -113,6 +118,7 @@ describe("VnDmSidePanel", () => {
 
   it("accepts a captured beat proposal into the session ledger instead of authored canon", async () => {
     const { enqueueAiRequest, rerender } = renderPanel();
+    expandPanel();
 
     // Fire one beat; the panel renders only proposals it captured from its own request.
     fireEvent.click(screen.getByTestId("vn-dm-ask"));
@@ -153,10 +159,15 @@ describe("VnDmSidePanel", () => {
   it("can hide and show the side panel", () => {
     renderPanel();
 
+    expect(screen.queryByTestId("vn-dm-panel")).not.toBeInTheDocument();
+
+    expandPanel();
+    expect(screen.getByTestId("vn-dm-panel")).toBeInTheDocument();
+
     fireEvent.click(screen.getByTestId("vn-dm-hide"));
     expect(screen.queryByTestId("vn-dm-panel")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByTestId("vn-dm-panel-toggle"));
+    expandPanel();
     expect(screen.getByTestId("vn-dm-panel")).toBeInTheDocument();
   });
 });

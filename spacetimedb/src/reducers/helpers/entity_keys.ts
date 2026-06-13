@@ -77,6 +77,19 @@ export const createPlayerMindHypothesisKey = (
   hypothesisId: string,
 ): string => `${identityKey(player)}::hypothesis::${caseId}::${hypothesisId}`;
 
+export const createPlayerMindLinkKey = (
+  player: { toHexString(): string },
+  caseId: string,
+  factId: string,
+  hypothesisId: string,
+): string =>
+  `${identityKey(player)}::link::${caseId}::${factId}::${hypothesisId}`;
+
+export const createPlayerMindBoardKey = (
+  player: { toHexString(): string },
+  caseId: string,
+): string => `${identityKey(player)}::board::${caseId}`;
+
 export const createHypothesisFocusFlagKey = (
   caseId: string,
   hypothesisId: string,

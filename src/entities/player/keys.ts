@@ -1,5 +1,6 @@
 import { LEGACY_REPUTATION_VAR_BY_FACTION_ID } from "../../../data/factionContract";
 import {
+  INNER_VOICE_RANK_VAR_KEYS,
   PSYCHE_VAR_KEYS,
   SKILL_VOICE_IDS,
 } from "../../../data/innerVoiceContract";
@@ -89,6 +90,11 @@ const SNAPSHOT_FLAG_KEYS = [
   "flag_paperboy_theft_seen",
   "flag_skipped_station_investigation",
   "freiburg_finale_open",
+  "agency_archive_access",
+  "agency_archive_consulted",
+  "pub_backroom_access",
+  "pub_backroom_visited",
+  "route_rail_yard_revealed",
   "ghost_bookshelf_switch_found",
   "ghost_case_closed",
   "ghost_cold_spot_confirmed",
@@ -232,6 +238,7 @@ export const PLAYER_VAR_KEYS = [
   ...CORE_CHARACTERISTIC_VAR_KEYS,
   ...INDICATOR_VAR_KEYS,
   ...PSYCHE_VAR_KEYS,
+  ...INNER_VOICE_RANK_VAR_KEYS,
   ...Object.values(LEGACY_REPUTATION_VAR_BY_FACTION_ID),
   RESOURCE_PROVIDENCE_VAR,
   RESOURCE_FATE_TOKEN_VAR,

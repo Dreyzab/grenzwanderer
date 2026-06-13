@@ -245,6 +245,10 @@ export const createReducerTestDb = () => ({
       row.result,
     ],
   }),
+  playerTriggerFire: createTestTable("fireKey", "fireKey", {
+    player_trigger_fire_player_id: "playerId",
+    player_trigger_fire_player_rule: (row) => [row.playerId, row.ruleId],
+  }),
   commandSession: createTestTable("sessionKey", "sessionKey"),
   commandPartyMember: createTestTable("memberKey", "memberKey", {
     command_party_member_player_id: "playerId",

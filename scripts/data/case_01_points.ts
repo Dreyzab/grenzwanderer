@@ -147,6 +147,9 @@ const LEGACY_SCENARIO_TO_CURRENT: Record<string, string> = {
   encounter_student: "sandbox_intro_pilot",
 };
 
+export const resolveLegacyScenarioId = (legacyId: string): string | null =>
+  LEGACY_SCENARIO_TO_CURRENT[legacyId] ?? null;
+
 const resolveScenarioId = (
   legacyScenarioIds: readonly string[] | undefined,
   availableScenarioIds: ReadonlySet<string>,
@@ -419,6 +422,29 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
         {
           type: "start_scenario",
           scenarioId: AGENCY_PROMOTION_SCENARIO_ID,
+        },
+      ],
+    },
+    {
+      // agency_archive_access is granted by trig.freiburg.archive_access
+      // when the player is promoted to junior_detective.
+      id: "bind_agency_archive_consult",
+      trigger: "card_secondary",
+      label: "Consult the Archive",
+      priority: 55,
+      intent: "interaction",
+      conditions: [
+        { type: "flag_is", key: "agency_archive_access", value: true },
+        { type: "flag_is", key: "agency_archive_consulted", value: false },
+      ],
+      actions: [
+        { type: "register_rumor", rumorId: "rumor_university_network" },
+        { type: "set_flag", key: "agency_archive_consulted", value: true },
+        { type: "grant_xp", amount: 20 },
+        {
+          type: "track_event",
+          eventName: "agency_archive_consulted",
+          tags: { source: "archive" },
         },
       ],
     },
@@ -716,6 +742,34 @@ const RICH_BINDINGS_BY_POINT: Record<string, BindingBlueprint[]> = {
         {
           type: "start_scenario",
           scenarioId: CASE01_SCENARIO_IDS.railYardTail,
+        },
+      ],
+    },
+    {
+      // pub_backroom_access is granted by trig.freiburg.pub_backroom once
+      // Rudi Kempf owes the player a favor (favor_balance_gte 1).
+      id: "bind_pub_backroom",
+      trigger: "card_primary",
+      label: "Slip Into the Back Room",
+      priority: 95,
+      intent: "interaction",
+      conditions: [
+        { type: "flag_is", key: "pub_backroom_access", value: true },
+        { type: "flag_is", key: "pub_backroom_visited", value: false },
+      ],
+      actions: [
+        { type: "register_rumor", rumorId: "rumor_sapper_clean_cut" },
+        { type: "set_flag", key: "pub_backroom_visited", value: true },
+        {
+          type: "change_favor_balance",
+          npcId: "npc_rudi_kempf",
+          delta: -1,
+          reason: "backroom_confidence_spent",
+        },
+        {
+          type: "track_event",
+          eventName: "pub_backroom_entered",
+          tags: { pointId: "loc_workers_pub" },
         },
       ],
     },
@@ -1331,6 +1385,15 @@ const CASE_01_SHADOW_ROUTES: NonNullable<MapSnapshot["shadowRoutes"]> = [
     color: "#2f3c4f",
     revealFlagsAll: ["freiburg_finale_open"],
   },
+  {
+    // Revealed by trig.freiburg.rail_yard_route once rumor_bank_rail_yard
+    // is verified: the surveillance chain along the rail corridor.
+    id: "route_rail_yard_watch",
+    regionId: "FREIBURG_1905",
+    pointIds: ["loc_hbf", "loc_freiburg_warehouse", "loc_telephone"],
+    color: "#6b4a2d",
+    revealFlagsAll: ["route_rail_yard_revealed"],
+  },
 ];
 
 const CASE_01_QR_CODE_REGISTRY: NonNullable<MapSnapshot["qrCodeRegistry"]> = [
@@ -1391,6 +1454,62 @@ const CASE_01_MAP_EVENT_TEMPLATES: NonNullable<
           priority: 10,
           intent: "travel",
           actions: [{ type: "travel_to", locationId: "loc_street_event" }],
+        },
+      ],
+    },
+  },
+  {
+    // Spawned by trig.freiburg.informant_meeting on the first recorded
+    // agency service criterion.
+    id: "evt_informant_meeting",
+    ttlMinutes: 30,
+    point: {
+      id: "evt_informant_meeting_pin",
+      title: "Informant at the Sidings",
+      regionId: "FREIBURG_1905",
+      lat: 47.9986,
+      lng: 7.8412,
+      category: "EPHEMERAL",
+      description:
+        "Weber's dispatcher passed word: a contact will wait by the freight sidings, but not for long.",
+      image: "/images/locations/loc_misc/loc_suburbs.webp",
+      locationId: "loc_informant_meeting",
+      defaultState: "discovered",
+      isHiddenInitially: false,
+      bindings: [
+        {
+          id: "bind_evt_informant_meet",
+          trigger: "map_pin",
+          label: "Meet the Informant",
+          priority: 120,
+          intent: "interaction",
+          actions: [
+            {
+              type: "register_rumor",
+              rumorId: "rumor_galdermann_signature_pressure",
+            },
+            {
+              type: "change_favor_balance",
+              npcId: "npc_weber_dispatcher",
+              delta: 1,
+              reason: "informant_meeting_kept",
+            },
+            {
+              type: "track_event",
+              eventName: "informant_meeting_resolved",
+              tags: { templateId: "evt_informant_meeting" },
+            },
+          ],
+        },
+        {
+          id: "bind_evt_informant_travel",
+          trigger: "card_secondary",
+          label: "Travel",
+          priority: 10,
+          intent: "travel",
+          actions: [
+            { type: "travel_to", locationId: "loc_informant_meeting" },
+          ],
         },
       ],
     },

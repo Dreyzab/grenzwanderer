@@ -20,7 +20,10 @@ import type {
   VnSkillCheck,
   VnSnapshot,
 } from "./types";
-import { validateProceduralQuestPermissions } from "./procedural-permissions";
+import {
+  validateProceduralQuestPermissions,
+  validateTriggerRuleEffects,
+} from "./procedural-permissions";
 
 const CASE_ENTITY_VERSION: CaseIrEntityVersion = {
   kind: "case",
@@ -90,6 +93,7 @@ export interface CaseIrValidationIssue {
     | "trigger_rule_unknown_case"
     | "trigger_rule_unknown_archetype"
     | "trigger_rule_invalid_generated_namespace"
+    | "trigger_rule_forbidden_effect"
     | "quest_archetype_unknown_trigger_rule"
     | "quest_archetype_missing_step_node"
     | "quest_archetype_no_steps"
@@ -735,6 +739,14 @@ export const validateCaseIr = (caseIr: CaseIr): CaseIrValidationResult => {
         code: "trigger_rule_unknown_case",
         path: `triggerRules.${rule.id}.caseId`,
         message: `Trigger rule '${rule.id}' references unknown case '${rule.caseId}'.`,
+      });
+    }
+    for (const issue of validateTriggerRuleEffects(rule)) {
+      addIssue(issues, {
+        severity: "error",
+        code: issue.code,
+        path: issue.path,
+        message: issue.message,
       });
     }
     for (const archetypeId of rule.allowedArchetypeIds ?? []) {

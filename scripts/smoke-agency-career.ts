@@ -5,7 +5,9 @@ import {
   ensureBriefingReady,
   getAgencyCareer,
   getPlayerFlagValue,
+  getRumorStatus,
   hasMindFact,
+  isRumorRegisteredLike,
   getQuestStage,
   loadPilotSnapshot,
   openAgencyStudentIntro,
@@ -65,6 +67,8 @@ const runSmoke = async () =>
             pointId: "loc_freiburg_bank",
             bindingId: "bind_bank_close",
             trigger: "card_primary",
+            attemptedFromLat: undefined,
+            attemptedFromLng: undefined,
           });
 
           if (getQuestStage(conn, playerHex, "quest_banker") < 3) {
@@ -99,6 +103,8 @@ const runSmoke = async () =>
             pointId: "loc_agency",
             bindingId: "bind_agency_promotion_review",
             trigger: "card_secondary",
+            attemptedFromLat: undefined,
+            attemptedFromLng: undefined,
           });
           await conn.reducers.recordChoice({
             requestId: nextRequestId("confirm_promotion_review"),
@@ -124,6 +130,34 @@ const runSmoke = async () =>
           ) {
             throw new Error(
               "Career review did not discover the promotion-review Mind Palace fact",
+            );
+          }
+
+          if (!getPlayerFlagValue(conn, playerHex, "agency_archive_access")) {
+            throw new Error(
+              "career.promoted trigger did not grant agency archive access",
+            );
+          }
+          await conn.reducers.mapInteract({
+            requestId: nextRequestId("consult_archive"),
+            pointId: "loc_agency",
+            bindingId: "bind_agency_archive_consult",
+            trigger: "card_secondary",
+            attemptedFromLat: undefined,
+            attemptedFromLng: undefined,
+          });
+          if (
+            !getPlayerFlagValue(conn, playerHex, "agency_archive_consulted")
+          ) {
+            throw new Error("Archive consultation did not complete");
+          }
+          if (
+            !isRumorRegisteredLike(
+              getRumorStatus(conn, playerHex, "rumor_university_network"),
+            )
+          ) {
+            throw new Error(
+              "Archive consultation did not register the university network rumor",
             );
           }
 

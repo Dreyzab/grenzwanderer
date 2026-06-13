@@ -1,10 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
-import {
-  getSkillCheckVoicePalette,
-  formatSkillCheckVoiceLabel,
-} from "../skillCheckPalette";
+import { getSkillCheckVoicePalette } from "../skillCheckPalette";
 import type { SkillProgressFeedback } from "../../../shared/game/skillProgression";
 import type { VnChoice, VnDiceMode } from "../types";
 import "./VnSkillCheckFeedback.css";
@@ -128,10 +125,12 @@ const resolveEyebrow = (state: VnSkillCheckResolveState): string => {
 
 const ResolveFallbackDie = ({
   voiceId,
+  voiceLabel,
   phase,
   passed,
 }: {
   voiceId: string;
+  voiceLabel: string;
   phase: VnSkillCheckResolvePhase;
   passed?: boolean;
 }) => {
@@ -154,9 +153,7 @@ const ResolveFallbackDie = ({
       <span className="vn-check-resolve__fallback-core" />
       <span className="vn-check-resolve__fallback-ring" />
       <span className="vn-check-resolve__fallback-ring is-offset" />
-      <span className="vn-check-resolve__fallback-label">
-        {formatSkillCheckVoiceLabel(voiceId)}
-      </span>
+      <span className="vn-check-resolve__fallback-label">{voiceLabel}</span>
     </div>
   );
 };
@@ -281,6 +278,7 @@ export const VnSkillCheckResolveOverlay = ({
             ) : (
               <ResolveFallbackDie
                 voiceId={state.voiceId}
+                voiceLabel={state.voiceLabel}
                 phase={state.phase}
                 passed={state.passed}
               />

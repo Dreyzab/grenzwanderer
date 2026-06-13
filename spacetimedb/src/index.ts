@@ -15,9 +15,11 @@ export {
   my_faction_signals,
   my_favor_ledger,
   my_map_events,
+  my_mind_board_layouts,
   my_mind_cases,
   my_mind_facts,
   my_mind_hypotheses,
+  my_mind_links,
   my_npc_favors,
   my_npc_state,
   my_player_flags,
@@ -100,10 +102,13 @@ export {
   redeem_map_code,
 } from "./reducers/map";
 export {
+  assert_hypothesis,
   discover_fact,
+  link_fact,
+  save_board_layout,
   set_hypothesis_focus,
   start_mind_case,
-  validate_hypothesis,
+  unlink_fact,
 } from "./reducers/mindpalace";
 export {
   claim_next_ai_request,

@@ -87,4 +87,37 @@ describe("parliamentModules", () => {
       expect(Object.keys(mod.emphasis).length).toBeLessThanOrEqual(2);
     }
   });
+
+  it("gives every motive skin in-character ru fallback lines", () => {
+    for (const mod of Object.values(PARLIAMENT_MODULES)) {
+      for (const skin of mod.motiveSkins) {
+        expect(skin.supportText, `${mod.presetId}/${skin.label}`).toBeTruthy();
+        expect(skin.opposeText, `${mod.presetId}/${skin.label}`).toBeTruthy();
+      }
+    }
+  });
+
+  it("seats a concealed hidden voice only on a skinned inner_* id", () => {
+    for (const mod of Object.values(PARLIAMENT_MODULES)) {
+      const targetId = mod.hiddenVoice?.targetId;
+      if (!targetId) {
+        continue;
+      }
+      expect(isInnerVoiceId(targetId)).toBe(true);
+      // a runtime-concealed voice must also carry a reveal flag, and the
+      // module must actually skin the seat it conceals
+      expect(mod.hiddenVoice?.revealFlagKey).toBeTruthy();
+      expect(
+        mod.motiveSkins.some((skin) => skin.targetId === targetId),
+      ).toBe(true);
+    }
+  });
+
+  it("wires the witch's [СТЫД] as the concealed inner_hermit seat", () => {
+    const witch = PARLIAMENT_MODULES.witch;
+    expect(witch.hiddenVoice?.targetId).toBe("inner_hermit");
+    expect(witch.hiddenVoice?.revealFlagKey).toBe(
+      "flag_witch_shame_revealed",
+    );
+  });
 });

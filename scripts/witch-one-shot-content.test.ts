@@ -56,11 +56,27 @@ describe("witch one-shot content", () => {
       )?.nextNodeId,
     ).toBe("scene_case01_opening_arrival_video_witch");
 
-    const memoryNode = CASE01_CANON_NODES.find(
+    const drowseNode = CASE01_CANON_NODES.find(
       (node) => node.id === "scene_case01_opening_arrival_video_witch",
+    );
+    expect(drowseNode).toMatchObject({
+      backgroundUrl: "/VN/start/image/witch_compartment_drowse_final.png",
+      narrativeLayout: "log",
+    });
+    expect(drowseNode?.visualSequence).toBeUndefined();
+    expect(drowseNode?.choices).toEqual([
+      expect.objectContaining({
+        id: "AUTO_CONTINUE_WITCH_DROWSE_TO_MEMORY",
+        nextNodeId: "scene_case01_witch_compartment_memory",
+      }),
+    ]);
+
+    const memoryNode = CASE01_CANON_NODES.find(
+      (node) => node.id === "scene_case01_witch_compartment_memory",
     );
     expect(memoryNode).toMatchObject({
       backgroundUrl: "/VN/start/image/witch_compartment_drowse_final.png",
+      bodyOverride: "",
       narrativeLayout: "fullscreen",
       visualSequence: {
         skippable: true,
@@ -74,7 +90,7 @@ describe("witch one-shot content", () => {
         0,
       ),
     ).toBe(27_000);
-    expect(memoryNode?.visualSequence?.frames.slice(-3)).toEqual([
+    expect(memoryNode?.visualSequence?.frames.slice(-5)).toEqual([
       expect.objectContaining({
         imageUrl: "/VN/start/image/witch_memory/08_first_hunger.png",
         caption: "Сначала пришёл голод.",
@@ -86,6 +102,14 @@ describe("witch one-shot content", () => {
       expect.objectContaining({
         imageUrl: "/VN/start/image/witch_memory/10_bureau_offer.png",
         caption: "Бюро предложило не спасение. Работу.",
+      }),
+      expect.objectContaining({
+        imageUrl: "/VN/start/image/witch_memory/06_felix_says_no.png",
+        caption: "«Нет, матушка».",
+      }),
+      expect.objectContaining({
+        imageUrl: "/VN/start/image/witch_memory/07_bureau_seal.png",
+        caption: "Печать Бюро не спорит и не просит. Она ждет.",
       }),
     ]);
     expect(memoryNode?.choices).toEqual([
@@ -118,8 +142,58 @@ describe("witch one-shot content", () => {
     expect(
       CASE01_CANON_NODES.find(
         (node) => node.id === "scene_case01_witch_thirst_mask",
+      )?.bodyOverride,
+    ).not.toContain("inner_cynic");
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_thirst_mask",
+      )?.bodyOverride,
+    ).not.toContain("звенит серебро");
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_thirst_mask",
       )?.choices.map((choice) => choice.id),
     ).toEqual(["AUTO_CONTINUE_WITCH_THIRST_TO_COIN"]);
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_thirst_mask",
+      )?.choices[0]?.nextNodeId,
+    ).toBe("scene_case01_witch_coin_clang");
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_coin_clang",
+      ),
+    ).toMatchObject({
+      narrativeLayout: "log",
+      sceneGroupId: "witch_train_compartment",
+    });
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_coin_clang",
+      )?.bodyOverride,
+    ).toContain("Кляк");
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_coin_wake",
+      )?.bodyOverride,
+    ).toContain(
+      "Лязг метала заставляет напрячься каждый мускул, а восприятие обостриться.",
+    );
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_coin_wake",
+      )?.bodyOverride,
+    ).toContain("ему девятнадцать");
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_coin_wake",
+      )?.bodyOverride,
+    ).not.toContain("Монета падает и катится");
+    expect(
+      CASE01_CANON_NODES.find(
+        (node) => node.id === "scene_case01_witch_coin_wake",
+      )?.bodyOverride,
+    ).not.toContain("двадцать три");
     expect(
       CASE01_CANON_NODES.find(
         (node) => node.id === "scene_case01_witch_coin_wake",
@@ -781,6 +855,91 @@ describe("witch one-shot content", () => {
         },
       ]),
     );
+  });
+
+  it("seeds the Witch parliament emphasis at origin selection", () => {
+    const witchProfile = originProfiles.find(
+      (profile) => profile.choiceId === "BACKSTORY_WITCH",
+    );
+    const effects = buildOriginChoiceEffects(witchProfile!);
+
+    expect(effects).toEqual(
+      expect.arrayContaining([
+        {
+          type: "set_var",
+          key: "inner_voice_rank_inner_leader",
+          value: 2,
+        },
+        {
+          type: "set_var",
+          key: "inner_voice_rank_inner_cynic",
+          value: 1,
+        },
+      ]),
+    );
+  });
+
+  it("assigns every player-facing Witch choice a canonical source", () => {
+    const choices = CASE01_CANON_NODES.flatMap((node) => node.choices).filter(
+      (choice) => choice.id.startsWith("WITCH_"),
+    );
+    const neutralIds = new Set([
+      "WITCH_FINALE_CLOSE",
+      "WITCH_FINALE_ENTER_SANDBOX",
+    ]);
+
+    for (const choice of choices) {
+      if (neutralIds.has(choice.id)) {
+        expect(choice.choiceSource).toBeUndefined();
+        continue;
+      }
+      expect(choice.choiceSource, choice.id).toBeDefined();
+      expect(choice.text, choice.id).not.toMatch(/^\[[^\]]+\]/);
+    }
+
+    expect(
+      choices.find((choice) => choice.id === "WITCH_COIN_DRY_JOKE"),
+    ).toMatchObject({
+      choiceSource: "voice",
+      presentationVoiceId: "attr_composure",
+    });
+    expect(
+      choices.find((choice) => choice.id === "WITCH_HBF_WARM_VETO_TEND_HAND"),
+    ).toMatchObject({
+      choiceSource: "volition",
+      requireAll: [
+        { type: "var_gte", key: "resource_volition_token", value: 1 },
+      ],
+    });
+  });
+
+  it("reveals Shame on concrete harm and failed Facade outcomes", () => {
+    const revealEffect = {
+      type: "set_flag",
+      key: "flag_witch_shame_revealed",
+      value: true,
+    } as const;
+    const choiceById = (id: string) =>
+      CASE01_CANON_NODES.flatMap((node) => node.choices).find(
+        (choice) => choice.id === id,
+      );
+
+    expect(choiceById("WITCH_HBF_BLOOD_ABSORB")?.effects).toEqual(
+      expect.arrayContaining([revealEffect]),
+    );
+    expect(choiceById("WITCH_BARONESS_FEED")?.effects).toEqual(
+      expect.arrayContaining([revealEffect]),
+    );
+    expect(choiceById("WITCH_VAULTS_FEED_SASHA")?.effects).toEqual(
+      expect.arrayContaining([revealEffect]),
+    );
+    expect(
+      choiceById("WITCH_MUGGER_SIPHON_BREAK")?.skillCheck?.onFail?.effects,
+    ).toEqual(expect.arrayContaining([revealEffect]));
+    expect(
+      choiceById("WITCH_BARONESS_RESIST_RELIC")?.passiveChecks?.[0]?.onFail
+        ?.effects,
+    ).toEqual(expect.arrayContaining([revealEffect]));
   });
 
   it("applies Heat +2 only on the mugger siphon failure branch", () => {

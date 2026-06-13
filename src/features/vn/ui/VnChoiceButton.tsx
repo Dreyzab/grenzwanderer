@@ -19,16 +19,12 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { getSkillCheckChanceTone } from "../checkChance";
-import type { ChoiceInnerVoiceHintDisplay } from "../vnScreenTypes";
-import {
-  formatSkillCheckVoiceLabel,
-  getSkillCheckVoicePalette,
-} from "../skillCheckPalette";
+import type {
+  ChoiceInnerVoiceHintDisplay,
+  ChoiceSourcePresentation,
+} from "../vnScreenTypes";
 import type { VnChoice } from "../types";
-import {
-  CHARACTER_SYNERGIES,
-  type VnChoiceSource,
-} from "../../../shared/game/characterProgression";
+import { resolveChoiceSourcePresentation } from "../choiceSourcePresentation";
 import {
   getVoiceFallbackIcon,
   resolveVoiceAvatarUrl,
@@ -100,6 +96,7 @@ export interface VnChoiceButtonProps {
   hasFailedCheck?: boolean;
   chancePercent?: number;
   innerVoiceHints?: ChoiceInnerVoiceHintDisplay[];
+  sourcePresentation?: ChoiceSourcePresentation;
   skillCheckState?:
     | "idle"
     | "arming"
@@ -171,63 +168,23 @@ const chanceColorClassName = (chancePercent: number): string => {
   return "text-rose-400";
 };
 
-const choiceSourceLabelById: Record<VnChoiceSource, string> = {
-  common: "Common",
-  voice: "Voice",
-  origin: "Origin",
-  synergy: "Synergy",
-  signature: "Signature",
-  flaw: "Flaw",
-};
-
-const choiceSourceAccentById: Record<VnChoiceSource, string> = {
-  common: "#a8a29e",
-  voice: "#fbbf24",
-  origin: "#f59e0b",
-  synergy: "#38bdf8",
-  signature: "#34d399",
-  flaw: "#fb7185",
-};
-
-const resolveChoiceSource = (choice: VnChoice): VnChoiceSource =>
-  choice.choiceSource ?? (choice.skillCheck ? "voice" : "common");
-
-const resolveChoiceSourceLabel = (choice: VnChoice): string => {
-  const source = resolveChoiceSource(choice);
-  if (source === "voice" && choice.skillCheck) {
-    return formatSkillCheckVoiceLabel(choice.skillCheck.voiceId);
-  }
-  if (source === "synergy" && choice.skillCheck?.synergyId) {
-    return CHARACTER_SYNERGIES[choice.skillCheck.synergyId].labelRu;
-  }
-  return choiceSourceLabelById[source];
-};
-
 function ChoiceSourceBadge({
-  choice,
-  voiceAccent,
+  presentation,
 }: {
-  choice: VnChoice;
-  voiceAccent?: string;
+  presentation: ChoiceSourcePresentation;
 }) {
-  const source = resolveChoiceSource(choice);
-  const color =
-    source === "voice" && voiceAccent
-      ? voiceAccent
-      : choiceSourceAccentById[source];
-
   return (
     <span
       className="mr-2 inline-flex max-w-full translate-y-[-0.12em] items-center rounded-[4px] border px-1.5 py-0.5 font-sans text-[9px] font-semibold uppercase tracking-[0.16em]"
       data-testid="choice-source-badge"
-      data-choice-source={source}
+      data-choice-source={presentation.source}
       style={{
-        borderColor: `${color}55`,
-        backgroundColor: `${color}14`,
-        color,
+        borderColor: `${presentation.accent}55`,
+        backgroundColor: `${presentation.accent}14`,
+        color: presentation.accent,
       }}
     >
-      {resolveChoiceSourceLabel(choice)}
+      {presentation.label}
     </span>
   );
 }
@@ -416,10 +373,14 @@ export function VnChoiceButton({
   hasFailedCheck = false,
   chancePercent,
   innerVoiceHints = [],
+  sourcePresentation,
   skillCheckState = "idle",
   onClick,
 }: VnChoiceButtonProps) {
   const skillCheck = choice.skillCheck;
+  const resolvedSourcePresentation =
+    sourcePresentation ??
+    resolveChoiceSourcePresentation(choice, innerVoiceHints);
   const hasSkillCheck = Boolean(skillCheck);
   const type = choice.choiceType || "action";
 
@@ -433,17 +394,12 @@ export function VnChoiceButton({
   const toneMotion = motionForState(skillCheckState);
   const primaryHint =
     !skillCheck && innerVoiceHints.length > 0 ? innerVoiceHints[0] : null;
-  const primaryVoice = skillCheck
-    ? {
-        id: skillCheck.voiceId,
-        label: formatSkillCheckVoiceLabel(skillCheck.voiceId),
-        palette: getSkillCheckVoicePalette(skillCheck.voiceId),
-      }
-    : primaryHint
+  const primaryVoice =
+    resolvedSourcePresentation.voiceId && resolvedSourcePresentation.palette
       ? {
-          id: primaryHint.voiceId,
-          label: primaryHint.label,
-          palette: primaryHint.palette,
+          id: resolvedSourcePresentation.voiceId,
+          label: resolvedSourcePresentation.label,
+          palette: resolvedSourcePresentation.palette,
         }
       : null;
   const ChoiceIcon = primaryVoice
@@ -504,7 +460,7 @@ export function VnChoiceButton({
             />
           </span>
           <span className="font-serif text-lg leading-snug text-stone-600 line-through sm:text-xl md:text-[22px]">
-            <ChoiceSourceBadge choice={choice} voiceAccent={accentColor} />
+            <ChoiceSourceBadge presentation={resolvedSourcePresentation} />
             {choice.text}
           </span>
         </div>
@@ -540,7 +496,7 @@ export function VnChoiceButton({
           />
         </PrimaryVoiceFloat>
         <span className={choiceTextClassName}>
-          <ChoiceSourceBadge choice={choice} voiceAccent={accentColor} />
+          <ChoiceSourceBadge presentation={resolvedSourcePresentation} />
           {choice.text}
         </span>
 

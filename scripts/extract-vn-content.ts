@@ -3224,6 +3224,10 @@ const snapshotPayload: VnSnapshot = {
   map: mapSnapshot,
   questCatalog: releaseQuestCatalog,
   socialCatalog: releaseSocialCatalog,
+  caseCatalog: {
+    triggerRules: CASE_CATALOG.triggerRules,
+    questArchetypes: CASE_CATALOG.questArchetypes,
+  },
 };
 
 const caseIrValidation = validateCaseIr(

@@ -15,4 +15,6 @@ export default {
   pointId: __t.string(),
   bindingId: __t.string(),
   trigger: __t.string(),
+  attemptedFromLat: __t.option(__t.f64()),
+  attemptedFromLng: __t.option(__t.f64()),
 };

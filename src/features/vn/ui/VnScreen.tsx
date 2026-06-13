@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTable } from "spacetimedb/react";
 import { tables } from "../../../shared/spacetime/bindings";
 import { resolvePlayerPortrait } from "../../../shared/game/playerPortrait";
-import { getOriginProfileByFlags } from "../../character/originProfiles";
+import {
+  getActiveParliamentPresetId,
+  getOriginProfileByFlags,
+} from "../../character/originProfiles";
 import type { EquipmentSlot } from "../../../shared/game/itemCatalog";
 import { usePlayerBindings } from "../../../entities/player/hooks/usePlayerBindings";
 import { useKarlsruheSceneBackground } from "../../release/sceneGeneration";
@@ -207,6 +210,10 @@ export const VnScreen = ({
   } | null>(null);
 
   const { flags: myFlags, vars: myVars } = usePlayerBindings();
+  const activeParliamentPresetId = useMemo(
+    () => getActiveParliamentPresetId(myFlags) ?? undefined,
+    [myFlags],
+  );
   const [equipmentRows] = useTable(tables.myPlayerEquipment);
   const equippedBySlot = useMemo(() => {
     const equipped: Record<string, string> = {
@@ -370,6 +377,7 @@ export const VnScreen = ({
     contentReady,
     myFlags,
     myVars,
+    activeParliamentPresetId,
     mySession,
     sessionReady,
     currentNode,
@@ -438,6 +446,7 @@ export const VnScreen = ({
   const handleResolvedSkillCheckWithLog = useCallback(
     (pending: AwaitingSkillChoice, matchedResult: SkillCheckResultLike) => {
       appendCheckResult({
+        voiceId: pending.voiceId,
         voiceLabel: pending.voiceLabel,
         passed: matchedResult.passed,
         roll: matchedResult.roll,
@@ -669,6 +678,7 @@ export const VnScreen = ({
     currentSessionPointer,
     myFlags,
     myVars,
+    activeParliamentPresetId,
     choiceEvaluationContext,
     mySkillResults,
     currentDiceMode,
@@ -741,6 +751,7 @@ export const VnScreen = ({
     mySession,
     myFlags,
     myVars,
+    activeParliamentPresetId,
     choiceEvaluationContext,
     currentVisibleChoices,
     currentVisibleHotspotChoices,
@@ -1072,9 +1083,11 @@ export const VnScreen = ({
         narrativePresentation={currentNode?.narrativePresentation}
         logState={narrativeLog.state}
         logSnapshot={snapshot}
+        parliamentPresetId={activeParliamentPresetId}
         playerProfile={playerProfileForLog}
         letterOverlayRevealDelayMs={currentNode?.letterOverlayRevealDelayMs}
         onTypingChange={handleTypingChange}
+        onNarrativeComplete={narrativeLog.finishCurrentSegment}
         isTyping={isTyping}
         typedTextRef={typedTextRef}
         onTokenClick={handleTypedTextTokenClick}
@@ -1171,6 +1184,7 @@ export const VnScreen = ({
           narrativeResources={narrativeResources}
           myFlags={myFlags}
           myVars={myVars}
+          parliamentPresetId={activeParliamentPresetId}
           visibleFacts={dmVisibleFacts}
           activeRequest={activeDmTurnRequest}
           activeProposal={activeDmTurnProposal}

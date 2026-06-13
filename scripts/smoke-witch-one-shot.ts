@@ -49,12 +49,22 @@ requireChoice(
 );
 requireChoice(
   "scene_case01_opening_arrival_video_witch",
+  "AUTO_CONTINUE_WITCH_DROWSE_TO_MEMORY",
+  "scene_case01_witch_compartment_memory",
+);
+requireChoice(
+  "scene_case01_witch_compartment_memory",
   "AUTO_CONTINUE_WITCH_DROWSE_TO_THIRST",
   "scene_case01_witch_thirst_mask",
 );
 requireChoice(
   "scene_case01_witch_thirst_mask",
   "AUTO_CONTINUE_WITCH_THIRST_TO_COIN",
+  "scene_case01_witch_coin_clang",
+);
+requireChoice(
+  "scene_case01_witch_coin_clang",
+  "AUTO_CONTINUE_WITCH_COIN_CLANG_TO_WAKE",
   "scene_case01_witch_coin_wake",
 );
 requireChoice(

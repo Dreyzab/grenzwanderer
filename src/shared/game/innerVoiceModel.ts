@@ -10,6 +10,7 @@ import {
   type InnerVoiceRole,
   type InnerVoiceStance,
 } from "../../../data/innerVoiceContract";
+import { getVoiceSkin } from "../../../data/parliamentModules";
 
 export interface PsycheState {
   axisX: number;
@@ -134,10 +135,18 @@ export const resolveInnerVoiceSelection = (
 export const buildInnerVoiceFallbackText = (
   voiceId: InnerVoiceId,
   stance: InnerVoiceStance,
-): string =>
-  stance === "supports"
+  presetId?: string,
+): string => {
+  const skin = getVoiceSkin(presetId, voiceId);
+  const skinnedText =
+    stance === "supports" ? skin?.supportText : skin?.opposeText;
+  if (skinnedText) {
+    return skinnedText;
+  }
+  return stance === "supports"
     ? INNER_VOICE_DEFINITIONS[voiceId].supportText
     : INNER_VOICE_DEFINITIONS[voiceId].opposeText;
+};
 
 export const describeAxisX = (value: number): string => {
   if (value <= -60) return "Strong Individualist";

@@ -5,6 +5,7 @@ import {
   INNER_VOICE_SILENCE_THRESHOLD,
 } from "../../../data/innerVoiceContract";
 import {
+  buildInnerVoiceFallbackText,
   resonanceForInnerVoice,
   resolveInnerVoiceSelection,
 } from "./innerVoiceModel";
@@ -54,5 +55,26 @@ describe("innerVoiceModel", () => {
     expect(INNER_VOICE_SILENCE_THRESHOLD).toBe(0.005);
     expect(selection.ordered).toHaveLength(1);
     expect(selection.dominant?.voiceId).toBe("inner_cynic");
+  });
+
+  it("uses the module's skinned ru fallback line when a preset is active", () => {
+    const skinned = buildInnerVoiceFallbackText(
+      "inner_leader",
+      "supports",
+      "witch",
+    );
+    expect(skinned).toContain("Дому");
+
+    // unskinned voice falls back to the canonical line
+    const canonical = buildInnerVoiceFallbackText("inner_leader", "supports");
+    expect(canonical).toBe("Take responsibility and bind the group together.");
+
+    // track-preset alias resolves to its origin module
+    const aliased = buildInnerVoiceFallbackText(
+      "inner_adapter",
+      "opposes",
+      "journalist_cityroom",
+    );
+    expect(aliased).toContain("некролог");
   });
 });

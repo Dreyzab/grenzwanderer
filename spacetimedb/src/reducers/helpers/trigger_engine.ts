@@ -8,6 +8,8 @@ import { areConditionsSatisfied } from "./vn_rules";
 export interface TriggerRuntimeGates {
   activeCooldownGroups?: ReadonlySet<string>;
   remainingBudgets?: Readonly<Record<string, number>>;
+  /** Rules this player has already fired (once-per-player enforcement). */
+  firedRuleIds?: ReadonlySet<string>;
 }
 
 export const evaluateTriggerRule = (
@@ -40,6 +42,18 @@ export const evaluateTriggerRule = (
       ruleId: rule.id,
       eventName: event.eventName,
       reason: "case_scope_mismatch",
+    };
+  }
+
+  if (
+    (rule.repeatPolicy ?? "once_per_player") !== "repeatable" &&
+    gates.firedRuleIds?.has(rule.id)
+  ) {
+    return {
+      eligible: false,
+      ruleId: rule.id,
+      eventName: event.eventName,
+      reason: "already_fired",
     };
   }
 

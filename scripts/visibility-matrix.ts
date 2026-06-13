@@ -299,6 +299,22 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "Validated or pending hypotheses are player-private deduction state.",
   ),
   entry(
+    "player_mind_link",
+    "playerMindLink",
+    "player-scoped",
+    "my_mind_links",
+    "wave2-sessional",
+    "Player-authored evidence links on the Mind Palace board are player-private deduction state.",
+  ),
+  entry(
+    "player_mind_board_layout",
+    "playerMindBoardLayout",
+    "player-scoped",
+    "my_mind_board_layouts",
+    "wave2-sessional",
+    "Board layout positions are player-private Mind Palace UI state.",
+  ),
+  entry(
     "player_quest",
     "playerQuest",
     "player-scoped",
@@ -457,6 +473,14 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "my_redeemed_codes",
     "wave3-core-progression",
     "Redeemed code history is player-private map/runtime state and should become self-scoped.",
+  ),
+  entry(
+    "player_trigger_fire",
+    "playerTriggerFire",
+    "operational-private",
+    "no client read path",
+    "wave1-operational",
+    "Trigger fire bookkeeping (once-per-player, cooldown, budget gates) is backend orchestration state, never read by clients.",
   ),
   entry(
     "content_rating",

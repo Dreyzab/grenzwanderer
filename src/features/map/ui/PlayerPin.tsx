@@ -14,9 +14,8 @@ import { getMapStrings } from "../../i18n/uiStrings";
  *   variants  — trace (default) | portrait | sigil | hybrid
  *   states    — idle | moving | paused | at_poi | discovering
  *
- * For initial wiring we use `trace` + (`moving` when journey is running, else
- * `idle`). Bearing / speed and the `at_poi` / `discovering` derivations land in
- * a follow-up iteration alongside the route renderer.
+ * MapView derives the state (`derivePlayerPinState`) from journey + discovery
+ * signal and feeds bearing/speed from the journey simulation.
  */
 
 export type PlayerPinVariant = "trace" | "portrait" | "sigil" | "hybrid";

@@ -5,11 +5,20 @@ import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
 import { getMapStrings } from "../../i18n/uiStrings";
 import type { DiscoverySignalResult } from "../model/discoverySignal";
 
+export interface CompassObjectiveGuide {
+  id: string;
+  label: string;
+  /** Already quantized — the compass shows an approximate heading. */
+  bearingDegrees: number;
+}
+
 interface CompassOverlayProps {
-  activeWaypoint: { id: string; label: string } | null;
-  bearingToTarget: number | null;
+  /**
+   * Nearest active-objective point. Pirates-of-the-Caribbean rule: the needle
+   * always points at what the detective wants — no route plotting, no numbers.
+   */
+  objectiveGuide: CompassObjectiveGuide | null;
   inSearchZone: boolean;
-  remainingDistanceMeters: number | null;
   searchTarget: { id: string; label?: string; title?: string } | null;
   speedKmH: number | null;
   discoverySignal: DiscoverySignalResult;
@@ -24,10 +33,8 @@ interface CompassOverlayProps {
 const MINOR_TICKS = [30, 60, 120, 150, 210, 240, 300, 330] as const;
 
 export const CompassOverlay: React.FC<CompassOverlayProps> = ({
-  activeWaypoint,
-  bearingToTarget,
+  objectiveGuide,
   inSearchZone,
-  remainingDistanceMeters,
   searchTarget,
   speedKmH,
   discoverySignal,
@@ -61,45 +68,24 @@ export const CompassOverlay: React.FC<CompassOverlayProps> = ({
       ),
     [CARDINALS],
   );
-  const isNavigating = activeWaypoint !== null && bearingToTarget !== null;
   const isSearching = inSearchZone && searchTarget !== null;
   const hasSignal = discoverySignal.state !== "idle";
-  const isIdle = !isNavigating && !isSearching && !hasSignal;
+  const isTracking = !isSearching && !hasSignal && objectiveGuide !== null;
+  const isIdle = !isSearching && !hasSignal && !isTracking;
 
   const stateClass = hasSignal
     ? `gw-compass--signal-${discoverySignal.state}`
     : isSearching
       ? "gw-compass--search"
-      : isNavigating
-        ? "gw-compass--navigating"
+      : isTracking
+        ? "gw-compass--tracking"
         : "gw-compass--idle";
 
   const readoutLabel = hasSignal
     ? discoverySignal.target?.title
     : isSearching
       ? (searchTarget?.label ?? searchTarget?.title)
-      : activeWaypoint?.label;
-
-  const formattedDistance = useMemo(() => {
-    const formatDistance = (meters: number): string => {
-      if (meters < 1000) return `${Math.round(meters)}${mapStrings.units.m}`;
-      return `${(meters / 1000).toFixed(1)}${mapStrings.units.km}`;
-    };
-
-    if (hasSignal && discoverySignal.distanceMeters !== null) {
-      return formatDistance(discoverySignal.distanceMeters);
-    }
-    if (remainingDistanceMeters !== null) {
-      return formatDistance(remainingDistanceMeters);
-    }
-    return null;
-  }, [
-    discoverySignal.distanceMeters,
-    hasSignal,
-    mapStrings.units.km,
-    mapStrings.units.m,
-    remainingDistanceMeters,
-  ]);
+      : objectiveGuide?.label;
 
   const formattedSpeed = useMemo(() => {
     if (speedKmH === null) {
@@ -108,8 +94,9 @@ export const CompassOverlay: React.FC<CompassOverlayProps> = ({
     return `${speedKmH.toFixed(1)} ${mapStrings.units.kmh}`;
   }, [mapStrings.units.kmh, speedKmH]);
 
-  // Needle rotation: bearing to target, or 0 (north) when idle
-  const needleRotation = bearingToTarget ?? 0;
+  // Needle rotation: approximate heading toward the active objective, or 0
+  // (north) when there is nothing to want.
+  const needleRotation = objectiveGuide?.bearingDegrees ?? 0;
 
   return (
     <div
@@ -191,28 +178,28 @@ export const CompassOverlay: React.FC<CompassOverlayProps> = ({
           {readoutLabel && (
             <span className="gw-compass__readout-label">{readoutLabel}</span>
           )}
-          <div className="gw-compass__readout-data">
-            {formattedDistance && (
-              <span className="gw-compass__readout-distance">
-                {formattedDistance}
-              </span>
-            )}
-            {formattedSpeed && (
+          {formattedSpeed && (
+            <div className="gw-compass__readout-data">
               <span className="gw-compass__readout-speed">
                 {formattedSpeed}
               </span>
-            )}
-          </div>
+            </div>
+          )}
           {isSearching && (
             <span className="gw-compass__readout-status">
               ● {mapStrings.forensic_zone}
+            </span>
+          )}
+          {isTracking && (
+            <span className="gw-compass__readout-status gw-compass__readout-status--tracking">
+              ◈ {mapStrings.objective_bearing}
             </span>
           )}
           {hasSignal && (
             <span className="gw-compass__readout-status">
               {discoverySignal.state === "interference"
                 ? "INTERFERENCE"
-                : `SIGNAL ${discoverySignal.phase.toUpperCase()}`}
+                : `${discoverySignal.channel === "qr_scan" ? "QR " : ""}SIGNAL ${discoverySignal.phase.toUpperCase()}`}
             </span>
           )}
         </div>

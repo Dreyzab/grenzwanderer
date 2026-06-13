@@ -6,6 +6,7 @@ import {
   haversineDistanceMeters,
   interpolateLngLat,
   isPointWithinDiscoveryRadius,
+  quantizeBearingDegrees,
 } from "./geo";
 
 describe("map geo utilities", () => {
@@ -39,6 +40,15 @@ describe("map geo utilities", () => {
     expect(durationSecondsForDistance(1_000, DESKTOP_JOURNEY_SPEED_KMH)).toBe(
       200,
     );
+  });
+
+  it("quantizes bearings to approximate sectors", () => {
+    expect(quantizeBearingDegrees(7)).toBe(0);
+    expect(quantizeBearingDegrees(8)).toBe(15);
+    expect(quantizeBearingDegrees(352)).toBe(345);
+    expect(quantizeBearingDegrees(359)).toBe(0);
+    expect(quantizeBearingDegrees(-10)).toBe(345);
+    expect(quantizeBearingDegrees(100, 45)).toBe(90);
   });
 
   it("detects points inside custom discovery radius", () => {

@@ -21,6 +21,7 @@ interface VnNarrativeLogProps {
   typedTextRef?: RefObject<TypedTextHandle>;
   choicesSlot?: ReactNode;
   playerProfile?: PlayerProfileForLog | null;
+  parliamentPresetId?: string;
   onTypingChange?: (typing: boolean) => void;
   onSegmentComplete?: () => void;
   onTokenClick?: TypedTextTokenHandler;
@@ -56,6 +57,7 @@ export function VnNarrativeLog({
   typedTextRef,
   choicesSlot,
   playerProfile,
+  parliamentPresetId,
   onTypingChange,
   onSegmentComplete,
   onTokenClick,
@@ -149,6 +151,17 @@ export function VnNarrativeLog({
     return () => window.cancelAnimationFrame(rafId);
   }, [scrollToBottom]);
 
+  const handleTypingChange = useCallback(
+    (typing: boolean) => {
+      onTypingChange?.(typing);
+      reportContentHeight();
+      if (!typing) {
+        scheduleScrollToBottom();
+      }
+    },
+    [onTypingChange, reportContentHeight, scheduleScrollToBottom],
+  );
+
   // A fresh node is a fresh beat: re-pin so the new text is followed even if the
   // reader had scrolled up in the previous node.
   useLayoutEffect(() => {
@@ -206,6 +219,7 @@ export function VnNarrativeLog({
               dimmed
               previousSpeakerId={previousSpeakerId}
               playerProfile={playerProfile}
+              parliamentPresetId={parliamentPresetId}
               tokenStateByPayload={tokenStateByPayload}
             />
           );
@@ -218,8 +232,9 @@ export function VnNarrativeLog({
             isTyping={state.isTypingSegment}
             previousSpeakerId={currentPreviousSpeakerId}
             playerProfile={playerProfile}
+            parliamentPresetId={parliamentPresetId}
             typedTextRef={typedTextRef}
-            onTypingChange={onTypingChange}
+            onTypingChange={handleTypingChange}
             onComplete={onSegmentComplete}
             onTokenClick={onTokenClick}
             onTokenEnter={onTokenEnter}

@@ -5,7 +5,20 @@ export {
   ensureMindHypothesisForCase,
 } from "./mind_guards";
 export {
+  getDiscoveredFactIds,
   getHypothesisReadiness,
-  validateHypothesisInternal,
+  getHypothesisReadinessForFacts,
+  maybeCompleteMindCase,
 } from "./mind_hypothesis";
+export {
+  getLinkedFactIdsForHypothesis,
+  linkFactInternal,
+  saveBoardLayoutInternal,
+  unlinkFactInternal,
+} from "./mind_links";
+export {
+  ASSERT_COOLDOWN_MICROS,
+  assertHypothesisInternal,
+  isHypothesisUnlocked,
+} from "./mind_assert";
 export { syncMindPalaceContentTables } from "./mind_sync";

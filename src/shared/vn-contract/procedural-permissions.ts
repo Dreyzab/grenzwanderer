@@ -3,10 +3,45 @@ import type { QuestArchetype, TriggerRule, VnEffect } from "./types";
 export interface ProceduralQuestPermissionIssue {
   code:
     | "trigger_rule_invalid_generated_namespace"
+    | "trigger_rule_forbidden_effect"
     | "quest_archetype_forbidden_reward_effect";
   path: string;
   message: string;
 }
+
+/**
+ * Effect types a trigger rule may apply directly when it fires. Anything
+ * heavier (travel, scenario/battle modes, evidence, skill checks) must go
+ * through a quest archetype or an authored VN scene instead.
+ */
+const TRIGGER_RULE_EFFECT_ALLOWLIST = new Set<VnEffect["type"]>([
+  "set_flag",
+  "unlock_group",
+  "spawn_map_event",
+  "register_rumor",
+  "change_favor_balance",
+  "change_agency_standing",
+  "grant_xp",
+  "track_event",
+]);
+
+export const isTriggerRuleEffectAllowed = (effect: VnEffect): boolean =>
+  TRIGGER_RULE_EFFECT_ALLOWLIST.has(effect.type);
+
+export const validateTriggerRuleEffects = (
+  rule: TriggerRule,
+): ProceduralQuestPermissionIssue[] =>
+  (rule.effects ?? []).flatMap((effect, index) =>
+    isTriggerRuleEffectAllowed(effect)
+      ? []
+      : [
+          {
+            code: "trigger_rule_forbidden_effect" as const,
+            path: `triggerRules.${rule.id}.effects.${index}`,
+            message: `Trigger rule '${rule.id}' effect '${effect.type}' is not in the trigger effect allowlist.`,
+          },
+        ],
+  );
 
 export const isProceduralOverlayNamespace = (
   namespace: string | undefined,

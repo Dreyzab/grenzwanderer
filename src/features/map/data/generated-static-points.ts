@@ -128,6 +128,47 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
         ]
       },
       {
+        "id": "bind_agency_archive_consult",
+        "trigger": "card_secondary",
+        "label": "Consult the Archive",
+        "priority": 55,
+        "intent": "interaction",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "agency_archive_access",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "agency_archive_consulted",
+            "value": false
+          }
+        ],
+        "actions": [
+          {
+            "type": "register_rumor",
+            "rumorId": "rumor_university_network"
+          },
+          {
+            "type": "set_flag",
+            "key": "agency_archive_consulted",
+            "value": true
+          },
+          {
+            "type": "grant_xp",
+            "amount": 20
+          },
+          {
+            "type": "track_event",
+            "eventName": "agency_archive_consulted",
+            "tags": {
+              "source": "archive"
+            }
+          }
+        ]
+      },
+      {
         "id": "sys_travel_loc_agency",
         "trigger": "card_secondary",
         "label": "Travel",
@@ -1271,6 +1312,49 @@ export const GENERATED_STATIC_FREIBURG_CASE01_POINTS: MapPoint[] = [
           {
             "type": "start_scenario",
             "scenarioId": "case01_rail_yard_shadow_tail"
+          }
+        ]
+      },
+      {
+        "id": "bind_pub_backroom",
+        "trigger": "card_primary",
+        "label": "Slip Into the Back Room",
+        "priority": 95,
+        "intent": "interaction",
+        "conditions": [
+          {
+            "type": "flag_is",
+            "key": "pub_backroom_access",
+            "value": true
+          },
+          {
+            "type": "flag_is",
+            "key": "pub_backroom_visited",
+            "value": false
+          }
+        ],
+        "actions": [
+          {
+            "type": "register_rumor",
+            "rumorId": "rumor_sapper_clean_cut"
+          },
+          {
+            "type": "set_flag",
+            "key": "pub_backroom_visited",
+            "value": true
+          },
+          {
+            "type": "change_favor_balance",
+            "npcId": "npc_rudi_kempf",
+            "delta": -1,
+            "reason": "backroom_confidence_spent"
+          },
+          {
+            "type": "track_event",
+            "eventName": "pub_backroom_entered",
+            "tags": {
+              "pointId": "loc_workers_pub"
+            }
           }
         ]
       },

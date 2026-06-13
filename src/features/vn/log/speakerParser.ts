@@ -1,9 +1,16 @@
 import {
   INNER_VOICE_DEFINITIONS,
   isInnerVoiceId,
+  isSkillVoiceId,
 } from "../../../../data/innerVoiceContract";
+import { getVoicePresentation } from "../voicePresentation";
 
-export type SpeakerCategory = "narrator" | "npc" | "inner_voice" | "player";
+export type SpeakerCategory =
+  | "narrator"
+  | "npc"
+  | "inner_voice"
+  | "method_voice"
+  | "player";
 
 export interface SpeakerSegment {
   speaker: string;
@@ -89,6 +96,20 @@ const buildSegment = (
       accentSoftColor: definition.palette.accentSoft,
       glowColor: definition.palette.glow,
       textColor: definition.palette.text,
+    };
+  }
+
+  if (isSkillVoiceId(normalizedSpeaker)) {
+    const presentation = getVoicePresentation(normalizedSpeaker);
+    return {
+      speaker: normalizedSpeaker,
+      speakerLabel: getSpeakerLabel(normalizedSpeaker, presentation.label),
+      category: "method_voice",
+      text: normalizedText,
+      accentColor: presentation.palette.accent,
+      accentSoftColor: presentation.palette.accentSoft,
+      glowColor: presentation.palette.glow,
+      textColor: presentation.palette.text,
     };
   }
 

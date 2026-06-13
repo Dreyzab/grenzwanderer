@@ -49,6 +49,19 @@ export const calculateBearingDegrees = (
   return normalizeBearingDegrees(toDegrees(Math.atan2(y, x)));
 };
 
+/**
+ * Snap a bearing to the nearest sector step (default 15°). The compass shows
+ * an *approximate* heading toward objectives — an exact needle would feel like
+ * GPS, not a 1905 surveyor instrument.
+ */
+export const quantizeBearingDegrees = (
+  degrees: number,
+  stepDegrees = 15,
+): number =>
+  normalizeBearingDegrees(
+    Math.round(normalizeBearingDegrees(degrees) / stepDegrees) * stepDegrees,
+  );
+
 export const interpolateLngLat = (
   from: LngLatTuple,
   to: LngLatTuple,

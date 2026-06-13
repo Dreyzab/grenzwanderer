@@ -1,3 +1,0 @@
-export {
-  GENERATED_STATIC_FREIBURG_CASE01_POINTS as STATIC_FREIBURG_CASE01_POINTS,
-} from "./generated-static-points";

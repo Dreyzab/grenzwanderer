@@ -42,7 +42,6 @@ import {
   parseDirectorStepResponse,
   parseDmTurnResponse,
   formatSpeaker,
-  formatVoiceLabel,
   hasOptionalValue,
   isAutoContinueChoice,
   resolveEffectiveAutoContinueChoice,
@@ -66,7 +65,8 @@ import {
   findActiveHypothesisLens,
 } from "../../mindpalace/focusLens";
 import { findPrimaryInternalizedThought } from "../../mindpalace/thoughtCabinet";
-import { formatVoiceEnsembleRoles, getVoiceProfile } from "../voiceRegistry";
+import { formatVoiceEnsembleRoles } from "../voiceRegistry";
+import { getVoicePresentation } from "../voicePresentation";
 import type {
   VnChoice,
   VnNode,
@@ -109,6 +109,7 @@ interface UseVnDerivedStateParams {
   contentReady: boolean;
   myFlags: Record<string, boolean>;
   myVars: Record<string, number>;
+  activeParliamentPresetId?: string;
   mySession: VnSession | null;
   sessionReady: boolean;
   currentNode: VnNode | null;
@@ -138,6 +139,7 @@ export function useVnDerivedState({
   contentReady,
   myFlags,
   myVars,
+  activeParliamentPresetId,
   mySession,
   sessionReady,
   currentNode,
@@ -376,10 +378,13 @@ export function useVnDerivedState({
         continue;
       }
 
-      const voiceProfile = getVoiceProfile(check.voiceId);
+      const voiceProfile = getVoicePresentation(
+        check.voiceId,
+        activeParliamentPresetId,
+      );
       items.push({
         checkId: check.id,
-        voiceLabel: formatVoiceLabel(check.voiceId),
+        voiceLabel: voiceProfile.label,
         personaLabel: voiceProfile.personaLabel,
         interventionSummary: formatVoiceEnsembleRoles(
           voiceProfile.ensembleRoles,
@@ -392,7 +397,12 @@ export function useVnDerivedState({
     }
 
     return items;
-  }, [currentNode, mySkillResults, selectedScenarioId]);
+  }, [
+    activeParliamentPresetId,
+    currentNode,
+    mySkillResults,
+    selectedScenarioId,
+  ]);
 
   // All visible non-auto choices, regardless of hotspot. Used for legacy
   // consumers and for `hasNoChoices`/lock-state checks where the kind of
@@ -635,13 +645,23 @@ export function useVnDerivedState({
 
   const activeAiThoughtVoiceLabel = useMemo(() => {
     if (activeAiThoughtResponse) {
-      return getVoiceProfile(activeAiThoughtResponse.canonicalVoiceId).label;
+      return getVoicePresentation(
+        activeAiThoughtResponse.canonicalVoiceId,
+        activeParliamentPresetId,
+      ).label;
     }
     if (activeAiThoughtContext) {
-      return formatVoiceLabel(activeAiThoughtContext.voiceId);
+      return getVoicePresentation(
+        activeAiThoughtContext.voiceId,
+        activeParliamentPresetId,
+      ).label;
     }
     return null;
-  }, [activeAiThoughtContext, activeAiThoughtResponse]);
+  }, [
+    activeAiThoughtContext,
+    activeAiThoughtResponse,
+    activeParliamentPresetId,
+  ]);
 
   const activeAiThoughtStatus = useMemo<SkillCheckAiStatus | null>(() => {
     if (!ENABLE_AI || !activeAiThoughtContext) {

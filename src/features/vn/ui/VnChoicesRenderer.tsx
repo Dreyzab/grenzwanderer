@@ -314,6 +314,7 @@ export const VnChoicesRenderer = ({
               isPending={item.isPending}
               hasFailedCheck={item.hasFailedCheck}
               innerVoiceHints={item.innerVoiceHints}
+              sourcePresentation={item.sourcePresentation}
               disabled={isInteractionLocked}
               onClick={() => onChoiceClick(item.choice)}
             />

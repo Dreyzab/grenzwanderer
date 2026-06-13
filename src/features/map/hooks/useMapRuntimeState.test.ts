@@ -1,6 +1,5 @@
-import { renderHook } from "@testing-library/react";
+﻿import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { MapDataSource } from "../types";
 import { useMapRuntimeState } from "./useMapRuntimeState";
 import { __bindTestSnapshotResolver } from "../../../shared/content/activeSnapshot";
 
@@ -41,31 +40,6 @@ vi.mock("../../../shared/spacetime/bindings", () => ({
 vi.mock("../../vn/vnContent", () => ({
   parseSnapshot: (...args: unknown[]) => mocks.parseSnapshotMock(...args),
 }));
-
-const testDataSource: MapDataSource = {
-  getRegions: () => [
-    {
-      id: "FREIBURG_1905",
-      name: "Freiburg",
-      geoCenterLat: 47.99,
-      geoCenterLng: 7.85,
-      zoom: 14,
-    },
-  ],
-  getPoints: () => [
-    {
-      id: "loc_freiburg_bank",
-      regionId: "FREIBURG_1905",
-      title: "Bank",
-      lat: 47.99,
-      lng: 7.85,
-      locationId: "loc_freiburg_bank",
-      unlockGroup: "loc_freiburg_bank",
-      legacyScenarioIds: ["detective_case1_bank_scene"],
-    },
-  ],
-  getDefaultRegionId: () => "FREIBURG_1905",
-};
 
 describe("useMapRuntimeState", () => {
   beforeEach(() => {
@@ -155,16 +129,14 @@ describe("useMapRuntimeState", () => {
     });
   });
 
-  it("uses legacy v2 fallback and resolves mapped scenario", () => {
-    const { result } = renderHook(() => useMapRuntimeState(testDataSource));
-    const point = result.current.points[0];
+  it("reports an unavailable map when the snapshot lacks map data", () => {
+    const { result } = renderHook(() => useMapRuntimeState());
 
-    expect(result.current.source).toBe("legacy_v2");
+    expect(result.current.isMapAvailable).toBe(false);
+    expect(result.current.points).toHaveLength(0);
+    expect(result.current.journeyDiscoveryCandidates).toHaveLength(0);
     expect(result.current.currentLocationId).toBe("loc_freiburg_bank");
-    expect(point?.state).toBe("visited");
-    expect(point?.resolvedScenarioId).toBe("case01_bank_investigation");
-    expect(point?.canStartScenario).toBe(true);
-    expect(point?.primaryBinding?.id).toBe("legacy_start_loc_freiburg_bank");
+    expect(result.current.region.id).toBe("FREIBURG_1905");
     expect(result.current.isReady).toBe(true);
   });
 
@@ -245,10 +217,10 @@ describe("useMapRuntimeState", () => {
       },
     });
 
-    const { result } = renderHook(() => useMapRuntimeState(testDataSource));
+    const { result } = renderHook(() => useMapRuntimeState());
     const point = result.current.points[0];
 
-    expect(result.current.source).toBe("snapshot_v3");
+    expect(result.current.isMapAvailable).toBe(true);
     expect(point?.availableBindings.map((entry) => entry.id)).toEqual([
       "bind_start",
       "sys_travel_loc_freiburg_bank",
@@ -293,9 +265,9 @@ describe("useMapRuntimeState", () => {
       },
     });
 
-    const { result } = renderHook(() => useMapRuntimeState(testDataSource));
+    const { result } = renderHook(() => useMapRuntimeState());
 
-    expect(result.current.source).toBe("snapshot_v3");
+    expect(result.current.isMapAvailable).toBe(true);
     expect(result.current.points).toHaveLength(0);
     expect(
       result.current.journeyDiscoveryCandidates.map((point) => point.id),
@@ -362,7 +334,7 @@ describe("useMapRuntimeState", () => {
       },
     });
 
-    const { result } = renderHook(() => useMapRuntimeState(testDataSource));
+    const { result } = renderHook(() => useMapRuntimeState());
 
     expect(result.current.points.map((point) => point.id)).toEqual([
       "loc_shadow",
@@ -451,7 +423,7 @@ describe("useMapRuntimeState", () => {
       },
     });
 
-    const { result } = renderHook(() => useMapRuntimeState(testDataSource));
+    const { result } = renderHook(() => useMapRuntimeState());
 
     expect(result.current.points.map((point) => point.id)).toEqual([
       "loc_agency",
@@ -490,7 +462,7 @@ describe("useMapRuntimeState", () => {
       },
     });
 
-    const { result } = renderHook(() => useMapRuntimeState(testDataSource));
+    const { result } = renderHook(() => useMapRuntimeState());
     const agency = result.current.points[0];
     const commandBinding = agency?.availableBindings.find(
       (binding) => binding.id === "agency_command_desk",
@@ -611,7 +583,7 @@ describe("useMapRuntimeState", () => {
       },
     });
 
-    const { result } = renderHook(() => useMapRuntimeState(testDataSource));
+    const { result } = renderHook(() => useMapRuntimeState());
 
     expect(result.current.points.map((point) => point.id)).toEqual([
       "loc_hidden_platform",
@@ -738,7 +710,7 @@ describe("useMapRuntimeState", () => {
       },
     });
 
-    const { result } = renderHook(() => useMapRuntimeState(testDataSource));
+    const { result } = renderHook(() => useMapRuntimeState());
     const eventPoint = result.current.points.find((point) => point.eventId);
 
     expect(eventPoint?.id).toBe("me::event::evt_workers_pub_raid");
@@ -839,7 +811,7 @@ describe("useMapRuntimeState", () => {
       },
     });
 
-    const { result } = renderHook(() => useMapRuntimeState(testDataSource));
+    const { result } = renderHook(() => useMapRuntimeState());
 
     expect(result.current.points.map((point) => point.id)).toEqual([
       "loc_freiburg_bank",

@@ -64,7 +64,7 @@ interface UseMapJourneyOptions {
   speedKmH?: number;
   /** Notifies host with elapsed real-world seconds when a journey ends. */
   onCommitGameTime?: (elapsedSeconds: number) => void;
-  onDiscoverPoint?: (pointId: string) => void;
+  onDiscoverPoint?: (pointId: string, position: LngLatTuple) => void;
   onJourneyComplete?: (report: JourneyReport) => void | Promise<void>;
   clock?: JourneyClock;
 }
@@ -199,7 +199,7 @@ export function useMapJourney({
         }
         if (canAutoDiscoverJourneyPoint(candidate)) {
           if (recordDiscovery(candidate, currentPos, atElapsed)) {
-            onDiscoverPoint?.(candidate.id);
+            onDiscoverPoint?.(candidate.id, currentPos);
           }
         }
         if (candidate.isSearchZone || hasManualDiscoveryRule(candidate)) {

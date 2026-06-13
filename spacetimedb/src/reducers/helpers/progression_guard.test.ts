@@ -31,14 +31,18 @@ describe("progression_guard", () => {
     ).toThrow(SenderError);
   });
 
-  it("allows map discovery flags for regular players", () => {
+  it("allows map visited flags for regular players", () => {
     const ctx = createReducerTestContext();
-    expect(() =>
-      assertClientSetFlagAllowed(ctx, "DISCOVERED_loc_hbf"),
-    ).not.toThrow();
     expect(() =>
       assertClientSetFlagAllowed(ctx, "VISITED_loc_hbf"),
     ).not.toThrow();
+  });
+
+  it("blocks direct discovery flags so commit_map_discovery stays authoritative", () => {
+    const ctx = createReducerTestContext();
+    expect(() => assertClientSetFlagAllowed(ctx, "DISCOVERED_loc_hbf")).toThrow(
+      SenderError,
+    );
   });
 
   it("blocks gameplay flags for regular players", () => {

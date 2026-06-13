@@ -12,6 +12,11 @@ import {
   type TypedTextTokenHandler,
 } from "../ui/TypedText";
 import { resolveVoiceAvatarUrl } from "../ui/VnInlineSpeakerBadge";
+import { getVoicePresentation } from "../voicePresentation";
+import {
+  isInnerVoiceId,
+  isSkillVoiceId,
+} from "../../../../data/innerVoiceContract";
 import type { SpeakerSegment } from "./speakerParser";
 
 export interface PlayerProfileForLog {
@@ -27,6 +32,7 @@ interface LogSegmentRendererProps {
   showSpeaker?: boolean;
   previousSpeakerId?: string | null;
   playerProfile?: PlayerProfileForLog | null;
+  parliamentPresetId?: string;
   typedTextRef?: RefObject<TypedTextHandle>;
   onTypingChange?: (typing: boolean) => void;
   onComplete?: () => void;
@@ -42,7 +48,7 @@ const categoryTextClassName = (category: SpeakerSegment["category"]) => {
   if (category === "narrator") {
     return "text-stone-300/86 italic";
   }
-  if (category === "inner_voice") {
+  if (category === "inner_voice" || category === "method_voice") {
     return "italic";
   }
   if (category === "player") {
@@ -135,6 +141,7 @@ export function LogSegmentRenderer({
   showSpeaker = true,
   previousSpeakerId,
   playerProfile,
+  parliamentPresetId,
   typedTextRef,
   onTypingChange,
   onComplete,
@@ -145,6 +152,8 @@ export function LogSegmentRenderer({
 }: LogSegmentRendererProps) {
   const isNarrator = segment.category === "narrator";
   const isInnerVoice = segment.category === "inner_voice";
+  const isMethodVoice = segment.category === "method_voice";
+  const isVoice = isInnerVoice || isMethodVoice;
   const isPlayer = segment.category === "player";
   // Entrance fade only for live beats; historical (dimmed) entries are already settled.
   const enterAnimation = dimmed ? "" : "vn-log-segment-in";
@@ -185,15 +194,28 @@ export function LogSegmentRenderer({
   }
 
   const collapsed =
-    !isInnerVoice &&
+    !isVoice &&
     (!showSpeaker ||
       (previousSpeakerId != null && previousSpeakerId === segment.speaker));
 
-  if (isInnerVoice) {
-    const accentColor = segment.accentColor ?? "#fbbf24";
-    const accentSoftColor = segment.accentSoftColor ?? "rgba(251,191,36,0.14)";
-    const glowColor = segment.glowColor ?? "rgba(251,191,36,0.22)";
-    const textColor = segment.textColor ?? "#fef3c7";
+  if (isVoice) {
+    const presentation =
+      isInnerVoiceId(segment.speaker) || isSkillVoiceId(segment.speaker)
+        ? getVoicePresentation(segment.speaker, parliamentPresetId)
+        : null;
+    const voiceLabel = presentation?.label ?? segment.speakerLabel;
+    const accentColor =
+      presentation?.palette.accent ?? segment.accentColor ?? "#fbbf24";
+    const accentSoftColor =
+      presentation?.palette.accentSoft ??
+      segment.accentSoftColor ??
+      "rgba(251,191,36,0.14)";
+    const glowColor =
+      presentation?.palette.glow ??
+      segment.glowColor ??
+      "rgba(251,191,36,0.22)";
+    const textColor =
+      presentation?.palette.text ?? segment.textColor ?? "#fef3c7";
     const avatarUrl = resolveVoiceAvatarUrl(segment.speaker);
 
     return (
@@ -231,11 +253,11 @@ export function LogSegmentRenderer({
             style={{ color: textColor } satisfies CSSProperties}
           >
             <SpeakerHeader
-              ariaLabel={segment.speakerLabel}
+              ariaLabel={voiceLabel}
               accentColor={accentColor}
               avatarUrl={avatarUrl}
               fallbackIcon={Sparkles}
-              name={segment.speakerLabel.toUpperCase()}
+              name={voiceLabel.toUpperCase()}
             />
             {renderedText}
           </div>

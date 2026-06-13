@@ -439,6 +439,8 @@ export const registerWorkersPubRumor = async (
     pointId: "loc_workers_pub",
     bindingId: "bind_pub_rumor_raid",
     trigger: "card_secondary",
+    attemptedFromLat: undefined,
+    attemptedFromLng: undefined,
   });
 
   const activeEvent = await getPlayerMapEventByTemplate(
@@ -457,6 +459,8 @@ export const registerWorkersPubRumor = async (
     pointId: activeEvent.eventId,
     bindingId: "bind_evt_workers_pub_raid_start",
     trigger: "map_pin",
+    attemptedFromLat: undefined,
+    attemptedFromLng: undefined,
   });
 
   const session = getScenarioSession(
@@ -490,6 +494,8 @@ export const verifyRailYardRumor = async (
     pointId: "loc_hbf",
     bindingId: "bind_hbf_verify_rail_yard_rumor",
     trigger: "card_primary",
+    attemptedFromLat: undefined,
+    attemptedFromLng: undefined,
   });
 };
 
@@ -502,6 +508,8 @@ export const openAgencyStudentIntro = async (
     pointId: "loc_agency",
     bindingId: "bind_agency_student_intro_service",
     trigger: "card_secondary",
+    attemptedFromLat: undefined,
+    attemptedFromLng: undefined,
   });
 };
 
@@ -530,5 +538,7 @@ export const openStudentHouseAccess = async (
     pointId: "loc_student_house",
     bindingId: "bind_student_house_access",
     trigger: "card_primary",
+    attemptedFromLat: undefined,
+    attemptedFromLng: undefined,
   });
 };

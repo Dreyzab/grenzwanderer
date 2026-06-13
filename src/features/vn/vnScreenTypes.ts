@@ -120,6 +120,15 @@ export interface ChoiceDisplayItem {
   isPending: boolean;
   hasFailedCheck: boolean;
   innerVoiceHints: ChoiceInnerVoiceHintDisplay[];
+  sourcePresentation: ChoiceSourcePresentation;
+}
+
+export interface ChoiceSourcePresentation {
+  source: import("../../shared/game/characterProgression").VnChoiceSource;
+  label: string;
+  accent: string;
+  voiceId?: string;
+  palette?: SkillCheckVoicePalette;
 }
 
 export interface InlineStatusCard {

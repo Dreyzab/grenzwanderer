@@ -4,7 +4,7 @@
   "caseId": "case01_mainline",
   "source": {
     "snapshotPath": "content/vn/pilot.snapshot.json",
-    "snapshotChecksum": "3dd4643a6532b95103965b21ad67dec92030775f804f9d9d0a3b95c7311379c8",
+    "snapshotChecksum": "db3dd339d54cecffec90e68853542da9529db1957c4143b6f17acbe6ca10764a",
     "snapshotSchemaVersion": 9,
     "caseIrSource": "vn_snapshot"
   },
@@ -8079,6 +8079,7 @@
   },
   "aiCapabilityManifest": {
     "supportedKinds": [
+      "analyze_feedback",
       "generate_character_reaction",
       "generate_dialogue",
       "propose_director_step",

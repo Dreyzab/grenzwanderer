@@ -40,6 +40,11 @@ let cachedCaseCatalog: {
   catalog: QuestInstanceCatalog;
 } | null = null;
 
+/** Test-only: clears memoized snapshot catalog between reducer tests. */
+export const resetCaseCatalogCacheForTests = (): void => {
+  cachedCaseCatalog = null;
+};
+
 export const resolveActiveCaseCatalog = (ctx: any): QuestInstanceCatalog => {
   try {
     const activeVersion = [

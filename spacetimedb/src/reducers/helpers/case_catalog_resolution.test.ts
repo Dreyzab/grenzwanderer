@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createReducerTestContext,
@@ -20,16 +20,41 @@ vi.mock("spacetimedb/server", () => ({
 }));
 
 import { CASE_CATALOG } from "../../../../src/shared/vn-contract";
-import { publishCaseEvent, resolveActiveCaseCatalog } from "./quest_instances";
+import {
+  publishCaseEvent,
+  resetCaseCatalogCacheForTests,
+  resolveActiveCaseCatalog,
+} from "./quest_instances";
 
 const SNAPSHOT_FLAG_KEY = "snapshot_trigger_flag";
 
 const snapshotPayload = (withCatalog: boolean): string =>
   JSON.stringify({
-    schemaVersion: 9,
+    schemaVersion: 8,
     scenarios: [],
     nodes: [],
     mindPalace: { cases: [], facts: [], hypotheses: [] },
+    map: {
+      defaultRegionId: "test_region",
+      regions: [
+        {
+          id: "test_region",
+          name: "Test",
+          geoCenterLat: 48.0,
+          geoCenterLng: 7.85,
+          zoom: 12,
+        },
+      ],
+      points: [],
+    },
+    socialCatalog: {
+      npcIdentities: [],
+      services: [],
+      rumors: [],
+      careerRanks: [],
+      factions: [],
+    },
+    questCatalog: [],
     ...(withCatalog
       ? {
           caseCatalog: {
@@ -71,6 +96,10 @@ const insertActiveContent = (
 };
 
 describe("case catalog resolution", () => {
+  beforeEach(() => {
+    resetCaseCatalogCacheForTests();
+  });
+
   it("falls back to the compiled catalog without active content", () => {
     const ctx = createReducerTestContext();
     expect(resolveActiveCaseCatalog(ctx)).toBe(CASE_CATALOG);

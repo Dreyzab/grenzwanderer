@@ -624,7 +624,7 @@ describe("VnScreen critical behavior", () => {
       view.rerender(<VnScreen initialScenarioId="sandbox_ghost_pilot" />);
     });
 
-    expect(screen.getByTestId("vn-dm-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("vn-dm-panel-toggle")).toBeInTheDocument();
   });
 
   it("blocks repeated AUTO_CONTINUE taps while choice is pending", async () => {
@@ -642,7 +642,7 @@ describe("VnScreen critical behavior", () => {
           id: "node_start",
           scenarioId: "sandbox_case01_pilot",
           title: "Start",
-          body: "Body",
+          body: "",
           choices: [
             {
               id: "AUTO_CONTINUE_NODE_START",

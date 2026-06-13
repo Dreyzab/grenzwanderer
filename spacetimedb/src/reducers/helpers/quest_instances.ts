@@ -53,7 +53,10 @@ export const resolveActiveCaseCatalog = (ctx: any): QuestInstanceCatalog => {
     if (!activeVersion?.checksum) {
       return CASE_CATALOG;
     }
-    if (cachedCaseCatalog?.checksum === activeVersion.checksum) {
+    if (
+      cachedCaseCatalog &&
+      cachedCaseCatalog.checksum === activeVersion.checksum
+    ) {
       return cachedCaseCatalog.catalog;
     }
 

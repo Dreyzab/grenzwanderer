@@ -10,3 +10,5 @@ tmp/
 .agent/
 content/vn/pilot.snapshot.json
 public/content/vn/pilot.snapshot.json
+.logs/
+

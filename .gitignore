@@ -173,3 +173,6 @@ firebase-adminsdk-*.json
 client_secret*.json
 *-credentials.json
 credentials.json
+.claude/
+test-last.txt
+

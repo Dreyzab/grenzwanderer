@@ -49,6 +49,13 @@ export default defineConfig(({ mode }) => {
     build: {
       manifest: true,
       rollupOptions: {
+        // Two independent entries: the public game (index.html) and the
+        // operator-only Feedback Center (index.operator.html). The operator
+        // bundle is built separately so it never ships in the public game shell.
+        input: {
+          main: path.resolve(__dirname, "index.html"),
+          operator: path.resolve(__dirname, "index.operator.html"),
+        },
         output: {
           manualChunks,
         },

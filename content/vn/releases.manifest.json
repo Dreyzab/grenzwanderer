@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-06-13T07:34:50.677Z",
+  "updatedAt": "2026-06-14T12:06:39.455Z",
   "releases": [
     {
       "version": "content-v0.0.1+2a6600d5",
@@ -740,6 +740,18 @@
       "schemaVersion": 9,
       "generatedAt": "2026-06-13T07:34:50.675Z",
       "publishedAt": "2026-06-13T07:34:50.675Z",
+      "target": {
+        "server": "local",
+        "host": "http://127.0.0.1:3001",
+        "database": "grezwandererdata"
+      }
+    },
+    {
+      "version": "content-v0.1.0+db3dd339",
+      "checksum": "db3dd339d54cecffec90e68853542da9529db1957c4143b6f17acbe6ca10764a",
+      "schemaVersion": 9,
+      "generatedAt": "2026-06-14T12:06:39.454Z",
+      "publishedAt": "2026-06-14T12:06:39.454Z",
       "target": {
         "server": "local",
         "host": "http://127.0.0.1:3001",

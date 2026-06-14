@@ -128,9 +128,9 @@ fallback to a **base module** (no skins, canonical labels) when a preset has non
 
 ## Reference module — `witch` (Eleonora Hartmann)
 
-The fullest module; it absorbs the existing WITCH_VOLITION skin table and the
+The fullest module; it absorbs the existing WITCH*VOLITION skin table and the
 "social palace" architecture. Public role `patron_arranger`; hidden
-`concealed_threat`. (Aristocratic in _manner_; `witch` by origin — the playable
+`concealed_threat`. (Aristocratic in \_manner*; `witch` by origin — the playable
 `aristocrat` is Charlotte von Waldstein.)
 
 Final character bible: [`ELEONORA_PARLIAMENT_BIBLE.md`](./ELEONORA_PARLIAMENT_BIBLE.md)

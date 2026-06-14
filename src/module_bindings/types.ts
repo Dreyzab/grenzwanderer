@@ -346,11 +346,11 @@ export const MindHypothesis = __t.object("MindHypothesis", {
   requiredFactIdsJson: __t.string(),
   requiredVarsJson: __t.string(),
   rewardEffectsJson: __t.string(),
+  createdAt: __t.timestamp(),
+  updatedAt: __t.timestamp(),
   failureEffectsJson: __t.string(),
   verdict: __t.string(),
   unlockFactIdsJson: __t.string(),
-  createdAt: __t.timestamp(),
-  updatedAt: __t.timestamp(),
 });
 export type MindHypothesis = __Infer<typeof MindHypothesis>;
 
@@ -602,9 +602,9 @@ export const PlayerMindHypothesis = __t.object("PlayerMindHypothesis", {
   hypothesisId: __t.string(),
   status: __t.string(),
   validatedAt: __t.option(__t.timestamp()),
+  updatedAt: __t.timestamp(),
   lastAssertAt: __t.option(__t.timestamp()),
   failedAttempts: __t.u32(),
-  updatedAt: __t.timestamp(),
 });
 export type PlayerMindHypothesis = __Infer<typeof PlayerMindHypothesis>;
 

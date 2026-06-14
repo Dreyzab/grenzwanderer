@@ -17,7 +17,7 @@ export default __t.row({
   hypothesisId: __t.string().name("hypothesis_id"),
   status: __t.string(),
   validatedAt: __t.option(__t.timestamp()).name("validated_at"),
+  updatedAt: __t.timestamp().name("updated_at"),
   lastAssertAt: __t.option(__t.timestamp()).name("last_assert_at"),
   failedAttempts: __t.u32().name("failed_attempts"),
-  updatedAt: __t.timestamp().name("updated_at"),
 });

@@ -661,11 +661,11 @@ export const mindHypothesis = table(
     requiredFactIdsJson: t.string(),
     requiredVarsJson: t.string(),
     rewardEffectsJson: t.string(),
-    failureEffectsJson: t.string(),
-    verdict: t.string(),
-    unlockFactIdsJson: t.string(),
     createdAt: t.timestamp(),
     updatedAt: t.timestamp(),
+    failureEffectsJson: t.string().default("[]"),
+    verdict: t.string().default("true"),
+    unlockFactIdsJson: t.string().default("[]"),
   },
 );
 
@@ -767,9 +767,9 @@ export const playerMindHypothesis = table(
     hypothesisId: t.string(),
     status: t.string(),
     validatedAt: t.timestamp().optional(),
-    lastAssertAt: t.timestamp().optional(),
-    failedAttempts: t.u32(),
     updatedAt: t.timestamp(),
+    lastAssertAt: t.timestamp().optional().default(undefined),
+    failedAttempts: t.u32().default(0),
   },
 );
 

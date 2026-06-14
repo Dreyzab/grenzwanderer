@@ -28,6 +28,8 @@ import type {
   ContentTranslation,
   ContentVersion,
   DialogueRating,
+  FeedbackAnalysisReport,
+  FeedbackAnalysisSource,
   PlayerAgencyCareer,
   PlayerEvidence,
   PlayerFactionSignal,
@@ -74,6 +76,9 @@ type ViewDbAliases = {
   myAiRequests: BaseDbView["my_ai_requests"];
   myContentRatings: BaseDbView["my_content_ratings"];
   myDialogueRatings: BaseDbView["my_dialogue_ratings"];
+  myAdminIdentity: BaseDbView["my_admin_identity"];
+  feedbackReports: BaseDbView["feedback_reports"];
+  feedbackReportSources: BaseDbView["feedback_report_sources"];
   workerAiRequests: BaseDbView["worker_ai_requests"];
   /** Alias for public `content_translation` table (no server view; avoids full-table view materialization on publish). */
   contentTranslations: BaseDbView["contentTranslation"];
@@ -116,6 +121,9 @@ const viewDbAliases: Readonly<Record<keyof ViewDbAliases, keyof BaseDbView>> = {
   myAiRequests: "my_ai_requests",
   myContentRatings: "my_content_ratings",
   myDialogueRatings: "my_dialogue_ratings",
+  myAdminIdentity: "my_admin_identity",
+  feedbackReports: "feedback_reports",
+  feedbackReportSources: "feedback_report_sources",
   workerAiRequests: "worker_ai_requests",
   contentTranslations: "contentTranslation",
   caseVersion: "caseVersion",
@@ -235,6 +243,9 @@ export const tables = {
   myAiRequests: queryTables.my_ai_requests,
   myContentRatings: queryTables.my_content_ratings,
   myDialogueRatings: queryTables.my_dialogue_ratings,
+  myAdminIdentity: queryTables.my_admin_identity,
+  feedbackReports: queryTables.feedback_reports,
+  feedbackReportSources: queryTables.feedback_report_sources,
   workerAiRequests: queryTables.worker_ai_requests,
   myMindCases: queryTables.my_mind_cases,
   myMindFacts: queryTables.my_mind_facts,
@@ -310,6 +321,10 @@ export const reducers = {
   updateTranslations: generatedReducers.updateTranslations,
   upsertContentRating: generatedReducers.upsertContentRating,
   upsertDialogueRating: generatedReducers.upsertDialogueRating,
+  runFeedbackAnalysis: generatedReducers.runFeedbackAnalysis,
+  reanalyzeFeedbackReport: generatedReducers.reanalyzeFeedbackReport,
+  markFeedbackReportReviewed: generatedReducers.markFeedbackReportReviewed,
+  saveFeedbackReportNote: generatedReducers.saveFeedbackReportNote,
   assertHypothesis: generatedReducers.assertHypothesis,
   verifyRumor: generatedReducers.verifyRumor,
 } as const;
@@ -370,6 +385,8 @@ export type {
   ContentTranslation,
   ContentVersion,
   DialogueRating,
+  FeedbackAnalysisReport,
+  FeedbackAnalysisSource,
   PlayerAgencyCareer,
   PlayerEvidence,
   PlayerFactionSignal,

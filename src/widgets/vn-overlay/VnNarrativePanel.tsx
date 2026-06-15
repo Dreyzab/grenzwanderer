@@ -97,13 +97,12 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     useState(!isLetterOverlay);
 
   /**
-   * Log scenes reveal the dock as soon as the background is ready so typed text
-   * can grow the sheet smoothly. Per-node override via letterOverlayRevealDelayMs.
+   * Log scenes reveal the dock on a tap so the reader can take in a new
+   * background first. The reveal lifecycle is keyed on the background, so
+   * consecutive beats that share a background stay revealed (no extra tap).
+   * A node can still opt into a timed auto-reveal via letterOverlayRevealDelayMs.
    */
-  const LOG_AUTO_REVEAL_MS = 0;
-  const resolvedAutoRevealMs =
-    letterOverlayRevealDelayMs ??
-    (isLogLayout && !needsSoundPrompt ? LOG_AUTO_REVEAL_MS : undefined);
+  const resolvedAutoRevealMs = letterOverlayRevealDelayMs;
 
   const sceneTransition = useVnSceneTransition({
     visualKey: backgroundVisualKey,
@@ -195,9 +194,12 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
     videoStatus !== "playing" &&
     videoStatus !== "ended";
 
-  const showSplitBgAdmireLayer =
+  /**
+   * Pre-reveal tap surface for both split and log scenes: lets the reader admire
+   * the background, then a tap brings up the dialogue dock.
+   */
+  const showBgAdmireLayer =
     isSplitLayout &&
-    !isLogLayout &&
     !hasVisualSequence &&
     !chromeRevealed &&
     (!needsSoundPrompt || soundPromptPhase === "playing");
@@ -297,7 +299,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         </div>
       ) : null}
 
-      {showSplitBgAdmireLayer ? (
+      {showBgAdmireLayer ? (
         <div
           className="fixed inset-0 z-[160] cursor-pointer touch-manipulation"
           role="button"

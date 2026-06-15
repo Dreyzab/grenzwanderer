@@ -98,8 +98,7 @@ export const Navbar = <TTab extends string>({
 
     const update = () => {
       const h = Math.round(el.getBoundingClientRect().height);
-      // ÐšÐ°Ðº Ð² CSS: calc(100% - 1.5rem - env(safe-area-inset-bottom))
-      const peek = 24; // 1.5rem
+      const peek = 14;
       const barRow = barRowRef.current;
       const safe =
         (barRow && parseFloat(getComputedStyle(barRow).paddingBottom)) || 0;
@@ -117,7 +116,7 @@ export const Navbar = <TTab extends string>({
     navCollapsed && collapseY > 0
       ? collapseY
       : navCollapsed
-        ? "calc(100% - 1.5rem - env(safe-area-inset-bottom))"
+        ? "calc(100% - 0.875rem - env(safe-area-inset-bottom))"
         : 0;
 
   return (
@@ -153,25 +152,25 @@ export const Navbar = <TTab extends string>({
       transition={{ type: "spring", damping: 28, stiffness: 280 }}
       className="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-stone-950/95 backdrop-blur-md border-t border-stone-800 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] touch-none"
     >
-      {/* Ручка: жест тянет панель; onTap — без конфликта с drag */}
-      <div className="flex justify-center w-full">
+      {/* Ручка слева: жест тянет панель; onTap — без конфликта с drag */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-full flex justify-start pl-2">
         <motion.button
           type="button"
           onPointerDown={(e) => dragControls.start(e)}
           onTap={() =>
             isVnTab ? setVnUserExpanded((e) => !e) : setIsCollapsed((c) => !c)
           }
-          className="group relative -top-3 flex h-8 w-20 items-center justify-center rounded-t-2xl border-x border-t border-stone-800 bg-stone-950/95 pb-1 transition-colors hover:bg-stone-900"
+          className="pointer-events-auto group relative flex h-5 w-10 items-center justify-center rounded-t-lg border-x border-t border-stone-800/75 bg-stone-950/90 pb-0.5 transition-colors hover:bg-stone-900/95"
           aria-label={
             navCollapsed ? "Expand Navigation" : "Collapse Navigation"
           }
         >
-          <div className="absolute top-1.5 h-1 w-8 rounded-full bg-stone-700 transition-colors group-hover:bg-stone-500" />
+          <div className="absolute top-1 h-0.5 w-4 rounded-full bg-stone-700/90 transition-colors group-hover:bg-stone-500" />
           <motion.div
             animate={{ rotate: navCollapsed ? 180 : 0 }}
-            className="mt-1 text-stone-500"
+            className="mt-0.5 text-stone-600"
           >
-            <ChevronDown size={14} />
+            <ChevronDown size={11} strokeWidth={2.5} />
           </motion.div>
         </motion.button>
       </div>

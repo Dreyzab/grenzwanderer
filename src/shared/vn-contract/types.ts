@@ -336,7 +336,14 @@ export interface VnVisualSequenceFrame {
   durationMs: number;
   caption?: string;
   transition?: VnVisualSequenceTransition;
+  /** Single static framing. Ignored when `focusPath` is set. */
   focusPoint?: VnVisualSequenceFocusPoint;
+  /**
+   * Ordered camera path the memory frame slowly eases through across its
+   * duration — author faces first, then the central theme of the scene. Two or
+   * more points enable the moving focus; one point (or `focusPoint`) is static.
+   */
+  focusPath?: VnVisualSequenceFocusPoint[];
 }
 
 export interface VnVisualSequence {

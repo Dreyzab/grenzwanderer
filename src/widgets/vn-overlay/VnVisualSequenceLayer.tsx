@@ -1,8 +1,91 @@
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionTemplate,
+  useMotionValue,
+} from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePrefetchVnVisuals } from "../../features/vn/hooks/usePrefetchVnVisuals";
-import type { VnVisualSequence } from "../../features/vn/types";
+import type {
+  VnVisualSequence,
+  VnVisualSequenceFrame,
+} from "../../features/vn/types";
+
+/** Slow push-in across the frame; subtle depth without pulling focus. */
+const FRAME_ZOOM_FROM = 1.04;
+const FRAME_ZOOM_TO = 1.1;
+
+interface MemoryFrameImageProps {
+  frame: VnVisualSequenceFrame;
+  transitionDuration: number;
+  prefersReducedMotion: boolean;
+  onError: () => void;
+}
+
+/**
+ * One memory frame whose focus slowly travels through the authored points —
+ * resting on faces first, then gliding to the central theme — over the frame's
+ * duration. Static when reduced motion is requested or only one point exists.
+ */
+function MemoryFrameImage({
+  frame,
+  transitionDuration,
+  prefersReducedMotion,
+  onError,
+}: MemoryFrameImageProps) {
+  const points =
+    frame.focusPath && frame.focusPath.length > 0
+      ? frame.focusPath
+      : frame.focusPoint
+        ? [frame.focusPoint]
+        : [{ x: 50, y: 50 }];
+  const ox = useMotionValue(points[0].x);
+  const oy = useMotionValue(points[0].y);
+  const scale = useMotionValue(prefersReducedMotion ? 1 : FRAME_ZOOM_FROM);
+  const objectPosition = useMotionTemplate`${ox}% ${oy}%`;
+
+  useEffect(() => {
+    if (prefersReducedMotion || points.length < 2) {
+      return undefined;
+    }
+
+    // Hold on each point (duplicated keyframe = dwell), ease between them, end
+    // settled on the final point (the central theme) for the rest of the frame.
+    const oxKeys: number[] = [];
+    const oyKeys: number[] = [];
+    for (const point of points) {
+      oxKeys.push(point.x, point.x);
+      oyKeys.push(point.y, point.y);
+    }
+    const duration = Math.max(frame.durationMs, 800) / 1000;
+    const options = { duration, ease: "easeInOut" as const };
+    const controls = [
+      animate(ox, oxKeys, options),
+      animate(oy, oyKeys, options),
+      animate(scale, [FRAME_ZOOM_FROM, FRAME_ZOOM_TO], options),
+    ];
+    return () => controls.forEach((control) => control.stop());
+    // points/ox/oy/scale are stable for this frame's lifetime (keyed remount).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frame.imageUrl, frame.durationMs, prefersReducedMotion]);
+
+  return (
+    <motion.img
+      src={frame.imageUrl}
+      alt=""
+      aria-hidden="true"
+      className="absolute inset-0 h-full w-full object-cover"
+      style={{ objectPosition, scale }}
+      initial={{ opacity: transitionDuration === 0 ? 1 : 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: transitionDuration === 0 ? 1 : 0 }}
+      transition={{ duration: transitionDuration, ease: "easeOut" }}
+      onError={onError}
+    />
+  );
+}
 
 interface VnVisualSequenceLayerProps {
   sequence: VnVisualSequence;
@@ -106,7 +189,6 @@ export function VnVisualSequenceLayer({
 
   const transitionDuration =
     prefersReducedMotion || frame.transition === "cut" ? 0 : 0.32;
-  const focusPoint = frame.focusPoint ?? { x: 50, y: 50 };
 
   if (typeof document === "undefined") {
     return null;
@@ -124,17 +206,11 @@ export function VnVisualSequenceLayer({
       }}
     >
       <AnimatePresence initial={false} mode="sync">
-        <motion.img
+        <MemoryFrameImage
           key={`${frameIndex}:${frame.imageUrl}`}
-          src={frame.imageUrl}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{ objectPosition: `${focusPoint.x}% ${focusPoint.y}%` }}
-          initial={{ opacity: transitionDuration === 0 ? 1 : 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: transitionDuration === 0 ? 1 : 0 }}
-          transition={{ duration: transitionDuration, ease: "easeOut" }}
+          frame={frame}
+          transitionDuration={transitionDuration}
+          prefersReducedMotion={prefersReducedMotion}
           onError={advanceFrame}
         />
       </AnimatePresence>

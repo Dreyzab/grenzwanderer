@@ -24,7 +24,7 @@ const SNAP_FRACTIONS = [0.22, 0.45, 0.92] as const;
 const MIN_AUTO_FRACTION = 0.28;
 const MAX_AUTO_FRACTION = SNAP_FRACTIONS[2];
 /** Chrome above the scrollable log: drag handle + accent rule. */
-const SHEET_CHROME_PX = 44;
+const SHEET_CHROME_PX = 28;
 const STORAGE_KEY = "vn-log-sheet-snap";
 const SHEET_HEIGHT_SPRING = {
   type: "spring" as const,
@@ -190,11 +190,6 @@ export function VnLogBottomSheet({
     setDragFrac(null);
   }, [setDragFrac]);
 
-  // Re-enable content tracking on each new beat within the same scene group.
-  useEffect(() => {
-    setUserControlled(false);
-  }, [state.currentNodeId]);
-
   useEffect(() => {
     if (previousSceneGroupIdRef.current === undefined) {
       previousSceneGroupIdRef.current = sceneGroupId;
@@ -312,13 +307,12 @@ export function VnLogBottomSheet({
       }}
     >
       <motion.div
-        className="pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-t-xl border-t border-white/10 bg-stone-950/88 shadow-[0_-24px_60px_rgba(0,0,0,0.62)] backdrop-blur-md"
-        layout
+        className="pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-t-xl bg-stone-950/88 shadow-[0_-24px_60px_rgba(0,0,0,0.62)] backdrop-blur-md"
         animate={{ height: `${fracVisible * 100}vh` }}
         transition={dragFrac !== null ? { duration: 0 } : SHEET_HEIGHT_SPRING}
         onClick={onSurfaceTap}
       >
-        <div className="flex shrink-0 justify-center bg-stone-950/40 pt-1">
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-end pr-3">
           <motion.button
             type="button"
             onPointerDown={handlePointerDown}
@@ -326,25 +320,24 @@ export function VnLogBottomSheet({
             onPointerUp={endPointerSession}
             onPointerCancel={handlePointerCancel}
             onClick={(event) => event.stopPropagation()}
-            className="group relative -top-1 flex h-9 w-24 touch-none select-none items-center justify-center rounded-t-2xl border-x border-t border-stone-700/90 bg-stone-950/95 pb-1 shadow-sm transition-colors hover:bg-stone-900/95"
+            className="pointer-events-auto group relative -translate-y-1/2 flex h-5 w-10 touch-none select-none items-center justify-center rounded-t-lg border-x border-t border-stone-700/70 bg-stone-950/90 pb-0.5 shadow-sm transition-colors hover:bg-stone-900/95"
             aria-label={
               isCollapsedPeek
                 ? "Expand narrative log"
                 : "Collapse narrative log"
             }
           >
-            <div className="absolute top-1.5 h-1 w-9 rounded-full bg-stone-600 transition-colors group-hover:bg-stone-500" />
+            <div className="absolute top-1 h-0.5 w-4 rounded-full bg-stone-600/80 transition-colors group-hover:bg-stone-500" />
             <motion.div
               animate={{ rotate: isCollapsedPeek ? 180 : 0 }}
               transition={{ type: "spring", damping: 24, stiffness: 320 }}
-              className="mt-1 text-stone-500"
+              className="mt-0.5 text-stone-600"
             >
-              <ChevronDown size={14} strokeWidth={2.5} />
+              <ChevronDown size={11} strokeWidth={2.5} />
             </motion.div>
           </motion.button>
         </div>
 
-        <div className="h-[2px] shrink-0 bg-linear-to-r from-transparent via-ember-600/80 to-transparent" />
         <div className="min-h-0 flex-1 overflow-hidden">
           <VnNarrativeLog
             state={state}

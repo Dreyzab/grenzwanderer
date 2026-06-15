@@ -18,6 +18,15 @@ if (typeof window !== "undefined" && !window.matchMedia) {
   })) as unknown as typeof window.matchMedia;
 }
 
+// jsdom has no ResizeObserver; provide a no-op so components that observe layout render.
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  } as unknown as typeof ResizeObserver;
+}
+
 const originalFetch = globalThis.fetch;
 const bundledSnapshotPath = join(
   process.cwd(),

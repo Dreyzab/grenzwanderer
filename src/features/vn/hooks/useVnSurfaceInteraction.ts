@@ -174,27 +174,6 @@ export function useVnSurfaceInteraction({
 
   const handleSurfaceTap = useCallback(() => {
     if (isBlocked) {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7294/ingest/ef318824-e957-404b-968c-a90292600258",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "b6c52c",
-          },
-          body: JSON.stringify({
-            sessionId: "b6c52c",
-            runId: "post-fix",
-            hypothesisId: "E",
-            location: "useVnSurfaceInteraction.ts:handleSurfaceTap",
-            message: "surface tap blocked (hub overlay)",
-            data: { nodeId: currentNode?.id ?? null },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       return;
     }
 
@@ -273,31 +252,6 @@ export function useVnSurfaceInteraction({
     }
 
     if (!autoContinueChoice || !currentNode) {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7294/ingest/ef318824-e957-404b-968c-a90292600258",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "b6c52c",
-          },
-          body: JSON.stringify({
-            sessionId: "b6c52c",
-            runId: "post-fix",
-            hypothesisId: "C",
-            location: "useVnSurfaceInteraction.ts:handleSurfaceTap",
-            message: "no auto-continue on surface tap",
-            data: {
-              nodeId: currentNode?.id ?? null,
-              choiceDisplayItemCount,
-              layout: effectiveNarrativeLayout,
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       return;
     }
 
@@ -313,30 +267,6 @@ export function useVnSurfaceInteraction({
       choiceEvaluationContext,
     );
     if (!isAvailable) {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7294/ingest/ef318824-e957-404b-968c-a90292600258",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "b6c52c",
-          },
-          body: JSON.stringify({
-            sessionId: "b6c52c",
-            runId: "post-fix",
-            hypothesisId: "C",
-            location: "useVnSurfaceInteraction.ts:handleSurfaceTap",
-            message: "auto-continue not available",
-            data: {
-              nodeId: currentNode.id,
-              autoContinueId: autoContinueChoice.id,
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       return;
     }
 

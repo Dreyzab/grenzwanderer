@@ -733,6 +733,7 @@ const CASE01_CANON_NODE_BLUEPRINTS: NodeBlueprint[] = [
     backgroundUrl: CASE01_WITCH_COMPARTMENT_DROWSE_BG,
     narrativeLayout: "log",
     sceneGroupId: "witch_train_compartment",
+    letterOverlayRevealDelayMs: 2800,
     choices: [
       {
         id: "AUTO_CONTINUE_WITCH_DROWSE_TO_MEMORY",
@@ -757,73 +758,119 @@ const CASE01_CANON_NODE_BLUEPRINTS: NodeBlueprint[] = [
       frames: [
         {
           imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/01_funeral_rain.png`,
-          durationMs: 800,
+          durationMs: 3800,
           caption: "Хартманны не плачут на людях. В тот день дождь взял это на себя.",
           transition: "cut",
-          focusPoint: { x: 48, y: 48 },
+          // Mother's face, son's face, then the coffin (the theme).
+          focusPath: [
+            { x: 30, y: 28 },
+            { x: 46, y: 34 },
+            { x: 72, y: 60 },
+          ],
         },
         {
           imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/02_ledgers_at_night.png`,
-          durationMs: 933,
+          durationMs: 3200,
           caption: "«Эта женщина не справится».",
           transition: "crossfade",
-          focusPoint: { x: 54, y: 50 },
+          // Mother bowed over the desk, then the ledgers themselves.
+          focusPath: [
+            { x: 35, y: 30 },
+            { x: 50, y: 72 },
+          ],
         },
         {
           imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/03_mother_son_alliance.png`,
-          durationMs: 800,
+          durationMs: 3800,
           caption: "«Мы удержим Дом. Слышишь, Феликс? Удержим».",
           transition: "crossfade",
-          focusPoint: { x: 50, y: 48 },
+          // Mother, son, then the ledger they hold between them.
+          focusPath: [
+            { x: 31, y: 32 },
+            { x: 62, y: 30 },
+            { x: 48, y: 56 },
+          ],
         },
         {
           imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/04_bank_authority.png`,
-          durationMs: 933,
+          durationMs: 3200,
           caption: "Через десять лет банк кланялся первым.",
           transition: "crossfade",
-          focusPoint: { x: 50, y: 45 },
+          // Mother standing in command, then the bankers' table.
+          focusPath: [
+            { x: 30, y: 24 },
+            { x: 44, y: 68 },
+          ],
         },
         {
           imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/05_project_refused.png`,
-          durationMs: 933,
+          durationMs: 3800,
           caption: "«Ты еще не готов».",
           transition: "crossfade",
-          focusPoint: { x: 50, y: 50 },
+          // Son, mother, then the refused project folder.
+          focusPath: [
+            { x: 23, y: 32 },
+            { x: 74, y: 30 },
+            { x: 50, y: 70 },
+          ],
         },
         {
           imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/07_first_hunger.png`,
-          durationMs: 733,
+          durationMs: 3200,
           caption: "Сначала пришёл голод.",
           transition: "crossfade",
-          focusPoint: { x: 68, y: 46 },
+          // Mother's changed face, then the empty glass in her hand.
+          focusPath: [
+            { x: 61, y: 30 },
+            { x: 56, y: 78 },
+          ],
         },
         {
           imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/08_bureau_arrival.png`,
-          durationMs: 800,
+          durationMs: 3800,
           caption: "«Спокойно. Мы из Бюро».",
           transition: "crossfade",
-          focusPoint: { x: 62, y: 48 },
+          // Mother, the bureau agents, then the glowing sigil.
+          focusPath: [
+            { x: 23, y: 24 },
+            { x: 66, y: 30 },
+            { x: 43, y: 43 },
+          ],
         },
         {
           imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/09_bureau_offer.png`,
-          durationMs: 800,
+          durationMs: 3800,
           caption: "Бюро предложило не спасение. Работу.",
           transition: "crossfade",
-          focusPoint: { x: 48, y: 52 },
+          // Mother, the agents, then the vial and sealed offer.
+          focusPath: [
+            { x: 23, y: 26 },
+            { x: 64, y: 25 },
+            { x: 52, y: 62 },
+          ],
         },
         {
           imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/06_felix_says_no.png`,
-          durationMs: 1067,
+          durationMs: 3800,
           caption: "«Нет, матушка».",
           transition: "crossfade",
-          focusPoint: { x: 50, y: 48 },
+          // Mother, Felix, then the doorway and waiting carriage between them.
+          focusPath: [
+            { x: 22, y: 24 },
+            { x: 52, y: 24 },
+            { x: 70, y: 46 },
+          ],
         },
         {
           imageUrl: `${CASE01_WITCH_MEMORY_BASE_PATH}/10_bureau_seal.png`,
-          durationMs: 1200,
+          durationMs: 3800,
           caption: "Печать Бюро не спорит и не просит. Она ждет.",
           transition: "crossfade",
-          focusPoint: { x: 50, y: 52 },
+          // Her reflected face, then the wax seal of the Bureau.
+          focusPath: [
+            { x: 22, y: 32 },
+            { x: 52, y: 52 },
+          ],
         },
       ],
     },

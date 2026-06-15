@@ -89,7 +89,7 @@ describe("witch one-shot content", () => {
         (total, frame) => total + frame.durationMs,
         0,
       ),
-    ).toBe(8_999);
+    ).toBe(36_200);
     expect(memoryNode?.visualSequence?.frames.slice(-5)).toEqual([
       expect.objectContaining({
         imageUrl: "/VN/start/image/witch_memory/07_first_hunger.png",

@@ -3,7 +3,11 @@ import type { UiLanguage } from "../../../shared/hooks/useUiLanguage";
 import { resolveVnNodeText } from "../../i18n/vnContentTranslations";
 import { useI18n } from "../../i18n/I18nContext";
 import type { VnNode } from "../types";
-import { parseSpeakerSegments, type SpeakerSegment } from "./speakerParser";
+import {
+  expandNarratorParagraphs,
+  parseSpeakerSegments,
+  type SpeakerSegment,
+} from "./speakerParser";
 
 export type LogEntryType = "segment" | "player_choice" | "skill_check_result";
 
@@ -121,8 +125,10 @@ export function useNarrativeLog(
           dictionary,
         )
       : "";
+    // Each narrator paragraph becomes its own tap-to-advance beat so long
+    // monologues read as discrete blocks instead of one continuous wall of type.
     const nextSegments = currentNode
-      ? parseSpeakerSegments(nextBody, dictionary)
+      ? expandNarratorParagraphs(parseSpeakerSegments(nextBody, dictionary))
       : [];
 
     setState((previous) => {

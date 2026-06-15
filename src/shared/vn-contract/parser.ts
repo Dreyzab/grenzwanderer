@@ -712,17 +712,26 @@ const isVisualSequence = (value: unknown): value is VnVisualSequence => {
       return false;
     }
 
+    const isPercentPoint = (point: unknown): boolean =>
+      isObject(point) &&
+      typeof point.x === "number" &&
+      Number.isFinite(point.x) &&
+      point.x >= 0 &&
+      point.x <= 100 &&
+      typeof point.y === "number" &&
+      Number.isFinite(point.y) &&
+      point.y >= 0 &&
+      point.y <= 100;
+
     const focusPointValid =
-      frame.focusPoint === undefined ||
-      (isObject(frame.focusPoint) &&
-        typeof frame.focusPoint.x === "number" &&
-        Number.isFinite(frame.focusPoint.x) &&
-        frame.focusPoint.x >= 0 &&
-        frame.focusPoint.x <= 100 &&
-        typeof frame.focusPoint.y === "number" &&
-        Number.isFinite(frame.focusPoint.y) &&
-        frame.focusPoint.y >= 0 &&
-        frame.focusPoint.y <= 100);
+      frame.focusPoint === undefined || isPercentPoint(frame.focusPoint);
+
+    const focusPathValid =
+      frame.focusPath === undefined ||
+      (Array.isArray(frame.focusPath) &&
+        frame.focusPath.length >= 1 &&
+        frame.focusPath.length <= 6 &&
+        frame.focusPath.every(isPercentPoint));
 
     return (
       typeof frame.imageUrl === "string" &&
@@ -735,7 +744,8 @@ const isVisualSequence = (value: unknown): value is VnVisualSequence => {
       (frame.transition === undefined ||
         frame.transition === "cut" ||
         frame.transition === "crossfade") &&
-      focusPointValid
+      focusPointValid &&
+      focusPathValid
     );
   });
 

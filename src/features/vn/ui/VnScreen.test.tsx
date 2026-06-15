@@ -119,6 +119,7 @@ vi.mock("framer-motion", async () => {
     }),
     useMotionTemplate: () => "",
     animate: () => ({ stop: () => {} }),
+    useDragControls: () => ({ start: () => {} }),
     motion: new Proxy(
       {},
       {

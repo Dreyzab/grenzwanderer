@@ -183,7 +183,7 @@ export function LogSegmentRenderer({
       >
         <div
           className={[
-            "whitespace-pre-wrap text-[1.3rem] leading-8 sm:text-[1.4rem]",
+            "whitespace-pre-wrap text-[1.08rem] leading-7 sm:text-[1.18rem]",
             categoryTextClassName(segment.category),
           ].join(" ")}
         >
@@ -247,7 +247,7 @@ export function LogSegmentRenderer({
 
           <div
             className={[
-              "relative z-10 overflow-hidden whitespace-pre-wrap text-[1.22rem] leading-8 sm:text-[1.34rem] [&_.vn-typed-text]:leading-[1.2]",
+              "relative z-10 overflow-hidden whitespace-pre-wrap text-[1.02rem] leading-7 sm:text-[1.12rem] [&_.vn-typed-text]:leading-[1.2]",
               categoryTextClassName(segment.category),
             ].join(" ")}
             style={{ color: textColor } satisfies CSSProperties}
@@ -289,7 +289,7 @@ export function LogSegmentRenderer({
     >
       <div
         className={[
-          "overflow-hidden whitespace-pre-wrap text-[1.3rem] leading-8 sm:text-[1.4rem] [&_.vn-typed-text]:leading-[1.2]",
+          "overflow-hidden whitespace-pre-wrap text-[1.08rem] leading-7 sm:text-[1.18rem] [&_.vn-typed-text]:leading-[1.2]",
           categoryTextClassName(segment.category),
         ].join(" ")}
       >

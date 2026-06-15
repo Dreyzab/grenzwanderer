@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Dice5 } from "lucide-react";
 import {
   LogSegmentRenderer,
@@ -17,7 +18,9 @@ interface LogEntryRendererProps {
   tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
 }
 
-export function LogEntryRenderer({
+// Settled log entries are static; memo keeps the growing backlog from
+// re-rendering on every parent tick (subscription pushes, typing toggles).
+export const LogEntryRenderer = memo(function LogEntryRenderer({
   entry,
   dimmed = false,
   showSpeaker = true,
@@ -81,4 +84,4 @@ export function LogEntryRenderer({
   }
 
   return null;
-}
+});

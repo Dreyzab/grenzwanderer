@@ -69,6 +69,10 @@ export function VnNarrativeLog({
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  /** Live typing flag for observers that must not re-target the dock spring per word. */
+  const isTypingRef = useRef(state.isTypingSegment);
+  isTypingRef.current = state.isTypingSegment;
+
   const reportContentHeight = useCallback(() => {
     const element = contentRef.current;
     if (element) {
@@ -189,8 +193,15 @@ export function VnNarrativeLog({
     }
 
     const observer = new ResizeObserver(() => {
-      reportContentHeight();
+      // While a segment streams in word-by-word, keep the text scrolled into view
+      // but don't re-measure the dock every frame — that re-targets the height
+      // spring on each word and makes the sheet stutter. The settled height is
+      // captured on typing-complete and at each segment boundary instead.
       scheduleScrollToBottom();
+      if (isTypingRef.current) {
+        return;
+      }
+      reportContentHeight();
     });
     observer.observe(target);
     return () => observer.disconnect();

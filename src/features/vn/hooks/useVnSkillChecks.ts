@@ -381,27 +381,6 @@ export function useVnSkillChecks({
           scenarioId,
           choiceId,
         });
-        // #region agent log
-        fetch(
-          "http://127.0.0.1:7294/ingest/ef318824-e957-404b-968c-a90292600258",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Debug-Session-Id": "b6c52c",
-            },
-            body: JSON.stringify({
-              sessionId: "b6c52c",
-              runId: "post-fix",
-              hypothesisId: "D",
-              location: "useVnSkillChecks.ts:applyChoiceCommit",
-              message: "recordChoice resolved",
-              data: { scenarioId, choiceId },
-              timestamp: Date.now(),
-            }),
-          },
-        ).catch(() => {});
-        // #endregion
 
         setStatusLine(`${t.choiceApplied}: ${choiceId}`);
         const pendingPointer = choiceSessionPointerRef.current;
@@ -422,27 +401,6 @@ export function useVnSkillChecks({
           caughtError instanceof Error
             ? caughtError.message
             : "Choice action failed";
-        // #region agent log
-        fetch(
-          "http://127.0.0.1:7294/ingest/ef318824-e957-404b-968c-a90292600258",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Debug-Session-Id": "b6c52c",
-            },
-            body: JSON.stringify({
-              sessionId: "b6c52c",
-              runId: "post-fix",
-              hypothesisId: "D",
-              location: "useVnSkillChecks.ts:applyChoiceCommit",
-              message: "recordChoice failed",
-              data: { scenarioId, choiceId, error: message },
-              timestamp: Date.now(),
-            }),
-          },
-        ).catch(() => {});
-        // #endregion
         setError(message);
         setTransitionState("idle");
         choiceSessionPointerRef.current = null;
@@ -609,37 +567,6 @@ export function useVnSkillChecks({
         awaitingSkillChoice ||
         activeSkillResolve ||
         transitionState !== "idle";
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7294/ingest/ef318824-e957-404b-968c-a90292600258",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "b6c52c",
-          },
-          body: JSON.stringify({
-            sessionId: "b6c52c",
-            runId: "pre-fix",
-            hypothesisId: "B",
-            location: "useVnSkillChecks.ts:handleChoiceClick",
-            message: "choice click",
-            data: {
-              choiceId: choice.id,
-              nodeId: currentNode?.id ?? null,
-              isLocked,
-              choiceClickBlocked,
-              pendingChoiceId,
-              transitionState,
-              isTyping,
-              awaitingSkillChoice: Boolean(awaitingSkillChoice),
-              activeSkillResolve: Boolean(activeSkillResolve),
-            },
-            timestamp: Date.now(),
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       if (choiceClickBlocked) {
         return;
       }

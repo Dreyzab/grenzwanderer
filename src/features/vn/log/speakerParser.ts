@@ -175,8 +175,9 @@ const splitNarratorParagraphs = (text: string): string[] =>
     .filter((part) => part.length > 0);
 
 /**
- * Creator assessment rates each on-screen narrator paragraph separately.
- * Gameplay keeps multi-paragraph narrator blocks as one advance segment.
+ * Splits multi-paragraph narrator blocks into one segment per paragraph, so each
+ * paragraph is its own tap-to-advance beat (gameplay) and is rated separately
+ * (creator assessment). Non-narrator segments pass through unchanged.
  */
 export function expandNarratorParagraphs(
   segments: SpeakerSegment[],

@@ -4,7 +4,7 @@
   "caseId": "case01_mainline",
   "source": {
     "snapshotPath": "content/vn/pilot.snapshot.json",
-    "snapshotChecksum": "37b82642ca7b787240bc8a519bc1061fd11307940e98691b805a8fc453f30b49",
+    "snapshotChecksum": "256a38e6fbfffdab6a4026b15c76cf886c5ffbd0ded1044c86e9b10cb3e4b8a3",
     "snapshotSchemaVersion": 9,
     "caseIrSource": "vn_snapshot"
   },

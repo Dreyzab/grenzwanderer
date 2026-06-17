@@ -57,7 +57,7 @@ export const CharacterPanel = () => {
                 }}
               >
                 <img
-                  alt="Dossier Avatar"
+                  alt={vm.t.avatarPreview}
                   className="h-16 w-16 object-cover brightness-95"
                   src={vm.portraitUrl}
                 />
@@ -67,7 +67,7 @@ export const CharacterPanel = () => {
                   className="text-[10px] uppercase tracking-[0.38em]"
                   style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
                 >
-                  Freiburg Character Dossier
+                  {vm.t.dossierHeader}
                 </p>
                 <h2
                   className="mt-1 text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl"
@@ -120,7 +120,7 @@ export const CharacterPanel = () => {
 
           <div className="grid gap-4 xl:grid-cols-[220px_minmax(0,1fr)]">
             <nav
-              aria-label="Character dossier sections"
+              aria-label={vm.t.panelTitle}
               className="flex gap-2 overflow-x-auto pb-1 xl:flex-col xl:overflow-visible"
               role="tablist"
             >

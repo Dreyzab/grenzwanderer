@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { AnimatePresence, useReducedMotion } from "framer-motion";
 import { VnLogBottomSheet } from "../../features/vn/log/VnLogBottomSheet";
-import { MapPin } from "lucide-react";
 import { usePrefetchVnVisuals } from "../../features/vn/hooks/usePrefetchVnVisuals";
 import { useVnSceneTransition } from "./useVnSceneTransition";
 import { useVnNarrativeBackgroundMedia } from "./useVnNarrativeBackgroundMedia";
@@ -22,7 +21,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
   t,
   sceneId,
   sceneGroupId,
-  locationName,
+  locationName: _locationName,
   characterId,
   characterName,
   narrativeText,
@@ -278,21 +277,6 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
         onSoundDeny={handleSoundDeny}
       />
 
-      {!hasVisualSequence && !isImmersive && chromeRevealed && (
-        <div className="absolute top-0 inset-x-0 p-6 pt-12 flex justify-between items-start z-100 bg-linear-to-b from-black/90 via-black/40 to-transparent pb-32 pointer-events-none border-t-0 border-l-0 border-r-0 border-b-0">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-ember-500/90 uppercase tracking-[0.2em] text-[10px] font-bold">
-              <MapPin size={12} className="text-ember-500" />
-              <span>{t.currentLocation}</span>
-            </div>
-            <h1 className="text-4xl font-display text-white font-bold tracking-tight drop-shadow-2xl opacity-90 m-0">
-              {locationName}
-            </h1>
-            <div className="h-px w-24 bg-linear-to-r from-ember-500/50 to-transparent mt-1" />
-          </div>
-        </div>
-      )}
-
       {!hasVisualSequence && showVideoLoadingState ? (
         <div className="absolute right-5 bottom-5 z-125 rounded-full border border-white/10 bg-black/45 px-4 py-2 text-[11px] uppercase tracking-[0.16em] text-white/80 backdrop-blur-md">
           {t.bufferingReel}
@@ -304,7 +288,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
           className="fixed inset-0 z-[160] cursor-pointer touch-manipulation"
           role="button"
           tabIndex={0}
-          aria-label="Show dialogue and continue"
+          aria-label={t.showDialogueAndContinue}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
@@ -365,7 +349,7 @@ export const VnNarrativePanel: React.FC<VnNarrativePanelProps> = ({
               className="absolute inset-x-0 top-0 bottom-[30vh] z-[145] cursor-pointer touch-manipulation"
               role="button"
               tabIndex={-1}
-              aria-label="Continue narrative"
+              aria-label={t.continueNarrative}
               onClick={handleSurfaceInteraction}
             />
           ) : null}

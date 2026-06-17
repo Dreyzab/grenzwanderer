@@ -1,45 +1,9 @@
-import { useState } from "react";
-import { useReducer } from "spacetimedb/react";
-import { useI18n } from "../../features/i18n/I18nContext";
-import { getHomeStrings } from "../../features/i18n/uiStrings";
-import {
-  type UiLanguage,
-  writeStoredUiLanguage,
-} from "../../shared/hooks/useUiLanguage";
-import { reducers } from "../../shared/spacetime/bindings";
+import { useLanguageSwitch } from "./useLanguageSwitch";
+import type { UiLanguage } from "../../shared/hooks/useUiLanguage";
 
 export function GlobalLanguageBar() {
-  const { language } = useI18n();
-  const home = getHomeStrings(language);
-  const setFlag = useReducer(reducers.setFlag);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [switchError, setSwitchError] = useState<string | null>(null);
-
-  const handleLanguageChange = async (nextLanguage: UiLanguage) => {
-    if (isUpdating || language === nextLanguage) {
-      return;
-    }
-
-    setIsUpdating(true);
-    setSwitchError(null);
-
-    try {
-      // 1. Update local storage first for immediate UI response
-      writeStoredUiLanguage(nextLanguage);
-
-      // 2. Sync with SpacetimeDB flags (Source of Truth for cross-device sync)
-      // We do this sequentially to ensure transactions are ordered
-      await setFlag({ key: "lang_en", value: nextLanguage === "en" });
-      await setFlag({ key: "lang_de", value: nextLanguage === "de" });
-      await setFlag({ key: "lang_ru", value: nextLanguage === "ru" });
-    } catch (error) {
-      setSwitchError(
-        error instanceof Error ? error.message : home.languageSwitchFailed,
-      );
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+  const { language, home, isUpdating, switchError, handleLanguageChange } =
+    useLanguageSwitch();
 
   const buttonClass = (code: UiLanguage) =>
     `h-8 min-w-[42px] px-2 text-[10px] font-bold tracking-widest transition-all duration-300 ${

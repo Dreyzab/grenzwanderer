@@ -368,7 +368,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
           <div className="h-[2px] w-16 bg-gradient-to-r from-transparent via-primary/80 to-transparent mx-auto opacity-70" />
 
           <p className="text-gray-500 font-serif italic text-base md:text-lg tracking-wide">
-            Shadows of the Black Forest
+            {home.subtitle}
           </p>
         </div>
 
@@ -456,6 +456,7 @@ export const HomePage = ({ onNavigate, onOpenVnScenario }: HomePageProps) => {
           description={home.startNewGameDescription}
           confirmLabel={home.confirmReset}
           cancelLabel={shared.cancel}
+          eyebrowLabel={shared.confirmAction}
           onCancel={closeOriginFlow}
           onConfirm={() => openOriginSelection(true)}
         />

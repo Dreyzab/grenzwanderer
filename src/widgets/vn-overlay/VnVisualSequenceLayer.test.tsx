@@ -51,6 +51,10 @@ vi.mock("../../features/vn/hooks/usePrefetchVnVisuals", () => ({
   usePrefetchVnVisuals: vi.fn(),
 }));
 
+vi.mock("../../features/i18n/I18nContext", () => ({
+  useI18n: () => ({ language: "en" }),
+}));
+
 const sequence: VnVisualSequence = {
   skippable: true,
   advanceOnEnd: true,

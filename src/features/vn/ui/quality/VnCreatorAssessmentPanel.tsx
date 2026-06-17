@@ -117,7 +117,7 @@ export const VnCreatorAssessmentPanel = ({
     <>
       <div
         data-testid="vn-creator-assessment"
-        className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-0 z-[999] flex touch-none items-end"
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-0 z-[999] flex touch-none items-center"
       >
         <motion.button
           type="button"
@@ -156,6 +156,12 @@ export const VnCreatorAssessmentPanel = ({
               return;
             }
             const { offset, velocity } = info;
+            // dragControls.start() turns a tap into a zero-distance drag, so
+            // framer's onTap never fires — treat negligible movement as a toggle.
+            if (Math.abs(offset.x) < 6 && Math.abs(velocity.x) < 80) {
+              setPanelExpanded((expanded) => !expanded);
+              return;
+            }
             const vTh = 280;
             if (!panelCollapsed) {
               if (offset.x < -48 || velocity.x < -vTh) {

@@ -3,6 +3,7 @@ interface ConfirmationModalProps {
   description: string;
   confirmLabel: string;
   cancelLabel?: string;
+  eyebrowLabel?: string;
   disabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -13,6 +14,7 @@ export const ConfirmationModal = ({
   description,
   confirmLabel,
   cancelLabel = "Cancel",
+  eyebrowLabel,
   disabled = false,
   onConfirm,
   onCancel,
@@ -28,9 +30,11 @@ export const ConfirmationModal = ({
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(180,83,9,0.24),transparent_70%)]" />
 
       <div className="relative p-6">
-        <p className="mb-3 text-[11px] uppercase tracking-[0.32em] text-ember-300/80">
-          Confirm Destructive Action
-        </p>
+        {eyebrowLabel && (
+          <p className="mb-3 text-[11px] uppercase tracking-[0.32em] text-ember-300/80">
+            {eyebrowLabel}
+          </p>
+        )}
         <h2
           id="confirmation-modal-title"
           className="text-2xl font-semibold uppercase tracking-[0.04em] text-stone-100"

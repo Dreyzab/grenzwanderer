@@ -4,6 +4,8 @@ import { usePlayerBindings } from "../../entities/player/hooks/usePlayerBindings
 import { useMindPalaceCatalog } from "../../shared/content/useMindPalaceCatalog";
 import { reducers, tables } from "../../shared/spacetime/bindings";
 import { useIdentity } from "../../shared/spacetime/useIdentity";
+import { useUiLanguage } from "../../shared/hooks/useUiLanguage";
+import { getMindPalaceStrings } from "../i18n/uiStrings";
 import { MindBoardCanvas } from "../mindboard/MindBoardCanvas";
 import {
   deriveHypothesisState,
@@ -20,7 +22,9 @@ const createRequestId = (): string => {
 
 export const MindPalacePanel = () => {
   const { identityHex } = useIdentity();
-  const { vars: varsByKey } = usePlayerBindings();
+  const { vars: varsByKey, flags } = usePlayerBindings();
+  const uiLanguage = useUiLanguage(flags);
+  const t = useMemo(() => getMindPalaceStrings(uiLanguage), [uiLanguage]);
 
   const { mindCases, mindHypotheses } = useMindPalaceCatalog();
   const [playerMindFacts] = useTable(tables.myMindFacts);
@@ -122,10 +126,10 @@ export const MindPalacePanel = () => {
 
   const caseCompletion =
     myCase?.status === "completed"
-      ? "completed"
+      ? t.statusCompleted
       : myCase?.status === "in_progress"
-        ? "in progress"
-        : "not started";
+        ? t.statusInProgress
+        : t.statusNotStarted;
 
   const runAction = async (
     successLine: string,
@@ -138,9 +142,7 @@ export const MindPalacePanel = () => {
       setStatusLine(successLine);
     } catch (caughtError) {
       setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Unexpected reducer failure",
+        caughtError instanceof Error ? caughtError.message : t.unexpectedError,
       );
     } finally {
       setIsBusy(false);
@@ -152,7 +154,7 @@ export const MindPalacePanel = () => {
       return;
     }
 
-    await runAction("Mind case started", async () => {
+    await runAction(t.caseStarted, async () => {
       await startMindCase({
         requestId: createRequestId(),
         caseId: selectedCaseId,
@@ -164,19 +166,15 @@ export const MindPalacePanel = () => {
     <section className="panel-section h-full flex flex-col p-4 w-full h-[calc(100vh-64px)] max-h-[850px] mx-auto">
       <header className="panel-header shrink-0">
         <div>
-          <h2 className="text-3xl font-newsreader text-red-100">
-            The Conspiracy Board
-          </h2>
-          <p className="text-white/60">
-            Connect evidence and form hypotheses to uncover the truth.
-          </p>
+          <h2 className="text-3xl font-newsreader text-red-100">{t.title}</h2>
+          <p className="text-white/60">{t.subtitle}</p>
         </div>
       </header>
 
       {activeCases.length > 0 ? (
         <article className="card shrink-0">
           <label className="field">
-            Active case
+            {t.activeCase}
             <select
               value={selectedCaseId}
               onChange={(event) => setSelectedCaseId(event.target.value)}
@@ -198,19 +196,19 @@ export const MindPalacePanel = () => {
                 !selectedCaseId || isBusy || myCase?.status === "in_progress"
               }
             >
-              {myCase?.status === "in_progress" ? "Case Active" : "Start Case"}
+              {myCase?.status === "in_progress" ? t.caseActive : t.startCase}
             </button>
           </div>
           {selectedCaseId ? (
             <p className="text-xs text-white/70 mt-2">
-              Ready hypotheses: {caseReadySummary.readyCount}/
-              {caseReadySummary.totalHypotheses}
+              {t.readyHypotheses}
+              {caseReadySummary.readyCount}/{caseReadySummary.totalHypotheses}
             </p>
           ) : null}
         </article>
       ) : (
         <article className="card warning">
-          <p>No active mind cases were found.</p>
+          <p>{t.noActiveCases}</p>
         </article>
       )}
 
@@ -221,8 +219,9 @@ export const MindPalacePanel = () => {
       ) : selectedCaseId ? (
         <article className="card warning mt-4">
           <p>
-            This case is {caseCompletion}. The Conspiracy Board is only
-            available for cases currently in progress.
+            {t.caseStatusPrefix}
+            {caseCompletion}
+            {t.caseStatusSuffix}
           </p>
         </article>
       ) : null}

@@ -169,20 +169,29 @@ describe("MapView", () => {
     });
   });
 
-  it("keeps both overlay cards on desktop viewports", () => {
+  it("collapses the field ledger behind a journal trigger on desktop", async () => {
+    const user = userEvent.setup();
     render(<MapView onOpenVnScenario={vi.fn()} />);
 
+    // Desktop no longer pins the dev copy or an always-open ledger.
     expect(
-      screen.getByText(/a living city atlas layered over live spacetime/i),
-    ).toBeInTheDocument();
+      screen.queryByText(/a living city atlas layered over live spacetime/i),
+    ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Field Ledger" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("heading", { name: "Field Ledger" }),
+    ).not.toBeInTheDocument();
+    // The compact "Open ledger" button is not used on desktop.
     expect(
       screen.queryByRole("button", { name: "Open ledger" }),
     ).not.toBeInTheDocument();
     expect(screen.getByLabelText("Player position")).toBeInTheDocument();
     expect(screen.getByLabelText("Journey compass")).toBeInTheDocument();
+
+    // Opening the journal trigger reveals the ledger drawer.
+    await user.click(screen.getByRole("button", { name: /journal/i }));
+    expect(
+      screen.getByRole("heading", { name: "Field Ledger" }),
+    ).toBeInTheDocument();
   });
 
   it("renders journey route controls", () => {

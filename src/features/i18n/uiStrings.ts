@@ -10,6 +10,10 @@ const sharedStrings = {
     retry: "Retry",
     close: "Close",
     unknown: "Unknown",
+    version: "Version",
+    dismissNotification: "Dismiss notification",
+    confirmAction: "Confirm Action",
+    evidenceInbox: "Evidence Inbox",
   },
   ru: {
     back: "Назад",
@@ -19,6 +23,10 @@ const sharedStrings = {
     retry: "Повторить",
     close: "Закрыть",
     unknown: "Неизвестно",
+    version: "Версия",
+    dismissNotification: "Закрыть уведомление",
+    confirmAction: "Подтверждение действия",
+    evidenceInbox: "Входящие улики",
   },
   de: {
     back: "Zurück",
@@ -28,6 +36,10 @@ const sharedStrings = {
     retry: "Wiederholen",
     close: "Schließen",
     unknown: "Unbekannt",
+    version: "Version",
+    dismissNotification: "Benachrichtigung schließen",
+    confirmAction: "Aktion bestätigen",
+    evidenceInbox: "Beweiseingang",
   },
 } as const;
 
@@ -93,6 +105,7 @@ const homeStrings = {
     languageChooseTitle: "Choose interface language",
     languageSwitching: "Switching language...",
     languageSwitchFailed: "Failed to switch language. Retry.",
+    subtitle: "Shadows of the Black Forest",
   },
   ru: {
     syncingRecords: "Синхронизация записей...",
@@ -122,6 +135,7 @@ const homeStrings = {
     languageChooseTitle: "Выберите язык интерфейса",
     languageSwitching: "Переключаем язык...",
     languageSwitchFailed: "Не удалось переключить язык. Повторите.",
+    subtitle: "Тени Шварцвальда",
   },
   de: {
     syncingRecords: "Datensätze werden synchronisiert...",
@@ -151,6 +165,7 @@ const homeStrings = {
     languageChooseTitle: "Interface-Sprache wählen",
     languageSwitching: "Sprache wird gewechselt...",
     languageSwitchFailed: "Sprachwechsel fehlgeschlagen. Bitte erneut.",
+    subtitle: "Schatten des Schwarzwalds",
   },
 } as const;
 
@@ -275,6 +290,10 @@ const vnStrings = {
     tutorialHint: "Tap to close",
     journalEntryRecorded: "Recorded in journal",
     journalEntryOpenHint: "Open the Journal tab to read the entry.",
+    showDialogueAndContinue: "Show dialogue and continue",
+    continueNarrative: "Continue narrative",
+    memorySequence: "Memory sequence",
+    subtitle: "Shadows of the Black Forest",
   },
   ru: {
     scenario: "Сценарий",
@@ -348,6 +367,10 @@ const vnStrings = {
     tutorialHint: "Нажмите, чтобы закрыть",
     journalEntryRecorded: "Записано в журнал",
     journalEntryOpenHint: "Откройте вкладку Журнал, чтобы прочитать запись.",
+    showDialogueAndContinue: "Показать диалог и продолжить",
+    continueNarrative: "Продолжить повествование",
+    memorySequence: "Послеводательность воспоминаний",
+    subtitle: "Тени Шварцвальда",
   },
   de: {
     scenario: "Szenario",
@@ -424,6 +447,10 @@ const vnStrings = {
     journalEntryRecorded: "Im Journal notiert",
     journalEntryOpenHint:
       "Öffnen Sie den Journal-Tab, um den Eintrag zu lesen.",
+    showDialogueAndContinue: "Dialog anzeigen und fortfahren",
+    continueNarrative: "Erzählung fortsetzen",
+    memorySequence: "Erinnerungssequenz",
+    subtitle: "Schatten des Schwarzwalds",
   },
 } as const;
 
@@ -688,6 +715,7 @@ const mapStrings = {
     preparing: "Preparing the city atlas",
     loading: "Loading map...",
     ledger: "Field Ledger",
+    journal: "Journal",
     syncing: "Syncing map state from SpacetimeDB...",
     live: "Live subscriptions active",
     no_selection: "No point selected",
@@ -824,6 +852,7 @@ const mapStrings = {
     preparing: "Подготовка атласа города",
     loading: "Загрузка карты...",
     ledger: "Полевой журнал",
+    journal: "Журнал",
     syncing: "Синхронизация состояния карты...",
     live: "Подписки активны",
     no_selection: "Точка не выбрана",
@@ -960,6 +989,7 @@ const mapStrings = {
     preparing: "Stadtatlas wird vorbereitet",
     loading: "Karte wird geladen...",
     ledger: "Feldjournal",
+    journal: "Journal",
     syncing: "Synchronisierung des Kartenzustands...",
     live: "Live-Abonnements aktiv",
     no_selection: "Kein Punkt ausgewählt",
@@ -1170,6 +1200,100 @@ const battleStrings = {
   },
 } as const;
 
+const operatorStrings = {
+  en: {
+    connecting: "Connecting to SpacetimeDB...",
+    feedbackCenter: "Feedback Center",
+    accessDenied:
+      "Access only for operators (admin identity). The current identity does not have administrator privileges.",
+  },
+  ru: {
+    connecting: "Подключение к SpacetimeDB...",
+    feedbackCenter: "Центр отзывов",
+    accessDenied:
+      "Доступ только для операторов (admin identity). Текущая личность не имеет прав администратора.",
+  },
+  de: {
+    connecting: "Verbindung zu SpacetimeDB wird hergestellt...",
+    feedbackCenter: "Feedback-Center",
+    accessDenied:
+      "Zugriff nur für Operatoren (admin identity). Die aktuelle Identität hat keine Administratorrechte.",
+  },
+} as const;
+
+const errorBoundaryStrings = {
+  en: {
+    title: "Something went wrong",
+    subtitle: "This page hit an unexpected error.",
+    retry: "Retry",
+  },
+  ru: {
+    title: "Что-то пошло не так",
+    subtitle: "На этой странице возникла непредвиденная ошибка.",
+    retry: "Повторить",
+  },
+  de: {
+    title: "Etwas ist schiefgelaufen",
+    subtitle: "Auf dieser Seite ist ein unerwarteter Fehler aufgetreten.",
+    retry: "Wiederholen",
+  },
+} as const;
+
+const mindPalaceStrings = {
+  en: {
+    title: "The Conspiracy Board",
+    subtitle: "Connect evidence and form hypotheses to uncover the truth.",
+    activeCase: "Active case",
+    caseActive: "Case Active",
+    startCase: "Start Case",
+    readyHypotheses: "Ready hypotheses: ",
+    noActiveCases: "No active mind cases were found.",
+    caseStarted: "Mind case started",
+    caseStatusPrefix: "This case is ",
+    caseStatusSuffix:
+      ". The Conspiracy Board is only available for cases currently in progress.",
+    statusCompleted: "completed",
+    statusInProgress: "in progress",
+    statusNotStarted: "not started",
+    unexpectedError: "Unexpected reducer failure",
+  },
+  ru: {
+    title: "Доска заговора",
+    subtitle: "Объединяйте улики и стройте гипотезы, чтобы раскрыть правду.",
+    activeCase: "Активное дело",
+    caseActive: "Дело активно",
+    startCase: "Начать дело",
+    readyHypotheses: "Готовые гипотезы: ",
+    noActiveCases: "Активных дел разума не найдено.",
+    caseStarted: "Дело разума начато",
+    caseStatusPrefix: "Это дело ",
+    caseStatusSuffix:
+      ". Доска заговора доступна только для дел, находящихся в процессе.",
+    statusCompleted: "завершено",
+    statusInProgress: "в процессе",
+    statusNotStarted: "не начато",
+    unexpectedError: "Непредвиденный сбой редьюсера",
+  },
+  de: {
+    title: "Das Verschwörungsboard",
+    subtitle:
+      "Verknüpfen Sie Beweise und bilden Sie Hypothesen, um die Wahrheit ans Licht zu bringen.",
+    activeCase: "Aktiver Fall",
+    caseActive: "Fall aktiv",
+    startCase: "Fall starten",
+    readyHypotheses: "Bereite Hypothesen: ",
+    noActiveCases: "Es wurden keine aktiven Gedanken-Fälle gefunden.",
+    caseStarted: "Gedanken-Fall gestartet",
+    caseStatusPrefix: "Dieser Fall ist ",
+    caseStatusSuffix:
+      ". Das Verschwörungsboard ist nur für Fälle verfügbar, die sich derzeit in Bearbeitung befinden.",
+    statusCompleted: "abgeschlossen",
+    statusInProgress: "in Bearbeitung",
+    statusNotStarted: "nicht gestartet",
+    unexpectedError: "Unerwarteter Reducer-Fehler",
+  },
+} as const;
+
 export type VnStrings = {
   [Key in keyof (typeof vnStrings)["en"]]: string;
 };
@@ -1190,3 +1314,9 @@ export const getCommandStrings = (language: UiLanguage) =>
 export const getMapStrings = (language: UiLanguage) => mapStrings[language];
 export const getBattleStrings = (language: UiLanguage) =>
   battleStrings[language];
+export const getOperatorStrings = (language: UiLanguage) =>
+  operatorStrings[language];
+export const getErrorBoundaryStrings = (language: UiLanguage) =>
+  errorBoundaryStrings[language];
+export const getMindPalaceStrings = (language: UiLanguage) =>
+  mindPalaceStrings[language];

@@ -1175,6 +1175,7 @@ export const VnScreen = ({
               !awaitingSkillChoice,
             )}
             isSfxMuted={isSfxMuted}
+            locationName={displayLocationName}
             passiveCheckItems={passiveCheckItems}
             t={t}
             textSpeed={textSpeed}

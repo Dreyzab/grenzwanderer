@@ -1,4 +1,6 @@
 import { useToast, type ToastType } from "../hooks/useToast";
+import { useI18n } from "../../features/i18n/I18nContext";
+import { getSharedStrings } from "../../features/i18n/uiStrings";
 
 const typeStyles: Record<ToastType, string> = {
   fact: "border-ember-500/60 bg-ember-950/90 text-ember-100",
@@ -14,6 +16,8 @@ const typeIcons: Record<ToastType, string> = {
 
 export const Toaster = () => {
   const { toasts, dismissToast } = useToast();
+  const { language } = useI18n();
+  const shared = getSharedStrings(language);
 
   if (toasts.length === 0) {
     return null;
@@ -41,7 +45,7 @@ export const Toaster = () => {
             type="button"
             onClick={() => dismissToast(toast.id)}
             className="shrink-0 text-current opacity-50 hover:opacity-100 transition-opacity bg-transparent border-none shadow-none p-0 text-sm leading-none"
-            aria-label="Dismiss notification"
+            aria-label={shared.dismissNotification}
           >
             x
           </button>

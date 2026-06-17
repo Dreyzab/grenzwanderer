@@ -116,7 +116,7 @@ describe("VnNarrativePanel scene transition", () => {
     expect(screen.queryByText("First line")).not.toBeInTheDocument();
     expect(screen.queryByText("Take train")).not.toBeInTheDocument();
 
-    fireEvent.load(screen.getByAltText("Background"));
+    fireEvent.load(screen.getByAltText("background"));
 
     expect(screen.queryByText("First line")).not.toBeInTheDocument();
 
@@ -148,7 +148,7 @@ describe("VnNarrativePanel scene transition", () => {
       />,
     );
 
-    fireEvent.load(screen.getByAltText("Background"));
+    fireEvent.load(screen.getByAltText("background"));
     fireEvent.click(
       screen.getByRole("button", { name: "Show dialogue and continue" }),
     );
@@ -171,7 +171,7 @@ describe("VnNarrativePanel scene transition", () => {
     expect(screen.queryByText("Second line")).not.toBeInTheDocument();
     expect(screen.queryByText("Follow tracks")).not.toBeInTheDocument();
 
-    const backgrounds = screen.getAllByAltText("Background");
+    const backgrounds = screen.getAllByAltText("background");
     fireEvent.load(backgrounds[backgrounds.length - 1]);
     fireEvent.click(
       screen.getByRole("button", { name: "Show dialogue and continue" }),
@@ -197,7 +197,7 @@ describe("VnNarrativePanel scene transition", () => {
       />,
     );
 
-    fireEvent.load(screen.getByAltText("Background"));
+    fireEvent.load(screen.getByAltText("background"));
     fireEvent.click(
       screen.getByRole("button", { name: "Show dialogue and continue" }),
     );
@@ -240,7 +240,7 @@ describe("VnNarrativePanel scene transition", () => {
 
     expect(screen.queryByText("Witch opening line")).not.toBeInTheDocument();
 
-    fireEvent.load(screen.getByAltText("Background"));
+    fireEvent.load(screen.getByAltText("background"));
     fireEvent.click(document.querySelector(".z-128") as HTMLElement);
 
     expect(screen.getByText("Witch opening line")).toBeInTheDocument();
@@ -284,7 +284,7 @@ describe("VnNarrativePanel scene transition", () => {
       />,
     );
 
-    fireEvent.load(screen.getByAltText("Background"));
+    fireEvent.load(screen.getByAltText("background"));
     expect(screen.getByRole("tooltip")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tooltip"));
@@ -310,7 +310,7 @@ describe("VnNarrativePanel scene transition", () => {
       />,
     );
 
-    fireEvent.load(screen.getByAltText("Background"));
+    fireEvent.load(screen.getByAltText("background"));
     const letterLayer = container.querySelector(".z-110") as HTMLElement;
     fireEvent.click(letterLayer);
     fireEvent.click(letterLayer);

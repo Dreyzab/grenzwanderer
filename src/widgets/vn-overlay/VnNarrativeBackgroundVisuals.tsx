@@ -74,7 +74,7 @@ export const VnNarrativeBackgroundVisuals = ({
             <img
               src={backgroundVideoPosterUrl ?? backgroundImageUrl}
               className="absolute inset-0 h-full w-full object-cover brightness-[0.62] sepia-[0.16] contrast-[1.05] transition-opacity duration-700 ease-out motion-reduce:transition-none"
-              alt="Background"
+              alt="background"
               decoding="async"
               onLoad={onPosterLoad}
               onError={onPosterError}

@@ -8,7 +8,11 @@ import {
 import type { EntryGateState } from "../features/release/types";
 import { KarlsruheQrGate } from "../features/release/ui/KarlsruheQrGate";
 import { useI18n } from "../features/i18n/I18nContext";
-import { getHomeStrings, getNavbarStrings } from "../features/i18n/uiStrings";
+import {
+  getHomeStrings,
+  getNavbarStrings,
+  getSharedStrings,
+} from "../features/i18n/uiStrings";
 import { useFactDiscoveryToast } from "../features/mindpalace/useFactDiscoveryToast";
 import { useHypothesisRewardToast } from "../features/mindpalace/useHypothesisRewardToast";
 import { useMindPalaceReadiness } from "../features/mindpalace/useMindPalaceReadiness";
@@ -26,9 +30,9 @@ import { logShellDebug } from "./shellDebugLog";
 import { getLocalizedTabsForProfile } from "./shellTabs";
 import { VN_LAUNCH_CURTAIN_FADE_MS } from "./useVnLaunchCurtain";
 
-const identityLabel = (identityHex: string): string => {
+const identityLabel = (identityHex: string, unknownText: string): string => {
   if (!identityHex) {
-    return "unknown";
+    return unknownText;
   }
   return `${identityHex.slice(0, 8)}...${identityHex.slice(-4)}`;
 };
@@ -82,12 +86,14 @@ export const ShellChrome = ({
     });
   }, [activeTab, entryGateState, isEntryGateBlocking, pathname]);
 
+  const shared = getSharedStrings(language);
+
   const statusText = useMemo(() => {
     if (!isActive) {
       return home.disconnected;
     }
-    return `${home.connectedAs} ${identityLabel(identityHex)}`;
-  }, [identityHex, isActive, home]);
+    return `${home.connectedAs} ${identityLabel(identityHex, shared.unknown)}`;
+  }, [identityHex, isActive, home, shared.unknown]);
 
   const nav = getNavbarStrings(language);
   const localizedTabs = useMemo(
@@ -147,6 +153,8 @@ const ShellFrame = ({
   vnLaunchCoverPhase,
   onVnLaunchCoverTransitionEnd,
 }: ShellFrameProps) => {
+  const { language } = useI18n();
+  const shared = getSharedStrings(language);
   useFactDiscoveryToast();
   useHypothesisRewardToast();
   usePresenceHeartbeat(activeTab);
@@ -185,7 +193,7 @@ const ShellFrame = ({
             <span
               title={`Commit ${APP_COMMIT_SHA} - Built ${APP_BUILD_TIMESTAMP}`}
             >
-              Version: {APP_VERSION}
+              {shared.version}: {APP_VERSION}
             </span>
           </div>
         </header>

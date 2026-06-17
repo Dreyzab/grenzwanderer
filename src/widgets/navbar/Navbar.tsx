@@ -135,6 +135,13 @@ export const Navbar = <TTab extends string>({
       onDragEnd={(_, info) => {
         if (collapseY <= 0) return;
         const { offset, velocity } = info;
+        // dragControls.start() makes a tap register as a zero-distance drag, so
+        // framer's onTap never fires — treat negligible movement as a toggle.
+        if (Math.abs(offset.y) < 6 && Math.abs(velocity.y) < 80) {
+          if (isVnTab) setVnUserExpanded((e) => !e);
+          else setIsCollapsed((c) => !c);
+          return;
+        }
         const vTh = 280;
         if (!navCollapsed) {
           if (offset.y > 48 || velocity.y > vTh) {

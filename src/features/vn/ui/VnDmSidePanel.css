@@ -19,11 +19,27 @@
   top: 5rem;
   right: 1rem;
   z-index: 40;
-  border: 1px solid rgba(245, 159, 10, 0.32);
+  border: 1px solid rgba(120, 113, 108, 0.25);
   border-radius: 0.5rem;
-  background: rgba(24, 21, 17, 0.94);
-  color: #fff7ed;
-  padding: 0.5rem 0.75rem;
+  background: rgba(12, 10, 9, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(214, 211, 209, 0.6);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.vn-dm-panel__tab:hover {
+  color: #fcd34d;
+  background: rgba(24, 21, 17, 0.82);
+  border-color: rgba(245, 159, 10, 0.38);
 }
 
 .vn-dm-panel__header,

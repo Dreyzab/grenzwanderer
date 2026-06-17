@@ -41,7 +41,7 @@ export const VnFilmSoundPromptOverlay = ({
           </div>
           <div className="mx-auto h-[2px] w-16 bg-linear-to-r from-transparent via-primary/80 to-transparent opacity-70" />
           <p className="font-serif text-base italic tracking-wide text-gray-500 md:text-lg">
-            Shadows of the Black Forest
+            {t.subtitle}
           </p>
         </div>
       </div>

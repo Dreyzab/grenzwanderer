@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import { CartouchePanel } from "./CartouchePanel";
 import { MapCodeEntryForm } from "./MapCodeEntryForm";
 import { MAP_POINT_STATES } from "../types";
@@ -15,6 +16,7 @@ export interface MapHeaderProps {
   pointStateSummary: Record<MapPointStateKey, number>;
   ledgerItems: ReadonlyArray<readonly [string, string]>;
   compactSummaryItems: readonly string[];
+  objectiveLabel: string | null;
   compactHeaderId: string;
   isReady: boolean;
   isLedgerOpen: boolean;
@@ -37,6 +39,7 @@ export const MapHeader = ({
   pointStateSummary,
   ledgerItems,
   compactSummaryItems,
+  objectiveLabel,
   compactHeaderId,
   isReady,
   isLedgerOpen,
@@ -193,49 +196,99 @@ export const MapHeader = ({
         <>
           <CartouchePanel
             label="Plate XII · Cartography Chamber"
-            padding="1.1rem 1.25rem"
+            padding="0.85rem 1.15rem"
+            className="gw-map-region-cartouche"
           >
             <h2 className="gw-map-desktop-title">{regionName}</h2>
-            <p className="gw-map-desktop-copy">
-              A living city atlas layered over live Spacetime subscriptions.
-              Travel, scenario starts, and objective focus still run on the
-              current authoritative bindings.
-            </p>
-            <div className="gw-map-state-pill-row">
-              {MAP_POINT_STATES.map((state) => (
-                <span key={state} className="gw-map-pill" data-state={state}>
-                  <span className="gw-map-status-dot" />
-                  {stateLabels[state]}
-                </span>
-              ))}
-            </div>
           </CartouchePanel>
 
-          <CartouchePanel
-            label={mapStrings.ledger}
-            padding="1.1rem 1.25rem"
-            className="gw-map-cartouche-ink"
-          >
-            <div className="gw-map-ledger-grid-desktop">
-              {ledgerItems.map(([label, value]) => (
-                <div key={label} className="gw-map-ledger-item-desktop">
-                  <span className="gw-map-ledger-item-desktop__label">
-                    {label}
-                  </span>
-                  <strong className="gw-map-ledger-value">{value}</strong>
-                </div>
-              ))}
-            </div>
-            {ledgerStatus}
+          <div className="gw-map-journal">
             <button
               type="button"
-              onClick={onToggleCodeEntry}
-              className="gw-map-code-toggle"
+              className="gw-map-journal-trigger"
+              aria-expanded={isLedgerOpen}
+              aria-controls={compactHeaderId}
+              onClick={onToggleLedger}
             >
-              {isCodeEntryOpen ? mapStrings.hide_code : mapStrings.redeem_code}
+              <span className="gw-map-journal-trigger__title">
+                {mapStrings.journal}
+              </span>
+              <ChevronDown
+                size={14}
+                className="gw-map-journal-trigger__chevron"
+                data-open={isLedgerOpen ? "true" : "false"}
+                aria-hidden="true"
+              />
+              {objectiveLabel ? (
+                <span className="gw-map-journal-trigger__objective">
+                  {mapStrings.active_objectives}: {objectiveLabel}
+                </span>
+              ) : null}
+              <span
+                className="gw-map-journal-trigger__states"
+                aria-hidden="true"
+              >
+                {MAP_POINT_STATES.map((state) => (
+                  <span
+                    key={state}
+                    className="gw-map-journal-trigger__state"
+                    data-state={state}
+                  >
+                    <span className="gw-map-status-dot gw-map-status-dot--compact" />
+                    {pointStateSummary[state]}
+                  </span>
+                ))}
+              </span>
             </button>
-            {isCodeEntryOpen ? codeEntryForm("desktop") : null}
-          </CartouchePanel>
+
+            {isLedgerOpen ? (
+              <CartouchePanel
+                label={mapStrings.ledger}
+                padding="1.1rem 1.25rem"
+                className="gw-map-ledger-drawer gw-map-ledger-drawer--desktop gw-map-cartouche-ink"
+              >
+                <div
+                  id={compactHeaderId}
+                  className="gw-map-ledger-drawer__frame"
+                >
+                  <div className="gw-map-ledger-drawer__header">
+                    <button
+                      type="button"
+                      aria-label="Dismiss ledger"
+                      className="gw-map-ledger-drawer__toggle"
+                      onClick={onToggleLedger}
+                    >
+                      {mapStrings.close_ledger}
+                    </button>
+                  </div>
+
+                  <div className="gw-map-ledger-grid">
+                    {ledgerItems.map(([label, value]) => (
+                      <div key={label} className="gw-map-ledger-grid__item">
+                        <span className="gw-map-ledger-grid__label">
+                          {label}
+                        </span>
+                        <strong className="gw-map-ledger-value">{value}</strong>
+                      </div>
+                    ))}
+                  </div>
+
+                  {ledgerStatus}
+
+                  <button
+                    type="button"
+                    onClick={onToggleCodeEntry}
+                    className="gw-map-code-toggle"
+                  >
+                    {isCodeEntryOpen
+                      ? mapStrings.hide_code
+                      : mapStrings.redeem_code}
+                  </button>
+                  {isCodeEntryOpen ? codeEntryForm("desktop") : null}
+                </div>
+              </CartouchePanel>
+            ) : null}
+          </div>
         </>
       )}
     </header>

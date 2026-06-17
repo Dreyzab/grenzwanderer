@@ -115,7 +115,7 @@ export function useVnNarrativeBackgroundMedia({
     // Check if background image is already complete (cached)
     if (!backgroundVideoUrl) {
       const img = document.querySelector(
-        'img[alt="Background"]',
+        'img[alt="background"]',
       ) as HTMLImageElement;
       if (img?.complete && img.naturalWidth > 0) {
         markVisualReady();

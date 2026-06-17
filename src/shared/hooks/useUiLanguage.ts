@@ -61,16 +61,16 @@ export const inferBrowserUiLanguage = (): UiLanguage => {
 };
 
 export const resolveUiLanguage = (
-  flags: Record<string, boolean>,
+  flags?: Record<string, boolean>,
   fallback: UiLanguage = "en",
 ): UiLanguage => {
-  if (flags.lang_ru) {
+  if (flags?.lang_ru) {
     return "ru";
   }
-  if (flags.lang_de) {
+  if (flags?.lang_de) {
     return "de";
   }
-  if (flags.lang_en) {
+  if (flags?.lang_en) {
     return "en";
   }
   return fallback;
@@ -79,7 +79,7 @@ export const resolveUiLanguage = (
 /** Pure resolution for tests and a single hook implementation. */
 export const resolveEffectiveUiLanguage = (
   localStored: UiLanguage | null,
-  flags: Record<string, boolean>,
+  flags?: Record<string, boolean>,
   browserInfer: () => UiLanguage = inferBrowserUiLanguage,
 ): UiLanguage => {
   if (localStored) {

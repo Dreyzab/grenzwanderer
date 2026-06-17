@@ -1,6 +1,8 @@
 import { useTable } from "spacetimedb/react";
 import { tables } from "../shared/spacetime/bindings";
 import { FeedbackCenter } from "../features/operator/feedback/FeedbackCenter";
+import { useUiLanguage } from "../shared/hooks/useUiLanguage";
+import { getOperatorStrings } from "../features/i18n/uiStrings";
 
 const shellStyle: React.CSSProperties = {
   minHeight: "100vh",
@@ -16,11 +18,13 @@ const shellStyle: React.CSSProperties = {
 export const OperatorShell = (): JSX.Element => {
   const [adminRows, isLoading] = useTable(tables.myAdminIdentity);
   const isAdmin = adminRows.length > 0;
+  const language = useUiLanguage({});
+  const op = getOperatorStrings(language);
 
   if (isLoading) {
     return (
       <div style={shellStyle}>
-        <p>Подключение к SpacetimeDB…</p>
+        <p>{op.connecting}</p>
       </div>
     );
   }
@@ -28,11 +32,8 @@ export const OperatorShell = (): JSX.Element => {
   if (!isAdmin) {
     return (
       <div style={shellStyle}>
-        <h1 style={{ fontSize: 20 }}>Feedback Center</h1>
-        <p style={{ color: "#94a3b8" }}>
-          Доступ только для операторов (admin identity). Текущая личность не
-          имеет прав администратора.
-        </p>
+        <h1 style={{ fontSize: 20 }}>{op.feedbackCenter}</h1>
+        <p style={{ color: "#94a3b8" }}>{op.accessDenied}</p>
       </div>
     );
   }

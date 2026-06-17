@@ -12,6 +12,8 @@ import type {
   VnVisualSequence,
   VnVisualSequenceFrame,
 } from "../../features/vn/types";
+import { useI18n } from "../../features/i18n/I18nContext";
+import { getVnStrings } from "../../features/i18n/uiStrings";
 
 /** Slow push-in across the frame; subtle depth without pulling focus. */
 const FRAME_ZOOM_FROM = 1.04;
@@ -102,6 +104,8 @@ export function VnVisualSequenceLayer({
   prefersReducedMotion,
   onComplete,
 }: VnVisualSequenceLayerProps) {
+  const { language } = useI18n();
+  const t = getVnStrings(language);
   const [frameIndex, setFrameIndex] = useState(0);
   const [finishing, setFinishing] = useState(false);
   const completedRef = useRef(false);
@@ -198,7 +202,7 @@ export function VnVisualSequenceLayer({
     <motion.section
       className="fixed inset-0 z-[300] overflow-hidden bg-black"
       data-testid="vn-visual-sequence"
-      aria-label="Memory sequence"
+      aria-label={t.memorySequence}
       initial={false}
       animate={{ opacity: finishing ? 0 : 1 }}
       transition={{

@@ -10,6 +10,8 @@ import { useKarlsruheEntryGate } from "./useKarlsruheEntryGate";
 import { useShellNavigation } from "./useShellNavigation";
 import { useShellSessionAutoTabs } from "./useShellSessionAutoTabs";
 import { useVnLaunchCurtain } from "./useVnLaunchCurtain";
+import { useI18n } from "../features/i18n/I18nContext";
+import { getHomeStrings } from "../features/i18n/uiStrings";
 import "./AppShell.css";
 
 const DevDebugOverlay = import.meta.env.DEV
@@ -27,6 +29,8 @@ const renderDevDebugOverlay = () =>
   ) : null;
 
 const AppShell = () => {
+  const { language } = useI18n();
+  const home = getHomeStrings(language);
   const { identity, identityHex } = useIdentity();
   /** Link layer from provider (Stable across Strict Mode); avoid ref+identity mismatch that flashes the blocking gate */
   const { isActive: dbLinkActive } = useSpacetimeDB();
@@ -117,7 +121,7 @@ const AppShell = () => {
     return (
       <div className="app-shell app-shell-loading">
         <h1>Grenzwanderer</h1>
-        <p>Connecting to SpacetimeDB...</p>
+        <p>{home.connecting}</p>
         {renderDevDebugOverlay()}
       </div>
     );

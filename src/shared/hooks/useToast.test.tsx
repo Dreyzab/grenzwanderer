@@ -4,6 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 import { Toaster } from "../ui/Toaster";
 import { ToastProvider, useToast } from "./useToast";
 
+vi.mock("../../features/i18n/I18nContext", () => ({
+  useI18n: () => ({ language: "en" }),
+}));
+
 const Harness = () => {
   const { showToast } = useToast();
   return (

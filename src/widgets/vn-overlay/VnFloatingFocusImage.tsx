@@ -168,7 +168,7 @@ export function VnFloatingFocusImage({
     <motion.img
       src={src}
       className={className}
-      alt="Background"
+      alt="background"
       decoding="async"
       style={{ objectPosition, scale }}
       {...HIGH_PRIORITY_IMG_PROPS}

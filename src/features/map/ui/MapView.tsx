@@ -25,7 +25,6 @@ import { resolveEdgeAlert } from "../model/edgeAlert";
 import { useCompassFeedback } from "../hooks/useCompassFeedback";
 import { useMapJourney } from "../hooks/useMapJourney";
 import { useMapRuntimeState } from "../hooks/useMapRuntimeState";
-import { MAP_POINT_STATES } from "../types";
 import type {
   RuntimeMapBinding,
   RuntimeMapPoint,
@@ -534,16 +533,25 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
   }, []);
 
   useEffect(() => {
-    if (!isCompactHud && isLedgerOpen) {
-      setIsLedgerOpen(false);
-    }
-  }, [isCompactHud, isLedgerOpen]);
-
-  useEffect(() => {
     if (initialPanel === "qr") {
       setIsCodeEntryOpen(true);
+      setIsLedgerOpen(true);
     }
   }, [initialPanel]);
+
+  useEffect(() => {
+    if (!isLedgerOpen && !isCodeEntryOpen) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsLedgerOpen(false);
+        setIsCodeEntryOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isLedgerOpen, isCodeEntryOpen]);
 
   useEffect(() => {
     if (isNetworkConnected && networkNotice === "Agent network disconnected") {
@@ -721,15 +729,12 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
   }
 
   const sourceLabel = isMapAvailable ? "Snapshot v3" : "Snapshot unavailable";
-  const selectionLabel = selectedPoint
-    ? `${selectedPoint.title} (${STATE_LABELS[selectedPoint.state]})`
-    : mapStrings.no_selection;
+  const objectiveLabel = objectiveGuide?.label ?? null;
   const ledgerItems = [
     [mapStrings.source, sourceLabel],
     [mapStrings.current_location, currentLocationId ?? "unknown"],
     [mapStrings.visible_points, String(displayedPoints.length)],
     [mapStrings.active_objectives, String(objectiveCount)],
-    [mapStrings.selection, selectionLabel],
     [
       mapStrings.visited_completed,
       `${pointStateSummary.visited + pointStateSummary.completed} / ${displayedPoints.length}`,
@@ -798,6 +803,7 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
           pointStateSummary={pointStateSummary}
           ledgerItems={ledgerItems}
           compactSummaryItems={compactSummaryItems}
+          objectiveLabel={objectiveLabel}
           compactHeaderId={compactHeaderId.current}
           isReady={isReady}
           isLedgerOpen={isLedgerOpen}
@@ -816,8 +822,16 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
         <div className="gw-map-overlay-vignette" />
         <EdgeAlertOverlay alert={edgeAlert} />
 
-        {!isReady ? (
-          <div className="gw-map-inline-note gw-map-status-pill">
+        {!isNetworkConnected || networkNotice ? (
+          <div className="gw-map-status-line gw-map-status-pill">
+            <span
+              className="gw-map-status-pill__dot"
+              data-sync-state={isNetworkConnected ? "syncing" : "offline"}
+            />
+            {networkNotice ?? "Agent network disconnected"}
+          </div>
+        ) : !isReady ? (
+          <div className="gw-map-status-line gw-map-status-pill">
             <span
               className="gw-map-status-pill__dot"
               data-sync-state="syncing"
@@ -825,35 +839,6 @@ export const MapView = ({ onOpenVnScenario, initialPanel }: MapViewProps) => {
             {mapStrings.syncing}
           </div>
         ) : null}
-
-        {!isNetworkConnected || networkNotice ? (
-          <div className="gw-map-network-note gw-map-status-pill">
-            <span
-              className="gw-map-status-pill__dot"
-              data-sync-state={isNetworkConnected ? "syncing" : "offline"}
-            />
-            {networkNotice ?? "Agent network disconnected"}
-          </div>
-        ) : null}
-
-        {selectedPoint ? (
-          <div className="gw-map-selection-note gw-map-status-pill">
-            <span
-              className="gw-map-status-pill__dot"
-              data-state={selectedPoint.state}
-            />
-            {mapStrings.selection}: {selectedPoint.title}
-          </div>
-        ) : null}
-
-        <div className="gw-map-legend" aria-hidden="true">
-          {MAP_POINT_STATES.map((state) => (
-            <span key={state} className="gw-map-legend-pill">
-              <span className="gw-map-status-dot" data-state={state} />
-              {STATE_LABELS[state]}: {pointStateSummary[state]}
-            </span>
-          ))}
-        </div>
 
         <JourneyControls
           strings={mapStrings.journey}

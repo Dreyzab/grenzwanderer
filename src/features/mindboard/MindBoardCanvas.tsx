@@ -28,6 +28,8 @@ import { ClueNode } from "./nodes/ClueNode";
 import { HypothesisNode } from "./nodes/HypothesisNode";
 import { RedThreadEdge } from "./edges/RedThreadEdge";
 import { usePlayerBindings } from "../../entities/player/hooks/usePlayerBindings";
+import { useI18n } from "../i18n/I18nContext";
+import { getSharedStrings } from "../i18n/uiStrings";
 
 const nodeTypes = {
   clue: ClueNode,
@@ -42,6 +44,8 @@ const createRequestId = () =>
   `req-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
 
 export function MindBoardCanvas({ caseId }: { caseId: string }) {
+  const { language } = useI18n();
+  const shared = getSharedStrings(language);
   const { identityHex } = useIdentity();
   const toast = useToast();
   const { vars: varsByKey } = usePlayerBindings();
@@ -252,7 +256,7 @@ export function MindBoardCanvas({ caseId }: { caseId: string }) {
       {/* Inbox visual zone */}
       <div className="absolute top-0 left-0 w-[250px] h-full bg-black/40 border-r border-[#333] z-0 flex flex-col items-center pt-8">
         <div className="text-white/30 uppercase tracking-[0.2em] font-mono text-sm font-bold rotate-90 origin-left mt-24">
-          Evidence Inbox
+          {shared.evidenceInbox}
         </div>
       </div>
 

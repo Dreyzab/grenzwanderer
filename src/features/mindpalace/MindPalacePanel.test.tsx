@@ -31,6 +31,7 @@ vi.mock("../../shared/spacetime/useIdentity", () => ({
 vi.mock("../../entities/player/hooks/usePlayerBindings", () => ({
   usePlayerBindings: () => ({
     vars: mocks.usePlayerVarsMock(),
+    flags: {},
   }),
 }));
 

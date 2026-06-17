@@ -8,7 +8,7 @@ import {
 } from "react";
 import type { ReactNode, RefObject } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import type { VnSnapshot } from "../types";
 import type {
   TypedTextHandle,
@@ -312,31 +312,22 @@ export function VnLogBottomSheet({
         transition={dragFrac !== null ? { duration: 0 } : SHEET_HEIGHT_SPRING}
         onClick={onSurfaceTap}
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-end pr-3">
-          <motion.button
-            type="button"
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={endPointerSession}
-            onPointerCancel={handlePointerCancel}
-            onClick={(event) => event.stopPropagation()}
-            className="pointer-events-auto group relative -translate-y-1/2 flex h-5 w-10 touch-none select-none items-center justify-center rounded-t-lg border-x border-t border-stone-700/70 bg-stone-950/90 pb-0.5 shadow-sm transition-colors hover:bg-stone-900/95"
-            aria-label={
-              isCollapsedPeek
-                ? "Expand narrative log"
-                : "Collapse narrative log"
-            }
-          >
-            <div className="absolute top-1 h-0.5 w-4 rounded-full bg-stone-600/80 transition-colors group-hover:bg-stone-500" />
-            <motion.div
-              animate={{ rotate: isCollapsedPeek ? 180 : 0 }}
-              transition={{ type: "spring", damping: 24, stiffness: 320 }}
-              className="mt-0.5 text-stone-600"
-            >
-              <ChevronDown size={11} strokeWidth={2.5} />
-            </motion.div>
-          </motion.button>
-        </div>
+        {/* Compact grip with a generous invisible hit area: tap toggles the
+            peek, drag regulates the height. */}
+        <button
+          type="button"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={endPointerSession}
+          onPointerCancel={handlePointerCancel}
+          onClick={(event) => event.stopPropagation()}
+          className="group absolute inset-x-0 top-0 z-20 mx-auto flex h-7 w-28 cursor-grab touch-none select-none items-start justify-center active:cursor-grabbing"
+          aria-label={
+            isCollapsedPeek ? "Expand narrative log" : "Collapse narrative log"
+          }
+        >
+          <span className="mt-1.5 h-1.5 w-9 rounded-full bg-stone-500/80 shadow-sm transition-colors group-hover:bg-stone-300" />
+        </button>
 
         <div className="min-h-0 flex-1 overflow-hidden">
           <VnNarrativeLog

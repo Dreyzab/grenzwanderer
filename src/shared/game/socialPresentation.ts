@@ -7,6 +7,7 @@ import {
   type FactionCatalogSource,
   type FactionRevealReason,
 } from "../../../data/factionContract";
+import { clamp } from "../lib/clamp";
 import type {
   CareerRankDefinition,
   FactionSignalTrend,
@@ -129,9 +130,6 @@ const FALLBACK_RANKS: CareerRankDefinition[] = [
     privileges: [],
   },
 ];
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(max, Math.max(min, value));
 
 const formatIdentifier = (value: string): string =>
   value

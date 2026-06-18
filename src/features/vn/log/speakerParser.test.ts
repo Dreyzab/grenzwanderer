@@ -18,6 +18,23 @@ describe("parseSpeakerSegments", () => {
     ]);
   });
 
+  it("renders AI inner-voice lines as inner_voice segments via the marker round-trip", () => {
+    // How runtime reflection answers reach the VN log: format as markers, reuse this parser.
+    const lines = [
+      { voiceId: "inner_leader", line: "Он замер, потому что понял." },
+      { voiceId: "inner_guide", line: "Это не твоя вина." },
+    ];
+    const body = lines.map((l) => `**[${l.voiceId}]**: ${l.line}`).join("\n\n");
+    const segments = parseSpeakerSegments(body);
+
+    expect(segments).toHaveLength(2);
+    expect(segments.every((s) => s.category === "inner_voice")).toBe(true);
+    expect(segments[0]).toMatchObject({
+      speaker: "inner_leader",
+      text: "Он замер, потому что понял.",
+    });
+  });
+
   it("splits mixed speaker blocks", () => {
     const segments = parseSpeakerSegments(
       "**[Narrator]**:\nThe door opens.\n\n**[Assistant]**:\nNo headlines today.",

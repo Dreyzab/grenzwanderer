@@ -158,6 +158,8 @@ describe("ai-worker-watch", () => {
     expect(query).toContain("claim_token");
     expect(query).not.toContain("SELECT *");
     expect(query).toContain("WHERE status = 'processing'");
+    // Must read the public worker view, not the private ai_request table.
+    expect(query).toContain("FROM worker_ai_requests");
   });
 
   it("parses claimed ai_request rows from object-shaped SQL results", () => {

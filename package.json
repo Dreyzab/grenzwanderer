@@ -120,8 +120,6 @@
     "openviking:audit:case01": "powershell -ExecutionPolicy Bypass -File scripts/openviking/run-semantic-auditor.ps1"
   },
   "dependencies": {
-    "@chenglou/pretext": "^0.0.7",
-    "@react-three/fiber": "^8.18.0",
     "@sentry/node": "8.55.2",
     "@sentry/react": "8.55.2",
     "@xyflow/react": "^12.10.1",
@@ -132,9 +130,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-map-gl": "^8.1.0",
-    "recharts": "^3.2.1",
-    "spacetimedb": "^2.0.1",
-    "three": "^0.183.2"
+    "spacetimedb": "^2.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -146,7 +142,6 @@
     "@types/node": "^25.6.2",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
-    "@types/three": "^0.183.0",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "4.1.5",
     "cross-env": "^10.1.0",

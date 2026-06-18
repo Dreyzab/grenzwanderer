@@ -67,7 +67,7 @@ export const CharacterPanel = () => {
                   className="text-[10px] uppercase tracking-[0.38em]"
                   style={{ color: C.slate, fontFamily: "var(--font-mono)" }}
                 >
-                  {vm.t.dossierHeader}
+                  {vm.t.dossier}
                 </p>
                 <h2
                   className="mt-1 text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl"

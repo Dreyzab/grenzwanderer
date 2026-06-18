@@ -10,6 +10,7 @@ import type { ReactNode, RefObject } from "react";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import type { VnSnapshot } from "../types";
+import { clamp } from "../../../shared/lib/clamp";
 import type {
   TypedTextHandle,
   TypedTextTokenState,
@@ -51,9 +52,6 @@ interface VnLogBottomSheetProps {
   onTokenLeave?: TypedTextTokenHandler;
   tokenStateByPayload?: Readonly<Record<string, TypedTextTokenState>>;
 }
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(max, Math.max(min, value));
 
 const fractionFromClientY = (clientY: number): number => {
   if (typeof window === "undefined") {

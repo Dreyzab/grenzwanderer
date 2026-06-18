@@ -7,6 +7,7 @@ import type {
   VnSnapshot,
 } from "../../vn/types";
 import { buildSpiritRoster as buildSpiritRosterFn } from "./spiritState";
+import { clamp } from "../../../shared/lib/clamp";
 
 export const MYSTIC_AWAKENING_VAR = "mystic_awakening";
 export const MYSTIC_EXPOSURE_VAR = "mystic_exposure";
@@ -18,9 +19,6 @@ const SIGHT_MODE_TIER: Record<SightMode, number> = {
   sensitive: 1,
   ether: 2,
 };
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(max, Math.max(min, value));
 
 export interface MysticStateSummary {
   awakeningLevel: number;

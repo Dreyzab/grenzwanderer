@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ChoiceDisplayItem } from "../vnScreenTypes";
 import type { VnChoice } from "../types";
 import { VnChoiceButton } from "../ui/VnChoiceButton";
+import { PonderPanel } from "./PonderPanel";
 
 interface LogChoicesRendererProps {
   choiceDisplayItems: ChoiceDisplayItem[];
@@ -13,6 +14,10 @@ interface LogChoicesRendererProps {
   completionTargetLabel: string | null;
   hasAutoContinueChoice: boolean;
   sessionReady: boolean;
+  scenarioId?: string;
+  nodeId?: string;
+  onPonder?: (prompt: string) => void;
+  ponderThinking?: boolean;
   labels: {
     terminalNoChoices: string;
     openNextScene: string;
@@ -36,6 +41,10 @@ export function LogChoicesRenderer({
   completionTargetLabel,
   hasAutoContinueChoice,
   sessionReady,
+  scenarioId,
+  nodeId,
+  onPonder,
+  ponderThinking,
   labels,
   onChoiceClick,
   onCompletionTransition,
@@ -88,6 +97,13 @@ export function LogChoicesRenderer({
             </div>
           );
         })}
+        {scenarioId && nodeId && onPonder ? (
+          <PonderPanel
+            onAsk={onPonder}
+            thinking={Boolean(ponderThinking)}
+            disabled={isInteractionLocked}
+          />
+        ) : null}
       </div>
     );
   }

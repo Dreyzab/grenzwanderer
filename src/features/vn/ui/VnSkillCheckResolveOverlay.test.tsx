@@ -1,5 +1,5 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { resolveSkillRank } from "../../../shared/game/skillProgression";
 import {
   VnSkillCheckResolveOverlay,
@@ -52,19 +52,6 @@ vi.mock("framer-motion", async () => {
   };
 });
 
-vi.mock("@react-three/fiber", () => ({
-  Canvas: () => <div data-testid="mock-r3f-canvas" />,
-  useFrame: () => undefined,
-}));
-
-vi.mock("./VnSkillCheckDiceScene", () => ({
-  VnSkillCheckDiceScene: () => (
-    <div data-testid="vn-skill-dice-scene">
-      <div data-testid="mock-r3f-canvas" />
-    </div>
-  ),
-}));
-
 const baseState: VnSkillCheckResolveState = {
   scenarioId: "sandbox_case01_pilot",
   nodeId: "node_start",
@@ -92,32 +79,7 @@ const baseState: VnSkillCheckResolveState = {
 };
 
 describe("VnSkillCheckResolveOverlay", () => {
-  const originalGetContext = HTMLCanvasElement.prototype.getContext;
-  const originalWebGl = (window as Window & { WebGLRenderingContext?: unknown })
-    .WebGLRenderingContext;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    delete (window as Window & { WebGLRenderingContext?: unknown })
-      .WebGLRenderingContext;
-    HTMLCanvasElement.prototype.getContext = vi.fn(
-      () => null,
-    ) as unknown as typeof HTMLCanvasElement.prototype.getContext;
-  });
-
-  afterEach(() => {
-    if (originalWebGl === undefined) {
-      delete (window as Window & { WebGLRenderingContext?: unknown })
-        .WebGLRenderingContext;
-    } else {
-      (
-        window as Window & { WebGLRenderingContext?: unknown }
-      ).WebGLRenderingContext = originalWebGl;
-    }
-    HTMLCanvasElement.prototype.getContext = originalGetContext;
-  });
-
-  it("renders the 2D fallback when WebGL is unavailable", () => {
+  it("renders the 2D fallback dice visual", () => {
     render(
       <VnSkillCheckResolveOverlay
         state={baseState}
@@ -154,26 +116,5 @@ describe("VnSkillCheckResolveOverlay", () => {
 
     expect(screen.getByText("Deception rank up: B -> A")).toBeInTheDocument();
     expect(screen.getByText("A 15 / 100 | 515 XP")).toBeInTheDocument();
-  });
-
-  it("loads the WebGL dice scene when WebGL is available", async () => {
-    (
-      window as Window & { WebGLRenderingContext?: unknown }
-    ).WebGLRenderingContext = function WebGLRenderingContextMock() {};
-    HTMLCanvasElement.prototype.getContext = vi.fn(
-      () => ({}) as WebGLRenderingContext,
-    ) as unknown as typeof HTMLCanvasElement.prototype.getContext;
-
-    render(
-      <VnSkillCheckResolveOverlay
-        state={baseState}
-        onInteract={() => undefined}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(screen.getByTestId("vn-skill-dice-scene")).toBeInTheDocument();
-    });
-    expect(screen.getByTestId("mock-r3f-canvas")).toBeInTheDocument();
   });
 });

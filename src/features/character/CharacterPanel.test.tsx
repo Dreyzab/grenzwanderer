@@ -70,23 +70,6 @@ vi.mock("framer-motion", async () => {
   };
 });
 
-vi.mock("recharts", async () => {
-  const React = await import("react");
-
-  return {
-    ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
-      <div data-testid="responsive-container">{children}</div>
-    ),
-    RadarChart: ({ children }: { children?: React.ReactNode }) => (
-      <svg data-testid="radar-chart">{children}</svg>
-    ),
-    PolarGrid: () => null,
-    PolarAngleAxis: () => null,
-    PolarRadiusAxis: () => null,
-    Radar: () => null,
-  };
-});
-
 vi.mock("spacetimedb/react", () => ({
   useTable: (...args: unknown[]) => mocks.useTableMock(...args),
   useReducer: () => vi.fn(),

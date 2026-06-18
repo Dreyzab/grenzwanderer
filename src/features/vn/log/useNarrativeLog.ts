@@ -106,6 +106,7 @@ export function useNarrativeLog(
   finishCurrentSegment: () => void;
   setTypingSegment: (typing: boolean) => void;
   appendChoice: (text: string) => void;
+  appendSegments: (segments: SpeakerSegment[]) => void;
   appendCheckResult: (result: LogSkillCheckResult) => void;
   resetLog: () => void;
 } {
@@ -265,6 +266,25 @@ export function useNarrativeLog(
     });
   }, []);
 
+  // Inject runtime segments (e.g. AI inner-voice answers) into the same log
+  // stream as authored body segments, so they render inline via the existing
+  // LogEntryRenderer -> LogSegmentRenderer path with identical styling.
+  const appendSegments = useCallback((segments: SpeakerSegment[]) => {
+    if (segments.length === 0) {
+      return;
+    }
+    setState((previous) => {
+      const nodeId = previous.currentNodeId ?? "unknown_node";
+      let sequence = previous.sequence;
+      const entries = [...previous.entries];
+      for (const segment of segments) {
+        entries.push(createSegmentEntry(nodeId, segment, sequence));
+        sequence += 1;
+      }
+      return { ...previous, entries, sequence };
+    });
+  }, []);
+
   const appendCheckResult = useCallback((result: LogSkillCheckResult) => {
     setState((previous) => {
       const nodeId = previous.currentNodeId ?? "unknown_node";
@@ -302,6 +322,7 @@ export function useNarrativeLog(
     finishCurrentSegment,
     setTypingSegment,
     appendChoice,
+    appendSegments,
     appendCheckResult,
     resetLog,
   };

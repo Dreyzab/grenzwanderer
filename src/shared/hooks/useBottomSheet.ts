@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
+import { clamp } from "../lib/clamp";
 
 interface UseBottomSheetOptions {
   snapPoints: number[];
@@ -7,9 +8,6 @@ interface UseBottomSheetOptions {
   storageKey?: string;
   onSnapChange?: (snap: number) => void;
 }
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(max, Math.max(min, value));
 
 const nearestSnapPoint = (value: number, snapPoints: number[]): number =>
   snapPoints.reduce((best, snap) =>

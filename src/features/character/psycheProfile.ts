@@ -14,6 +14,7 @@ import {
   getDnDAlignment,
   type DnDAlignment,
 } from "../../shared/game/innerVoiceModel";
+import { clamp } from "../../shared/lib/clamp";
 import {
   LEGACY_LAYER_BY_FACTION_ID,
   LEGACY_REPUTATION_VAR_BY_FACTION_ID,
@@ -138,9 +139,6 @@ const LAYERS: FactionLayer[] = ["daylight", "political", "shadow"];
 const LEGACY_FACTION_IDS = Object.keys(LEGACY_LAYER_BY_FACTION_ID) as Array<
   keyof typeof LEGACY_LAYER_BY_FACTION_ID
 >;
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(max, Math.max(min, value));
 
 const getAlignmentCopy = (
   tier: Exclude<AlignmentTier, "contested" | "unaligned">,

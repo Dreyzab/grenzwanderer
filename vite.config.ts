@@ -20,15 +20,6 @@ const manualChunks = (id: string): string | undefined => {
   ) {
     return "mapbox";
   }
-  if (
-    normalizedId.includes("/node_modules/three/") ||
-    normalizedId.includes("/node_modules/@react-three/fiber/")
-  ) {
-    return "three-vendor";
-  }
-  if (normalizedId.includes("/src/features/vn/ui/VnSkillCheckDiceScene.tsx")) {
-    return "vn-dice-scene";
-  }
   return undefined;
 };
 

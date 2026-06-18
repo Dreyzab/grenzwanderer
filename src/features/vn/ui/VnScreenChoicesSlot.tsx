@@ -38,6 +38,10 @@ interface VnScreenChoicesSlotProps {
   providenceCtaLabel: string | null;
   providenceThoughtCard: InlineStatusCard | null;
   reactionCard: InlineStatusCard | null;
+  scenarioId?: string;
+  nodeId?: string;
+  onPonder?: (prompt: string) => void;
+  ponderThinking?: boolean;
   sessionReady: boolean;
   showOriginCards: boolean;
   t: VnStrings;
@@ -75,6 +79,10 @@ export function VnScreenChoicesSlot({
   providenceCtaLabel,
   providenceThoughtCard,
   reactionCard,
+  scenarioId,
+  nodeId,
+  onPonder,
+  ponderThinking,
   sessionReady,
   showOriginCards,
   t,
@@ -101,6 +109,10 @@ export function VnScreenChoicesSlot({
         completionTargetLabel={completionTargetLabel}
         hasAutoContinueChoice={hasAutoContinueChoice}
         sessionReady={sessionReady}
+        scenarioId={scenarioId}
+        nodeId={nodeId}
+        onPonder={onPonder}
+        ponderThinking={ponderThinking}
         labels={{
           terminalNoChoices: t.terminalNoChoices,
           openNextScene: t.openNextScene,

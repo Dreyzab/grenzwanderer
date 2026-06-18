@@ -26,6 +26,14 @@ import { useVnScreenSpacetimeBindings } from "../hooks/useVnScreenSpacetimeBindi
 import { useCurrentNode } from "../hooks/useCurrentNode";
 import { useVnSession } from "../hooks/useVnSession";
 import { useNarrativeLog } from "../log/useNarrativeLog";
+import {
+  buildPonderAnswerSegments,
+  buildPonderDmPayload,
+  ponderProposalToSegments,
+} from "../log/ponderAnswer";
+import { savePonder } from "../log/ponderStore";
+import { ENABLE_AI } from "../../../config";
+import { AI_PROPOSE_DM_TURN_KIND } from "../../ai/contracts";
 import { useUiLanguage } from "../../../shared/hooks/useUiLanguage";
 import type { VnChoice } from "../types";
 import type { GenerateDialoguePayload } from "../../ai/contracts";
@@ -58,7 +66,11 @@ import {
 } from "./vnTextSpeedPreference";
 import { VnTextSpeedContext } from "./VnTextSpeedContext";
 import { VnNarrativePanel } from "../../../widgets/vn-overlay/VnNarrativePanel";
-import { AUTO_CONTINUE_PREFIX } from "../vnScreenUtils";
+import {
+  AUTO_CONTINUE_PREFIX,
+  createRequestId,
+  parseDmTurnResponse,
+} from "../vnScreenUtils";
 import { VnHubInlinePanel } from "./hub/VnHubInlinePanel";
 import { VnHubOverlay } from "./hub/VnHubOverlay";
 import { VnHubOverlayButton } from "./hub/VnHubOverlayButton";
@@ -339,7 +351,8 @@ export const VnScreen = ({
     vnExplicitSceneGroupId,
     uiLanguage,
   );
-  const { appendCheckResult, appendChoice, setTypingSegment } = narrativeLog;
+  const { appendCheckResult, appendChoice, appendSegments, setTypingSegment } =
+    narrativeLog;
 
   const generatedBackgroundUrl =
     useKarlsruheSceneBackground(selectedScenarioId);
@@ -424,6 +437,115 @@ export const VnScreen = ({
       ).sort(),
     [visibleFactsByCharacterId],
   );
+
+  const [ponderPending, setPonderPending] = useState<{
+    requestId: string;
+    prompt: string;
+  } | null>(null);
+
+  const commitPonder = useCallback(
+    (
+      prompt: string,
+      segments: ReturnType<typeof buildPonderAnswerSegments>,
+    ) => {
+      appendSegments(segments);
+      if (currentNode) {
+        savePonder(currentNode.scenarioId, {
+          nodeId: currentNode.id,
+          prompt,
+          result: segments
+            .map((segment) => `${segment.speakerLabel}: ${segment.text}`)
+            .join("\n"),
+        });
+      }
+    },
+    [appendSegments, currentNode],
+  );
+
+  const handlePonderAsk = useCallback(
+    (prompt: string) => {
+      const trimmed = prompt.trim();
+      if (!trimmed || !currentNode) {
+        return;
+      }
+      const fallback = () =>
+        commitPonder(
+          trimmed,
+          buildPonderAnswerSegments(trimmed, myVars, dictionary),
+        );
+      if (!ENABLE_AI) {
+        fallback();
+        return;
+      }
+      const requestId = createRequestId();
+      const payload = buildPonderDmPayload({
+        scenarioId: currentNode.scenarioId,
+        nodeId: currentNode.id,
+        question: trimmed,
+        resources: {
+          fate: narrativeResources.fate,
+          fortune: narrativeResources.fortune,
+          fortuneMod: narrativeResources.fortuneMod,
+          karma: narrativeResources.karma,
+        },
+        vars: myVars,
+        flags: myFlags,
+        visibleFacts: dmVisibleFacts,
+        parliamentPresetId: activeParliamentPresetId,
+      });
+      setPonderPending({ requestId, prompt: trimmed });
+      void enqueueAiRequest({
+        requestId,
+        kind: AI_PROPOSE_DM_TURN_KIND,
+        payloadJson: JSON.stringify(payload),
+      }).catch(() => {
+        fallback();
+        setPonderPending(null);
+      });
+    },
+    [
+      activeParliamentPresetId,
+      commitPonder,
+      currentNode,
+      dictionary,
+      dmVisibleFacts,
+      enqueueAiRequest,
+      myFlags,
+      myVars,
+      narrativeResources,
+    ],
+  );
+
+  useEffect(() => {
+    if (!ponderPending) {
+      return;
+    }
+    const request = myAiRequests.find(
+      (entry) => entry.requestId === ponderPending.requestId,
+    );
+    if (!request) {
+      return;
+    }
+    if (request.status === "completed") {
+      const proposal = parseDmTurnResponse(request.responseJson);
+      const aiSegments = proposal
+        ? ponderProposalToSegments(proposal, dictionary)
+        : [];
+      const segments =
+        aiSegments.length > 0
+          ? aiSegments
+          : buildPonderAnswerSegments(ponderPending.prompt, myVars, dictionary);
+      commitPonder(ponderPending.prompt, segments);
+      setPonderPending(null);
+    } else if (request.status === "failed") {
+      commitPonder(
+        ponderPending.prompt,
+        buildPonderAnswerSegments(ponderPending.prompt, myVars, dictionary),
+      );
+      setPonderPending(null);
+    }
+  }, [commitPonder, dictionary, myAiRequests, myVars, ponderPending]);
+
   const { handleStartScenario, runCompletionTransition } = useVnTransitions({
     snapshot,
     activeVersionChecksum: activeVersion?.checksum ?? null,
@@ -1148,6 +1270,10 @@ export const VnScreen = ({
               providenceCtaLabel={providenceCtaLabel}
               providenceThoughtCard={providenceThoughtCard}
               reactionCard={reactionCard}
+              scenarioId={currentNode?.scenarioId}
+              nodeId={currentNode?.id}
+              onPonder={handlePonderAsk}
+              ponderThinking={ponderPending !== null}
               sessionReady={sessionReady}
               showOriginCards={showOriginCards}
               t={t}

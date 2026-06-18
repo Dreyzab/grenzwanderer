@@ -11,6 +11,7 @@ import {
   type InnerVoiceStance,
 } from "../../../data/innerVoiceContract";
 import { getVoiceSkin } from "../../../data/parliamentModules";
+import { clamp } from "../lib/clamp";
 
 export interface PsycheState {
   axisX: number;
@@ -31,9 +32,6 @@ export interface ResolvedInnerVoiceSelection {
   counter: ResolvedInnerVoiceEntry | null;
   ordered: ResolvedInnerVoiceEntry[];
 }
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(max, Math.max(min, value));
 
 const quadrantKeyFor = (voiceId: InnerVoiceId): string => {
   const { x, y } = INNER_VOICE_DEFINITIONS[voiceId].homePoint;

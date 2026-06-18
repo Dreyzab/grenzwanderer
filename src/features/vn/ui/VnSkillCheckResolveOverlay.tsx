@@ -1,13 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { CSSProperties } from "react";
 import { getSkillCheckVoicePalette } from "../skillCheckPalette";
 import type { SkillProgressFeedback } from "../../../shared/game/skillProgression";
 import type { VnChoice, VnDiceMode } from "../types";
 import "./VnSkillCheckFeedback.css";
-
-type DiceSceneComponent =
-  typeof import("./VnSkillCheckDiceScene").VnSkillCheckDiceScene;
 
 export type VnSkillCheckResolvePhase =
   | "arming"
@@ -68,48 +65,6 @@ interface VnSkillCheckResolveOverlayProps {
   onInteract: () => void;
 }
 
-const usePrefersReducedMotion = (): boolean => {
-  const [reduced, setReduced] = useState(false);
-
-  useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      typeof window.matchMedia !== "function"
-    ) {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => {
-      setReduced(mediaQuery.matches);
-    };
-
-    apply();
-    mediaQuery.addEventListener("change", apply);
-    return () => {
-      mediaQuery.removeEventListener("change", apply);
-    };
-  }, []);
-
-  return reduced;
-};
-
-const detectWebGlSupport = (): boolean => {
-  if (typeof window === "undefined" || typeof document === "undefined") {
-    return false;
-  }
-
-  try {
-    const canvas = document.createElement("canvas");
-    return Boolean(
-      window.WebGLRenderingContext &&
-      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")),
-    );
-  } catch {
-    return false;
-  }
-};
-
 const resolveEyebrow = (state: VnSkillCheckResolveState): string => {
   if (state.phase === "arming") {
     return "CHECK PRIMED";
@@ -168,56 +123,10 @@ export const VnSkillCheckResolveOverlay = ({
   canRoll = false,
   onInteract,
 }: VnSkillCheckResolveOverlayProps) => {
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const [hasWebGl, setHasWebGl] = useState(false);
-  const [DiceScene, setDiceScene] = useState<DiceSceneComponent | null>(null);
-  const [diceLoadFailed, setDiceLoadFailed] = useState(false);
-
-  useEffect(() => {
-    setHasWebGl(detectWebGlSupport());
-  }, []);
-
-  useEffect(() => {
-    if (
-      !state ||
-      prefersReducedMotion ||
-      !hasWebGl ||
-      diceLoadFailed ||
-      DiceScene
-    ) {
-      return;
-    }
-
-    let cancelled = false;
-
-    void import("./VnSkillCheckDiceScene")
-      .then((module) => {
-        if (cancelled) {
-          return;
-        }
-        setDiceScene(() => module.VnSkillCheckDiceScene);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setDiceLoadFailed(true);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [DiceScene, diceLoadFailed, hasWebGl, prefersReducedMotion, state]);
-
   const palette = useMemo(
     () => (state ? getSkillCheckVoicePalette(state.voiceId) : null),
     [state],
   );
-  const showDiceScene =
-    Boolean(state) &&
-    !prefersReducedMotion &&
-    hasWebGl &&
-    !diceLoadFailed &&
-    Boolean(DiceScene);
 
   return (
     <AnimatePresence>
@@ -268,21 +177,12 @@ export const VnSkillCheckResolveOverlay = ({
             exit={{ opacity: 0 }}
           />
           <div className="vn-check-resolve__visual">
-            {showDiceScene && DiceScene ? (
-              <DiceScene
-                diceMode={state.diceMode}
-                voiceId={state.voiceId}
-                phase={state.phase}
-                passed={state.passed}
-              />
-            ) : (
-              <ResolveFallbackDie
-                voiceId={state.voiceId}
-                voiceLabel={state.voiceLabel}
-                phase={state.phase}
-                passed={state.passed}
-              />
-            )}
+            <ResolveFallbackDie
+              voiceId={state.voiceId}
+              voiceLabel={state.voiceLabel}
+              phase={state.phase}
+              passed={state.passed}
+            />
           </div>
           <motion.article
             className="vn-check-resolve__panel"

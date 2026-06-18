@@ -398,7 +398,8 @@ export const buildClaimedAiRequestQuery = (claimToken: string): string => {
     "  status,",
     "  attempt_count,",
     "  claim_token",
-    "FROM ai_request",
+    // ai_request is private; read the public worker view (pending + own processing).
+    "FROM worker_ai_requests",
     "WHERE status = 'processing'",
   ].join("\n");
 };

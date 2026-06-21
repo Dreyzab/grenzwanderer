@@ -514,6 +514,14 @@ export const visibilityMatrix: VisibilityMatrixEntry[] = [
     "wave1-operational",
     "Feedback report sources are operational-private and should be accessed via views.",
   ),
+  entry(
+    "dm_turn",
+    "dmTurn",
+    "operational-private",
+    "no client read path",
+    "wave1-operational",
+    "Append-only analytics log of completed DM turns; private table with no client-facing read path.",
+  ),
 ];
 
 const readCachedUtf8 = (filePath: string): string => {

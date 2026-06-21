@@ -184,6 +184,7 @@ const SNAPSHOT_FLAG_KEYS = [
   "courier_waybill_stamp_copy_confirmed",
   "mayor_grimoire_thread_known",
   "calibrated_thermometer",
+  "flag_witch_knows_bureau_holds_sasha",
 ] as const;
 
 const LEGACY_FLAG_KEYS = ["INTRO_COMPLETED"] as const;

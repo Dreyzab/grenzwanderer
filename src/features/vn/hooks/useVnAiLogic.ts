@@ -12,6 +12,7 @@ import {
   trustToDisposition,
 } from "../../ai/contracts";
 import { buildDirectorAllowedBeatIds } from "../../../shared/case01Canon";
+import { knownFactsForCharacter } from "../../ai/npcKnowledge";
 import { directorRequestMatchesContext } from "../vnScreenUtils";
 import type { SceneResultEnvelope } from "../../ai/sceneResultEnvelope";
 import {
@@ -390,6 +391,15 @@ export function useVnAiLogic({
 
     const visibleFacts = visibleFactsByCharacterId.get(characterId) ?? [];
     const trustScore = trustByNpcId.get(characterId) ?? 0;
+    // NPC's own Knowledge for this scene — derived from the compiled matrix
+    // (ADR_008), distinct from the player-visible facts above.
+    const npcMemory = knownFactsForCharacter(characterId, {
+      activeFlags: new Set(
+        Object.entries(myFlags)
+          .filter(([, value]) => value)
+          .map(([key]) => key),
+      ),
+    });
 
     void enqueueAiRequest({
       requestId: createRequestId(),
@@ -405,6 +415,7 @@ export function useVnAiLogic({
           trust: trustScore,
           disposition: trustToDisposition(trustScore),
         },
+        ...(npcMemory.length > 0 ? { npcMemory } : {}),
       }),
     }).catch((caughtError) => {
       enqueuedReactionKeysRef.current.delete(reactionKey);
@@ -422,6 +433,7 @@ export function useVnAiLogic({
     currentNode?.body,
     currentReactionContext,
     enqueueAiRequest,
+    myFlags,
     myReactionRequests,
     npcStateReady,
     sessionReady,

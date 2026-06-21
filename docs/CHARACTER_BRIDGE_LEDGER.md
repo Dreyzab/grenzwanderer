@@ -8,7 +8,20 @@
 
 - Char notes scanned: 81
 - With runtime_character_id: 74
+- With knows: matrix: 3
 - Findings: 0 error, 2 warn, 46 info
+
+## Knowledge (knows:) (3)
+
+| Note                               | Fact                       | Condition                                 | Evidence note |
+| ---------------------------------- | -------------------------- | ----------------------------------------- | ------------- |
+| char_lotte_weber                   | ev_eleonora_uncanny_nature | flag:flag_witch_lotte_noticed_strangeness | ✓             |
+| char_lotte_weber                   | ev_sasha_narodnaya_volya   | never                                     | ✓             |
+| char_case01_bureau_master          | ev_sasha_narodnaya_volya   | always                                    | ✓             |
+| char_case01_sasha_hartmann_servant | fact_konigsberg_household  | always                                    | —             |
+| char_case01_sasha_hartmann_servant | ev_sasha_russian_exile     | always                                    | ✓             |
+| char_case01_sasha_hartmann_servant | ev_sasha_narodnaya_volya   | always                                    | ✓             |
+| char_case01_sasha_hartmann_servant | ev_sasha_war_service       | always                                    | ✓             |
 
 ## Duplicate runtime id (same vault) — ambiguous (1)
 

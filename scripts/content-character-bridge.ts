@@ -26,11 +26,19 @@ import {
   type BridgeSeverity,
   type CharNote,
   type CharVault,
+  type KnowsEntry,
   type RuntimeRegistries,
 } from "./character-bridge-core";
 
 const failOnError = process.argv.includes("--check");
 const ledgerPath = path.join(repoRoot, "docs", "CHARACTER_BRIDGE_LEDGER.md");
+const matrixPath = path.join(
+  repoRoot,
+  "src",
+  "features",
+  "ai",
+  "knowledgeMatrix.generated.ts",
+);
 
 const walkCharNoteFiles = (directory: string): string[] => {
   const files: string[] = [];
@@ -93,6 +101,24 @@ const parseAliases = (frontmatter: string): string[] => {
   return [];
 };
 
+const parseKnows = (frontmatter: string): KnowsEntry[] => {
+  const block = frontmatter.match(/^knows:\s*\n((?:[ \t]+\S.*\n?)+)/m);
+  if (!block) {
+    return [];
+  }
+  const entries: KnowsEntry[] = [];
+  for (const line of block[1].split("\n")) {
+    const match = line.match(/^[ \t]+([A-Za-z_][\w]*)\s*:\s*(.+?)\s*$/);
+    if (match) {
+      entries.push({
+        fact: match[1],
+        condition: match[2].replace(/^["']|["']$/g, ""),
+      });
+    }
+  }
+  return entries;
+};
+
 const parseHeading = (markdown: string): string | undefined => {
   const body = markdown
     .replace(/^\uFEFF/, "")
@@ -141,6 +167,7 @@ const readCharNotes = (): CharNote[] => {
         tier: scalarField(frontmatter, "tier"),
         displayName: parseHeading(markdown),
         designOnly: scalarField(frontmatter, "design_only") === "true",
+        knows: parseKnows(frontmatter),
       });
     }
   }
@@ -148,6 +175,38 @@ const readCharNotes = (): CharNote[] => {
   return notes.sort((left, right) =>
     left.relativePath.localeCompare(right.relativePath),
   );
+};
+
+/** Collects every `ev_*.md` evidence id in the story vault, for knows: linting. */
+const readEvidenceIds = (): Set<string> => {
+  const ids = new Set<string>();
+  const walk = (directory: string): void => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      if (entry.name.startsWith(".")) {
+        continue;
+      }
+      const absolutePath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        walk(absolutePath);
+        continue;
+      }
+      if (
+        entry.isFile() &&
+        entry.name.startsWith("ev_") &&
+        entry.name.endsWith(".md")
+      ) {
+        const frontmatter = extractFrontmatter(
+          readFileSync(absolutePath, "utf8").replace(/\r\n/g, "\n"),
+        );
+        ids.add(
+          (frontmatter && scalarField(frontmatter, "id")) ||
+            path.basename(entry.name, ".md"),
+        );
+      }
+    }
+  };
+  walk(storyRoot);
+  return ids;
 };
 
 const registries: RuntimeRegistries = {
@@ -175,6 +234,8 @@ const CATEGORY_TITLES: Record<string, string> = {
   "no-runtime-binding": "No runtime binding (design/archetype note)",
   "design-only-archetype": "Design-only archetype (intentionally unbound)",
   "missing-dossier": "Major runtime NPC without a dossier",
+  "knowledge-bad-condition": "knows: condition grammar error",
+  "knowledge-unknown-evidence": "knows: ev_* fact with no evidence note",
 };
 
 const markdownCell = (value: string): string =>
@@ -184,7 +245,9 @@ const renderLedger = (
   notes: CharNote[],
   findings: BridgeFinding[],
   summary: Record<BridgeSeverity, number>,
+  evidenceIds: ReadonlySet<string>,
 ): string => {
+  const notesWithKnows = notes.filter((n) => (n.knows?.length ?? 0) > 0);
   const lines: string[] = [
     "# Character Bridge Ledger",
     "",
@@ -196,9 +259,29 @@ const renderLedger = (
     "",
     `- Char notes scanned: ${notes.length}`,
     `- With runtime_character_id: ${notes.filter((n) => n.runtimeCharacterId).length}`,
+    `- With knows: matrix: ${notesWithKnows.length}`,
     `- Findings: ${summary.error} error, ${summary.warn} warn, ${summary.info} info`,
     "",
   ];
+
+  if (notesWithKnows.length > 0) {
+    lines.push(`## Knowledge (knows:) (${notesWithKnows.length})`, "");
+    lines.push("| Note | Fact | Condition | Evidence note |");
+    lines.push("| --- | --- | --- | --- |");
+    for (const note of notesWithKnows) {
+      for (const entry of note.knows ?? []) {
+        const evidence = !entry.fact.startsWith("ev_")
+          ? "—"
+          : evidenceIds.has(entry.fact)
+            ? "✓"
+            : "**missing**";
+        lines.push(
+          `| ${markdownCell(note.fileId)} | ${entry.fact} | ${markdownCell(entry.condition)} | ${evidence} |`,
+        );
+      }
+    }
+    lines.push("");
+  }
 
   const byCategory = new Map<string, BridgeFinding[]>();
   for (const finding of findings) {
@@ -231,14 +314,45 @@ const renderLedger = (
 };
 
 const notes = readCharNotes();
-const findings = buildBridgeFindings(notes, registries);
+const evidenceIds = readEvidenceIds();
+const findings = buildBridgeFindings(notes, registries, evidenceIds);
 const summary = summarizeFindings(findings);
 
 mkdirSync(path.dirname(ledgerPath), { recursive: true });
-writeFileSync(ledgerPath, renderLedger(notes, findings, summary), "utf8");
+writeFileSync(
+  ledgerPath,
+  renderLedger(notes, findings, summary, evidenceIds),
+  "utf8",
+);
+
+// Emit the runtime knowledge matrix consumed by npcKnowledge.ts (ADR_008).
+const knowledgeMatrix: Record<string, KnowsEntry[]> = {};
+for (const note of notes) {
+  if (!note.knows || note.knows.length === 0) {
+    continue;
+  }
+  for (const id of [note.npcIdentity, note.runtimeCharacterId]) {
+    if (id) {
+      knowledgeMatrix[id] = note.knows;
+    }
+  }
+}
+writeFileSync(
+  matrixPath,
+  `// AUTO-GENERATED by \`bun run content:character:bridge\`. Do not hand-edit.\n` +
+    `// Source: \`knows:\` frontmatter in char_*.md (see ADR_008_NPC_Knowledge).\n` +
+    `export const KNOWLEDGE_MATRIX: Record<\n` +
+    `  string,\n` +
+    `  ReadonlyArray<{ fact: string; condition: string }>\n` +
+    `> = ${JSON.stringify(knowledgeMatrix, null, 2)};\n`,
+  "utf8",
+);
 
 console.log(
   `[content:character:bridge] Ledger written: ${toRepoRelative(ledgerPath)}`,
+);
+console.log(
+  `[content:character:bridge] Matrix written: ${toRepoRelative(matrixPath)} (${Object.keys(knowledgeMatrix).length} ids).`,
 );
 console.log(
   `[content:character:bridge] ${notes.length} notes scanned — ${summary.error} error, ${summary.warn} warn, ${summary.info} info.`,

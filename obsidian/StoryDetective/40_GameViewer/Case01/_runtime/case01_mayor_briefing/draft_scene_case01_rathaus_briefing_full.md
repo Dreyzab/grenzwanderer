@@ -7,6 +7,8 @@ background: /images/scenes/case01/cg_case01_rathaus_summit.png
 
 # Scene: The Mayor's Office
 
+## Script
+
 **Oberbuergermeister**: (Tapping a heavy signet ring on the oak desk) "Herr Thorne... the Bankhaus Krebs is not merely a building. It is a pillar of Freiburg's stability. If a postal wagon vanishes between here and the station, it is a mystery. If it disappears *inside* the city walls, it is a scandal."
 
 **Felix**: (Stepping forward with a leather dossier) "The HBF manifests show the wagon cleared the tracks, sir. But the Bank's ledger has a... gap. Exactly twenty-four minutes of silence."

@@ -44,7 +44,7 @@ run([
   "--only",
   "hosting:freiburg-event",
   "--project",
-  process.env.GCP_PROJECT_ID || "grenzwanderer-event",
+  process.env.GCP_PROJECT_ID || "detective-prod-8f6f0",
   "--non-interactive",
 ]);
 

@@ -9,6 +9,12 @@
 
 export type CharVault = "Detectiv" | "StoryDetective";
 
+/** One row of a note's `knows:` frontmatter: a Fact id and its gate. */
+export interface KnowsEntry {
+  fact: string;
+  condition: string;
+}
+
 export interface CharNote {
   /** Frontmatter id (falls back to filename without extension). */
   fileId: string;
@@ -26,6 +32,8 @@ export interface CharNote {
    * contact. Suppresses the `unresolved-runtime-id` warning (reported as info).
    */
   designOnly?: boolean;
+  /** Parsed `knows:` frontmatter — the NPC knowledge matrix (see ADR_008). */
+  knows?: KnowsEntry[];
 }
 
 export interface RuntimeSocialNpc {
@@ -51,7 +59,9 @@ export type BridgeCategory =
   | "duplicate-dossier-file"
   | "no-runtime-binding"
   | "design-only-archetype"
-  | "missing-dossier";
+  | "missing-dossier"
+  | "knowledge-bad-condition"
+  | "knowledge-unknown-evidence";
 
 export interface BridgeFinding {
   severity: BridgeSeverity;
@@ -60,6 +70,25 @@ export interface BridgeFinding {
   subject: string;
   detail: string;
 }
+
+const KNOWS_PHASE = /^phase\s*(>=|>|<=|<|==)\s*[a-z][a-z0-9_]*$/i;
+const KNOWS_FLAG = /^flag:[A-Za-z_][A-Za-z0-9_]*$/;
+
+/**
+ * Validates a single `knows:` condition against the minimal grammar (ADR_008):
+ * `always` | `never` | `phase <op> <phase>` | `flag:<KEY>`. Returns an error
+ * string, or null when the condition is well-formed.
+ */
+export const validateKnowsCondition = (condition: string): string | null => {
+  const c = condition.trim();
+  if (c === "always" || c === "never") {
+    return null;
+  }
+  if (KNOWS_PHASE.test(c) || KNOWS_FLAG.test(c)) {
+    return null;
+  }
+  return `unrecognized condition '${condition}' (expected: always | never | phase <op> <phase> | flag:<KEY>)`;
+};
 
 export const normalizeCharacterId = (value: string): string =>
   value
@@ -174,9 +203,33 @@ const namesMatch = (note: CharNote, displayName: string): boolean => {
 export const buildBridgeFindings = (
   notes: CharNote[],
   registries: RuntimeRegistries,
+  evidenceIds: ReadonlySet<string> = new Set(),
 ): BridgeFinding[] => {
   const findings: BridgeFinding[] = [];
   const resolvedSocialNpcIds = new Set<string>();
+
+  // knows: matrix linting — condition grammar + ev_* evidence existence (ADR_008).
+  for (const note of notes) {
+    for (const entry of note.knows ?? []) {
+      const conditionError = validateKnowsCondition(entry.condition);
+      if (conditionError) {
+        findings.push({
+          severity: "error",
+          category: "knowledge-bad-condition",
+          subject: note.relativePath,
+          detail: `knows: '${entry.fact}' — ${conditionError}`,
+        });
+      }
+      if (entry.fact.startsWith("ev_") && !evidenceIds.has(entry.fact)) {
+        findings.push({
+          severity: "warn",
+          category: "knowledge-unknown-evidence",
+          subject: note.relativePath,
+          detail: `knows: '${entry.fact}' references no evidence note (ev_*.md) in the story vault.`,
+        });
+      }
+    }
+  }
 
   // Per-note resolution, name drift, and missing-binding checks.
   for (const note of notes) {

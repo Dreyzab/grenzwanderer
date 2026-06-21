@@ -6,6 +6,8 @@ phase: onboarding
 status: active
 runtime_character_id: npc_bureau_master
 npc_identity: npc_bureau_master
+knows:
+  ev_sasha_narodnaya_volya: always
 tags:
   - type/character
   - origin/witch
@@ -29,6 +31,18 @@ tags:
   suppressant, and an unattended raw altar shard that the curse can siphon.
 - Notices everything. Treats discipline as the Bureau's standing answer to
   coven excess; treats theft as a debt to be paid in blood.
+
+## Knowledge
+
+The Bureau holds the household's secrets as collateral behind the cover it
+rations. The Master carries Sasha's Narodnaya Volya file from the start — the
+holder side of that leverage Fact (`always`). The Player only learns the Bureau
+holds it through the induction beat (see the evidence note). See
+`ADR_008_NPC_Knowledge` (Detectiv/99_System/ADR).
+
+- `ev_sasha_narodnaya_volya` — held as standing leverage over the Hartmann
+  House; see
+  [[40_GameViewer/Case01/_Evidence/ev_sasha_narodnaya_volya|the evidence note]].
 
 ## Service
 

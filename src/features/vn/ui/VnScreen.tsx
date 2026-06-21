@@ -1017,7 +1017,11 @@ export const VnScreen = ({
     effectiveNarrativeLayout === "fullscreen" ||
     effectiveNarrativeLayout === "letter_overlay";
   const isWitchDmMode = Boolean(myFlags.origin_witch);
-  const isCreatorMode = import.meta.env.DEV || isWitchDmMode;
+  // Rating/assessment panel: dev builds always; in prod for every origin once the
+  // player finished character creation (char_creation_complete is set by all 6
+  // origins in buildOriginChoiceEffects). Was witch-only before.
+  const showAssessmentPanel =
+    import.meta.env.DEV || Boolean(myFlags.char_creation_complete);
   // Phase 2 aggregation compares stored ratings against the content *version*
   // (semantic), not the checksum, to flag stale ratings after a rebuild.
   const contentVersionLabel = activeVersion?.version ?? undefined;
@@ -1356,7 +1360,7 @@ export const VnScreen = ({
           onError={setError}
         />
       ) : null}
-      {isCreatorMode ? (
+      {showAssessmentPanel ? (
         <VnCreatorAssessmentPanel
           node={currentNode}
           scenario={selectedScenario}

@@ -1687,6 +1687,38 @@ export const dialogueRating = table(
   },
 );
 
+// Append-only analytics log of every completed DM ("Настольный Мастер") turn.
+// ponytail: autoInc PK ⇒ scenario replays never collide; we never delete, so the
+// full co-creation history survives restarts. Private — read via `spacetime sql`,
+// the player never subscribes to it.
+export const dmTurn = table(
+  {
+    name: "dm_turn",
+    public: false,
+    indexes: [
+      {
+        accessor: "dm_turn_player_id",
+        algorithm: "btree",
+        columns: ["playerId"],
+      },
+      {
+        accessor: "dm_turn_scenario_id",
+        algorithm: "btree",
+        columns: ["scenarioId"],
+      },
+    ],
+  },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    playerId: t.identity(),
+    scenarioId: t.string(),
+    nodeId: t.string(),
+    actionText: t.string(), // player's free-form input — the co-creation material
+    narrationJson: t.string(), // full DmTurnProposal as returned by the worker
+    createdAt: t.timestamp(),
+  },
+);
+
 export const feedbackAnalysisReport = table(
   {
     name: "feedback_analysis_report",
@@ -1826,6 +1858,7 @@ const spacetimedb = schema({
   playerEquipment,
   contentRating,
   dialogueRating,
+  dmTurn,
   feedbackAnalysisReport,
   feedbackAnalysisSource,
 });

@@ -257,6 +257,17 @@ export const DialogueRating = __t.object("DialogueRating", {
 });
 export type DialogueRating = __Infer<typeof DialogueRating>;
 
+export const DmTurn = __t.object("DmTurn", {
+  id: __t.u64(),
+  playerId: __t.identity(),
+  scenarioId: __t.string(),
+  nodeId: __t.string(),
+  actionText: __t.string(),
+  narrationJson: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type DmTurn = __Infer<typeof DmTurn>;
+
 export const FeedbackAnalysisReport = __t.object("FeedbackAnalysisReport", {
   reportId: __t.u64(),
   reportKey: __t.string(),

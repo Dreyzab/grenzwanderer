@@ -3,6 +3,7 @@ import {
   buildBridgeFindings,
   candidateIds,
   resolveRuntimeCharacterId,
+  validateKnowsCondition,
   type CharNote,
   type RuntimeRegistries,
 } from "./character-bridge-core";
@@ -243,5 +244,60 @@ describe("buildBridgeFindings", () => {
           f.category === "missing-dossier" && f.subject === "npc_anna_mahler",
       ),
     ).toBe(true);
+  });
+});
+
+describe("validateKnowsCondition", () => {
+  it("accepts the grammar forms and rejects everything else", () => {
+    expect(validateKnowsCondition("always")).toBeNull();
+    expect(validateKnowsCondition("never")).toBeNull();
+    expect(validateKnowsCondition("phase >= investigation")).toBeNull();
+    expect(validateKnowsCondition("flag:flag_witch_shame_revealed")).toBeNull();
+    expect(validateKnowsCondition("sometimes")).not.toBeNull();
+    expect(validateKnowsCondition("phase ~ bank")).not.toBeNull();
+  });
+});
+
+describe("knows: knowledge linting", () => {
+  it("errors on bad condition grammar and warns on a missing evidence note", () => {
+    const findings = buildBridgeFindings(
+      [
+        note({
+          runtimeCharacterId: "npc_weber_dispatcher",
+          displayName: "Lotte Weber",
+          knows: [
+            { fact: "ev_known", condition: "always" },
+            { fact: "ev_missing", condition: "always" },
+            { fact: "fact_social", condition: "phase >= bank" },
+            { fact: "fact_bad", condition: "sometimes" },
+          ],
+        }),
+      ],
+      registries,
+      new Set(["ev_known"]),
+    );
+    expect(
+      findings.some(
+        (f) =>
+          f.category === "knowledge-unknown-evidence" &&
+          f.detail.includes("ev_missing"),
+      ),
+    ).toBe(true);
+    expect(
+      findings.some(
+        (f) =>
+          f.category === "knowledge-bad-condition" &&
+          f.detail.includes("fact_bad"),
+      ),
+    ).toBe(true);
+    // A resolvable ev_* fact and a valid fact_* condition produce no findings.
+    expect(findings.some((f) => f.detail.includes("'ev_known'"))).toBe(false);
+    expect(
+      findings.some(
+        (f) =>
+          f.category === "knowledge-bad-condition" &&
+          f.detail.includes("fact_social"),
+      ),
+    ).toBe(false);
   });
 });

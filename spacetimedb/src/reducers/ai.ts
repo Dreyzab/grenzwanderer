@@ -590,6 +590,20 @@ export const complete_ai_request = spacetimedb.reducer(
           "responseJson must contain a valid DmTurnProposal",
         );
       }
+      // ponytail: append-only analytics log. autoInc PK ⇒ replays never collide,
+      // we never delete ⇒ co-creation history survives restarts.
+      const dmPayload = parseGenerateDmTurnPayload(request.payloadJson);
+      if (dmPayload) {
+        ctx.db.dmTurn.insert({
+          id: 0n,
+          playerId: request.playerId,
+          scenarioId: dmPayload.scenarioId,
+          nodeId: dmPayload.nodeId,
+          actionText: dmPayload.actionText,
+          narrationJson: normalizedResponseJson,
+          createdAt: ctx.timestamp,
+        });
+      }
     } else if (request.kind === AI_ANALYZE_FEEDBACK_KIND) {
       const report = parseFeedbackAnalysisReportV1(normalizedResponseJson);
       if (!report) {

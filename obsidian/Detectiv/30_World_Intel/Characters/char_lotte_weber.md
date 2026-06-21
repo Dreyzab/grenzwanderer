@@ -4,6 +4,9 @@ tags: [character, major]
 tier: major
 runtime_character_id: npc_weber_dispatcher
 npc_identity: npc_weber_dispatcher
+knows:
+  ev_eleonora_uncanny_nature: flag:flag_witch_lotte_noticed_strangeness
+  ev_sasha_narodnaya_volya: never
 faction: city_chancellery
 aliases: ["Lotte Weber", "Red-haired Girl"]
 ---
@@ -53,6 +56,16 @@ aliases: ["Lotte Weber", "Red-haired Girl"]
 | **Case layer** | Switchboard patterns reveal who communicates about the case. Her existing interlude is a case-critical warning. |
 | **Social layer** | Bridge between Eleonora's world (`house_of_pledges`) and the street (`city_network`). Belongs to neither fully. |
 | **Journalist layer** | Hidden threat and opportunity. Discovery opens publication channel OR leverage point OR exposure risk. |
+
+## Knowledge
+
+`knows:` frontmatter (ADR_008) — what Lotte holds, distinct from the player's Evidence:
+
+- `ev_eleonora_uncanny_nature` _(flag-gated)_ — only after the dining-car
+  blood-sense moment (`flag_witch_lotte_noticed_strangeness`); a margin note, not
+  proof of the curse. Dynamic knowledge.
+- `ev_sasha_narodnaya_volya` _(never)_ — the household's deepest secret stays
+  Bureau/household-internal; Lotte does not learn it.
 
 ## Scenes & Quests
 

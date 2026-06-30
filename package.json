@@ -127,7 +127,7 @@
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.575.0",
     "mapbox-gl": "^3.18.1",
-    "react": "^18.3.1",
+    "react": "^19.2.7",
     "react-dom": "^18.3.1",
     "react-map-gl": "^8.1.0",
     "spacetimedb": "^2.0.1"
@@ -140,7 +140,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/mapbox-gl": "^3.4.1",
     "@types/node": "^25.6.2",
-    "@types/react": "^18.3.18",
+    "@types/react": "^19.2.17",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "4.1.5",

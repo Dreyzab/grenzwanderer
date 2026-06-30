@@ -2380,13 +2380,22 @@ describe("VnScreen critical behavior", () => {
     expect(screen.getAllByText("Leader").length).toBeGreaterThan(0);
     expect(screen.getByText("Guide")).toBeInTheDocument();
     expect(screen.getAllByText("Cynic").length).toBeGreaterThan(0);
-    // The primary hint (first one — Leader supports) is shown as a single avatar with data-stance.
-    // Secondary hints (Cynic opposes here) no longer render — stance text lives in the popover.
+    // The primary hint remains the avatar, while the authored motive debate is visible below the choice.
     expect(
       document.querySelectorAll(
         '[data-testid="choice-primary-voice"][data-stance="supports"]',
       ).length,
     ).toBeGreaterThan(0);
+    expect(
+      document.querySelector(
+        '[data-testid="choice-inner-voice-stance"][data-stance="supports"][data-voice-id="inner_leader"]',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector(
+        '[data-testid="choice-inner-voice-stance"][data-stance="opposes"][data-voice-id="inner_cynic"]',
+      ),
+    ).toBeInTheDocument();
   });
 
   it("shows AI thinking state and completed copy on the skill-check resolve surface", async () => {

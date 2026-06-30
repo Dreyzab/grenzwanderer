@@ -1,0 +1,35 @@
+{
+  "assetId": "bureau_b2_cold_storage_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_2_t1_v1",
+  "floorId": "minus-2",
+  "roomId": "b2-cold-storage",
+  "roomNumber": 9,
+  "roomTitle": "Cold storage chamber",
+  "roomAccess": "restricted",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b2_cold_storage_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_08c1bd1c6ed23b81016a3ad9f91d7081919d488da8b642133f.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau cold storage chamber beneath Freiburg Hauptbahnhof, 1905.\nScene/backdrop: restricted cold storage for samples requiring stable temperature and separate accounting, tiled stone chamber, insulated dark oak and iron cabinets, glass sample jars behind locked doors, hanging frost-safe lamps, brass thermometer cases without readable numbers, ice box machinery appropriate to 1905, sealed crates, cool stone walls, no bodies or body parts.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, cabinets and crates around the sides, sprite-safe center and lower foreground, readable mid-ground depth, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: cold blue-grey underground chamber with sparse amber Bureau lamps, quiet preservation pressure, secret but not theatrical horror.\nColor palette: cool blue-grey stone, dark oak, blackened iron, aged brass, faint amber lamps, frosted glass, muted parchment tags without readable text.\nMaterials/textures: cold tile, iron cabinet doors, frosted glass jars, brass thermometer housings, wooden crates, wax seals, stone masonry.\nText: no readable text anywhere; tags, cabinet plates, and ledgers may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity, no modern refrigerators, no modern electronics, no readable labels or signage, no visible characters or silhouettes, no bodies, no body parts, no gore, no blood, no ritual circles, no fantasy portal, no magical glow, no neon, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, modern morgue, generic horror freezer, clutter that blocks sprite staging.",
+  "finalPromptSha256": "59c69c65fa87ce42aafab3880aaba9f20d7b24f6e4fd273d041d670aa1a1591d",
+  "assetSha256": "431c70e4b41d1e4ec6d97b898eb8d045907f8fcffa2a4e5603dedfea2802ea31",
+  "styleReferenceImages": [
+    "/images/bureau/bureau-floor-minus-2-labs.png",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_corridor_services_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_lab_a_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_reagents_t1.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 deep-level Bureau language",
+    "roomIdentity": "cold sample storage chamber"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92",
+  "mapRoomId": "b2-cold-storage"
+}

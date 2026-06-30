@@ -26,7 +26,7 @@ are **six** playable origins, not three.
 
 | Origin (`id`) | Character                   | Stat emphasis           | Flaw (the "biochemical vulnerability") | Manifesto match            |
 | ------------- | --------------------------- | ----------------------- | -------------------------------------- | -------------------------- |
-| `detective`   | Elias Thorne, 27            | intellect, perception   | Cynical Mistrust                       | "Детектив"                 |
+| `detective`   | Matthias Adler, 27          | intellect, perception   | Cynical Mistrust                       | "Детектив"                 |
 | `journalist`  | Arthur Vance, 32            | encyclopedia, deception | Gambling Addiction                     | (dopamine/maybe theme)     |
 | `aristocrat`  | Charlotte von Waldstein, 25 | social, deception       | Claustrophobia                         | partial "Элеонора" surface |
 | `veteran`     | Gustav Eisenhart, 40        | physical, perception    | **Alcoholism**                         | "Бывший Военный"           |

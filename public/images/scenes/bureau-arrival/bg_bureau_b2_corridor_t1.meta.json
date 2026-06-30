@@ -1,0 +1,35 @@
+{
+  "assetId": "bureau_b2_corridor_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_2_t1_v1",
+  "floorId": "minus-2",
+  "roomId": "b2-corridor",
+  "roomNumber": 2,
+  "roomTitle": "Corridor",
+  "roomAccess": "restricted",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b2_corridor_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_0a55b533c04e93b6016a3ad5b66404819bb7412bc9aa983ac2.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau restricted corridor beneath Freiburg Hauptbahnhof, 1905.\nScene/backdrop: central corridor of the deepest laboratory and containment level, stone floor and walls, heavy dark oak doors on both sides, brass control boxes, gas pipes, ventilation ducts, small security lamps, numbered plaques with abstract marks only, strict separation between laboratory zones, colder and more controlled than the archive floor.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, long one-point corridor depth, sprite-safe center and lower foreground, doors and pipes framing the sides, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: sparse warm bureaucratic lamplight against cold underground stone, deep-level pressure, disciplined restriction, secret but not theatrical horror.\nColor palette: cool grey-blue stone, dark oak, aged brass, muted amber lamps, soot-dark iron, restrained red wax seals.\nMaterials/textures: damp stone floor, aged brass pipes, dark oak doors, iron hinges, wax seals, old paper tags with abstract marks.\nText: no readable text anywhere; plaques and notices may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity, no modern objects, no readable labels or signage, no visible characters or silhouettes, no gore, no ritual circles, no fantasy portal, no magical glow, no neon, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, generic fantasy dungeon, clutter that blocks sprite staging.",
+  "finalPromptSha256": "3e6b380f103345895c550febd669a17b0398893da9185536b55e9c1e52ef8274",
+  "assetSha256": "efa8ab951c4fadf67071a01144e72ace334f0c9877161d77b555d42cec9c6f75",
+  "styleReferenceImages": [
+    "/images/bureau/bureau-floor-minus-2-labs.png",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_corridor_services_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_lab_a_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_reagents_t1.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 deep-level Bureau language",
+    "roomIdentity": "deep restricted central corridor"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92",
+  "mapRoomId": "b2-corridor"
+}

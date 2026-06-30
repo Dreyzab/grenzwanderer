@@ -1,0 +1,33 @@
+{
+  "assetId": "bureau_b1_service_closet_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_1_t1_v1",
+  "floorId": "minus-1",
+  "roomId": "b1-closet",
+  "roomNumber": 12,
+  "roomTitle": "Служебная кладовая",
+  "roomAccess": "staff",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b1_service_closet_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_02c894d3d22b8ed5016a3aab59ee34819180dc9d745531db74.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau service closet beneath Freiburg Hauptbahnhof, 1905.\nScene/backdrop: small but orderly underground service storage room, dark oak shelves, crates, packing paper, spare sample boxes, folded cloth, sealing wax, twine, spare lamps, broom and maintenance supplies, cool stone walls, modest hidden Bureau infrastructure. No dramatic reveal, just useful supplies.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot of a compact room, empty scene with no people, no human silhouettes, shelves and crates around the sides, sprite-safe center and lower foreground, readable mid-ground depth, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: small warm service lamp against cool underground stone, quiet utility, controlled pressure, secret but not theatrical horror.\nColor palette: dark oak, aged brass, warm amber lamp, cool grey stone, muted parchment, brown packing paper, restrained red wax.\nMaterials/textures: wooden shelves, crates, packing paper, twine, folded cloth, brass lamp, wax seals, stone masonry.\nText: no readable text anywhere; crate marks, tags, and papers may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity, no modern objects, no readable labels or signage, no visible characters or silhouettes, no gore, no ritual circles, no fantasy portal, no magical glow, no neon, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, treasure-room staging, generic fantasy storeroom, clutter that blocks sprite staging.",
+  "finalPromptSha256": "2392bf1111023468c70c3179b8874d0889fc144d044e6fc22f118455ffc03688",
+  "assetSha256": "6cbb2b4adeb9ce213d21dffa91d9064a8337a047ffc6211c8150be2b631d14af",
+  "styleReferenceImages": [
+    "/images/scenes/bureau-arrival/bg_bureau_archive_hall_t1_pilot.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png",
+    "/images/bureau/bureau-floor-minus-1-archive.png",
+    "/images/scenes/case01/bg_case01_archive_reading_room.webp"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 underground Bureau service storage language",
+    "roomIdentity": "small service closet and supplies room"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92"
+}

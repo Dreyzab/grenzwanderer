@@ -29,7 +29,7 @@ home.
 **Victoria Sterling**:
 "If I were you, Inspector, I would begin with the cloth."
 
-**Elias Thorne**:
+**Matthias Adler**:
 "That is precisely why I will not let it stand alone."
 
 **Logic**:
@@ -53,7 +53,7 @@ belongs to the people who moved both through Freiburg after dark.
 
 ## Preservation Notes
 
-Elias keeps the baseline identity: professional, observant, restrained, and
+Matthias keeps the baseline identity: professional, observant, restrained, and
 willing to pressure by procedure. Any sharper reaction here should be expressed
 as player-choice variation later, not as a replacement personality.
 

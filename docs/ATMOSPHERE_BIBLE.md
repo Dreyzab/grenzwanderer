@@ -1,10 +1,15 @@
 # Atmosphere Bible
 
-This document is the canonical writing compass for Freiburg 1905. It defines
+This document is the canonical writing compass for supported Freiburg 1900 / Case01. It defines
 the atmosphere as contrast, not as constant noir: a Chekhovian daily surface,
 a pressure-heavy political middle, a shadow layer underneath, and rare moments
 of earned darkness when the case, a choice, or a social wound makes the city
 show its teeth.
+
+Date policy: 1900 is the operational canon for supported Freiburg / Case01.
+Existing 1905 references in older notes, templates, or visual briefs are legacy
+drift until a separate ADR promotes them or defines a split display policy. See
+[`docs/adr/0001-freiburg-1900-operational-canon.md`](adr/0001-freiburg-1900-operational-canon.md).
 
 ## Core Formula
 

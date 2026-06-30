@@ -85,7 +85,7 @@ export function collectScenarioVisualUrls(
 }
 
 export interface CollectOriginDossierUrlsOptions {
-  /** If set, only this origin profile contributes URLs (e.g. `detective` / Elias). */
+  /** If set, only this origin profile contributes URLs (e.g. `detective` / Matthias). */
   onlyProfileId?: OriginProfileDefinition["id"];
 }
 

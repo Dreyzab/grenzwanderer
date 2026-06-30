@@ -4,7 +4,7 @@
   "caseId": "case01_mainline",
   "source": {
     "snapshotPath": "content/vn/pilot.snapshot.json",
-    "snapshotChecksum": "256a38e6fbfffdab6a4026b15c76cf886c5ffbd0ded1044c86e9b10cb3e4b8a3",
+    "snapshotChecksum": "c27d811addde0bfddfa276ffe829c1ba2abeab9a745e156148b67f198f722383",
     "snapshotSchemaVersion": 9,
     "caseIrSource": "vn_snapshot"
   },
@@ -2811,7 +2811,7 @@
         "title": "Секретный отдел Бюро",
         "terminal": false,
         "choiceCount": 1,
-        "onEnterEffectCount": 0,
+        "onEnterEffectCount": 1,
         "passiveCheckCount": 0
       },
       {

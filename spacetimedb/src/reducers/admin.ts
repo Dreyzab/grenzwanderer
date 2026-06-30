@@ -113,14 +113,14 @@ export const seed_player_as_elias_thorne = spacetimedb.reducer(
     if (!profile) {
       ctx.db.playerProfile.insert({
         playerId: targetIdentity,
-        nickname: "Elias Thorne",
+        nickname: "Matthias Adler",
         createdAt: ctx.timestamp,
         updatedAt: ctx.timestamp,
       });
     } else {
       ctx.db.playerProfile.playerId.update({
         ...profile,
-        nickname: "Elias Thorne",
+        nickname: "Matthias Adler",
         updatedAt: ctx.timestamp,
       });
     }

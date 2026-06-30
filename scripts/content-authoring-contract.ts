@@ -10,7 +10,9 @@ export interface CoverageRule {
 
 export interface Case01CanonIdentityRule {
   canonical: string;
+  canonicalId?: string;
   aliases: string[];
+  legacyIds?: string[];
   severity: "error" | "warning";
   note: string;
 }
@@ -140,25 +142,44 @@ export const case01CoverageRule: Case01CoverageRule = {
   ],
   identityRules: [
     {
-      canonical: "Elias Thorne",
-      aliases: ["Arthur Vance"],
+      canonical: "Matthias Adler",
+      canonicalId: "inspector",
+      aliases: ["Detective Arthur Vance", "Inspector Arthur Vance"],
       severity: "error",
-      note: "Elias Thorne is the runtime player identity; Arthur Vance is Detectiv/reference only.",
+      note: "Matthias Adler is the detective-origin identity. Arthur Vance is the separate journalist-origin protagonist, not a detective alias.",
+    },
+    {
+      canonical: "Arthur Vance",
+      canonicalId: "origin_journalist",
+      aliases: [],
+      severity: "warning",
+      note: "Arthur Vance is valid only as the journalist-origin protagonist; do not use him as a Matthias/inspector replacement.",
+    },
+    {
+      canonical: "Lotte Weber",
+      canonicalId: "npc_weber_dispatcher",
+      aliases: ["Lotte Fischer"],
+      legacyIds: ["operator"],
+      severity: "error",
+      note: "Supported Case01/Freiburg social content should use Lotte Weber / npc_weber_dispatcher. The generic operator key and Lotte Fischer are legacy reference metadata.",
     },
     {
       canonical: "Fritz Muller",
+      canonicalId: "gendarm",
       aliases: ["Fritz Mueller", "Fritz Müller"],
       severity: "warning",
       note: "Supported runtime content should use Fritz Muller; locale/design aliases are reference-only.",
     },
     {
       canonical: "Victoria Sterling",
+      canonicalId: "victoria_sterling",
       aliases: ["Clara von Altenburg", "Clara Altenburg"],
       severity: "warning",
       note: "Clara is a legacy planning shard; supported Case01 scientific companion text should use Victoria Sterling / victoria_sterling. The generic assistant role is compatibility-only.",
     },
     {
       canonical: "Baroness Elise von Altenburg",
+      canonicalId: "npc_baroness_elise",
       aliases: [
         "Baroness Klara von Altenburg",
         "Баронесса Клара",
@@ -175,6 +196,7 @@ export const case01CoverageRule: Case01CoverageRule = {
     },
     {
       canonical: "Heinrich Galdermann",
+      canonicalId: "npc_heinrich_galdermann",
       aliases: ["Heinrich Haldermann", "Galderman"],
       severity: "warning",
       note: "Use Heinrich Galdermann for the Case01 bank manager.",

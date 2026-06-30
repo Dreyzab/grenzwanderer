@@ -1,0 +1,34 @@
+{
+  "assetId": "bureau_b1_corridor_services_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_1_t1_v1",
+  "floorId": "minus-1",
+  "roomId": "b1-corridor",
+  "roomNumber": 11,
+  "roomTitle": "Коридор и службы",
+  "roomAccess": "staff",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b1_corridor_services_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_00d237e73c2e83cd016a3aa22f33f48191ac4951a20bf1a4a8.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau archive hall beneath Freiburg Hauptbahnhof, 1905.\nScene/backdrop: subterranean operational archive corridor and hall, dark oak shelves, case folders, wax seals, brass pneumatic tubes, old index cards, dried lavender bundles, oil lamps, stone walls, narrow institutional order, hidden anti-paranormal agency infrastructure.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, more readable and simplified for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, sprite-safe center and lower foreground, readable mid-ground depth, enough open staging space for character sprites, no foreground clutter blocking the center.\nLighting/mood: warm bureaucratic lamplight against cool underground stone, controlled pressure, secret but not theatrical horror, disciplined institutional mystery.\nColor palette: dark oak, aged brass, warm amber lamps, cool grey stone, muted parchment, restrained deep red wax seals.\nMaterials/textures: polished worn wood, brass tubes and fittings, leather-bound files, parchment folders, wax seals, stone masonry, old paper dust, dried lavender.\nText: no readable text anywhere; documents may have abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity, no modern objects, no readable labels or signage, no visible characters or silhouettes, no gore, no ritual circles, no fantasy portal, no neon, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, generic fantasy dungeon, clutter that blocks sprite staging.\n",
+  "finalPromptSha256": "4bdb9b55830db8369f027fad2ef6a6605a930e2014ba3d11933af25e0f474da2",
+  "assetSha256": "a7f75523ad99fc52dec285734a9136b6aad5b273059123b3f760466804f26167",
+  "styleReferenceImages": [
+    "/images/scenes/bureau-arrival/bg_bureau_archive_hall_t1_pilot.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png",
+    "/images/bureau/bureau-floor-minus-1-archive.png",
+    "/images/scenes/case01/bg_case01_archive_reading_room.webp"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 underground Bureau archive corridor language",
+    "roomIdentity": "central corridor and services connector"
+  },
+  "provenance": "promoted copy from bureau_archive_hall_t1_pilot; original provenance built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92",
+  "promotedFromAssetId": "bureau_archive_hall_t1_pilot"
+}

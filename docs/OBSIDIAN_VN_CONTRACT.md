@@ -45,7 +45,7 @@ requirements.
 - `tmp/vn-obsidian-migration-report.json` records ownership, locale, and dual-run
   diagnostics for Obsidian runtime scenarios.
 - `obsidian/StoryDetective/40_GameViewer/Case01/CASE01_CANON_LEDGER.md`
-  records the writer-facing Case01 scene ledger, bridge status, and Elias
-  Thorne preservation policy.
+  records the writer-facing Case01 scene ledger, bridge status, and Matthias
+  Adler identity policy.
 - Atmosphere tags and the Grill Gate from `ATMOSPHERE_BIBLE.md` are
   writer-facing review vocabulary, not extractor-enforced runtime fields.

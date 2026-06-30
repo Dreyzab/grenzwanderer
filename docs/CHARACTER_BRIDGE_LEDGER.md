@@ -9,7 +9,7 @@
 - Char notes scanned: 81
 - With runtime_character_id: 74
 - With knows: matrix: 3
-- Findings: 0 error, 2 warn, 46 info
+- Findings: 0 error, 2 warn, 47 info
 
 ## Knowledge (knows:) (3)
 
@@ -100,3 +100,9 @@
 | info     | obsidian/Detectiv/30_World_Intel/Characters/char_tailor_master.md       | runtime_character_id 'tailor_master' is unresolved but the note is marked design_only (intentional background/archetype, no runtime contact).       |
 | info     | obsidian/Detectiv/30_World_Intel/Characters/char_unknown.md             | runtime_character_id 'unknown' is unresolved but the note is marked design_only (intentional background/archetype, no runtime contact).             |
 | info     | obsidian/Detectiv/30_World_Intel/Characters/char_worker.md              | runtime_character_id 'labor_witness' is unresolved but the note is marked design_only (intentional background/archetype, no runtime contact).       |
+
+## Major runtime NPC without a dossier (1)
+
+| Severity | Subject          | Detail                                                                                                        |
+| -------- | ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| info     | npc_hedwig_weber | Major runtime NPC npc*hedwig_weber ('Hedwig Weber') has no char*\*.md dossier bound via runtime_character_id. |

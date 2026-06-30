@@ -1107,7 +1107,7 @@ const questCatalog: QuestCatalogEntry[] = [
     stages: [
       {
         stage: 1,
-        title: "Recover Elias' Watch",
+        title: "Recover Matthias' Watch",
         objectiveHint:
           "Trace the newsboy through the HBF police post and the old-clothes dealers near the city gates.",
         objectivePointIds: ["loc_hbf", "loc_martinstor"],

@@ -1,0 +1,33 @@
+{
+  "assetId": "bureau_b1_decon_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_1_t1_v1",
+  "floorId": "minus-1",
+  "roomId": "b1-decon",
+  "roomNumber": 8,
+  "roomTitle": "ÃƒÂÃ¢â‚¬ÂÃƒÂÃ‚ÂµÃƒÂÃ‚Â·ÃƒÂÃ‚Â°ÃƒÂÃ‚ÂºÃƒâ€˜Ã¢â‚¬Å¡ÃƒÂÃ‚Â¸ÃƒÂÃ‚Â²ÃƒÂÃ‚Â°Ãƒâ€˜Ã¢â‚¬Â ÃƒÂÃ‚Â¸Ãƒâ€˜Ã‚Â ÃƒÂÃ‚Â¸ ÃƒÂÃ‚Â¾Ãƒâ€˜Ã¢â‚¬Â¡ÃƒÂÃ‚Â¸Ãƒâ€˜Ã‚ÂÃƒâ€˜Ã¢â‚¬Å¡ÃƒÂÃ‚ÂºÃƒÂÃ‚Â°",
+  "roomAccess": "restricted",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b1_decon_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_0e95aa522e7aae60016a3aaa570c5081918bae9a5f5d019a26.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau deactivation and cleaning room beneath Freiburg Hauptbahnhof, 1905.\nScene/backdrop: sanitary deactivation and cleaning airlock for contaminated evidence before archive or laboratory handling, stone wash basins, brass taps and shower pipes, drain channels, hooks for protective aprons, clean folded towels, sealed sample transfer boxes, cool stone walls, hidden anti-paranormal agency infrastructure. Caution is institutional and clean, not grisly.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, basins and hooks along the sides, sprite-safe center and lower foreground, readable mid-ground depth, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: warm bureaucratic lamplight against cool damp stone, controlled pressure, sterile discipline, secret but not theatrical horror.\nColor palette: cool grey stone, dark oak storage, aged brass taps, warm amber lamps, off-white towels, muted parchment tags without readable text.\nMaterials/textures: wet stone floor, brass plumbing, ceramic basins, linen towels, wax-sealed transfer boxes, dark oak shelves, stone masonry.\nText: no readable text anywhere; tags, notices, and cabinet plates may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity, no modern objects, no readable labels or signage, no visible characters or silhouettes, no gore, no blood, no body traces, no ritual circles, no fantasy portal, no magical glow, no neon, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, modern hospital room, generic horror dungeon, clutter that blocks sprite staging.",
+  "finalPromptSha256": "30fe907a5f175302d1d297654a890ee06ce04311c5cbbda5475dab43e0b83df6",
+  "assetSha256": "c31b519c0e7f903e3ee4848110bd5f27599074c2ff66f7c81546bdc450e6f6df",
+  "styleReferenceImages": [
+    "/images/scenes/bureau-arrival/bg_bureau_archive_hall_t1_pilot.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png",
+    "/images/bureau/bureau-floor-minus-1-archive.png",
+    "/images/scenes/case01/bg_case01_archive_reading_room.webp"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 underground Bureau cleaning room language",
+    "roomIdentity": "deactivation and cleaning airlock"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92"
+}

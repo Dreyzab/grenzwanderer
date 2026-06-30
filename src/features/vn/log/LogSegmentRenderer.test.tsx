@@ -180,7 +180,7 @@ describe("LogSegmentRenderer", () => {
     render(
       <LogSegmentRenderer
         playerProfile={{
-          name: "Elias Thorne",
+          name: "Matthias Adler",
           avatarUrl:
             "/images/characters/detective_portrait/detective_portrait.png",
         }}
@@ -193,8 +193,8 @@ describe("LogSegmentRenderer", () => {
       />,
     );
 
-    expect(screen.getByLabelText("Elias Thorne")).toBeInTheDocument();
-    expect(screen.getByText("ELIAS THORNE")).toBeInTheDocument();
+    expect(screen.getByLabelText("Matthias Adler")).toBeInTheDocument();
+    expect(screen.getByText("MATTHIAS ADLER")).toBeInTheDocument();
     expect(screen.getByTestId("vn-speaker-avatar-image")).toHaveAttribute(
       "src",
       "/images/characters/detective_portrait/detective_portrait.png",

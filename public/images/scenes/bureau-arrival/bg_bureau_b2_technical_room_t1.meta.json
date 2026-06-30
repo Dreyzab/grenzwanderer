@@ -1,0 +1,35 @@
+{
+  "assetId": "bureau_b2_technical_room_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_2_t1_v1",
+  "floorId": "minus-2",
+  "roomId": "b2-technical",
+  "roomNumber": 11,
+  "roomTitle": "Technical room",
+  "roomAccess": "staff",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b2_technical_room_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_08c1bd1c6ed23b81016a3ada9b4770819194d4f1604d84e95a.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau technical room beneath Freiburg Hauptbahnhof, 1905.\nScene/backdrop: deep-level technical room for shafts, pipes, ventilation, pumps, and maintenance, stone service chamber with brass pipe manifolds, iron valves, pressure tanks, ventilation ducts, maintenance workbench, tool racks, sealed access panels, cool damp stone walls, practical Bureau infrastructure, no modern machinery.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, pipes and machines framing the sides, sprite-safe center and lower foreground, readable mid-ground depth, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: cold service-room atmosphere with sparse amber maintenance lamps, mechanical pressure, secret but not theatrical horror.\nColor palette: cool grey-blue stone, aged brass, blackened iron, dark oak, warm amber lamps, oil-dark metal.\nMaterials/textures: brass pipes, iron valves, riveted tanks, worn wood workbench, stone masonry, oil stains, wax-sealed access tags.\nText: no readable text anywhere; tags, gauges, and plates may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity, no modern electronics, no fluorescent lights, no readable labels or signage, no visible characters or silhouettes, no gore, no ritual circles, no fantasy portal, no magical glow, no neon, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, modern boiler room, sci-fi machinery, clutter that blocks sprite staging.",
+  "finalPromptSha256": "18ded37d4c25b3fe96f35cb059e0568cff13b0ba53c8b0e86c88fe4d4458d23c",
+  "assetSha256": "70e4c3b668dfee5cafba5481c7a628ec8f1c13c428d34557dbfb15a774e48a36",
+  "styleReferenceImages": [
+    "/images/bureau/bureau-floor-minus-2-labs.png",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_corridor_services_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_lab_a_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_reagents_t1.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 deep-level Bureau language",
+    "roomIdentity": "deep-level ventilation and maintenance room"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92",
+  "mapRoomId": "b2-technical"
+}

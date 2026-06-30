@@ -32,13 +32,13 @@ const main = async (): Promise<void> => {
 
   try {
     const playerIdentity = Identity.fromString(playerIdentityHex);
-    console.log(`Seeding Elias Thorne profile for ${playerIdentityHex}...`);
+    console.log(`Seeding Matthias Adler profile for ${playerIdentityHex}...`);
 
     await conn.reducers.seedPlayerAsEliasThorne({
       targetIdentity: playerIdentity,
     });
 
-    console.log("Successfully seeded Elias Thorne profile.");
+    console.log("Successfully seeded Matthias Adler profile.");
   } catch (error) {
     console.error("Seeding failed:", error);
     process.exitCode = 1;

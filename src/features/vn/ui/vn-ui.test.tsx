@@ -1,6 +1,12 @@
 import { useRef } from "react";
 import { CASE01_CANON_NODES } from "../../../../scripts/data/case01_canon_runtime";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { ChoiceInnerVoiceHintDisplay } from "../vnScreenTypes";
 import type { VnChoice } from "../types";
@@ -282,7 +288,7 @@ describe("VnChoiceButton", () => {
     expect(button).toHaveClass("pointer-events-none");
   });
 
-  it("renders larger inline inner voice badges for choice hints", () => {
+  it("renders both sides of choice inner-voice debate", () => {
     const innerVoiceHints: ChoiceInnerVoiceHintDisplay[] = [
       {
         voiceId: "inner_leader",
@@ -322,10 +328,26 @@ describe("VnChoiceButton", () => {
     );
 
     expect(screen.getAllByLabelText("Leader").length).toBeGreaterThan(0);
-    // Compact pill: no 3-letter code, no inline stance text — only the portrait.
+    // Compact portrait remains, while the authored motive debate is visible below the choice.
     expect(screen.queryByText("LEA")).toBeNull();
     expect(screen.queryByText("CYN")).toBeNull();
-    expect(screen.queryByText("opposes")).toBeNull();
+    expect(screen.getByText("supports")).toBeInTheDocument();
+    expect(screen.getByText("opposes")).toBeInTheDocument();
+    expect(screen.getByText("Protect the courier.")).toBeInTheDocument();
+    expect(screen.getByText("Do not give leverage away.")).toBeInTheDocument();
+    expect(
+      document.querySelectorAll('[data-testid="choice-inner-voice-stance"]'),
+    ).toHaveLength(2);
+    expect(
+      document.querySelector(
+        '[data-testid="choice-inner-voice-stance"][data-stance="supports"][data-voice-id="inner_leader"]',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector(
+        '[data-testid="choice-inner-voice-stance"][data-stance="opposes"][data-voice-id="inner_cynic"]',
+      ),
+    ).toBeInTheDocument();
     const primary = document.querySelector(
       '[data-testid="choice-primary-voice"]',
     );
@@ -362,11 +384,14 @@ describe("VnChoiceButton", () => {
       />,
     );
 
-    expect(screen.queryByText("Do not give leverage away.")).toBeNull();
+    expect(screen.getByText("Do not give leverage away.")).toBeInTheDocument();
     const trigger = screen.getByRole("button", { name: "Cynic" });
     fireEvent.click(trigger);
-    expect(screen.getByText("Do not give leverage away.")).toBeInTheDocument();
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("dialog")).getByText(
+        "Do not give leverage away.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("renders skill-check voice badges with shared voice group assets", () => {
@@ -393,6 +418,75 @@ describe("VnChoiceButton", () => {
       document.querySelector('img[src="/images/ui/voices/groups/logic.png"]'),
     ).toBeInTheDocument();
     expect(screen.getByText("72%")).toBeInTheDocument();
+  });
+
+  it("renders motive debate hints on skill-check choices", () => {
+    const innerVoiceHints: ChoiceInnerVoiceHintDisplay[] = [
+      {
+        voiceId: "inner_leader",
+        label: "Leader",
+        text: "Keep the pressure formal.",
+        stance: "supports",
+        palette: {
+          accent: "#34d399",
+          accentSoft: "rgba(52, 211, 153, 0.16)",
+          glow: "rgba(52, 211, 153, 0.24)",
+          glowStrong: "rgba(110, 231, 183, 0.5)",
+          text: "#d1fae5",
+        },
+      },
+      {
+        voiceId: "inner_cynic",
+        label: "Cynic",
+        text: "He will hear weakness as invitation.",
+        stance: "opposes",
+        palette: {
+          accent: "#f87171",
+          accentSoft: "rgba(248, 113, 113, 0.16)",
+          glow: "rgba(248, 113, 113, 0.24)",
+          glowStrong: "rgba(252, 165, 165, 0.5)",
+          text: "#fee2e2",
+        },
+      },
+    ];
+
+    render(
+      <VnChoiceButton
+        choice={{
+          ...baseChoice,
+          skillCheck: {
+            id: "logic_check",
+            voiceId: "attr_logic",
+            difficulty: 8,
+          },
+        }}
+        chancePercent={72}
+        index={0}
+        innerVoiceHints={innerVoiceHints}
+        onClick={() => undefined}
+      />,
+    );
+
+    expect(
+      document.querySelector('img[src="/images/ui/voices/groups/logic.png"]'),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelectorAll('[data-testid="choice-inner-voice-stance"]'),
+    ).toHaveLength(2);
+    expect(
+      document.querySelector(
+        '[data-testid="choice-inner-voice-stance"][data-stance="supports"][data-voice-id="inner_leader"]',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector(
+        '[data-testid="choice-inner-voice-stance"][data-stance="opposes"][data-voice-id="inner_cynic"]',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Keep the pressure formal.")).toBeInTheDocument();
+    expect(
+      screen.getByText("He will hear weakness as invitation."),
+    ).toBeInTheDocument();
   });
 
   it("renders source badges for common, origin, and synergy choices", () => {

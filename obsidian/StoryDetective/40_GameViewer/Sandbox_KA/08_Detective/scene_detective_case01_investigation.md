@@ -14,14 +14,14 @@ tags:
 ## Context
 
 **Location**: Deep basement of Bankhaus J.A. Krebs.
-**Characters**: Elias Thorn (player), Victoria Sterling (assistant).
+**Characters**: Matthias Adler (player), Victoria Sterling (assistant).
 **Tone**: Clinical, uncovering a performative crime.
 
 ## Script
 
 The air in the vault is stagnant, smelling of burnt ozone and something sharp, like a chemistry lab after an accident. Victoria stands by the heavy steel doors, her gaze fixed not on the empty main shelves, but on a single row of private deposit boxes.
 
-"The money was gone long before they arrived, Elias," she says, her voice echoing in the cold stone chamber. "Galdermann is trying to hide a deficit behind a disaster."
+"The money was gone long before they arrived, Matthias," she says, her voice echoing in the cold stone chamber. "Galdermann is trying to hide a deficit behind a disaster."
 
 You step closer to box #412. It doesn't look like it was forced; it looks like it was *violated*. A jagged, black-rimmed hole has been melted clean through the lock throat. Dark metallic slag—thermite residue—has dripped onto the floor, cooling into brittle, obsidian-like tears.
 

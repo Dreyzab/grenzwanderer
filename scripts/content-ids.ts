@@ -55,6 +55,8 @@ export const CONTENT_IDS = {
     "npc_major_falk",
     "npc_archivist_otto",
     "npc_weber_dispatcher",
+    "npc_hedwig_weber",
+    "npc_dr_erasmus_lebrecht",
     "npc_emil_rapp",
     "npc_kaspar_blume",
     "npc_rudi_kempf",

@@ -2273,7 +2273,7 @@
       "id": "scene_case01_witch_coin_wake",
       "scenarioId": "case01_hbf_arrival",
       "title": "Упавшая монета",
-      "body": "**[Narrator]**:\nЛязг метала заставляет напрячься каждый мускул, а восприятие обостриться.\n\nЭлеонора открывает глаза. В дверях стоит Феликс — ему девятнадцать, но с этой короткой виной на лице он снова кажется восьмилетним. Он уже наклонился за серебряной монетой и замер, поняв, что разбудил вас.\n\n**[Феликс]**:\n— Простите, матушка. Я не хотел...\n\n**[Narrator]**:\nВ висках стучит — знакомо, требовательно. Чужая вина всегда отзывается в вас первой: для проклятой крови это не чувство, а пища. Феликс виноват и открыт, и тело уже отмеряет дозу — тихо, по-аптекарски, не спросив вас.\n\n**[inner_leader]**:\nИз-за упавшей монеты голоса не повышают — мелко. Хартманны ставят границу усмешкой: холодной ровно настолько, чтобы ее запомнили, и ни градусом ниже. Покажи ему черту, не гнев.\n\n**[inner_guide]**:\nПосмотри на его руку: он так и не поднял монету. Ждет приговора. Это Феликс уронил серебро — не тебя.",
+      "body": "**[Narrator]**:\nЛязг метала заставляет напрячься каждый мускул, а восприятие обостриться.\n\nЭлеонора открывает глаза. В дверях стоит Феликс — ему девятнадцать, но с этой короткой виной на лице он снова кажется восьмилетним. Он уже наклонился за серебряной монетой и замер, поняв, что разбудил вас.\n\n**[Феликс]**:\n— Простите, матушка. Я не хотел...\n\n**[Narrator]**:\nВ висках стучит. Чужая вина — быстрое лекарство; тело уже подсказывает дозировку.\n\n**[inner_leader]**:\nДом не повышает голоса из-за монеты. Дом ставит границу усмешкой — холодной ровно настолько, чтобы ее запомнили.\n\n**[inner_guide]**:\nПосмотри на его руку: он так и не поднял монету. Ждет приговора. Это Феликс уронил серебро — не тебя.",
       "choices": [
         {
           "id": "WITCH_COIN_REBUKE",
@@ -2395,7 +2395,7 @@
       "id": "scene_case01_witch_letter_afterthoughts",
       "scenarioId": "case01_hbf_arrival",
       "title": "После письма",
-      "body": "**[Narrator]**:\nПечать ломается тихо. Вы дочитываете до подписи, и купе делается теснее ровно на одно письмо.\n\nБюро ничего не требует. Оно осведомляется, рассчитывает и предоставляет вам свободу действий — так в хороших домах подают веревку: мотком, с поклоном.\n\nПрямому приказу можно подчиниться и остаться собой. С осторожной просьбой так не выходит: ее приходится делать своей.\n\n**[inner_manipulator]**:\nТеперь сочти, что он сказал на самом деле. «Ваш дар» — значит, ты нужна. «Не откладывайте» — значит, сроки горят у него. «Уликой» — значит, ему уже есть чем тебя держать, и он вежливо это показывает. Три фразы — три позиции в описи. Письмо стоит дороже, чем весит.\n\n**[inner_cynic]**:\nЗаметь: на бумаге ни одного приказа — выводы предлагается сделать самой. Удобно. Поводок, который надеваешь сама, поводком не считается.\n\n**[Narrator]**:\nПисьмо лежит на столике. Рядом — фляжка. У двери — пустое место, где полчаса назад стоял сын. А в трех шагах по коридору — вагон-ресторан: свет, фарфор, люди. У людей бывают новости.",
+      "body": "**[Narrator]**:\nПечать ломается тихо. Вы дочитываете до подписи, и купе делается теснее ровно на одно письмо.\n\nБюро ничего не требует. Оно осведомляется, рассчитывает и предоставляет вам свободу действий — так в хороших домах подают веревку: мотком, с поклоном.\n\nПрямому приказу можно подчиниться и остаться собой. С осторожной просьбой так не выходит: ее приходится делать своей.\n\n**[inner_manipulator]**:\nТеперь сочти, что он сказал на самом деле. «Ваш дар» — значит, ты нужна. «Не откладывайте» — значит, сроки горят у него. «Уликой» — значит, ему уже есть чем тебя держать, и он вежливо это показывает. Три фразы — три позиции в описи. Письмо стоит дороже, чем весит.\n\n**[inner_cynic]**:\nЗаметь, ни одного крючка на бумаге: крючок предлагается завязать самой. Удобно. Поводок, который надеваешь сама, поводком не считается.\n\n**[Narrator]**:\nПисьмо лежит на столике. Рядом — фляжка. У двери — пустое место, где полчаса назад стоял сын. А в трех шагах по коридору — вагон-ресторан: свет, фарфор, люди. У людей бывают новости. И пульс.",
       "choices": [
         {
           "id": "WITCH_LETTER_AFTERTHOUGHT_VEIL_FOCUS",
@@ -2516,7 +2516,7 @@
       "id": "scene_case01_witch_dining_car_buffet_first_look",
       "scenarioId": "case01_hbf_arrival",
       "title": "Буфетная стойка",
-      "body": "**[Narrator]**:\nВагон-ресторан — это маленький особняк на колесах: фарфор, серебро, лампы под абажурами и общественное мнение за каждым столиком. Здесь завтракают негромко и наблюдают внимательно. Порядок, который вы уважаете и умеете обращать себе на пользу.\n\n**[inner_exile]**:\nНе спеши садиться. Войди медленнее, чем хочется, — на два такта. Дай комнате время понять, кто вошел. Видишь: господин с газетой уже потерял строчку, которую читал. Комнату можно взять, не сказав ни слова. Приятно, правда?\n\n**[Narrator]**:\nУ буфетной стойки, между серебряным кофейником и строем бокалов, стоит рыжеволосая женщина в темно-зеленом костюме. Шляпка сдвинута на волосок смелее, чем требует приличие. Она спорит с официантом — судя по его лицу, о сахаре; судя по ее — выигрывает.\n\n**[inner_guide]**:\nСмотри внимательно: спорит о сахаре в полный голос, не проверяя, кто слушает. Так держатся те, кому нечего прятать, — а таких ты не вербуешь и не читаешь, таким завидуешь. Запомни ее: вы еще окажетесь за одним столом.",
+      "body": "**[Narrator]**:\nВагон-ресторан — это маленький особняк на колесах: фарфор, серебро, лампы под абажурами и общественное мнение за каждым столиком. Здесь завтракают негромко и наблюдают внимательно. Порядок, который вы уважаете и умеете обращать себе на пользу.\n\n**[inner_exile]**:\nНе спеши садиться. Войди медленнее, чем хочется, — на два такта. Дай комнате время понять, кто вошел. Видишь: господин с газетой уже потерял строчку, которую читал. Комнату можно взять, не сказав ни слова. Приятно, правда?\n\n**[Narrator]**:\nУ буфетной стойки, между серебряным кофейником и строем бокалов, стоит рыжеволосая женщина в темно-зеленом костюме. Шляпка сдвинута на волосок смелее, чем требует приличие. Она спорит с официантом — судя по его лицу, о сахаре; судя по ее — выигрывает.\n\n**[inner_guide]**:\nЧетвертый час в поезде, дождь, чужой город впереди — а она спорит о сахаре так, будто день уже удался. Живое. Просто живое, без второго дна. Когда ты в последний раз стояла к этому так близко?",
       "choices": [
         {
           "id": "WITCH_LOTTE_COUNTER_OBSERVE",
@@ -2749,7 +2749,7 @@
       "id": "scene_case01_train_assistant_intro_witch",
       "scenarioId": "case01_hbf_arrival",
       "title": "Сын",
-      "body": "**[Narrator]**:\nФеликс остается у двери. Монета уже в жилетном кармане, но он не уходит: извинение было только передней, и теперь он ищет дверь в кабинет.\n\n**[Феликс]**:\n— Матушка, через несколько минут остановка. Я выйду на платформу и просмотрю газеты, телеграф, доску объявлений у Rathaus. Если город уже заговорил о деле, лучше узнать это до Фрайбурга.\n\n**[Narrator]**:\nДевятнадцать лет, наследник Дома Хартманн — и он спрашивает разрешения выйти за газетами. Вы хорошо его выучили. Слово «хорошо» здесь можно произносить с любой интонацией.\n\n**[inner_cynic]**:\nЗаметь: он смотрит не на письмо и не на станцию — на тебя. В этой семье одна погода, и все сверяются с нею.\n\n**[Narrator]**:\nВоротник его пальто смят с дороги. На полпальца, не больше. Достаточно.\n\n**[Элеонора]**:\n— Подойдите, Феликс. Развернитесь.",
+      "body": "**[Narrator]**:\nФеликс остается у двери. Монета уже в жилетном кармане, но он не уходит: извинение было только передней, и теперь он ищет дверь в кабинет.\n\n**[Феликс]**:\n— Матушка, через несколько минут остановка. Я выйду на платформу — газеты, телеграф, объявления Rathaus. Если город уже заговорил о деле, лучше узнать это до Фрайбурга.\n\n**[Narrator]**:\nДевятнадцать лет, наследник Дома Хартманн — и он спрашивает разрешения выйти за газетами. Вы хорошо его выучили. Слово «хорошо» здесь можно произносить с любой интонацией.\n\n**[inner_cynic]**:\nЗаметь: он смотрит не на письмо и не на станцию — на тебя. В этой семье одна погода, и все сверяются с нею.\n\n**[Narrator]**:\nВоротник его пальто смят с дороги. На полпальца, не больше. Достаточно.\n\n**[Элеонора]**:\n— Подойдите, Феликс. Развернитесь.",
       "choices": [
         {
           "id": "AUTO_CONTINUE_WITCH_ASSISTANT_TO_COLLAR",
@@ -2766,7 +2766,7 @@
       "id": "scene_case01_train_collar_choice_witch",
       "scenarioId": "case01_hbf_arrival",
       "title": "Воротник",
-      "body": "**[Narrator]**:\nОн подчиняется сразу, без вдоха между просьбой и шагом. Не из страха — из привычки, которую в вашем доме годами называли воспитанием и ни разу не проверяли на другое имя.\n\nПальцы находят воротник. Шерсть жесткая, влажная от утреннего тумана; под ней — тепло живой кожи и пульс, ровный, родной, считанный вами еще у колыбели. Тело отмечает его раньше, чем вы успеваете запретить, — и вы аккуратно кладете это знание туда, где лежит все, о чем не говорят.\n\n**[inner_guide]**:\nКогда-то он едва доставал тебе до локтя, и этот воротник ты застегивала, наклонившись. Он вырос. Рука — не заметила.\n\n**[Narrator]**:\nВаш ответ на упавшую монету уже становится правилом. Осталось решить, каким.",
+      "body": "**[Narrator]**:\nОн подчиняется сразу, без вдоха между просьбой и шагом. Не из страха — из привычки, которую в вашем доме годами называли воспитанием и ни разу не проверяли на другое имя.\n\nПальцы находят воротник. Шерсть жесткая, влажная от утреннего тумана; под ней — тепло живой кожи и пульс, ровный, родной, считанный вами еще у колыбели. Тело отмечает его раньше, чем вы успеваете запретить, — и вы аккуратно кладете это знание туда, где лежит все, о чем не говорят.\n\n**[inner_guide]**:\nКогда-то этот воротник был тебе по локоть. Он вырос. Рука — не заметила.\n\n**[Narrator]**:\nВаш ответ на упавшую монету уже становится правилом. Осталось решить, каким.",
       "choices": [
         {
           "id": "WITCH_COLLAR_COMMAND",
@@ -8099,12 +8099,24 @@
       "id": "scene_journalist_agency_wakeup",
       "scenarioId": "journalist_agency_wakeup",
       "title": "Immersion Bath",
-      "body": "Steam claws at your lungs as Lotte Weber orders you upright from the Agency immersion tub before the memory fog can settle.",
+      "body": "White matter peels away from your chest in layers.\n\nNot water. Not foam. Something between wet newspaper ink, lime, and a medicine that changed its mind at the last possible second.\n\nYou try to breathe.\n\nSteam, chalk, alcohol, and someone else's confidence enter your throat together.\n\nFor a second you are not lying in a tub. You have been printed into it: face, hands, ribs, all pressed in thick white pigment against a wooden form. Then your heart strikes once. Clumsy. Unprofessional. Like a typesetter dropping a letter on the floor.\n\nAnd you become a man again.\n\n**[attr_perception]**:\nWood under the skull. Iron hoop by the elbow. Wax in the air. Stone floor. Glass on the left. Spoon on the right. The spoon is clean. The glass is not.\n\n**[attr_logic]**:\nCellar. Bath. Candles. Missing boots. Not a hospital in the usual sense. Not an inn. Not a newspaper office, unless the profession has declined further than feared.\n\n**[inner_cynic]**:\nIf a room removes your boots before introducing itself, the room has already made one decision for you.\n\n**[Narrator]**:\nYou try to move your fingers.\n\nThe white matter holds your wrist for half a second longer, like a creditor who has agreed to release a debtor but wants the touch remembered.\n\n**[Dr. Erasmus Lebrecht]**:\nDo not swallow. Everyone swallows the first time. Then they complain about the taste and demand their memory back in full.\n\n**[Narrator]**:\nThe voice is cheerful. Almost festive.\n\nYou turn your head.\n\nA bald man stands beside the tub in a waistcoat and apron. Pink cheeks. Lively eyes. A steady hand. He smiles as though death is a patient's bad habit, not a medical outcome.\n\nThere is ink on his fingers. Wax on his cuff. A brown mark on the apron that you postpone classifying until tomorrow.\n\n**[inner_cynic]**:\nA man who smiles over a half-living body in a bath has either a licence or an alibi. In this city those may be the same document.\n\n**[inner_leader]**:\nSit up. Do not negotiate from below eye level. People turn lying men into paperwork.\n\n**[Narrator]**:\nYou try.\n\nYour chest answers with pain. Your throat answers with coughing. The tub answers with a wooden groan too loud for a place where everyone is pretending this is a normal arrangement.\n\nThe man lays a palm on your shoulder.\n\n**[Dr. Erasmus Lebrecht]**:\nNo, no. Pupils first, heroism second. Order exists for a reason. Though I admit beauty has suffered in your case.\n\n**[Narrator]**:\nHe brings a candle near your face.\n\nThe flame swells. Splits into two. Then eight.\n\n**[attr_perception]**:\nSeven candles.\n\nNo. Eight. One is reflected in the glass.\n\n**[attr_logic]**:\nReflections count only if the observer is desperate or the accountant is corrupt.\n\n**[Dr. Erasmus Lebrecht]**:\nName?\n\n**[Narrator]**:\nYou open your mouth.\n\nThe name is there. Nearby. Like a familiar street around a corner. But another thought arrives first.\n\n**[you]**:\nWhere is my notebook?\n\n**[Narrator]**:\nThe man pauses.\n\nThen his smile widens.\n\n**[Dr. Erasmus Lebrecht]**:\nExcellent. Selfhood preserved. Most ask for name, date, or mother. A journalist asks for property.\n\n**[attr_logic]**:\nJournalist. Therefore the notebook matters more than the name. Other people can supply a name. They cannot supply your notes.\n\n**[inner_cynic]**:\nIf the notes are gone, this is not treatment. It is editing.\n\n**[Narrator]**:\nYou try to remember yesterday.\n\nCafe. Smoke. Print. A woman across from you? Black gloves? A boy's blue cap? A telegram? Laughter around a wager you should not have accepted.\n\nThen — a wall.\n\nNot emptiness. Emptiness would be more honest.\n\nA wall: smooth, wet, seamless. As if someone did not tear out a page, but poured printers' glue across the door and instructed your memory to call it architecture.\n\n**[attr_logic]**:\nThe central fact is missing.\n\n**[inner_cynic]**:\nSomeone removed not the memory, but the route to it.\n\n**[Narrator]**:\nA thought comes without your accent.\n\n**[inner_shadow]**:\nWhat is missing is us.\n\n**[Narrator]**:\nYou blink.\n\nThe candles sharpen. Doctor Lebrecht stops smiling for precisely long enough to let you notice.\n\n**[Dr. Erasmus Lebrecht]**:\nAnd that, Mr. Vance, is already not your sentence.\n\n**[you]**:\nWho are you?\n\n**[Dr. Erasmus Lebrecht]**:\nDr. Erasmus Lebrecht. Physician, balneologist, and consultant in cases the city police prefer to describe as exhaustion.\n\n**[Narrator]**:\nHe takes a small leather book from the table. Not a crest. Not a cross. Not a medical emblem. A bird with open wings, an eye, and several marks that look halfway between Egyptian and accounting.\n\n**[inner_cynic]**:\nWhen a doctor keeps a book that resembles a grimoire, ask for a second doctor. When there is no second doctor, ask for a lawyer. When there is no lawyer, do not swallow.\n\n**[Dr. Erasmus Lebrecht]**:\nTell me, Mr. Vance. When you counted the candles — who finished the count?\n\n**[you]**:\nWhat?\n\n**[Dr. Erasmus Lebrecht]**:\nSimple question. You began counting. Who finished?\n\n**[attr_logic]**:\nHe is testing memory.\n\n**[inner_cynic]**:\nHe is testing how many people are sitting at your table.\n\n**[inner_leader]**:\nDo not answer quickly.\n\n**[inner_shadow]**:\nNot him.\n\n**[Narrator]**:\nThe thought comes not like a voice in the room, but worse: like a note your own mind has already written in the margin and now pretends was always there.\n\nLebrecht sees the pause.\n\nThe smile returns.\n\n**[Dr. Erasmus Lebrecht]**:\nGood. Very good. I rarely get patients who can be frightened correctly.\n\n**[you]**:\nYou call that good?\n\n**[Dr. Erasmus Lebrecht]**:\nI call it statistics when priests are present. In their absence, luck.\n\n**[Narrator]**:\nHe makes a note.\n\n**[Dr. Erasmus Lebrecht]**:\nThere is an entity in you.\n\n**[Narrator]**:\nSomewhere behind the wall, water moves through a pipe. Or someone whispers into a pipe while pretending to be water.\n\n**[you]**:\nAn entity.\n\n**[Dr. Erasmus Lebrecht]**:\nUnpleasant word, agreed. Demon is shorter, but invites clergy, and clergy invite forms. Spirit sounds like a parlour. Passenger is too railway-minded after what happened to you. For now: entity.\n\n**[inner_cynic]**:\nHe speaks of you as a room with an illegal tenant.\n\n**[attr_perception]**:\nYour fingers shake. Not all of them. Middle and ring finger on the left hand arrive half a second late.\n\n**[you]**:\nWhat happened to me?\n\n**[Dr. Erasmus Lebrecht]**:\nThe patient version, the police version, or the rare version reserved for people who deserve the truth and still cannot use it?\n\n**[you]**:\nThe newspaper version.\n\n**[Dr. Erasmus Lebrecht]**:\nLocal correspondent takes a restorative bath after overwork. Subheading: city services acted promptly. No photograph, out of mercy for subscribers.\n\n**[inner_cynic]**:\nHe is funny. Dangerous. Funny men make bills easier to sign.\n\n**[attr_logic]**:\nHe evades the answer, but he does not deny the event. Therefore the event exists and has an official version.\n\n**[you]**:\nAnd the unofficial one?\n\n**[Dr. Erasmus Lebrecht]**:\nThe unofficial one begins where you stopped remembering.\n\n**[Narrator]**:\nAbove you, from a door or perhaps a speaking tube, a woman's voice enters the cellar.\n\nCalm. Dry. A little tired.\n\n**[H. Weber]**:\nDoctor?\n\n**[Dr. Erasmus Lebrecht]**:\nAlive. Irritated. Asked about his notebook before his soul. By my standards, promising.\n\n**[H. Weber]**:\nOrientation?\n\n**[Dr. Erasmus Lebrecht]**:\nPartial. He did not give the name, but confirmed the profession by reflex. Found the wall. The passenger answered.\n\n**[H. Weber]**:\nPhrase it more carefully.\n\n**[Dr. Erasmus Lebrecht]**:\nOf course, Fräulein Weber. I always phrase carefully when people with the authority to close cellars are listening.\n\n**[inner_cynic]**:\nWeber. Remember that. Names spoken in cellars are rarely accidental.\n\n**[attr_logic]**:\nWoman. Weber. Authority over the procedure. Not a nurse. Not a clerk. Administrative control.\n\n**[you]**:\nWho is Weber?\n\n**[Dr. Erasmus Lebrecht]**:\nAt the moment? The reason you were not moved to the morgue and I was not moved to a disciplinary hearing. I recommend gratitude. From a distance.\n\n**[H. Weber]**:\nEnough, Doctor.\n\n**[Narrator]**:\nThe line clicks dead.\n\nYou try to sit again. This time Lebrecht only steadies your elbow. The world tilts. Candles smear. The white matter slides from your shoulder to your chest.\n\n**[inner_leader]**:\nBack straight. Breath first. Voice second.\n\n**[inner_shadow]**:\nShe is afraid you will remember the wrong thing.\n\n**[you]**:\nWhat am I supposed to remember?\n\n**[Narrator]**:\nLebrecht watches you closely now.\n\nLess cheerful doctor. More man who has heard this question from other patients and did not pity all of them.\n\n**[Dr. Erasmus Lebrecht]**:\nNo, Mr. Vance. The question now is what you are willing to forget in order to keep walking.",
       "choices": [
         {
           "id": "JOURNALIST_WAKEUP_SURFACE",
-          "text": "Grip the tub rim and force yourself upright.",
+          "text": "Grip the tub rim and demand your notes.",
           "nextNodeId": "scene_journalist_memory_gap",
+          "innerVoiceHints": [
+            {
+              "voiceId": "inner_cynic",
+              "stance": "supports",
+              "text": "If the notes are gone, this is not treatment. It is editing."
+            },
+            {
+              "voiceId": "inner_leader",
+              "stance": "opposes",
+              "text": "Sit up first. People turn lying men into paperwork."
+            }
+          ],
           "effects": [
             {
               "type": "track_event",
@@ -8112,37 +8124,68 @@
               "tags": {
                 "route": "journalist_wakeup"
               }
+            },
+            {
+              "type": "add_var",
+              "key": "var_addiction_pressure",
+              "value": 1
             }
           ]
         }
       ],
-      "characterId": "npc_weber_dispatcher"
+      "backgroundUrl": "/VN/start/journalist/Gemini_Generated_Image4.png",
+      "characterId": "npc_dr_erasmus_lebrecht"
     },
     {
       "id": "scene_journalist_memory_gap",
       "scenarioId": "journalist_agency_wakeup",
       "title": "Missing Notes",
-      "body": "Your satchel is empty, your notes are gone, and Weber refuses to explain until you prove you can still think on your feet.",
+      "body": "Your clothes lie on a side table, but not in the order a man leaves them willingly.\n\nShirt. Watch. Wet collar. A scratched coin. Somebody else's button. A pencil broken in two.\n\nNo notebook.\n\nThe world returns through small things. It always does.\n\nYesterday does not return.\n\nYou try professionally.\n\nPlace. Time. Witness. Money. Who won. Who lied first.\n\nWall.\n\nYou try differently.\n\nCafe smell. Cup noise. Newspaper columns. A woman's gloves. A boy's cap. The telegram.\n\nWall.\n\nYou try dirty.\n\nDebt. Wager. Name of the bookmaker. The number nobody said aloud. The laughter of a man who knew the outcome before you did.\n\nWall.\n\n**[attr_logic]**:\nThe gap is not random. It has a border.\n\n**[inner_cynic]**:\nBorders are made by people who do not want you to see the account.\n\n**[inner_shadow]**:\nOr by us.\n\n**[Narrator]**:\nThe speaking tube clicks again.\n\n**[H. Weber]**:\nDoctor. If he asks about records, give him nothing handwritten.\n\n**[Dr. Erasmus Lebrecht]**:\nI would not. My handwriting is terrible.\n\n**[H. Weber]**:\nHis handwritten material.\n\n**[Narrator]**:\nLebrecht stops smiling for a fraction of a second.\n\n**[Dr. Erasmus Lebrecht]**:\nUnderstood.\n\n**[Narrator]**:\nClick. Silence.\n\n**[attr_logic]**:\nYour notes exist.\n\n**[inner_cynic]**:\nThey have been read.\n\n**[you]**:\nMy notes are with her?\n\n**[Dr. Erasmus Lebrecht]**:\nWith whom?\n\n**[you]**:\nWeber.\n\n**[Dr. Erasmus Lebrecht]**:\nMr. Vance, in this city many things are with Weber. It is one reason the city is still standing.\n\n**[inner_cynic]**:\nAn answer without an answer. Therefore yes.",
       "choices": [
         {
           "id": "JOURNALIST_WAKEUP_ORIENT",
-          "text": "Ask Lotte where you are and why your notes are gone.",
-          "nextNodeId": "scene_journalist_recruitment_pitch"
+          "text": "Ask H. Weber what the Bureau wants from a journalist.",
+          "nextNodeId": "scene_journalist_recruitment_pitch",
+          "innerVoiceHints": [
+            {
+              "voiceId": "inner_cynic",
+              "stance": "supports",
+              "text": "She has your notes. That makes this a negotiation with a knife under the table."
+            },
+            {
+              "voiceId": "inner_guide",
+              "stance": "opposes",
+              "text": "She kept you alive. Do not mistake leverage for motive too early."
+            }
+          ]
         },
         {
           "id": "JOURNALIST_WAKEUP_INSPECT_VALVE",
           "text": "Ignore the answer for a second and inspect the steam valve.",
           "choiceType": "inquiry",
-          "nextNodeId": "scene_journalist_cellar_valve"
+          "nextNodeId": "scene_journalist_cellar_valve",
+          "innerVoiceHints": [
+            {
+              "voiceId": "inner_cynic",
+              "stance": "supports",
+              "text": "Objects lie less fluently than officials."
+            },
+            {
+              "voiceId": "inner_leader",
+              "stance": "opposes",
+              "text": "Do not crawl through plumbing while your captors still hold the room."
+            }
+          ]
         }
       ],
-      "characterId": "npc_weber_dispatcher"
+      "backgroundUrl": "/VN/start/journalist/Gemini_Generated_Image5.png",
+      "characterId": "npc_hedwig_weber"
     },
     {
       "id": "scene_journalist_cellar_valve",
       "scenarioId": "journalist_agency_wakeup",
       "title": "Steam Valve",
-      "body": "The valve hisses beside the tub, wet metal and rushed maintenance turning the cellar into a machine room that never quite cools.",
+      "body": "The valve hisses beside the tub.\n\nWet metal. Rushed maintenance. A cellar pretending to be a clinic while doing the work of a machine room.\n\nA little brass tag hangs under the wheel: IMMER. STAB. 7B. Someone has scratched a second mark below it by hand — H.W.\n\n**[attr_logic]**:\nThe procedure has a number. The hand mark has initials. Bureaucracy on top of improvisation.\n\n**[inner_cynic]**:\nWhen the official label and the private scratch disagree, trust the scratch.\n\n**[Dr. Erasmus Lebrecht]**:\nDo not turn it. Last patient who helped with the plumbing remembered three childhoods and only one of them was his.",
       "choices": [
         {
           "id": "JOURNALIST_VALVE_TO_LEDGER",
@@ -8160,17 +8203,18 @@
         },
         {
           "id": "JOURNALIST_VALVE_CONTINUE",
-          "text": "Leave the hardware alone and face Lotte properly.",
+          "text": "Leave the hardware alone and face H. Weber's offer.",
           "nextNodeId": "scene_journalist_recruitment_pitch"
         }
       ],
-      "characterId": "inspector"
+      "backgroundUrl": "/VN/start/journalist/Gemini_Generated_Image2.png",
+      "characterId": "npc_dr_erasmus_lebrecht"
     },
     {
       "id": "scene_journalist_cellar_ledger",
       "scenarioId": "journalist_agency_wakeup",
       "title": "Ledger Crate",
-      "body": "A swollen ledger lies beside the wall, its page edges marked by recent handling and the kind of haste that leaves trails.",
+      "body": "A swollen ledger lies beside the wall, its page edges marked by recent handling and cellar damp.\n\nNot the doctor's book. This one is municipal: columns, times, initials, the cowardly neatness of people who do ugly work with clean rulers.\n\nNear the bottom of the open page: VANCE, A. — immersion complete — notes withheld by H. Weber.\n\nThe line below is blotted out.\n\n**[attr_logic]**:\nThey logged the withholding, not the reason.\n\n**[inner_cynic]**:\nA bureaucracy that admits theft on paper has a better word for theft.\n\n**[inner_shadow]**:\nCollateral.",
       "choices": [
         {
           "id": "JOURNALIST_LEDGER_TO_UNIFORM",
@@ -8188,17 +8232,18 @@
         },
         {
           "id": "JOURNALIST_LEDGER_CONTINUE",
-          "text": "Keep the page numbers in mind and hear the offer out.",
+          "text": "Keep H. Weber's initials in mind and hear the offer out.",
           "nextNodeId": "scene_journalist_recruitment_pitch"
         }
       ],
-      "characterId": "inspector"
+      "backgroundUrl": "/VN/start/journalist/Gemini_Generated_Image3.png",
+      "characterId": "npc_hedwig_weber"
     },
     {
       "id": "scene_journalist_cellar_uniform",
       "scenarioId": "journalist_agency_wakeup",
       "title": "Drying Uniform",
-      "body": "A fresh inspector's coat hangs above the boiler, still damp from the bath heat and already waiting to become your cover.",
+      "body": "A fresh inspector's coat hangs above the boiler, still damp from the bath heat and already waiting to become your cover.\n\nThe cut is wrong for you. The shoulders are too disciplined. The pockets are too empty.\n\nInside one sleeve, a folded card: TEMPORARY FIELD COOPERATION — PRESS ASSET — AUTH. H.W.\n\n**[inner_leader]**:\nA uniform is not authority. But it changes the room before you enter it.\n\n**[inner_cynic]**:\nThey do not recruit you. They dress the liability until it looks useful.",
       "choices": [
         {
           "id": "JOURNALIST_UNIFORM_CONTINUE",
@@ -8215,13 +8260,14 @@
           ]
         }
       ],
-      "characterId": "inspector"
+      "backgroundUrl": "/VN/start/journalist/Gemini_Generated_Image2.png",
+      "characterId": "npc_hedwig_weber"
     },
     {
       "id": "scene_journalist_recruitment_pitch",
       "scenarioId": "journalist_agency_wakeup",
-      "title": "Weber's Pitch",
-      "body": "Weber drops the performance at last: the Agency needs a journalist who can wear a badge, follow the money, and survive the city long enough to report back.",
+      "title": "H. Weber's Pitch",
+      "body": "H. Weber does not enter at first.\n\nHer voice arrives through the speaking tube, measured and close enough to feel impolite.\n\n**[H. Weber]**:\nMr. Vance. Your notes are safe. That is not the same as available.\n\n**[you]**:\nYou read them.\n\n**[H. Weber]**:\nSome of them. The living have a privilege over paper. We used it.\n\n**[Dr. Erasmus Lebrecht]**:\nA humane abuse of authority. My favourite kind, administratively speaking.\n\n**[H. Weber]**:\nDoctor.\n\n**[Dr. Erasmus Lebrecht]**:\nMuting myself.\n\n**[Narrator]**:\nA pause. Somewhere above, a latch moves.\n\n**[H. Weber]**:\nThe Bureau needs a journalist who can wear a badge, follow money, and recognize a lie before it becomes an institution. You need your missing hours, your notebook, and an explanation for the thing that answered inside you.\n\n**[inner_cynic]**:\nShe has arranged the table so every chair is hers.\n\n**[attr_logic]**:\nOffer structure: information in exchange for service. Coercive, but not incoherent.\n\n**[inner_shadow]**:\nShe does not know what we remember.\n\n**[you]**:\nAnd if I refuse?\n\n**[H. Weber]**:\nThen you leave with clean clothes, a medical lie, and the certainty that someone else knows how your story begins.\n\n**[Narrator]**:\nYou look at the missing space where your notebook should be.\n\nThere are humiliations a man can survive. There are even humiliations he can sell.\n\nBut a story about you, written by someone else, is not survival.\n\nIt is ownership.",
       "terminal": true,
       "choices": [],
       "onEnter": [
@@ -8238,7 +8284,8 @@
           }
         }
       ],
-      "characterId": "npc_weber_dispatcher"
+      "backgroundUrl": "/VN/start/journalist/Gemini_Generated_Image5.png",
+      "characterId": "npc_hedwig_weber"
     },
     {
       "id": "scene_karlsruhe_event_arrival_platform",
@@ -16511,7 +16558,7 @@
       "stages": [
         {
           "stage": 1,
-          "title": "Recover Elias' Watch",
+          "title": "Recover Matthias' Watch",
           "objectiveHint": "Trace the newsboy through the HBF police post and the old-clothes dealers near the city gates.",
           "objectivePointIds": [
             "loc_hbf",
@@ -16668,6 +16715,30 @@
               "text": "Ink in her nail folds, a callus from a steel nib. The operator writes, and what she writes finds its way into print."
             }
           ]
+        }
+      },
+      {
+        "id": "npc_hedwig_weber",
+        "displayName": "Hedwig Weber",
+        "factionId": "the_returned",
+        "publicRole": "Bureau case handler",
+        "rosterTier": "major",
+        "homePointId": "loc_agency",
+        "workPointId": "loc_agency",
+        "bio": {
+          "summary": "Lotte Weber's older sister and a Bureau case handler who treats family names, police access, and medical secrets as instruments of containment."
+        }
+      },
+      {
+        "id": "npc_dr_erasmus_lebrecht",
+        "displayName": "Dr. Erasmus Lebrecht",
+        "factionId": "the_returned",
+        "publicRole": "Immersion physician",
+        "rosterTier": "functional",
+        "homePointId": "loc_agency",
+        "workPointId": "loc_agency",
+        "bio": {
+          "summary": "Cheerful immersion physician of the Bureau cellar baths. Speaks of spirits, patients, and paperwork with the same alarming bedside confidence."
         }
       },
       {
@@ -17534,5 +17605,5 @@
       }
     ]
   },
-  "checksum": "62b3250f0d8814b17a0c0ebb243662a4d8dba4f93bb4278e85d28b5d07e80d38"
+  "checksum": "c27d811addde0bfddfa276ffe829c1ba2abeab9a745e156148b67f198f722383"
 }

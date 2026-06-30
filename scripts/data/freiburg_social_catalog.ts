@@ -27,6 +27,32 @@ export const FREIBURG_SOCIAL_CATALOG: SocialCatalogSnapshot = {
       },
     },
     {
+      id: "npc_hedwig_weber",
+      displayName: "Hedwig Weber",
+      factionId: "the_returned",
+      publicRole: "Bureau case handler",
+      rosterTier: "major",
+      homePointId: "loc_agency",
+      workPointId: "loc_agency",
+      bio: {
+        summary:
+          "Lotte Weber's older sister and a Bureau case handler who treats family names, police access, and medical secrets as instruments of containment.",
+      },
+    },
+    {
+      id: "npc_dr_erasmus_lebrecht",
+      displayName: "Dr. Erasmus Lebrecht",
+      factionId: "the_returned",
+      publicRole: "Immersion physician",
+      rosterTier: "functional",
+      homePointId: "loc_agency",
+      workPointId: "loc_agency",
+      bio: {
+        summary:
+          "Cheerful immersion physician of the Bureau cellar baths. Speaks of spirits, patients, and paperwork with the same alarming bedside confidence.",
+      },
+    },
+    {
       id: "npc_anna_mahler",
       displayName: "Anna Mahler",
       factionId: "city_network",

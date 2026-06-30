@@ -38,5 +38,5 @@ choices:
 ## Dramatic Function
 
 Victoria enters as pressure, not a navigator. The gas gives the bank an official
-explanation for confusion, while Elias notices that rehearsed panic is still
+explanation for confusion, while Matthias notices that rehearsed panic is still
 rehearsed.

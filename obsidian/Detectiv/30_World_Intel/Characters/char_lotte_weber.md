@@ -15,7 +15,7 @@ aliases: ["Lotte Weber", "Red-haired Girl"]
 
 ## Dossier
 
-- **Role**: Chief telephone operator at the Freiburg exchange. Information nexus positioned at the intersection of every conversation that passes through wire.
+- **Role**: Chief telephone operator / shift lead at the Freiburg exchange. Information nexus positioned at the intersection of every conversation that passes through wire; hidden amateur journalist and city-note writer.
 - **Age / Appearance**: 19. Vivid red hair, sharp eyes, direct gaze. Dresses practically but with small marks of personal taste — a pin, a ribbon, a collar fold that is not regulation. Carries herself with the confidence of someone who chose her position rather than fell into it.
 - **Archetype**: The Switchboard Sphinx
 - **Origin**: Minor aristocrat — enough lineage to navigate salon and switchboard alike. She chose the switchboard.
@@ -40,6 +40,7 @@ aliases: ["Lotte Weber", "Red-haired Girl"]
 
 - [[30_World_Intel/Characters/char_mother_hartmann|char_mother_hartmann]] — private companion. The only person around whom Eleonora relaxes. Wine, wit, and carefully artful compliments in the dining car. Not subservient — a peer relationship built on mutual intelligence.
 - [[30_World_Intel/Characters/char_inspector|char_inspector]] — information channel. The Lotte interlude establishes her as a case-critical warning source. Trust determines depth of access.
+- [[30_World_Intel/Characters/char_assistant|char_assistant]] — old friend. Victoria's grief and forensic obsession are not gossip to Lotte; they are a personal danger signal she has watched sharpen over time.
 - [[30_World_Intel/Characters/char_partner|char_partner]] — Eleonora's son. Lotte treats him with humor and directness, not deference.
 - Factions: [[00_Map_Room/MOC_Factions|MOC_Factions]] — `city_chancellery` (public), `city_network` affinity (hidden)
 

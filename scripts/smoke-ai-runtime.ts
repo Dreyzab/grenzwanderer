@@ -39,7 +39,7 @@ const dialoguePayload: GenerateDialoguePayload = {
   difficulty: 10,
   voiceLevel: 2,
   locationName: "Freiburg Hauptbahnhof",
-  characterName: "Elias Thorne",
+  characterName: "Matthias Adler",
   narrativeText: "The police clerk waits for the detective to choose a tone.",
 };
 

@@ -25,7 +25,7 @@ const pointById = (id: string) => {
 };
 
 describe("Case 01 map progression spine", () => {
-  it("moves Elias to Hauptbahnhof and opens the first Freiburg layer on HBF departure", () => {
+  it("moves Matthias to Hauptbahnhof and opens the first Freiburg layer on HBF departure", () => {
     const departure = CASE01_CANON_NODES.find(
       (node) => node.id === "scene_case01_hbf_departure",
     );

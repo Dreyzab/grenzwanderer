@@ -1,0 +1,37 @@
+{
+  "assetId": "bureau_b2_armory_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_2_t1_v1",
+  "floorId": "minus-2",
+  "roomId": "b2-armory-visual",
+  "roomNumber": 13,
+  "roomTitle": "Оружейная",
+  "roomAccess": "restricted",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b2_armory_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_059a91ebce139f8d016a3adcf637f48191bcef536537a695df.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate, visual-only room not present on the floor map\nPrimary request: Secret Bureau mystical armory beneath Freiburg Hauptbahnhof, 1905, brighter and more fantasy-inflected while still historically grounded.\nScene/backdrop: restricted Bureau armory for 1905 field operations and occult containment, locked dark oak weapon racks, Mauser-era rifles, sabres, revolvers, ammunition cabinets, leather holsters, cleaning bench, brass inventory drawers, warded locked cases with luminous sigil-like seals, enchanted silver blades, crystal-inset field tools, protective brass cages, cool stone walls, iron door, sober institutional security with controlled mystical energy. No combat scene.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, weapon racks and glowing locked cases framing the sides, sprite-safe center and lower foreground, readable mid-ground depth, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: brighter mystical gold, teal, and violet containment glow mixed with warm Bureau lamps and cold underground stone, disciplined readiness, beautiful dangerous equipment under strict control, secret fantasy science.\nColor palette: cool grey-blue stone, dark oak, aged brass, oiled steel, blackened iron, leather brown, warm amber lamps, vivid teal, violet, gold, and ruby mystical highlights, muted parchment tags without readable text.\nMaterials/textures: worn wood racks, oiled steel weapons, brass locks and drawer pulls, leather holsters, ammunition boxes, wax seals, stone masonry, crystal insets, silver fittings, glass containment cases.\nText: no readable text anywhere; inventory tags, cabinet plates, and notices may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical furniture and architecture, no modern firearms, no automatic rifles, no tactical gear, no modern electronics, no readable labels or signage, no visible characters or silhouettes, no gore, no blood, no neon signage, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, modern gun shop, militarized propaganda display, messy fantasy weapon hoard, clutter that blocks sprite staging.",
+  "finalPromptSha256": "17df63562f6138d41b9fc52d14babc4007d8fbf6c48fd34a744660af9072c909",
+  "assetSha256": "7eb1793242fcb3dc2bf5afc51f36335028ef38a6a3f08d39bd339b7522bd0a15",
+  "styleReferenceImages": [
+    "/images/bureau/bureau-floor-minus-2-labs.png",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_corridor_services_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_lab_a_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_reagents_t1.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 deep-level Bureau language",
+    "roomIdentity": "visual-only mystical Bureau armory",
+    "creativePriority": "brighter, more mystical, more fantasy-inflected armory while retaining 1905 Bureau field-equipment roots"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92; visual-only candidate; revised per user request for brighter mystical fantasy direction",
+  "visualOnly": true,
+  "mapRoomId": null
+}

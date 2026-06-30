@@ -1,0 +1,36 @@
+{
+  "assetId": "bureau_b2_artifacts_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_2_t1_v1",
+  "floorId": "minus-2",
+  "roomId": "b2-artifacts",
+  "roomNumber": 7,
+  "roomTitle": "Artifact storage",
+  "roomAccess": "restricted",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b2_artifacts_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_059a91ebce139f8d016a3adc4cf5308191992baac5c01ed3ea.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau artifact chamber beneath Freiburg Hauptbahnhof, 1905, brighter and more mystical fantasy while still belonging to the Bureau.\nScene/backdrop: restricted underground artifact repository transformed into a vivid arcane containment hall, locked glass vitrines, sealed specimen plinths, brass containment frames, dark oak cabinets, wax-sealed access ledger with no readable writing, numbered tags as abstract marks only, relic cases holding strange luminous artifacts, crystalline prisms, sealed obsidian boxes, silver instruments, protective brass cages, cool stone walls. More mystical and fantastical than the archive floor, but still organized by a secret 1905 Bureau.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, glowing vitrines and cabinets framing the sides, sprite-safe center and lower foreground, readable mid-ground depth, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: bright mystical colored glow from contained relics mixed with warm Bureau lamps and cold underground stone, wonder under strict control, dangerous but beautiful, secret fantasy science.\nColor palette: cool grey-blue stone, dark oak, aged brass, smoky glass, warm amber lamps, vivid teal, violet, gold, and ruby mystical highlights, red wax seals, blackened iron.\nMaterials/textures: thick glass vitrines, brass locks, dark oak cabinets, velvet-lined trays, parchment ledger, wax seals, stone masonry, iron shutters, crystal, silver, obsidian.\nText: no readable text anywhere; ledger pages, tags, plaques, and labels may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity in furniture and architecture, no modern objects, no readable labels or signage, no visible characters or silhouettes, no gore, no neon signage, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, museum gift shop, messy treasure pile, clutter that blocks sprite staging.",
+  "finalPromptSha256": "5d9fa2f783067850a18da92a68a8fde2fc19f5bf7241064960553f03b278ecd9",
+  "assetSha256": "ce429a6d30921ab739de2d701d8a95f5ae21fbe9a7ad841cd21470aa8e6b7a07",
+  "styleReferenceImages": [
+    "/images/bureau/bureau-floor-minus-2-labs.png",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_corridor_services_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_lab_a_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_reagents_t1.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible; abstract tag-like marks only",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 deep-level Bureau language",
+    "roomIdentity": "bright mystical artifact containment repository",
+    "creativePriority": "brighter, more mystical, more fantasy-inflected artifact chamber while still Bureau-controlled"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92; revised per user request for brighter mystical fantasy direction",
+  "mapRoomId": "b2-artifacts"
+}

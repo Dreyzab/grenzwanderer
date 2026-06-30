@@ -189,6 +189,62 @@ function ChoiceSourceBadge({
   );
 }
 
+function ChoiceInnerVoiceDebate({
+  hints,
+}: {
+  hints: ChoiceInnerVoiceHintDisplay[];
+}) {
+  const visibleHints = hints.slice(0, 2);
+
+  if (visibleHints.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      className="mt-2 flex flex-col gap-1 pl-[3.25rem] font-sans text-[10px] leading-snug sm:text-[11px]"
+      data-testid="choice-inner-voice-debate"
+    >
+      {visibleHints.map((hint) => (
+        <span
+          key={`${hint.voiceId}-${hint.stance}-${hint.text}`}
+          className="rounded-[4px] border px-2 py-1 shadow-[0_8px_22px_rgba(0,0,0,0.28)]"
+          data-stance={hint.stance}
+          data-testid="choice-inner-voice-stance"
+          data-voice-id={hint.voiceId}
+          style={{
+            borderColor: hint.palette.accentSoft,
+            backgroundColor: `${hint.palette.accent}10`,
+            color: hint.palette.text,
+          }}
+        >
+          <span
+            className="mr-1.5 font-semibold uppercase tracking-[0.16em]"
+            style={{ color: hint.palette.accent }}
+          >
+            {hint.label}
+          </span>
+          <span
+            className="mr-1.5 rounded-sm px-1 py-0.5 uppercase tracking-[0.14em]"
+            style={{
+              backgroundColor:
+                hint.stance === "supports"
+                  ? "rgba(52, 211, 153, 0.13)"
+                  : "rgba(248, 113, 113, 0.13)",
+              color: hint.stance === "supports" ? "#34d399" : "#f87171",
+            }}
+          >
+            {hint.stance}
+          </span>
+          <span className="font-serif text-[12px] italic tracking-normal sm:text-[13px]">
+            {hint.text}
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 interface PrimaryVoiceFloatProps {
   hint: ChoiceInnerVoiceHintDisplay | null;
   children: ReactNode;
@@ -515,6 +571,7 @@ export function VnChoiceButton({
             ) : null}
           </div>
         ) : null}
+        <ChoiceInnerVoiceDebate hints={innerVoiceHints} />
       </div>
     </motion.button>
   );

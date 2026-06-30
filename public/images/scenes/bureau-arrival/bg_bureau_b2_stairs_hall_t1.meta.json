@@ -1,0 +1,35 @@
+{
+  "assetId": "bureau_b2_stairs_hall_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_2_t1_v1",
+  "floorId": "minus-2",
+  "roomId": "b2-stairs",
+  "roomNumber": 1,
+  "roomTitle": "Stair hall",
+  "roomAccess": "restricted",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b2_stairs_hall_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_0a55b533c04e93b6016a3ad56a429c819bb9415c2b906a56f5.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau deepest stair hall beneath Freiburg Hauptbahnhof, 1905.\nScene/backdrop: restricted stair hall at the entrance to the deepest Bureau level, heavy stone landing below the archive floor, barred lift gate, dark oak security doors, brass access mechanisms, pneumatic tube junctions, pressure gauges, cool damp stone, institutional anti-paranormal infrastructure, deeper and colder than the archive level.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, stairs and doors framing the sides, sprite-safe center and lower foreground, readable mid-ground depth, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: sparse warm bureaucratic lamplight against colder underground stone, restricted pressure, disciplined secrecy, not theatrical horror.\nColor palette: dark oak, aged brass, warm amber lamps, cool grey-blue stone, muted parchment, restrained red wax seals.\nMaterials/textures: worn stone steps, brass rails and locks, dark oak doors, iron bars, wax seals, damp stone masonry.\nText: no readable text anywhere; plaques, notices, tags, and papers may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity, no modern objects, no readable labels or signage, no visible characters or silhouettes, no gore, no ritual circles, no fantasy portal, no magical glow, no neon, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, generic fantasy dungeon, clutter that blocks sprite staging.",
+  "finalPromptSha256": "9829faa9cc4f9f31c946f1a43d02c322c5cd0b05c01de31a790f6d80d0dc1185",
+  "assetSha256": "64b6d34db0e095061a33e10bb81ef6a38feba0b219eada3847db0856b1f88a73",
+  "styleReferenceImages": [
+    "/images/bureau/bureau-floor-minus-2-labs.png",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_corridor_services_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_lab_a_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_reagents_t1.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 deep-level Bureau language",
+    "roomIdentity": "deep restricted stair hall"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92",
+  "mapRoomId": "b2-stairs"
+}

@@ -361,7 +361,7 @@ bun run dev -- --port 5174 --force
 
 ### Ручная проверка:
 
-1. Выбрать Elias → Begin Investigation
+1. Выбрать Matthias → Begin Investigation
 2. Видео Bahn.mp4 → звуковой промпт → полноэкранное видео (**fullscreen** режим)
 3. Переход в купе → **log** режим, текст печатается по сегментам
 4. Письмо → **letter_overlay** режим (без изменений)

@@ -4,10 +4,10 @@ tags: [character, major]
 tier: major
 runtime_character_id: inspector
 faction: fct_private_inquiry
-aliases: ["Elias Thorne", "Arthur Vance"]
+aliases: ["Inspector Adler"]
 ---
 
-# Elias Thorne
+# Matthias Adler
 
 ## Dossier
 

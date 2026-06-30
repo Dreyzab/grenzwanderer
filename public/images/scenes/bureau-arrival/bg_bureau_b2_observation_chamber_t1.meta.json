@@ -1,0 +1,35 @@
+{
+  "assetId": "bureau_b2_observation_chamber_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_2_t1_v1",
+  "floorId": "minus-2",
+  "roomId": "b2-observation",
+  "roomNumber": 5,
+  "roomTitle": "Observation chamber",
+  "roomAccess": "restricted",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b2_observation_chamber_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_0a55b533c04e93b6016a3ad819ad30819b849b824ea401a7f6.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau observation chamber beneath Freiburg Hauptbahnhof, 1905.\nScene/backdrop: controlled underground observation room for watching anomalous evidence without direct contact, divided by thick framed observation glass, dark oak console desk, brass speaking tubes, shutter levers, pressure gauges, wax-sealed sample pass-through, cool stone walls, hidden anti-paranormal agency infrastructure. The watched room beyond the glass is empty.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, observation glass and desk offset to the sides, sprite-safe center and lower foreground, readable mid-ground depth, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: cold controlled lamplight behind glass with warmer Bureau lamps in the foreground, clinical pressure, secrecy, not theatrical horror.\nColor palette: cool grey-blue stone, smoky glass, dark oak, aged brass, warm amber lamps, blackened iron, muted parchment tags without readable text.\nMaterials/textures: thick glass, worn wood desk, brass tubes and levers, iron shutters, wax seals, damp stone masonry.\nText: no readable text anywhere; notes, gauges, tags, and plaques may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity, no modern electronics, no readable labels or signage, no visible characters or silhouettes, no bodies behind glass, no faces, no gore, no ritual circles, no fantasy portal, no magical glow, no neon, no CCTV screens, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, modern surveillance room, generic horror cell, clutter that blocks sprite staging.",
+  "finalPromptSha256": "804be1feabc172c0dafb90780a38b8a60f22b367df76cc7c42a2fb601e499ebc",
+  "assetSha256": "13b678320e4e4de966d8dedc5f9b65a7de6ca2749982091cdd7ec552b8e76056",
+  "styleReferenceImages": [
+    "/images/bureau/bureau-floor-minus-2-labs.png",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_corridor_services_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_lab_a_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_reagents_t1.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 deep-level Bureau language",
+    "roomIdentity": "controlled observation chamber"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92",
+  "mapRoomId": "b2-observation"
+}

@@ -1,0 +1,33 @@
+{
+  "assetId": "bureau_b1_lab_b_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_1_t1_v1",
+  "floorId": "minus-1",
+  "roomId": "b1-lab-b",
+  "roomNumber": 6,
+  "roomTitle": "Исследовательская лаборатория B",
+  "roomAccess": "restricted",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b1_lab_b_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_0e95aa522e7aae60016a3aa95e6e8c8191a42b08e1bbbdb1d3.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau research laboratory B beneath Freiburg Hauptbahnhof, 1905.\nScene/backdrop: secondary underground research laboratory with separated experiment zone, dark oak benches arranged behind a partial glass-and-wood partition, isolation cabinet, sealed sample chamber, brass valves, glass vessels, pressure gauges, locked cabinets, cool stone walls, hidden anti-paranormal agency infrastructure. No wall posters, no human imagery.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, partition and benches framing the sides, sprite-safe center and lower foreground, readable mid-ground depth, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: warmer Bureau lamps near the viewer, cooler shadowed lamplight in the isolated work zone, controlled pressure, secret but not theatrical horror.\nColor palette: dark oak, aged brass, warm amber lamps, cool grey stone, smoky glass, muted parchment tags without readable text, restrained deep red wax seals.\nMaterials/textures: polished worn wood, brass valves, glass cabinet panels, ceramic trays, leather straps, wax seals, stone masonry.\nText: no readable text anywhere; tags and notes may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity, no modern electronics, no readable labels or signage, no visible characters or silhouettes, no anatomical drawings, no human figure diagrams, no portraits, no gore, no ritual circles, no fantasy portal, no magical glow, no neon, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, generic fantasy alchemy dungeon, clutter that blocks sprite staging.",
+  "finalPromptSha256": "731158973cec40c4219c9e7c562efae535cc5bef77dd18d4670dd833031e546b",
+  "assetSha256": "21d1e44714e4863ad40f4ceefadc0d4404412450175d6c0b57a87fd2ea528979",
+  "styleReferenceImages": [
+    "/images/scenes/bureau-arrival/bg_bureau_archive_hall_t1_pilot.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png",
+    "/images/bureau/bureau-floor-minus-1-archive.png",
+    "/images/scenes/case01/bg_case01_archive_reading_room.webp"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 underground Bureau laboratory language",
+    "roomIdentity": "separated secondary research laboratory"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92"
+}

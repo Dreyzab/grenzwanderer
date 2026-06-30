@@ -1,0 +1,33 @@
+{
+  "assetId": "bureau_b1_catalog_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_1_t1_v1",
+  "floorId": "minus-1",
+  "roomId": "b1-catalog",
+  "roomNumber": 4,
+  "roomTitle": "Каталогизация и учет",
+  "roomAccess": "staff",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b1_catalog_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_0e95aa522e7aae60016a3aa80f30e88191a2f9b998334d90a7.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau cataloging and records room beneath Freiburg Hauptbahnhof, 1905.\nScene/backdrop: underground cataloging office for cases and material movement, wall of dark oak card catalog drawers, ledger desk, sorting trays, sealed folders, brass pneumatic tube terminal, index cards with abstract marks only, cool stone walls, narrow institutional order, hidden anti-paranormal agency infrastructure.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, catalog drawers and desks around the sides, sprite-safe center and lower foreground, readable mid-ground depth, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: warm bureaucratic lamplight against cool underground stone, procedural calm, controlled pressure, secret but not theatrical horror.\nColor palette: dark oak, aged brass, warm amber lamps, cool grey stone, muted parchment, restrained red wax seals.\nMaterials/textures: small wooden drawers, brass pulls, parchment index cards, leather ledgers, wax seals, stone masonry, worn wood floors or stone floor.\nText: no readable text anywhere; tabs, ledgers, card drawers, and wall charts may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity, no modern objects, no readable labels or signage, no visible characters or silhouettes, no gore, no ritual circles, no fantasy portal, no neon, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, generic fantasy dungeon, clutter that blocks sprite staging.",
+  "finalPromptSha256": "344a46992f93bf6a6d610efa164f7712b660a2fd82df2a1681dc0d41d0518853",
+  "assetSha256": "60b58f861a23c8a64905e636f220e9d0d7c9e07a2022b1d49a44ed2d8c7126df",
+  "styleReferenceImages": [
+    "/images/scenes/bureau-arrival/bg_bureau_archive_hall_t1_pilot.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png",
+    "/images/bureau/bureau-floor-minus-1-archive.png",
+    "/images/scenes/case01/bg_case01_archive_reading_room.webp"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 underground Bureau records language",
+    "roomIdentity": "cataloging and records room"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92"
+}

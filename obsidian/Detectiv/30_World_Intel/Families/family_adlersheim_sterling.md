@@ -18,7 +18,8 @@ make her safe, deniable, and socially legible.
 
 Case 01 should surface the family through names, letters, reputation, political
 pressure, and the old wound of Julian Sterling's death. It must not solve the
-Sterling murder thread.
+Sterling murder thread. That wound is formalized as Victoria's character quest /
+shadow case: [[00_Map_Room/qst_victoria_shadow_case|qst_victoria_shadow_case]].
 
 ## Core Members
 
@@ -64,7 +65,7 @@ Sterling murder thread.
 - **Role**: Victoria's late husband, chemist.
 - **Family function**: The unresolved Sterling wound.
 - **Case 01 rule**: Chemical residue may rhyme with his death, but his murder
-  remains shadow context.
+  remains shadow context and character-quest pressure, not a solved Case01 case.
 
 ### Edmund Sterling
 

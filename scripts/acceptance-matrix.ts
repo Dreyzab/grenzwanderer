@@ -99,7 +99,7 @@ export const acceptanceFlows: AcceptanceFlow[] = [
     label: "Freiburg origin entry",
     kind: "player_flow",
     entryPath:
-      "HomePage -> Freiburg 1905 -> OriginSelectionScreen -> beginFreiburgOrigin -> origin-specific intro -> default Case01 runtime entry",
+      "HomePage -> Freiburg 1900 -> OriginSelectionScreen -> beginFreiburgOrigin -> origin-specific intro -> default Case01 runtime entry",
     smokeCommand: "smoke:origin-entry",
     smokeLabel: "Origin entry",
     includeInSmokeAll: true,

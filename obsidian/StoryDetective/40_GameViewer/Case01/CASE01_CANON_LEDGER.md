@@ -10,15 +10,16 @@
 - New Case01 scenes must be authored as StoryDetective `_scenario.md` plus `scene_*.md` files.
 - Existing hardcoded Case01 slices are tracked as `temporary_runtime_bridge` until migrated into StoryDetective scene files with exact frontmatter `id`.
 
-## Elias Thorne Preservation
+## Matthias / Arthur Origin Split
 
 - Runtime character id: `inspector`.
-- Runtime display identity: Elias Thorne.
-- Design/reference alias: Arthur Vance.
+- Runtime display identity: Matthias Adler.
+- Journalist-origin identity: Arthur Vance (`origin_journalist`).
+- Arthur is not a Matthias/detective alias; old Arthur-as-detective text is legacy reference.
 - Baseline tone: professional, observant, restrained, and willing to apply procedural pressure.
 - New depth is added through player-choice alternatives, not by replacing the base persona.
 
-## Elias Identity Starting Baseline
+## Matthias Identity Starting Baseline
 
 | Trait | Base Value | Dynamic Factor | Description |
 | --- | ---: | --- | --- |
@@ -31,7 +32,7 @@
 
 | Node ID | Choice Vector | Impacted Trait | Rationale |
 | --- | --- | --- | --- |
-| `scene_case01_hbf_police` | Cooperate with local police | +Authority | Establishes Elias as a legitimate special-mandate investigator. |
+| `scene_case01_hbf_police` | Cooperate with local police | +Authority | Establishes Matthias as a legitimate special-mandate investigator. |
 | `scene_case01_hbf_newsboy_approach` | Investigate the newsboy without reducing him to a clue dispenser | +Empathy | Looks beyond the task to the person carrying the rumor. |
 | `scene_case01_hbf_luggage_robbery` | Intervene procedurally in civil disorder | +Professionalism | Turns surprise into method instead of panic. |
 
@@ -39,18 +40,20 @@
 
 | Canonical runtime name | Reference aliases | Runtime policy |
 | --- | --- | --- |
-| Elias Thorne | Arthur Vance | Alias is design/reference only. |
+| Matthias Adler | Detective Arthur Vance, Inspector Arthur Vance | Matthias is the detective-origin identity; Arthur is reserved for journalist origin. |
+| Arthur Vance | — | Canon journalist-origin protagonist (`origin_journalist`), not a detective replacement. |
+| Lotte Weber | Lotte Fischer, legacy `operator` key | Runtime social identity is `npc_weber_dispatcher`; `operator` is reference metadata only. |
 | Fritz Muller | Fritz Mueller, locale variants | Runtime text uses Fritz Muller unless localized. |
 | Victoria Sterling | Clara von Altenburg, Clara Altenburg | Clara is legacy planning; scientific companion runtime uses Victoria / `victoria_sterling`; `assistant` is compatibility-only. |
 | Baroness Elise von Altenburg | Baroness Klara von Altenburg, Баронесса Клара, Клара фон Альтенбург | Witch-prologue estate runtime uses `npc_baroness_elise`; Klara is legacy drift. |
-| Heinrich Galdermann | Herr Galdermann | Both may appear when role/context requires it. |
+| Heinrich Galdermann | Heinrich Haldermann, Galderman | Runtime spelling is Heinrich Galdermann. |
 | Bankhaus J.A. Krebs | Kaiserbank, Bankhaus Krebs | Runtime display name is Bankhaus J.A. Krebs. |
 
 ## Coverage Summary
 
-- Total Case01 nodes: 111
-- Covered by StoryDetective: 46 (41.4%)
-- Bridged from TypeScript: 65
+- Total Case01 nodes: 142
+- Covered by StoryDetective: 48 (33.8%)
+- Bridged from TypeScript: 94
 - Missing ownership: 0
 - Identity drift findings: 0
 
@@ -100,8 +103,13 @@
 | case01_hbf_arrival | `scene_case01_hbf_echo_intro_self` | Name in Circulation | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_exit_final` | Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_luggage` | Luggage Counter | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
-| case01_hbf_arrival | `scene_case01_hbf_luggage_incident_witch` | Инцидент на перроне | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_hbf_luggage_incident_witch` | Стойка выдачи багажа | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_luggage_robbery` | HBF Arrival | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_hbf_luggage_sasha_dismiss_concern` | Форма важнее заботы | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_hbf_luggage_sasha_send_felix_away` | Без лишних глаз | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_hbf_luggage_sasha_soft` | Саша у багажа | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_hbf_luggage_sasha_thank_quietly` | Тихая благодарность | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_hbf_luggage_sasha_thirst` | Рука Саши | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_newsboy_approach` | Evening edition | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_newsboy_handoff` | HBF Arrival | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_hbf_newsboy_release` | HBF Arrival | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
@@ -113,12 +121,16 @@
 | case01_hbf_arrival | `scene_case01_night_alley_escalation` | Срыв | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_night_alley_witch` | Ночной Переулок | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_opening_arrival_video` | Approach by rail | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_opening_arrival_video_witch` | Полудрема | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_ankommen_video` | Approach to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_assistant_departure` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_assistant_intro` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_assistant_intro_witch` | Сын | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_collar_choice_witch` | Воротник | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_compartment_letter` | Orders from the Agency | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
-| case01_hbf_arrival | `scene_case01_train_compartment_letter_witch` | Recruitment Invitation | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_compartment_letter_witch` | Письмо Бюро | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_compartment_revisit` | Compartment | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_corridor_revisit` | Corridor | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_eleonora_farewell` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_eleonora_farewell_hotel_defend` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_eleonora_farewell_hotel_observe` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
@@ -130,20 +142,40 @@
 | case01_hbf_arrival | `scene_case01_train_dining_car_intro` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_intro_self_branch` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_intro_witch` | Вагон-ресторан | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
-| case01_hbf_arrival | `scene_case01_train_dining_car_lotte_monologue_witch` | Радость жизни | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_dining_car_lotte_monologue_witch` | Разговор с Лотте | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_marriage_joke` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_mother` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_dining_car_revisit` | Dining Car | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_silent_branch` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_dining_car_wine_beat` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_disembark_journal` | On the platform | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_door_creaks` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_hub` | Train Map | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_platform_parting` | Parting | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_silent_beat` | Journey to Freiburg | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_train_vestibule_revisit` | Vestibule | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_train_voza_cutscene` | Platform Landing | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_witch_bureau_entry` | Секретный отдел Бюро | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_witch_bureau_exit` | Напутствие | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_witch_bureau_master_meeting` | Встреча с Мастером | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_bureau_master_noticed_hbf_blood` | Мастер заметил | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_coin_clang` | Звук | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_coin_wake` | Упавшая монета | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_compartment_memory` | Сон | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_dining_car_buffet_first_look` | Буфетная стойка | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_estate_epilogue` | После особняка | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_hbf_arrival | `scene_case01_witch_estate_handoff` | Дорога к Гранд-Эстейт | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_felix_exit` | До Фрайбурга | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_finale_closed` | Дело закрыто | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_finale_to_sandbox` | Завеса зовёт | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_hotel_checkin` | «Zum Goldenen Adler» | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_letter_afterthoughts` | После письма | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_lotte_counter_intro` | Фройляйн Вебер | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_lotte_goodbye_platform` | Прояснение | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_lotte_monologue_cynic_reaction` | Записная книжка | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_lotte_monologue_grief_reaction` | Теплая рука | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_lotte_monologue_practical_reaction` | Дверь вагона | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_hbf_arrival | `scene_case01_witch_thirst_mask` | Жажда | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_lead_apothecary | `scene_case01_apothecary_entry` | Scene: Lowen Apotheke | COVERED | StoryDetective authoritative | OK |  |
 | case01_lead_apothecary | `scene_case01_apothecary_exit` | Scene: Chemical Bundle Locked | COVERED | StoryDetective authoritative | OK |  |
 | case01_lead_pub | `scene_case01_pub_entry` | Scene: Zum Schlappen | COVERED | StoryDetective authoritative | OK |  |
@@ -166,9 +198,11 @@
 | case01_rail_yard_shadow_tail | `scene_case01_rail_entry` | Rail Yard Tail | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_rail_yard_shadow_tail | `scene_case01_rail_exit` | Covert Entry Ready | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
 | case01_rail_yard_shadow_tail | `scene_case01_rail_tail` | Covert Entry Window | BRIDGED | temporary_runtime_bridge | OK | Hardcoded in scripts/data/case01_canon_runtime.ts until migrated. |
+| case01_warehouse_finale | `scene_case01_sapper_flashback` | Scene: The Clean Cut (Sapper Flashback) | COVERED | StoryDetective authoritative | OK |  |
 | case01_warehouse_finale | `scene_case01_warehouse_compromised` | Scene: Compromised Truth | COVERED | StoryDetective authoritative | OK |  |
 | case01_warehouse_finale | `scene_case01_warehouse_entry` | Scene: Warehouse Door | COVERED | StoryDetective authoritative | OK |  |
 | case01_warehouse_finale | `scene_case01_warehouse_lawful` | Scene: Lawful Close | COVERED | StoryDetective authoritative | OK |  |
+| case01_warehouse_finale | `scene_case01_warehouse_sapper` | Scene: The Technical Guard (Warehouse) | COVERED | StoryDetective authoritative | OK |  |
 
 ## Migration Rule
 

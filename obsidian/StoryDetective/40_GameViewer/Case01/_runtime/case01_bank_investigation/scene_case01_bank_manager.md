@@ -33,6 +33,6 @@ choices:
 
 ## Dramatic Function
 
-Galdermann tries to make the case procedural before Elias can make it factual.
+Galdermann tries to make the case procedural before Matthias can make it factual.
 His postal certainty is useful evidence: either he saw more than he should have,
-or he needs Elias far away from the ledgers.
+or he needs Matthias far away from the ledgers.

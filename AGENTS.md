@@ -1,73 +1,128 @@
-# AGENTS
+# AGENTS.md — Навигационная карта и проектные соглашения «Гренцвандер»
 
-This file is the short entry point for coding agents working in this repo.
-Detailed SpacetimeDB guidance already lives in the rule files under `.cursor/rules/`.
-Do not turn this file back into a full SDK manual.
+Файл предназначен для автономных ИИ-агентов (Hermes, Claude Code и др.), работающих в репозитории проекта **Grenzwanderer**. Он определяет структуру кодовой базы, архитектуру лора, активные дизайн-контракты и предотвращает деградацию и дрифт концептов при генерации кода или текста.
 
-## Read Order
+---
 
-1. Always apply `.cursor/rules/spacetimedb.mdc`.
-2. If you touch TypeScript, React, client bindings, reducers, schema, subscriptions, or procedures, also apply `.cursor/rules/spacetimedb-typescript.mdc`.
-3. If a rule example conflicts with the current repo or generated bindings, trust the current repo and regenerate bindings rather than inventing APIs.
+## 1. Общие сведения о проекте (Project Core)
 
-## Repo Reality
+- **Название:** Гренцвандер (Grenzwaender / Grenzwanderer)
+- **Сеттинг:** Земля, кайзеровская Германия, сонный университетский город Фрайбург-им-Брайсгау, 1900 год.
+- **Сверхъестественный пласт:** Параллельный фэнтези-мир Эдем (Edem), откуда через редкие эфирные микротрещины (Рифты / Rifts) просачиваются магия, эфир и криптиды (например, маленькие водные домовые — Бэхле-Вихты / Bächle-Wichte).
+- **Маскарад и ИВМР:** Институт Высших Магических Расследований (ИВМР) — секретная прусская/имперская служба, подавляющая утечки магии в обстановке строжайшей секретности. ИВМР использует изолированные «ретро-технологии» (Melton-телефоны, катушки индуктивности, разностные машины Бэббиджа, пневмопочту), защищенные от эфирных помех. Смертные используют стандартные технологии 1900 года.
+- **Парламент разума (Inner Parliament):** Психоаналитическая система внутренних голосов и навыков (Disco Elysium-style), общая для шести игровых протагонистов.
+- **Технологический стек:** React 19 + Vite + TS + Tailwind CSS + Convex + Clerk + Mapbox GL + Zustand.
 
-- This repo currently ships two active SpacetimeDB rule files:
-  - `.cursor/rules/spacetimedb.mdc`
-  - `.cursor/rules/spacetimedb-typescript.mdc`
-- Older references to `spacetimedb-rust.mdc`, `spacetimedb-csharp.mdc`, and `spacetimedb-migration-2.0.mdc` are stale in this repo and should not be treated as available files.
-- The active stack here is TypeScript + React + SpacetimeDB.
+---
 
-## Non-Negotiables
+## 2. Анатомия репозитория (Directory & File Map)
 
-- Reducers are transactional and deterministic. Do not add filesystem access, network calls, timers, or randomness to reducer logic.
-- Reducers do not return data to callers. Read state through tables, subscriptions, and generated bindings.
-- Treat `ctx.sender` as the only trusted identity source.
-- Make the smallest necessary change. Do not touch unrelated files or invent new APIs.
-- Do not edit generated bindings by hand. Regenerate them after schema or reducer-signature changes.
-- Auto-increment IDs are not a safe ordering mechanism.
-- Index names are global within a module and must remain unique.
-- If you rename or remove an index, update all code that references that exact index name.
+При работе с проектом используйте эту карту для поиска соответствующих файлов, спецификаций и модулей:
 
-## TypeScript / React Fast Rules
-
-- `table()` takes `table(OPTIONS, COLUMNS)`. Indexes belong in `OPTIONS`, not in the column object.
-- Use `BigInt` syntax for `u64` and `i64` values: `0n`, `1n`, `42n`.
-- Reducer and procedure names come from exports, not string arguments.
-- Client reducer calls use object arguments, not positional arguments.
-- Import generated connection types from `./module_bindings`, not from imaginary SDK packages.
-- `useTable()` returns `[rows, isLoading]`.
-- Views should prefer index-backed lookups; avoid `.iter()` in views unless the cost is clearly acceptable.
-- Procedures do not get `ctx.db`; use `ctx.withTx(...)`.
-- Compare identities via their canonical string form, not by assuming primitive equality behavior.
-
-## Delivery Checklist
-
-1. Update schema and reducer/procedure code.
-2. Regenerate bindings if the schema or reducer contract changed.
-3. Wire the reducer call from the client if the feature is user-triggered.
-4. Confirm the UI reads from subscriptions or `useTable(...)`.
-5. Check logs if data does not appear where expected.
-
-## Common Failure Modes
-
-- Backend tables and reducers exist, but the client never calls the reducer.
-- Schema changed, but bindings were not regenerated.
-- A query still references an old index name.
-- A `u64` field was treated as `number` instead of `bigint`.
-- Code uses hallucinated SpacetimeDB APIs instead of generated bindings and real SDK calls.
-
-## Useful Commands
-
-```bash
-spacetime start
-spacetime publish <db-name> --module-path <module-path>
-spacetime publish <db-name> --clear-database -y --module-path <module-path>
-spacetime generate --lang typescript --out-dir <out> --module-path <module-path>
-spacetime logs <db-name>
+```text
+Grenzwanderer/
+├── CONTEXT.md                    # Canonical glossary (Player, Character, Story, Fact, Knowledge, Evidence)
+├── docs/                         # Базовые спецификации и дизайн-библии проекта
+│   ├── NEUROCHEMICAL_PARLIAMENT_ARCHITECTURE.md  # Структура голосов, навыков и софт-стресса
+│   ├── CHARACTER_CONCEPT.md      # Библия персонажей: 5-слойный контракт и ролевая грамматика
+│   ├── CHARACTER_BRIDGE_LEDGER.md # Реестр и сверка ID персонажей
+│   ├── INNER_PARLIAMENT_CONSTITUTION.md # Конституция внутренней механики парламента
+│   ├── WITCH_VOLITION_AND_VETO_SPEC.md   # Спецификация воли и вето для Элеоноры
+│   ├── WITCH_TABLETOP_DM_RULES.md # Настольные правила мастера для игры за Ведьму
+│   └── MAP_UI_INVENTORY.md       # Спецификация интерфейса карты и инвентаря
+├── data/                         # Контракты данных и статические определения
+│   ├── innerVoiceContract.ts     # 8 фракций (голосов) и 24 навыка (характеристики)
+│   └── skillDefinitions.ts       # Определение патронских голосов и навыков
+├── scripts/
+│   └── data/
+│       └── freiburg_social_catalog.ts # Социальный каталог ИВМР (NPC Identities / npc_*)
+├── src/                          # Исходный код приложения
+│   ├── features/
+│   │   ├── character/
+│   │   │   └── originProfiles.ts # Профили 6 протагонистов (Торн, Ванс, Вальдштейн и др.)
+│   │   └── vn/
+│   │       ├── characterRoles.ts # Нарративные роли NPC (design-only)
+│   │       └── characterSprites.ts # Спрайты, эмоции и визуальный бюджет
+│   └── shared/
+│       └── game/
+│           └── witchRules.ts     # Реализация механики Кровавого Проклятия Ведьмы (Blood Curse)
+└── obsidian/                     # World-building база знаний и сценарии (Obsidian Vault)
+    └── StoryDetective/
+        └── 40_GameViewer/
+            ├── Case01/           # Дело №1: Bankhaus Krebs Breach
+            │   ├── _Characters/  # Досье персонажей (Clara, Stoll, Rudi, Krebs Mugger)
+            │   ├── _Evidence/    # Улики (ev_*)
+            │   └── _runtime/     # Сценарии и черновики глав (Rathaus briefing, Warehouse finale)
+            └── Case02/           # Дело №2: Konrad Vossler arc
 ```
 
-## Maintenance Rule
+---
 
-Keep detailed examples and edge cases in `.cursor/rules/*`.
-Keep `AGENTS.md` short, stable, and navigational.
+## 3. Ключевые проектные контракты (Design Contracts)
+
+### Контракт терминологии (`CONTEXT.md` — Строгий Глоссарий)
+
+- **Player** (Игрок) — человек за экраном. _Запрещено:_ User, client.
+- **Character** (Персонаж) — репрезентация в игре. _Запрещено:_ Hero, avatar.
+- **Story** (История) — путь/ветка в визуальной новелле. _Запрещено:_ Quest, script, level.
+- **Fact** (Факт) — атомарное знание. Ключевые улик-факты дублируют ID улик (`ev_*`). _Запрещено:_ Flag.
+- **Knowledge** (Знание NPC) — вычисляемое на лету состояние владения фактом персонажем. _Запрещено:_ Memory.
+- **Evidence** (Улика Игрока) — факты, собранные игроком. Симметрична знанию.
+
+### Контракт Парламента и Протагонистов (`NEUROCHEMICAL_PARLIAMENT_ARCHITECTURE.md`)
+
+Единый системный Парламент содержит **8 голосов (`inner_*`)** и **24 навыка (`attr_*`)**. Различие протагонистов задается данными профиля (`statEffects` + уникальный изъян/Flaw). В игре **6 протагонистов**, а не 3:
+
+1.  **Детектив:** Matthias Adler, 27 лет. Изъян: _Cynical Mistrust_ (Циничное недоверие).
+2.  **Журналист:** Arthur Vance, 32 года. Изъян: _Gambling Addiction_ (Лудомания — математический психоз поиска паттернов).
+3.  **Аристократка:** Charlotte von Waldstein, 25 лет. Изъян: _Claustrophobia_ (Клаустрофобия).
+4.  **Ветеран:** Gustav Eisenhart, 40 лет. Изъян: _Alcoholism_ (Алкоголизм). Сигнатура: «опасность проясняет его».
+5.  **Архивист:** Martha Heller, 40 лет. Изъян: _Obsessive Archivist_ (Обсессивное архивариусство).
+6.  **Ведьма:** Eleonora Hartmann, 45 лет. Изъян: _Blood Curse_ (Кровавое Проклятие — реализовано в `witchRules.ts`).
+
+#### Границы стресса (Stress Boundary):
+
+- **Никаких жестких визуальных блокировок диалога** из-за стресса («amygdala hijack» запрещен). Трудные выборы должны оставаться на экране, но сереть из-за нехватки токенов Воли (`resource_volition_token`) или требовать жестких бросков кубиков при высоком уровне изъяна.
+- **Dialogue stress** (схватка в сцене) и **Moral stress** (внутренний конфликт идентичности) — это две разные переменные, их слияние запрещено.
+
+### 5-слойный контракт персонажей (`CHARACTER_CONCEPT.md`)
+
+Каждый NPC проектируется по строгому согласованию 5 слоев:
+
+1.  **Identity spine:** Уникальный технический ID в социальном каталоге (`freiburg_social_catalog.ts`), префикс `npc_*`.
+2.  **Narrative role:** Роль в грамматике дела (Surface role / Hidden role). Например, Клара Альтенбург — `respectable_surface` ▸ `culprit_by_signature`.
+3.  **Roster tier:** Влияет исключительно на бюджет анимаций и спрайтов (`major` / `functional` / `archetype` / `negative_space`).
+4.  **Visual identity:** Описание спрайта и недопустимого дрифта внешности (`characterSprites.ts`).
+5.  **Player knowledge:** Шаги раскрытия информации для досье игрока (`char_*.md` -> `NpcBio.stages`).
+
+---
+
+## 4. Конвенции разработки и работы с текстом (Execution Guidelines)
+
+### Юрисдикция и исторический реализм (Кабинетный историк)
+
+Фрайбург 1900 года — это Великое герцогство Баден.
+
+- **Прусское давление:** Деятельность ИВМР (имперской прусской структуры) вызывает постоянное сопротивление и саботаж баденской полиции и чиновников округа (`Landeskommissarbezirk`). Любое вмешательство требует сложного согласования, подлога документов или шантажа.
+- **Финансирование:** ИВМР финансируется из секретного фонда рейхсканцлера (**Reptilienfonds** — Фонда рептилий) под камуфляжем субсидий на почту и дренажные работы. Каждый эфирный инцидент требует заполнения сметы расходов на бромид натрия (усыпление Вихтов), износ Melton-катушек или сверхурочные местной жандармерии.
+- **Социальный вопрос:** Академический Фрайбург бурлит — университет Альберта-Людвига открыл двери женщинам, студенты увлекаются марксизмом в пивных, а жандармы видят социалистический заговор в любой забастовке.
+
+### Нарративный Садовник (Стиль без ИИ-клише)
+
+- **Show, Don't Tell:** Запрещено писать _"он почувствовал страх"_ или _"тишина затянулась"_. Описывайте нервное сминание манжет, капающую с зонта воду, запах сырого сукна и задержку стрелок механических часов.
+- **Дефектный диалог:** Люди перебивают друг друга, кашляют, запинаются, коверкают слова в силу классового или регионального баденского происхождения.
+
+---
+
+## 5. Статус дел и расследований (Active Sandbox Status)
+
+### Case 01: «Bankhaus Krebs Breach» / «Witch Train Prologue»
+
+- **Суть:** Магическая утечка в Банкирском доме Кребса, спровоцированная Ведьмой Элеонорой Hartmann.
+- **Структурный прием Split Guilt:** Заговор разделен между тем, кто поставил подпись (`culprit_by_signature` — Галдерманн) и тем, кто исполнил руками (`culprit_by_act` — военный сапер Штоль с термитом).
+- **Церковная угроза:** Нарушение Маскарада игроком провоцирует развертывание и охоту на него Экзекуторов Церкви во главе с отцом Иеронимом (Father Jeronim). В обычное время Фрайбург свободен от постоянного присутствия инквизиции.
+- **Невидимая угроза (Negative Space):** За всеми заговорами дела стоит загадочный «Архитектор» (The Architect), чье лицо никогда не будет показано в первом акте, но чьи чертежи и точнейшие зашифрованные депеши направляют исполнителей.
+
+---
+
+_Используйте этот файл как жесткий когнитивный и технологический фильтр. Любое предложение, нарушающее данные контракты, должно быть отвергнуто или подвергнуто внутренним дебатам._

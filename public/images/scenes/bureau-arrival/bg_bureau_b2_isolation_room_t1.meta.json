@@ -1,0 +1,35 @@
+{
+  "assetId": "bureau_b2_isolation_room_t1",
+  "assetKind": "vn_scene_background_candidate",
+  "productionTier": "T1_VN",
+  "runtimeMode": "split",
+  "productionBatch": "bureau_minus_2_t1_v1",
+  "floorId": "minus-2",
+  "roomId": "b2-interrogation",
+  "roomNumber": 6,
+  "roomTitle": "Isolated negotiation room",
+  "roomAccess": "restricted",
+  "styleGateAssetId": "bureau_archive_hall_t1_pilot",
+  "expectedImagePath": "public/images/scenes/bureau-arrival/bg_bureau_b2_isolation_room_t1.webp",
+  "sourceGeneratedImagePath": "C:/Users/lol/.codex/generated_images/019ef4f6-417a-7dd0-b084-8598bf60f294/ig_0a55b533c04e93b6016a3ad86dfc10819b9ee1cce24562b0fd.png",
+  "finalPrompt": "Use case: historical-scene\nAsset type: T1 VN split-mode reusable background, 16:9 visual novel background candidate\nPrimary request: Secret Bureau isolated negotiation room beneath Freiburg Hauptbahnhof, 1905.\nScene/backdrop: restricted isolated room used for questioning unstable witnesses or negotiating with dangerous objects, bare stone walls, heavy dark oak table, two empty chairs, brass speaking tube, lockable evidence niche, observation slit with shutter, reinforced door, cool stone floor, no torture equipment, no prisoner, no person.\nStyle/medium: oil painting, broad expressive brushstrokes, visible canvas texture, painterly semi-realistic European gothic visual novel background, less detailed than fullscreen CG, readable for recurring dialogue scenes.\nComposition/framing: wide establishing shot, empty scene with no people, no human silhouettes, central table leaves sprite-safe lower foreground and open side staging space, readable mid-ground depth, no foreground clutter blocking the center, 16:9 landscape crop-safe framing.\nLighting/mood: single warm bureaucratic lamp in a cold stone room, restrained pressure, institutional unease, secret but not theatrical horror.\nColor palette: cool grey-blue stone, dark oak, aged brass, warm amber lamp, blackened iron, muted parchment tags without readable text.\nMaterials/textures: worn stone, heavy wood table and chairs, brass speaking tube, iron door fittings, wax-sealed evidence niche.\nText: no readable text anywhere; tags, notes, and plaques may contain abstract marks only.\nConstraints: 1905 Kaiser-era Germany, historical veracity, no modern objects, no readable labels or signage, no visible characters or silhouettes, no restraints in use, no torture tools, no gore, no blood, no ritual circles, no fantasy portal, no magical glow, no neon, no CGI look, no anime, no watermark.\nAvoid: plastic textures, flat digital art, photorealistic modern photography, modern interrogation room, generic horror cell, clutter that blocks sprite staging.",
+  "finalPromptSha256": "7684bfc1fc36c054ba2ffde6e3dbd16c5c7764807f440b022e82c1e4983f1887",
+  "assetSha256": "e05fb9b03304eda4341dc4fb872dce815e598df7bc21cdd13b6800feb852668b",
+  "styleReferenceImages": [
+    "/images/bureau/bureau-floor-minus-2-labs.png",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_corridor_services_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_lab_a_t1.webp",
+    "/images/scenes/bureau-arrival/bg_bureau_b1_reagents_t1.webp",
+    "/images/scenes/bureau-arrival/06-first-meeting-with-the-master.png",
+    "/images/scenes/bureau-arrival/07-the-first-briefing.png"
+  ],
+  "visualQa": {
+    "peopleOrSilhouettes": "none visible",
+    "readableText": "none visible",
+    "spriteSafeStaging": "center and lower foreground remain usable",
+    "periodFit": "1905 deep-level Bureau language",
+    "roomIdentity": "isolated negotiation and questioning room"
+  },
+  "provenance": "built-in image_gen; converted from generated PNG to WebP with ffmpeg libwebp quality 92",
+  "mapRoomId": "b2-interrogation"
+}

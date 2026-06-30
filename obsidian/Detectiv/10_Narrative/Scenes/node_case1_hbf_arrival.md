@@ -61,7 +61,7 @@ tags:
 - Evidence gained/lost:
   - none (clues are represented as flags in this onboarding slice).
 - Quest stage changes:
-  - `quest_watch_recovery` -> stage 1 only if the boy escapes with Elias' watch.
+  - `quest_watch_recovery` -> stage 1 only if the boy escapes with Matthias' watch.
 - Map unlock/visibility changes:
   - unlock `loc_hbf` on finalize.
 - Resources:
